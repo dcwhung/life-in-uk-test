@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1a2744">
+<meta name="description" content="Life in the UK Test — Exam 1–17 Practice App">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Life in UK">
+<title>Life in the UK · Exam Practice</title>
+<style>
+  :root {
+    --navy: #1a2744;
+    --navy-mid: #243460;
+    --navy-light: #2e4080;
+    --gold: #c9a84c;
+    --gold-light: #e8c97a;
+    --green: #2d6a4f;
+    --green-light: #52b788;
+    --red: #922b21;
+    --red-light: #e74c3c;
+    --purple: #6b3fa0;
+    --purple-light: #9b6dca;
+    --bg: #f0f2f7;
+    --card: #ffffff;
+    --text: #1a2744;
+    --text-muted: #5a6a8a;
+    --border: #dde2f0;
+    --radius: 14px;
+    --shadow: 0 4px 24px rgba(26,39,68,0.10);
+    --shadow-sm: 0 2px 8px rgba(26,39,68,0.07);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--navy);
+    padding: 0 20px;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.25);
+  }
+  .header-inner {
+    max-width: 780px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 58px;
+  }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-flag { font-size: 22px; }
+  .logo-text { color: #fff; font-size: 15px; font-weight: 700; letter-spacing: 0.01em; }
+  .logo-sub { color: var(--gold); font-size: 11px; font-weight: 500; margin-top: 1px; }
+  .header-stats {
+    display: flex; gap: 16px; align-items: center;
+  }
+  .stat-chip {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 12px; color: rgba(255,255,255,0.85);
+    display: flex; align-items: center; gap: 5px;
+  }
+  .stat-chip b { color: var(--gold-light); }
+
+  /* ── MAIN ── */
+  main { max-width: 780px; margin: 0 auto; padding: 20px 16px 100px; }
+
+  /* ── HOME SCREEN ── */
+  .home-hero {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
+    border-radius: var(--radius);
+    padding: 36px 28px;
+    color: #fff;
+    margin-bottom: 24px;
+    position: relative; overflow: hidden;
+  }
+  .home-hero::before {
+    content: '🇬🇧';
+    position: absolute; right: 24px; top: 24px;
+    font-size: 64px; opacity: 0.15;
+  }
+  .home-hero h1 { font-size: 26px; font-weight: 800; margin-bottom: 6px; }
+  .home-hero p { font-size: 14px; color: rgba(255,255,255,0.72); line-height: 1.5; max-width: 360px; }
+  .hero-meta {
+    display: flex; gap: 20px; margin-top: 20px; flex-wrap: wrap;
+  }
+  .hero-badge {
+    background: rgba(201,168,76,0.18);
+    border: 1px solid rgba(201,168,76,0.35);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 12px; color: var(--gold-light);
+    font-weight: 600;
+  }
+
+  .mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px; }
+  .mode-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 22px 18px;
+    border: 2px solid var(--border);
+    cursor: pointer;
+    transition: all 0.18s;
+    text-align: left;
+  }
+  .mode-card:hover { border-color: var(--navy-light); transform: translateY(-2px); box-shadow: var(--shadow); }
+  .mode-icon { font-size: 28px; margin-bottom: 10px; }
+  .mode-title { font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+  .mode-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+  .exam-select-section { margin-bottom: 24px; }
+  .section-title {
+    font-size: 13px; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.06em;
+    margin-bottom: 12px;
+  }
+  .exam-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; }
+  .exam-btn {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 6px;
+    font-size: 13px; font-weight: 700;
+    color: var(--navy);
+    cursor: pointer; text-align: center;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .exam-btn:hover { border-color: var(--navy); background: var(--navy); color: #fff; }
+  .exam-btn.done { border-color: var(--green); color: var(--green); }
+  .exam-btn.done::after {
+    content: '✓';
+    position: absolute; top: -6px; right: -6px;
+    background: var(--green); color: #fff;
+    border-radius: 50%; width: 16px; height: 16px;
+    font-size: 10px; display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+  }
+  .exam-btn.all {
+    background: linear-gradient(135deg, var(--navy), var(--navy-mid));
+    color: #fff; border-color: transparent;
+    grid-column: 1 / -1;
+    padding: 12px;
+  }
+
+  /* ── QUIZ SCREEN ── */
+  .quiz-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .back-btn {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 7px 14px;
+    font-size: 13px; font-weight: 600; color: var(--navy);
+    cursor: pointer; display: flex; align-items: center; gap: 6px;
+  }
+  .back-btn:hover { background: var(--navy); color: #fff; border-color: transparent; }
+  .quiz-label {
+    font-size: 13px; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .quiz-mode-badge {
+    background: var(--navy);
+    color: var(--gold-light);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 11px; font-weight: 700;
+  }
+
+  /* progress bar */
+  .progress-wrap { margin-bottom: 20px; }
+  .progress-meta {
+    display: flex; justify-content: space-between;
+    font-size: 12px; color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .progress-track {
+    height: 6px; background: var(--border); border-radius: 10px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green-light), var(--gold));
+    border-radius: 10px;
+    transition: width 0.4s ease;
+  }
+
+  /* question card */
+  .q-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 26px 22px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 14px;
+  }
+  .q-num {
+    font-size: 11px; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.07em;
+    margin-bottom: 10px;
+  }
+  .q-text {
+    font-size: 17px; font-weight: 700; line-height: 1.55;
+    color: var(--navy);
+  }
+
+  /* options */
+  .options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+  .opt {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 11px;
+    padding: 14px 16px;
+    font-size: 14px; font-weight: 500;
+    color: var(--text);
+    cursor: pointer;
+    display: flex; align-items: flex-start; gap: 12px;
+    transition: all 0.15s;
+    text-align: left;
+  }
+  .opt:hover:not(.disabled) { border-color: var(--navy-light); background: #f0f4ff; }
+  .opt-letter {
+    min-width: 26px; height: 26px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: var(--text-muted);
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .opt.correct { border-color: var(--green-light); background: #edf8f2; }
+  .opt.correct .opt-letter { background: var(--green); border-color: var(--green); color: #fff; }
+  .opt.wrong { border-color: var(--red-light); background: #fdf0ef; }
+  .opt.wrong .opt-letter { background: var(--red-light); border-color: var(--red-light); color: #fff; }
+  .opt.disabled { cursor: default; }
+  .opt.selected-wrong { border-color: var(--red-light); background: #fdf0ef; }
+
+  /* answer reveal */
+  .answer-box {
+    background: #edf8f2;
+    border: 1.5px solid var(--green-light);
+    border-radius: 11px;
+    padding: 16px 18px;
+    margin-bottom: 14px;
+    display: none;
+  }
+  .answer-box.show { display: block; animation: slideIn 0.25s ease; }
+  .answer-box.wrong-ans { background: #fdf0ef; border-color: var(--red-light); }
+  @keyframes slideIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+  .ans-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--green); margin-bottom: 6px; }
+  .ans-label.wrong { color: var(--red); }
+  .ans-en { font-size: 14px; font-weight: 700; color: var(--green); margin-bottom: 10px; line-height: 1.5; }
+  .ans-en.wrong { color: var(--red); }
+  .divider { height: 1px; background: rgba(0,0,0,0.06); margin: 10px 0; }
+  .ans-yue { font-size: 13px; color: var(--purple); font-weight: 600; margin-bottom: 4px; }
+  .ans-note { font-size: 12px; color: var(--text-muted); line-height: 1.55; }
+  .ans-note strong { color: #b5680a; }
+
+  /* nav buttons */
+  .nav-row { display: flex; gap: 10px; justify-content: flex-end; }
+  .nav-btn {
+    background: var(--navy);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 24px;
+    font-size: 14px; font-weight: 700;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .nav-btn:hover { background: var(--navy-light); }
+  .nav-btn.secondary { background: var(--card); color: var(--navy); border: 2px solid var(--border); }
+  .nav-btn.secondary:hover { background: var(--navy); color: #fff; border-color: transparent; }
+  .nav-btn:disabled { opacity: 0.4; cursor: default; }
+
+  /* exam mode — hide answer until submit */
+  .exam-submit-row { margin-bottom: 14px; }
+
+  /* ── RESULT SCREEN ── */
+  .result-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 32px 24px;
+    text-align: center;
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+  }
+  .result-emoji { font-size: 52px; margin-bottom: 12px; }
+  .result-score {
+    font-size: 52px; font-weight: 900; color: var(--navy);
+    line-height: 1;
+  }
+  .result-score span { font-size: 22px; color: var(--text-muted); font-weight: 500; }
+  .result-label { font-size: 16px; font-weight: 700; margin: 8px 0 4px; }
+  .result-sub { font-size: 13px; color: var(--text-muted); }
+  .pass { color: var(--green); }
+  .fail { color: var(--red); }
+  .result-breakdown {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px; margin-top: 20px;
+  }
+  .rb-item {
+    background: var(--bg);
+    border-radius: 10px;
+    padding: 14px 8px;
+  }
+  .rb-num { font-size: 22px; font-weight: 800; }
+  .rb-lbl { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  .review-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+  .review-item {
+    background: var(--card);
+    border-radius: 10px;
+    padding: 14px 16px;
+    border-left: 4px solid var(--border);
+    font-size: 13px;
+  }
+  .review-item.rv-correct { border-color: var(--green-light); }
+  .review-item.rv-wrong { border-color: var(--red-light); }
+  .rv-q { font-weight: 600; color: var(--navy); margin-bottom: 4px; }
+  .rv-your { color: var(--text-muted); font-size: 12px; }
+  .rv-correct-ans { color: var(--green); font-size: 12px; font-weight: 600; }
+  .rv-yue { color: var(--purple); font-size: 12px; margin-top: 4px; }
+
+  /* install banner */
+  .install-banner {
+    background: linear-gradient(135deg, var(--navy-mid), var(--navy));
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 20px;
+    display: none;
+  }
+  .install-banner.visible { display: flex; }
+  .install-text { flex: 1; }
+  .install-text strong { color: #fff; font-size: 14px; display: block; margin-bottom: 2px; }
+  .install-text span { color: rgba(255,255,255,0.65); font-size: 12px; }
+  .install-btn {
+    background: var(--gold);
+    color: var(--navy);
+    border: none; border-radius: 8px;
+    padding: 9px 16px;
+    font-size: 13px; font-weight: 800;
+    cursor: pointer; white-space: nowrap;
+  }
+
+  /* screen management */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  @media (max-width: 480px) {
+    .mode-grid { grid-template-columns: 1fr; }
+    .q-text { font-size: 15px; }
+    .result-breakdown { grid-template-columns: 1fr 1fr 1fr; }
+    .result-score { font-size: 42px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <span class="logo-flag">🇬🇧</span>
+      <div>
+        <div class="logo-text">Life in the UK</div>
+        <div class="logo-sub">Exam Practice</div>
+      </div>
+    </div>
+    <div class="header-stats" id="headerStats" style="display:none">
+      <div class="stat-chip">✅ <b id="statCorrect">0</b> correct</div>
+      <div class="stat-chip">📝 <b id="statTotal">0</b> done</div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ── HOME ── -->
+  <div class="screen active" id="screenHome">
+
+    <div class="install-banner" id="installBanner">
+      <div class="install-text">
+        <strong>Install for offline use</strong>
+        <span>Add to home screen to study without internet</span>
+      </div>
+      <button class="install-btn" id="installBtn">Install</button>
+    </div>
+
+    <div class="home-hero">
+      <h1>Exam 1–17 Practice</h1>
+      <p>408 official-style questions from lifeintheuktestweb.co.uk, with Cantonese translations and notes.</p>
+      <div class="hero-meta">
+        <div class="hero-badge">📋 17 Exams</div>
+        <div class="hero-badge">❓ 408 Questions</div>
+        <div class="hero-badge">🔒 Works Offline</div>
+      </div>
+    </div>
+
+    <div class="section-title">Choose Mode</div>
+    <div class="mode-grid">
+      <div class="mode-card" onclick="startMode('practice')">
+        <div class="mode-icon">🎯</div>
+        <div class="mode-title">Practice Mode</div>
+        <div class="mode-desc">See answer &amp; Cantonese translation immediately after each question.</div>
+      </div>
+      <div class="mode-card" onclick="startMode('exam')">
+        <div class="mode-icon">📝</div>
+        <div class="mode-title">Exam Mode</div>
+        <div class="mode-desc">Complete all 24 questions first, then review your score and answers.</div>
+      </div>
+    </div>
+
+    <div class="exam-select-section">
+      <div class="section-title">Select Exam</div>
+      <div class="exam-grid" id="examGrid"></div>
+    </div>
+
+  </div>
+
+  <!-- ── QUIZ ── -->
+  <div class="screen" id="screenQuiz">
+    <div class="quiz-header">
+      <button class="back-btn" onclick="goHome()">← Home</button>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="quiz-label" id="quizLabel">Exam 1</span>
+        <span class="quiz-mode-badge" id="modeBadge">Practice</span>
+      </div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-meta">
+        <span id="progressText">Question 1 of 24</span>
+        <span id="scoreText" style="color:var(--green);font-weight:700"></span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-num" id="qNum">Question 1</div>
+      <div class="q-text" id="qText"></div>
+    </div>
+
+    <div class="options" id="optionsContainer"></div>
+
+    <!-- practice: show after selection -->
+    <div class="answer-box" id="answerBox">
+      <div class="ans-label" id="ansLabel">Correct!</div>
+      <div class="ans-en" id="ansEn"></div>
+      <div class="divider"></div>
+      <div class="ans-yue" id="ansYue"></div>
+      <div class="ans-note" id="ansNote"></div>
+    </div>
+
+    <!-- exam: submit button -->
+    <div class="exam-submit-row" id="examSubmitRow" style="display:none">
+      <button class="nav-btn" id="examSubmitBtn" onclick="examSubmitAnswer()" disabled>Submit Answer</button>
+    </div>
+
+    <div class="nav-row">
+      <button class="nav-btn secondary" id="prevBtn" onclick="prevQ()">← Prev</button>
+      <button class="nav-btn" id="nextBtn" onclick="nextQ()">Next →</button>
+    </div>
+  </div>
+
+  <!-- ── RESULT ── -->
+  <div class="screen" id="screenResult">
+    <div class="quiz-header">
+      <button class="back-btn" onclick="goHome()">← Home</button>
+      <span class="quiz-label" id="resultLabel">Results</span>
+    </div>
+
+    <div class="result-card">
+      <div class="result-emoji" id="resultEmoji">🎉</div>
+      <div class="result-score" id="resultScore">18 <span>/ 24</span></div>
+      <div class="result-label" id="resultLabel2">PASSED</div>
+      <div class="result-sub" id="resultSub">You need 18/24 (75%) to pass the real test.</div>
+      <div class="result-breakdown">
+        <div class="rb-item"><div class="rb-num pass" id="rbCorrect">0</div><div class="rb-lbl">Correct</div></div>
+        <div class="rb-item"><div class="rb-num fail" id="rbWrong">0</div><div class="rb-lbl">Wrong</div></div>
+        <div class="rb-item"><div class="rb-num" id="rbPct" style="color:var(--navy)">0%</div><div class="rb-lbl">Score</div></div>
+      </div>
+    </div>
+
+    <div class="section-title">Review Answers</div>
+    <div class="review-list" id="reviewList"></div>
+
+    <div class="nav-row">
+      <button class="nav-btn secondary" onclick="retryExam()">Retry Exam</button>
+      <button class="nav-btn" onclick="goHome()">Choose Another</button>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ════════════════════════════════════════
+// DATA — All 408 questions, Exams 1–17
+// q: question, o: options array, a: answer index (0-based), yue: cantonese Q, note: memory tip
+// ════════════════════════════════════════
+const EXAMS = {
+1:[
+{q:"What are two responsibilities that you will have as a British citizen or permanent resident of the UK?",o:["To look after the area in which you live and the environment","To look after yourself and your family","To stay in the UK forever","To promote work in your local community"],a:[0,1],yue:"作為英國公民或永久居民，你有哪兩項責任？",note:"六大責任：遵守法律、照顧家人、尊重他人意見、公平待人、照顧環境、照顧自己"},
+{q:"Where is Big Ben located?",o:["Buckingham Palace","The Tower of London","Trafalgar Square","The Houses of Parliament"],a:[3],yue:"大笨鐘喺邊度？",note:""},
+{q:"When were men and women given the right to vote at the age of 21?",o:["1918","1903","1928","1923"],a:[2],yue:"男女同樣係21歲有投票權係哪年？",note:"1918年：30歲以上女性先有票；1928年：降至21歲，與男性相同"},
+{q:"Where is the UK geographically located?",o:["South west of Europe","North east of Europe","North west of Europe","South east of Europe"],a:[2],yue:"英國喺地理上係哪個位置？",note:""},
+{q:"Who is the patron Saint of Scotland?",o:["St David","St Patrick","St George","St Andrew"],a:[3],yue:"蘇格蘭的守護聖人係誰？",note:"記憶法：Andrew → 蘇格蘭；George → 英格蘭；David → 威爾斯；Patrick → 北愛爾蘭"},
+{q:"Which two houses fought in the Wars of the Roses?",o:["The House of Chester","The House of York","The House of Lancaster","The House of Newcastle"],a:[1,2],yue:"玫瑰戰爭係兩個哪些家族之爭？",note:"1455–1485年，最終亨利七世（都鐸王朝）統一"},
+{q:"The Bill of Rights of 1689 confirmed the right to vote for all adult men. True or False?",o:["True","False"],a:[1],yue:"1689年《權利法案》確認所有成年男性投票權。對定錯？",note:"《權利法案》係限制國王權力、確認國會權利，並非賦予投票權"},
+{q:"What is the Cenotaph?",o:["A flower","A Christian church","A war memorial","A theatre"],a:[2],yue:"Cenotaph係乜嘢？",note:"位於倫敦，每年11月11日Remembrance Day舉行紀念儀式"},
+{q:"Who was the first female Prime Minister of the UK?",o:["Mary Stuart","Theresa May","Margaret Thatcher","Florence Nightingale"],a:[2],yue:"英國第一位女首相係誰？",note:"1979–1990年在任，20世紀任期最長首相"},
+{q:"Who chairs the debates at the House of Commons?",o:["A bishop","The Prime Minister","The Speaker","The Archbishop of Canterbury"],a:[2],yue:"誰主持下議院辯論？",note:""},
+{q:"Who was the captain of the English football team that won the World Cup in 1966?",o:["Sir Roger Bannister","Sir Jackie Stewart","Sir Ian Botham","Bobby Moore"],a:[3],yue:"1966年英格蘭贏世界盃，隊長係誰？",note:""},
+{q:"When did the English defeat the Spanish Armada?",o:["1466","1066","1254","1588"],a:[3],yue:"英格蘭係哪年擊敗西班牙無敵艦隊？",note:"伊利沙伯一世年代"},
+{q:"Anyone can make a complaint about the police by writing to the Chief Constable of the police force involved. True or False?",o:["True","False"],a:[0],yue:"任何人可以寫信給總警司投訴警察。對定錯？",note:"亦可去警署或向獨立投訴機構（IOPC）投訴"},
+{q:"What is the minimum age required to serve on a jury?",o:["16","18","21","25"],a:[1],yue:"陪審員的最低年齡係幾歲？",note:"18至70歲，需登記選民冊"},
+{q:"How is a jury selected?",o:["From the NHS registration system","Randomly from the electoral register","Alphabetically from the telephone directory","From a postcode selection"],a:[1],yue:"陪審員係如何選出？",note:""},
+{q:"What is a bank holiday?",o:["A public holiday when banks are open all day","A public holiday for people working in banks","An additional day off that every worker is entitled to","A public holiday when banks and many other businesses are closed"],a:[3],yue:"Bank holiday係乜嘢？",note:""},
+{q:"What will you be given before a general election takes place to enable you to vote?",o:["A ballot slip","A poll card","A voting slip","A poll tax relief"],a:[1],yue:"大選前你會收到乜嘢？",note:"投票時才用ballot paper（選票）"},
+{q:"Which of the following statements is correct about solicitors' charges?",o:["Solicitors' charges are usually based on how much time they spend on a case","Solicitors' charges are usually based on the nature and importance of a case"],a:[0],yue:"關於律師收費，哪個說法正確？",note:""},
+{q:"By law, which TWO types of media must give balanced political coverage before an election?",o:["Television","Internet","Newspapers","Radio"],a:[0,3],yue:"哪兩種媒體須在選舉前提供均衡政治報道？",note:"報章不受此法律限制"},
+{q:"Which of the following territories is a Crown dependency but is NOT part of the UK?",o:["Northern Ireland","Wales","The Channel Islands","Scotland"],a:[2],yue:"哪個領土係Crown dependency但不屬英國？",note:"Isle of Man亦係；英格蘭、威爾斯、蘇格蘭、北愛爾蘭才是英國一部分"},
+{q:"What did Sir Frank Whittle invent in the 1930s?",o:["Radar","Hovercraft","Jet engine","Ballpoint pen"],a:[2],yue:"Frank Whittle爵士在1930年代發明乜嘢？",note:""},
+{q:"Who wrote 'The Daffodils'?",o:["William Blake","Robert Browning","Lord Byron","William Wordsworth"],a:[3],yue:"《水仙花》係誰人寫嘅？",note:""},
+{q:"Who was given the title of Lord Protector?",o:["Charles I","Charles II","Winston Churchill","Oliver Cromwell"],a:[3],yue:"誰獲封「護國公」？",note:"查理一世被處決後，英國成共和國，克倫威爾執政至1658年"},
+{q:"What are the 40 days before Easter called?",o:["Diwali","Lent","Hannukah","Vaisakhi"],a:[1],yue:"復活節前40日叫乜嘢？",note:""}
+],
+2:[
+{q:"What is the Home Secretary responsible for?",o:["Health","Defence","Education","Policing"],a:[3],yue:"內政大臣負責乜嘢？",note:"負責犯罪、警政及移民"},
+{q:"St Helena is a British overseas territory and it is part of the United Kingdom. True or False?",o:["True","False"],a:[1],yue:"聖赫勒拿島係英國海外領土並屬英國一部分。對定錯？",note:"海外領土與英國有聯繫但不屬英國"},
+{q:"Several Church of England bishops sit in the House of Lords. True or False?",o:["True","False"],a:[0],yue:"英格蘭教會多名主教在上議院就座。對定錯？",note:"稱為「Lords Spiritual」，共26位"},
+{q:"When walking your dog in a public place, you must ensure your dog:",o:["Does not play with other dogs","Wears a collar showing the name and address of the owner","Wears a high visibility jacket","Does not bark"],a:[1],yue:"在公眾地方帶狗時，你必須確保甚麼？",note:""},
+{q:"Women over the age of 30 were given the right to vote because of their contribution to which war?",o:["The Second World War","The Crimean War","The First World War","The Civil War"],a:[2],yue:"30歲以上女性獲投票權，係因為貢獻於哪場戰爭？",note:"1918年"},
+{q:"When did Ireland become a republic?",o:["1925","1939","1949","1927"],a:[2],yue:"愛爾蘭係哪年成為共和國？",note:""},
+{q:"Where did the first farmers come from?",o:["South-west Europe","South-east Europe","North-east America","North-west Asia"],a:[1],yue:"最初的農耕者從哪裏來？",note:"約6,000年前抵達英國"},
+{q:"Who was an important contributor to the 'pop art' movement of the 1960s?",o:["David Hockney","Lucian Freud","John Petts","Henry Moore"],a:[0],yue:"誰係1960年代普普藝術的重要人物？",note:""},
+{q:"Who became Prime Minister and was an inspirational leader to the British people during WWII?",o:["Winston Churchill","Clement Attlee","Margaret Thatcher","Sir Robert Walpole"],a:[0],yue:"誰在二戰期間成為首相並激勵英國人？",note:""},
+{q:"Who led the first invasion of Britain?",o:["Emperor Hadrian","Julius Caesar","Canute","William, the Duke of Normandy"],a:[1],yue:"誰領導了第一次入侵英國？",note:"公元前55BC，未成功；公元43年才由克勞狄烏斯成功佔領"},
+{q:"Under which king did the Anglo-Saxon kingdoms in England unite to defeat the Vikings?",o:["William of Orange","King Alfred the Great","Henry VIII","Robert the Bruce"],a:[1],yue:"在哪位國王領導下，盎格魯-撒克遜王國聯合打敗維京人？",note:""},
+{q:"For what is Sake Dean Mahomet famous?",o:["He opened the first cinema in Britain","He opened the first curry house in Britain","He was the first Indian MP","He introduced cricket to India"],a:[1],yue:"Sake Dean Mahomet以乜嘢出名？",note:"亦引入了shampooing（香波洗頭）服務"},
+{q:"Under a Constitutional Monarchy, who has the right to appoint the Prime Minister?",o:["Parliament","The Monarch","The Cabinet","The Supreme Court"],a:[1],yue:"君主立憲制下，誰有權任命首相？",note:"慣例上任命下議院多數黨領袖"},
+{q:"During the Reformation, what happened to the monasteries?",o:["They were expanded","They were closed and their wealth seized","They became government buildings","They became schools"],a:[1],yue:"宗教改革期間，修道院發生了甚麼事？",note:"亨利八世解散修道院"},
+{q:"What did Robert Burns write?",o:["A Midsummer Night's Dream","Auld Lang Syne","The Canterbury Tales","Hamlet"],a:[1],yue:"羅伯特·彭斯寫過乜嘢？",note:"蘇格蘭著名詩人，1月25日為Burns Night"},
+{q:"Who is the patron saint of Wales?",o:["St George","St Andrew","St David","St Patrick"],a:[2],yue:"威爾斯的守護聖人係誰？",note:"3月1日係St David's Day"},
+{q:"What is the capital city of Scotland?",o:["Glasgow","Aberdeen","Edinburgh","Inverness"],a:[2],yue:"蘇格蘭首都係哪裏？",note:""},
+{q:"What is Remembrance Day?",o:["A day to celebrate the Queen's birthday","A day to remember those who died in wars","A day to celebrate the founding of the UK","A day to remember the Great Fire of London"],a:[1],yue:"Remembrance Day係乜嘢？",note:"11月11日，戴紅罌粟花"},
+{q:"Who built Hadrian's Wall?",o:["The Vikings","The Anglo-Saxons","The Romans","The Normans"],a:[2],yue:"哈德良長城係誰建的？",note:"公元122年，橫跨英格蘭北部"},
+{q:"What is the Commonwealth?",o:["A trade agreement between EU countries","An association of countries mostly from the former British Empire","A group of English-speaking countries","A military alliance"],a:[1],yue:"英聯邦係乜嘢？",note:"約54個成員國"},
+{q:"In which sport did Jayne Torvill and Christopher Dean win Olympic gold?",o:["Figure skating","Speed skating","Ice hockey","Ice dancing"],a:[3],yue:"Jayne Torvill和Christopher Dean係哪項運動贏奧運金牌？",note:"1984年薩拉熱窩冬奧"},
+{q:"What is the capital city of Wales?",o:["Swansea","Newport","Cardiff","Bangor"],a:[2],yue:"威爾斯首都係哪裏？",note:""},
+{q:"What is habeas corpus?",o:["A legal principle preventing people from being held without trial","A type of court order","A form of legal aid","The right to a solicitor"],a:[0],yue:"Habeas corpus係乜嘢？",note:""},
+{q:"What year did the Second World War end?",o:["1943","1944","1945","1946"],a:[2],yue:"二戰係哪年結束？",note:"歐洲：5月8日（VE Day）；太平洋：8月15日（VJ Day）"}
+],
+3:[
+{q:"Which of the following is a fundamental principle of British life?",o:["Communism","Intolerance","Individual liberty","Inequity"],a:[2],yue:"以下哪項係英國生活的基本原則？",note:"五大原則：民主、法治、個人自由、寬容、社區參與"},
+{q:"Wales has its own established church. True or False?",o:["True","False"],a:[1],yue:"威爾斯有自己的國教。對定錯？",note:"只有英格蘭（Church of England）和蘇格蘭（Church of Scotland）有國教"},
+{q:"How is New Year's Eve called in Scotland?",o:["Vaisakhi","Hannukah","Diwali","Hogmanay"],a:[3],yue:"蘇格蘭的除夕夜叫乜嘢？",note:"12月31日"},
+{q:"Why did Henry VIII establish the Church of England?",o:["Because the Pope didn't let him divorce his first wife, Catherine of Aragon","Because the Pope didn't let him marry Catherine Howard","Because the Pope wanted England to be a Catholic country","Because the Pope didn't let him divorce his wife, Anne of Cleves"],a:[0],yue:"亨利八世為何建立英格蘭教會？",note:""},
+{q:"What is the name of the long war that English kings fought with France in the middle ages?",o:["The Crimean War","The First World War","The Hundred Years War","The Boer War"],a:[2],yue:"英國國王與法國打的那場長期戰爭叫乜嘢？",note:"實際持續116年（1337–1453）"},
+{q:"Who raised an army in 1745 supported by clansmen from the Scottish Highlands?",o:["Bonnie Prince Charlie","Robert Burns","Oliver Cromwell","Kenneth MacAlpin"],a:[0],yue:"1745年誰得蘇格蘭高地人支持起兵？",note:"全名Charles Edward Stuart，欲取回斯圖亞特王朝王位"},
+{q:"If you think someone is trying to persuade you to join an extremist or terrorist cause, who should you contact?",o:["The Home Office","Your local police force","Your local MP","Your family"],a:[1],yue:"如果有人想說服你參與極端主義活動，你應聯絡誰？",note:""},
+{q:"Is the National Citizen Service programme compulsory for 16 and 17-year-olds? True or False?",o:["True — it is compulsory","False — it is optional"],a:[1],yue:"國家公民服務計劃對16–17歲人士係強制性的嗎？",note:"係自願參加的"},
+{q:"What is the name of the tour guides at the Tower of London also known as?",o:["Knights","Chartists","Suffragettes","Beefeaters"],a:[3],yue:"倫敦塔導遊有乜嘢別稱？",note:"正式名稱：Yeoman Warders"},
+{q:"Which two countries developed the Concorde?",o:["Italy","Britain","Germany","France"],a:[1,3],yue:"哪兩個國家共同研發協和飛機？",note:"全球唯一超音速商業客機"},
+{q:"What is Eid al-Fitr?",o:["A Hindu festival of lights","A Muslim festival marking the end of Ramadan","A Sikh harvest festival","A Jewish festival"],a:[1],yue:"開齋節係乜嘢？",note:""},
+{q:"How many parliamentary constituencies are there in the UK?",o:["500","575","650","700"],a:[2],yue:"英國有多少個選區？",note:"每個選區選出一位MP"},
+{q:"Where is Snowdonia National Park?",o:["England","Wales","Scotland","Northern Ireland"],a:[1],yue:"Snowdonia國家公園喺哪裏？",note:""},
+{q:"Who was the first person to walk on the moon?",o:["Buzz Aldrin","Yuri Gagarin","Neil Armstrong","John Glenn"],a:[2],yue:"誰係首位踏上月球的人？",note:"1969年，阿波羅11號"},
+{q:"What does the small claims court deal with?",o:["Major criminal cases","Minor civil disputes","Immigration cases","Tax disputes"],a:[1],yue:"小額錢債審裁處處理乜嘢案件？",note:""},
+{q:"What is the Church of Scotland?",o:["Catholic","Baptist","Presbyterian","Methodist"],a:[2],yue:"蘇格蘭教會係乜嘢教派？",note:""},
+{q:"What is the capital city of Northern Ireland?",o:["Cork","Derry","Belfast","Armagh"],a:[2],yue:"北愛爾蘭首都係哪裏？",note:""},
+{q:"When did the UK join the European Community (now EU)?",o:["1963","1968","1973","1979"],a:[2],yue:"英國係哪年加入歐洲共同體（即歐盟前身）？",note:"2020年正式脫歐（Brexit）"},
+{q:"What happened at Dunkirk in 1940?",o:["A major German victory","The evacuation of British and Allied troops from France","The D-Day landings","A major naval battle"],a:[1],yue:"1940年敦克爾克發生了什麼事？",note:""},
+{q:"Who wrote 'A Christmas Carol'?",o:["Thomas Hardy","Charles Dickens","Jane Austen","William Thackeray"],a:[1],yue:"《聖誕頌歌》係誰寫嘅？",note:""},
+{q:"What does the United Nations (UN) aim to do?",o:["Promote free trade","Prevent war and promote international peace","Create a world government","Regulate global finance"],a:[1],yue:"聯合國係做乜嘢的？",note:"二戰後成立，1945年"},
+{q:"What happened to Mary, Queen of Scots?",o:["She became Queen of England","She was sent to France","She escaped to Denmark","She was executed"],a:[3],yue:"蘇格蘭女王瑪麗最終發生了甚麼事？",note:"被伊利沙伯一世下令處決"},
+{q:"What is the highest denomination note in circulation in England?",o:["£20","£50","£100","£200"],a:[1],yue:"英格蘭流通的最大面值鈔票係幾多？",note:""},
+{q:"What is Guy Fawkes Night?",o:["A celebration on 31st October","A celebration on 5th November commemorating the failure of the Gunpowder Plot","A celebration on 25th December","A celebration on 1st April"],a:[1],yue:"蓋伊·福克斯之夜係乜嘢？",note:"1605年，Guy Fawkes企圖炸毀國會"}
+],
+4:[
+{q:"What was the last battle between Great Britain and France?",o:["The Battle of Trafalgar","The Battle of Waterloo","The Battle of Hastings","The Battle of Agincourt"],a:[1],yue:"英法兩國最後一場戰役係乜嘢？",note:"1815年，威靈頓公爵打敗拿破崙"},
+{q:"Which flower is associated with Wales?",o:["Daffodil","Rose","Shamrock","Thistle"],a:[0],yue:"哪種花與威爾斯有關？",note:""},
+{q:"During the reign of Charles II, parts of London were destroyed by:",o:["A war","A flood","A fire","An earthquake"],a:[2],yue:"查理二世年代，倫敦部分地區被摧毀，原因係：",note:"1666年倫敦大火，包括聖保羅大教堂"},
+{q:"How often are general elections held in the UK?",o:["Every 3 years","Every 4 years","Every 5 years","Every 10 years"],a:[2],yue:"英國大選多久舉行一次？",note:""},
+{q:"Scotland has its own banknotes, which are valid everywhere in the UK. True or False?",o:["True","False"],a:[0],yue:"蘇格蘭有自己的鈔票，在英國全境通用。對定錯？",note:""},
+{q:"What charity works to preserve important buildings, coastline and countryside in the UK?",o:["Shelter","Age UK","Crisis","The National Trust"],a:[3],yue:"哪個慈善機構致力保護英國重要建築、海岸和郊野？",note:""},
+{q:"Great Britain refers only to England, Wales and Scotland. True or False?",o:["True","False"],a:[0],yue:"「大不列顛」只包括英格蘭、威爾斯和蘇格蘭。對定錯？",note:"「英國」(UK) 才包括北愛爾蘭"},
+{q:"What job did Isaac Newton have at the Royal Mint?",o:["Accountant","Warden / Master","Designer","Security guard"],a:[1],yue:"牛頓在皇家鑄幣廠擔任什麼職位？",note:""},
+{q:"Where is Ben Nevis?",o:["Wales","England","Scotland","Northern Ireland"],a:[2],yue:"Ben Nevis喺哪裏？",note:"英國最高山，海拔1,345米"},
+{q:"What is the official home of the Prime Minister?",o:["Buckingham Palace","10 Downing Street","Windsor Castle","The Houses of Parliament"],a:[1],yue:"首相的官邸係哪裏？",note:""},
+{q:"What is the capital city of England?",o:["Manchester","Birmingham","Leeds","London"],a:[3],yue:"英格蘭首都係哪裏？",note:""},
+{q:"What is Diwali?",o:["A Muslim festival marking the end of Ramadan","A Sikh harvest festival","A Hindu festival also known as the Festival of Lights","A Buddhist celebration"],a:[2],yue:"排燈節係乜嘢？",note:""},
+{q:"When did the First World War end?",o:["1916","1917","1918","1919"],a:[2],yue:"第一次世界大戰係哪年結束？",note:"11月11日停戰"},
+{q:"What is the Domesday Book?",o:["A book of English laws","A survey of England commissioned by William the Conqueror in 1086","A medieval Bible","A record of all criminal cases"],a:[1],yue:"《末日審判書》係乜嘢？",note:""},
+{q:"Where is Snowdonia National Park?",o:["England","Wales","Scotland","Northern Ireland"],a:[1],yue:"雪墩國家公園在哪裏？",note:""},
+{q:"What is the Church of England?",o:["A Catholic church","The established Protestant church of England, founded by Henry VIII","A Presbyterian church","A Methodist church"],a:[1],yue:"英格蘭教會係乜嘢？",note:""},
+{q:"What limited the power of the English King in 1215?",o:["The Bill of Rights","The Magna Carta","The Act of Union","The Petition of Right"],a:[1],yue:"1215年哪份文件限制了英格蘭國王的權力？",note:"金約翰簽署，奠定法治基礎"},
+{q:"Who defeated Harold at the Battle of Hastings?",o:["King Canute","William, Duke of Normandy","Julius Caesar","Edward the Confessor"],a:[1],yue:"誰在黑斯廷斯戰役打敗哈羅德國王？",note:"1066年"},
+{q:"What is the Eden Project?",o:["A visitor attraction in Cornwall featuring giant greenhouse biomes","A national park in Devon","A royal garden in London","A science museum in Bristol"],a:[0],yue:"伊甸園計劃係乜嘢？",note:""},
+{q:"What do Members of the House of Lords do?",o:["Write new laws independently","Examine and revise laws proposed by the House of Commons","Manage local councils","Appoint judges"],a:[1],yue:"上議院議員做乜嘢？",note:"上議院不能拒絕財政法案"},
+{q:"The National Assembly for Wales is located in which city?",o:["Swansea","Cardiff","Newport","Bangor"],a:[1],yue:"威爾斯國民議會位於哪個城市？",note:""},
+{q:"Who wrote 'Pride and Prejudice'?",o:["Charlotte Brontë","George Eliot","Jane Austen","Thomas Hardy"],a:[2],yue:"《傲慢與偏見》係誰寫嘅？",note:""},
+{q:"What happened during the Blitz?",o:["A German land invasion","Germany bombed British cities during WWII","The Battle of Britain air fight","British bombing of Berlin"],a:[1],yue:"倫敦大轟炸（Blitz）發生了什麼事？",note:"1940–1941年"},
+{q:"Who is referred to as the Iron Duke?",o:["Oliver Cromwell","The Duke of Wellington","Winston Churchill","Admiral Nelson"],a:[1],yue:"「鐵公爵」係指誰？",note:"打敗拿破崙的名將"}
+],
+5:[
+{q:"When does Easter take place?",o:["November or December","January or February","March or April","May or June"],a:[2],yue:"復活節係哪時舉行？",note:""},
+{q:"Which of the following is not a valid UK coin?",o:["1p","5p","25p","£1"],a:[2],yue:"以下哪種硬幣在英國不存在？",note:"英國硬幣：1p, 2p, 5p, 10p, 20p, 50p, £1, £2"},
+{q:"Where is the Eden Project located?",o:["Dorset","Cornwall","Devon","Somerset"],a:[1],yue:"伊甸園計劃位於哪裏？",note:"英格蘭西南部"},
+{q:"St Helena and the Falkland Islands are part of Great Britain. True or False?",o:["True","False"],a:[1],yue:"聖赫勒拿島和福克蘭群島係大不列顛一部分。對定錯？",note:"係英國海外領土，但不係英國一部分"},
+{q:"Which two of the following are fundamental principles of British life?",o:["Monarchy","The rule of law","Democracy","Join a political party"],a:[1,2],yue:"以下哪兩項係英國生活的基本原則？",note:"五大原則：民主、法治、個人自由、寬容、社區參與"},
+{q:"Where should you register if you want to become part of a jury?",o:["The electoral register","Your local church","The NHS","The British Embassy"],a:[0],yue:"如果你想成為陪審員，應登記在哪裏？",note:"18至70歲，從選民冊隨機抽選"},
+{q:"What sort of church is the Church of Scotland?",o:["Catholic","Baptist","Presbyterian","Methodist"],a:[2],yue:"蘇格蘭教會係哪個教派？",note:""},
+{q:"What contribution did Florence Nightingale make?",o:["She discovered penicillin","She was a pioneer of modern nursing who improved hospital conditions","She founded the Red Cross","She was the first female doctor"],a:[1],yue:"南丁格爾作出了甚麼貢獻？",note:"克里米亞戰爭期間"},
+{q:"What was the Suffragette movement?",o:["A campaign for workers' rights","A campaign for women's right to vote","A campaign for free education","A campaign for housing reform"],a:[1],yue:"Suffragette運動係乜嘢？",note:"Emmeline Pankhurst係著名領袖"},
+{q:"Which UK architect designed the Millennium Dome?",o:["Norman Foster","Zaha Hadid","Richard Rogers","Renzo Piano"],a:[2],yue:"哪位英國建築師設計了千禧穹頂（The O2）？",note:""},
+{q:"What is the Notting Hill Carnival?",o:["An annual royal celebration","A Caribbean-influenced street festival held in London","A food festival in West London","A film festival"],a:[1],yue:"諾丁山嘉年華係乜嘢？",note:"歐洲最大街頭嘉年華"},
+{q:"What is the role of the Cabinet?",o:["To elect the Prime Minister","To make major government policy decisions","To write new laws","To manage local government"],a:[1],yue:"內閣的角色係乜嘢？",note:"由首相主持，約20位資深部長組成"},
+{q:"Who is the MP for your local area?",o:["Appointed by the Prime Minister","Appointed by the local council","Elected by voters in the constituency","Chosen by the House of Lords"],a:[2],yue:"你所在地區的MP係如何產生的？",note:"每個選區選出一位MP，代表選區內所有人"},
+{q:"What happened to the apostle St Andrew that led him to become the patron saint of Scotland?",o:["He converted Scotland to Christianity","He was crucified on an X-shaped cross","He wrote the Scottish Bible","He defeated the Vikings"],a:[1],yue:"聖安德魯發生了何事令他成為蘇格蘭守護聖人？",note:"蘇格蘭國旗（聖安德魯十字）就係白色X形十字"},
+{q:"What did the Chartists campaign for?",o:["Women's right to vote","Workers' safety","Political reforms including votes for all men","Free education"],a:[2],yue:"憲章運動倡導乜嘢？",note:"19世紀中葉"},
+{q:"What is Eid ul Adha?",o:["A festival celebrating the end of Ramadan","An Islamic festival celebrating Ibrahim's willingness to sacrifice his son","A Hindu festival of lights","A Sikh harvest festival"],a:[1],yue:"宰牲節係乜嘢？",note:""},
+{q:"Who was the first person to run a mile in under 4 minutes?",o:["Sebastian Coe","Steve Ovett","Roger Bannister","Gordon Pirie"],a:[2],yue:"誰係第一個在4分鐘內跑完一英里的人？",note:"1954年"},
+{q:"What are the two houses of Parliament called?",o:["The Senate and the House of Representatives","The House of Commons and the House of Lords","The Upper House and the Lower House","The Government and the Opposition"],a:[1],yue:"英國國會兩院分別叫乜嘢？",note:""},
+{q:"What is Vaisakhi?",o:["A Muslim festival","A Hindu festival of lights","A Sikh festival marking the founding of the Khalsa","A Buddhist celebration"],a:[2],yue:"Vaisakhi係乜嘢？",note:"每年4月慶祝"},
+{q:"Which TWO are Crown dependencies?",o:["Gibraltar","Isle of Man","Jersey (Channel Islands)","Bermuda"],a:[1,2],yue:"哪兩個是Crown dependencies？",note:"有自己的政府，但非英國一部分"},
+{q:"Who was the first person to climb Mount Everest?",o:["Chris Bonington and Sherpa Tensing","Edmund Hillary and Tenzing Norgay","Ranulph Fiennes and Mike Stroud","Scott and Amundsen"],a:[1],yue:"誰係首位攀登珠穆朗瑪峰的人？",note:"1953年，英國探險隊"},
+{q:"When is St Andrew's Day?",o:["23rd April","1st March","30th November","17th March"],a:[2],yue:"聖安德魯日係哪天？",note:"蘇格蘭的守護聖人節日"},
+{q:"What is the National Assembly for Wales?",o:["The Welsh supreme court","The devolved parliament for Wales","The Welsh local council","The Welsh civil service"],a:[1],yue:"威爾斯國民議會係乜嘢？",note:"現稱Senedd Cymru"},
+{q:"What is habeas corpus?",o:["A legal principle preventing indefinite detention without trial","A type of criminal charge","A form of government","A right to a solicitor"],a:[0],yue:"Habeas corpus係乜嘢？",note:""}
+],
+6:[
+{q:"As a British citizen, what are your responsibilities? (choose two)",o:["To respect and obey the law","To walk your dog only during the day","To go to church on Sunday","To look after yourself and your family"],a:[0,3],yue:"作為英國公民，你有哪兩項責任？",note:"六大責任：遵守法律、照顧家人、尊重他人意見、公平待人、照顧環境、照顧自己"},
+{q:"Who made the first coins to be minted in Britain?",o:["The people of the Stone Age","The Anglo-Saxons","The people of the Iron Age","The Romans"],a:[2],yue:"誰鑄造了英國第一批硬幣？",note:"有些幣上刻有鐵器時代國王的名字"},
+{q:"Who built the Tower of London?",o:["William the Conqueror","Queen Victoria","Queen Elizabeth I","Oliver Cromwell"],a:[0],yue:"倫敦塔係誰建造的？",note:"1066年諾曼征服後建造"},
+{q:"What are National Parks?",o:["Giant greenhouses","Land formations of volcanic lava","Areas of protected countryside","Medieval buildings"],a:[2],yue:"國家公園係乜嘢？",note:"英格蘭、威爾斯和蘇格蘭共有15個"},
+{q:"Northern Ireland has its own established church. True or False?",o:["True","False"],a:[1],yue:"北愛爾蘭有自己的國教。對定錯？",note:"只有英格蘭（Church of England）和蘇格蘭（Church of Scotland）有國教"},
+{q:"Which three territories form Great Britain?",o:["Wales","Northern Ireland","England","Scotland"],a:[0,2,3],yue:"哪三個地方組成「大不列顛」？",note:"不包括北愛爾蘭"},
+{q:"What is the Magna Carta?",o:["A medieval poem","A document signed in 1215 that limited the power of the King","A royal decree about taxation","A religious text"],a:[1],yue:"《大憲章》係乜嘢？",note:"金約翰簽署"},
+{q:"What is the Commonwealth Games?",o:["An annual sports event for EU countries","A multi-sport event held every four years for Commonwealth countries","An Olympic Games qualifier","A winter sports event"],a:[1],yue:"英聯邦運動會係乜嘢？",note:""},
+{q:"How many members are in the Scottish Parliament?",o:["73","99","109","129"],a:[3],yue:"蘇格蘭議會有多少名議員？",note:"MSP = Member of the Scottish Parliament"},
+{q:"Who invented the telephone?",o:["Guglielmo Marconi","Thomas Edison","Alexander Graham Bell","Michael Faraday"],a:[2],yue:"電話係誰發明的？",note:"蘇格蘭裔美國人"},
+{q:"What was the Boer War?",o:["A war between England and Scotland","A war fought in South Africa between the British and Boer settlers","A war against Napoleon","A war against the Vikings"],a:[1],yue:"波爾戰爭係乜嘢？",note:"1899–1902年"},
+{q:"Which Admiral defeated the French and Spanish fleets at the Battle of Trafalgar?",o:["Admiral Drake","Admiral Rodney","Admiral Nelson","Admiral Hawke"],a:[2],yue:"誰在特拉法加海戰打敗法西聯合艦隊？",note:"1805年，納爾遜陣亡"},
+{q:"Which of these is NOT a fundamental principle of British life?",o:["Democracy","The rule of law","Monarchy","Individual liberty"],a:[2],yue:"以下哪項不是英國生活的基本原則？",note:"五大原則係：民主、法治、個人自由、寬容、社區參與"},
+{q:"What is the Proms?",o:["A school dance event","Annual classical music festival held at Royal Albert Hall in London","A street carnival","A film festival"],a:[1],yue:"逍遙音樂節（The Proms）係乜嘢？",note:""},
+{q:"What is the role of the police?",o:["To collect taxes","To protect life and property and prevent and detect crime","To run the courts","To manage prisons"],a:[1],yue:"警察的職責係乜嘢？",note:""},
+{q:"How many MPs are in the House of Commons?",o:["450","550","600","650"],a:[3],yue:"下議院有多少位議員？",note:""},
+{q:"When is Halloween?",o:["31st October","1st November","5th November","31st December"],a:[0],yue:"萬聖節前夕係哪天？",note:""},
+{q:"What is the name of the highest court in the UK?",o:["The High Court","The Crown Court","The Supreme Court","The House of Lords"],a:[2],yue:"英國最高法院叫乜嘢名？",note:"2009年成立"},
+{q:"What is the significance of the year 1066?",o:["The signing of the Magna Carta","The Norman Conquest of England","The formation of Parliament","The first Viking invasion"],a:[1],yue:"1066年有甚麼重要性？",note:"黑斯廷斯戰役，威廉一世登基"},
+{q:"What did Emmeline Pankhurst do?",o:["She was the first female MP","She led the Suffragette movement for women's right to vote","She was the first female judge","She discovered radium"],a:[1],yue:"潘克赫斯特做了甚麼？",note:""},
+{q:"What language is spoken in Wales alongside English?",o:["Gaelic","Irish","Welsh","Scots"],a:[2],yue:"威爾斯除英語外還說哪種語言？",note:""},
+{q:"What is the role of a constituency MP?",o:["To make laws alone","To represent all people in their constituency","To manage the local police","To appoint local judges"],a:[1],yue:"選區議員的職責係乜嘢？",note:""},
+{q:"When did the Second World War start?",o:["1937","1938","1939","1940"],a:[2],yue:"二戰係哪年開始？",note:"德國入侵波蘭，英法宣戰"},
+{q:"What is the purpose of the Council of Europe?",o:["To manage EU trade policy","To protect human rights and promote democracy","To run the European army","To manage immigration across Europe"],a:[1],yue:"歐洲委員會的目的係乜嘢？",note:"與歐盟係不同機構"}
+],
+7:[
+{q:"As a British citizen, you should: (choose two)",o:["Respect and obey the law","Vote in all elections","Take part in religious activities","Look after the area in which you live and the environment"],a:[0,3],yue:"作為英國公民，你應該（選兩項）：",note:""},
+{q:"When is Halloween celebrated?",o:["5th of November","11th of November","31st of October","1st of April"],a:[2],yue:"萬聖節前夕係哪天慶祝？",note:""},
+{q:"The Bill of Rights in 1689 gave women the right to vote. True or False?",o:["True","False"],a:[1],yue:"1689年《權利法案》賦予女性投票權。對定錯？",note:"《權利法案》限制國王權力，確認國會權利"},
+{q:"What is the most famous cricket competition played between England and Australia?",o:["The Ashes","The Six Nations Championship","The Grand National","The Australian Open"],a:[0],yue:"英澳之間最著名的板球賽事叫乜嘢？",note:""},
+{q:"What was the biggest source of employment during the 18th century?",o:["Fishing","Teaching","Aircraft industry","Manufacturing"],a:[3],yue:"18世紀英國最大的就業來源係乜嘢？",note:"工業革命時期"},
+{q:"In 1314 the Scottish, led by Robert the Bruce, defeated the English at the Battle of Bannockburn. True or False?",o:["True","False"],a:[0],yue:"1314年蘇格蘭人在班諾克本戰役打敗英格蘭。對定錯？",note:"蘇格蘭保持獨立"},
+{q:"Which of the following is an example of a criminal offence?",o:["Smoking in a non-designated public place","Driving at 35mph in a 30mph zone","Carrying an offensive weapon","Dropping litter"],a:[2],yue:"以下哪項係刑事罪行？",note:""},
+{q:"Who was the architect of St Paul's Cathedral?",o:["Inigo Jones","Nicholas Hawksmoor","Sir Christopher Wren","James Gibbs"],a:[2],yue:"聖保羅大教堂係誰設計的？",note:"1666年倫敦大火後重建"},
+{q:"What is the Gunpowder Plot?",o:["A failed plot to assassinate Queen Elizabeth I","A failed plot in 1605 to blow up Parliament and kill King James I","A successful attack on the Tower of London","A plan to overthrow Oliver Cromwell"],a:[1],yue:"火藥陰謀係乜嘢？",note:"Guy Fawkes係主要人物"},
+{q:"What was the role of the Suffragettes?",o:["To campaign for workers' rights","To campaign for women's right to vote","To campaign for Irish independence","To campaign for free education"],a:[1],yue:"婦女參政者的角色係乜嘢？",note:""},
+{q:"What is the highest mountain in Wales?",o:["Ben Nevis","Scafell Pike","Mount Snowdon","Helvellyn"],a:[2],yue:"威爾斯最高山係哪座？",note:""},
+{q:"What is the role of the Chancellor of the Exchequer?",o:["Head of the Foreign Office","Responsible for the economy","Head of the Home Office","Lord Chief Justice"],a:[1],yue:"財政大臣的職責係乜嘢？",note:""},
+{q:"What is the Commonwealth?",o:["A trade agreement between English-speaking countries","An association of countries mostly from the former British Empire","A group of countries sharing the same currency","A military alliance led by Britain"],a:[1],yue:"英聯邦係乜嘢？",note:""},
+{q:"What is a by-election?",o:["A vote to choose a new Prime Minister","An election held when an MP dies or resigns","A second general election","A vote on a specific issue"],a:[1],yue:"補選係乜嘢？",note:""},
+{q:"What is the significance of the Magna Carta?",o:["It gave women the right to vote","It established that the King was subject to the law","It created Parliament","It ended slavery"],a:[1],yue:"《大憲章》有什麼重要性？",note:"1215年"},
+{q:"When is St George's Day?",o:["17th March","30th November","1st March","23rd April"],a:[3],yue:"聖佐治日係哪天？",note:"英格蘭守護聖人節日"},
+{q:"What is the role of the House of Lords?",o:["To elect the Prime Minister","To examine and revise laws from the House of Commons","To manage local government","To run the courts"],a:[1],yue:"上議院的角色係乜嘢？",note:""},
+{q:"How many members of the Welsh Parliament (Senedd) are there?",o:["40","60","80","100"],a:[1],yue:"威爾斯議會有多少名議員？",note:"議員稱MS（Member of the Senedd）"},
+{q:"Where is the Giant's Causeway?",o:["Scotland","Wales","Northern Ireland","England"],a:[2],yue:"巨人堤道在哪裏？",note:"玄武岩柱，約5000萬年前火山熔岩形成"},
+{q:"When did the Great Fire of London happen?",o:["1566","1616","1666","1716"],a:[2],yue:"倫敦大火係哪年發生的？",note:"查理二世年代"},
+{q:"What are 'life peers'?",o:["MPs who serve for life","Lords appointed for their own lifetime only — the title cannot be inherited","Hereditary lords","Bishops in the House of Lords"],a:[1],yue:"「終身貴族」係乜嘢？",note:"現時大部分上議院議員係終身貴族"},
+{q:"What year did women aged 18 and over gain the right to vote?",o:["1928","1945","1969","1975"],a:[2],yue:"哪年18歲或以上女性才獲得投票權？",note:"1928年降至21歲；1969年與男性同樣降至18歲"},
+{q:"What is the Turner Prize?",o:["A prize for literature","An annual prize awarded to British visual artists","A prize for scientific discovery","A prize for architecture"],a:[1],yue:"透納獎係乜嘢？",note:""},
+{q:"Who was Isambard Kingdom Brunel?",o:["A Victorian novelist","A famous engineer who built bridges, tunnels and ships","A famous painter","A Victorian politician"],a:[1],yue:"Isambard Kingdom Brunel係誰？",note:"大西部鐵路等"}
+],
+8:[
+{q:"World War II started as a result of Germany invading which country?",o:["France","Russia","Poland","Austria"],a:[2],yue:"二戰因德國入侵哪個國家而開始？",note:"1939年，英法隨後宣戰"},
+{q:"Which flower is associated with Scotland?",o:["The Shamrock","The Rose","The Daffodil","The Thistle"],a:[3],yue:"哪種花與蘇格蘭有關？",note:""},
+{q:"Police complaints can only be made by writing to the Chief Constable. True or False?",o:["True","False"],a:[1],yue:"投訴警察只能寫信給總警司。對定錯？",note:"亦可去警署或向獨立投訴機構（IOPC）投訴"},
+{q:"Which of the following is a responsibility of the Home Secretary?",o:["Economy","Crime","Education","Defence"],a:[1],yue:"以下哪項係內政大臣的職責？",note:"內政大臣負責犯罪、警政及移民"},
+{q:"When is St David's Day celebrated?",o:["1st March","17th March","23rd April","17th April"],a:[0],yue:"聖大衛日係哪天慶祝？",note:"威爾斯守護聖人節日"},
+{q:"What happened to Mary, Queen of Scots, after she spent 20 years in prison?",o:["She became Queen of England","She was sent to France","She escaped to Denmark","She was executed"],a:[3],yue:"蘇格蘭女王瑪麗坐了20年牢後發生了什麼？",note:"被伊利沙伯一世下令處決"},
+{q:"What did Francis Crick discover?",o:["The MRI scanner","The structure of DNA","Penicillin","The theory of evolution"],a:[1],yue:"Francis Crick發現了乜嘢？",note:"與James Watson共同發現，1953年"},
+{q:"Where are the National Galleries of Scotland located?",o:["Glasgow","Aberdeen","Edinburgh","Dundee"],a:[2],yue:"蘇格蘭國家美術館喺哪裏？",note:""},
+{q:"What is the 'first past the post' electoral system?",o:["A proportional system where seats reflect vote share","The candidate with the most votes wins","A two-round voting system","A ranked choice system"],a:[1],yue:"「簡單多數制」（first past the post）係乜嘢？",note:"英國大選用此制度"},
+{q:"Which TWO of the following are UK values?",o:["Intolerance of others","Tolerance","Communism","Respect for the law"],a:[1,3],yue:"以下哪兩項係英國價值觀？",note:""},
+{q:"What is the BBC Proms?",o:["A comedy festival","An annual 8-week classical music festival at Royal Albert Hall","A sports event","A drama competition"],a:[1],yue:"BBC逍遙音樂節係乜嘢？",note:""},
+{q:"What did Isaac Newton discover?",o:["The structure of DNA","Penicillin","The laws of gravity and motion","Radioactivity"],a:[2],yue:"牛頓發現了乜嘢？",note:""},
+{q:"What is the patron flower of England?",o:["The Daffodil","The Shamrock","The Thistle","The Tudor rose"],a:[3],yue:"英格蘭的象徵花卉係乜嘢？",note:""},
+{q:"What is the significance of 1215?",o:["The Norman Conquest","King John signed the Magna Carta","The Great Fire of London","The Battle of Waterloo"],a:[1],yue:"1215年有甚麼重要性？",note:""},
+{q:"What is the purpose of the European Convention on Human Rights?",o:["To promote trade","To protect the fundamental rights and freedoms of people in Europe","To create a European army","To regulate immigration"],a:[1],yue:"《歐洲人權公約》的目的係乜嘢？",note:"由歐洲委員會（非歐盟）監督"},
+{q:"Who was William Wilberforce?",o:["A famous general","An MP who campaigned to end the slave trade","A Victorian novelist","A famous scientist"],a:[1],yue:"威廉·威伯福斯係誰？",note:"1807年奴隸貿易法案通過"},
+{q:"What is the Notting Hill Carnival celebrating?",o:["The founding of London","Caribbean heritage and culture","The end of WWII","The Queen's coronation"],a:[1],yue:"諾丁山嘉年華慶祝乜嘢？",note:"每年8月在倫敦舉行"},
+{q:"What is a referendum?",o:["A type of local election","A public vote on a specific issue","A vote by MPs only","A parliamentary debate"],a:[1],yue:"公民投票係乜嘢？",note:"例如2016年脫歐公投"},
+{q:"Who was Charles Dickens?",o:["A famous Victorian poet","A famous Victorian novelist","A famous Victorian painter","A famous Victorian scientist"],a:[1],yue:"查理斯·狄更斯係誰？",note:"《孤雛淚》、《雙城記》等"},
+{q:"How many members does the Scottish Parliament have?",o:["73","99","109","129"],a:[3],yue:"蘇格蘭議會有多少名議員？",note:""},
+{q:"What is the role of the Lord Chancellor?",o:["Head of the army","Responsible for the legal system and courts in England and Wales","Head of the civil service","Responsible for foreign affairs"],a:[1],yue:"大法官的職責係乜嘢？",note:""},
+{q:"Which famous scientist was born in Woolsthorpe, Lincolnshire?",o:["Charles Darwin","Michael Faraday","Isaac Newton","James Watt"],a:[2],yue:"哪位著名科學家出生於林肯郡的烏爾斯索普？",note:""},
+{q:"When is St Patrick's Day?",o:["1st March","17th March","23rd April","30th November"],a:[1],yue:"聖柏特理日係哪天？",note:"北愛爾蘭守護聖人節日"},
+{q:"What is the 'Dissolution of the Monasteries'?",o:["When Parliament was dissolved","Henry VIII's closure of Catholic monasteries and seizure of their wealth","When the Normans destroyed Anglo-Saxon churches","When Cromwell abolished the monarchy"],a:[1],yue:"「解散修道院」係乜嘢？",note:"亨利八世"}
+],
+9:[
+{q:"Which flower is associated with Northern Ireland?",o:["The daffodil","The thistle","The shamrock","The rose"],a:[2],yue:"哪種花與北愛爾蘭有關？",note:""},
+{q:"The last battle between Britain and France was the Battle of Waterloo. True or False?",o:["True","False"],a:[0],yue:"英法最後一場戰役係滑鐵盧之役。對定錯？",note:"1815年"},
+{q:"£100 is the highest value note in circulation in the UK. True or False?",o:["True","False"],a:[1],yue:"£100係英國流通面值最大的鈔票。對定錯？",note:"英格蘭最高面值係£50；蘇格蘭銀行發行£100"},
+{q:"Where is the Lake District National Park located?",o:["Scotland","Wales","England","Northern Ireland"],a:[2],yue:"湖區國家公園位於哪裏？",note:"英格蘭最大國家公園"},
+{q:"Which two responsibilities will you have as a British citizen?",o:["To buy food locally","To volunteer in a community project at least once a year","To look after yourself and your family","To respect the rights of others"],a:[2,3],yue:"作為英國公民，你有哪兩項責任？",note:""},
+{q:"Who was born in Stratford-upon-Avon?",o:["Jane Austen","Charles Dickens","William Shakespeare","Thomas Hardy"],a:[2],yue:"誰出生於Stratford-upon-Avon？",note:""},
+{q:"Why is 1928 an important year in women's voting history?",o:["Women were given the right to vote at the age of 18","Women were given the right to vote at the age of 25","Women were given the right to vote at the age of 30","Women were given the right to vote at the age of 21, the same as men"],a:[3],yue:"1928年在女性投票史上有何重要性？",note:""},
+{q:"What does Hogmanay refer to?",o:["Christmas Day in Wales","New Year's Eve in Scotland","Christmas Day in Scotland","New Year's Eve in Wales"],a:[1],yue:"Hogmanay係指乜嘢？",note:"12月31日"},
+{q:"What is the capital city of Northern Ireland?",o:["Cork","Derry","Dublin","Belfast"],a:[3],yue:"北愛爾蘭首都係哪裏？",note:""},
+{q:"What major development happened in the UK in 1948?",o:["Women got the right to vote","The Commonwealth was founded","The National Health Service was established","The welfare state ended"],a:[2],yue:"1948年英國有何重大發展？",note:"工黨政府（Clement Attlee），免費醫療服務"},
+{q:"Which UK scientist discovered penicillin?",o:["Francis Crick","James Watson","Alexander Fleming","John Logie Baird"],a:[2],yue:"哪位英國科學家發現青黴素？",note:"1928年，蘇格蘭人"},
+{q:"What is the purpose of Remembrance Day?",o:["To celebrate the end of WWII","To remember those who died in wars","To celebrate the founding of the NHS","To remember the Great Fire of London"],a:[1],yue:"紀念日的目的係乜嘢？",note:"11月11日，戴紅罌粟花"},
+{q:"What is a 'shadow cabinet'?",o:["A secret government meeting","Senior opposition MPs who mirror Cabinet ministers and challenge the government","Ministers who advise the monarch","Former Cabinet ministers"],a:[1],yue:"「影子內閣」係乜嘢？",note:""},
+{q:"What is the NSPCC?",o:["National Society for the Prevention of Cruelty to Children","National Society for the Promotion of Community Causes","National Sports and Physical Culture Centre","National Service Personnel and Community Corps"],a:[0],yue:"NSPCC係乜嘢？",note:""},
+{q:"What do local councils do?",o:["Make national laws","Run the armed forces","Provide local services such as education, waste and housing","Manage immigration"],a:[2],yue:"地區議會做乜嘢？",note:""},
+{q:"What is the significance of the year 1348?",o:["The Norman Conquest","The signing of Magna Carta","The Black Death arrived in England","The Battle of Bannockburn"],a:[2],yue:"1348年有何重要性？",note:"導致英格蘭三分之一人口死亡"},
+{q:"What is the purpose of the Council of Europe?",o:["To manage EU trade","Protect human rights and democracy in Europe (47 member countries)","To run the European Central Bank","To manage European defence"],a:[1],yue:"歐洲委員會的目的係乜嘢？",note:"非歐盟機構"},
+{q:"Who wrote 'Hamlet'?",o:["Christopher Marlowe","Ben Jonson","John Milton","William Shakespeare"],a:[3],yue:"《哈姆雷特》係誰寫的？",note:""},
+{q:"How many members are in the Northern Ireland Assembly?",o:["60","75","90","108"],a:[2],yue:"北愛爾蘭議會有多少名議員？",note:"MLA = Member of the Legislative Assembly"},
+{q:"What is the patron flower of Ireland?",o:["Daffodil","Thistle","Shamrock","Rose"],a:[2],yue:"愛爾蘭的象徵花卉係乜嘢？",note:""},
+{q:"When was the Battle of Hastings?",o:["1040","1066","1215","1314"],a:[1],yue:"黑斯廷斯戰役係哪年？",note:""},
+{q:"How long did the Hundred Years War actually last?",o:["100 years","106 years","116 years","120 years"],a:[2],yue:"百年戰爭實際打了多久？",note:"1337–1453年"},
+{q:"What is the role of the Attorney General?",o:["Head of the police","Chief legal adviser to the government","Head of the civil service","Lord Chief Justice"],a:[1],yue:"律政司長（總檢察長）的角色係乜嘢？",note:""},
+{q:"What is the capital city of Scotland?",o:["Glasgow","Dundee","Aberdeen","Edinburgh"],a:[3],yue:"蘇格蘭首都係哪裏？",note:""}
+],
+10:[
+{q:"Who is the patron Saint of England?",o:["St George","St Patrick","St David","St Andrew"],a:[0],yue:"英格蘭的守護聖人係誰？",note:"4月23日係St George's Day"},
+{q:"Where is Loch Lomond and the Trossachs National Park located?",o:["England","Wales","Scotland","Northern Ireland"],a:[2],yue:"洛蒙德湖及特羅薩克斯國家公園在哪裏？",note:""},
+{q:"Wales has its own established church. True or False?",o:["True","False"],a:[1],yue:"威爾斯有自己的國教。對定錯？",note:""},
+{q:"What stories are associated with Geoffrey Chaucer?",o:["The Cambridge Tales","The Eastbourne Tales","The Canterbury Tales","The London Tales"],a:[2],yue:"哪些故事與杰弗雷·喬叟有關？",note:"中世紀英語文學重要作品"},
+{q:"When is Boxing Day celebrated?",o:["31st October","26th December","24th December","1st January"],a:[1],yue:"Boxing Day係哪天慶祝？",note:"聖誕節翌日，公眾假期"},
+{q:"What is the name of the holiday when banks and many other businesses are closed?",o:["Credit Holidays","Branch Holidays","Bank Holidays","Business Holidays"],a:[2],yue:"銀行休息的假日叫乜嘢？",note:""},
+{q:"Why were women given the right to vote in 1918?",o:["In recognition of their contribution to WWI","In recognition of their contribution to WWII","In recognition of their contribution to the Crimean War","After 50 years of campaigning"],a:[0],yue:"女性為何獲得投票權（1918年）？",note:"1918年，30歲以上女性先獲投票權"},
+{q:"What is the significance of the Domesday Book?",o:["A record of all criminal cases in England","It recorded who owned land and what property existed in England","A collection of English laws","A history of the Norman Conquest"],a:[1],yue:"《末日審判書》有何重要性？",note:"1086年，征服者威廉下令編製"},
+{q:"What year was the Union of the Parliaments of England and Scotland?",o:["1603","1649","1707","1800"],a:[2],yue:"英格蘭和蘇格蘭國會合併係哪年？",note:"成立大不列顛王國（Kingdom of Great Britain）"},
+{q:"Which two famous Baroque composers were associated with Britain?",o:["Mozart and Beethoven","Henry Purcell and George Frideric Handel","Bach and Vivaldi","Chopin and Liszt"],a:[1],yue:"哪兩位著名作曲家屬於巴洛克時期且與英國有關？",note:""},
+{q:"What does the term 'devolution' mean?",o:["The complete independence of a nation","Transfer of power from central to regional governments","The abolition of the monarchy","The separation of church and state"],a:[1],yue:"「權力下放」係乜嘢意思？",note:"蘇格蘭、威爾斯和北愛爾蘭均有自己的議會"},
+{q:"What is the King's/Queen's official residence in London?",o:["Windsor Castle","Balmoral","Buckingham Palace","St James's Palace"],a:[2],yue:"英王在倫敦的官方居所係哪裏？",note:""},
+{q:"How is the Prime Minister chosen?",o:["Elected directly by the public","The leader of the party with the most seats, appointed by the Monarch","Chosen by the House of Lords","Appointed by the Cabinet"],a:[1],yue:"首相係如何產生的？",note:""},
+{q:"What was Chartism?",o:["A 19th-century movement for free trade","A movement calling for political reform including votes for all men","A campaign for women's rights","A movement for Irish independence"],a:[1],yue:"憲章運動係乜嘢？",note:"19世紀中葉"},
+{q:"What year was the Act of Union between Great Britain and Ireland?",o:["1707","1745","1776","1800"],a:[3],yue:"大不列顛和愛爾蘭合併係哪年？",note:"成立大不列顛及愛爾蘭聯合王國"},
+{q:"Who painted 'The Fighting Temeraire'?",o:["John Constable","William Hogarth","J.M.W. Turner","Thomas Gainsborough"],a:[2],yue:"《戰艦無畏號》係誰畫的？",note:"著名英國風景畫家"},
+{q:"What sport is associated with Wimbledon?",o:["Cricket","Football","Lawn tennis","Athletics"],a:[2],yue:"溫布頓與哪項運動有關？",note:"每年6–7月舉行"},
+{q:"What are the Crown Jewels?",o:["The Queen's personal jewellery collection","Royal regalia used at coronations, kept in the Tower of London","Ancient coins","Medieval treasure"],a:[1],yue:"皇冠珠寶係乜嘢？",note:""},
+{q:"Which famous nurse improved hospital conditions during the Crimean War?",o:["Edith Cavell","Mary Seacole","Florence Nightingale","Elizabeth Garrett Anderson"],a:[2],yue:"哪位著名護士在克里米亞戰爭期間改善了醫院環境？",note:""},
+{q:"What is the purpose of the UN Security Council?",o:["To promote free trade","To maintain international peace and security","To manage the World Bank","To regulate global immigration"],a:[1],yue:"聯合國安理會的目的係乜嘢？",note:"英國係5個常任理事國之一"},
+{q:"What was the Irish famine?",o:["A drought in the 1920s","A period of mass starvation caused by potato crop failure in the 1840s","A famine caused by war","A result of British trade sanctions"],a:[1],yue:"愛爾蘭大飢荒係乜嘢？",note:"約100萬人死亡，另有約100萬人移民"},
+{q:"What is the significance of the BBC?",o:["It is the largest commercial broadcaster in the world","It is the world's largest broadcaster and is independent of government","It is funded by the government and follows government policy","It is a private company"],a:[1],yue:"BBC有何重要性？",note:""},
+{q:"What is the Commonwealth?",o:["A trade agreement between EU countries","An association of countries mostly from the former British Empire","A group of countries sharing the pound","A military alliance"],a:[1],yue:"英聯邦係乜嘢？",note:"約54個成員國"},
+{q:"Who was the first Prime Minister?",o:["William Pitt the Elder","Robert Peel","Sir Robert Walpole","The Earl of Wilmington"],a:[2],yue:"第一位首相係誰？",note:"1721–1742年"}
+],
+11:[
+{q:"Is St Helena part of the UK?",o:["Yes","No"],a:[1],yue:"聖赫勒拿島係英國一部分嗎？",note:"係英國海外領土，非英國一部分"},
+{q:"Where is Theatreland?",o:["Docklands","London's East End","London's West End","London's South End"],a:[2],yue:"戲院區（Theatreland）在哪裏？",note:""},
+{q:"What is the name of the UK currency?",o:["Euro","Pound Sterling","Peso","Dollar"],a:[1],yue:"英國貨幣叫乜嘢？",note:"符號£"},
+{q:"What other name is given to Diwali?",o:["The Festival of Lights","Ash Wednesday","Good Friday","Easter Monday"],a:[0],yue:"排燈節有甚麼別稱？",note:""},
+{q:"What is the Enlightenment?",o:["A period of total peace in England","A period when new ideas about politics, philosophy and science were developed","A period when England became the largest empire","A period of economic recovery after WWII"],a:[1],yue:"啟蒙運動係乜嘢？",note:"18世紀"},
+{q:"Which of the following charities helps the environment?",o:["NSPCC","Shelter","Friends of the Earth","Crisis"],a:[2],yue:"哪個慈善機構幫助環境？",note:""},
+{q:"What was the crucial aerial battle fought between Germany and Britain during WWII?",o:["The Battle of Britain","The Battle of Worcester","The Battle of Dunbar","The Battle of Marston Moor"],a:[0],yue:"二戰期間德英之間的關鍵空戰叫乜嘢？",note:"1940年"},
+{q:"What was Margaret Thatcher famous for?",o:["She fought for the right to vote for women","She was the first female Prime Minister and longest-serving PM of the 20th century","She founded the NHS","She was Britain's first female judge"],a:[1],yue:"戴卓爾夫人以乜嘢出名？",note:"1979–1990年在任"},
+{q:"What is the Cenotaph?",o:["A famous theatre","A war memorial in Whitehall, London","A royal palace","A government building"],a:[1],yue:"衣諾達夫紀念碑係乜嘢？",note:"每年11月11日舉行Remembrance Day儀式"},
+{q:"Who is the patron Saint of Northern Ireland?",o:["St George","St Andrew","St David","St Patrick"],a:[3],yue:"北愛爾蘭守護聖人係誰？",note:"3月17日係St Patrick's Day"},
+{q:"What is the significance of 'Habeas Corpus'?",o:["It gives the police the power to arrest without warrant","It protects individuals from being held in prison without trial","It prevents people from leaving the country","It requires all citizens to carry ID"],a:[1],yue:"Habeas Corpus有何重要性？",note:""},
+{q:"When was the Great Fire of London?",o:["1566","1616","1666","1716"],a:[2],yue:"倫敦大火係哪年？",note:""},
+{q:"Which poet wrote 'If'?",o:["Alfred Lord Tennyson","William Wordsworth","Rudyard Kipling","William Blake"],a:[2],yue:"誰寫了《如果》（'If'）這首詩？",note:""},
+{q:"What does NATO stand for?",o:["North American Trade Organisation","North Atlantic Treaty Organisation","National Army and Training Office","Northern Alliance for Trade and Operations"],a:[1],yue:"NATO代表乜嘢？",note:"英國係創始成員"},
+{q:"What was the Welfare State?",o:["A society with no government intervention","A system of government providing social security, healthcare and education","A Victorian charity system","A military support programme"],a:[1],yue:"福利國家係乜嘢？",note:"二戰後工黨政府建立"},
+{q:"Who is the head of the Church of England?",o:["The Archbishop of Canterbury","The Pope","The Monarch","The Prime Minister"],a:[2],yue:"英格蘭教會的最高領袖係誰？",note:"坎特伯雷大主教係精神領袖"},
+{q:"What is the Bayeux Tapestry?",o:["A painting of the Tudor court","An embroidery depicting the Norman Conquest of England in 1066","A medieval map","A religious text"],a:[1],yue:"《貝葉掛毯》係乜嘢？",note:""},
+{q:"What is the role of the Civil Service?",o:["To campaign for political parties","To implement government policy and remain politically neutral","To run local councils","To manage the police"],a:[1],yue:"公務員的角色係乜嘢？",note:"政治中立"},
+{q:"What happened during the English Civil War?",o:["England fought against Scotland","Parliament fought against King Charles I (1642–1651); Charles I was executed","England fought against France","The King fought against the House of Lords"],a:[1],yue:"英格蘭內戰期間發生了甚麼事？",note:""},
+{q:"Where is Edinburgh Castle?",o:["Glasgow","Dundee","Edinburgh","Perth"],a:[2],yue:"愛丁堡城堡在哪裏？",note:""},
+{q:"What is the significance of the year 1832?",o:["The Norman Conquest","The signing of the Magna Carta","The Great Reform Act extended voting rights","The formation of the Commonwealth"],a:[2],yue:"1832年有何重要性？",note:"中產階級獲得投票權"},
+{q:"What is 'Glastonbury'?",o:["A medieval castle","A famous annual music festival held in Somerset","A national park","A royal estate"],a:[1],yue:"格拉斯頓伯里係乜嘢？",note:""},
+{q:"What is Hogmanay?",o:["Christmas Day in Scotland","New Year's Day in Scotland","New Year's Eve celebrations in Scotland (31st December)","Halloween in Scotland"],a:[2],yue:"Hogmanay係乜嘢？",note:""},
+{q:"What is the first Prime Minister's name?",o:["William Pitt the Elder","Robert Peel","Sir Robert Walpole","Earl of Wilmington"],a:[2],yue:"第一位首相叫乜嘢名？",note:"1721–1742年"}
+],
+12:[
+{q:"Which of the following is a Crown Dependency but not part of the UK?",o:["Shetland","Isle of Wight","Isle of Man","Anglesey"],a:[2],yue:"以下哪個是Crown Dependency但不屬英國？",note:"Channel Islands亦係；有自己的政府"},
+{q:"Is the BBC controlled by the government?",o:["Yes","No"],a:[1],yue:"BBC受政府控制嗎？",note:"全球最大廣播機構，獨立於政府"},
+{q:"How many members does the Northern Ireland Assembly have?",o:["60","75","90","108"],a:[2],yue:"北愛爾蘭議會有多少名議員？",note:""},
+{q:"Who was in charge of the British fleet at the Battle of Trafalgar?",o:["Oliver Cromwell","The Duke of Wellington","Robert the Bruce","Admiral Nelson"],a:[3],yue:"誰率領英軍艦隊在特拉法加海戰作戰？",note:"1805年，納爾遜陣亡"},
+{q:"What was inscribed in the first coins minted in Britain during the Iron Age?",o:["The names of Iron Age kings","The names of Iron Age Gods","The names of trees","The names of animals"],a:[0],yue:"英國第一批硬幣上刻有甚麼？",note:""},
+{q:"Towns, cities and rural areas in the UK are governed by government appointed officials. True or False?",o:["True","False"],a:[1],yue:"英國城鎮和農村由政府任命的官員管理。對定錯？",note:"由民主選舉產生的地區議會管理"},
+{q:"Where is the Tate Art Gallery located?",o:["Glasgow","Cardiff","London","Belfast"],a:[2],yue:"泰特美術館在哪裏？",note:"Tate Britain and Tate Modern"},
+{q:"The version of the Bible created by King James I is known as:",o:["Authorised version","Reformed version","Approved version","Standard version"],a:[0],yue:"詹姆士一世下令翻譯的聖經版本叫乜嘢？",note:"1611年，又稱King James Bible"},
+{q:"What is the 'Dissolution of the Monasteries'?",o:["When Parliament was closed by Cromwell","Henry VIII's closure of Catholic monasteries and seizure of their wealth","When Edward VI closed the churches","The closing of all abbeys during the Civil War"],a:[1],yue:"「解散修道院」係乜嘢？",note:""},
+{q:"Who wrote plays including 'A Midsummer Night's Dream'?",o:["Christopher Marlowe","Ben Jonson","William Shakespeare","John Webster"],a:[2],yue:"誰寫了《仲夏夜之夢》等劇作？",note:""},
+{q:"What are the principles of the National Health Service (NHS)?",o:["Pay per treatment for all","Free at the point of use for all UK residents","Only free for employed people","Free only for children and elderly"],a:[1],yue:"NHS的原則係乜嘢？",note:"1948年成立"},
+{q:"What is the significance of the Beefeaters?",o:["They are famous London chefs","They are Yeoman Warders who guard the Tower of London and give tours","They are royal bodyguards for the monarch","They are ceremonial guards at Buckingham Palace"],a:[1],yue:"Beefeaters有何重要性？",note:"正式名稱：Yeoman Warders"},
+{q:"Which of the following is NOT a devolved area?",o:["Education in Scotland","Health in Wales","Defence","Agriculture in Northern Ireland"],a:[2],yue:"以下哪項不屬於權力下放事務？",note:"國防、外交、移民係保留給中央政府的事務"},
+{q:"What is 'Prime Minister's Questions' (PMQs)?",o:["A monthly cabinet meeting","A weekly session where MPs question the Prime Minister","A daily press briefing","An annual parliamentary debate"],a:[1],yue:"「首相質詢時間」係乜嘢？",note:"通常在星期三中午舉行"},
+{q:"What is the significance of 1707?",o:["The Norman Conquest","The signing of the Magna Carta","The Acts of Union united the Parliaments of England and Scotland","The founding of the NHS"],a:[2],yue:"1707年有何重要性？",note:""},
+{q:"What is the role of the Chancellor of the Exchequer?",o:["Head of the Foreign Office","Head of the Home Office","Responsible for the country's finances and the economy","Lord Chief Justice"],a:[2],yue:"財政大臣的角色係乜嘢？",note:""},
+{q:"What charity helps elderly people?",o:["NSPCC","Shelter","Friends of the Earth","Age UK"],a:[3],yue:"哪個慈善機構幫助老年人？",note:""},
+{q:"When was the Great Reform Act?",o:["1815","1832","1867","1884"],a:[1],yue:"《大改革法案》係哪年通過的？",note:"擴大投票權至中產階級"},
+{q:"What is the role of local councillors?",o:["To make national laws","To represent their local community and make decisions on local services","To manage the police","To run the NHS locally"],a:[1],yue:"地區議員的角色係乜嘢？",note:""},
+{q:"What is 'Hogmanay'?",o:["Christmas Eve in Scotland","New Year's Eve celebrations in Scotland","Burns Night in Scotland","Easter in Scotland"],a:[1],yue:"Hogmanay係乜嘢？",note:"12月31日"},
+{q:"What is the purpose of the Equality and Human Rights Commission?",o:["To enforce immigration laws","To protect and promote equality and human rights in Britain","To manage the courts","To oversee the police"],a:[1],yue:"平等及人權委員會的目的係乜嘢？",note:""},
+{q:"What is the Wimbledon Championship?",o:["An annual cricket tournament","An annual Grand Slam tennis tournament held in London","A golf major","A rowing competition"],a:[1],yue:"溫布頓錦標賽係乜嘢？",note:""},
+{q:"Who wrote the poem 'Ode to a Nightingale'?",o:["William Wordsworth","Percy Shelley","John Keats","Lord Byron"],a:[2],yue:"《夜鶯頌》係誰寫的？",note:""},
+{q:"What is the significance of 1215?",o:["The Norman Conquest","King John signed the Magna Carta — establishing the rule of law","The Battle of Agincourt","The Act of Union"],a:[1],yue:"1215年有何重要性？",note:""}
+],
+13:[
+{q:"When is St George's Day?",o:["17th March","30th November","1st March","23rd April"],a:[3],yue:"聖佐治日係哪天？",note:"英格蘭守護聖人"},
+{q:"Which is the largest National Park in England?",o:["Snowdonia","Loch Lomond and the Trossachs","The Giant's Causeway","The Lake District"],a:[3],yue:"哪個係英格蘭最大的國家公園？",note:""},
+{q:"Boudicca fought against which foreign invaders?",o:["The Normans","The Vikings","The Anglo-Saxons","The Romans"],a:[3],yue:"布迪卡女王抵抗哪些外來入侵者？",note:"公元60年，愛西尼族女王"},
+{q:"Which of the following is about a group of people going on a pilgrimage?",o:["The Canterbury Tales","All the world's a stage","A Midsummer Night's Dream","Great Expectations"],a:[0],yue:"以下哪首詩係關於一群人去朝聖的？",note:"喬叟所作"},
+{q:"How are public holidays called in the UK?",o:["Bank Holidays","Workers Holidays","Business Holidays","Summer Holidays"],a:[0],yue:"公眾假期係叫乜嘢？",note:""},
+{q:"How did Charles II escape to Europe after his defeat in the Civil War?",o:["Hiding in a farmer's house","Riding a horse","Hiding in an oak tree","Swimming"],a:[2],yue:"查理二世在內戰失敗後如何逃往歐洲？",note:"後來被稱為「皇家橡樹」（Royal Oak）"},
+{q:"Who commissioned the Domesday Book?",o:["King Harold","King Edward the Confessor","William the Conqueror","Henry II"],a:[2],yue:"《末日審判書》係誰下令編製的？",note:"1086年"},
+{q:"What is the Scottish Parliament called?",o:["The Scottish Senate","The Scottish Parliament","The Scottish Assembly","The Scottish Diet"],a:[1],yue:"蘇格蘭議會叫乜嘢名？",note:"位於愛丁堡"},
+{q:"Who won the general election of 1945?",o:["The Conservative Party under Churchill","The Labour Party under Clement Attlee","The Liberal Party","The coalition government"],a:[1],yue:"1945年大選誰勝出？",note:"儘管邱吉爾在戰時聲名大噪"},
+{q:"What is the constitutional role of the Monarch?",o:["To run the government","Ceremonial head of state; the monarch must remain politically neutral","To appoint all ministers","To write legislation"],a:[1],yue:"君主作為國家元首的角色係乜嘢？",note:""},
+{q:"What year did the Berlin Wall fall?",o:["1985","1987","1989","1991"],a:[2],yue:"柏林圍牆係哪年倒塌？",note:"象徵冷戰結束"},
+{q:"What was Henry VIII known for besides religious reform?",o:["Building many castles","Having six wives (two were executed)","Winning the Hundred Years War","Defeating the Spanish Armada"],a:[1],yue:"亨利八世除宗教改革外還以甚麼著名？",note:"安·博林和凱薩琳·霍華德被處決"},
+{q:"What language is Gaelic?",o:["A Germanic language","A Romance language","A Celtic language spoken in parts of Scotland and Ireland","A Scandinavian language"],a:[2],yue:"蓋爾語係乜嘢語言？",note:""},
+{q:"What are the qualifications to vote in a UK general election?",o:["Any adult residing in the UK","Must be 18+, UK/Irish/Commonwealth citizen, and registered to vote","Must be a UK citizen only","Must be 21 or over"],a:[1],yue:"英國大選的投票資格係乜嘢？",note:""},
+{q:"What is the NHS?",o:["A private health insurance scheme","National Health Service — free healthcare for UK residents (established 1948)","A charity hospital network","A government health savings scheme"],a:[1],yue:"NHS係乜嘢？",note:""},
+{q:"What was the impact of the Industrial Revolution?",o:["Britain became more agricultural","Britain transformed from agricultural to industrial economy; rapid urbanisation","Population declined significantly","Britain lost its empire"],a:[1],yue:"工業革命帶來甚麼影響？",note:"18–19世紀"},
+{q:"What is the role of trade unions?",o:["To run elections","To represent workers' interests and negotiate with employers","To manage the stock market","To advise the government on tax"],a:[1],yue:"工會的角色係乜嘢？",note:""},
+{q:"What is the significance of the Act of Union 1707?",o:["England and Ireland merged","England and Wales formally united","United England and Scotland into one kingdom (Great Britain)","The UK joined the EU"],a:[2],yue:"1707年《聯合法令》有何重要性？",note:""},
+{q:"What is the role of the King's/Queen's Speech?",o:["A royal address to the nation on Christmas Day","Outlines the government's legislative programme; written by PM, read by Monarch at State Opening","A speech by the monarch on their birthday","A speech at the coronation ceremony"],a:[1],yue:"君主演講（The King's Speech）的作用係乜嘢？",note:""},
+{q:"What is 'Glastonbury'?",o:["A historical abbey","A famous annual music festival held in Somerset, England","A national park","A royal estate in Somerset"],a:[1],yue:"格拉斯頓伯里係乜嘢？",note:""},
+{q:"Where did William Shakespeare go to school?",o:["Eton College","Oxford University","Stratford Grammar School, Stratford-upon-Avon","Cambridge University"],a:[2],yue:"莎士比亞在哪裏上學？",note:""},
+{q:"What is the significance of the Good Friday Agreement?",o:["It ended the Second World War","Brought peace to Northern Ireland after decades of conflict (signed 1998)","It created the Scottish Parliament","It established the Human Rights Act"],a:[1],yue:"《耶穌受難日協議》有何重要性？",note:""},
+{q:"What was the significance of the Reformation in England?",o:["England became Catholic","Henry VIII broke from the Catholic Church and established the Church of England","England became Islamic","The monasteries were rebuilt"],a:[1],yue:"英格蘭宗教改革有何重要性？",note:""},
+{q:"Who was Emmeline Pankhurst?",o:["The first female MP","Leader of the Suffragette movement, campaigning for women's right to vote","The first female judge","A famous Victorian nurse"],a:[1],yue:"愛米林·潘克赫斯特係誰？",note:""}
+],
+14:[
+{q:"When is St Patrick's Day celebrated?",o:["23rd April","30th November","1st April","17th March"],a:[3],yue:"聖柏特理日係哪天慶祝？",note:"北愛爾蘭守護聖人節日"},
+{q:"How are members of the Northern Ireland Assembly elected?",o:["By a system of proportional representation","Using a system of ranked voting","Using the first past the post system","Using a runoff system"],a:[0],yue:"北愛爾蘭議會議員係如何選出的？",note:""},
+{q:"Who was the first British Prime Minister?",o:["Winston Churchill","Earl of Wilmington","Henry Pelham","Sir Robert Walpole"],a:[3],yue:"英國第一位首相係誰？",note:"1721–1742年"},
+{q:"Which of the following actresses has NOT won an Oscar?",o:["Tilda Swinton","Emily Watson","Dame Judi Dench","Kate Winslet"],a:[1],yue:"以下女演員哪位未曾贏得奧斯卡？",note:"Colin Firth、Anthony Hopkins、Judi Dench、Kate Winslet、Tilda Swinton均曾獲獎"},
+{q:"During the Enlightenment, Adam Smith developed ideas about:",o:["Physics","Economics","Science","Engineering"],a:[1],yue:"啟蒙運動期間，亞當·斯密發展了關於哪方面的思想？",note:"《國富論》作者，自由市場經濟之父"},
+{q:"Who died at the Battle of Trafalgar?",o:["The Duke of Wellington","William Pitt the Younger","Admiral Nelson","King George III"],a:[2],yue:"誰在特拉法加海戰陣亡？",note:"1805年"},
+{q:"What are the colours of the Union Jack?",o:["Red, white and blue","Red, white and green","Blue, white and gold","Red, gold and blue"],a:[0],yue:"英國國旗（Union Jack）有哪些顏色？",note:"結合英格蘭、蘇格蘭和愛爾蘭的十字架"},
+{q:"Who invented the World Wide Web?",o:["Bill Gates","Steve Jobs","Tim Berners-Lee","Alan Turing"],a:[2],yue:"誰發明了萬維網？",note:"英國電腦科學家，1989年"},
+{q:"What is 'trial by jury'?",o:["A trial judged by a panel of lawyers","A trial where a panel of citizens decides on guilt or innocence","A trial decided by a single judge","A trial without any defendant representation"],a:[1],yue:"「陪審團審訊」係乜嘢？",note:"英國重要法律原則"},
+{q:"What was the Black Death?",o:["A volcanic eruption in England","A devastating plague (1348–1349) that killed about one third of England's population","A famine in the Middle Ages","A war against France"],a:[1],yue:"黑死病係乜嘢？",note:""},
+{q:"What is the significance of the Human Rights Act 1998?",o:["It gave women the right to vote","It incorporated the European Convention on Human Rights into UK law","It abolished the death penalty","It created the Supreme Court"],a:[1],yue:"1998年《人權法》有何重要性？",note:""},
+{q:"What is a 'hung parliament'?",o:["When the Prime Minister resigns","When no single party wins enough seats for a majority","When Parliament is in recess","When the Queen dissolves Parliament"],a:[1],yue:"「懸峙議會」係乜嘢？",note:""},
+{q:"Who was Winston Churchill?",o:["UK PM during WWI","UK PM during WWII (1940–1945 and 1951–1955), known for inspiring speeches","The founder of the NHS","The architect of the welfare state"],a:[1],yue:"邱吉爾係誰？",note:""},
+{q:"What is the purpose of Armistice Day?",o:["To celebrate the founding of the UN","To commemorate the end of WWI (11th November at 11am) and those who died","To celebrate VE Day","To remember the victims of WWII"],a:[1],yue:"停戰紀念日（Armistice Day）的目的係乜嘢？",note:""},
+{q:"What is the 'National Minimum Wage'?",o:["The average wage in the UK","The minimum hourly wage employers must pay workers (introduced 1998)","The maximum wage allowed by law","A voluntary wage guideline"],a:[1],yue:"「全國最低工資」係乜嘢？",note:""},
+{q:"Which 17th-century diarist wrote about the Great Fire of London?",o:["John Evelyn","Daniel Defoe","Samuel Pepys","Jonathan Swift"],a:[2],yue:"哪位17世紀著名日記作者描述了倫敦大火？",note:""},
+{q:"What is the role of the Monarch in government?",o:["To run the country","Ceremonial head of state; signs legislation but acts on the PM's advice","To appoint all judges","To write new laws"],a:[1],yue:"英國政府中君主的角色係乜嘢？",note:""},
+{q:"What is the purpose of legal aid?",o:["To fund law schools","To help people who cannot afford to pay for legal advice","To pay judges' salaries","To fund the police"],a:[1],yue:"法律援助的目的係乜嘢？",note:""},
+{q:"Where is Stonehenge?",o:["Dorset","Hampshire","Wiltshire","Somerset"],a:[2],yue:"巨石陣在哪裏？",note:"英格蘭威爾特郡，約5,000年前建造"},
+{q:"What does 'presumption of innocence' mean?",o:["The accused must prove their own innocence","A person is considered innocent until proven guilty","The police have the right to detain anyone","The judge decides guilt before trial"],a:[1],yue:"「無罪推定」係乜嘢意思？",note:"英國法律的基本原則"},
+{q:"What is Bonfire Night?",o:["31st October","5th November — commemorating the failure of the Gunpowder Plot 1605","25th December","1st January"],a:[1],yue:"篝火之夜係乜嘢？",note:""},
+{q:"Who was Rudyard Kipling?",o:["A Victorian politician","A famous author and poet known for 'The Jungle Book' and the poem 'If'","A Victorian scientist","A Victorian painter"],a:[1],yue:"魯德亞德·吉卜林係誰？",note:""},
+{q:"What is the role of a solicitor?",o:["To decide guilt in court","To give legal advice and represent clients","To prosecute criminals","To manage prisons"],a:[1],yue:"律師（solicitor）的角色係乜嘢？",note:""},
+{q:"When was the Slave Trade Act passed?",o:["1789","1807","1833","1865"],a:[1],yue:"奴隸貿易法案係哪年通過的？",note:"廢除大英帝國的奴隸貿易，威廉·威伯福斯推動立法"}
+],
+15:[
+{q:"Which two languages were used across England during the Middle Ages?",o:["Welsh","Gaelic","Norman French","Anglo-Saxon"],a:[2,3],yue:"中世紀英格蘭使用哪兩種語言？",note:"貴族說諾曼法語，農民說盎格魯-撒克遜語"},
+{q:"In 1776, which British colonies declared their independence?",o:["North African colonies","Asian colonies","13 North American colonies","South African colonies"],a:[2],yue:"1776年，哪些英國殖民地宣告獨立？",note:"美國獨立宣言"},
+{q:"When was England ruled as a republic and not by a monarch?",o:["When Elizabeth I died without any successor","When Charles I was executed","When the Magna Carta restricted the king's power","When King Harold died after the Battle of Hastings"],a:[1],yue:"英格蘭哪時係共和國而非君主制？",note:"1649年，英格蘭成為Commonwealth，克倫威爾執政"},
+{q:"Which UK film franchise is one of the highest-grossing of all time?",o:["Harry Potter","Spider-Man","The Lord of the Rings","Indiana Jones"],a:[0],yue:"哪套英國電影係最高票房電影系列之一？",note:"另一套係James Bond（占士邦）"},
+{q:"When did the first farmers come to Britain?",o:["10,000 years ago","6,000 years ago","15,000 years ago","2,000 years ago"],a:[1],yue:"最早的農耕者係幾時來到英國？",note:""},
+{q:"When did the First World War end?",o:["1916","1917","1918","1919"],a:[2],yue:"第一次世界大戰係哪年結束？",note:"11月11日"},
+{q:"What is the significance of 1215?",o:["The Norman Conquest","The Battle of Agincourt","Magna Carta signed by King John — limiting royal power","The Act of Union"],a:[2],yue:"1215年有何重要性？",note:""},
+{q:"What are the responsibilities of a British citizen? (two answers)",o:["Obey the law","Pay taxes","Join the army","Own property"],a:[0,1],yue:"英國公民的責任係哪兩項？",note:""},
+{q:"What is 'common law'?",o:["A law that applies to everyone equally","Law based on court decisions and precedents rather than legislation","Laws that have been in place for over 100 years","Laws voted on directly by the public"],a:[1],yue:"普通法係乜嘢？",note:""},
+{q:"What are MPs' main duties?",o:["To run local councils","To represent constituents, help make new laws, and scrutinise the government","To appoint judges","To manage the NHS"],a:[1],yue:"MP的主要職責係乜嘢？",note:""},
+{q:"Who wrote 'Jane Eyre'?",o:["Emily Brontë","George Eliot","Charlotte Brontë","Jane Austen"],a:[2],yue:"《簡愛》係誰寫的？",note:""},
+{q:"What was the 'Windrush Generation'?",o:["WWII veterans who stayed in Britain","Caribbean immigrants who came to the UK after WWII (from 1948)","Scottish immigrants who moved to England","Refugees from the First World War"],a:[1],yue:"「疾風世代」係乜嘢？",note:"1948年，Windrush號抵達"},
+{q:"What were the causes of the English Civil War?",o:["A religious dispute between Catholics and Protestants","Conflict between King Charles I and Parliament over power (1642–1651)","A dispute over trade with France","A Scottish invasion of England"],a:[1],yue:"英格蘭內戰的起因係乜嘢？",note:""},
+{q:"What is the significance of 1998 for Northern Ireland?",o:["Northern Ireland joined the UK","The Good Friday Agreement was signed — bringing peace","Northern Ireland gained independence","The first Northern Ireland Assembly was created"],a:[1],yue:"1998年對北愛爾蘭有何重要性？",note:""},
+{q:"What is the role of the Equality Act 2010?",o:["To promote free trade","Protects people from discrimination based on protected characteristics","To regulate immigration","To set the minimum wage"],a:[1],yue:"2010年《平等法》的作用係乜嘢？",note:"包括年齡、性別、種族、宗教等"},
+{q:"What is the National Citizen Service?",o:["Compulsory military service","A voluntary programme for 16–17 year olds to develop skills and serve their community","A scheme for unemployed adults","A government training programme for adults"],a:[1],yue:"國家公民服務係乜嘢？",note:"自願參加"},
+{q:"What was the significance of the Glorious Revolution 1688?",o:["England became a republic","James II was peacefully replaced by William of Orange — establishing constitutional monarchy","England and Scotland united","The Civil War ended"],a:[1],yue:"1688年「光榮革命」有何重要性？",note:"奠定君主立憲制基礎"},
+{q:"What is Diwali celebrated by?",o:["Muslims","Christians","Hindus and Sikhs","Buddhists"],a:[2],yue:"排燈節係哪個宗教的節日？",note:""},
+{q:"What is the purpose of the European Court of Human Rights?",o:["To manage EU trade disputes","To enforce the European Convention on Human Rights (based in Strasbourg)","To run the European Parliament","To manage immigration in Europe"],a:[1],yue:"歐洲人權法院的目的係乜嘢？",note:"法國史特拉斯堡"},
+{q:"Who was Oliver Cromwell?",o:["A Victorian Prime Minister","Leader of the Parliamentarians in the Civil War; became Lord Protector (1649–1658)","A famous admiral","An Anglo-Saxon king"],a:[1],yue:"奧利弗·克倫威爾係誰？",note:""},
+{q:"What is the National Lottery?",o:["A government tax system","A lottery that raises money for good causes including arts, sport and heritage (launched 1994)","A private gambling company","A savings scheme"],a:[1],yue:"國家樂透係乜嘢？",note:""},
+{q:"What is the role of the UN General Assembly?",o:["To provide military assistance","A forum where all member nations can discuss and vote on international issues","To manage world trade","To enforce international law"],a:[1],yue:"聯合國大會的角色係乜嘢？",note:""},
+{q:"When did the Second World War begin?",o:["1937","1938","1939","1940"],a:[2],yue:"二戰係哪年開始？",note:"德國入侵波蘭"},
+{q:"What were the main causes of WWI?",o:["The assassination of the Archduke Franz Ferdinand and complex alliances","A trade dispute between Britain and Germany","A religious war","A dispute over Africa"],a:[0],yue:"第一次世界大戰的起因係乜嘢？",note:""}
+],
+16:[
+{q:"When was the United Nations set up?",o:["After the First World War","After the Second World War","Before the First World War","Before the Second World War"],a:[1],yue:"聯合國係哪時成立的？",note:"1945年"},
+{q:"Where is the Giant's Causeway located?",o:["Scotland","England","Wales","Northern Ireland"],a:[3],yue:"巨人堤道在哪裏？",note:"約5000萬年前火山熔岩形成"},
+{q:"What happened to Mary, Queen of Scots, after being imprisoned by Queen Elizabeth I?",o:["She got married","She was sent to France","She was executed","She was sent to Scotland"],a:[2],yue:"蘇格蘭女王瑪麗被伊利沙伯一世監禁後發生了甚麼？",note:""},
+{q:"Which tribe came to Britain from northern Europe after the Romans left in AD 410?",o:["The Gepids","The Jutes","The Frisians","The Burgundians"],a:[1],yue:"公元410年羅馬人離開後，哪個族群從北歐來到英國？",note:"還有盎格魯人（Angles）和撒克遜人（Saxons）"},
+{q:"What is one of the highest-grossing film franchises produced in the UK?",o:["James Bond","Star Wars","The Lord of the Rings","Superman"],a:[0],yue:"英國出產的最高票房電影系列之一係乜嘢？",note:"另一套係Harry Potter"},
+{q:"Who can hear cases in Youth Courts in England and Wales? (two answers)",o:["Specially trained magistrates","Social workers","District judges","Members of the public"],a:[0,2],yue:"哪些人可以在青少年法庭審案（選兩項）？",note:"10–17歲案件在Youth Court審理，嚴重案件去Crown Court"},
+{q:"What is the significance of 1945?",o:["The founding of the NHS","The end of World War II (VE Day 8 May, VJ Day 15 August)","The formation of NATO","The signing of the Universal Declaration of Human Rights"],a:[1],yue:"1945年有何重要性？",note:""},
+{q:"What is the purpose of the Equality Act?",o:["To promote international trade","Protect people from discrimination (2010)","To set the minimum wage","To regulate immigration"],a:[1],yue:"《平等法》的目的係乜嘢？",note:""},
+{q:"What is the role of the Prime Minister?",o:["Head of state","Head of government; leads the Cabinet; advises the Monarch","Lord Chief Justice","Speaker of the House of Commons"],a:[1],yue:"首相的角色係乜嘢？",note:""},
+{q:"What is the Bayeux Tapestry famous for?",o:["Depicting the signing of the Magna Carta","Depicting the Norman Conquest of England in 1066","Showing the life of King Henry VIII","Recording the Wars of the Roses"],a:[1],yue:"《貝葉掛毯》以甚麼著名？",note:""},
+{q:"What is the significance of the Petition of Right 1628?",o:["It gave women the right to vote","Confirmed the King could not raise taxes without Parliament's consent","It abolished the monarchy temporarily","It created the House of Commons"],a:[1],yue:"1628年《權利請願書》有何重要性？",note:""},
+{q:"What is the purpose of the Ombudsman?",o:["To prosecute criminals","To investigate complaints about government departments and public services","To manage the courts","To oversee elections"],a:[1],yue:"申訴專員的作用係乜嘢？",note:""},
+{q:"Who was the Duke of Wellington?",o:["A famous Victorian poet","A British general who defeated Napoleon at Waterloo (1815); later became PM","A famous naval commander","A Victorian industrialist"],a:[1],yue:"威靈頓公爵係誰？",note:""},
+{q:"What are 'hereditary peers'?",o:["MPs who serve for very long periods","Lords who inherit their title (only 92 remain in the House of Lords)","Judges appointed for life","Bishops in the House of Lords"],a:[1],yue:"「世襲貴族」係乜嘢？",note:""},
+{q:"Who wrote 'Frankenstein'?",o:["Jane Austen","Charlotte Brontë","Mary Shelley","George Eliot"],a:[2],yue:"《科學怪人》係誰寫的？",note:""},
+{q:"What is the significance of Hadrian's Wall?",o:["It defended England from the French","Built by Romans (AD 122) to mark the northern boundary of their empire in Britain","It was the border between England and Scotland","It was built by the Anglo-Saxons to keep out the Vikings"],a:[1],yue:"哈德良長城有何重要性？",note:""},
+{q:"What is the Magna Carta's main principle?",o:["The King has absolute power","No one, not even the King, is above the law","Parliament controls the army","The Church controls the government"],a:[1],yue:"《大憲章》的主要原則係乜嘢？",note:""},
+{q:"What is the significance of Robert Burns?",o:["He was England's national poet","He was Scotland's national poet; wrote Auld Lang Syne; Burns Night is 25th January","He was the first Scottish Prime Minister","He wrote the Scottish national anthem"],a:[1],yue:"羅伯特·彭斯有何重要性？",note:""},
+{q:"What was the purpose of the Slave Trade Act 1807?",o:["To regulate working conditions","Abolished the slave trade in the British Empire (championed by Wilberforce)","To free all existing slaves immediately","To restrict immigration"],a:[1],yue:"1807年《奴隸貿易法》的目的係乜嘢？",note:""},
+{q:"What is the significance of the Good Friday Agreement?",o:["It ended the Second World War in Europe","Brought peace to Northern Ireland after decades of conflict (1998)","It united Ireland and the UK","It created the Northern Ireland Assembly"],a:[1],yue:"《耶穌受難日協議》有何重要性？",note:""},
+{q:"Who was Queen Elizabeth I?",o:["Daughter of Henry VII; Catholic queen","Daughter of Henry VIII; Protestant queen; defeated the Spanish Armada (1558–1603)","Daughter of Charles I; restored the monarchy","Daughter of James I; the Virgin Queen"],a:[1],yue:"伊利沙伯一世係誰？",note:""},
+{q:"What is the constitutional role of the monarch?",o:["To run the government","Head of state; ceremonial duties; must remain politically neutral","To appoint all ministers","To lead the armed forces in battle"],a:[1],yue:"君主的憲制角色係乜嘢？",note:""},
+{q:"What is the UK's role in NATO?",o:["An observer only","A founding member (1949) committed to collective defence","A member that joined in 1990","The headquarters country for NATO"],a:[1],yue:"英國在NATO中的角色係乜嘢？",note:""},
+{q:"Where did the UK's first curry house open?",o:["Edinburgh","Birmingham","London","Manchester"],a:[2],yue:"英國第一間咖喱館在哪裏開業？",note:"由Sake Dean Mahomet開設，約1810年"}
+],
+17:[
+{q:"Which of the following is NOT a constitutional institution in the UK?",o:["The Parliament","The Cabinet","The Armed Forces","The Police"],a:[2],yue:"以下哪項不係英國的憲制機構？",note:"憲制機構：君主、國會、首相、內閣、司法機構、警察、公務員、地方政府"},
+{q:"What food shortage caused the famine in Ireland?",o:["Corn","Potato","Wheat","Oats"],a:[1],yue:"哪種食物短缺引發愛爾蘭大飢荒？",note:"19世紀中葉，約100萬人死亡"},
+{q:"The leader of the opposition appoints senior opposition MPs to form a group to challenge the government. What are they called?",o:["Shadow Cabinet","Lobby groups","Civil servants","Support peers"],a:[0],yue:"「影子內閣」係乜嘢？",note:"由反對黨領袖委任"},
+{q:"Which of the following are TWO responsibilities of MPs?",o:["Protect life and property","Represent everyone in their constituency","Help to create new laws","Scrutinise and comment on what the monarch is doing"],a:[1,2],yue:"以下哪兩項係MP的職責？",note:""},
+{q:"Who was the longest-serving PM in the 20th century?",o:["John Major","Sir Alec Douglas-Home","Robert Walpole","Margaret Thatcher"],a:[3],yue:"20世紀任期最長的首相係誰？",note:"1979–1990年，共11年"},
+{q:"What name is given to territories which are linked to the UK but not part of it?",o:["Crown Dependencies","Offshore Territories","Associated Territories","British Protectorates"],a:[0],yue:"與英國有聯繫但不屬英國的領土叫乜嘢？",note:"例如曼島和海峽群島"},
+{q:"What is proportional representation?",o:["The candidate with the most votes wins","An electoral system where the number of seats reflects the proportion of votes received","A two-round voting system","A system where the public vote directly on all laws"],a:[1],yue:"比例代表制係乜嘢？",note:"北愛爾蘭和蘇格蘭議會用此制度"},
+{q:"What year was the NHS founded?",o:["1944","1945","1948","1951"],a:[2],yue:"NHS係哪年成立的？",note:"Aneurin Bevan推動，工黨政府"},
+{q:"What is the difference between the UK and Great Britain?",o:["They are the same thing","UK includes Northern Ireland; Great Britain (England, Scotland, Wales) does not","Great Britain includes Ireland; UK does not","UK refers to England only"],a:[1],yue:"英國（UK）和大不列顛（Great Britain）有甚麼分別？",note:""},
+{q:"What was the Reformation?",o:["A political revolution in the 20th century","A 16th-century religious movement that broke from the Catholic Church and established Protestant churches","A movement for workers' rights","An economic reform programme"],a:[1],yue:"宗教改革係乜嘢？",note:"亨利八世在英格蘭推動"},
+{q:"What two things does the Monarch do at the State Opening of Parliament?",o:["Reads the King's/Queen's Speech and opens the new parliamentary session","Appoints all new ministers and signs new laws","Reviews the army and meets foreign ambassadors","Dissolves Parliament and calls an election"],a:[0],yue:"君主在國會開幕大典做哪兩件事？",note:""},
+{q:"What is the role of the Electoral Commission?",o:["To run elections for the monarch","To oversee elections and maintain the electoral register","To count votes in parliament","To choose the Prime Minister"],a:[1],yue:"選舉委員會的角色係乜嘢？",note:""},
+{q:"What was the significance of the Battle of Britain 1940?",o:["Britain defeated Germany in a land battle","Britain successfully defended against German air attacks, preventing invasion","Britain bombed Berlin for the first time","Britain captured North Africa"],a:[1],yue:"1940年不列顛之役有何重要性？",note:"「這係英國人最輝煌的時刻」— 邱吉爾"},
+{q:"Who was Henry VIII's second wife?",o:["Catherine of Aragon","Anne Boleyn","Jane Seymour","Anne of Cleves"],a:[1],yue:"亨利八世的第二任妻子係誰？",note:"伊利沙伯一世的母親，後被處決"},
+{q:"What were Viking longships used for?",o:["Fishing only","Trade and raids (Vikings invaded England in the 9th and 10th centuries)","Carrying pilgrims","Military transport only"],a:[1],yue:"維京人的長船用作乜嘢？",note:""},
+{q:"What was the significance of the Battle of the Somme?",o:["A decisive British victory","One of the bloodiest battles of WWI; about 20,000 British soldiers died on the first day (1916)","The battle that ended WWI","A naval battle in the English Channel"],a:[1],yue:"索姆河戰役有何重要性？",note:""},
+{q:"What is the role of Citizen's Advice?",o:["A government department for legal cases","Free, confidential advice on rights, legal matters and other issues","A charity that helps homeless people","A service for newly arrived immigrants only"],a:[1],yue:"公民諮詢（Citizen's Advice）的角色係乜嘢？",note:""},
+{q:"Who were the Normans?",o:["A tribe from Scandinavia who directly invaded England","Descendants of Vikings who settled in northern France; conquered England in 1066","A Germanic tribe who came after the Romans","The original inhabitants of Britain"],a:[1],yue:"諾曼人係誰？",note:""},
+{q:"What is 'First Past the Post'?",o:["A proportional voting system","An electoral system where the candidate with the most votes wins — used in UK general elections","A system requiring a majority of 50%+","A system where the top two candidates go to a runoff"],a:[1],yue:"「簡單多數制」係乜嘢？",note:""},
+{q:"What were the consequences of the Norman Conquest?",o:["England became more democratic","New ruling class; new language influences; new legal system; castles built throughout England","England became Catholic for the first time","The Vikings were invited to settle in England"],a:[1],yue:"諾曼征服帶來了甚麼影響？",note:"1066年後英格蘭大幅改變"},
+{q:"What was the Welfare State?",o:["A Victorian charity system","A system of government providing social security, healthcare and education (built after WWII by Labour)","A system of private insurance","A military support programme"],a:[1],yue:"福利國家係乜嘢？",note:""},
+{q:"What did the Magna Carta establish?",o:["The right for all men to vote","That no one, not even the King, is above the law (signed 1215 by King John)","The creation of Parliament","The Church of England"],a:[1],yue:"《大憲章》確立了甚麼？",note:""},
+{q:"What is the significance of Armistice Day?",o:["It marks the start of WWI","Commemorates the end of WWI on 11th November 1918 at 11am","It marks the end of WWII","It marks the founding of the UN"],a:[1],yue:"停戰紀念日有何重要性？",note:""},
+{q:"What is the purpose of the House of Lords?",o:["To elect the Prime Minister","To examine, revise and debate laws proposed by the House of Commons","To manage local government","To run the courts"],a:[1],yue:"上議院的目的係乜嘢？",note:""}
+]
+};
+
+// ════════════════════════════════════════
+// APP STATE
+// ════════════════════════════════════════
+let state = {
+  mode: 'practice',      // 'practice' | 'exam'
+  examNum: 1,
+  questions: [],
+  current: 0,
+  answers: {},           // index -> [selected option indices]
+  revealed: {},          // index -> bool
+  sessionCorrect: 0,
+  sessionTotal: 0,
+};
+
+// ════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function getLS(key) {
+  try { return JSON.parse(localStorage.getItem(key)); } catch { return null; }
+}
+function setLS(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+}
+
+// ════════════════════════════════════════
+// HOME
+// ════════════════════════════════════════
+function buildExamGrid() {
+  const grid = document.getElementById('examGrid');
+  const done = getLS('completedExams') || {};
+  let html = `<button class="exam-btn all" onclick="startExam('all')">🎯 All Exams (408 Q)</button>`;
+  for (let i = 1; i <= 17; i++) {
+    html += `<button class="exam-btn ${done[i] ? 'done' : ''}" onclick="startExam(${i})">Exam ${i}</button>`;
+  }
+  grid.innerHTML = html;
+}
+
+let pendingMode = null;
+function startMode(mode) {
+  pendingMode = mode;
+  // highlight selected
+  document.querySelectorAll('.mode-card').forEach(c => c.style.borderColor = '');
+  event.currentTarget.style.borderColor = 'var(--navy)';
+}
+
+function startExam(examNum) {
+  if (!pendingMode) {
+    alert('Please select a mode first (Practice or Exam).');
+    return;
+  }
+  state.mode = pendingMode;
+  state.examNum = examNum;
+
+  if (examNum === 'all') {
+    let all = [];
+    for (let i = 1; i <= 17; i++) {
+      EXAMS[i].forEach((q, idx) => all.push({ ...q, examNum: i, origIdx: idx }));
+    }
+    state.questions = shuffle(all);
+  } else {
+    state.questions = EXAMS[examNum].map((q, idx) => ({ ...q, examNum: examNum, origIdx: idx }));
+  }
+
+  state.current = 0;
+  state.answers = {};
+  state.revealed = {};
+
+  showScreen('screenQuiz');
+  renderQuestion();
+}
+
+// ════════════════════════════════════════
+// QUIZ
+// ════════════════════════════════════════
+function renderQuestion() {
+  const q = state.questions[state.current];
+  const total = state.questions.length;
+  const idx = state.current;
+  const isMulti = q.a.length > 1;
+  const answered = state.answers[idx] !== undefined;
+  const revealed = state.revealed[idx];
+
+  // header
+  document.getElementById('quizLabel').textContent =
+    state.examNum === 'all' ? `All Exams (shuffled)` : `Exam ${state.examNum}`;
+  document.getElementById('modeBadge').textContent =
+    state.mode === 'practice' ? 'Practice' : 'Exam';
+
+  // progress
+  const pct = Math.round(((idx + 1) / total) * 100);
+  document.getElementById('progressText').textContent = `Question ${idx + 1} of ${total}`;
+  document.getElementById('progressFill').style.width = pct + '%';
+
+  // score (practice mode only)
+  if (state.mode === 'practice') {
+    const correct = Object.values(state.revealed).filter(Boolean).length;
+    const done = Object.keys(state.revealed).length;
+    document.getElementById('scoreText').textContent =
+      done > 0 ? `${correct}/${done} correct` : '';
+  } else {
+    document.getElementById('scoreText').textContent = '';
+  }
+
+  // question
+  document.getElementById('qNum').textContent =
+    `Question ${idx + 1}${isMulti ? ' (select ' + q.a.length + ')' : ''}`;
+  document.getElementById('qText').textContent = q.q;
+
+  // options
+  const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+  let optHtml = '';
+  q.o.forEach((opt, oi) => {
+    let cls = 'opt';
+    const userPicked = answered && (state.answers[idx] || []).includes(oi);
+    const isCorrect = q.a.includes(oi);
+
+    if (state.mode === 'practice' && revealed) {
+      cls += ' disabled';
+      if (isCorrect) cls += ' correct';
+      else if (userPicked) cls += ' wrong';
+    } else if (state.mode === 'exam' && answered) {
+      cls += ' disabled';
+      if (userPicked) cls += isCorrect ? ' correct' : ' wrong';
+      if (!userPicked && isCorrect) cls += ' correct';
+    } else if (userPicked) {
+      cls += ' selected-wrong'; // temp highlight before reveal
+    }
+
+    optHtml += `<button class="${cls}" onclick="selectOption(${oi})" id="opt${oi}">
+      <span class="opt-letter">${letters[oi]}</span>
+      <span>${opt}</span>
+    </button>`;
+  });
+  document.getElementById('optionsContainer').innerHTML = optHtml;
+
+  // answer box (practice)
+  const box = document.getElementById('answerBox');
+  if (state.mode === 'practice' && revealed) {
+    const userAns = state.answers[idx] || [];
+    const correct = q.a.every(a => userAns.includes(a)) && userAns.length === q.a.length;
+    box.className = 'answer-box show' + (correct ? '' : ' wrong-ans');
+    document.getElementById('ansLabel').className = 'ans-label' + (correct ? '' : ' wrong');
+    document.getElementById('ansLabel').textContent = correct ? '✓  Correct!' : '✗  Wrong';
+    document.getElementById('ansEn').className = 'ans-en' + (correct ? '' : ' wrong');
+    document.getElementById('ansEn').textContent = q.a.map(ai => q.o[ai]).join('  |  ');
+    document.getElementById('ansYue').textContent = '【廣東話問題】' + q.yue;
+    document.getElementById('ansNote').innerHTML = q.note ? `<strong>💡 備注：</strong>${q.note}` : '';
+  } else {
+    box.className = 'answer-box';
+  }
+
+  // exam submit button
+  const submitRow = document.getElementById('examSubmitRow');
+  const submitBtn = document.getElementById('examSubmitBtn');
+  if (state.mode === 'exam') {
+    submitRow.style.display = 'block';
+    submitBtn.disabled = !answered || revealed;
+    submitBtn.textContent = revealed ? 'Submitted' : 'Submit Answer';
+  } else {
+    submitRow.style.display = 'none';
+  }
+
+  // nav buttons
+  document.getElementById('prevBtn').disabled = idx === 0;
+  const nextBtn = document.getElementById('nextBtn');
+  if (idx === total - 1) {
+    if (state.mode === 'exam') {
+      nextBtn.textContent = 'See Results →';
+      nextBtn.onclick = finishExam;
+    } else {
+      nextBtn.textContent = 'Finish ✓';
+      nextBtn.onclick = finishExam;
+    }
+  } else {
+    nextBtn.textContent = 'Next →';
+    nextBtn.onclick = nextQ;
+  }
+
+  // header stats
+  document.getElementById('headerStats').style.display = 'flex';
+  const allRevealed = Object.values(state.revealed).filter(Boolean).length;
+  const allDone = Object.keys(state.answers).length;
+  document.getElementById('statCorrect').textContent = allRevealed;
+  document.getElementById('statTotal').textContent = allDone;
+}
+
+function selectOption(oi) {
+  const idx = state.current;
+  const q = state.questions[idx];
+  const isMulti = q.a.length > 1;
+
+  if (state.revealed[idx]) return; // already revealed
+
+  if (state.mode === 'practice') {
+    // select and immediately reveal
+    if (!isMulti) {
+      state.answers[idx] = [oi];
+      revealAnswer();
+    } else {
+      // multi-select: toggle
+      if (!state.answers[idx]) state.answers[idx] = [];
+      const sel = state.answers[idx];
+      const pos = sel.indexOf(oi);
+      if (pos === -1) {
+        if (sel.length < q.a.length) sel.push(oi);
+      } else {
+        sel.splice(pos, 1);
+      }
+      // auto-reveal when enough selected
+      if (sel.length === q.a.length) {
+        revealAnswer();
+      } else {
+        renderQuestion();
+      }
+    }
+  } else {
+    // exam mode: select but don't reveal
+    if (!isMulti) {
+      state.answers[idx] = [oi];
+    } else {
+      if (!state.answers[idx]) state.answers[idx] = [];
+      const sel = state.answers[idx];
+      const pos = sel.indexOf(oi);
+      if (pos === -1) {
+        if (sel.length < q.a.length) sel.push(oi);
+      } else {
+        sel.splice(pos, 1);
+      }
+    }
+    renderQuestion();
+  }
+}
+
+function revealAnswer() {
+  const idx = state.current;
+  const q = state.questions[idx];
+  const userAns = state.answers[idx] || [];
+  const correct = q.a.every(a => userAns.includes(a)) && userAns.length === q.a.length;
+  state.revealed[idx] = correct;
+  renderQuestion();
+}
+
+function examSubmitAnswer() {
+  const idx = state.current;
+  if (state.answers[idx] === undefined) return;
+  const q = state.questions[idx];
+  const userAns = state.answers[idx];
+  const correct = q.a.every(a => userAns.includes(a)) && userAns.length === q.a.length;
+  state.revealed[idx] = correct;
+
+  // in exam mode reveal is done differently — just mark as done
+  // show the correct answers highlighted
+  renderQuestion();
+}
+
+function nextQ() {
+  if (state.current < state.questions.length - 1) {
+    state.current++;
+    renderQuestion();
+    window.scrollTo(0, 0);
+  }
+}
+
+function prevQ() {
+  if (state.current > 0) {
+    state.current--;
+    renderQuestion();
+    window.scrollTo(0, 0);
+  }
+}
+
+// ════════════════════════════════════════
+// RESULTS
+// ════════════════════════════════════════
+function finishExam() {
+  const total = state.questions.length;
+  let correct = 0;
+  const wrongItems = [];
+
+  state.questions.forEach((q, idx) => {
+    const userAns = state.answers[idx] || [];
+    const isCorrect = q.a.every(a => userAns.includes(a)) && userAns.length === q.a.length;
+    if (isCorrect) correct++;
+    else wrongItems.push({ q, userAns, idx });
+  });
+
+  // save completed
+  if (state.examNum !== 'all') {
+    const done = getLS('completedExams') || {};
+    done[state.examNum] = true;
+    setLS('completedExams', done);
+  }
+
+  const pct = Math.round((correct / total) * 100);
+  const passed = pct >= 75;
+
+  document.getElementById('resultEmoji').textContent = passed ? '🎉' : '📚';
+  document.getElementById('resultScore').innerHTML = `${correct} <span>/ ${total}</span>`;
+  const lbl2 = document.getElementById('resultLabel2');
+  lbl2.textContent = passed ? 'PASSED' : 'NEEDS IMPROVEMENT';
+  lbl2.className = 'result-label ' + (passed ? 'pass' : 'fail');
+  document.getElementById('resultSub').textContent =
+    total <= 24
+      ? `You need 18/24 (75%) to pass the real test.`
+      : `75% pass threshold. You scored ${pct}%.`;
+  document.getElementById('rbCorrect').textContent = correct;
+  document.getElementById('rbWrong').textContent = total - correct;
+  document.getElementById('rbPct').textContent = pct + '%';
+
+  // label
+  document.getElementById('resultLabel').textContent =
+    state.examNum === 'all' ? 'All Exams' : `Exam ${state.examNum}`;
+
+  // review list
+  const list = document.getElementById('reviewList');
+  list.innerHTML = '';
+  state.questions.forEach((q, idx) => {
+    const userAns = state.answers[idx] || [];
+    const isCorrect = q.a.every(a => userAns.includes(a)) && userAns.length === q.a.length;
+    const correctText = q.a.map(ai => q.o[ai]).join(' | ');
+    const userText = userAns.length ? userAns.map(ai => q.o[ai]).join(' | ') : 'No answer';
+    const cls = 'review-item ' + (isCorrect ? 'rv-correct' : 'rv-wrong');
+    list.innerHTML += `<div class="${cls}">
+      <div class="rv-q">${idx + 1}. ${q.q}</div>
+      ${!isCorrect ? `<div class="rv-your">Your answer: ${userText}</div>` : ''}
+      <div class="rv-correct-ans">✅ ${correctText}</div>
+      <div class="rv-yue">【廣東話】${q.yue}${q.note ? ' · 💡 ' + q.note : ''}</div>
+    </div>`;
+  });
+
+  showScreen('screenResult');
+  window.scrollTo(0, 0);
+}
+
+function retryExam() {
+  startExam(state.examNum);
+}
+
+function goHome() {
+  showScreen('screenHome');
+  document.getElementById('headerStats').style.display = 'none';
+  buildExamGrid();
+  pendingMode = null;
+  document.querySelectorAll('.mode-card').forEach(c => c.style.borderColor = '');
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ════════════════════════════════════════
+// PWA — Service Worker
+// ════════════════════════════════════════
+const SW_CODE = `
+const CACHE = 'lifeuk-v1';
+const SHELL = ['./'];
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
+});
+self.addEventListener('activate', e => {
+  e.waitUntil(caches.keys().then(keys =>
+    Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+  ).then(() => self.clients.claim()));
+});
+self.addEventListener('fetch', e => {
+  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request).catch(() => caches.match('./'))));
+});
+`;
+
+function registerSW() {
+  if (!('serviceWorker' in navigator)) return;
+  const blob = new Blob([SW_CODE], { type: 'application/javascript' });
+  const url = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(url, { scope: './' })
+    .then(() => console.log('SW registered'))
+    .catch(e => console.log('SW error:', e));
+}
+
+// Install prompt
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('installBanner').classList.add('visible');
+});
+document.getElementById('installBtn').onclick = async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  if (outcome === 'accepted') {
+    document.getElementById('installBanner').classList.remove('visible');
+  }
+  deferredPrompt = null;
+};
+
+// ════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════
+buildExamGrid();
+registerSW();
+</script>
+</body>
+</html>
