@@ -1038,7 +1038,8 @@ function renderQuestion() {
   const idx = state.current;
   const isMulti = q.a.length > 1;
   const answered = state.answers[idx] !== undefined;
-  const revealed = state.revealed[idx];
+  // state.revealed[idx] stores true/false (correct or not); presence = revealed
+  const revealed = idx in state.revealed;
 
   // header
   document.getElementById('quizLabel').textContent =
@@ -1074,16 +1075,12 @@ function renderQuestion() {
     const userPicked = answered && (state.answers[idx] || []).includes(oi);
     const isCorrect = q.a.includes(oi);
 
-    if (state.mode === 'practice' && revealed) {
+    if (revealed) {
       cls += ' disabled';
       if (isCorrect) cls += ' correct';
       else if (userPicked) cls += ' wrong';
-    } else if (state.mode === 'exam' && answered) {
-      cls += ' disabled';
-      if (userPicked) cls += isCorrect ? ' correct' : ' wrong';
-      if (!userPicked && isCorrect) cls += ' correct';
     } else if (userPicked) {
-      cls += ' selected-wrong'; // temp highlight before reveal
+      cls += ' selected-wrong'; // neutral highlight before reveal (no red/green)
     }
 
     optHtml += `<button class="${cls}" onclick="selectOption(${oi})" id="opt${oi}">
@@ -1093,9 +1090,9 @@ function renderQuestion() {
   });
   document.getElementById('optionsContainer').innerHTML = optHtml;
 
-  // answer box (practice)
+  // answer box (shown in BOTH modes once revealed)
   const box = document.getElementById('answerBox');
-  if (state.mode === 'practice' && revealed) {
+  if (revealed) {
     const userAns = state.answers[idx] || [];
     const correct = q.a.every(a => userAns.includes(a)) && userAns.length === q.a.length;
     box.className = 'answer-box show' + (correct ? '' : ' wrong-ans');
@@ -1114,8 +1111,12 @@ function renderQuestion() {
   const submitBtn = document.getElementById('examSubmitBtn');
   if (state.mode === 'exam') {
     submitRow.style.display = 'block';
-    submitBtn.disabled = !answered || revealed;
-    submitBtn.textContent = revealed ? 'Submitted' : 'Submit Answer';
+    const selCount = (state.answers[idx] || []).length;
+    const needCount = q.a.length;
+    submitBtn.textContent = revealed
+      ? '✓ Submitted'
+      : `Submit Answer${isMulti ? ' (' + selCount + '/' + needCount + ' selected)' : ''}`;
+    submitBtn.disabled = revealed || selCount === 0;
   } else {
     submitRow.style.display = 'none';
   }
@@ -1149,7 +1150,7 @@ function selectOption(oi) {
   const q = state.questions[idx];
   const isMulti = q.a.length > 1;
 
-  if (state.revealed[idx]) return; // already revealed
+  if (idx in state.revealed) return; // already revealed (true = correct, false = wrong)
 
   if (state.mode === 'practice') {
     // select and immediately reveal
@@ -1202,7 +1203,8 @@ function revealAnswer() {
 
 function examSubmitAnswer() {
   const idx = state.current;
-  if (state.answers[idx] === undefined) return;
+  if (idx in state.revealed) return;
+  if (!state.answers[idx] || state.answers[idx].length === 0) return;
   const q = state.questions[idx];
   const userAns = state.answers[idx];
   const correct = q.a.every(a => userAns.includes(a)) && userAns.length === q.a.length;
@@ -1313,7 +1315,7 @@ function showScreen(id) {
 // PWA — Service Worker
 // ════════════════════════════════════════
 const SW_CODE = `
-const CACHE = 'lifeuk-v1';
+const CACHE = 'lifeuk-v2';
 const SHELL = ['./'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
