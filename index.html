@@ -240,7 +240,9 @@
   .opt.wrong { border-color: var(--red-light); background: #fdf0ef; }
   .opt.wrong .opt-letter { background: var(--red-light); border-color: var(--red-light); color: #fff; }
   .opt.disabled { cursor: default; }
-  .opt.selected-wrong { border-color: var(--red-light); background: #fdf0ef; }
+  /* provisional selection before Submit — blue, so it never reads as "wrong" */
+  .opt.selected { border-color: var(--navy-light); background: #f0f4ff; }
+  .opt.selected .opt-letter { background: var(--navy-light); border-color: var(--navy-light); color: #fff; }
 
   /* answer reveal */
   .answer-box {
@@ -1080,7 +1082,7 @@ function renderQuestion() {
       if (isCorrect) cls += ' correct';
       else if (userPicked) cls += ' wrong';
     } else if (userPicked) {
-      cls += ' selected-wrong'; // neutral highlight before reveal (no red/green)
+      cls += ' selected'; // provisional blue highlight before reveal
     }
 
     optHtml += `<button class="${cls}" onclick="selectOption(${oi})" id="opt${oi}">
@@ -1315,7 +1317,7 @@ function showScreen(id) {
 // PWA — Service Worker
 // ════════════════════════════════════════
 const SW_CODE = `
-const CACHE = 'lifeuk-v2';
+const CACHE = 'lifeuk-v3';
 const SHELL = ['./'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
