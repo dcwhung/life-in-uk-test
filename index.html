@@ -977,6 +977,17 @@ function shuffle(arr) {
   return a;
 }
 
+// Return a copy of q with its options in random order and `a` remapped
+// to the new positions (applies to both Practice and Exam mode).
+function shuffleOptions(q) {
+  const order = shuffle(q.o.map((_, i) => i)); // order[newPos] = oldIdx
+  return {
+    ...q,
+    o: order.map(oldIdx => q.o[oldIdx]),
+    a: q.a.map(oldIdx => order.indexOf(oldIdx)).sort((x, y) => x - y),
+  };
+}
+
 function getLS(key) {
   try { return JSON.parse(localStorage.getItem(key)); } catch { return null; }
 }
@@ -1016,11 +1027,11 @@ function startExam(examNum) {
   if (examNum === 'all') {
     let all = [];
     for (let i = 1; i <= 17; i++) {
-      EXAMS[i].forEach((q, idx) => all.push({ ...q, examNum: i, origIdx: idx }));
+      EXAMS[i].forEach((q, idx) => all.push({ ...shuffleOptions(q), examNum: i, origIdx: idx }));
     }
     state.questions = shuffle(all);
   } else {
-    state.questions = EXAMS[examNum].map((q, idx) => ({ ...q, examNum: examNum, origIdx: idx }));
+    state.questions = EXAMS[examNum].map((q, idx) => ({ ...shuffleOptions(q), examNum: examNum, origIdx: idx }));
   }
 
   state.current = 0;
@@ -1317,7 +1328,7 @@ function showScreen(id) {
 // PWA — Service Worker
 // ════════════════════════════════════════
 const SW_CODE = `
-const CACHE = 'lifeuk-v3';
+const CACHE = 'lifeuk-v4';
 const SHELL = ['./'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
