@@ -352,12 +352,169 @@
     cursor: pointer; white-space: nowrap;
   }
 
+  /* ── HOME: study entry + chapter practice ── */
+  .study-card {
+    background: linear-gradient(135deg, var(--purple), var(--purple-light));
+    color: #fff;
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    display: flex; align-items: center; gap: 16px;
+    cursor: pointer; margin-bottom: 24px;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.18s, box-shadow 0.18s;
+  }
+  .study-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+  .study-card .mode-icon { margin: 0; font-size: 32px; }
+  .study-card .mode-title { color: #fff; }
+  .study-card .mode-desc { color: rgba(255,255,255,0.8); }
+  .study-card .go { margin-left: auto; font-size: 20px; opacity: 0.8; }
+  .chapter-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .chapter-btn {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    display: flex; align-items: center; gap: 10px;
+    cursor: pointer; text-align: left;
+    font-size: 13px; color: var(--navy);
+    transition: all 0.15s;
+  }
+  .chapter-btn:hover { border-color: var(--purple); }
+  .chapter-btn .ch-num {
+    background: var(--purple); color: #fff;
+    border-radius: 6px; padding: 3px 8px;
+    font-size: 11px; font-weight: 800; flex-shrink: 0;
+  }
+  .chapter-btn .ch-name { font-weight: 700; flex: 1; }
+  .chapter-btn .ch-count { color: var(--text-muted); font-size: 12px; white-space: nowrap; }
+
+  /* ── STUDY SCREEN ── */
+  .study-search {
+    width: 100%;
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 14px;
+    font-size: 14px; color: var(--text);
+    margin-bottom: 12px;
+    outline: none;
+  }
+  .study-search:focus { border-color: var(--purple); }
+  .study-tabs {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 6px; margin-bottom: 12px;
+  }
+  .study-tab {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 9px 4px;
+    font-size: 12px; font-weight: 700; color: var(--text-muted);
+    cursor: pointer; text-align: center;
+    transition: all 0.15s;
+  }
+  .study-tab.active { background: var(--purple); border-color: var(--purple); color: #fff; }
+  .chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .chip {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 999px;
+    padding: 5px 12px;
+    font-size: 12px; font-weight: 600; color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .chip.active { background: var(--navy); border-color: var(--navy); color: #fff; }
+  .chip.war.active { background: var(--red); border-color: var(--red); }
+  .chip.ch.active { background: var(--purple); border-color: var(--purple); }
+  .study-count { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
+  .study-group-title {
+    font-size: 14px; font-weight: 800; color: var(--navy);
+    margin: 22px 0 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .study-group-title:first-child { margin-top: 4px; }
+  .study-group-title .cnt { font-size: 11px; color: var(--text-muted); font-weight: 600; }
+  .study-sub-title {
+    font-size: 12px; font-weight: 700; color: var(--purple);
+    text-transform: uppercase; letter-spacing: 0.05em;
+    margin: 14px 0 8px;
+  }
+  .fact {
+    background: var(--card);
+    border-radius: 10px;
+    padding: 12px 14px;
+    border-left: 4px solid var(--purple-light);
+    margin-bottom: 10px;
+    transition: opacity 0.15s;
+  }
+  .fact.war { border-left-color: var(--red-light); }
+  .fact.mastered { opacity: 0.55; border-left-color: var(--green-light); }
+  .fact-top { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 6px; }
+  .fact-meta { flex: 1; display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+  .tag {
+    font-size: 10.5px; font-weight: 700;
+    border-radius: 5px; padding: 2px 7px;
+    background: var(--bg); color: var(--text-muted);
+  }
+  .tag.year { background: #ede6f7; color: var(--purple); }
+  .tag.war { background: #fdf0ef; color: var(--red); }
+  .tag.freq { background: #fdf6e3; color: #8a6d1f; }
+  .tag.person { background: #e6f0ff; color: var(--navy-light); }
+  .fact-actions { display: flex; gap: 4px; flex-shrink: 0; }
+  .fact-btn {
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    width: 30px; height: 28px;
+    font-size: 14px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-muted);
+    transition: all 0.15s;
+  }
+  .fact-btn.on.star { background: #fdf6e3; border-color: var(--gold); color: #b8860b; }
+  .fact-btn.on.tick { background: #edf8f2; border-color: var(--green); color: var(--green); }
+  .fact-name { font-size: 14px; font-weight: 800; color: var(--navy); margin-bottom: 4px; }
+  .fact-en { font-size: 14px; font-weight: 500; color: var(--text); line-height: 1.5; }
+  .fact-yue { font-size: 13px; color: var(--purple); line-height: 1.6; margin-top: 5px; }
+  .study-empty { text-align: center; color: var(--text-muted); font-size: 13px; padding: 30px 0; }
+
+  /* timeline */
+  .tl-era {
+    font-size: 13px; font-weight: 800; color: #fff;
+    background: linear-gradient(135deg, var(--navy), var(--navy-mid));
+    border-radius: 8px; padding: 8px 12px;
+    margin: 22px 0 12px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .tl-era:first-child { margin-top: 4px; }
+  .tl-era span { font-size: 11px; opacity: 0.75; font-weight: 600; }
+  .tl-item { display: grid; grid-template-columns: 74px 1fr; gap: 0 10px; position: relative; }
+  .tl-year {
+    font-size: 12px; font-weight: 800; color: var(--purple);
+    text-align: right; padding-top: 13px; line-height: 1.2;
+    position: relative;
+  }
+  .tl-year::after {
+    content: ''; position: absolute; right: -16px; top: 16px;
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--purple-light); border: 2px solid var(--card);
+    box-shadow: 0 0 0 2px var(--purple-light);
+  }
+  .tl-item.war .tl-year { color: var(--red); }
+  .tl-item.war .tl-year::after { background: var(--red-light); box-shadow: 0 0 0 2px var(--red-light); }
+  .tl-body { border-left: 2px solid var(--border); padding-left: 16px; padding-bottom: 2px; }
+  .tl-body .fact { margin-bottom: 8px; }
+
   /* screen management */
   .screen { display: none; }
   .screen.active { display: block; }
 
   @media (max-width: 480px) {
     .mode-grid { grid-template-columns: 1fr; }
+    .study-tab { font-size: 11px; padding: 8px 2px; }
+    .tl-item { grid-template-columns: 62px 1fr; }
+    .tl-year { font-size: 11px; }
     .q-text { font-size: 15px; }
     .result-breakdown { grid-template-columns: 1fr 1fr 1fr; }
     .result-score { font-size: 42px; }
@@ -405,6 +562,15 @@
       </div>
     </div>
 
+    <div class="study-card" onclick="openStudy()">
+      <div class="mode-icon">📖</div>
+      <div>
+        <div class="mode-title">Study · 溫習</div>
+        <div class="mode-desc">236 key facts by chapter, timeline, geography &amp; people — English + 廣東話.</div>
+      </div>
+      <div class="go">→</div>
+    </div>
+
     <div class="section-title">Choose Mode</div>
     <div class="mode-grid">
       <div class="mode-card" onclick="startMode('practice')">
@@ -424,6 +590,32 @@
       <div class="exam-grid" id="examGrid"></div>
     </div>
 
+    <div class="exam-select-section">
+      <div class="section-title">Practice by Chapter <span style="font-weight:500;text-transform:none;letter-spacing:0">· Practice mode only</span></div>
+      <div class="chapter-grid" id="chapterGrid"></div>
+    </div>
+
+  </div>
+
+  <!-- ── STUDY ── -->
+  <div class="screen" id="screenStudy">
+    <div class="quiz-header">
+      <button class="back-btn" onclick="goHome()">← Home</button>
+      <span class="quiz-label">📖 Study · 溫習</span>
+    </div>
+
+    <input class="study-search" id="studySearch" type="search" placeholder="Search facts… 搜尋（英文 / 廣東話）" oninput="studySetSearch(this.value)">
+
+    <div class="study-tabs" id="studyTabs">
+      <button class="study-tab" data-tab="chapters" onclick="studySetTab('chapters')">📚 Chapters</button>
+      <button class="study-tab" data-tab="timeline" onclick="studySetTab('timeline')">📅 Timeline</button>
+      <button class="study-tab" data-tab="geo" onclick="studySetTab('geo')">🗺️ Geography</button>
+      <button class="study-tab" data-tab="people" onclick="studySetTab('people')">👤 People</button>
+    </div>
+
+    <div class="chip-row" id="studyChips"></div>
+    <div class="study-count" id="studyCount"></div>
+    <div id="studyContent"></div>
   </div>
 
   <!-- ── QUIZ ── -->
@@ -1257,6 +1449,47 @@ function buildExamGrid() {
     html += `<button class="exam-btn ${done[i] ? 'done' : ''}" onclick="startExam(${i})">Exam ${i}</button>`;
   }
   grid.innerHTML = html;
+  buildChapterGrid();
+}
+
+const CHAPTER_SHORT = {
+  1: 'Values & principles',
+  2: 'What is the UK?',
+  3: 'History',
+  4: 'Modern society',
+  5: 'Government & law',
+};
+function chapterQuestions(ch) {
+  const out = [];
+  for (let i = 1; i <= 17; i++) {
+    EXAMS[i].forEach((q, idx) => { if (q.ch === ch) out.push({ q, examNum: i, origIdx: idx }); });
+  }
+  return out;
+}
+function buildChapterGrid() {
+  const grid = document.getElementById('chapterGrid');
+  let html = '';
+  for (let ch = 1; ch <= 5; ch++) {
+    const n = chapterQuestions(ch).length;
+    html += `<button class="chapter-btn" onclick="startChapter(${ch})">
+      <span class="ch-num">Ch ${ch}</span>
+      <span class="ch-name">${CHAPTER_SHORT[ch]}</span>
+      <span class="ch-count">${n} Q</span>
+    </button>`;
+  }
+  grid.innerHTML = html;
+}
+function startChapter(ch) {
+  pendingMode = 'practice';
+  startExam('ch' + ch);
+}
+
+function isChapterExam(examNum) { return typeof examNum === 'string' && examNum.startsWith('ch'); }
+function chapterOf(examNum) { return Number(examNum.slice(2)); }
+function examLabel(examNum) {
+  if (examNum === 'all') return 'All Exams';
+  if (isChapterExam(examNum)) return `Chapter ${chapterOf(examNum)}`;
+  return `Exam ${examNum}`;
 }
 
 let pendingMode = null;
@@ -1281,6 +1514,10 @@ function startExam(examNum) {
       EXAMS[i].forEach((q, idx) => all.push({ ...shuffleOptions(q), examNum: i, origIdx: idx }));
     }
     state.questions = shuffle(all);
+  } else if (isChapterExam(examNum)) {
+    const ch = chapterOf(examNum);
+    state.questions = shuffle(chapterQuestions(ch).map(({ q, examNum: e, origIdx }) =>
+      ({ ...shuffleOptions(q), examNum: e, origIdx })));
   } else {
     state.questions = EXAMS[examNum].map((q, idx) => ({ ...shuffleOptions(q), examNum: examNum, origIdx: idx }));
   }
@@ -1307,7 +1544,7 @@ function renderQuestion() {
 
   // header
   document.getElementById('quizLabel').textContent =
-    state.examNum === 'all' ? `All Exams (shuffled)` : `Exam ${state.examNum}`;
+    state.examNum === 'all' ? `All Exams (shuffled)` : examLabel(state.examNum);
   document.getElementById('modeBadge').textContent =
     state.mode === 'practice' ? 'Practice' : 'Exam';
 
@@ -1510,8 +1747,8 @@ function finishExam() {
     else wrongItems.push({ q, userAns, idx });
   });
 
-  // save completed
-  if (state.examNum !== 'all') {
+  // save completed (numbered exams only)
+  if (state.examNum !== 'all' && !isChapterExam(state.examNum)) {
     const done = getLS('completedExams') || {};
     done[state.examNum] = true;
     setLS('completedExams', done);
@@ -1534,8 +1771,7 @@ function finishExam() {
   document.getElementById('rbPct').textContent = pct + '%';
 
   // label
-  document.getElementById('resultLabel').textContent =
-    state.examNum === 'all' ? 'All Exams' : `Exam ${state.examNum}`;
+  document.getElementById('resultLabel').textContent = examLabel(state.examNum);
 
   // review list
   const list = document.getElementById('reviewList');
@@ -1570,6 +1806,228 @@ function goHome() {
   document.querySelectorAll('.mode-card').forEach(c => c.style.borderColor = '');
 }
 
+// ════════════════════════════════════════
+// STUDY
+// ════════════════════════════════════════
+const STUDY_LS = { prefs: 'studyPrefs', mastered: 'studyMastered', bookmarks: 'studyBookmarks' };
+const ERAS = [
+  { name: 'Stone Age & Iron Age', yue: '石器·鐵器時代', max: -55 },
+  { name: 'Romans', yue: '羅馬時期', max: 410 },
+  { name: 'Anglo-Saxons & Vikings', yue: '盎格魯撒克遜·維京', max: 1066 },
+  { name: 'Normans & Middle Ages', yue: '諾曼·中世紀', max: 1485 },
+  { name: 'Tudors', yue: '都鐸王朝', max: 1603 },
+  { name: 'Stuarts', yue: '斯圖亞特王朝', max: 1714 },
+  { name: 'Georgian', yue: '喬治時代', max: 1837 },
+  { name: 'Victorian', yue: '維多利亞時代', max: 1901 },
+  { name: '20th century', yue: '20 世紀', max: 2000 },
+  { name: '21st century', yue: '21 世紀', max: Infinity },
+];
+const NATIONS = [
+  { key: 'UK', label: '🇬🇧 United Kingdom' },
+  { key: 'England', label: '🏴󠁧󠁢󠁥󠁮󠁧󠁿 England' },
+  { key: 'Scotland', label: '🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scotland' },
+  { key: 'Wales', label: '🏴󠁧󠁢󠁷󠁬󠁳󠁿 Wales' },
+  { key: 'Northern Ireland', label: '☘️ Northern Ireland' },
+];
+const GEO_TYPES = {
+  city: '🏙️ Cities & capitals · 城市·首都',
+  nature: '⛰️ Mountains, parks & nature · 山·國家公園·自然',
+  landmark: '🏛️ Landmarks & buildings · 地標·建築',
+  region: '🗺️ Regions & territories · 地區·領土',
+};
+const PEOPLE_GROUPS = [
+  { key: 'monarch', label: '👑 Monarchs & rulers · 君主' },
+  { key: 'politician', label: '🏛️ Prime Ministers, politicians & military · 首相·政治家·軍事' },
+  { key: 'scientist', label: '🔬 Scientists, inventors & engineers · 科學家·發明家' },
+  { key: 'writer', label: '✒️ Writers & poets · 作家·詩人' },
+  { key: 'artist', label: '🎨 Artists, architects & composers · 藝術家·建築師·音樂家' },
+  { key: 'sport', label: '🏅 Sport & exploration · 運動員·探險家' },
+  { key: 'reformer', label: '✊ Reformers & others · 改革者·其他' },
+];
+const CHAPTER_ICONS = { 1: '⚖️', 2: '🇬🇧', 3: '📜', 4: '🎭', 5: '🏛️' };
+
+const study = {
+  tab: 'chapters',
+  chapter: 1,
+  search: '',
+  hideMastered: false,
+  bookmarksOnly: false,
+  warsOnly: false,
+  mastered: {},
+  bookmarks: {},
+};
+
+function studyLoad() {
+  const prefs = getLS(STUDY_LS.prefs) || {};
+  ['tab', 'chapter', 'hideMastered', 'bookmarksOnly', 'warsOnly'].forEach(k => {
+    if (prefs[k] !== undefined) study[k] = prefs[k];
+  });
+  study.mastered = getLS(STUDY_LS.mastered) || {};
+  study.bookmarks = getLS(STUDY_LS.bookmarks) || {};
+}
+function studySavePrefs() {
+  const { tab, chapter, hideMastered, bookmarksOnly, warsOnly } = study;
+  setLS(STUDY_LS.prefs, { tab, chapter, hideMastered, bookmarksOnly, warsOnly });
+}
+
+function openStudy() {
+  studyLoad();
+  document.getElementById('headerStats').style.display = 'none';
+  document.getElementById('studySearch').value = study.search;
+  showScreen('screenStudy');
+  renderStudy();
+  window.scrollTo(0, 0);
+}
+function studySetTab(tab) { study.tab = tab; studySavePrefs(); renderStudy(); }
+function studySetChapter(ch) { study.chapter = ch; studySavePrefs(); renderStudy(); }
+function studySetSearch(v) { study.search = v.trim().toLowerCase(); renderStudy(); }
+function studyToggle(key) { study[key] = !study[key]; studySavePrefs(); renderStudy(); }
+function studyToggleMastered(id) {
+  if (study.mastered[id]) delete study.mastered[id]; else study.mastered[id] = true;
+  setLS(STUDY_LS.mastered, study.mastered);
+  renderStudy();
+}
+function studyToggleBookmark(id) {
+  if (study.bookmarks[id]) delete study.bookmarks[id]; else study.bookmarks[id] = true;
+  setLS(STUDY_LS.bookmarks, study.bookmarks);
+  renderStudy();
+}
+
+function factMatches(f) {
+  if (study.hideMastered && study.mastered[f.id]) return false;
+  if (study.bookmarksOnly && !study.bookmarks[f.id]) return false;
+  if (!study.search) return true;
+  const hay = (f.en + ' ' + f.yue + ' ' + (f.p ? f.p[0] : '') + ' ' + (f.yl || '')).toLowerCase();
+  return hay.includes(study.search);
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function yearLabel(f) {
+  if (f.yl) return f.yl;
+  if (f.y < 0) return `${-f.y} BC`;
+  return String(f.y);
+}
+function renderFact(f, opts = {}) {
+  const tags = [];
+  if (f.y !== undefined && !opts.noYear) tags.push(`<span class="tag year">📅 ${escapeHtml(yearLabel(f))}</span>`);
+  if (f.w) tags.push(`<span class="tag war">⚔️ War / battle</span>`);
+  if (f.p && !opts.noPerson) tags.push(`<span class="tag person">👤 ${escapeHtml(f.p[0])}</span>`);
+  if (!opts.noChapter) tags.push(`<span class="tag">${CHAPTER_ICONS[f.ch]} Ch ${f.ch}</span>`);
+  if (f.src.length >= 2) tags.push(`<span class="tag freq">×${f.src.length} 出現${f.src.length}次</span>`);
+  const mastered = !!study.mastered[f.id];
+  const marked = !!study.bookmarks[f.id];
+  return `<div class="fact${f.w ? ' war' : ''}${mastered ? ' mastered' : ''}">
+    <div class="fact-top">
+      <div class="fact-meta">${tags.join('')}</div>
+      <div class="fact-actions">
+        <button class="fact-btn star${marked ? ' on' : ''}" title="Bookmark 書籤" onclick="studyToggleBookmark(${f.id})">${marked ? '★' : '☆'}</button>
+        <button class="fact-btn tick${mastered ? ' on' : ''}" title="Mastered 已掌握" onclick="studyToggleMastered(${f.id})">✓</button>
+      </div>
+    </div>
+    ${opts.title ? `<div class="fact-name">${escapeHtml(opts.title)}</div>` : ''}
+    <div class="fact-en">${escapeHtml(f.en)}</div>
+    <div class="fact-yue">${escapeHtml(f.yue)}</div>
+  </div>`;
+}
+
+function renderStudy() {
+  document.querySelectorAll('.study-tab').forEach(t =>
+    t.classList.toggle('active', t.dataset.tab === study.tab));
+
+  // chips
+  let chips = `<button class="chip${study.hideMastered ? ' active' : ''}" onclick="studyToggle('hideMastered')">✓ 隱藏已掌握</button>
+    <button class="chip${study.bookmarksOnly ? ' active' : ''}" onclick="studyToggle('bookmarksOnly')">★ 只顯示書籤</button>`;
+  if (study.tab === 'timeline') {
+    chips += `<button class="chip war${study.warsOnly ? ' active' : ''}" onclick="studyToggle('warsOnly')">⚔️ 只顯示戰爭</button>`;
+  }
+  if (study.tab === 'chapters') {
+    for (let ch = 1; ch <= 5; ch++) {
+      chips += `<button class="chip ch${study.chapter === ch ? ' active' : ''}" onclick="studySetChapter(${ch})">${CHAPTER_ICONS[ch]} Ch ${ch}</button>`;
+    }
+  }
+  document.getElementById('studyChips').innerHTML = chips;
+
+  const renderers = { chapters: renderStudyChapters, timeline: renderStudyTimeline, geo: renderStudyGeo, people: renderStudyPeople };
+  const { html, shown, total } = renderers[study.tab]();
+  document.getElementById('studyCount').textContent = `${shown} / ${total} facts`;
+  document.getElementById('studyContent').innerHTML =
+    shown ? html : '<div class="study-empty">No facts match. 冇符合嘅內容。</div>';
+}
+
+function renderStudyChapters() {
+  // when searching, look across all chapters; otherwise only the selected one
+  const pool = study.search ? STUDY : STUDY.filter(f => f.ch === study.chapter);
+  const facts = pool.filter(factMatches);
+  let html = '';
+  if (study.search) {
+    for (let ch = 1; ch <= 5; ch++) {
+      const list = facts.filter(f => f.ch === ch);
+      if (!list.length) continue;
+      html += `<div class="study-group-title">${CHAPTER_ICONS[ch]} Chapter ${ch}: ${escapeHtml(CHAPTERS[ch])} <span class="cnt">${list.length}</span></div>`;
+      html += list.map(f => renderFact(f, { noChapter: true })).join('');
+    }
+  } else {
+    html += `<div class="study-group-title">${CHAPTER_ICONS[study.chapter]} Chapter ${study.chapter}: ${escapeHtml(CHAPTERS[study.chapter])} <span class="cnt">${facts.length}</span></div>`;
+    html += facts.map(f => renderFact(f, { noChapter: true })).join('');
+  }
+  return { html, shown: facts.length, total: pool.length };
+}
+
+function eraOf(y) { return ERAS.find(e => y < e.max); }
+function renderStudyTimeline() {
+  const pool = STUDY.filter(f => f.y !== undefined && (!study.warsOnly || f.w));
+  const facts = pool.filter(factMatches).sort((a, b) => a.y - b.y || a.id - b.id);
+  let html = '', lastEra = null;
+  facts.forEach(f => {
+    const era = eraOf(f.y);
+    if (era !== lastEra) {
+      html += `<div class="tl-era">${escapeHtml(era.name)} <span>${escapeHtml(era.yue)}</span></div>`;
+      lastEra = era;
+    }
+    html += `<div class="tl-item${f.w ? ' war' : ''}">
+      <div class="tl-year">${escapeHtml(yearLabel(f))}</div>
+      <div class="tl-body">${renderFact(f, { noYear: true })}</div>
+    </div>`;
+  });
+  return { html, shown: facts.length, total: pool.length };
+}
+
+function renderStudyGeo() {
+  const pool = STUDY.filter(f => f.geo);
+  const facts = pool.filter(factMatches);
+  let html = '';
+  NATIONS.forEach(n => {
+    const list = facts.filter(f => f.geo[0] === n.key);
+    if (!list.length) return;
+    html += `<div class="study-group-title">${n.label} <span class="cnt">${list.length}</span></div>`;
+    Object.keys(GEO_TYPES).forEach(t => {
+      const sub = list.filter(f => f.geo[1] === t);
+      if (!sub.length) return;
+      html += `<div class="study-sub-title">${GEO_TYPES[t]}</div>`;
+      html += sub.map(f => renderFact(f)).join('');
+    });
+  });
+  return { html, shown: facts.length, total: pool.length };
+}
+
+function renderStudyPeople() {
+  const pool = STUDY.filter(f => f.p);
+  const facts = pool.filter(factMatches);
+  let html = '';
+  PEOPLE_GROUPS.forEach(g => {
+    let list = facts.filter(f => f.p[1] === g.key);
+    if (!list.length) return;
+    list = g.key === 'monarch'
+      ? list.sort((a, b) => (a.y ?? 9999) - (b.y ?? 9999) || a.id - b.id)
+      : list.sort((a, b) => a.p[0].localeCompare(b.p[0]));
+    html += `<div class="study-group-title">${g.label} <span class="cnt">${list.length}</span></div>`;
+    html += list.map(f => renderFact(f, { noPerson: true, title: f.p[0] })).join('');
+  });
+  return { html, shown: facts.length, total: pool.length };
+}
+
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -1579,7 +2037,7 @@ function showScreen(id) {
 // PWA — Service Worker
 // ════════════════════════════════════════
 const SW_CODE = `
-const CACHE = 'lifeuk-v5';
+const CACHE = 'lifeuk-v6';
 const SHELL = ['./'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
