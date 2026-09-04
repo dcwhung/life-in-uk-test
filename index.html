@@ -645,17 +645,15 @@
     </div>
 
     <div class="exam-select-section" id="secDifficulty">
-      <div class="section-title">Practice by Difficulty</div>
       <div class="diff-grid" id="diffGrid"></div>
     </div>
 
     <div class="exam-select-section" id="secChapter">
-      <div class="section-title">Practice by Chapter</div>
       <div class="chapter-grid" id="chapterGrid"></div>
     </div>
 
     <div class="exam-select-section" id="secExam">
-      <div class="section-title">Select Exam</div>
+      <div class="section-title" id="secExamTitle">Select Exam</div>
       <div class="exam-grid" id="examGrid"></div>
     </div>
 
@@ -1613,14 +1611,25 @@ const MODE_DESC = {
 const DEFAULT_MODE = 'practice';
 const DEFAULT_PRACTICE_VIEW = 'difficulty';
 const PRACTICE_VIEWS = ['difficulty', 'chapter', 'exam'];
+const HOME_PREFS_LS = 'homePrefs';
 let pendingMode = DEFAULT_MODE;
 let practiceView = DEFAULT_PRACTICE_VIEW;
+function loadHomePrefs() {
+  const p = getLS(HOME_PREFS_LS) || {};
+  if (p.mode === 'practice' || p.mode === 'exam') pendingMode = p.mode;
+  if (PRACTICE_VIEWS.includes(p.view)) practiceView = p.view;
+}
+function saveHomePrefs() {
+  setLS(HOME_PREFS_LS, { mode: pendingMode, view: practiceView });
+}
 function startMode(mode) {
   pendingMode = mode;
+  saveHomePrefs();
   renderModeSelection();
 }
 function setPracticeView(view) {
   practiceView = view;
+  saveHomePrefs();
   renderModeSelection();
 }
 function renderModeSelection() {
@@ -1639,6 +1648,8 @@ function renderModeSelection() {
     const show = isPractice ? practiceView === v : v === 'exam';
     document.getElementById('sec' + id).classList.toggle('hidden', !show);
   });
+  // the "Select Exam" header is only needed when there are no practice tabs
+  document.getElementById('secExamTitle').style.display = isPractice ? 'none' : '';
 }
 
 function startExam(examNum) {
@@ -1986,9 +1997,7 @@ function goHome() {
   showScreen('screenHome');
   document.getElementById('headerStats').style.display = 'none';
   buildExamGrid();
-  pendingMode = DEFAULT_MODE;
-  practiceView = DEFAULT_PRACTICE_VIEW;
-  renderModeSelection();
+  renderModeSelection(); // keeps the last chosen mode and practice tab
 }
 
 // ════════════════════════════════════════
@@ -2243,7 +2252,7 @@ function showScreen(id) {
 // PWA — Service Worker
 // ════════════════════════════════════════
 const SW_CODE = `
-const CACHE = 'lifeuk-v15';
+const CACHE = 'lifeuk-v16';
 const SHELL = ['./'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -2288,6 +2297,7 @@ document.getElementById('installBtn').onclick = async () => {
 // INIT
 // ════════════════════════════════════════
 buildExamGrid();
+loadHomePrefs();
 renderModeSelection();
 registerSW();
 </script>
