@@ -72,24 +72,46 @@
   /* ── MAIN ── */
   main { max-width: 780px; margin: 0 auto; padding: 20px 16px 100px; }
 
-  /* ── HOME SCREEN ── */
-  .home-hero {
+  /* ── HEADER: info button + popover (replaces the old home hero) ── */
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .info-btn {
+    background: transparent;
+    border: 1.5px solid rgba(255,255,255,0.35);
+    color: rgba(255,255,255,0.85);
+    border-radius: 50%;
+    width: 30px; height: 30px;
+    font-size: 16px; line-height: 1;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .info-btn:hover, .info-btn.open { background: rgba(255,255,255,0.12); border-color: var(--gold); color: var(--gold-light); }
+  .info-pop {
+    display: none;
+    position: absolute; right: 16px; top: 64px;
+    width: min(360px, calc(100vw - 32px));
     background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
-    border-radius: var(--radius);
-    padding: 36px 28px;
     color: #fff;
-    margin-bottom: 24px;
-    position: relative; overflow: hidden;
+    border: 1px solid rgba(201,168,76,0.35);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.35);
+    z-index: 200;
   }
-  .home-hero::before {
-    content: '🇬🇧';
-    position: absolute; right: 24px; top: 24px;
-    font-size: 64px; opacity: 0.15;
+  .info-pop.show { display: block; }
+  .info-pop::after {
+    content: ''; position: absolute; right: 22px; top: -7px;
+    width: 12px; height: 12px;
+    background: var(--navy); border-left: 1px solid rgba(201,168,76,0.35); border-top: 1px solid rgba(201,168,76,0.35);
+    transform: rotate(45deg);
   }
-  .home-hero h1 { font-size: 26px; font-weight: 800; margin-bottom: 6px; }
-  .home-hero p { font-size: 14px; color: rgba(255,255,255,0.72); line-height: 1.5; max-width: 360px; }
+  .info-pop h2 { font-size: 17px; font-weight: 800; margin-bottom: 6px; }
+  .info-pop p { font-size: 13px; color: rgba(255,255,255,0.75); line-height: 1.5; }
+  @media (min-width: 812px) { .info-pop { right: calc((100vw - 780px) / 2); } }
+
+  /* ── HOME SCREEN ── */
   .hero-meta {
-    display: flex; gap: 20px; margin-top: 20px; flex-wrap: wrap;
+    display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap;
   }
   .hero-badge {
     background: rgba(201,168,76,0.18);
@@ -591,9 +613,21 @@
         <div class="logo-sub">Exam Practice</div>
       </div>
     </div>
-    <div class="header-stats" id="headerStats" style="display:none">
-      <div class="stat-chip">✅ <b id="statCorrect">0</b> correct</div>
-      <div class="stat-chip">📝 <b id="statTotal">0</b> done</div>
+    <div class="header-right">
+      <div class="header-stats" id="headerStats" style="display:none">
+        <div class="stat-chip">✅ <b id="statCorrect">0</b> correct</div>
+        <div class="stat-chip">📝 <b id="statTotal">0</b> done</div>
+      </div>
+      <button class="info-btn" id="infoBtn" aria-label="About this app" aria-expanded="false" onclick="toggleInfo(event)">ⓘ</button>
+    </div>
+  </div>
+  <div class="info-pop" id="infoPop" role="dialog" aria-label="About this app">
+    <h2>Exam 1–17 Practice</h2>
+    <p>408 official-style questions from lifeintheuktestweb.co.uk, with Cantonese translations and notes.</p>
+    <div class="hero-meta">
+      <div class="hero-badge">📋 17 Exams</div>
+      <div class="hero-badge">❓ 408 Questions</div>
+      <div class="hero-badge">🔒 Works Offline</div>
     </div>
   </div>
 </header>
@@ -609,16 +643,6 @@
         <span>Add to home screen to study without internet</span>
       </div>
       <button class="install-btn" id="installBtn">Install</button>
-    </div>
-
-    <div class="home-hero">
-      <h1>Exam 1–17 Practice</h1>
-      <p>408 official-style questions from lifeintheuktestweb.co.uk, with Cantonese translations and notes.</p>
-      <div class="hero-meta">
-        <div class="hero-badge">📋 17 Exams</div>
-        <div class="hero-badge">❓ 408 Questions</div>
-        <div class="hero-badge">🔒 Works Offline</div>
-      </div>
     </div>
 
     <div class="section-title">Choose Mode</div>
@@ -2243,6 +2267,24 @@ function renderStudyPeople() {
   return { html, shown: facts.length, total: pool.length };
 }
 
+// ════════════════════════════════════════
+// HEADER INFO POPOVER
+// ════════════════════════════════════════
+function setInfoOpen(open) {
+  document.getElementById('infoPop').classList.toggle('show', open);
+  const btn = document.getElementById('infoBtn');
+  btn.classList.toggle('open', open);
+  btn.setAttribute('aria-expanded', String(open));
+}
+function toggleInfo(e) {
+  e.stopPropagation();
+  setInfoOpen(!document.getElementById('infoPop').classList.contains('show'));
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('#infoPop')) setInfoOpen(false);
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') setInfoOpen(false); });
+
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -2252,7 +2294,7 @@ function showScreen(id) {
 // PWA — Service Worker
 // ════════════════════════════════════════
 const SW_CODE = `
-const CACHE = 'lifeuk-v16';
+const CACHE = 'lifeuk-v17';
 const SHELL = ['./'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
