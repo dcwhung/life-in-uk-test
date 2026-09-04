@@ -10,7 +10,9 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('ok:', m); };
   const vis = sel => pg.$eval(sel, e => getComputedStyle(e).display !== 'none');
   await pg.goto(APP_URL);
-  await pg.evaluate(() => { pendingMode = 'practice'; startExam(1); });
+  await pg.evaluate(() => { pendingMode = 'practice'; startExam(1);
+    // questions are shuffled: jump to one whose options have Cantonese translations
+    state.current = state.questions.findIndex(q => q.oy && q.oy.some(Boolean)); renderQuestion(); });
   // 3) button in q-num row, right, no emoji
   assert(await pg.$eval('#yueToggle', e => e.parentElement.classList.contains('q-num')), 'toggle inside Question # row');
   assert((await pg.$eval('#yueToggle', e => e.textContent)) === 'Translate', 'label is plain "Translate"');
@@ -22,12 +24,12 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(await vis('#qYue') && (await pg.$$('.opt-yue')).length > 0, 'toggle shows question + options');
   await pg.click('#yueToggle');
   // 2) answer -> translations auto shown, toggle hidden
-  await pg.evaluate(() => { state.answers[0] = [...state.questions[0].a]; revealAnswer(); });
+  await pg.evaluate(() => { state.answers[state.current] = [...state.questions[state.current].a]; revealAnswer(); });
   assert(await vis('#qYue') && (await pg.$$('.opt-yue')).length > 0, 'after answering: question + option translations shown automatically');
   assert(!(await vis('#yueToggle')), 'toggle hidden once answered');
   // 1) answer box format
   const yue = await pg.$eval('#ansYue', e => e.innerText);
-  const q = await pg.evaluate(() => state.questions[0]);
+  const q = await pg.evaluate(() => state.questions[state.current]);
   const expA = q.a.map(i => q.oy[i] || q.o[i]).join('  |  ');
   assert(yue.startsWith('【廣東話翻譯】') && yue.includes('Q)') && yue.includes(q.yue) && yue.includes('A)') && yue.replace(/\s+/g, ' ').includes(expA.replace(/\s+/g, ' ')), 'answer box: 【廣東話翻譯】 / Q) / A): ' + yue.replace(/\n/g, ' ⏎ '));
   assert(!(await pg.$eval('#ansEn', e => e.textContent)).includes('（'), 'English answer line has no inline translation');
