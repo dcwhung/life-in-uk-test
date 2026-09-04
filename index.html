@@ -832,7 +832,7 @@
 // ════════════════════════════════════════
 // APP VERSION — single source of truth (shown in the header, drives the SW cache name)
 // ════════════════════════════════════════
-const APP_VERSION = '0.30';
+const APP_VERSION = '0.31';
 
 // ════════════════════════════════════════
 // APP STATE
@@ -1167,7 +1167,7 @@ function renderQuestion() {
       `<div class="ans-yue-title">【廣東話翻譯】</div>
        <div class="ans-yue-row"><b>Q)</b><span>${escapeHtml(q.yue)}</span></div>
        <div class="ans-yue-row"><b>A)</b><span>${escapeHtml(ansYueText)}</span></div>`;
-    document.getElementById('ansNote').innerHTML = q.note ? `<strong>💡 備注：</strong>${q.note}` : '';
+    document.getElementById('ansNote').innerHTML = q.note ? `<strong>💡 備注：</strong>\n${q.note}` : '';
   } else {
     box.className = 'answer-box';
   }
@@ -1375,7 +1375,7 @@ function finishExam() {
       <div class="rv-q">${idx + 1}. ${q.q}</div>
       ${!isCorrect ? `<div class="rv-your">Your answer: ${userText}</div>` : ''}
       <div class="rv-correct-ans">✅ ${correctText}</div>
-      <div class="rv-yue">【廣東話】${q.yue}${q.note ? ' · 💡 ' + q.note : ''}</div>
+      <div class="rv-yue">【廣東話】${q.yue}${q.note ? '\n💡 備注：\n' + q.note : ''}</div>
     </div>`;
   });
 
