@@ -205,9 +205,11 @@
     font-size: 11px; font-weight: 700; color: var(--text-muted);
     text-transform: uppercase; letter-spacing: 0.07em;
     margin-bottom: 10px;
+    display: flex; align-items: center; gap: 8px;
   }
+  .q-num .q-num-text { flex: 1; }
   .yue-toggle {
-    margin-top: 12px;
+    text-transform: none; letter-spacing: 0;
     background: #f3eefa;
     border: 1.5px solid var(--purple-light);
     color: var(--purple);
@@ -287,7 +289,10 @@
   .ans-en { font-size: 14px; font-weight: 700; color: var(--green); margin-bottom: 10px; line-height: 1.5; }
   .ans-en.wrong { color: var(--red); }
   .divider { height: 1px; background: rgba(0,0,0,0.06); margin: 10px 0; }
-  .ans-yue { font-size: 13px; color: var(--purple); font-weight: 600; margin-bottom: 4px; }
+  .ans-yue { font-size: 13px; color: var(--purple); font-weight: 600; margin-bottom: 4px; line-height: 1.6; }
+  .ans-yue-title { font-weight: 800; margin-bottom: 2px; }
+  .ans-yue-row { display: flex; gap: 6px; }
+  .ans-yue-row b { flex-shrink: 0; }
   .ans-note { font-size: 12px; color: var(--text-muted); line-height: 1.55; }
   .ans-note strong { color: #b5680a; }
 
@@ -686,9 +691,11 @@
     </div>
 
     <div class="q-card">
-      <div class="q-num" id="qNum">Question 1</div>
+      <div class="q-num">
+        <span class="q-num-text" id="qNum">Question 1</span>
+        <button class="yue-toggle" id="yueToggle" onclick="toggleQuestionYue()">Translate</button>
+      </div>
       <div class="q-text" id="qText"></div>
-      <button class="yue-toggle" id="yueToggle" onclick="toggleQuestionYue()">🈶 Translate</button>
       <div class="q-yue" id="qYue"></div>
     </div>
 
@@ -1667,13 +1674,15 @@ function renderQuestion() {
     `Question ${idx + 1}${isMulti ? ' (select ' + q.a.length + ')' : ''}${starsHtml(q.d)}`;
   document.getElementById('qText').textContent = q.q;
 
-  // practice: click-to-show Cantonese translation of the question
+  // Cantonese translation of question + options:
+  //   - Practice: click "Translate" to show before answering
+  //   - Both modes: always shown once the answer is revealed
   const yueToggle = document.getElementById('yueToggle');
   const qYue = document.getElementById('qYue');
-  const yueOn = state.mode === 'practice' && !!state.yueShown[idx];
-  yueToggle.classList.toggle('visible', state.mode === 'practice');
+  const yueOn = revealed || (state.mode === 'practice' && !!state.yueShown[idx]);
+  yueToggle.classList.toggle('visible', state.mode === 'practice' && !revealed);
   yueToggle.classList.toggle('on', yueOn);
-  yueToggle.textContent = yueOn ? '🈶 Hide translation' : '🈶 Translate';
+  yueToggle.textContent = yueOn ? 'Hide translation' : 'Translate';
   qYue.textContent = q.yue;
   qYue.classList.toggle('show', yueOn);
 
@@ -1710,9 +1719,12 @@ function renderQuestion() {
     document.getElementById('ansLabel').className = 'ans-label' + (correct ? '' : ' wrong');
     document.getElementById('ansLabel').textContent = correct ? '✓  Correct!' : '✗  Wrong';
     document.getElementById('ansEn').className = 'ans-en' + (correct ? '' : ' wrong');
-    document.getElementById('ansEn').textContent = q.a.map(ai =>
-      q.o[ai] + (yueOn && q.oy && q.oy[ai] ? '（' + q.oy[ai] + '）' : '')).join('  |  ');
-    document.getElementById('ansYue').textContent = '【廣東話問題】' + q.yue;
+    document.getElementById('ansEn').textContent = q.a.map(ai => q.o[ai]).join('  |  ');
+    const ansYueText = q.a.map(ai => (q.oy && q.oy[ai]) || q.o[ai]).join('  |  ');
+    document.getElementById('ansYue').innerHTML =
+      `<div class="ans-yue-title">【廣東話翻譯】</div>
+       <div class="ans-yue-row"><b>Q)</b><span>${escapeHtml(q.yue)}</span></div>
+       <div class="ans-yue-row"><b>A)</b><span>${escapeHtml(ansYueText)}</span></div>`;
     document.getElementById('ansNote').innerHTML = q.note ? `<strong>💡 備注：</strong>${q.note}` : '';
   } else {
     box.className = 'answer-box';
@@ -1805,7 +1817,7 @@ function selectOption(oi) {
 }
 
 function toggleQuestionYue() {
-  if (state.mode !== 'practice') return;
+  if (state.mode !== 'practice' || (state.current in state.revealed)) return;
   state.yueShown[state.current] = !state.yueShown[state.current];
   renderQuestion();
 }
@@ -2192,7 +2204,7 @@ function showScreen(id) {
 // PWA — Service Worker
 // ════════════════════════════════════════
 const SW_CODE = `
-const CACHE = 'lifeuk-v10';
+const CACHE = 'lifeuk-v11';
 const SHELL = ['./'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
