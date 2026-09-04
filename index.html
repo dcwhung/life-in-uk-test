@@ -113,9 +113,19 @@
   }
   .mode-card:hover { border-color: var(--navy-light); transform: translateY(-2px); box-shadow: var(--shadow); }
   .mode-card.selected { border-color: var(--navy); background: #f0f4ff; }
-  .mode-card.study { border-color: var(--purple-light); }
-  .mode-card.study:hover { border-color: var(--purple); }
-  .mode-card.study .mode-title { color: var(--purple); }
+  .practice-tabs { display: none; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 14px; }
+  .practice-tabs.show { display: grid; }
+  .practice-tab {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 9px 4px;
+    font: inherit; font-size: 12px; font-weight: 700; color: var(--text-muted);
+    cursor: pointer; text-align: center;
+    transition: all 0.15s;
+  }
+  .practice-tab.active { background: var(--navy); border-color: var(--navy); color: #fff; }
+  .exam-select-section.hidden { display: none; }
   .mode-icon { font-size: 26px; margin-bottom: 6px; }
   .mode-title { font-size: 14px; font-weight: 700; color: var(--navy); }
   .mode-desc-panel {
@@ -613,7 +623,7 @@
 
     <div class="section-title">Choose Mode</div>
     <div class="mode-grid">
-      <button class="mode-card study" id="modeStudy" onclick="openStudy()">
+      <button class="mode-card" id="modeStudy" onclick="openStudy()">
         <div class="mode-icon">📖</div>
         <div class="mode-title">Study</div>
       </button>
@@ -628,19 +638,25 @@
     </div>
     <div class="mode-desc-panel" id="modeDesc"></div>
 
-    <div class="exam-select-section">
-      <div class="section-title">Select Exam</div>
-      <div class="exam-grid" id="examGrid"></div>
+    <div class="practice-tabs" id="practiceTabs">
+      <button class="practice-tab" id="ptabDifficulty" onclick="setPracticeView('difficulty')">By Difficulty</button>
+      <button class="practice-tab" id="ptabChapter" onclick="setPracticeView('chapter')">By Chapter</button>
+      <button class="practice-tab" id="ptabExam" onclick="setPracticeView('exam')">By Exam</button>
     </div>
 
-    <div class="exam-select-section">
-      <div class="section-title">Practice by Chapter <span style="font-weight:500;text-transform:none;letter-spacing:0">· Practice mode only</span></div>
+    <div class="exam-select-section" id="secDifficulty">
+      <div class="section-title">Practice by Difficulty</div>
+      <div class="diff-grid" id="diffGrid"></div>
+    </div>
+
+    <div class="exam-select-section" id="secChapter">
+      <div class="section-title">Practice by Chapter</div>
       <div class="chapter-grid" id="chapterGrid"></div>
     </div>
 
-    <div class="exam-select-section">
-      <div class="section-title">Practice by Difficulty <span style="font-weight:500;text-transform:none;letter-spacing:0">· Practice mode only</span></div>
-      <div class="diff-grid" id="diffGrid"></div>
+    <div class="exam-select-section" id="secExam">
+      <div class="section-title">Select Exam</div>
+      <div class="exam-grid" id="examGrid"></div>
     </div>
 
   </div>
@@ -1591,12 +1607,20 @@ function examLabel(examNum) {
 }
 
 const MODE_DESC = {
-  practice: '<strong>Practice</strong> — See the answer and Cantonese translation immediately after each question. Then pick an exam, chapter or difficulty below.',
+  practice: '<strong>Practice</strong> — See the answer and Cantonese translation immediately after each question. Pick a set by difficulty, chapter or exam.',
   exam: '<strong>Exam</strong> — Complete all 24 questions first, then review your score and answers. Pick an exam below.',
 };
-let pendingMode = null;
+const DEFAULT_MODE = 'practice';
+const DEFAULT_PRACTICE_VIEW = 'difficulty';
+const PRACTICE_VIEWS = ['difficulty', 'chapter', 'exam'];
+let pendingMode = DEFAULT_MODE;
+let practiceView = DEFAULT_PRACTICE_VIEW;
 function startMode(mode) {
   pendingMode = mode;
+  renderModeSelection();
+}
+function setPracticeView(view) {
+  practiceView = view;
   renderModeSelection();
 }
 function renderModeSelection() {
@@ -1605,6 +1629,16 @@ function renderModeSelection() {
   const panel = document.getElementById('modeDesc');
   panel.innerHTML = pendingMode ? MODE_DESC[pendingMode] : '';
   panel.classList.toggle('show', !!pendingMode);
+
+  const isPractice = pendingMode === 'practice';
+  document.getElementById('practiceTabs').classList.toggle('show', isPractice);
+  PRACTICE_VIEWS.forEach(v => {
+    const id = v.charAt(0).toUpperCase() + v.slice(1);
+    document.getElementById('ptab' + id).classList.toggle('active', isPractice && practiceView === v);
+    // Practice: only the chosen view; Exam: only the exam list
+    const show = isPractice ? practiceView === v : v === 'exam';
+    document.getElementById('sec' + id).classList.toggle('hidden', !show);
+  });
 }
 
 function startExam(examNum) {
@@ -1952,7 +1986,8 @@ function goHome() {
   showScreen('screenHome');
   document.getElementById('headerStats').style.display = 'none';
   buildExamGrid();
-  pendingMode = null;
+  pendingMode = DEFAULT_MODE;
+  practiceView = DEFAULT_PRACTICE_VIEW;
   renderModeSelection();
 }
 
@@ -2208,7 +2243,7 @@ function showScreen(id) {
 // PWA — Service Worker
 // ════════════════════════════════════════
 const SW_CODE = `
-const CACHE = 'lifeuk-v14';
+const CACHE = 'lifeuk-v15';
 const SHELL = ['./'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -2253,6 +2288,7 @@ document.getElementById('installBtn').onclick = async () => {
 // INIT
 // ════════════════════════════════════════
 buildExamGrid();
+renderModeSelection();
 registerSW();
 </script>
 </body>
