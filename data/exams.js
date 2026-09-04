@@ -83,7 +83,7 @@ const EXAMS = {
 ],
 4:[
 {ch:3,d:1,q:"What was the last battle between Great Britain and France?",o:["The Battle of Trafalgar","The Battle of Waterloo","The Battle of Hastings","The Battle of Agincourt"],oy:["特拉法加海戰","滑鐵盧戰役","黑斯廷斯戰役","阿金庫爾戰役"],a:[1],yue:"英法兩國最後一場戰役係乜嘢？",note:"1815年，威靈頓公爵打敗拿破崙"},
-{ch:4,d:2,q:"Which flower is associated with Wales?",o:["Daffodil","Rose","Shamrock","Thistle"],oy:["水仙花","玫瑰","三葉草","薊花"],a:[0],yue:"哪種花與威爾斯有關？",note:""},
+{ch:4,d:2,q:"Which flower is associated with Wales?",o:["Daffodil","Rose","Shamrock","Thistle"],oy:["水仙花","玫瑰","三葉草","薊花"],a:[0],yue:"哪種花與威爾斯有關？",note:"記憶法：\nThistle（薊花）→ Scotland（蘇格蘭）；\nTudor rose（都鐸玫瑰）→ England（英格蘭）；\nDaffodil（水仙花）→ Wales（威爾斯）；\nShamrock（三葉草）→ Northern Ireland（北愛爾蘭）。"},
 {ch:3,d:3,q:"During the reign of Charles II, parts of London were destroyed by:",o:["A war","A flood","A fire","An earthquake"],oy:["一場戰爭","水災","火災","地震"],a:[2],yue:"查理二世年代，倫敦部分地區被摧毀，原因係：",note:"1666年倫敦大火，包括聖保羅大教堂"},
 {ch:5,d:2,q:"How often are general elections held in the UK?",o:["Every 3 years","Every 4 years","Every 5 years","Every 10 years"],oy:["每3年","每4年","每5年","每10年"],a:[2],yue:"英國大選多久舉行一次？",note:""},
 {ch:4,d:5,q:"Scotland has its own banknotes, which are valid everywhere in the UK. True or False?",o:["True","False"],oy:["",""],a:[0],yue:"蘇格蘭有自己的鈔票，在英國全境通用。對定錯？",note:""},
@@ -187,7 +187,7 @@ const EXAMS = {
 ],
 8:[
 {ch:3,d:3,q:"World War II started as a result of Germany invading which country?",o:["France","Russia","Poland","Austria"],oy:["法國","俄羅斯","波蘭","奧地利"],a:[2],yue:"二戰因德國入侵哪個國家而開始？",note:"1939年，英法隨後宣戰"},
-{ch:4,d:2,q:"Which flower is associated with Scotland?",o:["The Shamrock","The Rose","The Daffodil","The Thistle"],oy:["三葉草","玫瑰","水仙花","薊花"],a:[3],yue:"哪種花與蘇格蘭有關？",note:""},
+{ch:4,d:2,q:"Which flower is associated with Scotland?",o:["The Shamrock","The Rose","The Daffodil","The Thistle"],oy:["三葉草","玫瑰","水仙花","薊花"],a:[3],yue:"哪種花與蘇格蘭有關？",note:"記憶法：\nThistle（薊花）→ Scotland（蘇格蘭）；\nTudor rose（都鐸玫瑰）→ England（英格蘭）；\nDaffodil（水仙花）→ Wales（威爾斯）；\nShamrock（三葉草）→ Northern Ireland（北愛爾蘭）。"},
 {ch:5,d:4,q:"Police complaints can only be made by writing to the Chief Constable. True or False?",o:["True","False"],oy:["",""],a:[1],yue:"投訴警察只能寫信給總警司。對定錯？",note:"亦可去警署或向獨立警察投訴機構（Independent Office for Police Conduct, IOPC）投訴"},
 {ch:5,d:2,q:"Which of the following is a responsibility of the Home Secretary?",o:["Economy","Crime","Education","Defence"],oy:["經濟","犯罪","教育","國防"],a:[1],yue:"以下哪項係內政大臣的職責？",note:"內政大臣負責犯罪、警政及移民"},
 {ch:4,d:3,q:"When is St David's Day celebrated?",o:["1st March","17th March","23rd April","17th April"],oy:["3月1日","3月17日","4月23日","4月17日"],a:[0],yue:"聖大衛日係哪天慶祝？",note:"威爾斯守護聖人節日"},
@@ -198,7 +198,7 @@ const EXAMS = {
 {ch:1,d:1,q:"Which TWO of the following are UK values?",o:["Intolerance of others","Tolerance","Communism","Respect for the law"],oy:["對他人不寬容","寬容","共產主義","尊重法律"],a:[1,3],yue:"以下哪兩項係英國價值觀？",note:""},
 {ch:4,d:3,q:"What is the BBC Proms?",o:["A comedy festival","An annual 8-week classical music festival at Royal Albert Hall","A sports event","A drama competition"],oy:["喜劇節","皇家阿爾伯特音樂廳每年為期8週嘅古典音樂節","體育賽事","戲劇比賽"],a:[1],yue:"英國廣播公司（BBC）逍遙音樂節（BBC Proms）係乜嘢？",note:""},
 {ch:3,d:5,q:"What did Isaac Newton discover?",o:["The structure of DNA","Penicillin","The laws of gravity and motion","Radioactivity"],oy:["DNA結構","盤尼西林","萬有引力同運動定律","放射性"],a:[2],yue:"牛頓發現了乜嘢？",note:""},
-{ch:4,d:2,q:"What is the patron flower of England?",o:["The Daffodil","The Shamrock","The Thistle","The Tudor rose"],oy:["水仙花","三葉草","薊花","都鐸玫瑰"],a:[3],yue:"英格蘭的象徵花卉係乜嘢？",note:""},
+{ch:4,d:2,q:"What is the patron flower of England?",o:["The Daffodil","The Shamrock","The Thistle","The Tudor rose"],oy:["水仙花","三葉草","薊花","都鐸玫瑰"],a:[3],yue:"英格蘭的象徵花卉係乜嘢？",note:"記憶法：\nThistle（薊花）→ Scotland（蘇格蘭）；\nTudor rose（都鐸玫瑰）→ England（英格蘭）；\nDaffodil（水仙花）→ Wales（威爾斯）；\nShamrock（三葉草）→ Northern Ireland（北愛爾蘭）。"},
 {ch:3,d:1,q:"What is the significance of 1215?",o:["The Norman Conquest","King John signed the Magna Carta","The Great Fire of London","The Battle of Waterloo"],oy:["諾曼征服","約翰王簽署《大憲章》","倫敦大火","滑鐵盧戰役"],a:[1],yue:"1215年有甚麼重要性？",note:""},
 {ch:5,d:4,q:"What is the purpose of the European Convention on Human Rights?",o:["To promote trade","To protect the fundamental rights and freedoms of people in Europe","To create a European army","To regulate immigration"],oy:["促進貿易","保障歐洲人民嘅基本權利同自由","建立歐洲軍隊","監管移民"],a:[1],yue:"《歐洲人權公約》的目的係乜嘢？",note:"由歐洲委員會（非歐盟）監督"},
 {ch:3,d:3,q:"Who was William Wilberforce?",o:["A famous general","An MP who campaigned to end the slave trade","A Victorian novelist","A famous scientist"],oy:["著名將軍","推動廢除奴隸貿易嘅國會議員","維多利亞時代小說家","著名科學家"],a:[1],yue:"威廉·威伯福斯係誰？",note:"1807年奴隸貿易法案通過"},
@@ -212,7 +212,7 @@ const EXAMS = {
 {ch:3,d:3,q:"What is the 'Dissolution of the Monasteries'?",o:["When Parliament was dissolved","Henry VIII's closure of Catholic monasteries and seizure of their wealth","When the Normans destroyed Anglo-Saxon churches","When Cromwell abolished the monarchy"],oy:["國會解散之後","亨利八世關閉天主教修道院並沒收財產","諾曼人摧毀盎格魯撒克遜教堂之後","克倫威爾廢除君主制之後"],a:[1],yue:"「解散修道院」係乜嘢？",note:"亨利八世"}
 ],
 9:[
-{ch:4,d:2,q:"Which flower is associated with Northern Ireland?",o:["The daffodil","The thistle","The shamrock","The rose"],oy:["水仙花","薊花","三葉草","玫瑰"],a:[2],yue:"哪種花與北愛爾蘭有關？",note:""},
+{ch:4,d:2,q:"Which flower is associated with Northern Ireland?",o:["The daffodil","The thistle","The shamrock","The rose"],oy:["水仙花","薊花","三葉草","玫瑰"],a:[2],yue:"哪種花與北愛爾蘭有關？",note:"記憶法：\nThistle（薊花）→ Scotland（蘇格蘭）；\nTudor rose（都鐸玫瑰）→ England（英格蘭）；\nDaffodil（水仙花）→ Wales（威爾斯）；\nShamrock（三葉草）→ Northern Ireland（北愛爾蘭）。"},
 {ch:3,d:2,q:"The last battle between Britain and France was the Battle of Waterloo. True or False?",o:["True","False"],oy:["",""],a:[0],yue:"英法最後一場戰役係滑鐵盧之役。對定錯？",note:"1815年"},
 {ch:4,d:5,q:"£100 is the highest value note in circulation in the UK. True or False?",o:["True","False"],oy:["",""],a:[1],yue:"£100係英國流通面值最大的鈔票。對定錯？",note:"英格蘭最高面值係£50；蘇格蘭銀行發行£100"},
 {ch:4,d:3,q:"Where is the Lake District National Park located?",o:["Scotland","Wales","England","Northern Ireland"],oy:["蘇格蘭","威爾斯","英格蘭","北愛爾蘭"],a:[2],yue:"湖區國家公園位於哪裏？",note:"英格蘭最大國家公園"},
@@ -231,7 +231,7 @@ const EXAMS = {
 {ch:5,d:4,q:"What is the purpose of the Council of Europe?",o:["To manage EU trade","Protect human rights and democracy in Europe (47 member countries)","To run the European Central Bank","To manage European defence"],oy:["管理歐盟貿易","保障歐洲人權同民主（47個成員國）","管理歐洲中央銀行","管理歐洲防務"],a:[1],yue:"歐洲委員會的目的係乜嘢？",note:"非歐盟機構"},
 {ch:3,d:1,q:"Who wrote 'Hamlet'?",o:["Christopher Marlowe","Ben Jonson","John Milton","William Shakespeare"],oy:["馬洛","本·瓊森","米爾頓","莎士比亞"],a:[3],yue:"《哈姆雷特》係誰寫的？",note:""},
 {ch:5,d:4,q:"How many members are in the Northern Ireland Assembly?",o:["60","75","90","108"],oy:["","","",""],a:[2],yue:"北愛爾蘭議會有多少名議員？",note:"議員稱 MLA（Member of the Legislative Assembly，北愛爾蘭議會議員）"},
-{ch:4,d:2,q:"What is the patron flower of Ireland?",o:["Daffodil","Thistle","Shamrock","Rose"],oy:["水仙花","薊花","三葉草","玫瑰"],a:[2],yue:"愛爾蘭的象徵花卉係乜嘢？",note:""},
+{ch:4,d:2,q:"What is the patron flower of Ireland?",o:["Daffodil","Thistle","Shamrock","Rose"],oy:["水仙花","薊花","三葉草","玫瑰"],a:[2],yue:"愛爾蘭的象徵花卉係乜嘢？",note:"記憶法：\nThistle（薊花）→ Scotland（蘇格蘭）；\nTudor rose（都鐸玫瑰）→ England（英格蘭）；\nDaffodil（水仙花）→ Wales（威爾斯）；\nShamrock（三葉草）→ Northern Ireland（北愛爾蘭）。"},
 {ch:3,d:1,q:"When was the Battle of Hastings?",o:["1040","1066","1215","1314"],oy:["","","",""],a:[1],yue:"黑斯廷斯戰役係哪年？",note:""},
 {ch:3,d:4,q:"How long did the Hundred Years War actually last?",o:["100 years","106 years","116 years","120 years"],oy:["100年","106年","116年","120年"],a:[2],yue:"百年戰爭實際打了多久？",note:"1337–1453年"},
 {ch:5,d:4,q:"What is the role of the Attorney General?",o:["Head of the police","Chief legal adviser to the government","Head of the civil service","Lord Chief Justice"],oy:["警察首長","政府首席法律顧問","公務員首長","首席大法官"],a:[1],yue:"律政司長（總檢察長）的角色係乜嘢？",note:""},
