@@ -614,6 +614,7 @@
     </div>
 
     <div class="chip-row" id="studyChips"></div>
+    <div class="chip-row" id="studySubChips"></div>
     <div class="study-count" id="studyCount"></div>
     <div id="studyContent"></div>
   </div>
@@ -1823,11 +1824,11 @@ const ERAS = [
   { name: '21st century', yue: '21 世紀', max: Infinity },
 ];
 const NATIONS = [
-  { key: 'UK', label: '🇬🇧 United Kingdom' },
-  { key: 'England', label: '🏴󠁧󠁢󠁥󠁮󠁧󠁿 England' },
-  { key: 'Scotland', label: '🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scotland' },
-  { key: 'Wales', label: '🏴󠁧󠁢󠁷󠁬󠁳󠁿 Wales' },
-  { key: 'Northern Ireland', label: '☘️ Northern Ireland' },
+  { key: 'UK', label: '🇬🇧 United Kingdom', chip: '🇬🇧 UK' },
+  { key: 'England', label: '🏴󠁧󠁢󠁥󠁮󠁧󠁿 England', chip: '🏴󠁧󠁢󠁥󠁮󠁧󠁿 England' },
+  { key: 'Scotland', label: '🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scotland', chip: '🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scotland' },
+  { key: 'Wales', label: '🏴󠁧󠁢󠁷󠁬󠁳󠁿 Wales', chip: '🏴󠁧󠁢󠁷󠁬󠁳󠁿 Wales' },
+  { key: 'Northern Ireland', label: '☘️ Northern Ireland', chip: '☘️ N. Ireland' },
 ];
 const GEO_TYPES = {
   city: '🏙️ Cities & capitals · 城市·首都',
@@ -1836,13 +1837,13 @@ const GEO_TYPES = {
   region: '🗺️ Regions & territories · 地區·領土',
 };
 const PEOPLE_GROUPS = [
-  { key: 'monarch', label: '👑 Monarchs & rulers · 君主' },
-  { key: 'politician', label: '🏛️ Prime Ministers, politicians & military · 首相·政治家·軍事' },
-  { key: 'scientist', label: '🔬 Scientists, inventors & engineers · 科學家·發明家' },
-  { key: 'writer', label: '✒️ Writers & poets · 作家·詩人' },
-  { key: 'artist', label: '🎨 Artists, architects & composers · 藝術家·建築師·音樂家' },
-  { key: 'sport', label: '🏅 Sport & exploration · 運動員·探險家' },
-  { key: 'reformer', label: '✊ Reformers & others · 改革者·其他' },
+  { key: 'monarch', label: '👑 Monarchs & rulers · 君主', chip: '👑 君主' },
+  { key: 'politician', label: '🏛️ Prime Ministers, politicians & military · 首相·政治家·軍事', chip: '🏛️ 政治·軍事' },
+  { key: 'scientist', label: '🔬 Scientists, inventors & engineers · 科學家·發明家', chip: '🔬 科學家' },
+  { key: 'writer', label: '✒️ Writers & poets · 作家·詩人', chip: '✒️ 作家' },
+  { key: 'artist', label: '🎨 Artists, architects & composers · 藝術家·建築師·音樂家', chip: '🎨 藝術家' },
+  { key: 'sport', label: '🏅 Sport & exploration · 運動員·探險家', chip: '🏅 運動員' },
+  { key: 'reformer', label: '✊ Reformers & others · 改革者·其他', chip: '✊ 改革者' },
 ];
 const CHAPTER_ICONS = { 1: '⚖️', 2: '🇬🇧', 3: '📜', 4: '🎭', 5: '🏛️' };
 
@@ -1853,21 +1854,23 @@ const study = {
   hideMastered: false,
   bookmarksOnly: false,
   warsOnly: false,
+  nation: 'all',      // geo sub-filter
+  group: 'all',       // people sub-filter
   mastered: {},
   bookmarks: {},
 };
 
 function studyLoad() {
   const prefs = getLS(STUDY_LS.prefs) || {};
-  ['tab', 'chapter', 'hideMastered', 'bookmarksOnly', 'warsOnly'].forEach(k => {
+  ['tab', 'chapter', 'hideMastered', 'bookmarksOnly', 'warsOnly', 'nation', 'group'].forEach(k => {
     if (prefs[k] !== undefined) study[k] = prefs[k];
   });
   study.mastered = getLS(STUDY_LS.mastered) || {};
   study.bookmarks = getLS(STUDY_LS.bookmarks) || {};
 }
 function studySavePrefs() {
-  const { tab, chapter, hideMastered, bookmarksOnly, warsOnly } = study;
-  setLS(STUDY_LS.prefs, { tab, chapter, hideMastered, bookmarksOnly, warsOnly });
+  const { tab, chapter, hideMastered, bookmarksOnly, warsOnly, nation, group } = study;
+  setLS(STUDY_LS.prefs, { tab, chapter, hideMastered, bookmarksOnly, warsOnly, nation, group });
 }
 
 function openStudy() {
@@ -1880,6 +1883,8 @@ function openStudy() {
 }
 function studySetTab(tab) { study.tab = tab; studySavePrefs(); renderStudy(); }
 function studySetChapter(ch) { study.chapter = ch; studySavePrefs(); renderStudy(); }
+function studySetNation(n) { study.nation = n; studySavePrefs(); renderStudy(); }
+function studySetGroup(g) { study.group = g; studySavePrefs(); renderStudy(); }
 function studySetSearch(v) { study.search = v.trim().toLowerCase(); renderStudy(); }
 function studyToggle(key) { study[key] = !study[key]; studySavePrefs(); renderStudy(); }
 function studyToggleMastered(id) {
@@ -1942,12 +1947,28 @@ function renderStudy() {
   if (study.tab === 'timeline') {
     chips += `<button class="chip war${study.warsOnly ? ' active' : ''}" onclick="studyToggle('warsOnly')">⚔️ 只顯示戰爭</button>`;
   }
+  document.getElementById('studyChips').innerHTML = chips;
+
+  // sub-filter row (chapter / nation / people group)
+  let sub = '';
   if (study.tab === 'chapters') {
     for (let ch = 1; ch <= 5; ch++) {
-      chips += `<button class="chip ch${study.chapter === ch ? ' active' : ''}" onclick="studySetChapter(${ch})">${CHAPTER_ICONS[ch]} Ch ${ch}</button>`;
+      sub += `<button class="chip ch${study.chapter === ch ? ' active' : ''}" onclick="studySetChapter(${ch})">${CHAPTER_ICONS[ch]} Ch ${ch}</button>`;
     }
+  } else if (study.tab === 'geo') {
+    sub += `<button class="chip ch${study.nation === 'all' ? ' active' : ''}" onclick="studySetNation('all')">All</button>`;
+    NATIONS.forEach(n => {
+      sub += `<button class="chip ch${study.nation === n.key ? ' active' : ''}" onclick="studySetNation('${n.key}')">${n.chip}</button>`;
+    });
+  } else if (study.tab === 'people') {
+    sub += `<button class="chip ch${study.group === 'all' ? ' active' : ''}" onclick="studySetGroup('all')">All</button>`;
+    PEOPLE_GROUPS.forEach(g => {
+      sub += `<button class="chip ch${study.group === g.key ? ' active' : ''}" onclick="studySetGroup('${g.key}')">${g.chip}</button>`;
+    });
   }
-  document.getElementById('studyChips').innerHTML = chips;
+  const subRow = document.getElementById('studySubChips');
+  subRow.innerHTML = sub;
+  subRow.style.display = sub ? 'flex' : 'none';
 
   const renderers = { chapters: renderStudyChapters, timeline: renderStudyTimeline, geo: renderStudyGeo, people: renderStudyPeople };
   const { html, shown, total } = renderers[study.tab]();
@@ -1957,7 +1978,7 @@ function renderStudy() {
 }
 
 function renderStudyChapters() {
-  // when searching, look across all chapters; otherwise only the selected one
+  // when searching, look across all chapters (same rule for nation / people-group filters)
   const pool = study.search ? STUDY : STUDY.filter(f => f.ch === study.chapter);
   const facts = pool.filter(factMatches);
   let html = '';
@@ -1995,7 +2016,7 @@ function renderStudyTimeline() {
 }
 
 function renderStudyGeo() {
-  const pool = STUDY.filter(f => f.geo);
+  const pool = STUDY.filter(f => f.geo && (study.search || study.nation === 'all' || f.geo[0] === study.nation));
   const facts = pool.filter(factMatches);
   let html = '';
   NATIONS.forEach(n => {
@@ -2013,7 +2034,7 @@ function renderStudyGeo() {
 }
 
 function renderStudyPeople() {
-  const pool = STUDY.filter(f => f.p);
+  const pool = STUDY.filter(f => f.p && (study.search || study.group === 'all' || f.p[1] === study.group));
   const facts = pool.filter(factMatches);
   let html = '';
   PEOPLE_GROUPS.forEach(g => {
@@ -2037,7 +2058,7 @@ function showScreen(id) {
 // PWA — Service Worker
 // ════════════════════════════════════════
 const SW_CODE = `
-const CACHE = 'lifeuk-v6';
+const CACHE = 'lifeuk-v7';
 const SHELL = ['./'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
