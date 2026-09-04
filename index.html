@@ -372,7 +372,7 @@
   .ans-yue-title { font-weight: 800; margin-bottom: 2px; }
   .ans-yue-row { display: flex; gap: 6px; }
   .ans-yue-row b { flex-shrink: 0; }
-  .ans-note { font-size: 12px; color: var(--text-muted); line-height: 1.55; }
+  .ans-note { white-space: pre-line; font-size: 12px; color: var(--text-muted); line-height: 1.55; }
   .ans-note strong { color: #b5680a; }
 
   /* nav buttons */
@@ -438,7 +438,7 @@
   .rv-q { font-weight: 600; color: var(--navy); margin-bottom: 4px; }
   .rv-your { color: var(--text-muted); font-size: 12px; }
   .rv-correct-ans { color: var(--green); font-size: 12px; font-weight: 600; }
-  .rv-yue { color: var(--purple); font-size: 12px; margin-top: 4px; }
+  .rv-yue { color: var(--purple); font-size: 12px; margin-top: 4px; white-space: pre-line; }
 
   /* install banner */
   .install-banner {
@@ -832,7 +832,7 @@
 // ════════════════════════════════════════
 // APP VERSION — single source of truth (shown in the header, drives the SW cache name)
 // ════════════════════════════════════════
-const APP_VERSION = '0.22';
+const APP_VERSION = '0.23';
 
 // ════════════════════════════════════════
 // APP STATE
