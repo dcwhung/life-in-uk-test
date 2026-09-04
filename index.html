@@ -206,6 +206,30 @@
     text-transform: uppercase; letter-spacing: 0.07em;
     margin-bottom: 10px;
   }
+  .yue-toggle {
+    margin-top: 12px;
+    background: #f3eefa;
+    border: 1.5px solid var(--purple-light);
+    color: var(--purple);
+    border-radius: 999px;
+    padding: 5px 12px;
+    font-size: 12px; font-weight: 700;
+    cursor: pointer;
+    display: none;
+  }
+  .yue-toggle.visible { display: inline-block; }
+  .yue-toggle.on { background: var(--purple); color: #fff; }
+  .q-yue {
+    display: none;
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: #f7f4fc;
+    border-left: 3px solid var(--purple-light);
+    border-radius: 0 8px 8px 0;
+    color: var(--purple);
+    font-size: 14px; line-height: 1.6;
+  }
+  .q-yue.show { display: block; }
   .q-text {
     font-size: 17px; font-weight: 700; line-height: 1.55;
     color: var(--navy);
@@ -662,6 +686,8 @@
     <div class="q-card">
       <div class="q-num" id="qNum">Question 1</div>
       <div class="q-text" id="qText"></div>
+      <button class="yue-toggle" id="yueToggle" onclick="toggleQuestionYue()">🈶 廣東話翻譯</button>
+      <div class="q-yue" id="qYue"></div>
     </div>
 
     <div class="options" id="optionsContainer"></div>
@@ -1430,6 +1456,7 @@ let state = {
   current: 0,
   answers: {},           // index -> [selected option indices]
   revealed: {},          // index -> bool
+  yueShown: {},          // index -> bool (practice: question translation expanded)
   sessionCorrect: 0,
   sessionTotal: 0,
 };
@@ -1593,6 +1620,7 @@ function startExam(examNum) {
   state.current = 0;
   state.answers = {};
   state.revealed = {};
+  state.yueShown = {};
 
   showScreen('screenQuiz');
   renderQuestion();
@@ -1635,6 +1663,16 @@ function renderQuestion() {
   document.getElementById('qNum').innerHTML =
     `Question ${idx + 1}${isMulti ? ' (select ' + q.a.length + ')' : ''}${starsHtml(q.d)}`;
   document.getElementById('qText').textContent = q.q;
+
+  // practice: click-to-show Cantonese translation of the question
+  const yueToggle = document.getElementById('yueToggle');
+  const qYue = document.getElementById('qYue');
+  const yueOn = state.mode === 'practice' && !!state.yueShown[idx];
+  yueToggle.classList.toggle('visible', state.mode === 'practice');
+  yueToggle.classList.toggle('on', yueOn);
+  yueToggle.textContent = yueOn ? '🈶 收起翻譯' : '🈶 廣東話翻譯';
+  qYue.textContent = q.yue;
+  qYue.classList.toggle('show', yueOn);
 
   // options
   const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
@@ -1759,6 +1797,12 @@ function selectOption(oi) {
     }
     renderQuestion();
   }
+}
+
+function toggleQuestionYue() {
+  if (state.mode !== 'practice') return;
+  state.yueShown[state.current] = !state.yueShown[state.current];
+  renderQuestion();
 }
 
 function revealAnswer() {
@@ -2143,7 +2187,7 @@ function showScreen(id) {
 // PWA — Service Worker
 // ════════════════════════════════════════
 const SW_CODE = `
-const CACHE = 'lifeuk-v8';
+const CACHE = 'lifeuk-v9';
 const SHELL = ['./'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
