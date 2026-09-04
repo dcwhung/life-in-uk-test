@@ -56,6 +56,7 @@
   .logo-flag { font-size: 22px; }
   .logo-text { color: #fff; font-size: 15px; font-weight: 700; letter-spacing: 0.01em; }
   .logo-sub { color: var(--gold); font-size: 11px; font-weight: 500; margin-top: 1px; }
+  .app-version { color: rgba(255,255,255,0.45); font-weight: 600; margin-left: 4px; }
   .header-stats {
     display: flex; gap: 16px; align-items: center;
   }
@@ -641,7 +642,7 @@
       <span class="logo-flag">🇬🇧</span>
       <div>
         <div class="logo-text">Life in the UK <button class="info-btn" id="infoBtn" aria-label="About this app" aria-expanded="false" onclick="toggleInfo(event)">ⓘ</button></div>
-        <div class="logo-sub">Exam Practice</div>
+        <div class="logo-sub">Exam Practice <span class="app-version" id="appVersion"></span></div>
       </div>
     </div>
     <div class="header-stats" id="headerStats" style="display:none">
@@ -650,7 +651,7 @@
     </div>
   </div>
   <div class="info-pop" id="infoPop" role="dialog" aria-label="About this app">
-    <h2>Exam 1–17 Practice</h2>
+    <h2>Exam 1–17 Practice <span class="app-version" id="appVersionPop"></span></h2>
     <p>408 official-style questions from lifeintheuktestweb.co.uk, with Cantonese translations and notes.</p>
     <div class="hero-meta">
       <div class="hero-badge">📋 17 Exams</div>
@@ -828,6 +829,11 @@
 <script src="data/study.js"></script>
 <script src="js/utils.js"></script>
 <script>
+// ════════════════════════════════════════
+// APP VERSION — single source of truth (shown in the header, drives the SW cache name)
+// ════════════════════════════════════════
+const APP_VERSION = '0.19';
+
 // ════════════════════════════════════════
 // APP STATE
 // ════════════════════════════════════════
@@ -1653,7 +1659,7 @@ function showScreen(id) {
 // PWA — Service Worker
 // ════════════════════════════════════════
 const SW_CODE = `
-const CACHE = 'lifeuk-v19';
+const CACHE = 'lifeuk-v${APP_VERSION}';
 const SHELL = ['./', 'index.html', 'data/exams.js', 'data/study.js', 'js/utils.js'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -1697,6 +1703,8 @@ document.getElementById('installBtn').onclick = async () => {
 // ════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════
+document.getElementById('appVersion').textContent = 'v' + APP_VERSION;
+document.getElementById('appVersionPop').textContent = 'v' + APP_VERSION;
 loadHomePrefs();
 buildExamGrid();
 renderModeSelection();
