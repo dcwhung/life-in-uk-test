@@ -73,22 +73,18 @@
   main { max-width: 780px; margin: 0 auto; padding: 20px 16px 100px; }
 
   /* ── HEADER: info button + popover (replaces the old home hero) ── */
-  .header-right { display: flex; align-items: center; gap: 12px; }
+  .logo-text { display: flex; align-items: center; gap: 6px; }
   .info-btn {
-    background: transparent;
-    border: 1.5px solid rgba(255,255,255,0.35);
-    color: rgba(255,255,255,0.85);
-    border-radius: 50%;
-    width: 30px; height: 30px;
+    background: transparent; border: none; padding: 0;
+    color: rgba(255,255,255,0.6);
     font-size: 16px; line-height: 1;
     cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: all 0.15s;
+    transition: color 0.15s;
   }
-  .info-btn:hover, .info-btn.open { background: rgba(255,255,255,0.12); border-color: var(--gold); color: var(--gold-light); }
+  .info-btn:hover, .info-btn.open { color: var(--gold-light); }
   .info-pop {
     display: none;
-    position: absolute; right: 16px; top: 64px;
+    position: absolute; left: 16px; top: 64px;
     width: min(360px, calc(100vw - 32px));
     background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
     color: #fff;
@@ -100,14 +96,14 @@
   }
   .info-pop.show { display: block; }
   .info-pop::after {
-    content: ''; position: absolute; right: 22px; top: -7px;
+    content: ''; position: absolute; left: 150px; top: -7px;
     width: 12px; height: 12px;
     background: var(--navy); border-left: 1px solid rgba(201,168,76,0.35); border-top: 1px solid rgba(201,168,76,0.35);
     transform: rotate(45deg);
   }
   .info-pop h2 { font-size: 17px; font-weight: 800; margin-bottom: 6px; }
   .info-pop p { font-size: 13px; color: rgba(255,255,255,0.75); line-height: 1.5; }
-  @media (min-width: 812px) { .info-pop { right: calc((100vw - 780px) / 2); } }
+  @media (min-width: 812px) { .info-pop { left: calc((100vw - 780px) / 2); } }
 
   /* ── HOME SCREEN ── */
   .hero-meta {
@@ -148,6 +144,41 @@
   }
   .practice-tab.active { background: var(--navy); border-color: var(--navy); color: #fff; }
   .exam-select-section.hidden { display: none; }
+  .reset-row {
+    display: none;
+    align-items: center; gap: 12px; flex-wrap: wrap;
+    background: var(--card);
+    border: 1.5px dashed var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 24px;
+    font-size: 12px; color: var(--text-muted); line-height: 1.5;
+  }
+  .reset-row.show { display: flex; }
+  .reset-hint { flex: 1; min-width: 180px; }
+  .reset-hint b { color: var(--navy); }
+  .reset-btn {
+    background: var(--card);
+    border: 1.5px solid var(--red-light);
+    color: var(--red);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font: inherit; font-size: 12px; font-weight: 700;
+    cursor: pointer; white-space: nowrap;
+  }
+  .reset-btn:hover { background: var(--red-light); color: #fff; }
+  /* mastery progress inside set buttons */
+  .chapter-btn { position: relative; overflow: hidden; }
+  .chapter-btn .ch-count.mastery { color: var(--green); font-weight: 700; }
+  .chapter-btn .ch-count.mastery.zero { color: var(--text-muted); font-weight: 500; }
+  .mastery-bar { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--green-light); border-radius: 0 2px 2px 0; }
+  .chapter-btn.complete { border-color: var(--green-light); }
+  .exam-btn { padding-bottom: 8px; }
+  .exam-btn .exam-mastery { display: block; font-size: 10px; font-weight: 600; color: var(--green); margin-top: 2px; }
+  .exam-btn .exam-mastery.zero { color: var(--text-muted); font-weight: 500; }
+  .exam-btn .mastery-bar { border-radius: 0; }
+  .exam-btn.all .exam-mastery { color: var(--gold-light); }
+  .exam-btn.all .exam-mastery.zero { color: rgba(255,255,255,0.55); }
   .mode-icon { font-size: 26px; margin-bottom: 6px; }
   .mode-title { font-size: 14px; font-weight: 700; color: var(--navy); }
   .mode-desc-panel {
@@ -609,16 +640,13 @@
     <div class="logo">
       <span class="logo-flag">🇬🇧</span>
       <div>
-        <div class="logo-text">Life in the UK</div>
+        <div class="logo-text">Life in the UK <button class="info-btn" id="infoBtn" aria-label="About this app" aria-expanded="false" onclick="toggleInfo(event)">ⓘ</button></div>
         <div class="logo-sub">Exam Practice</div>
       </div>
     </div>
-    <div class="header-right">
-      <div class="header-stats" id="headerStats" style="display:none">
-        <div class="stat-chip">✅ <b id="statCorrect">0</b> correct</div>
-        <div class="stat-chip">📝 <b id="statTotal">0</b> done</div>
-      </div>
-      <button class="info-btn" id="infoBtn" aria-label="About this app" aria-expanded="false" onclick="toggleInfo(event)">ⓘ</button>
+    <div class="header-stats" id="headerStats" style="display:none">
+      <div class="stat-chip">✅ <b id="statCorrect">0</b> correct</div>
+      <div class="stat-chip">📝 <b id="statTotal">0</b> done</div>
     </div>
   </div>
   <div class="info-pop" id="infoPop" role="dialog" aria-label="About this app">
@@ -679,6 +707,15 @@
     <div class="exam-select-section" id="secExam">
       <div class="section-title" id="secExamTitle">Select Exam</div>
       <div class="exam-grid" id="examGrid"></div>
+    </div>
+
+    <div class="reset-row" id="practiceReset">
+      <span class="reset-hint">Answer a question correctly <b>5 times in a row</b> to master it. Mastered questions are skipped until the whole set is mastered.</span>
+      <button class="reset-btn" onclick="resetPracticeProgress()">↺ Reset progress</button>
+    </div>
+    <div class="reset-row" id="examReset">
+      <span class="reset-hint">Completed exams are marked with ✓.</span>
+      <button class="reset-btn" onclick="resetCompletedExams()">↺ Reset completed exams</button>
     </div>
 
   </div>
@@ -1540,9 +1577,16 @@ function setLS(key, val) {
 function buildExamGrid() {
   const grid = document.getElementById('examGrid');
   const done = getLS('completedExams') || {};
-  let html = `<button class="exam-btn all" onclick="startExam('all')">🎯 All Exams (408 Q)</button>`;
+  const isPractice = pendingMode === 'practice';
+  const mastery = list => {
+    if (!isPractice) return '';
+    const m = masteryOf(list);
+    return `<span class="exam-mastery${m.mastered ? '' : ' zero'}">${masteryText(m)}</span>${masteryBar(m)}`;
+  };
+  let html = `<button class="exam-btn all" onclick="startExam('all')">🎯 All Exams (408 Q)${mastery(allQuestions())}</button>`;
   for (let i = 1; i <= 17; i++) {
-    html += `<button class="exam-btn ${done[i] ? 'done' : ''}" onclick="startExam(${i})">Exam ${i}</button>`;
+    const doneCls = !isPractice && done[i] ? ' done' : '';
+    html += `<button class="exam-btn${doneCls}" onclick="startExam(${i})">Exam ${i}${mastery(examQuestions(i))}</button>`;
   }
   grid.innerHTML = html;
   buildChapterGrid();
@@ -1563,6 +1607,44 @@ function chapterQuestions(ch) {
   }
   return out;
 }
+// ── Practice mastery: consecutive correct answers per question (practice mode only) ──
+const MASTERY_STREAK = 5;
+const STREAK_LS = 'practiceStreak';
+let streaks = getLS(STREAK_LS) || {};
+const qKey = q => q.examNum + '.' + q.origIdx;
+function streakOf(q) { return streaks[qKey(q)] || 0; }
+function isMastered(q) { return streakOf(q) >= MASTERY_STREAK; }
+function recordPracticeAnswer(q, correct) {
+  const k = qKey(q);
+  streaks[k] = correct ? Math.min(MASTERY_STREAK, (streaks[k] || 0) + 1) : 0;
+  setLS(STREAK_LS, streaks);
+}
+function masteryOf(list) {
+  const mastered = list.filter(({ q, examNum, origIdx }) => isMastered({ examNum, origIdx })).length;
+  return { mastered, total: list.length, pct: list.length ? Math.round((mastered / list.length) * 100) : 0 };
+}
+function masteryText(m) { return `${m.mastered}/${m.total} · ${m.pct}%`; }
+function masteryBar(m) { return `<span class="mastery-bar" style="width:${m.pct}%"></span>`; }
+// questions still to practise: skip mastered ones until the whole set is mastered
+function practicePool(list) {
+  const remaining = list.filter(({ examNum, origIdx }) => !isMastered({ examNum, origIdx }));
+  return remaining.length ? remaining : list;
+}
+function resetPracticeProgress() {
+  if (!confirm('Reset all practice progress? 所有掌握進度會歸零。')) return;
+  streaks = {};
+  setLS(STREAK_LS, streaks);
+  buildExamGrid();
+}
+function resetCompletedExams() {
+  if (!confirm('Reset all completed exams? 所有 ✓ 完成記錄會清除。')) return;
+  setLS('completedExams', {});
+  buildExamGrid();
+}
+function examQuestions(n) {
+  return EXAMS[n].map((q, idx) => ({ q, examNum: n, origIdx: idx }));
+}
+
 const DIFF_LABELS = { 1: 'Easy · 易', 2: 'Basic · 基本', 3: 'Medium · 中', 4: 'Hard · 難', 5: 'Expert · 極難' };
 const HARD_MIN = 4;
 function starsHtml(d) {
@@ -1580,14 +1662,16 @@ function buildDiffGrid() {
   const grid = document.getElementById('diffGrid');
   let html = '';
   for (let d = 1; d <= 5; d++) {
-    html += `<button class="chapter-btn diff-btn" onclick="startDifficulty(${d})">
+    const m = masteryOf(difficultyQuestions(d));
+    html += `<button class="chapter-btn diff-btn${m.pct === 100 ? ' complete' : ''}" onclick="startDifficulty(${d})">
       ${starsHtml(d)}<span class="ch-name">${DIFF_LABELS[d]}</span>
-      <span class="ch-count">${difficultyQuestions(d).length} Q</span>
+      <span class="ch-count mastery${m.mastered ? '' : ' zero'}">${masteryText(m)}</span>${masteryBar(m)}
     </button>`;
   }
-  html += `<button class="chapter-btn diff-btn" onclick="startDifficulty('hard')">
+  const mh = masteryOf(difficultyQuestions('hard'));
+  html += `<button class="chapter-btn diff-btn${mh.pct === 100 ? ' complete' : ''}" onclick="startDifficulty('hard')">
     <span class="stars">★★★★+</span><span class="ch-name">Hard &amp; Expert · 難題合集</span>
-    <span class="ch-count">${difficultyQuestions('hard').length} Q</span>
+    <span class="ch-count mastery${mh.mastered ? '' : ' zero'}">${masteryText(mh)}</span>${masteryBar(mh)}
   </button>`;
   grid.innerHTML = html;
 }
@@ -1600,11 +1684,11 @@ function buildChapterGrid() {
   const grid = document.getElementById('chapterGrid');
   let html = '';
   for (let ch = 1; ch <= 5; ch++) {
-    const n = chapterQuestions(ch).length;
-    html += `<button class="chapter-btn" onclick="startChapter(${ch})">
+    const m = masteryOf(chapterQuestions(ch));
+    html += `<button class="chapter-btn${m.pct === 100 ? ' complete' : ''}" onclick="startChapter(${ch})">
       <span class="ch-num">Ch ${ch}</span>
       <span class="ch-name">${CHAPTER_SHORT[ch]}</span>
-      <span class="ch-count">${n} Q</span>
+      <span class="ch-count mastery${m.mastered ? '' : ' zero'}">${masteryText(m)}</span>${masteryBar(m)}
     </button>`;
   }
   grid.innerHTML = html;
@@ -1629,7 +1713,7 @@ function examLabel(examNum) {
 }
 
 const MODE_DESC = {
-  practice: '<strong>Practice</strong> — See the answer and Cantonese translation immediately after each question. Pick a set by difficulty, chapter or exam.',
+  practice: '<strong>Practice</strong> — See the answer and Cantonese translation immediately after each question. Pick a set by difficulty, chapter or exam; each shows how much you have mastered.',
   exam: '<strong>Exam</strong> — Complete all 24 questions first, then review your score and answers. Pick an exam below.',
 };
 const DEFAULT_MODE = 'practice';
@@ -1649,6 +1733,7 @@ function saveHomePrefs() {
 function startMode(mode) {
   pendingMode = mode;
   saveHomePrefs();
+  buildExamGrid(); // mastery labels vs ✓ done depend on the mode
   renderModeSelection();
 }
 function setPracticeView(view) {
@@ -1674,6 +1759,8 @@ function renderModeSelection() {
   });
   // the "Select Exam" header is only needed when there are no practice tabs
   document.getElementById('secExamTitle').style.display = isPractice ? 'none' : '';
+  document.getElementById('practiceReset').classList.toggle('show', isPractice);
+  document.getElementById('examReset').classList.toggle('show', pendingMode === 'exam');
 }
 
 function startExam(examNum) {
@@ -1684,20 +1771,20 @@ function startExam(examNum) {
   state.mode = pendingMode;
   state.examNum = examNum;
 
-  if (examNum === 'all') {
-    let all = [];
-    for (let i = 1; i <= 17; i++) {
-      EXAMS[i].forEach((q, idx) => all.push({ ...shuffleOptions(q), examNum: i, origIdx: idx }));
-    }
-    state.questions = shuffle(all);
-  } else if (isChapterExam(examNum) || isDifficultyExam(examNum)) {
-    const pool = isChapterExam(examNum)
-      ? chapterQuestions(chapterOf(examNum))
-      : difficultyQuestions(difficultyOf(examNum));
-    state.questions = shuffle(pool.map(({ q, examNum: e, origIdx }) =>
+  let pool;
+  if (examNum === 'all') pool = allQuestions();
+  else if (isChapterExam(examNum)) pool = chapterQuestions(chapterOf(examNum));
+  else if (isDifficultyExam(examNum)) pool = difficultyQuestions(difficultyOf(examNum));
+  else pool = examQuestions(examNum);
+
+  // Practice: skip mastered questions until the whole set is mastered, then shuffle.
+  // Exam: fixed exam order, all questions.
+  if (state.mode === 'practice') {
+    state.questions = shuffle(practicePool(pool).map(({ q, examNum: e, origIdx }) =>
       ({ ...shuffleOptions(q), examNum: e, origIdx })));
   } else {
-    state.questions = EXAMS[examNum].map((q, idx) => ({ ...shuffleOptions(q), examNum: examNum, origIdx: idx }));
+    const ordered = examNum === 'all' ? shuffle(pool) : pool;
+    state.questions = ordered.map(({ q, examNum: e, origIdx }) => ({ ...shuffleOptions(q), examNum: e, origIdx }));
   }
 
   state.current = 0;
@@ -1790,7 +1877,12 @@ function renderQuestion() {
     const correct = q.a.every(a => userAns.includes(a)) && userAns.length === q.a.length;
     box.className = 'answer-box show' + (correct ? '' : ' wrong-ans');
     document.getElementById('ansLabel').className = 'ans-label' + (correct ? '' : ' wrong');
-    document.getElementById('ansLabel').textContent = correct ? '✓  Correct!' : '✗  Wrong';
+    let label = correct ? '✓  Correct!' : '✗  Wrong';
+    if (state.mode === 'practice') {
+      const st = streakOf(q);
+      label += st >= MASTERY_STREAK ? '  ·  🏆 Mastered' : `  ·  🔥 ${st}/${MASTERY_STREAK}`;
+    }
+    document.getElementById('ansLabel').textContent = label;
     document.getElementById('ansEn').className = 'ans-en' + (correct ? '' : ' wrong');
     document.getElementById('ansEn').textContent = q.a.map(ai => q.o[ai]).join('  |  ');
     const ansYueText = q.a.map(ai => (q.oy && q.oy[ai]) || q.o[ai]).join('  |  ');
@@ -1901,6 +1993,7 @@ function revealAnswer() {
   const userAns = state.answers[idx] || [];
   const correct = q.a.every(a => userAns.includes(a)) && userAns.length === q.a.length;
   state.revealed[idx] = correct;
+  if (state.mode === 'practice') recordPracticeAnswer(q, correct);
   renderQuestion();
 }
 
@@ -2294,7 +2387,7 @@ function showScreen(id) {
 // PWA — Service Worker
 // ════════════════════════════════════════
 const SW_CODE = `
-const CACHE = 'lifeuk-v17';
+const CACHE = 'lifeuk-v18';
 const SHELL = ['./'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -2338,8 +2431,8 @@ document.getElementById('installBtn').onclick = async () => {
 // ════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════
-buildExamGrid();
 loadHomePrefs();
+buildExamGrid();
 renderModeSelection();
 registerSW();
 </script>
