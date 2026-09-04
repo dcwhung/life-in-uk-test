@@ -711,7 +711,7 @@
     </div>
 
     <div class="reset-row" id="practiceReset">
-      <span class="reset-hint">Answer a question correctly <b>5 times in a row</b> to master it. Mastered questions are skipped until the whole set is mastered.</span>
+      <span class="reset-hint" id="practiceHint"></span>
       <button class="reset-btn" onclick="resetPracticeProgress()">↺ Reset progress</button>
     </div>
     <div class="reset-row" id="examReset">
@@ -832,7 +832,7 @@
 // ════════════════════════════════════════
 // APP VERSION — single source of truth (shown in the header, drives the SW cache name)
 // ════════════════════════════════════════
-const APP_VERSION = '0.19';
+const APP_VERSION = '0.20';
 
 // ════════════════════════════════════════
 // APP STATE
@@ -886,7 +886,7 @@ function chapterQuestions(ch) {
   return out;
 }
 // ── Practice mastery: consecutive correct answers per question (practice mode only) ──
-const MASTERY_STREAK = 5;
+const MASTERY_STREAK = 3;
 const STREAK_LS = 'practiceStreak';
 let streaks = getLS(STREAK_LS) || {};
 const qKey = q => q.examNum + '.' + q.origIdx;
@@ -1034,6 +1034,8 @@ function renderModeSelection() {
   });
   // the "Select Exam" header is only needed when there are no practice tabs
   document.getElementById('secExamTitle').style.display = isPractice ? 'none' : '';
+  document.getElementById('practiceHint').innerHTML =
+    `Answer a question correctly <b>${MASTERY_STREAK} times in a row</b> to master it. Mastered questions are skipped until the whole set is mastered.`;
   document.getElementById('practiceReset').classList.toggle('show', isPractice);
   document.getElementById('examReset').classList.toggle('show', pendingMode === 'exam');
 }
