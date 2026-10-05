@@ -832,7 +832,7 @@
 // ════════════════════════════════════════
 // APP VERSION — single source of truth (shown in the header, drives the SW cache name)
 // ════════════════════════════════════════
-const APP_VERSION = '0.31';
+const APP_VERSION = '0.32';
 
 // ════════════════════════════════════════
 // APP STATE
@@ -896,6 +896,12 @@ function recordPracticeAnswer(q, correct) {
   const k = qKey(q);
   streaks[k] = correct ? Math.min(MASTERY_STREAK, (streaks[k] || 0) + 1) : 0;
   setLS(STREAK_LS, streaks);
+}
+// practice: an unmastered question goes back to the end of the session queue (options
+// re-shuffled), so one session keeps going until every question in it is mastered
+function requeueIfUnmastered(q) {
+  if (isMastered(q)) return;
+  state.questions.push({ ...shuffleOptions(q), examNum: q.examNum, origIdx: q.origIdx });
 }
 function masteryOf(list) {
   const mastered = list.filter(({ q, examNum, origIdx }) => isMastered({ examNum, origIdx })).length;
@@ -1035,7 +1041,7 @@ function renderModeSelection() {
   // the "Select Exam" header is only needed when there are no practice tabs
   document.getElementById('secExamTitle').style.display = isPractice ? 'none' : '';
   document.getElementById('practiceHint').innerHTML =
-    `Answer a question correctly <b>${MASTERY_STREAK} times in a row</b> to master it. Mastered questions are skipped until the whole set is mastered.`;
+    `Answer a question correctly <b>${MASTERY_STREAK} times in a row</b> to master it. Unmastered questions come back later in the same session; mastered ones are skipped until the whole set is mastered.`;
   document.getElementById('practiceReset').classList.toggle('show', isPractice);
   document.getElementById('examReset').classList.toggle('show', pendingMode === 'exam');
 }
@@ -1270,7 +1276,10 @@ function revealAnswer() {
   const userAns = state.answers[idx] || [];
   const correct = q.a.every(a => userAns.includes(a)) && userAns.length === q.a.length;
   state.revealed[idx] = correct;
-  if (state.mode === 'practice') recordPracticeAnswer(q, correct);
+  if (state.mode === 'practice') {
+    recordPracticeAnswer(q, correct);
+    requeueIfUnmastered(q);
+  }
   renderQuestion();
 }
 
