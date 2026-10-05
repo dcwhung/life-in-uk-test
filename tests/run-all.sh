@@ -6,7 +6,7 @@
 set -u
 cd "$(dirname "$0")"
 fail=0
-for t in test shuffle-test study-test subfilter-test diff-test yue-test oy-test yue2-test mode-test info-test mastery-test; do
+for t in test shuffle-test study-test subfilter-test diff-test yue-test oy-test yue2-test mode-test info-test mastery-test result-test; do
   out=$(node "$t.js" 2>&1 | grep -v agent-proxy | tail -1)
   printf '%-16s %s\n' "$t" "$out"
   [[ "$out" == *PASS* ]] || fail=1
