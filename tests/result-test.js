@@ -33,6 +33,15 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   // back to an exam: verdict comes back
   await finish('exam', 3);
   assert(await verdictShown(), 'verdict shown again after a non-exam set');
+  // retry button names the mode: practice sets are not exams
+  const retryText = () => pg.$eval('#retryBtn', e => e.textContent);
+  assert((await retryText()) === 'Retry Exam', 'Exam mode: Retry Exam');
+  for (const set of [2, 'ch1', 'd1', 'all']) {
+    await finish('practice', set);
+    assert((await retryText()) === 'Practise Again', `${set} practice: Practise Again`);
+  }
+  await finish('exam', 1);
+  assert((await retryText()) === 'Retry Exam', 'Retry Exam again after a practice set');
   assert(errs.length === 0, 'no page errors: ' + errs.join(';'));
   await b.close(); console.log('RESULT PASS');
 })().catch(e => { console.error(e.message); process.exit(1); });

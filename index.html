@@ -376,7 +376,7 @@
   .ans-note strong { color: #b5680a; }
 
   /* similar questions — other questions built from the same STUDY fact (practice only) */
-  .sqm { display: none; background: var(--card); border: 1.5px solid var(--border); border-radius: 11px; margin-bottom: 14px; padding: 14px 18px 16px; }
+  .sqm { display: none; background: var(--card); border: 1.5px solid var(--border); border-radius: 11px; margin: 16px 0 14px; padding: 14px 18px 16px; }
   .sqm.show { display: block; animation: slideIn 0.25s ease; }
   .sqm-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
   .sqm-icon { width: 30px; height: 30px; border-radius: 8px; background: #fbf5e6; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
@@ -813,9 +813,6 @@
       <div class="ans-note" id="ansNote"></div>
     </div>
 
-    <!-- practice: other questions built from the same study fact -->
-    <div class="sqm" id="similarBox"></div>
-
     <!-- exam: submit button -->
     <div class="exam-submit-row" id="examSubmitRow" style="display:none">
       <button class="nav-btn" id="examSubmitBtn" onclick="examSubmitAnswer()" disabled>Submit Answer</button>
@@ -825,6 +822,9 @@
       <button class="nav-btn secondary" id="prevBtn" onclick="prevQ()">← Prev</button>
       <button class="nav-btn" id="nextBtn" onclick="nextQ()">Next →</button>
     </div>
+
+    <!-- practice: other questions built from the same study fact (below Prev / Next) -->
+    <div class="sqm" id="similarBox"></div>
   </div>
 
   <!-- ── RESULT ── -->
@@ -853,7 +853,7 @@
     <div class="review-list" id="reviewList"></div>
 
     <div class="nav-row">
-      <button class="nav-btn secondary" onclick="retryExam()">Retry Exam</button>
+      <button class="nav-btn secondary" id="retryBtn" onclick="retryExam()">Retry Exam</button>
       <button class="nav-btn" onclick="goHome()">Choose Another</button>
     </div>
   </div>
@@ -867,7 +867,7 @@
 // ════════════════════════════════════════
 // APP VERSION — single source of truth (shown in the header, drives the SW cache name)
 // ════════════════════════════════════════
-const APP_VERSION = '0.35';
+const APP_VERSION = '0.37';
 
 // ════════════════════════════════════════
 // APP STATE
@@ -1254,7 +1254,7 @@ function renderQuestion() {
   document.getElementById('prevBtn').disabled = idx === 0;
   const nextBtn = document.getElementById('nextBtn');
   if (idx === total - 1 && isSimilarSession()) {
-    nextBtn.textContent = `↩ Back to Question ${similarReturn.current + 1}`;
+    nextBtn.textContent = '↩ Back';
     nextBtn.onclick = returnFromSimilar;
   } else if (idx === total - 1) {
     if (state.mode === 'exam') {
@@ -1486,6 +1486,7 @@ function finishExam() {
   const showVerdict = isNumberedExam(state.examNum);
   lbl2.style.display = showVerdict ? '' : 'none';
   sub.style.display = showVerdict ? '' : 'none';
+  document.getElementById('retryBtn').textContent = state.mode === 'exam' ? 'Retry Exam' : 'Practise Again';
   document.getElementById('rbCorrect').textContent = correct;
   document.getElementById('rbWrong').textContent = total - correct;
   document.getElementById('rbPct').textContent = pct + '%';

@@ -49,6 +49,10 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(!boxText.includes('Provide local services') && !boxText.includes('represent their local community'), 'no answers shown');
   assert((await pg.$$('#similarBox .sqm-angle')).length === 0, 'no question-angle tags');
   assert((await text('#similarBox .sqm-cta button')) === '▶ Practise these 2', 'practise button');
+  assert(await pg.evaluate(() => {
+    const nav = document.querySelector('#screenQuiz .nav-row'), box = document.getElementById('similarBox');
+    return !!(nav.compareDocumentPosition(box) & Node.DOCUMENT_POSITION_FOLLOWING);
+  }), 'Prev / Next sit above the similar section');
   await pg.screenshot({ path: 'shot-similar.png', fullPage: true });
 
   // wrong answer also shows the section
@@ -86,7 +90,8 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert((await text('#nextBtn')) === 'Next →', 'next button before the last question');
   await pg.click('#nextBtn');
   await answer(true);
-  assert((await text('#nextBtn')).startsWith('↩ Back to Question'), 'last question offers the way back');
+  // plain "Back": a question number read like Q1 of the similar session
+  assert((await text('#nextBtn')) === '↩ Back', 'last question offers the way back');
   await pg.click('#nextBtn');
   const after = await pg.evaluate(() => ({ len: state.questions.length, cur: state.current, examNum: state.examNum }));
   assert(JSON.stringify(after) === JSON.stringify(before), 'original session restored at the same question');
