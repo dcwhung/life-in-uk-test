@@ -867,7 +867,7 @@
 // ════════════════════════════════════════
 // APP VERSION — single source of truth (shown in the header, drives the SW cache name)
 // ════════════════════════════════════════
-const APP_VERSION = '0.34';
+const APP_VERSION = '0.35';
 
 // ════════════════════════════════════════
 // APP STATE
@@ -922,6 +922,7 @@ function chapterQuestions(ch) {
 }
 // ── Practice mastery: consecutive correct answers per question (practice mode only) ──
 const MASTERY_STREAK = 3;
+const PRACTICE_ROUND_MAX = 25; // distinct questions drawn per practice round
 const STREAK_LS = 'practiceStreak';
 let streaks = getLS(STREAK_LS) || {};
 const qKey = q => q.examNum + '.' + q.origIdx;
@@ -1095,7 +1096,7 @@ function renderModeSelection() {
   // the "Select Exam" header is only needed when there are no practice tabs
   document.getElementById('secExamTitle').style.display = isPractice ? 'none' : '';
   document.getElementById('practiceHint').innerHTML =
-    `Answer a question correctly <b>${MASTERY_STREAK} times in a row</b> to master it. Unmastered questions come back later in the same session; mastered ones are skipped until the whole set is mastered.`;
+    `Answer a question correctly <b>${MASTERY_STREAK} times in a row</b> to master it. Each round draws up to <b>${PRACTICE_ROUND_MAX}</b> unmastered questions; they come back later in the same round until mastered. Mastered ones are skipped until the whole set is mastered.`;
   document.getElementById('practiceReset').classList.toggle('show', isPractice);
   document.getElementById('examReset').classList.toggle('show', pendingMode === 'exam');
 }
@@ -1115,11 +1116,11 @@ function startExam(examNum) {
   else if (isDifficultyExam(examNum)) pool = difficultyQuestions(difficultyOf(examNum));
   else pool = examQuestions(examNum);
 
-  // Practice: skip mastered questions until the whole set is mastered, then shuffle.
-  // Exam: fixed exam order, all questions.
+  // Practice: skip mastered questions until the whole set is mastered, shuffle, then draw
+  // at most PRACTICE_ROUND_MAX for this round. Exam: fixed exam order, all questions.
   if (state.mode === 'practice') {
-    state.questions = shuffle(practicePool(pool).map(({ q, examNum: e, origIdx }) =>
-      ({ ...shuffleOptions(q), examNum: e, origIdx })));
+    state.questions = shuffle(practicePool(pool)).slice(0, PRACTICE_ROUND_MAX)
+      .map(({ q, examNum: e, origIdx }) => ({ ...shuffleOptions(q), examNum: e, origIdx }));
   } else {
     const ordered = examNum === 'all' ? shuffle(pool) : pool;
     state.questions = ordered.map(({ q, examNum: e, origIdx }) => ({ ...shuffleOptions(q), examNum: e, origIdx }));
