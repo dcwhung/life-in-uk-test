@@ -867,7 +867,7 @@
 // ════════════════════════════════════════
 // APP VERSION — single source of truth (shown in the header, drives the SW cache name)
 // ════════════════════════════════════════
-const APP_VERSION = '0.35';
+const APP_VERSION = '0.36';
 
 // ════════════════════════════════════════
 // APP STATE
@@ -1254,7 +1254,7 @@ function renderQuestion() {
   document.getElementById('prevBtn').disabled = idx === 0;
   const nextBtn = document.getElementById('nextBtn');
   if (idx === total - 1 && isSimilarSession()) {
-    nextBtn.textContent = `↩ Back to Question ${similarReturn.current + 1}`;
+    nextBtn.textContent = `↩ Back to ${examLabel(similarReturn.examNum)}`;
     nextBtn.onclick = returnFromSimilar;
   } else if (idx === total - 1) {
     if (state.mode === 'exam') {
