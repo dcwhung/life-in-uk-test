@@ -22,24 +22,27 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(await vis('#practiceReset') && !(await vis('#examReset')), 'practice reset row shown, exam reset hidden');
   assert((await pg.$eval('#practiceHint', e => e.textContent)).includes('3 times in a row'), 'hint text reads from MASTERY_STREAK');
 
-  // streak: answer Ch1 (9 Q) correctly 5x -> mastered; wrong resets
-  const answerAll = async (correct) => {
-    await pg.evaluate(async (correct) => {
-      pendingMode = 'practice'; startExam('ch1');
-      for (let i = 0; i < state.questions.length; i++) {
-        state.current = i; const q = state.questions[i];
-        state.answers[i] = correct ? [...q.a] : [q.o.findIndex((_, k) => !q.a.includes(k))];
-        revealAnswer();
-      }
-    }, correct);
-  };
-  await answerAll(true);
+  // streak + in-session re-queue: an unmastered question goes back to the end of the
+  // session queue until it is mastered, so one Ch1 session (9 Q) masters everything (9 x 3 = 27 answers)
+  const answerAt = (i, correct) => pg.evaluate(({ i, correct }) => {
+    state.current = i; const q = state.questions[i];
+    state.answers[i] = correct ? [...q.a] : [q.o.findIndex((_, k) => !q.a.includes(k))];
+    revealAnswer();
+  }, { i, correct });
+  await pg.evaluate(() => { pendingMode = 'practice'; startExam('ch1'); });
+  await answerAt(0, true);
   assert((await pg.$eval('#ansLabel', e => e.textContent)).includes('🔥 1/3'), 'streak indicator 1/3 after one correct');
-  await answerAll(true);
-  assert(await pg.evaluate(() => Object.values(JSON.parse(localStorage.getItem('practiceStreak'))).every(v => v === 2)), 'all Ch1 streaks at 2 after 2 rounds');
-  assert(await pg.evaluate(() => { startExam('ch1'); return state.questions.length === 9; }), 'not yet mastered: all 9 still asked');
-  await answerAll(true);
+  assert(await pg.evaluate(() => state.questions.length === 10), 'unmastered question re-queued in the same session');
+  assert(await pg.evaluate(() => qKey(state.questions[9]) === qKey(state.questions[0])), 're-queued to the end of the session');
+  await pg.evaluate(() => {
+    for (let i = 1; i < state.questions.length; i++) {
+      state.current = i; state.answers[i] = [...state.questions[i].a]; revealAnswer();
+    }
+  });
+  assert(await pg.evaluate(() => state.questions.length === 27), 'one session = 9 questions x 3 answers');
+  assert(await pg.evaluate(() => Object.values(JSON.parse(localStorage.getItem('practiceStreak'))).every(v => v === 3)), 'all Ch1 streaks at 3 after one session');
   assert((await pg.$eval('#ansLabel', e => e.textContent)).includes('🏆 Mastered'), 'mastered label at 3/3');
+  assert(await pg.evaluate(() => state.questions.every((q, i) => i === 0 || qKey(q) !== qKey(state.questions[i - 1]))), 'no back-to-back repeats');
   await pg.evaluate(() => goHome());
   await pg.click('#ptabChapter');
   assert((await pg.$eval('#chapterGrid .chapter-btn:first-child .ch-count', e => e.textContent)) === '9/9 · 100%', 'Ch1 shows 9/9 · 100%');
@@ -50,6 +53,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   // one wrong resets that question to 0 and it comes back alone
   await pg.evaluate(() => { state.current = 0; const q = state.questions[0]; state.answers[0] = [q.o.findIndex((_, k) => !q.a.includes(k))]; revealAnswer(); });
   assert((await pg.$eval('#ansLabel', e => e.textContent)).includes('🔥 0/3'), 'wrong answer resets streak to 0');
+  assert(await pg.evaluate(() => state.questions.length === 10), 'wrong answer is re-queued in the same session');
   const only = await pg.evaluate(() => { const k = qKey(state.questions[0]); startExam('ch1'); return state.questions.length === 1 && qKey(state.questions[0]) === k; });
   assert(only, 'only the reset question is asked next time (others mastered)');
   await pg.evaluate(() => goHome());
