@@ -115,7 +115,7 @@
     {
       tab: '① Correct (3-question group)',
       correct: true,
-      cur: { id: '12.5', num: 12, d: 3, q: 'Towns, cities and rural areas in the UK are governed by government appointed officials. True or False?', yue: '英國城鎮和農村由政府任命的官員管理。對定錯？', opts: ['False', 'True'], pick: 0, ans: 0, ansYue: 'False', note: '由民主選舉產生的地區議會管理', streak: '🔥 1/3' },
+      cur: { id: '12.5', num: 12, d: 3, q: 'Towns, cities and rural areas in the UK are governed by government appointed officials. True or False?', yue: '英國城鎮和農村由政府任命的官員管理。對定錯？', opts: ['False', 'True'], pick: 0, ans: 0, ansYue: 'False', note: '由民主選舉產生的地區議會管理', streak: '🔥 1/3', streakNum: 1 },
       fact: { id: 203, en: 'Towns, cities and rural areas are governed by democratically elected local councils, which provide services such as education, waste and housing. Councillors represent their community and decide on local services.', yue: '城鎮同鄉郊由民選地方議會管理，提供教育、廢物處理、房屋等服務；議員代表社區並決定地方服務。' },
       others: [
         { id: '9.14', angle: 'Asks: function', q: 'What do local councils do?', qy: '地區議會做乜嘢？', a: 'Provide local services such as education, waste and housing', ay: '提供教育、廢物處理、房屋等地方服務', streak: 3 },
@@ -125,7 +125,7 @@
     {
       tab: '② Wrong',
       correct: false,
-      cur: { id: '12.5', num: 12, d: 3, q: 'Towns, cities and rural areas in the UK are governed by government appointed officials. True or False?', yue: '英國城鎮和農村由政府任命的官員管理。對定錯？', opts: ['False', 'True'], pick: 1, ans: 0, ansYue: 'False', note: '由民主選舉產生的地區議會管理', streak: '🔥 0/3' },
+      cur: { id: '12.5', num: 12, d: 3, q: 'Towns, cities and rural areas in the UK are governed by government appointed officials. True or False?', yue: '英國城鎮和農村由政府任命的官員管理。對定錯？', opts: ['False', 'True'], pick: 1, ans: 0, ansYue: 'False', note: '由民主選舉產生的地區議會管理', streak: '🔥 0/3', streakNum: 0 },
       fact: { id: 203, en: 'Towns, cities and rural areas are governed by democratically elected local councils, which provide services such as education, waste and housing. Councillors represent their community and decide on local services.', yue: '城鎮同鄉郊由民選地方議會管理，提供教育、廢物處理、房屋等服務；議員代表社區並決定地方服務。' },
       others: [
         { id: '9.14', angle: 'Asks: function', q: 'What do local councils do?', qy: '地區議會做乜嘢？', a: 'Provide local services such as education, waste and housing', ay: '提供教育、廢物處理、房屋等地方服務', streak: 1 },
@@ -135,7 +135,7 @@
     {
       tab: '③ Large group (8 · Magna Carta)',
       correct: true,
-      cur: { id: '8.13', num: 14, d: 1, q: 'What is the significance of 1215?', yue: '1215年有甚麼重要性？', opts: ['King John signed the Magna Carta', 'The Battle of Hastings', 'The Act of Union', 'The Black Death'], pick: 0, ans: 0, ansYue: 'King John 簽署 Magna Carta（大憲章）', note: '', streak: '🔥 2/3' },
+      cur: { id: '8.13', num: 14, d: 1, q: 'What is the significance of 1215?', yue: '1215年有甚麼重要性？', opts: ['King John signed the Magna Carta', 'The Battle of Hastings', 'The Act of Union', 'The Black Death'], pick: 0, ans: 0, ansYue: 'King John 簽署 Magna Carta（大憲章）', note: '', streak: '🔥 2/3', streakNum: 2 },
       fact: { id: 21, en: 'In 1215 King John signed the Magna Carta, which limited the power of the King and established that no one, not even the King, is above the law.', yue: '1215 年 King John（約翰王）簽署 Magna Carta（大憲章），限制國王權力，確立「無人凌駕法律之上，國王都唔例外」。' },
       others: [
         { id: '4.16', angle: 'Reversed: year → document', q: 'What limited the power of the English King in 1215?', qy: '1215年哪份文件限制了英格蘭國王的權力？', a: 'The Magna Carta', ay: '大憲章', streak: 3 },
@@ -201,12 +201,14 @@
 
   function renderMap(s) {
     const all = [{ id: s.cur.id, cur: true }, ...s.others];
-    const mastered = s.others.filter((o) => o.streak >= MASTERY_TARGET).length;
+    // Fact mastery counts the whole fact group, including this question
+    const groupStreaks = [s.cur.streakNum, ...s.others.map((o) => o.streak)];
+    const mastered = groupStreaks.filter((n) => n >= MASTERY_TARGET).length;
     return `
       <div class="sqm">
         <div class="sqm-head">
           <span class="sqm-icon">🗺️</span>
-          <span class="sqm-title"><b>Similar Questions</b><span>Same fact, asked differently · Mastered ${mastered}/${s.others.length}</span></span>
+          <span class="sqm-title"><b>Similar Questions</b><span>Same fact, asked differently · Fact mastery ${mastered}/${groupStreaks.length}</span></span>
           <span class="sqm-count">+${s.others.length}</span>
         </div>
         <div class="sqm-fact">
