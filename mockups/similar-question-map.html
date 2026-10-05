@@ -57,17 +57,13 @@
   .nav-btn.secondary { background: var(--card); color: var(--navy); border: 2px solid var(--border); }
 
   /* ════════ NEW: Similar Question Map ════════ */
-  .sqm { background: var(--card); border: 1.5px solid var(--border); border-radius: 11px; margin-bottom: 14px; overflow: hidden; }
-  .sqm-head { width: 100%; display: flex; align-items: center; gap: 10px; padding: 14px 18px; background: none; border: none; font: inherit; text-align: left; cursor: pointer; }
+  .sqm { background: var(--card); border: 1.5px solid var(--border); border-radius: 11px; margin-bottom: 14px; padding: 14px 18px 16px; }
+  .sqm-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
   .sqm-icon { width: 30px; height: 30px; border-radius: 8px; background: #fbf5e6; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
   .sqm-title { flex: 1; }
   .sqm-title b { display: block; font-size: 14px; color: var(--navy); }
   .sqm-title span { font-size: 12px; color: var(--text-muted); }
   .sqm-count { background: var(--navy); color: var(--gold-light); border-radius: 999px; padding: 3px 9px; font-size: 11px; font-weight: 800; }
-  .sqm-chev { color: var(--text-muted); font-size: 12px; transition: transform 0.2s; }
-  .sqm.open .sqm-chev { transform: rotate(180deg); }
-  .sqm-body { display: none; padding: 0 18px 16px; }
-  .sqm.open .sqm-body { display: block; }
 
   /* core fact = the hub */
   .sqm-fact { background: #fbf5e6; border-left: 3px solid var(--gold); border-radius: 0 8px 8px 0; padding: 10px 12px; margin-bottom: 14px; }
@@ -83,41 +79,32 @@
   .sqm-node.mastered { border-color: var(--green-light); color: var(--green); background: #edf8f2; }
   .sqm-node.weak { border-color: var(--red-light); color: var(--red); background: #fdf0ef; }
   .sqm-legend { display: flex; gap: 12px; font-size: 10.5px; color: var(--text-muted); margin: -6px 0 14px; flex-wrap: wrap; }
-  .sqm-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; vertical-align: 0; }
+  .sqm-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
 
-  /* variant list */
+  /* variant list — answers always visible */
   .sqm-list { display: flex; flex-direction: column; gap: 8px; }
-  .sqm-item { border: 1.5px solid var(--border); border-radius: 10px; padding: 11px 13px; cursor: pointer; transition: border-color 0.15s; }
-  .sqm-item:hover { border-color: var(--navy-light); }
+  .sqm-item { border: 1.5px solid var(--border); border-radius: 10px; padding: 11px 13px; }
   .sqm-item-top { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; flex-wrap: wrap; }
   .sqm-id { font-size: 10.5px; font-weight: 800; color: var(--text-muted); letter-spacing: 0.04em; }
   .sqm-angle { font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 6px; background: #f0f4ff; color: var(--navy-light); }
-  .sqm-angle.trap { background: #fdf0ef; color: var(--red); }
   .sqm-streak { margin-left: auto; font-size: 11px; font-weight: 700; color: var(--text-muted); }
   .sqm-streak.done { color: var(--green); }
   .sqm-q { font-size: 13.5px; font-weight: 600; color: var(--navy); line-height: 1.5; }
   .sqm-qy { font-size: 12px; color: var(--purple); line-height: 1.5; margin-top: 2px; }
-  .sqm-a { display: none; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border); font-size: 12.5px; color: var(--green); font-weight: 700; line-height: 1.5; }
+  .sqm-a { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border); font-size: 12.5px; color: var(--green); font-weight: 700; line-height: 1.5; }
   .sqm-a span { display: block; color: var(--purple); font-weight: 600; margin-top: 2px; }
-  .sqm-item.revealed .sqm-a { display: block; }
-  .sqm-hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
-  .sqm-item.revealed .sqm-hint { display: none; }
-  .sqm-more { width: 100%; margin-top: 8px; background: none; border: 1.5px dashed var(--border); border-radius: 10px; padding: 9px; font: inherit; font-size: 12px; font-weight: 700; color: var(--text-muted); cursor: pointer; }
 
   .sqm-cta { display: flex; gap: 8px; margin-top: 14px; }
   .sqm-cta button { flex: 1; border-radius: 10px; padding: 11px 10px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
   .sqm-cta .primary { background: var(--gold); color: var(--navy); border: none; }
   .sqm-cta .ghost { background: var(--card); color: var(--navy); border: 2px solid var(--border); }
-
-  /* mockup annotation */
-  .anno { font-size: 11.5px; color: #9a7a22; background: #fffbea; border: 1px dashed var(--gold); border-radius: 8px; padding: 8px 10px; margin: -4px 0 14px; line-height: 1.55; }
 </style>
 </head>
 <body>
 
 <div class="mock-bar">
   <div class="wrap">
-    <b>MOCKUP</b> · Similar Question Map — 答完之後顯示同一 fact 嘅其他問法
+    <b>MOCKUP</b> · Similar Question Map — other ways the same fact is asked
     <div class="mock-tabs" id="mockTabs"></div>
   </div>
 </div>
@@ -128,50 +115,49 @@
   // Real data pulled from data/exams.js + data/study.js (STUDY[].src groups questions by fact)
   const SCENARIOS = [
     {
-      tab: '① 答啱（3 題組）',
+      tab: '① Correct (3-question group)',
       correct: true,
       cur: { id: '12.5', num: 12, d: 3, q: 'Towns, cities and rural areas in the UK are governed by government appointed officials. True or False?', yue: '英國城鎮和農村由政府任命的官員管理。對定錯？', opts: ['False', 'True'], pick: 0, ans: 0, ansYue: 'False', note: '由民主選舉產生的地區議會管理', streak: '🔥 1/3' },
       fact: { id: 203, en: 'Towns, cities and rural areas are governed by democratically elected local councils, which provide services such as education, waste and housing. Councillors represent their community and decide on local services.', yue: '城鎮同鄉郊由民選地方議會管理，提供教育、廢物處理、房屋等服務；議員代表社區並決定地方服務。' },
       others: [
-        { id: '9.14', angle: '問功能', q: 'What do local councils do?', qy: '地區議會做乜嘢？', a: 'Provide local services such as education, waste and housing', ay: '提供教育、廢物處理、房屋等地方服務', streak: 3 },
-        { id: '12.18', angle: '問角色', q: 'What is the role of local councillors?', qy: '地區議員的角色係乜嘢？', a: 'To represent their local community and make decisions on local services', ay: '代表地方社區並就地方服務作決定', streak: 0 },
+        { id: '9.14', angle: 'Asks: function', q: 'What do local councils do?', qy: '地區議會做乜嘢？', a: 'Provide local services such as education, waste and housing', ay: '提供教育、廢物處理、房屋等地方服務', streak: 3 },
+        { id: '12.18', angle: 'Asks: role', q: 'What is the role of local councillors?', qy: '地區議員的角色係乜嘢？', a: 'To represent their local community and make decisions on local services', ay: '代表地方社區並就地方服務作決定', streak: 0 },
       ],
     },
     {
-      tab: '② 答錯（自動展開）',
+      tab: '② Wrong',
       correct: false,
       cur: { id: '12.5', num: 12, d: 3, q: 'Towns, cities and rural areas in the UK are governed by government appointed officials. True or False?', yue: '英國城鎮和農村由政府任命的官員管理。對定錯？', opts: ['False', 'True'], pick: 1, ans: 0, ansYue: 'False', note: '由民主選舉產生的地區議會管理', streak: '🔥 0/3' },
       fact: { id: 203, en: 'Towns, cities and rural areas are governed by democratically elected local councils, which provide services such as education, waste and housing. Councillors represent their community and decide on local services.', yue: '城鎮同鄉郊由民選地方議會管理，提供教育、廢物處理、房屋等服務；議員代表社區並決定地方服務。' },
       others: [
-        { id: '9.14', angle: '問功能', q: 'What do local councils do?', qy: '地區議會做乜嘢？', a: 'Provide local services such as education, waste and housing', ay: '提供教育、廢物處理、房屋等地方服務', streak: 1 },
-        { id: '12.18', angle: '問角色', q: 'What is the role of local councillors?', qy: '地區議員的角色係乜嘢？', a: 'To represent their local community and make decisions on local services', ay: '代表地方社區並就地方服務作決定', streak: 0 },
+        { id: '9.14', angle: 'Asks: function', q: 'What do local councils do?', qy: '地區議會做乜嘢？', a: 'Provide local services such as education, waste and housing', ay: '提供教育、廢物處理、房屋等地方服務', streak: 1 },
+        { id: '12.18', angle: 'Asks: role', q: 'What is the role of local councillors?', qy: '地區議員的角色係乜嘢？', a: 'To represent their local community and make decisions on local services', ay: '代表地方社區並就地方服務作決定', streak: 0 },
       ],
     },
     {
-      tab: '③ 大組（8 題 Magna Carta）',
+      tab: '③ Large group (8 · Magna Carta)',
       correct: true,
       cur: { id: '8.13', num: 14, d: 1, q: 'What is the significance of 1215?', yue: '1215年有甚麼重要性？', opts: ['King John signed the Magna Carta', 'The Battle of Hastings', 'The Act of Union', 'The Black Death'], pick: 0, ans: 0, ansYue: 'King John 簽署 Magna Carta（大憲章）', note: '', streak: '🔥 2/3' },
       fact: { id: 21, en: 'In 1215 King John signed the Magna Carta, which limited the power of the King and established that no one, not even the King, is above the law.', yue: '1215 年 King John（約翰王）簽署 Magna Carta（大憲章），限制國王權力，確立「無人凌駕法律之上，國王都唔例外」。' },
       others: [
-        { id: '4.16', angle: '反問：年份 → 文件', q: 'What limited the power of the English King in 1215?', qy: '1215年哪份文件限制了英格蘭國王的權力？', a: 'The Magna Carta', ay: '大憲章', streak: 3 },
-        { id: '6.6', angle: '問定義', q: 'What is the Magna Carta?', qy: '《大憲章》係乜嘢？', a: 'A document signed in 1215 that limited the power of the King', ay: '1215 年簽署、限制國王權力嘅文件', streak: 3 },
-        { id: '7.14', angle: '問意義', q: 'What is the significance of the Magna Carta?', qy: '《大憲章》有什麼重要性？', a: 'It established that the King was subject to the law', ay: '確立國王都要受法律約束', streak: 1 },
-        { id: '16.16', angle: '問原則', q: "What is the Magna Carta's main principle?", qy: '《大憲章》的主要原則係乜嘢？', a: 'No one, not even the King, is above the law', ay: '無人凌駕法律之上，國王都唔例外', streak: 0 },
-        { id: '17.21', angle: '問確立咗乜', q: 'What did the Magna Carta establish?', qy: '《大憲章》確立了甚麼？', a: 'That no one, not even the King, is above the law', ay: '無人凌駕法律之上', streak: 0 },
-        { id: '12.23', angle: '同題異答', q: 'What is the significance of 1215?', qy: '1215年有何重要性？', a: 'King John signed the Magna Carta — establishing the rule of law', ay: 'King John 簽署大憲章，確立法治', streak: 2 },
-        { id: '15.6', angle: '同題異答', q: 'What is the significance of 1215?', qy: '1215年有何重要性？', a: 'Magna Carta signed by King John — limiting royal power', ay: 'King John 簽署大憲章，限制王權', streak: 0 },
+        { id: '4.16', angle: 'Reversed: year → document', q: 'What limited the power of the English King in 1215?', qy: '1215年哪份文件限制了英格蘭國王的權力？', a: 'The Magna Carta', ay: '大憲章', streak: 3 },
+        { id: '6.6', angle: 'Asks: definition', q: 'What is the Magna Carta?', qy: '《大憲章》係乜嘢？', a: 'A document signed in 1215 that limited the power of the King', ay: '1215 年簽署、限制國王權力嘅文件', streak: 3 },
+        { id: '7.14', angle: 'Asks: significance', q: 'What is the significance of the Magna Carta?', qy: '《大憲章》有什麼重要性？', a: 'It established that the King was subject to the law', ay: '確立國王都要受法律約束', streak: 1 },
+        { id: '16.16', angle: 'Asks: principle', q: "What is the Magna Carta's main principle?", qy: '《大憲章》的主要原則係乜嘢？', a: 'No one, not even the King, is above the law', ay: '無人凌駕法律之上，國王都唔例外', streak: 0 },
+        { id: '17.21', angle: 'Asks: what it established', q: 'What did the Magna Carta establish?', qy: '《大憲章》確立了甚麼？', a: 'That no one, not even the King, is above the law', ay: '無人凌駕法律之上', streak: 0 },
+        { id: '12.23', angle: 'Same question, different wording', q: 'What is the significance of 1215?', qy: '1215年有何重要性？', a: 'King John signed the Magna Carta — establishing the rule of law', ay: 'King John 簽署大憲章，確立法治', streak: 2 },
+        { id: '15.6', angle: 'Same question, different wording', q: 'What is the significance of 1215?', qy: '1215年有何重要性？', a: 'Magna Carta signed by King John — limiting royal power', ay: 'King John 簽署大憲章，限制王權', streak: 0 },
       ],
     },
   ];
   const MASTERY_TARGET = 3;
-  const COLLAPSED_LIMIT = 3;
   const LETTERS = 'ABCD';
   let scenarioIdx = 0;
-  let showAll = false;
 
   const qLabel = (id) => { const [e, i] = id.split('.'); return `Exam ${e} · Q${+i + 1}`; };
   const starsHtml = (d) => '★'.repeat(d) + `<span class="off">${'★'.repeat(5 - d)}</span>`;
   const nodeClass = (s) => (s >= MASTERY_TARGET ? 'mastered' : s === 0 ? '' : 'weak');
+  const streakText = (s) => (s >= MASTERY_TARGET ? '✓ Mastered' : `🔥 ${s}/${MASTERY_TARGET}`);
 
   function renderTabs() {
     document.getElementById('mockTabs').innerHTML = SCENARIOS.map((s, i) =>
@@ -202,73 +188,61 @@
       </div>`;
   }
 
-  function renderMap(s) {
-    const all = [{ id: s.cur.id, cur: true }, ...s.others];
-    const mastered = s.others.filter((o) => o.streak >= MASTERY_TARGET).length;
-    const list = showAll ? s.others : s.others.slice(0, COLLAPSED_LIMIT);
-    const hidden = s.others.length - list.length;
-    const open = !s.correct ? 'open' : '';
+  function renderItem(o) {
     return `
-      <div class="sqm ${open}" id="sqm">
-        <button class="sqm-head" onclick="document.getElementById('sqm').classList.toggle('open')">
-          <span class="sqm-icon">🗺️</span>
-          <span class="sqm-title"><b>同題其他問法</b><span>Similar Question Map · 已掌握 ${mastered}/${s.others.length}</span></span>
-          <span class="sqm-count">+${s.others.length}</span>
-          <span class="sqm-chev">▼</span>
-        </button>
-        <div class="sqm-body">
-          <div class="sqm-fact">
-            <div class="sqm-fact-label">📌 核心考點 · Fact #${s.fact.id}</div>
-            <div class="sqm-fact-en">${s.fact.en}</div>
-            <div class="sqm-fact-yue">${s.fact.yue}</div>
-          </div>
-          <div class="sqm-map">
-            <span class="sqm-map-label">出現喺：</span>
-            ${all.map((n) => `<span class="sqm-node ${n.cur ? 'current' : nodeClass(n.streak)}">${n.id}</span>`).join('')}
-          </div>
-          <div class="sqm-legend">
-            <span><i style="background:var(--navy)"></i>呢題</span>
-            <span><i style="background:var(--green-light)"></i>已掌握 3/3</span>
-            <span><i style="background:var(--red-light)"></i>練緊</span>
-            <span><i style="background:var(--border)"></i>未做過</span>
-          </div>
-          <div class="sqm-list">
-            ${list.map((o, i) => `
-              <div class="sqm-item" onclick="this.classList.toggle('revealed')">
-                <div class="sqm-item-top">
-                  <span class="sqm-id">${qLabel(o.id)}</span>
-                  <span class="sqm-angle">${o.angle}</span>
-                  <span class="sqm-streak ${o.streak >= MASTERY_TARGET ? 'done' : ''}">${o.streak >= MASTERY_TARGET ? '✓ 已掌握' : `🔥 ${o.streak}/${MASTERY_TARGET}`}</span>
-                </div>
-                <div class="sqm-q">${o.q}</div>
-                <div class="sqm-qy">${o.qy}</div>
-                <div class="sqm-hint">👆 撳一下睇答案</div>
-                <div class="sqm-a">→ ${o.a}<span>${o.ay}</span></div>
-              </div>`).join('')}
-          </div>
-          ${hidden > 0 ? `<button class="sqm-more" onclick="showAll=true;render()">顯示其餘 ${hidden} 個問法 ▼</button>` : ''}
-          <div class="sqm-cta">
-            <button class="ghost">📖 喺溫習模式睇</button>
-            <button class="primary">▶ 連續練呢 ${s.others.length} 題</button>
-          </div>
+      <div class="sqm-item">
+        <div class="sqm-item-top">
+          <span class="sqm-id">${qLabel(o.id)}</span>
+          <span class="sqm-angle">${o.angle}</span>
+          <span class="sqm-streak ${o.streak >= MASTERY_TARGET ? 'done' : ''}">${streakText(o.streak)}</span>
         </div>
+        <div class="sqm-q">${o.q}</div>
+        <div class="sqm-qy">${o.qy}</div>
+        <div class="sqm-a">→ ${o.a}<span>${o.ay}</span></div>
       </div>`;
   }
 
-  function renderAnno(s) {
-    return s.correct
-      ? `<div class="anno">答啱 → 預設<b>收埋</b>，唔阻住撳 Next；有興趣先撳開。</div>`
-      : `<div class="anno">答錯 → 預設<b>自動展開</b>，即刻睇同一考點嘅其他問法，加深記憶。</div>`;
+  function renderMap(s) {
+    const all = [{ id: s.cur.id, cur: true }, ...s.others];
+    const mastered = s.others.filter((o) => o.streak >= MASTERY_TARGET).length;
+    return `
+      <div class="sqm">
+        <div class="sqm-head">
+          <span class="sqm-icon">🗺️</span>
+          <span class="sqm-title"><b>Similar Questions</b><span>Same fact, asked differently · Mastered ${mastered}/${s.others.length}</span></span>
+          <span class="sqm-count">+${s.others.length}</span>
+        </div>
+        <div class="sqm-fact">
+          <div class="sqm-fact-label">📌 Core Fact #${s.fact.id}</div>
+          <div class="sqm-fact-en">${s.fact.en}</div>
+          <div class="sqm-fact-yue">${s.fact.yue}</div>
+        </div>
+        <div class="sqm-map">
+          <span class="sqm-map-label">Appears in:</span>
+          ${all.map((n) => `<span class="sqm-node ${n.cur ? 'current' : nodeClass(n.streak)}">${n.id}</span>`).join('')}
+        </div>
+        <div class="sqm-legend">
+          <span><i style="background:var(--navy)"></i>This question</span>
+          <span><i style="background:var(--green-light)"></i>Mastered 3/3</span>
+          <span><i style="background:var(--red-light)"></i>In progress</span>
+          <span><i style="background:var(--border)"></i>Not attempted</span>
+        </div>
+        <div class="sqm-list">${s.others.map(renderItem).join('')}</div>
+        <div class="sqm-cta">
+          <button class="ghost">📖 View in Study</button>
+          <button class="primary">▶ Practise these ${s.others.length}</button>
+        </div>
+      </div>`;
   }
 
   function render() {
     const s = SCENARIOS[scenarioIdx];
     renderTabs();
-    document.getElementById('app').innerHTML = renderQuestion(s) + renderMap(s) + renderAnno(s) +
+    document.getElementById('app').innerHTML = renderQuestion(s) + renderMap(s) +
       `<div class="nav-row"><button class="nav-btn secondary">← Prev</button><button class="nav-btn">Next →</button></div>`;
   }
 
-  function pick(i) { scenarioIdx = i; showAll = false; render(); }
+  function pick(i) { scenarioIdx = i; render(); }
 
   render();
 </script>
