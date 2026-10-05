@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Similar Question Map — Mockup</title>
+<style>
+  /* ── tokens copied from index.html ── */
+  :root {
+    --navy: #1a2744; --navy-mid: #243460; --navy-light: #2e4080;
+    --gold: #c9a84c; --gold-light: #e8c97a;
+    --green: #2d6a4f; --green-light: #52b788;
+    --red: #922b21; --red-light: #e74c3c;
+    --purple: #6b3fa0; --purple-light: #9b6dca;
+    --bg: #f0f2f7; --card: #ffffff; --text: #1a2744; --text-muted: #5a6a8a; --border: #dde2f0;
+    --radius: 14px; --shadow-sm: 0 2px 8px rgba(26,39,68,0.07);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); }
+  .wrap { max-width: 560px; margin: 0 auto; padding: 16px 16px 40px; }
+
+  /* mockup-only scenario switcher */
+  .mock-bar { background: var(--navy); color: #fff; padding: 12px 16px; font-size: 12px; }
+  .mock-bar .wrap { padding: 0 16px; }
+  .mock-bar b { color: var(--gold-light); }
+  .mock-tabs { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .mock-tab { background: transparent; border: 1.5px solid rgba(255,255,255,0.3); color: #fff; border-radius: 999px; padding: 5px 12px; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+  .mock-tab.on { background: var(--gold); border-color: var(--gold); color: var(--navy); }
+
+  /* ── existing app components (unchanged) ── */
+  .q-card { background: var(--card); border-radius: var(--radius); padding: 26px 22px; box-shadow: var(--shadow-sm); margin-bottom: 14px; }
+  .q-num { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+  .stars { color: var(--gold); letter-spacing: 1px; font-size: 12px; } .stars .off { color: var(--border); }
+  .q-text { font-size: 17px; font-weight: 700; line-height: 1.55; color: var(--navy); }
+  .q-yue { margin-top: 10px; padding: 10px 12px; background: #f7f4fc; border-left: 3px solid var(--purple-light); border-radius: 0 8px 8px 0; color: var(--purple); font-size: 14px; line-height: 1.6; }
+  .options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+  .opt { background: var(--card); border: 2px solid var(--border); border-radius: 11px; padding: 14px 16px; font-size: 14px; font-weight: 500; display: flex; gap: 12px; align-items: flex-start; }
+  .opt-letter { min-width: 26px; height: 26px; border-radius: 50%; background: var(--bg); border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--text-muted); }
+  .opt.correct { border-color: var(--green-light); background: #edf8f2; }
+  .opt.correct .opt-letter { background: var(--green); border-color: var(--green); color: #fff; }
+  .opt.wrong { border-color: var(--red-light); background: #fdf0ef; }
+  .opt.wrong .opt-letter { background: var(--red-light); border-color: var(--red-light); color: #fff; }
+  .answer-box { background: #edf8f2; border: 1.5px solid var(--green-light); border-radius: 11px; padding: 16px 18px; margin-bottom: 14px; }
+  .answer-box.wrong-ans { background: #fdf0ef; border-color: var(--red-light); }
+  .ans-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--green); margin-bottom: 6px; }
+  .ans-label.wrong { color: var(--red); }
+  .ans-en { font-size: 14px; font-weight: 700; color: var(--green); margin-bottom: 10px; line-height: 1.5; }
+  .ans-en.wrong { color: var(--red); }
+  .divider { height: 1px; background: rgba(0,0,0,0.06); margin: 10px 0; }
+  .ans-yue { font-size: 13px; color: var(--purple); font-weight: 600; margin-bottom: 4px; line-height: 1.6; }
+  .ans-yue-title { font-weight: 800; margin-bottom: 2px; }
+  .ans-yue-row { display: flex; gap: 6px; } .ans-yue-row b { flex-shrink: 0; }
+  .ans-note { white-space: pre-wrap; font-size: 12px; color: var(--text-muted); line-height: 1.55; }
+  .ans-note strong { color: #b5680a; }
+  .nav-row { display: flex; gap: 10px; justify-content: flex-end; }
+  .nav-btn { background: var(--navy); color: #fff; border: none; border-radius: 10px; padding: 12px 24px; font-size: 14px; font-weight: 700; cursor: pointer; }
+  .nav-btn.secondary { background: var(--card); color: var(--navy); border: 2px solid var(--border); }
+
+  /* ════════ NEW: Similar Question Map ════════ */
+  .sqm { background: var(--card); border: 1.5px solid var(--border); border-radius: 11px; margin-bottom: 14px; overflow: hidden; }
+  .sqm-head { width: 100%; display: flex; align-items: center; gap: 10px; padding: 14px 18px; background: none; border: none; font: inherit; text-align: left; cursor: pointer; }
+  .sqm-icon { width: 30px; height: 30px; border-radius: 8px; background: #fbf5e6; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+  .sqm-title { flex: 1; }
+  .sqm-title b { display: block; font-size: 14px; color: var(--navy); }
+  .sqm-title span { font-size: 12px; color: var(--text-muted); }
+  .sqm-count { background: var(--navy); color: var(--gold-light); border-radius: 999px; padding: 3px 9px; font-size: 11px; font-weight: 800; }
+  .sqm-chev { color: var(--text-muted); font-size: 12px; transition: transform 0.2s; }
+  .sqm.open .sqm-chev { transform: rotate(180deg); }
+  .sqm-body { display: none; padding: 0 18px 16px; }
+  .sqm.open .sqm-body { display: block; }
+
+  /* core fact = the hub */
+  .sqm-fact { background: #fbf5e6; border-left: 3px solid var(--gold); border-radius: 0 8px 8px 0; padding: 10px 12px; margin-bottom: 14px; }
+  .sqm-fact-label { font-size: 10px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #9a7a22; margin-bottom: 4px; }
+  .sqm-fact-en { font-size: 13px; line-height: 1.55; color: var(--navy); font-weight: 600; }
+  .sqm-fact-yue { font-size: 12.5px; line-height: 1.6; color: var(--purple); margin-top: 4px; }
+
+  /* mini map: hub + spokes as chips */
+  .sqm-map { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 14px; }
+  .sqm-map-label { font-size: 11px; color: var(--text-muted); font-weight: 700; margin-right: 2px; }
+  .sqm-node { font-size: 11px; font-weight: 700; padding: 4px 9px; border-radius: 999px; border: 1.5px solid var(--border); color: var(--text-muted); background: var(--card); }
+  .sqm-node.current { background: var(--navy); border-color: var(--navy); color: #fff; }
+  .sqm-node.mastered { border-color: var(--green-light); color: var(--green); background: #edf8f2; }
+  .sqm-node.weak { border-color: var(--red-light); color: var(--red); background: #fdf0ef; }
+  .sqm-legend { display: flex; gap: 12px; font-size: 10.5px; color: var(--text-muted); margin: -6px 0 14px; flex-wrap: wrap; }
+  .sqm-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; vertical-align: 0; }
+
+  /* variant list */
+  .sqm-list { display: flex; flex-direction: column; gap: 8px; }
+  .sqm-item { border: 1.5px solid var(--border); border-radius: 10px; padding: 11px 13px; cursor: pointer; transition: border-color 0.15s; }
+  .sqm-item:hover { border-color: var(--navy-light); }
+  .sqm-item-top { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; flex-wrap: wrap; }
+  .sqm-id { font-size: 10.5px; font-weight: 800; color: var(--text-muted); letter-spacing: 0.04em; }
+  .sqm-angle { font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 6px; background: #f0f4ff; color: var(--navy-light); }
+  .sqm-angle.trap { background: #fdf0ef; color: var(--red); }
+  .sqm-streak { margin-left: auto; font-size: 11px; font-weight: 700; color: var(--text-muted); }
+  .sqm-streak.done { color: var(--green); }
+  .sqm-q { font-size: 13.5px; font-weight: 600; color: var(--navy); line-height: 1.5; }
+  .sqm-qy { font-size: 12px; color: var(--purple); line-height: 1.5; margin-top: 2px; }
+  .sqm-a { display: none; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border); font-size: 12.5px; color: var(--green); font-weight: 700; line-height: 1.5; }
+  .sqm-a span { display: block; color: var(--purple); font-weight: 600; margin-top: 2px; }
+  .sqm-item.revealed .sqm-a { display: block; }
+  .sqm-hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+  .sqm-item.revealed .sqm-hint { display: none; }
+  .sqm-more { width: 100%; margin-top: 8px; background: none; border: 1.5px dashed var(--border); border-radius: 10px; padding: 9px; font: inherit; font-size: 12px; font-weight: 700; color: var(--text-muted); cursor: pointer; }
+
+  .sqm-cta { display: flex; gap: 8px; margin-top: 14px; }
+  .sqm-cta button { flex: 1; border-radius: 10px; padding: 11px 10px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+  .sqm-cta .primary { background: var(--gold); color: var(--navy); border: none; }
+  .sqm-cta .ghost { background: var(--card); color: var(--navy); border: 2px solid var(--border); }
+
+  /* mockup annotation */
+  .anno { font-size: 11.5px; color: #9a7a22; background: #fffbea; border: 1px dashed var(--gold); border-radius: 8px; padding: 8px 10px; margin: -4px 0 14px; line-height: 1.55; }
+</style>
+</head>
+<body>
+
+<div class="mock-bar">
+  <div class="wrap">
+    <b>MOCKUP</b> · Similar Question Map — 答完之後顯示同一 fact 嘅其他問法
+    <div class="mock-tabs" id="mockTabs"></div>
+  </div>
+</div>
+
+<div class="wrap" id="app"></div>
+
+<script>
+  // Real data pulled from data/exams.js + data/study.js (STUDY[].src groups questions by fact)
+  const SCENARIOS = [
+    {
+      tab: '① 答啱（3 題組）',
+      correct: true,
+      cur: { id: '12.5', num: 12, d: 3, q: 'Towns, cities and rural areas in the UK are governed by government appointed officials. True or False?', yue: '英國城鎮和農村由政府任命的官員管理。對定錯？', opts: ['False', 'True'], pick: 0, ans: 0, ansYue: 'False', note: '由民主選舉產生的地區議會管理', streak: '🔥 1/3' },
+      fact: { id: 203, en: 'Towns, cities and rural areas are governed by democratically elected local councils, which provide services such as education, waste and housing. Councillors represent their community and decide on local services.', yue: '城鎮同鄉郊由民選地方議會管理，提供教育、廢物處理、房屋等服務；議員代表社區並決定地方服務。' },
+      others: [
+        { id: '9.14', angle: '問功能', q: 'What do local councils do?', qy: '地區議會做乜嘢？', a: 'Provide local services such as education, waste and housing', ay: '提供教育、廢物處理、房屋等地方服務', streak: 3 },
+        { id: '12.18', angle: '問角色', q: 'What is the role of local councillors?', qy: '地區議員的角色係乜嘢？', a: 'To represent their local community and make decisions on local services', ay: '代表地方社區並就地方服務作決定', streak: 0 },
+      ],
+    },
+    {
+      tab: '② 答錯（自動展開）',
+      correct: false,
+      cur: { id: '12.5', num: 12, d: 3, q: 'Towns, cities and rural areas in the UK are governed by government appointed officials. True or False?', yue: '英國城鎮和農村由政府任命的官員管理。對定錯？', opts: ['False', 'True'], pick: 1, ans: 0, ansYue: 'False', note: '由民主選舉產生的地區議會管理', streak: '🔥 0/3' },
+      fact: { id: 203, en: 'Towns, cities and rural areas are governed by democratically elected local councils, which provide services such as education, waste and housing. Councillors represent their community and decide on local services.', yue: '城鎮同鄉郊由民選地方議會管理，提供教育、廢物處理、房屋等服務；議員代表社區並決定地方服務。' },
+      others: [
+        { id: '9.14', angle: '問功能', q: 'What do local councils do?', qy: '地區議會做乜嘢？', a: 'Provide local services such as education, waste and housing', ay: '提供教育、廢物處理、房屋等地方服務', streak: 1 },
+        { id: '12.18', angle: '問角色', q: 'What is the role of local councillors?', qy: '地區議員的角色係乜嘢？', a: 'To represent their local community and make decisions on local services', ay: '代表地方社區並就地方服務作決定', streak: 0 },
+      ],
+    },
+    {
+      tab: '③ 大組（8 題 Magna Carta）',
+      correct: true,
+      cur: { id: '8.13', num: 14, d: 1, q: 'What is the significance of 1215?', yue: '1215年有甚麼重要性？', opts: ['King John signed the Magna Carta', 'The Battle of Hastings', 'The Act of Union', 'The Black Death'], pick: 0, ans: 0, ansYue: 'King John 簽署 Magna Carta（大憲章）', note: '', streak: '🔥 2/3' },
+      fact: { id: 21, en: 'In 1215 King John signed the Magna Carta, which limited the power of the King and established that no one, not even the King, is above the law.', yue: '1215 年 King John（約翰王）簽署 Magna Carta（大憲章），限制國王權力，確立「無人凌駕法律之上，國王都唔例外」。' },
+      others: [
+        { id: '4.16', angle: '反問：年份 → 文件', q: 'What limited the power of the English King in 1215?', qy: '1215年哪份文件限制了英格蘭國王的權力？', a: 'The Magna Carta', ay: '大憲章', streak: 3 },
+        { id: '6.6', angle: '問定義', q: 'What is the Magna Carta?', qy: '《大憲章》係乜嘢？', a: 'A document signed in 1215 that limited the power of the King', ay: '1215 年簽署、限制國王權力嘅文件', streak: 3 },
+        { id: '7.14', angle: '問意義', q: 'What is the significance of the Magna Carta?', qy: '《大憲章》有什麼重要性？', a: 'It established that the King was subject to the law', ay: '確立國王都要受法律約束', streak: 1 },
+        { id: '16.16', angle: '問原則', q: "What is the Magna Carta's main principle?", qy: '《大憲章》的主要原則係乜嘢？', a: 'No one, not even the King, is above the law', ay: '無人凌駕法律之上，國王都唔例外', streak: 0 },
+        { id: '17.21', angle: '問確立咗乜', q: 'What did the Magna Carta establish?', qy: '《大憲章》確立了甚麼？', a: 'That no one, not even the King, is above the law', ay: '無人凌駕法律之上', streak: 0 },
+        { id: '12.23', angle: '同題異答', q: 'What is the significance of 1215?', qy: '1215年有何重要性？', a: 'King John signed the Magna Carta — establishing the rule of law', ay: 'King John 簽署大憲章，確立法治', streak: 2 },
+        { id: '15.6', angle: '同題異答', q: 'What is the significance of 1215?', qy: '1215年有何重要性？', a: 'Magna Carta signed by King John — limiting royal power', ay: 'King John 簽署大憲章，限制王權', streak: 0 },
+      ],
+    },
+  ];
+  const MASTERY_TARGET = 3;
+  const COLLAPSED_LIMIT = 3;
+  const LETTERS = 'ABCD';
+  let scenarioIdx = 0;
+  let showAll = false;
+
+  const qLabel = (id) => { const [e, i] = id.split('.'); return `Exam ${e} · Q${+i + 1}`; };
+  const starsHtml = (d) => '★'.repeat(d) + `<span class="off">${'★'.repeat(5 - d)}</span>`;
+  const nodeClass = (s) => (s >= MASTERY_TARGET ? 'mastered' : s === 0 ? '' : 'weak');
+
+  function renderTabs() {
+    document.getElementById('mockTabs').innerHTML = SCENARIOS.map((s, i) =>
+      `<button class="mock-tab ${i === scenarioIdx ? 'on' : ''}" onclick="pick(${i})">${s.tab}</button>`).join('');
+  }
+
+  function renderQuestion(s) {
+    const c = s.cur;
+    const opts = c.opts.map((o, i) => {
+      const cls = i === c.ans ? 'correct' : i === c.pick ? 'wrong' : '';
+      return `<div class="opt ${cls}"><span class="opt-letter">${LETTERS[i]}</span><span>${o}</span></div>`;
+    }).join('');
+    return `
+      <div class="q-card">
+        <div class="q-num">Question ${c.num} <span class="stars">${starsHtml(c.d)}</span></div>
+        <div class="q-text">${c.q}</div>
+        <div class="q-yue">${c.yue}</div>
+      </div>
+      <div class="options">${opts}</div>
+      <div class="answer-box ${s.correct ? '' : 'wrong-ans'}">
+        <div class="ans-label ${s.correct ? '' : 'wrong'}">${s.correct ? '✓ Correct!' : '✗ Wrong'} · ${c.streak}</div>
+        <div class="ans-en ${s.correct ? '' : 'wrong'}">${c.opts[c.ans]}</div>
+        <div class="divider"></div>
+        <div class="ans-yue"><div class="ans-yue-title">【廣東話翻譯】</div>
+          <div class="ans-yue-row"><b>Q)</b><span>${c.yue}</span></div>
+          <div class="ans-yue-row"><b>A)</b><span>${c.ansYue}</span></div></div>
+        ${c.note ? `<div class="ans-note"><strong>💡 備注：</strong>\n${c.note}</div>` : ''}
+      </div>`;
+  }
+
+  function renderMap(s) {
+    const all = [{ id: s.cur.id, cur: true }, ...s.others];
+    const mastered = s.others.filter((o) => o.streak >= MASTERY_TARGET).length;
+    const list = showAll ? s.others : s.others.slice(0, COLLAPSED_LIMIT);
+    const hidden = s.others.length - list.length;
+    const open = !s.correct ? 'open' : '';
+    return `
+      <div class="sqm ${open}" id="sqm">
+        <button class="sqm-head" onclick="document.getElementById('sqm').classList.toggle('open')">
+          <span class="sqm-icon">🗺️</span>
+          <span class="sqm-title"><b>同題其他問法</b><span>Similar Question Map · 已掌握 ${mastered}/${s.others.length}</span></span>
+          <span class="sqm-count">+${s.others.length}</span>
+          <span class="sqm-chev">▼</span>
+        </button>
+        <div class="sqm-body">
+          <div class="sqm-fact">
+            <div class="sqm-fact-label">📌 核心考點 · Fact #${s.fact.id}</div>
+            <div class="sqm-fact-en">${s.fact.en}</div>
+            <div class="sqm-fact-yue">${s.fact.yue}</div>
+          </div>
+          <div class="sqm-map">
+            <span class="sqm-map-label">出現喺：</span>
+            ${all.map((n) => `<span class="sqm-node ${n.cur ? 'current' : nodeClass(n.streak)}">${n.id}</span>`).join('')}
+          </div>
+          <div class="sqm-legend">
+            <span><i style="background:var(--navy)"></i>呢題</span>
+            <span><i style="background:var(--green-light)"></i>已掌握 3/3</span>
+            <span><i style="background:var(--red-light)"></i>練緊</span>
+            <span><i style="background:var(--border)"></i>未做過</span>
+          </div>
+          <div class="sqm-list">
+            ${list.map((o, i) => `
+              <div class="sqm-item" onclick="this.classList.toggle('revealed')">
+                <div class="sqm-item-top">
+                  <span class="sqm-id">${qLabel(o.id)}</span>
+                  <span class="sqm-angle">${o.angle}</span>
+                  <span class="sqm-streak ${o.streak >= MASTERY_TARGET ? 'done' : ''}">${o.streak >= MASTERY_TARGET ? '✓ 已掌握' : `🔥 ${o.streak}/${MASTERY_TARGET}`}</span>
+                </div>
+                <div class="sqm-q">${o.q}</div>
+                <div class="sqm-qy">${o.qy}</div>
+                <div class="sqm-hint">👆 撳一下睇答案</div>
+                <div class="sqm-a">→ ${o.a}<span>${o.ay}</span></div>
+              </div>`).join('')}
+          </div>
+          ${hidden > 0 ? `<button class="sqm-more" onclick="showAll=true;render()">顯示其餘 ${hidden} 個問法 ▼</button>` : ''}
+          <div class="sqm-cta">
+            <button class="ghost">📖 喺溫習模式睇</button>
+            <button class="primary">▶ 連續練呢 ${s.others.length} 題</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function renderAnno(s) {
+    return s.correct
+      ? `<div class="anno">答啱 → 預設<b>收埋</b>，唔阻住撳 Next；有興趣先撳開。</div>`
+      : `<div class="anno">答錯 → 預設<b>自動展開</b>，即刻睇同一考點嘅其他問法，加深記憶。</div>`;
+  }
+
+  function render() {
+    const s = SCENARIOS[scenarioIdx];
+    renderTabs();
+    document.getElementById('app').innerHTML = renderQuestion(s) + renderMap(s) + renderAnno(s) +
+      `<div class="nav-row"><button class="nav-btn secondary">← Prev</button><button class="nav-btn">Next →</button></div>`;
+  }
+
+  function pick(i) { scenarioIdx = i; showAll = false; render(); }
+
+  render();
+</script>
+</body>
+</html>
