@@ -853,7 +853,7 @@
     <div class="review-list" id="reviewList"></div>
 
     <div class="nav-row">
-      <button class="nav-btn secondary" onclick="retryExam()">Retry Exam</button>
+      <button class="nav-btn secondary" id="retryBtn" onclick="retryExam()">Retry Exam</button>
       <button class="nav-btn" onclick="goHome()">Choose Another</button>
     </div>
   </div>
@@ -867,7 +867,7 @@
 // ════════════════════════════════════════
 // APP VERSION — single source of truth (shown in the header, drives the SW cache name)
 // ════════════════════════════════════════
-const APP_VERSION = '0.36';
+const APP_VERSION = '0.37';
 
 // ════════════════════════════════════════
 // APP STATE
@@ -1486,6 +1486,7 @@ function finishExam() {
   const showVerdict = isNumberedExam(state.examNum);
   lbl2.style.display = showVerdict ? '' : 'none';
   sub.style.display = showVerdict ? '' : 'none';
+  document.getElementById('retryBtn').textContent = state.mode === 'exam' ? 'Retry Exam' : 'Practise Again';
   document.getElementById('rbCorrect').textContent = correct;
   document.getElementById('rbWrong').textContent = total - correct;
   document.getElementById('rbPct').textContent = pct + '%';

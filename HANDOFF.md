@@ -1,4 +1,4 @@
-# Life in the UK Test PWA — Handoff (v0.36)
+# Life in the UK Test PWA — Handoff (v0.37)
 
 - **Repo:** https://github.com/dcwhung/life-in-uk-test （main branch，GitHub Pages root `/`）
 - **Live:** https://dcwhung.github.io/life-in-uk-test/
@@ -97,6 +97,7 @@
 - **Similar Questions（v0.35）：** 答完（啱或錯）喺 Prev / Next 掣下面顯示同一條 `STUDY` fact 嘅其他題目（`fact.src` 除本題外嘅 key；每題只屬一條 fact，408 題入面 284 題有類似題）。內容：Core Fact（英文 + 廣東話）、「Appears in」題號 chip（本題／已掌握／練緊／0/3）、每題 `Exam N · Qn` + 🔥 進度 + 題目同翻譯（唔顯示答案）。Exam mode 唔顯示；冇類似題就唔顯示
 - **Practise these N：** 開臨時 session（`examNum = 'similar'`），按列出次序每題做一次（唔 re-queue），照計 `practiceStreak`；最後一題 Next 變「↩ Back」（v0.36 起；之前寫「Back to Question n」會誤以為係返去臨時 session 第 n 題），還原原本 session 同題目位置；session 內唔再顯示 Similar Questions；返 Home 或開新練習會清走暫存 session（`similarReturn`）
 - 按 Chapter / Difficulty 練習唔會標記為完成 exam
+- 結果頁重做掣：Exam mode「Retry Exam」，Practice mode「Practise Again」（v0.37）
 - 結果頁 PASSED / NEEDS IMPROVEMENT 同 remark 只喺 Exam 1–17（Exam mode 或 Practice > By Exam）顯示；Chapter / Difficulty / All Exams 只顯示分數
 
 **Exam mode**
@@ -140,7 +141,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | `yue-test.js`、`oy-test.js`、`yue2-test.js` | Translate 掣、選項翻譯、答案框格式（`yue2-test` 會跳去第一條有選項翻譯嘅題目，避免抽到年份題隨機失敗） |
 | `mode-test.js`、`info-test.js` | 首頁 mode/tab、持久化、ⓘ popover |
 | `mastery-test.js` | 掌握機制、進度顯示、兩個 reset |
-| `result-test.js` | 結果頁 PASSED / remark 只喺 Exam 1–17 顯示 |
+| `result-test.js` | 結果頁 PASSED / remark 只喺 Exam 1–17 顯示；重做掣按 mode 改字 |
 | `batch-test.js` | Practice 每輪最多 25 題、下一輪由未掌握題抽 |
 | `similar-test.js` | Similar Questions section、Practise these N 臨時 session 同返回 |
 
