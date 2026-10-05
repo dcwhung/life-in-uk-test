@@ -1254,7 +1254,7 @@ function renderQuestion() {
   document.getElementById('prevBtn').disabled = idx === 0;
   const nextBtn = document.getElementById('nextBtn');
   if (idx === total - 1 && isSimilarSession()) {
-    nextBtn.textContent = `↩ Back to ${examLabel(similarReturn.examNum)}`;
+    nextBtn.textContent = '↩ Back';
     nextBtn.onclick = returnFromSimilar;
   } else if (idx === total - 1) {
     if (state.mode === 'exam') {
