@@ -1,4 +1,4 @@
-# Life in the UK Test PWA — Handoff (v0.33)
+# Life in the UK Test PWA — Handoff (v0.34)
 
 - **Repo:** https://github.com/dcwhung/life-in-uk-test （main branch，GitHub Pages root `/`）
 - **Live:** https://dcwhung.github.io/life-in-uk-test/
@@ -93,7 +93,7 @@
 - 題目同選項次序隨機；揀完即刻 reveal
 - 問題卡右上「Translate」掣：展開題目 + 每個選項嘅廣東話；答完自動固定顯示；下一題重設
 - 答案框格式：`✓ Correct! · 🔥 n/3` → 英文答案 → `【廣東話翻譯】 Q) … A) …` → `💡 備注：`（獨立一行）→ 備注內容（支援多行）
-- **掌握機制：** 同一題連續答啱 `MASTERY_STREAK`（=3）次 = 掌握，答錯即歸零；開練習時剔除已掌握題，全組掌握後再全部出；同一個 session 內，答完未掌握嘅題（啱或錯）會重新排去 queue 尾（選項再 shuffle），所以做完一個 session = 全組掌握（例如 Ch1 9 題 = 27 次作答）；存 localStorage `practiceStreak` `{ "exam.idx": n }`
+- **掌握機制：** 同一題連續答啱 `MASTERY_STREAK`（=3）次 = 掌握，答錯即歸零；開練習時剔除已掌握題，全組掌握後再全部出；同一個 session 內，答完未掌握嘅題（啱或錯）會重新排去 queue 尾（選項再 shuffle），所以做完一個 session = 嗰輪抽中嘅題目全部掌握（例如 Ch1 9 題 = 27 次作答）；每輪最多抽 `PRACTICE_ROUND_MAX`（=25）條未掌握題（Chapter / Difficulty / All Exams；Exam 1–17 本身 24 題），下一輪再由剩低未掌握題抽；存 localStorage `practiceStreak` `{ "exam.idx": n }`
 - 按 Chapter / Difficulty 練習唔會標記為完成 exam
 - 結果頁 PASSED / NEEDS IMPROVEMENT 同 remark 只喺 Exam 1–17（Exam mode 或 Practice > By Exam）顯示；Chapter / Difficulty / All Exams 只顯示分數
 
@@ -139,6 +139,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | `mode-test.js`、`info-test.js` | 首頁 mode/tab、持久化、ⓘ popover |
 | `mastery-test.js` | 掌握機制、進度顯示、兩個 reset |
 | `result-test.js` | 結果頁 PASSED / remark 只喺 Exam 1–17 顯示 |
+| `batch-test.js` | Practice 每輪最多 25 題、下一輪由未掌握題抽 |
 
 ## 已知限制 / 未做
 
