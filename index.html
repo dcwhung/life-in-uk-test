@@ -375,6 +375,38 @@
   .ans-note { white-space: pre-wrap; font-size: 12px; color: var(--text-muted); line-height: 1.55; }
   .ans-note strong { color: #b5680a; }
 
+  /* similar questions — other questions built from the same STUDY fact (practice only) */
+  .sqm { display: none; background: var(--card); border: 1.5px solid var(--border); border-radius: 11px; margin-bottom: 14px; padding: 14px 18px 16px; }
+  .sqm.show { display: block; animation: slideIn 0.25s ease; }
+  .sqm-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .sqm-icon { width: 30px; height: 30px; border-radius: 8px; background: #fbf5e6; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+  .sqm-title { flex: 1; }
+  .sqm-title b { display: block; font-size: 14px; color: var(--navy); }
+  .sqm-title span { font-size: 12px; color: var(--text-muted); }
+  .sqm-count { background: var(--navy); color: var(--gold-light); border-radius: 999px; padding: 3px 9px; font-size: 11px; font-weight: 800; }
+  .sqm-fact { background: #fbf5e6; border-left: 3px solid var(--gold); border-radius: 0 8px 8px 0; padding: 10px 12px; margin-bottom: 14px; }
+  .sqm-fact-label { font-size: 10px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #9a7a22; margin-bottom: 4px; }
+  .sqm-fact-en { font-size: 13px; line-height: 1.55; color: var(--navy); font-weight: 600; }
+  .sqm-fact-yue { font-size: 12.5px; line-height: 1.6; color: var(--purple); margin-top: 4px; }
+  .sqm-map { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 14px; }
+  .sqm-map-label { font-size: 11px; color: var(--text-muted); font-weight: 700; margin-right: 2px; }
+  .sqm-node { font-size: 11px; font-weight: 700; padding: 4px 9px; border-radius: 999px; border: 1.5px solid var(--border); color: var(--text-muted); background: var(--card); }
+  .sqm-node.current { background: var(--navy); border-color: var(--navy); color: #fff; }
+  .sqm-node.mastered { border-color: var(--green-light); color: var(--green); background: #edf8f2; }
+  .sqm-node.weak { border-color: var(--red-light); color: var(--red); background: #fdf0ef; }
+  .sqm-legend { display: flex; gap: 12px; font-size: 10.5px; color: var(--text-muted); margin: -6px 0 14px; flex-wrap: wrap; }
+  .sqm-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
+  .sqm-list { display: flex; flex-direction: column; gap: 8px; }
+  .sqm-item { border: 1.5px solid var(--border); border-radius: 10px; padding: 11px 13px; }
+  .sqm-item-top { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
+  .sqm-id { font-size: 10.5px; font-weight: 800; color: var(--text-muted); letter-spacing: 0.04em; }
+  .sqm-streak { margin-left: auto; font-size: 11px; font-weight: 700; color: var(--text-muted); }
+  .sqm-streak.done { color: var(--green); }
+  .sqm-q { font-size: 13.5px; font-weight: 600; color: var(--navy); line-height: 1.5; }
+  .sqm-qy { font-size: 12px; color: var(--purple); line-height: 1.5; margin-top: 2px; }
+  .sqm-cta { margin-top: 14px; }
+  .sqm-cta button { width: 100%; border-radius: 10px; padding: 11px 10px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; background: var(--gold); color: var(--navy); border: none; }
+
   /* nav buttons */
   .nav-row { display: flex; gap: 10px; justify-content: flex-end; }
   .nav-btn {
@@ -781,6 +813,9 @@
       <div class="ans-note" id="ansNote"></div>
     </div>
 
+    <!-- practice: other questions built from the same study fact -->
+    <div class="sqm" id="similarBox"></div>
+
     <!-- exam: submit button -->
     <div class="exam-submit-row" id="examSubmitRow" style="display:none">
       <button class="nav-btn" id="examSubmitBtn" onclick="examSubmitAnswer()" disabled>Submit Answer</button>
@@ -832,7 +867,7 @@
 // ════════════════════════════════════════
 // APP VERSION — single source of truth (shown in the header, drives the SW cache name)
 // ════════════════════════════════════════
-const APP_VERSION = '0.34';
+const APP_VERSION = '0.35';
 
 // ════════════════════════════════════════
 // APP STATE
@@ -904,6 +939,22 @@ function requeueIfUnmastered(q) {
   if (isMastered(q)) return;
   state.questions.push({ ...shuffleOptions(q), examNum: q.examNum, origIdx: q.origIdx });
 }
+// ── Similar questions: every question belongs to one STUDY fact (fact.src = "exam.idx" keys);
+// other questions of the same fact are the same point asked differently ──
+const SIMILAR_EXAM = 'similar';
+const FACT_BY_QKEY = {};
+STUDY.forEach(f => f.src.forEach(k => { FACT_BY_QKEY[k] = f; }));
+let similarReturn = null; // the stashed session while practising similar questions
+function factOf(q) { return FACT_BY_QKEY[qKey(q)]; }
+function similarKeys(q) {
+  const f = factOf(q);
+  return f ? f.src.filter(k => k !== qKey(q)) : [];
+}
+function questionByKey(k) {
+  const [examNum, origIdx] = k.split('.').map(Number);
+  return { q: EXAMS[examNum][origIdx], examNum, origIdx };
+}
+function isSimilarSession() { return similarReturn !== null; }
 function masteryOf(list) {
   const mastered = list.filter(({ q, examNum, origIdx }) => isMastered({ examNum, origIdx })).length;
   return { mastered, total: list.length, pct: list.length ? Math.round((mastered / list.length) * 100) : 0 };
@@ -993,6 +1044,7 @@ function examLabel(examNum) {
     const lv = difficultyOf(examNum);
     return lv === 'hard' ? 'Hard ★★★★+' : '★'.repeat(lv) + ' ' + DIFF_LABELS[lv].split(' ·')[0];
   }
+  if (examNum === SIMILAR_EXAM) return 'Similar Questions';
   return `Exam ${examNum}`;
 }
 
@@ -1056,6 +1108,7 @@ function startExam(examNum) {
   }
   state.mode = pendingMode;
   state.examNum = examNum;
+  similarReturn = null;
 
   let pool;
   if (examNum === 'all') pool = allQuestions();
@@ -1180,6 +1233,7 @@ function renderQuestion() {
   } else {
     box.className = 'answer-box';
   }
+  renderSimilar(q, revealed);
 
   // exam submit button
   const submitRow = document.getElementById('examSubmitRow');
@@ -1199,7 +1253,10 @@ function renderQuestion() {
   // nav buttons
   document.getElementById('prevBtn').disabled = idx === 0;
   const nextBtn = document.getElementById('nextBtn');
-  if (idx === total - 1) {
+  if (idx === total - 1 && isSimilarSession()) {
+    nextBtn.textContent = `↩ Back to Question ${similarReturn.current + 1}`;
+    nextBtn.onclick = returnFromSimilar;
+  } else if (idx === total - 1) {
     if (state.mode === 'exam') {
       nextBtn.textContent = 'See Results →';
       nextBtn.onclick = finishExam;
@@ -1218,6 +1275,80 @@ function renderQuestion() {
   const allDone = Object.keys(state.answers).length;
   document.getElementById('statCorrect').textContent = allRevealed;
   document.getElementById('statTotal').textContent = allDone;
+}
+
+// ── Similar questions section (practice only, once answered; hidden inside a similar session) ──
+function similarNodeClass(k) {
+  const st = streakOf(questionByKey(k));
+  return st >= MASTERY_STREAK ? ' mastered' : st > 0 ? ' weak' : '';
+}
+function similarItemHtml(k) {
+  const { q, examNum, origIdx } = questionByKey(k);
+  const st = streakOf({ examNum, origIdx });
+  const done = st >= MASTERY_STREAK;
+  return `<div class="sqm-item">
+      <div class="sqm-item-top">
+        <span class="sqm-id">Exam ${examNum} · Q${origIdx + 1}</span>
+        <span class="sqm-streak${done ? ' done' : ''}">${done ? '✓ Mastered' : `🔥 ${st}/${MASTERY_STREAK}`}</span>
+      </div>
+      <div class="sqm-q">${escapeHtml(q.q)}</div>
+      <div class="sqm-qy">${escapeHtml(q.yue)}</div>
+    </div>`;
+}
+function renderSimilar(q, revealed) {
+  const box = document.getElementById('similarBox');
+  const show = state.mode === 'practice' && revealed && !isSimilarSession();
+  const keys = show ? similarKeys(q) : [];
+  box.classList.toggle('show', keys.length > 0);
+  if (!keys.length) { box.innerHTML = ''; return; }
+  const f = factOf(q);
+  const nodes = [`<span class="sqm-node current">${qKey(q)}</span>`]
+    .concat(keys.map(k => `<span class="sqm-node${similarNodeClass(k)}">${k}</span>`));
+  box.innerHTML = `
+    <div class="sqm-head">
+      <span class="sqm-icon">🗺️</span>
+      <span class="sqm-title"><b>Similar Questions</b><span>Same fact, asked differently</span></span>
+      <span class="sqm-count">+${keys.length}</span>
+    </div>
+    <div class="sqm-fact">
+      <div class="sqm-fact-label">📌 Core Fact #${f.id}</div>
+      <div class="sqm-fact-en">${escapeHtml(f.en)}</div>
+      <div class="sqm-fact-yue">${escapeHtml(f.yue)}</div>
+    </div>
+    <div class="sqm-map"><span class="sqm-map-label">Appears in:</span>${nodes.join('')}</div>
+    <div class="sqm-legend">
+      <span><i style="background:var(--navy)"></i>This question</span>
+      <span><i style="background:var(--green-light)"></i>Mastered ${MASTERY_STREAK}/${MASTERY_STREAK}</span>
+      <span><i style="background:var(--red-light)"></i>In progress</span>
+      <span><i style="background:var(--border)"></i>0/${MASTERY_STREAK}</span>
+    </div>
+    <div class="sqm-list">${keys.map(similarItemHtml).join('')}</div>
+    <div class="sqm-cta"><button onclick="startSimilarPractice()">▶ Practise these ${keys.length}</button></div>`;
+}
+
+// one-off session over the similar questions (each once, listed order); the original session
+// is stashed and restored at the same question when the last one is done
+function startSimilarPractice() {
+  const keys = similarKeys(state.questions[state.current]);
+  if (!keys.length) return;
+  similarReturn = state;
+  state = {
+    ...state,
+    examNum: SIMILAR_EXAM,
+    questions: keys.map(questionByKey).map(({ q, examNum, origIdx }) => ({ ...shuffleOptions(q), examNum, origIdx })),
+    current: 0,
+    answers: {},
+    revealed: {},
+    yueShown: {},
+  };
+  renderQuestion();
+  window.scrollTo(0, 0);
+}
+function returnFromSimilar() {
+  state = similarReturn;
+  similarReturn = null;
+  renderQuestion();
+  window.scrollTo(0, 0);
 }
 
 function selectOption(oi) {
@@ -1281,7 +1412,7 @@ function revealAnswer() {
   state.revealed[idx] = correct;
   if (state.mode === 'practice') {
     recordPracticeAnswer(q, correct);
-    requeueIfUnmastered(q);
+    if (!isSimilarSession()) requeueIfUnmastered(q); // similar session: each question once
   }
   renderQuestion();
 }
@@ -1405,6 +1536,7 @@ function retryExam() {
 }
 
 function goHome() {
+  similarReturn = null;
   showScreen('screenHome');
   document.getElementById('headerStats').style.display = 'none';
   buildExamGrid();
