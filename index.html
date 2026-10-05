@@ -832,7 +832,7 @@
 // ════════════════════════════════════════
 // APP VERSION — single source of truth (shown in the header, drives the SW cache name)
 // ════════════════════════════════════════
-const APP_VERSION = '0.32';
+const APP_VERSION = '0.33';
 
 // ════════════════════════════════════════
 // APP STATE
@@ -981,6 +981,8 @@ function startChapter(ch) {
 
 function isChapterExam(examNum) { return typeof examNum === 'string' && examNum.startsWith('ch'); }
 function chapterOf(examNum) { return Number(examNum.slice(2)); }
+// Exam 1–17 (Exam mode or Practice > By Exam) — the only sets shaped like the real test
+function isNumberedExam(examNum) { return typeof examNum === 'number'; }
 function isDifficultyExam(examNum) { return typeof examNum === 'string' && examNum.startsWith('d'); }
 function difficultyOf(examNum) { const v = examNum.slice(1); return v === 'hard' ? 'hard' : Number(v); }
 function examLabel(examNum) {
@@ -1329,7 +1331,7 @@ function finishExam() {
   });
 
   // save completed (numbered exams only)
-  if (state.examNum !== 'all' && !isChapterExam(state.examNum) && !isDifficultyExam(state.examNum)) {
+  if (isNumberedExam(state.examNum)) {
     const done = getLS('completedExams') || {};
     done[state.examNum] = true;
     setLS('completedExams', done);
@@ -1343,10 +1345,15 @@ function finishExam() {
   const lbl2 = document.getElementById('resultLabel2');
   lbl2.textContent = passed ? 'PASSED' : 'NEEDS IMPROVEMENT';
   lbl2.className = 'result-label ' + (passed ? 'pass' : 'fail');
-  document.getElementById('resultSub').textContent =
+  const sub = document.getElementById('resultSub');
+  sub.textContent =
     total <= 24
       ? `You need 18/24 (75%) to pass the real test.`
       : `75% pass threshold. You scored ${pct}%.`;
+  // pass / fail verdict + remark only make sense for real-test-shaped sets
+  const showVerdict = isNumberedExam(state.examNum);
+  lbl2.style.display = showVerdict ? '' : 'none';
+  sub.style.display = showVerdict ? '' : 'none';
   document.getElementById('rbCorrect').textContent = correct;
   document.getElementById('rbWrong').textContent = total - correct;
   document.getElementById('rbPct').textContent = pct + '%';
