@@ -54,6 +54,8 @@ const STUDY_LS = {
   mastered: LS_PREFIX + 'studyMastered',
   bookmarks: LS_PREFIX + 'studyBookmarks',
 };
+// sessionStorage (same prefix): set by js/main.js once it has reloaded after a failed locale / i18n load
+const I18N_RELOAD_SS = LS_PREFIX + 'i18nReloaded';
 // v0.58: unprefixed keys from v0.57 and earlier → their prefixed home (moved lazily by js/core/utils.js)
 const LEGACY_LS_MIGRATION = {
   practiceStreak: STREAK_LS,

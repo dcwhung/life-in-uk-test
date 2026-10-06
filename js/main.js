@@ -4,6 +4,8 @@
 // During a service-worker update a cached pre-v0.59 index.html can load these scripts without the
 // locale + i18n tags it never had (same cutover as CUI-0004): fetch them first, then start.
 const I18N_BOOT_SCRIPTS = ['locales/en.js', 'js/core/i18n.js'];
+// shown when the scripts still fail after one reload; t() is not available then, so it cannot be a locale key
+const I18N_BOOT_FALLBACK_MSG = 'The app could not finish loading. Please check your connection and reload the page.';
 
 function loadScript(src) {
   return new Promise((resolve, reject) => {
@@ -29,5 +31,25 @@ function startApp() {
   registerSW();
 }
 
+// A failed fetch during an update is usually transient: retry once with a full reload (the flag stops a loop),
+// then show a plain message instead of a half-started page. No sessionStorage → no retry, straight to the message.
+function hasRetriedI18nBoot() {
+  try {
+    if (sessionStorage.getItem(I18N_RELOAD_SS)) return true;
+    sessionStorage.setItem(I18N_RELOAD_SS, '1');
+    return false;
+  } catch {
+    return true;
+  }
+}
+function onI18nBootFailure(err) {
+  console.warn('[i18n] start-up failed:', err);
+  if (!hasRetriedI18nBoot()) { location.reload(); return; }
+  byId('examGrid').textContent = I18N_BOOT_FALLBACK_MSG;
+}
+function clearI18nBootRetry() {
+  try { sessionStorage.removeItem(I18N_RELOAD_SS); } catch {}
+}
+
 if (typeof t === 'function') startApp();
-else loadI18nScripts().then(startApp).catch(e => console.warn('[i18n] start-up failed:', e));
+else loadI18nScripts().then(() => { clearI18nBootRetry(); startApp(); }).catch(onI18nBootFailure);
