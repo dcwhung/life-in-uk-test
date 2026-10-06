@@ -52,7 +52,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert((await retryText()) === 'Retry' && (await anotherText()) === 'Another Exam', 'Exam mode: Retry / Another Exam');
   for (const set of [2, 'ch1', 'd1', 'all']) {
     await finish('practice', set);
-    assert((await retryText()) === 'Practise Again' && (await anotherText()) === 'Choose Another', `${set} practice: Practise Again / Choose Another`);
+    assert((await retryText()) === 'Retry' && (await anotherText()) === 'Another Practice', `${set} practice: Retry / Another Practice`);
   }
   await finish('exam', 1);
   assert((await retryText()) === 'Retry' && (await anotherText()) === 'Another Exam', 'Retry / Another Exam again after a practice set');
