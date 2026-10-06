@@ -13,6 +13,7 @@ const WRONG_EXAM = 'wrong';
 const FLAGGED_EXAM = 'flagged';
 const CHAPTER_PREFIX = 'ch';
 const DIFFICULTY_PREFIX = 'd';
+const FACT_PREFIX = 'f'; // + study fact id: that fact's source questions ('f21', a one-off session from Study)
 
 // ── practice ──
 const MASTERY_STREAK = 3;
