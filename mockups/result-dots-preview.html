@@ -57,26 +57,21 @@
   .rv-q { font-weight: 600; color: var(--navy); margin-bottom: 4px; }
   .rv-your { color: var(--text-muted); font-size: 12px; }
   .rv-ans { color: var(--green); font-size: 12px; font-weight: 600; }
-  .rv-flag { color: var(--orange); font-size: 11px; font-weight: 800; margin-left: 4px; }
+  .rv-flag { width: 15px; height: 15px; margin-left: 5px; vertical-align: -2px; }
+  .rv-flag path { fill: var(--orange); stroke: var(--orange); stroke-width: 2; stroke-linejoin: round; }
 </style>
 </head>
 <body>
 <div class="mock-bar">
-  <b>PREVIEW</b> · Result page — 24 question dots (green correct · red wrong · flagged). 撳圓點會跳去下面嗰題。<br>
-  Flag 點顯示：<span id="tabs"></span>
+  <b>PREVIEW v2</b> · Exam result page — mode icon 📝 · score shown once · dots (option A) · bookmark icon in review. 撳圓點會跳去下面嗰題。
 </div>
 
 <div class="wrap">
   <div class="result-card">
-    <div class="result-emoji">📚</div>
+    <div class="result-emoji" title="Exam mode">📝</div>
     <div class="result-score" id="score"></div>
     <div class="result-label">NEEDS IMPROVEMENT</div>
     <div class="result-sub">You need 18/24 (75%) to pass the real test.</div>
-    <div class="rb">
-      <div><b style="color:var(--green)" id="nOk"></b><small>Correct</small></div>
-      <div><b style="color:var(--red)" id="nBad"></b><small>Wrong</small></div>
-      <div><b id="pct"></b><small>Score</small></div>
-    </div>
     <div class="rdots-wrap" id="rwrap">
       <div class="rdots" id="rdots"></div>
       <div class="rmeta" id="rmeta"></div>
@@ -93,21 +88,13 @@
   const WRONG = [2, 6, 9, 14, 19, 21];
   const SKIPPED = [17];
   const FLAGGED = [1, 2, 12, 16, 22];
-  const OPTIONS = [
-    { key: 'A', tab: 'A · 橙色圈（保留啱／錯顏色）' },
-    { key: 'B', tab: 'B · 成粒橙色' },
-  ];
-  let mode = 'A';
+  const mode = 'A';
+  const FLAG_ICON = '<svg class="rv-flag" viewBox="0 0 24 24" aria-label="Flagged"><path d="M7.5 3.5h9A2.5 2.5 0 0 1 19 6v14.5l-7-5.1-7 5.1V6a2.5 2.5 0 0 1 2.5-2.5z"/></svg>';
   const status = i => SKIPPED.includes(i) ? 'skip' : WRONG.includes(i) ? 'bad' : 'ok';
 
   function render() {
-    document.getElementById('tabs').innerHTML = OPTIONS.map(o =>
-      `<button class="mock-tab ${o.key === mode ? 'on' : ''}" onclick="mode='${o.key}';render()">${o.tab}</button>`).join('');
     const ok = QS.filter((_, i) => status(i) === 'ok').length;
-    document.getElementById('score').innerHTML = `${ok} <span>/ ${QS.length}</span>`;
-    document.getElementById('nOk').textContent = ok;
-    document.getElementById('nBad').textContent = QS.length - ok;
-    document.getElementById('pct').textContent = Math.round(ok / QS.length * 100) + '%';
+    document.getElementById('score').innerHTML = `${ok} <span>/ ${QS.length} · ${Math.round(ok / QS.length * 100)}%</span>`;
     document.getElementById('rwrap').className = 'rdots-wrap flag' + mode;
     document.getElementById('rdots').innerHTML = QS.map((_, i) =>
       `<button class="rdot ${status(i)}${FLAGGED.includes(i) ? ' flag' : ''}" onclick="jump(${i})" title="Question ${i + 1}">${i + 1}</button>`).join('');
@@ -122,7 +109,7 @@
       const st = status(i);
       const your = st === 'ok' ? '' : `<div class="rv-your">Your answer: ${st === 'skip' ? 'No answer' : q.o.find((_, k) => !q.a.includes(k))}</div>`;
       return `<div class="review-item ${st === 'ok' ? 'ok' : 'bad'}" id="rv${i}">
-        <div class="rv-q">${i + 1}. ${q.q}${FLAGGED.includes(i) ? '<span class="rv-flag">🔖 Flagged</span>' : ''}</div>${your}
+        <div class="rv-q">${i + 1}. ${q.q}${FLAGGED.includes(i) ? FLAG_ICON : ''}</div>${your}
         <div class="rv-ans">✅ ${q.ans}</div></div>`;
     }).join('');
   }
