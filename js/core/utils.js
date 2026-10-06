@@ -33,11 +33,15 @@ function isCorrectAnswer(q, ans) {
   return q.a.every(a => picked.includes(a)) && picked.length === q.a.length;
 }
 
+// new key → legacy key, filled by js/core/migrate.js when a key could not be moved this load
+const LS_KEY_FALLBACK = {};
+// resolved per call so a failed migration keeps reading/writing the old key instead of starting an empty new one
+function lsKey(key) { return LS_KEY_FALLBACK[key] || key; }
 function getLS(key) {
-  try { return JSON.parse(localStorage.getItem(key)); } catch { return null; }
+  try { return JSON.parse(localStorage.getItem(lsKey(key))); } catch { return null; }
 }
 function setLS(key, val) {
-  try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+  try { localStorage.setItem(lsKey(key), JSON.stringify(val)); } catch {}
 }
 
 // Escape text for safe insertion into innerHTML.
