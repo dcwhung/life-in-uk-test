@@ -15,7 +15,7 @@
 
 | File | 大小 | 內容 |
 |---|---|---|
-| `index.html` | 96 KB | CSS、HTML、app 邏輯（state / home / quiz / exam tools / confirm modal / similar questions / results + result dots / study / SW） |
+| `index.html` | 97 KB | CSS、HTML、app 邏輯（state / home / quiz / exam tools / confirm modal / similar questions / results + result dots / study / SW） |
 | `data/exams.js` | 181 KB | `EXAMS`：408 題，Exam 1–17 各 24 題 |
 | `data/study.js` | 65 KB | `CHAPTERS` + `STUDY`：236 條 dedupe 後嘅 facts |
 | `js/utils.js` | 2 KB | `shuffle`、`shuffleOptions`、`getLS`、`setLS`、`starsHtml`、`escapeHtml` |
@@ -207,8 +207,8 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | v0.49 | dcwhung/life-in-uk-test#20 | Exam 結果頁掣文字：「Retry Exam」→「Retry」、「Choose Another」→「Another Exam」 |
 | v0.50 | dcwhung/life-in-uk-test#20 | Exam 結果頁：mode icon、分數只顯示一次（唔合格紅色）、24 粒結果圓點（撳跳題）、All / Wrong / Flagged filter、書籤 icon；Review 翻譯同備注分行排版；Practice 掣改「Retry / Another Practice」 |
 | — | dcwhung/life-in-uk-test#21 | HANDOFF.md：PR #20 版本記錄、modal 設計決定、follow-up |
-| v0.51 | — | 結果判定前面加返 icon：「🎉 PASSED」/「📚 NEEDS IMPROVEMENT」；結果頁「By Difficulty · 按難度」拎走中文；Review Answers 加大行距同間隔 |
-| v0.52 | — | Practice 每輪題數由 25 改做 24（`PRACTICE_ROUND_MAX`），同真考試一致 |
+| v0.51 | dcwhung/life-in-uk-test#22 | 結果判定前面加返 icon：「🎉 PASSED」/「📚 NEEDS IMPROVEMENT」；結果頁「By Difficulty · 按難度」拎走中文；Review Answers 加大行距同間隔 |
+| v0.52 | dcwhung/life-in-uk-test#22 | Practice 每輪題數由 25 改做 24（`PRACTICE_ROUND_MAX`），同真考試一致 |
 
 **Exam modal 設計決定（v0.48）**
 - 用戶要求交卷提示唔好用瀏覽器 alert box；離開考試提示順手都改用同一個 modal，保持一致
@@ -279,6 +279,10 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 ## 主要 commit（新→舊）
 
 ```
+e6fbc5d feat: practice rounds draw 24 questions, same as the real test (v0.52)
+abb32bc fix: roomier Review Answers — larger line height and gaps (v0.51)
+c3b2983 fix: verdict icons (🎉 PASSED / 📚 NEEDS IMPROVEMENT); English-only By Difficulty title (v0.51)
+174f2bc docs: HANDOFF.md v0.50 — PR #20 in version log, modal decisions, follow-ups, commit list
 05cee49 feat: exam results — mode icon, single score line, result dots, review filters (v0.50)
 67c98c1 fix: exam result buttons read 'Retry' / 'Another Exam' (v0.49)
 3366880..01296a8 chore: result dots preview v1–v6（preview 已 delete）
