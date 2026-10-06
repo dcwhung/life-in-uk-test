@@ -1,4 +1,4 @@
-# Life in the UK Test PWA — Handoff (v0.54)
+# Life in the UK Test PWA — Handoff (v0.55)
 
 - **Repo:** https://github.com/dcwhung/life-in-uk-test （main branch，GitHub Pages root `/`）
 - **Live:** https://dcwhung.github.io/life-in-uk-test/
@@ -19,7 +19,7 @@
 | `data/exams.js` | 181 KB | `EXAMS`：408 題，Exam 1–17 各 24 題 |
 | `data/study.js` | 65 KB | `CHAPTERS` + `STUDY`：236 條 dedupe 後嘅 facts |
 | `js/utils.js` | 2 KB | `shuffle`、`shuffleOptions`、`getLS`、`setLS`、`starsHtml`、`escapeHtml` |
-| `tests/*.js` | | 18 套 Playwright 測試，`tests/run-all.sh` 一次過跑 |
+| `tests/*.js` | | 19 套 Playwright 測試，`tests/run-all.sh` 一次過跑 |
 | `mockups/similar-question-map.html` | 17 KB | Similar Questions 嘅設計 mockup（獨立 HTML，頂部 tab 切換情景；PR 嘅 `Design Origin`） |
 
 載入次序：`data/exams.js` → `data/study.js` → `js/utils.js` → 主 script。全部全局變量，冇 ES module（`file://` 同 iOS PWA 兼容）。
@@ -97,7 +97,8 @@
 **Practice mode**
 - 題目同選項次序隨機；揀完即刻 reveal
 - 問題卡右上「Translate」掣：展開題目 + 每個選項嘅廣東話；答完自動固定顯示；下一題重設
-- **問題卡 header（v0.41）：** 原本獨立一行嘅「Question X of Y · n/m correct」同 progress bar 拎走；progress bar 變咗問題卡頂邊（5px，`.q-progress`）；題號行寫「QUESTION X OF Y ★★★」，Practice 答咗題之後星星後面有綠色 pill「✓ 答啱/已答」（`scorePillHtml()`），窄 mon 放唔落會換去第二行；最頂深藍 header 嘅「✅ correct · 📝 done」已拎走
+- **問題卡 header（v0.41）：** 原本獨立一行嘅「Question X of Y · n/m correct」同 progress bar 拎走；progress bar 變咗問題卡頂邊（5px，`.q-progress`）；題號行寫「QUESTION X OF Y ★★★」，Practice 答咗題之後星星後面有綠色 pill「✓ 答啱/已答」（**v0.55 已拎走**，由數字圓圈計數取代），窄 mon 放唔落會換去第二行；最頂深藍 header 嘅「✅ correct · 📝 done」已拎走
+- **Practice 數字圓圈（v0.55，preview 同用戶確認）：** Practice（包括 Chapter / Difficulty / Exam / All Exams / Wrong answers / Flagged / Similar 臨時 session）問題卡頂都有數字圓圈，**取代 progress bar**（`hasNavDots()`；計時器仍然只係 `hasExamTools()`）。有幾多題出幾多粒，每行最多 12 粒。顏色：答啱綠（`.dot.ok`）、答錯紅（`.dot.bad`）、未答白、做緊金圈；flag 用 2.5px 橙色邊（保留綠／紅底），未答 + flag = 橙色空心框；撳圓圈跳去任何一題（`goToQuestion()`，未答都得）。下面靠右「Correct n | Wrong n | Unanswered n | Flagged n」（`practiceDotsMetaHtml()`，`.dots-meta.practice` 收細字同間距，390px 一行；360px 或更窄會斷兩行）
 - **快捷 Prev / Next（v0.40；v0.41 改做只有符號）：** 答完（Practice reveal／Exam submit）之後，問題卡右上 Translate 嘅位置變做兩粒圓形「←」「→」（最後一題 ✓、臨時 session ↩；`title` / `aria-label` 寫返文字），同底部掣共用 `nextAction()`（Next → / Finish ✓ / See Results → / ↩ Back）；未答前唔顯示；窄 mon 時會換行靠右
 - 答案框格式：`✓ Correct! · 🔥 n/3` → 英文答案 → `【廣東話翻譯】 Q) … A) …` → `💡 備注：`（獨立一行）→ 備注內容（支援多行）
 - **掌握機制：** 同一題連續答啱 `MASTERY_STREAK`（=3）次 = 掌握，答錯即歸零；開練習時剔除已掌握題，全組掌握後再全部出；每輪最多抽 `PRACTICE_ROUND_MAX`（=24，v0.52 起；之前 25）條未掌握題（Chapter / Difficulty / All Exams；Exam 1–17 本身 24 題），**每題一輪只出一次，「Question X of Y」嘅 Y 唔會變**（v0.38 起；v0.32–v0.37 會將未掌握題重新排去 queue 尾，令 Y 越做越大，已取消）；答錯或未夠 3 次嘅題下一輪再抽；存 localStorage `practiceStreak` `{ "exam.idx": n }`
@@ -123,7 +124,7 @@
 
 **Exam mode**
 - **真考試模式（v0.43）：** 揀選項即刻暫存（`state.answers`），唔使逐題 Submit；Next / Prev 自由走，返去見到自己揀嘅選項（藍色），**隨時可以改**；全程唔顯示啱／錯、答案框、翻譯
-- **最後一題底部 Next 掣變做「Submit」**（同 ← Prev 一行；冇另外嘅 Submit 行，`#examSubmitRow` 已拎走；問題卡頭嘅快捷 → 喺最後一題收埋，避免誤撳交卷），撳咗就去結果頁；有未答題會先 `confirm("N questions unanswered. Submit anyway?")`，取消就留低繼續做
+- **最後一題底部 Next 掣變做「Submit」**（同 ← Prev 一行；冇另外嘅 Submit 行，`#examSubmitRow` 已拎走；v0.55 起問題卡頭嘅快捷掣喺最後一題變「✓」（title「Submit」），同 Practice 最後一題嘅 ✓ 一樣，行同一個 `submitExam()`；v0.43–v0.54 係收埋），撳咗就去結果頁；有未答題會先 `confirm("N questions unanswered. Submit anyway?")`，取消就留低繼續做
 - 快捷 ← → 喺 Exam mode 一直顯示（v0.47 起；之前要揀咗選項先出，去到未答嘅下一題就唔見咗）；唔影響掌握記錄
 - **Random Exam（v0.45）：** Exam mode 嘅 All Exams 掣變做「🎲 Random Exam」（細字「24 Qs from 408 Qs」）：每次由全部 408 題隨機抽 `RANDOM_EXAM_SIZE`（=24）題，**同一條 STUDY fact 最多抽一題**（`randomExamPick()` 用 `FACT_BY_QKEY` 去重，即係唔會有相類似題）；用齊考試工具同 PASSED / NEEDS IMPROVEMENT 判定；Retry 會再抽過一套新題；唔會標記 completed。Practice › By Exam 嘅「🎯 All Exams (408 Q)」維持原狀（每輪 24 條未掌握題）
 - **考試工具（v0.44，Exam 1–17；v0.45 起 Random Exam 都有）：**
@@ -182,10 +183,11 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | `similar-test.js` | Similar Questions section、Practise these N 臨時 session 同返回 |
 | `examresult-test.js` | Exam 結果頁：icon、分數行（唔合格紅）、冇三格、24 圓點狀態、計數、All / Wrong / Flagged filter、書籤 icon、撳圓點跳題、翻譯 / 備注排版、掣文字；合格唔紅；Practice 都冇三格、有圓點同 filter + 🎯 + Retry / Another Practice |
 | `review-test.js` | v0.53：「Practice by」標題同 tab 文字；冇記錄唔出 My Review；Practice flag 位置同 reload 後保留；兩格數字同 remark；錯題由 Practice / Exam 加入、只喺 review 答啱先清；>24 題嘅 round note 位置同文字；Flagged 列表、unflag、練 flagged、空列表；Practice 結果頁（icon、分數、圓點、filter、mastery note、streak tag） |
-| `examtools-test.js` | Submit / Leave 用 app 內 modal（掣名、Esc 取消、冇瀏覽器 dialog）；Random Exam（30 次抽題全部 24 題、24 個唔同 fact、每次唔同；工具、PASSED、Retry 抽新題、首頁掣名）；Exam 1–17 計時器（45:00、最後 5 分鐘變紅、到 0 自動交卷 + 結果頁提示）、24 圓點狀態同跳題、書籤 flag、計數、Submit / Home 提示；Practice 冇計時同圓點（flag 見 review-test） |
-| `quicknav-test.js` | 快捷 ← / →（符號、title、最後一題 ✓ / ↩）；問題卡 header：Question X of Y、progress bar 喺卡頂、score pill、header 冇 stats |
+| `examtools-test.js` | Submit / Leave 用 app 內 modal（掣名、Esc 取消、冇瀏覽器 dialog）；Random Exam（30 次抽題全部 24 題、24 個唔同 fact、每次唔同；工具、PASSED、Retry 抽新題、首頁掣名）；Exam 1–17 計時器（45:00、最後 5 分鐘變紅、到 0 自動交卷 + 結果頁提示）、24 圓點狀態同跳題、書籤 flag、計數、Submit / Home 提示；Practice 冇計時，圓點係啱／錯版（見 practicedots-test） |
+| `quicknav-test.js` | 快捷 ← / →（符號、title、最後一題 ✓ / ↩；Exam 最後一題 ✓ = Submit）；問題卡 header：Question X of Y、Practice 用圓圈唔用 progress bar、冇 score pill、header 冇 stats |
+| `practicedots-test.js` | v0.55：Practice 圓圈（24 / 9 / review 題數、冇 progress bar 同計時、啱綠錯紅、flag 橙邊、計數一行、撳跳題前後都得）；冇 score pill；Exam 最後一題快捷 ✓ 交卷（有未答彈 modal、全答直接去結果）；Flagged 列表「Practise flagged」書籤 icon 係橙色 |
 
-## 版本記錄（v0.32–v0.54）
+## 版本記錄（v0.32–v0.55）
 
 | 版本 | PR | 改動 |
 |---|---|---|
@@ -219,6 +221,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | v0.53 | dcwhung/life-in-uk-test#24 | Practice：flag 長期保存、錯題庫（兩個 mode 都計）、My Review（Wrong answers / Flagged 兩格，冇記錄唔出）、Flagged 列表畫面、review 每輪最多 24 題 + round note、Practice 結果頁跟 Exam 排版；Difficulty 拎走「Hard & Expert」一行 |
 | v0.54 | dcwhung/life-in-uk-test#25 | 首頁「Reset progress」一併清錯題記錄（`wrongList`）同 Practice flag（`practiceFlags`），confirm 文字改做「掌握進度、錯題同 flag 會全部清除。」 |
 | — | dcwhung/life-in-uk-test#26 | HANDOFF.md：PR #24 / #25 版本記錄、commit 列表、截圖還原注意事項 |
+| v0.55 | — | Practice 加數字圓圈（取代 progress bar，啱綠錯紅、flag 橙邊、撳跳題、Correct / Wrong / Unanswered / Flagged 計數），拎走 ✓ n/m pill；Exam 最後一題快捷掣變 ✓ 做 Submit；Flagged 列表「Practise flagged」書籤 icon 由黑色改橙色 |
 
 **Practice My Review 設計決定（v0.53，preview v1–v3 同用戶確認）**
 - Review / Flagged 同 Difficulty / Chapter / Exam 唔係同類，所以獨立做「My Review」section，分類 tab 加「Practice by」標題
@@ -247,7 +250,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 
 **Exam 流程設計決定（v0.43，同用戶逐步確認）**
 - 試過「Submit 之後跳下一題、唔對答案、鎖住」（89e5f7c），用戶要求改成真考試：揀咗即暫存、可以返去改、唔逐題 Submit
-- Submit 只喺最後一題，放喺 Next 嘅位置，文字只寫「Submit」；問題卡頭嘅快捷 → 喺最後一題收埋，避免誤撳交卷
+- Submit 只喺最後一題，放喺 Next 嘅位置，文字只寫「Submit」；問題卡頭嘅快捷 → 喺最後一題收埋，避免誤撳交卷（v0.55 用戶要求改返：快捷掣變 ✓ 做 Submit，同 Practice 一致；有未答或 flag 仍然先彈 modal，所以誤撳都唔會直接交卷）
 - 有未答題先 confirm（Claude 提議，用戶接受）
 
 **考試工具設計決定（v0.44，先做 preview 同用戶確認）**
@@ -260,7 +263,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 **問題卡 header 設計決定（v0.41，先做 preview 同用戶確認）**
 - 目的：慳位，拎走問題卡上面獨立嘅一行同 progress bar
 - 「n/m correct」試過 3 個擺法（星星後 pill／bar 下面／拎走），用戶揀 pill，同時拎走最頂 header 重複嘅「✅ correct · 📝 done」
-- Pill 只喺 Practice、答咗至少一題先出；Exam mode 唔顯示（同以前一樣）
+- Pill 只喺 Practice、答咗至少一題先出；Exam mode 唔顯示（同以前一樣）；v0.55 拎走，因為圓圈下面嘅 Correct / Wrong 已經有同一個數
 - 窄 mon（≤ 390px）pill 會換去第二行，用戶接受；← → 掣永遠喺右邊同一行
 - 快捷掣只有符號；底部大掣保留文字（Next → / Finish ✓ / See Results → / ↩ Back）
 

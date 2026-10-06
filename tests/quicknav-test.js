@@ -50,7 +50,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(await vis('#quickNav'), 'exam: still shown on the next (unanswered) question');
   await pg.evaluate(() => { state.current = state.questions.length - 1; renderQuestion(); });
   await answer();
-  assert(!(await vis('#quickNext')) && await vis('#quickPrev') && (await text('#nextBtn')) === 'Submit', 'exam last question: bottom button is Submit, no quick submit');
+  assert((await text('#quickNext')) === '✓' && await vis('#quickPrev') && (await text('#nextBtn')) === 'Submit', 'exam last question: quick ✓ submits, bottom button Submit');
 
   // similar session: last question goes back
   await pg.evaluate(() => {
@@ -65,19 +65,17 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.click('#quickNext');
   assert(await pg.evaluate(() => state.examNum === 12 && similarReturn === null), 'quick Back returns to the original session');
 
-  // merged card header: "Question X of Y", progress bar as the card's top border, score pill
+  // card header: "Question X of Y"; practice uses question dots instead of the progress bar and score pill (practicedots-test)
   await pg.evaluate(() => { localStorage.clear(); streaks = {}; pendingMode = 'practice'; startExam('ch1'); });
   assert((await pg.$$('#headerStats')).length === 0, 'app header has no correct / done stats');
   assert((await pg.$$('#progressText')).length === 0, 'no separate progress row');
   assert((await text('#qNum')).startsWith('Question 1 of 9'), 'question header reads "Question 1 of 9"');
-  assert(await pg.$eval('#progressFill', e => e.closest('.q-card') !== null && e.parentElement.classList.contains('q-progress')), 'progress bar lives in the question card');
-  assert(await pg.$eval('#progressFill', e => e.style.width === '11%'), 'bar width = 1 of 9');
-  assert((await pg.$$('#qNum .score-pill')).length === 0, 'no score pill before the first answer');
+  assert(await pg.$eval('#progressFill', e => e.closest('.q-card') !== null && e.parentElement.classList.contains('q-progress')), 'progress bar element lives in the question card');
+  assert(!(await vis('.q-progress')) && await vis('#navDots'), 'practice: dots replace the progress bar');
   await answer();
-  assert((await text('#qNum .score-pill')) === '✓ 1/1', 'score pill after answering');
+  assert((await pg.$$('#qNum .score-pill')).length === 0, 'no score pill after answering');
   await pg.click('#quickNext');
-  assert((await text('#qNum')).startsWith('Question 2 of 9') && (await text('#qNum .score-pill')) === '✓ 1/1', 'pill carries over to the next question');
-  assert(await pg.$eval('#progressFill', e => e.style.width === '22%'), 'bar advances');
+  assert((await text('#qNum')).startsWith('Question 2 of 9'), 'header moves to question 2');
   await pg.evaluate(() => { pendingMode = 'exam'; startExam(1); });
   await answer();
   assert((await pg.$$('#qNum .score-pill')).length === 0 && (await text('#qNum')).startsWith('Question 1 of 24'), 'exam mode: no score pill');

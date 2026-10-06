@@ -269,7 +269,7 @@
     background: linear-gradient(135deg, var(--navy), var(--navy-mid)); color: #fff;
     border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; cursor: pointer;
   }
-  .flag-start svg { width: 26px; height: 26px; flex-shrink: 0; }
+  .flag-start svg { width: 26px; height: 26px; flex-shrink: 0; fill: var(--orange); }
   .flag-start b { display: block; font-size: 15px; }
   .flag-start .fs-sub { font-size: 12px; color: rgba(255,255,255,0.7); }
   .flag-start .go { margin-left: auto; font-size: 20px; color: var(--gold-light); }
@@ -304,6 +304,9 @@
   .dot.done { background: var(--navy-light); border-color: var(--navy-light); color: #fff; }
   .dot.flag { border: 2px solid var(--orange); color: var(--orange); }          /* unanswered + flagged: outline */
   .dot.done.flag { background: var(--orange); color: #fff; }                    /* answered + flagged: solid */
+  .dot.ok { background: var(--green-light); border-color: var(--green-light); color: #fff; }  /* practice: answered right */
+  .dot.bad { background: var(--red-light); border-color: var(--red-light); color: #fff; }    /* practice: answered wrong */
+  .dot.ok.flag, .dot.bad.flag { border: 2.5px solid var(--orange); color: #fff; }           /* practice flag keeps the right / wrong fill */
   .dot.current { box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--gold); }
   .dots-meta {
     display: none; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 8px;
@@ -311,10 +314,14 @@
     margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
   }
   .dots-meta .sep { color: var(--border); }
+  .dots-meta.practice { gap: 4px; font-size: 10px; }   /* four counts fit one line at 390px */
+  .dots-meta.practice i { margin-right: 3px; }
   .dots-meta i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 4px; vertical-align: -1px; }
   .dots-meta .lg-done { background: var(--navy-light); }
   .dots-meta .lg-todo { border: 1.5px solid var(--border); }
   .dots-meta .lg-flag { background: var(--orange); }
+  .dots-meta .lg-ok { background: var(--green-light); }
+  .dots-meta .lg-bad { background: var(--red-light); }
   .flag-btn {
     display: none; width: 32px; height: 32px; padding: 0; border: none; background: none;
     color: var(--text-muted); cursor: pointer; align-items: center; justify-content: center; flex-shrink: 0;
@@ -1057,7 +1064,7 @@
 // ════════════════════════════════════════
 // APP VERSION — single source of truth (shown in the header, drives the SW cache name)
 // ════════════════════════════════════════
-const APP_VERSION = '0.54';
+const APP_VERSION = '0.55';
 
 // ════════════════════════════════════════
 // APP STATE
@@ -1396,7 +1403,7 @@ function renderQuestion() {
 
   // question header: "Question X of Y" + stars + session score pill (practice, once answered)
   document.getElementById('qNum').innerHTML =
-    `<span>Question ${idx + 1} of ${total}${isMulti ? ' (select ' + q.a.length + ')' : ''}</span>${starsHtml(q.d)}${scorePillHtml()}`;
+    `<span>Question ${idx + 1} of ${total}${isMulti ? ' (select ' + q.a.length + ')' : ''}</span>${starsHtml(q.d)}`;
   document.getElementById('qText').textContent = q.q;
 
   // Cantonese translation of question + options (practice only):
@@ -1476,8 +1483,6 @@ function renderQuestion() {
   quickNext.title = next.title;
   quickNext.setAttribute('aria-label', next.title);
   quickNext.onclick = next.run;
-  // exam's last question: the bottom button is Submit; no quick submit in the header (avoid stray taps)
-  quickNext.style.display = next.quick === false ? 'none' : '';
   // quick pair: practice once revealed (Translate holds the spot before that); exam always (no Translate there)
   document.getElementById('quickNav').classList.toggle('visible', revealed || state.mode === 'exam');
 
@@ -1562,16 +1567,10 @@ function returnFromSimilar() {
 function nextAction(idx, total) {
   if (idx < total - 1) return { label: 'Next →', symbol: '→', title: 'Next', run: nextQ };
   if (isSimilarSession()) return { label: '↩ Back', symbol: '↩', title: 'Back', run: returnFromSimilar };
-  if (state.mode === 'exam') return { label: 'Submit', symbol: '✓', title: 'Submit', run: submitExam, quick: false };
+  if (state.mode === 'exam') return { label: 'Submit', symbol: '✓', title: 'Submit', run: submitExam };
   return { label: 'Finish ✓', symbol: '✓', title: 'Finish', run: finishExam };
 }
 // practice: "✓ correct/answered" for this session, shown once something is answered
-function scorePillHtml() {
-  const done = Object.keys(state.revealed).length;
-  if (state.mode !== 'practice' || !done) return '';
-  const correct = Object.values(state.revealed).filter(Boolean).length;
-  return `<span class="score-pill">✓ ${correct}/${done}</span>`;
-}
 
 function selectOption(oi) {
   const idx = state.current;
@@ -1689,32 +1688,49 @@ function goToQuestion(i) {
   state.current = i;
   renderQuestion();
 }
+// practice dots show right / wrong once revealed; exam dots only answered / unanswered
+function dotStateCls(i) {
+  if (state.mode !== 'practice') return isAnswered(i) && 'done';
+  if (!(i in state.revealed)) return '';
+  return state.revealed[i] ? 'ok' : 'bad';
+}
 function navDotsHtml() {
   return state.questions.map((_, i) => {
-    const cls = ['dot', isAnswered(i) && 'done', state.flags[i] && 'flag', i === state.current && 'current'].filter(Boolean).join(' ');
+    const cls = ['dot', dotStateCls(i), isFlaggedNow(i) && 'flag', i === state.current && 'current'].filter(Boolean).join(' ');
     return `<button class="${cls}" onclick="goToQuestion(${i})" aria-label="Question ${i + 1}">${i + 1}</button>`;
   }).join('');
 }
+function practiceDotsMetaHtml() {
+  const results = Object.values(state.revealed), correct = results.filter(Boolean).length;
+  const flagged = state.questions.filter((_, i) => isFlaggedNow(i)).length;
+  return [`<span><i class="lg-ok"></i>Correct <b>${correct}</b></span>`,
+    `<span><i class="lg-bad"></i>Wrong <b>${results.length - correct}</b></span>`,
+    `<span><i class="lg-todo"></i>Unanswered <b>${state.questions.length - results.length}</b></span>`,
+    `<span><i class="lg-flag"></i>Flagged <b>${flagged}</b></span>`].join(' <span class="sep">|</span> ');
+}
 function dotsMetaHtml() {
+  if (state.mode === 'practice') return practiceDotsMetaHtml();
   const done = state.questions.filter((_, i) => isAnswered(i)).length;
   return [`<span><i class="lg-done"></i>Answered <b>${done}</b></span>`,
     `<span><i class="lg-todo"></i>Unanswered <b>${state.questions.length - done}</b></span>`,
     `<span><i class="lg-flag"></i>Flagged <b>${flaggedCount()}</b></span>`].join(' <span class="sep">|</span> ');
 }
+function hasNavDots() { return hasExamTools() || state.mode === 'practice'; }
 function renderExamTools(idx) {
-  const on = hasExamTools();
-  const show = (id, display) => { document.getElementById(id).style.display = on ? display : 'none'; };
-  show('examTimer', 'inline-flex');
-  show('navDots', 'grid');
-  show('dotsMeta', 'flex');
+  const on = hasExamTools(), dots = hasNavDots();
+  const show = (id, display, visible) => { document.getElementById(id).style.display = visible ? display : 'none'; };
+  show('examTimer', 'inline-flex', on);
+  show('navDots', 'grid', dots);
+  show('dotsMeta', 'flex', dots);
   document.getElementById('modeBadge').style.display = on ? 'none' : '';
-  document.querySelector('#screenQuiz .q-progress').style.display = on ? 'none' : '';
+  document.querySelector('#screenQuiz .q-progress').style.display = dots ? 'none' : '';
   renderRoundNote();
   const flagBtn = document.getElementById('flagBtn');
   flagBtn.style.display = on || state.mode === 'practice' ? 'inline-flex' : 'none';
-  if (on) {
+  if (dots) {
     document.getElementById('navDots').innerHTML = navDotsHtml();
     document.getElementById('dotsMeta').innerHTML = dotsMetaHtml();
+    document.getElementById('dotsMeta').classList.toggle('practice', state.mode === 'practice');
   }
   const flagged = isFlaggedNow(idx);
   flagBtn.classList.toggle('on', flagged);
