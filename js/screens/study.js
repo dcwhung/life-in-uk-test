@@ -46,9 +46,9 @@ const study = {
 const hasKey = (obj, k) => Object.prototype.hasOwnProperty.call(obj, k);
 const STUDY_PREF_CHECKS = {
   tab: v => hasKey(STUDY_RENDERERS, v),
-  chapter: v => hasKey(CHAPTERS, v),
-  nation: v => v === ALL_FILTER || NATIONS.some(n => n.key === v),
-  group: v => v === ALL_FILTER || PEOPLE_GROUPS.some(g => g.key === v),
+  chapter: v => CHAPTERS.includes(v),
+  nation: v => v === ALL_FILTER || NATIONS.includes(v),
+  group: v => v === ALL_FILTER || PEOPLE_GROUPS.includes(v),
 };
 function isValidStudyPref(k, v) {
   if (typeof v !== typeof study[k]) return false;

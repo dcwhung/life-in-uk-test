@@ -45,6 +45,10 @@ async function openStudyWith(pg, prefs) {
   s = await openStudyWith(pg, JSON.stringify({ tab: 'timeline', chapter: 4 }));
   assert(s.tab === 'timeline' && s.chapter === 4 && s.cards > 0, 'valid prefs are kept');
 
+  // last chapter and real nation / group keys are valid (CHAPTERS / NATIONS / PEOPLE_GROUPS are key arrays since v0.59)
+  s = await openStudyWith(pg, JSON.stringify({ tab: 'geo', chapter: 5, nation: 'Scotland', group: 'writer' }));
+  assert(s.chapter === 5 && s.nation === 'Scotland' && s.group === 'writer', `last chapter / known nation / known group are kept (chapter=${s.chapter}, nation=${s.nation}, group=${s.group})`);
+
   assert(errs.length === 0, 'no page errors' + (errs.length ? ': ' + errs.join(' / ') : ''));
   await b.close();
   console.log('STUDYPREFS PASS');
