@@ -23,7 +23,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(await pg.$eval('#quizLabel', e => e.textContent) === 'Chapter 3', 'chapter practice label');
   assert(await pg.$eval('#modeBadge', e => e.textContent) === 'Practice', 'chapter practice is practice mode');
   assert(await pg.evaluate(() => chapterQuestions(3).length === 167 && state.questions.length === 25 && state.questions.every(q => q.ch === 3)), 'chapter 3 has 167 questions; round of 25, all ch3');
-  assert(await pg.$eval('#examSubmitRow', e => e.style.display) === 'none', 'no submit row in chapter practice');
+  assert((await pg.$eval('#nextBtn', e => e.textContent)) !== 'Submit', 'no Submit in chapter practice');
   // finish quickly: answer nothing, jump to last, finish -> no completedExams saved
   await pg.evaluate(() => { state.current = state.questions.length - 1; renderQuestion(); finishExam(); });
   assert(await pg.$eval('#resultLabel', e => e.textContent) === 'Chapter 3', 'result label chapter');

@@ -424,8 +424,6 @@
   .nav-btn.secondary:hover { background: var(--navy); color: #fff; border-color: transparent; }
   .nav-btn:disabled { opacity: 0.4; cursor: default; }
 
-  /* exam mode — hide answer until submit */
-  .exam-submit-row { margin-bottom: 14px; }
 
   /* ── RESULT SCREEN ── */
   .result-card {
@@ -808,10 +806,6 @@
       <div class="ans-note" id="ansNote"></div>
     </div>
 
-    <!-- exam: submit button -->
-    <div class="exam-submit-row" id="examSubmitRow" style="display:none">
-      <button class="nav-btn" id="examSubmitBtn" onclick="submitExam()">Submit Answer</button>
-    </div>
 
     <div class="nav-row">
       <button class="nav-btn secondary" id="prevBtn" onclick="prevQ()">← Prev</button>
@@ -1222,9 +1216,6 @@ function renderQuestion() {
   }
   renderSimilar(q, revealed);
 
-  // exam: one Submit for the whole exam, on the last question only
-  const isExamLast = state.mode === 'exam' && idx === total - 1;
-  document.getElementById('examSubmitRow').style.display = isExamLast ? 'block' : 'none';
 
   // nav buttons: bottom row, plus the quick pair in the question header once answered
   const next = nextAction(idx, total);
@@ -1237,8 +1228,8 @@ function renderQuestion() {
   quickNext.title = next.title;
   quickNext.setAttribute('aria-label', next.title);
   quickNext.onclick = next.run;
-  // exam's last question has Submit instead of Next
-  [nextBtn, quickNext].forEach(btn => { btn.style.display = isExamLast ? 'none' : ''; });
+  // exam's last question: the bottom button is Submit; no quick submit in the header (avoid stray taps)
+  quickNext.style.display = next.quick === false ? 'none' : '';
   // quick pair: practice once revealed; exam once something is picked (picks stay editable)
   const picked = (state.answers[idx] || []).length > 0;
   document.getElementById('quickNav').classList.toggle('visible', revealed || (state.mode === 'exam' && picked));
@@ -1324,6 +1315,7 @@ function returnFromSimilar() {
 function nextAction(idx, total) {
   if (idx < total - 1) return { label: 'Next →', symbol: '→', title: 'Next', run: nextQ };
   if (isSimilarSession()) return { label: '↩ Back', symbol: '↩', title: 'Back', run: returnFromSimilar };
+  if (state.mode === 'exam') return { label: 'Submit', symbol: '✓', title: 'Submit', run: submitExam, quick: false };
   return { label: 'Finish ✓', symbol: '✓', title: 'Finish', run: finishExam };
 }
 // practice: "✓ correct/answered" for this session, shown once something is answered

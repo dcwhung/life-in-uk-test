@@ -19,8 +19,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   const multiIdx = await pg.evaluate(() => state.questions.findIndex(q => q.a.length > 1));
   const singleIdx = await pg.evaluate(() => state.questions.findIndex(q => q.a.length === 1));
   const last = await pg.evaluate(() => state.questions.length - 1);
-  const submitShown = () => pg.$eval('#examSubmitRow', e => e.style.display !== 'none');
-  const nextShown = () => pg.$eval('#nextBtn', e => getComputedStyle(e).display !== 'none');
+  const nextText = () => pg.$eval('#nextBtn', e => e.textContent);
 
   // single question: select is neutral, no answer box, no submit before the last question
   await pg.evaluate(i => { state.current = i; renderQuestion(); }, singleIdx);
@@ -30,7 +29,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   let c = await cls(wrongOpt);
   assert(!c.includes('disabled') && !c.includes('wrong') && !c.includes('correct') && c.includes('selected'), 'exam select is neutral, not disabled');
   assert((await box()) === 'answer-box', 'no answer box in exam mode');
-  assert(!(await submitShown()) && await nextShown(), 'not the last question: no Submit, Next shown');
+  assert((await nextText()) === 'Next →' && (await pg.$$('#examSubmitRow, #examSubmitBtn')).length === 0, 'not the last question: Next, no separate Submit row');
   // Next keeps the pick; Prev shows it again in blue and it can be changed
   await pg.click('#nextBtn');
   assert(await pg.evaluate(i => state.current === i + 1, singleIdx), 'Next moves on');
@@ -49,17 +48,17 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.click('#opt' + ans[0]); await pg.click('#opt' + ans[1]);
   await pg.click('#opt' + ans[1]); await pg.click('#opt' + ans[1]);
   assert(JSON.stringify(await pg.evaluate(() => [...state.answers[state.current]].sort())) === JSON.stringify([...ans].sort()), 'multi: toggle on / off, all picks kept');
-  assert((await box()) === 'answer-box' && !(await submitShown()), 'multi: no box, no submit');
+  assert((await box()) === 'answer-box' && (await nextText()) === 'Next →', 'multi: no box, still Next');
 
   // last question: Submit instead of Next; unanswered questions are confirmed first
   await pg.evaluate(i => { state.current = i; renderQuestion(); }, last);
-  assert(await submitShown() && !(await nextShown()), 'last question: Submit shown, Next hidden');
-  assert((await pg.$eval('#examSubmitBtn', e => e.textContent)) === 'Submit Answer' && !(await pg.$eval('#examSubmitBtn', e => e.disabled)), 'Submit Answer enabled');
+  assert((await nextText()) === 'Submit' && !(await pg.$eval('#nextBtn', e => e.disabled)), 'last question: the Next button becomes Submit');
+  assert(await pg.$eval('#nextBtn', e => e.parentElement.contains(document.getElementById('prevBtn'))), 'Submit sits next to Prev');
   await pg.evaluate(() => { window.confirm = () => false; });
-  await pg.click('#examSubmitBtn');
+  await pg.click('#nextBtn');
   assert(await pg.evaluate(() => document.getElementById('screenQuiz').classList.contains('active')), 'cancel on the unanswered warning stays in the exam');
   await pg.evaluate(() => { window.confirm = (m) => { window.lastConfirm = m; return true; }; });
-  await pg.click('#examSubmitBtn');
+  await pg.click('#nextBtn');
   assert(await pg.evaluate(() => /22 questions unanswered/.test(window.lastConfirm)), 'warning counts unanswered questions');
   assert(await pg.evaluate(() => document.getElementById('screenResult').classList.contains('active')), 'Submit opens the results');
   assert((await pg.$eval('#rbCorrect', e => e.textContent)) === '2', 'results score the saved picks (2 correct)');
@@ -71,7 +70,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
     state.current = state.questions.length - 1; renderQuestion();
     window.lastConfirm = null;
   });
-  await pg.click('#examSubmitBtn');
+  await pg.click('#nextBtn');
   assert(await pg.evaluate(() => window.lastConfirm === null && document.getElementById('rbCorrect').textContent === '24'), 'all answered: submits without a warning, 24/24');
 
   // ── Practice mode: wrong answer must still reveal + lock ──
@@ -81,7 +80,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.click('#opt' + pw);
   assert((await cls(pw)).includes('wrong') && (await cls(pw)).includes('disabled'), 'practice wrong: red + disabled');
   assert((await box()).includes('show'), 'practice wrong: answer box shown');
-  assert(await pg.$eval('#examSubmitRow', e => e.style.display) === 'none', 'practice: no submit row');
+  assert((await pg.$eval('#nextBtn', e => e.textContent)) !== 'Submit', 'practice: no Submit');
   // multi in practice auto-reveals
   await pg.evaluate(i => { state.current = i; renderQuestion(); }, await pg.evaluate(() => state.questions.findIndex(q => q.a.length > 1)));
   const pa = await pg.evaluate(() => state.questions[state.current].a);

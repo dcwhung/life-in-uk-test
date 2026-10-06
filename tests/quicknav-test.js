@@ -50,7 +50,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(await pg.evaluate(() => state.current === 1 && state.answers[0].length > 0), 'exam: quick Next keeps the pick');
   await pg.evaluate(() => { state.current = state.questions.length - 1; renderQuestion(); });
   await answer();
-  assert(!(await vis('#quickNext')) && await vis('#quickPrev') && !(await vis('#nextBtn')), 'exam last question: no Next (quick or bottom)');
+  assert(!(await vis('#quickNext')) && await vis('#quickPrev') && (await text('#nextBtn')) === 'Submit', 'exam last question: bottom button is Submit, no quick submit');
 
   // similar session: last question goes back
   await pg.evaluate(() => {

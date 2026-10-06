@@ -109,9 +109,9 @@
 
 **Exam mode**
 - **真考試模式（v0.43）：** 揀選項即刻暫存（`state.answers`），唔使逐題 Submit；Next / Prev 自由走，返去見到自己揀嘅選項（藍色），**隨時可以改**；全程唔顯示啱／錯、答案框、翻譯
-- **Submit Answer 只喺最後一題出現**（嗰題冇 Next），撳咗就去結果頁；有未答題會先 `confirm("N questions unanswered. Submit anyway?")`，取消就留低繼續做
+- **最後一題底部 Next 掣變做「Submit」**（同 ← Prev 一行；冇另外嘅 Submit 行，`#examSubmitRow` 已拎走；問題卡頭嘅快捷 → 喺最後一題收埋，避免誤撳交卷），撳咗就去結果頁；有未答題會先 `confirm("N questions unanswered. Submit anyway?")`，取消就留低繼續做
 - 快捷 ← → 喺有揀選項之後出現；唔影響掌握記錄
-- 實作：`renderQuestion()` 用 `showAnswer = revealed && state.mode === 'practice'` 控制顏色、答案框同翻譯；Exam mode 唔再用 `state.revealed`，`submitExam()` 計未答數再 `finishExam()`（按 `state.answers` 計分）
+- 實作：`renderQuestion()` 用 `showAnswer = revealed && state.mode === 'practice'` 控制顏色、答案框同翻譯；Exam mode 唔再用 `state.revealed`，`nextAction()` 喺 Exam 最後一題返 `{ label: 'Submit', run: submitExam, quick: false }`；`submitExam()` 計未答數再 `finishExam()`（按 `state.answers` 計分）
 - Results：分數、pass/fail（18/24）、按難度統計表、逐題 review
 
 **Study（溫習）**
@@ -145,7 +145,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 
 | Suite | 覆蓋 |
 |---|---|
-| `test.js` | Practice 基本流程、多選；Exam：揀選項中性藍色、Next / Prev 保留同可改答案、Submit 只喺最後一題、未答 confirm、按暫存答案計分 |
+| `test.js` | Practice 基本流程、多選；Exam：揀選項中性藍色、Next / Prev 保留同可改答案、最後一題 Next 變 Submit（同 Prev 一行）、未答 confirm、按暫存答案計分 |
 | `shuffle-test.js` | 408 題選項打亂後答案對應 |
 | `study-test.js`、`subfilter-test.js` | Study 四個 tab、搜尋、書籤、sub-filter |
 | `diff-test.js` | 難度數據完整、按難度練習、結果統計、難度掣只顯示英文 |
@@ -176,7 +176,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | — | dcwhung/life-in-uk-test#13 | HANDOFF.md：PR #11 / #12 版本記錄、開發流程備註 |
 | v0.42 | dcwhung/life-in-uk-test#14 | 修正 Practice › By Exam 進度條爆出圓角格仔：`.exam-btn:not(.done)` 加 `overflow: hidden`（`.done` 嘅 ✓ badge 只喺 Exam mode，要凸出所以唔 clip） |
 | — | dcwhung/life-in-uk-test#15 | HANDOFF.md：PR #14 版本記錄、mastery bar 備註 |
-| v0.43 | — | Exam mode 改做真考試流程：揀選項即暫存、Next / Prev 返去可以改答案、全程唔對答案；Submit Answer 只喺最後一題，有未答題先 confirm，撳咗去結果頁 |
+| v0.43 | — | Exam mode 改做真考試流程：揀選項即暫存、Next / Prev 返去可以改答案、全程唔對答案；最後一題 Next 變「Submit」，有未答題先 confirm，撳咗去結果頁 |
 
 **問題卡 header 設計決定（v0.41，先做 preview 同用戶確認）**
 - 目的：慳位，拎走問題卡上面獨立嘅一行同 progress bar
