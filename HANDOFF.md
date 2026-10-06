@@ -1,4 +1,4 @@
-# Life in the UK Test PWA — Handoff (v0.45)
+# Life in the UK Test PWA — Handoff (v0.46)
 
 - **Repo:** https://github.com/dcwhung/life-in-uk-test （main branch，GitHub Pages root `/`）
 - **Live:** https://dcwhung.github.io/life-in-uk-test/
@@ -111,7 +111,7 @@
 - **真考試模式（v0.43）：** 揀選項即刻暫存（`state.answers`），唔使逐題 Submit；Next / Prev 自由走，返去見到自己揀嘅選項（藍色），**隨時可以改**；全程唔顯示啱／錯、答案框、翻譯
 - **最後一題底部 Next 掣變做「Submit」**（同 ← Prev 一行；冇另外嘅 Submit 行，`#examSubmitRow` 已拎走；問題卡頭嘅快捷 → 喺最後一題收埋，避免誤撳交卷），撳咗就去結果頁；有未答題會先 `confirm("N questions unanswered. Submit anyway?")`，取消就留低繼續做
 - 快捷 ← → 喺有揀選項之後出現；唔影響掌握記錄
-- **Random Exam（v0.45）：** Exam mode 嘅 All Exams 掣變做「🎲 Random Exam (24 Q)」：每次由全部 408 題隨機抽 `RANDOM_EXAM_SIZE`（=24）題，**同一條 STUDY fact 最多抽一題**（`randomExamPick()` 用 `FACT_BY_QKEY` 去重，即係唔會有相類似題）；用齊考試工具同 PASSED / NEEDS IMPROVEMENT 判定；Retry 會再抽過一套新題；唔會標記 completed。Practice › By Exam 嘅「🎯 All Exams (408 Q)」維持原狀（每輪 25 條未掌握題）
+- **Random Exam（v0.45）：** Exam mode 嘅 All Exams 掣變做「🎲 Random Exam」（細字「24 Qs from 408 Qs」）：每次由全部 408 題隨機抽 `RANDOM_EXAM_SIZE`（=24）題，**同一條 STUDY fact 最多抽一題**（`randomExamPick()` 用 `FACT_BY_QKEY` 去重，即係唔會有相類似題）；用齊考試工具同 PASSED / NEEDS IMPROVEMENT 判定；Retry 會再抽過一套新題；唔會標記 completed。Practice › By Exam 嘅「🎯 All Exams (408 Q)」維持原狀（每輪 25 條未掌握題）
 - **考試工具（v0.44，Exam 1–17；v0.45 起 Random Exam 都有）：**
     ◦ 45 分鐘倒數（`EXAM_MINUTES`），右上角取代「Exam」標籤，一直顯示；剩 5 分鐘（`EXAM_WARN_SECONDS`）變紅閃；到 0 自動交卷，直接去結果頁，頁頂紅框「⏱ Time's up — your exam was submitted automatically.」（`#resultTimeUp`）；計時用 `examDeadline`（Date.now），唔怕 setInterval 延遲
     ◦ 書籤 icon（SVG，冇圓圈）flag 每一題（`state.flags`），未 flag 灰色空心、flag 咗橙色實心
@@ -166,7 +166,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | `examtools-test.js` | Random Exam（30 次抽題全部 24 題、24 個唔同 fact、每次唔同；工具、PASSED、Retry 抽新題、首頁掣名）；Exam 1–17 計時器（45:00、最後 5 分鐘變紅、到 0 自動交卷 + 結果頁提示）、24 圓點狀態同跳題、書籤 flag、計數、Submit / Home 提示；Practice 同 All Exams 冇呢啲工具 |
 | `quicknav-test.js` | 快捷 ← / →（符號、title、最後一題 ✓ / ↩）；問題卡 header：Question X of Y、progress bar 喺卡頂、score pill、header 冇 stats |
 
-## 版本記錄（v0.32–v0.45）
+## 版本記錄（v0.32–v0.46）
 
 | 版本 | PR | 改動 |
 |---|---|---|
@@ -188,11 +188,13 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | v0.43 | dcwhung/life-in-uk-test#16 | Exam mode 改做真考試流程：揀選項即暫存、Next / Prev 返去可以改答案、全程唔對答案；最後一題 Next 變「Submit」，有未答題先 confirm，撳咗去結果頁 |
 | v0.44 | dcwhung/life-in-uk-test#17 | Exam 1–17 考試工具：45 分鐘倒數（到 0 自動交卷）、書籤 flag、24 個數字圓點（狀態 + 跳題）、Answered / Unanswered / Flagged 計數；考試中返 Home 先問（先做 preview 確認） |
 | v0.45 | dcwhung/life-in-uk-test#18 | Exam mode All Exams 改做「🎲 Random Exam (24 Q)」：由 408 題隨機抽 24 題、唔會有相類似題（同一 fact 最多一題），用齊考試工具同 PASSED 判定；Practice 嘅 All Exams 唔變 |
+| — | — | HANDOFF.md：PR #18 版本記錄 |
+| v0.46 | — | Random Exam 掣文字改做「🎲 Random Exam」＋細字「24 Qs from 408 Qs」 |
 
 **Random Exam 設計決定（v0.45，同用戶確認）**
 - 只改 Exam mode；Practice 嘅 All Exams 保留「由 408 題抽未掌握題」嘅練法
 - 用齊 Exam 1–17 嘅考試工具同 18/24 判定，當模擬試
-- 掣名「🎲 Random Exam (24 Q)」，細字「from all 408 questions · no similar questions」
+- 掣名「🎲 Random Exam」，細字「24 Qs from 408 Qs」（v0.46 改；v0.45 原本係「🎲 Random Exam (24 Q)」+「from all 408 questions · no similar questions」）
 
 **Exam 流程設計決定（v0.43，同用戶逐步確認）**
 - 試過「Submit 之後跳下一題、唔對答案、鎖住」（89e5f7c），用戶要求改成真考試：揀咗即暫存、可以返去改、唔逐題 Submit

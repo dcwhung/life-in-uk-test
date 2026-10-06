@@ -101,7 +101,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   confirmAnswer = true; await pg.evaluate(() => goHome());
   // home grid: exam mode shows Random Exam; practice keeps All Exams (408 Q)
   await pg.click('#modeExam');
-  assert((await text('#examGrid .exam-btn.all')).startsWith('🎲 Random Exam (24 Q)'), 'exam grid: 🎲 Random Exam (24 Q)');
+  assert((await pg.$eval('#examGrid .exam-btn.all', e => e.firstChild.textContent.trim())) === '🎲 Random Exam' && (await text('#examGrid .exam-btn.all .exam-sub')) === '24 Qs from 408 Qs', 'exam grid: 🎲 Random Exam / 24 Qs from 408 Qs');
   await pg.click('#modePractice'); await pg.click('#ptabExam');
   assert((await text('#examGrid .exam-btn.all')).startsWith('🎯 All Exams (408 Q)'), 'practice grid keeps All Exams (408 Q)');
   await pg.evaluate(() => { pendingMode = 'practice'; startExam('all'); });
