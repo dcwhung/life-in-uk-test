@@ -205,6 +205,7 @@ v0.58 起全部 key 都有 `lifeuk.` prefix（`LS_PREFIX`，`js/core/config.js`�
 - 新舊都有，**冇 marker**（`lifeuk.migrated` 未寫，即係新 key 可能只係混合頁面寫落嘅）→ merge：
   - `MERGE_LS` 入面嘅 object map（practiceStreak、practiceFlags、wrongList、completedExams、studyMastered、studyBookmarks）逐條 entry `{...舊, ...新}`：同一題新嘅贏，舊有新冇嘅保留
   - 其他（prefs：homePrefs、studyPrefs）→ 新 key 贏
+  - 注意（S-008）：同一題「新嘅贏」唔係「大嘅贏」，可以令 streak 跌（例如舊 2 + 新 1 → 1）；混合頁面做過嘅刪除（unflag、`clearWrong` 答啱清錯題、Reset progress）喺新 key 度係「冇咗嗰條」，merge 會由舊 key 帶返嗰條出嚟（復活）
   - 任何一邊 parse 唔到做 plain object（壞 JSON、array、scalar）→ 留新 value，唔會 throw
   - 寫 merge 結果、讀返確認先刪舊 key；寫唔到 → 新 key 還原做原本 value、記 fallback（今次載入讀寫舊 key）、舊 key 保留，下次載入再 merge
   - **W-004**：fallback 嗰陣新 key 已經有 value → 將新 key 名記入 `lifeuk.migrateFallback`。因為今次載入嘅答題寫咗落舊 key，新 key 反而係舊資料；下次載入對呢啲 key **倒轉優先次序**：object map `{...新, ...舊}`、prefs 用舊 value、parse 唔到用舊 value。成功搬完嘅 key 會喺記錄度拎走；寫 marker 時成個記錄刪走
