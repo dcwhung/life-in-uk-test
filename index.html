@@ -170,6 +170,7 @@
   .exam-btn:not(.done) { overflow: hidden; }
   .exam-btn .mastery-bar { border-radius: 0; }
   .exam-btn.all .exam-mastery { color: var(--gold-light); }
+  .exam-btn .exam-sub { display: block; font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.65); margin-top: 2px; }
   .exam-btn.all .exam-mastery.zero { color: rgba(255,255,255,0.55); }
   .mode-icon { font-size: 26px; margin-bottom: 6px; }
   .mode-title { font-size: 14px; font-weight: 700; color: var(--navy); }
@@ -913,7 +914,7 @@
 // ════════════════════════════════════════
 // APP VERSION — single source of truth (shown in the header, drives the SW cache name)
 // ════════════════════════════════════════
-const APP_VERSION = '0.44';
+const APP_VERSION = '0.45';
 
 // ════════════════════════════════════════
 // APP STATE
@@ -942,7 +943,9 @@ function buildExamGrid() {
     const m = masteryOf(list);
     return `<span class="exam-mastery${m.mastered ? '' : ' zero'}">${masteryText(m)}</span>${masteryBar(m)}`;
   };
-  let html = `<button class="exam-btn all" onclick="startExam('all')">🎯 All Exams (408 Q)${mastery(allQuestions())}</button>`;
+  let html = isPractice
+    ? `<button class="exam-btn all" onclick="startExam('all')">🎯 All Exams (408 Q)${mastery(allQuestions())}</button>`
+    : `<button class="exam-btn all" onclick="startExam('all')">🎲 Random Exam (${RANDOM_EXAM_SIZE} Q)<span class="exam-sub">from all ${allQuestions().length} questions · no similar questions</span></button>`;
   for (let i = 1; i <= 17; i++) {
     const doneCls = !isPractice && done[i] ? ' done' : '';
     html += `<button class="exam-btn${doneCls}" onclick="startExam(${i})">Exam ${i}${mastery(examQuestions(i))}</button>`;
@@ -1075,9 +1078,26 @@ function isChapterExam(examNum) { return typeof examNum === 'string' && examNum.
 function chapterOf(examNum) { return Number(examNum.slice(2)); }
 // Exam 1–17 (Exam mode or Practice > By Exam) — the only sets shaped like the real test
 function isNumberedExam(examNum) { return typeof examNum === 'number'; }
+// exam mode › All Exams = Random Exam: RANDOM_EXAM_SIZE questions drawn from all 408, at most one per study fact
+const RANDOM_EXAM_SIZE = 24;
+function isRandomExam(examNum) { return examNum === 'all' && state.mode === 'exam'; }
+function randomExamPick(pool) {
+  const usedFacts = new Set();
+  const picked = [];
+  for (const item of shuffle(pool)) {
+    const fact = FACT_BY_QKEY[qKey(item)];
+    const factId = fact ? fact.id : qKey(item);
+    if (usedFacts.has(factId)) continue;
+    usedFacts.add(factId);
+    picked.push(item);
+    if (picked.length === RANDOM_EXAM_SIZE) break;
+  }
+  return picked;
+}
 function isDifficultyExam(examNum) { return typeof examNum === 'string' && examNum.startsWith('d'); }
 function difficultyOf(examNum) { const v = examNum.slice(1); return v === 'hard' ? 'hard' : Number(v); }
 function examLabel(examNum) {
+  if (isRandomExam(examNum)) return 'Random Exam';
   if (examNum === 'all') return 'All Exams';
   if (isChapterExam(examNum)) return `Chapter ${chapterOf(examNum)}`;
   if (isDifficultyExam(examNum)) {
@@ -1161,6 +1181,8 @@ function startExam(examNum) {
   if (state.mode === 'practice') {
     state.questions = shuffle(practicePool(pool)).slice(0, PRACTICE_ROUND_MAX)
       .map(({ q, examNum: e, origIdx }) => ({ ...shuffleOptions(q), examNum: e, origIdx }));
+  } else if (isRandomExam(examNum)) {
+    state.questions = randomExamPick(pool).map(({ q, examNum: e, origIdx }) => ({ ...shuffleOptions(q), examNum: e, origIdx }));
   } else {
     const ordered = examNum === 'all' ? shuffle(pool) : pool;
     state.questions = ordered.map(({ q, examNum: e, origIdx }) => ({ ...shuffleOptions(q), examNum: e, origIdx }));
@@ -1194,7 +1216,7 @@ function renderQuestion() {
 
   // header
   document.getElementById('quizLabel').textContent =
-    state.examNum === 'all' ? `All Exams (shuffled)` : examLabel(state.examNum);
+    state.examNum === 'all' && !isRandomExam(state.examNum) ? `All Exams (shuffled)` : examLabel(state.examNum);
   document.getElementById('modeBadge').textContent =
     state.mode === 'practice' ? 'Practice' : 'Exam';
 
@@ -1455,7 +1477,7 @@ const MS_PER_SECOND = 1000;
 let examTimerId = null;
 let examDeadline = 0;
 let examTimeUp = false;
-function hasExamTools() { return state.mode === 'exam' && isNumberedExam(state.examNum); }
+function hasExamTools() { return state.mode === 'exam' && (isNumberedExam(state.examNum) || isRandomExam(state.examNum)); }
 function isExamRunning() {
   return state.mode === 'exam' && document.getElementById('screenQuiz').classList.contains('active');
 }
@@ -1584,7 +1606,7 @@ function finishExam() {
       ? `You need 18/24 (75%) to pass the real test.`
       : `75% pass threshold. You scored ${pct}%.`;
   // pass / fail verdict + remark only make sense for real-test-shaped sets
-  const showVerdict = isNumberedExam(state.examNum);
+  const showVerdict = isNumberedExam(state.examNum) || isRandomExam(state.examNum);
   lbl2.style.display = showVerdict ? '' : 'none';
   sub.style.display = showVerdict ? '' : 'none';
   const retryLabel = state.mode === 'exam' ? 'Retry Exam' : 'Practise Again';
