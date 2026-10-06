@@ -24,8 +24,9 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await answer();
   assert(await vis('#quickNav') && !(await vis('#yueToggle')), 'after answering: quick nav in the Translate spot');
   assert(await pg.$eval('#quickNav', e => e.closest('.q-num') !== null), 'quick nav sits in the question header row');
-  assert((await text('#quickPrev')) === '← Prev' && await pg.$eval('#quickPrev', e => e.disabled), 'Prev disabled on the first question');
-  assert((await text('#quickNext')) === 'Next →', 'Next label');
+  assert((await text('#quickPrev')) === '←' && await pg.$eval('#quickPrev', e => e.disabled), 'symbol-only Prev, disabled on the first question');
+  assert((await text('#quickNext')) === '→', 'symbol-only Next');
+  assert(await pg.$eval('#quickPrev', e => e.title === 'Previous') && await pg.$eval('#quickNext', e => e.title === 'Next'), 'quick buttons keep a text label as title');
   await pg.click('#quickNext');
   assert(await pg.evaluate(() => state.current === 1), 'quick Next moves to the next question');
   assert(!(await vis('#quickNav')), 'hidden again on an unanswered question');
@@ -35,7 +36,8 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   // last question mirrors the bottom button (Finish)
   await pg.evaluate(() => { state.current = state.questions.length - 1; renderQuestion(); });
   await answer();
-  assert((await text('#quickNext')) === (await text('#nextBtn')) && (await text('#quickNext')) === 'Finish ✓', 'last question: Finish ✓ like the bottom button');
+  assert((await text('#quickNext')) === '✓' && (await text('#nextBtn')) === 'Finish ✓', 'last question: ✓ (bottom button keeps Finish ✓)');
+  assert(await pg.$eval('#quickNext', e => e.title === 'Finish'), 'title names the action');
   await pg.click('#quickNext');
   assert(await vis('#screenResult'), 'quick Finish opens the results');
 
@@ -46,7 +48,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(await vis('#quickNav'), 'exam: shown after submit');
   await pg.evaluate(() => { state.current = state.questions.length - 1; renderQuestion(); });
   await answer();
-  assert((await text('#quickNext')) === 'See Results →', 'exam last question: See Results →');
+  assert((await text('#quickNext')) === '✓' && (await text('#nextBtn')) === 'See Results →', 'exam last question: ✓ / See Results →');
 
   // similar session: last question goes back
   await pg.evaluate(() => {
@@ -57,9 +59,26 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
     state.current = state.questions.length - 1;
     const l = state.questions[state.current]; state.answers[state.current] = [...l.a]; revealAnswer();
   });
-  assert((await text('#quickNext')) === '↩ Back', 'similar session: ↩ Back');
+  assert((await text('#quickNext')) === '↩' && (await text('#nextBtn')) === '↩ Back', 'similar session: ↩ / ↩ Back');
   await pg.click('#quickNext');
   assert(await pg.evaluate(() => state.examNum === 12 && similarReturn === null), 'quick Back returns to the original session');
+
+  // merged card header: "Question X of Y", progress bar as the card's top border, score pill
+  await pg.evaluate(() => { localStorage.clear(); streaks = {}; pendingMode = 'practice'; startExam('ch1'); });
+  assert((await pg.$$('#headerStats')).length === 0, 'app header has no correct / done stats');
+  assert((await pg.$$('#progressText')).length === 0, 'no separate progress row');
+  assert((await text('#qNum')).startsWith('Question 1 of 9'), 'question header reads "Question 1 of 9"');
+  assert(await pg.$eval('#progressFill', e => e.closest('.q-card') !== null && e.parentElement.classList.contains('q-progress')), 'progress bar lives in the question card');
+  assert(await pg.$eval('#progressFill', e => e.style.width === '11%'), 'bar width = 1 of 9');
+  assert((await pg.$$('#qNum .score-pill')).length === 0, 'no score pill before the first answer');
+  await answer();
+  assert((await text('#qNum .score-pill')) === '✓ 1/1', 'score pill after answering');
+  await pg.click('#quickNext');
+  assert((await text('#qNum')).startsWith('Question 2 of 9') && (await text('#qNum .score-pill')) === '✓ 1/1', 'pill carries over to the next question');
+  assert(await pg.$eval('#progressFill', e => e.style.width === '22%'), 'bar advances');
+  await pg.evaluate(() => { pendingMode = 'exam'; startExam(1); });
+  await answer();
+  assert((await pg.$$('#qNum .score-pill')).length === 0 && (await text('#qNum')).startsWith('Question 1 of 24'), 'exam mode: no score pill');
 
   assert(errs.length === 0, 'no page errors: ' + errs.join('; '));
   console.log('QUICKNAV PASS');

@@ -82,7 +82,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.click('#similarBox .sqm-cta button');
   assert(await pg.evaluate(() => state.questions.map(qKey).join(',') === '9.14,12.18'), 'temporary session holds only the similar questions');
   assert((await text('#quizLabel')) === 'Similar Questions', 'session label');
-  assert((await text('#progressText')) === 'Question 1 of 2', 'progress counts the similar questions');
+  assert((await text('#qNum')).startsWith('Question 1 of 2'), 'progress counts the similar questions');
   await answer(false);
   assert(!(await vis('#similarBox')), 'no nested similar section inside the temporary session');
   assert(await pg.evaluate(() => state.questions.length === 2), 'wrong answer is not re-queued (each question once)');
