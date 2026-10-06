@@ -4,8 +4,8 @@ const os = require('os');
 const path = require('path');
 const { startPagesServer } = require('./pages-server');
 // App icon (CUI-0001): favicon + apple-touch-icon resolve, no 404 on page load.
-// Web manifest (CUI-0002): fetched + parsed, required fields, icons at their declared sizes, Chrome sees
-// no manifest / installability errors, and the existing beforeinstallprompt banner still works.
+// Web manifest (CUI-0002): fetched + parsed, required fields, install texts = locale (S-019), icons at their
+// declared sizes, Chrome sees no manifest / installability errors, and the existing beforeinstallprompt banner still works.
 // Served over http (python static server on the repo root, read-only) or APP_URL when that is http(s).
 const ROOT = path.resolve(__dirname, '..');
 const launchOpts = { args: ['--no-sandbox'] };
@@ -15,7 +15,7 @@ const APPLE_TOUCH_SIZE = 180;
 const FAVICON_SETTLE_MS = 1500;
 const NAVY = fs.readFileSync(path.join(ROOT, 'css/base/tokens.css'), 'utf8').match(/--navy:\s*(#[0-9a-f]{6})/i)[1];
 const EXPECTED_MANIFEST = {
-  name: 'Life in the UK Test', short_name: 'Life in UK', start_url: './', scope: './',
+  start_url: './', scope: './',
   display: 'standalone', background_color: NAVY, theme_color: NAVY,
 };
 const REQUIRED_ICONS = [
@@ -62,7 +62,13 @@ async function checkManifest(pg, links, request) {
   assert(res.status() === 200, `manifest loads with 200 (${res.status()})`);
   const manifest = JSON.parse(await res.text());
   const wrong = Object.keys(EXPECTED_MANIFEST).filter(k => manifest[k] !== EXPECTED_MANIFEST[k]);
-  assert(wrong.length === 0, 'manifest is valid JSON with name, short_name, start_url, scope, display, colours' + (wrong.length ? ' — wrong: ' + wrong.map(k => `${k}=${manifest[k]}`).join(', ') : ''));
+  assert(wrong.length === 0, 'manifest is valid JSON with start_url, scope, display, colours' + (wrong.length ? ' — wrong: ' + wrong.map(k => `${k}=${manifest[k]}`).join(', ') : ''));
+  // install texts follow the locale (S-019): the manifest is static JSON, so it is checked against t() in the page
+  const localeTexts = await pg.evaluate(() => ({
+    name: t('app.installName'), short_name: t('app.installShortName'), description: t('app.description', { n: EXAM_COUNT }),
+  }));
+  const offLocale = Object.keys(localeTexts).filter(k => manifest[k] !== localeTexts[k]);
+  assert(offLocale.length === 0, 'manifest name / short_name / description match the en locale' + (offLocale.length ? ' — differ: ' + offLocale.map(k => `${k}="${manifest[k]}" vs "${localeTexts[k]}"`).join(', ') : ''));
   const metaTheme = await pg.$eval('meta[name="theme-color"]', e => e.content);
   assert(metaTheme.toLowerCase() === NAVY.toLowerCase(), `theme-color meta is the header navy (${metaTheme})`);
   const icons = manifest.icons || [];

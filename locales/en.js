@@ -11,6 +11,9 @@ LOCALES.en = {
     title: 'Life in the UK · Exam Practice',
     description: 'Life in the UK Test — Exam 1–{n} Practice App',
     shortName: 'Life in UK',
+    // manifest.webmanifest is static JSON: these mirror its name / short_name (tests/pwa-test.js keeps them equal)
+    installName: 'Life in the UK Test',
+    installShortName: 'Life in UK',
     name: 'Life in the UK',
     sub: 'Exam Practice',
     about: 'About this app',

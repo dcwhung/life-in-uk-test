@@ -22,6 +22,8 @@ const DYNAMIC_PREFIXES = [
   'data.chapters.', 'data.chapterShort.', 'data.difficulty.', 'data.eras.',
   'data.nations.', 'data.geoTypes.', 'data.people.',
 ];
+// keys no source file reads: manifest.webmanifest mirrors them (static JSON), tests/pwa-test.js compares the two
+const MANIFEST_KEYS = ['app.installName', 'app.installShortName'];
 const SECTIONS = ['app', 'home', 'quiz', 'exam', 'result', 'review', 'similar', 'flagged', 'study', 'modal', 'common', 'data'];
 const KEY_LITERAL = new RegExp(`'((?:${SECTIONS.join('|')})\\.[\\w.]+)'`, 'g');
 const PLURAL_FORMS = ['zero', 'one', 'two', 'few', 'many', 'other'];
@@ -84,7 +86,7 @@ function staticChecks() {
   assert(missing.length === 0, 'every key used in js/ and index.html exists in LOCALES.en' + (missing.length ? ': ' + missing.join(', ') : ''));
   const emptyPrefix = [...dynamics].filter(p => ![...enKeys].some(k => k.startsWith(p)));
   assert(emptyPrefix.length === 0, 'every dynamic prefix has keys in en' + (emptyPrefix.length ? ': ' + emptyPrefix.join(', ') : ''));
-  const unused = [...enKeys].filter(k => !statics.has(k) && !DYNAMIC_PREFIXES.some(p => k.startsWith(p)));
+  const unused = [...enKeys].filter(k => !statics.has(k) && !MANIFEST_KEYS.includes(k) && !DYNAMIC_PREFIXES.some(p => k.startsWith(p)));
   assert(unused.length === 0, 'no unused en keys' + (unused.length ? ': ' + unused.join(', ') : ''));
   const strings = ([, v]) => (typeof v === 'string' ? [v] : Object.values(v));
   const cjkValues = enLeaves.filter(([k, v]) => !CJK_WHITELIST.includes(k) && strings([k, v]).some(s => CJK.test(s)));
