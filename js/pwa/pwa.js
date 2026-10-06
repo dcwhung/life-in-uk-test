@@ -12,7 +12,7 @@ function registerSW() {
 let deferredPrompt = null;
 // phones / tablets only, and never again once the user closed it with ✕
 function shouldShowInstallBanner() {
-  return window.matchMedia(INSTALL_TOUCH_QUERY).matches && !getLS(INSTALL_DISMISSED_KEY);
+  return window.matchMedia(INSTALL_TOUCH_QUERY).matches && !getLS(INSTALL_DISMISSED_LS);
 }
 window.addEventListener('beforeinstallprompt', e => {
   // always keep Chrome's own mini-infobar away; the prompt stays available even when the banner is not shown
@@ -22,7 +22,7 @@ window.addEventListener('beforeinstallprompt', e => {
 });
 function dismissInstallBanner() {
   byId('installBanner').classList.remove('visible');
-  setLS(INSTALL_DISMISSED_KEY, true);
+  setLS(INSTALL_DISMISSED_LS, true);
 }
 async function promptInstall() {
   if (!deferredPrompt) return;
