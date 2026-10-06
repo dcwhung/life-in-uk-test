@@ -50,7 +50,10 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
 
   // study fact stars
   await pg.click('#modeStudy');
-  assert((await pg.$$('.tag.diff')).length === 2, 'Ch1 facts show star tags');
+  // v0.62 (P3 T-103): Study facts use the same starsHtml as the question card (5 stars, unfilled ones .off)
+  const factStars = await pg.$$eval('.fact .stars', els => els.map(e => ({ text: e.textContent, off: e.querySelector('.off').textContent.length, title: e.title })));
+  assert(factStars.length === 2 && factStars.every(s => s.text === '★★★★★' && /^Difficulty [1-5]\/5$/.test(s.title)), 'Ch1 facts show 5-star starsHtml: ' + JSON.stringify(factStars));
+  assert((await pg.$$('.tag.diff')).length === 0, 'no old .tag.diff star tag');
   assert(errs.length === 0, 'no page errors: ' + errs.join(';'));
   await b.close(); console.log('DIFF PASS');
 })().catch(e => { console.error(e.message); process.exit(1); });

@@ -75,6 +75,14 @@ function actionNames() {
   assert(oldInverse.length === 0, 'no value-named --text-inverse-NN tokens in css (use strong / muted / faint)'
     + (oldInverse.length ? ': ' + oldInverse.join(', ') : ''));
 
+  // v0.62 (P3 Q2-a): purple means Cantonese only — Study / Home chrome uses the navy --study-accent* tokens;
+  // the only purple rule left in these files is the Cantonese line .fact-yue
+  const STUDY_CHROME_CSS = ['css/screens/study.css', 'css/components/chips.css', 'css/screens/home.css'];
+  const purpleChrome = STUDY_CHROME_CSS.flatMap(f => fs.readFileSync(path.join(ROOT, f), 'utf8').split('\n')
+    .map((line, i) => (/--purple|--year-bg/.test(line) && !/^\.fact-yue\b/.test(line) ? `${f}:${i + 1}` : null)).filter(Boolean));
+  assert(purpleChrome.length === 0, 'Study / Home chrome css has no --purple* / --year-bg (only .fact-yue)'
+    + (purpleChrome.length ? ': ' + purpleChrome.join(', ') : ''));
+
   const b = await chromium.launch(launchOpts);
   const pg = await b.newPage();
   const errs = [];
