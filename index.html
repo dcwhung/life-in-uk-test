@@ -867,7 +867,7 @@
 // ════════════════════════════════════════
 // APP VERSION — single source of truth (shown in the header, drives the SW cache name)
 // ════════════════════════════════════════
-const APP_VERSION = '0.37';
+const APP_VERSION = '0.38';
 
 // ════════════════════════════════════════
 // APP STATE
@@ -932,12 +932,6 @@ function recordPracticeAnswer(q, correct) {
   const k = qKey(q);
   streaks[k] = correct ? Math.min(MASTERY_STREAK, (streaks[k] || 0) + 1) : 0;
   setLS(STREAK_LS, streaks);
-}
-// practice: an unmastered question goes back to the end of the session queue (options
-// re-shuffled), so one session keeps going until every question in it is mastered
-function requeueIfUnmastered(q) {
-  if (isMastered(q)) return;
-  state.questions.push({ ...shuffleOptions(q), examNum: q.examNum, origIdx: q.origIdx });
 }
 // ── Similar questions: every question belongs to one STUDY fact (fact.src = "exam.idx" keys);
 // other questions of the same fact are the same point asked differently ──
@@ -1096,7 +1090,7 @@ function renderModeSelection() {
   // the "Select Exam" header is only needed when there are no practice tabs
   document.getElementById('secExamTitle').style.display = isPractice ? 'none' : '';
   document.getElementById('practiceHint').innerHTML =
-    `Answer a question correctly <b>${MASTERY_STREAK} times in a row</b> to master it. Each round draws up to <b>${PRACTICE_ROUND_MAX}</b> unmastered questions; they come back later in the same round until mastered. Mastered ones are skipped until the whole set is mastered.`;
+    `Answer a question correctly <b>${MASTERY_STREAK} times in a row</b> to master it. Each round draws up to <b>${PRACTICE_ROUND_MAX}</b> unmastered questions, each asked once; unmastered ones come back in the next round. Mastered ones are skipped until the whole set is mastered.`;
   document.getElementById('practiceReset').classList.toggle('show', isPractice);
   document.getElementById('examReset').classList.toggle('show', pendingMode === 'exam');
 }
@@ -1411,8 +1405,7 @@ function revealAnswer() {
   const correct = q.a.every(a => userAns.includes(a)) && userAns.length === q.a.length;
   state.revealed[idx] = correct;
   if (state.mode === 'practice') {
-    recordPracticeAnswer(q, correct);
-    if (!isSimilarSession()) requeueIfUnmastered(q); // similar session: each question once
+    recordPracticeAnswer(q, correct); // session length stays fixed; unmastered ones return next session
   }
   renderQuestion();
 }
