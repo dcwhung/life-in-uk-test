@@ -69,7 +69,12 @@ async function checkVersionBump(pg, serveDir, oldCache) {
     });
     // another app's cache on the same origin (GitHub Pages user site) must survive our activation
     await pg.goto(base + 'sw.js');
-    await pg.evaluate(async () => { const c = await caches.open('other-app'); await c.put('/other', new Response('x')); });
+    // S-003: it also holds a same-origin URL this app loads; our fetch handler must only read our own cache
+    await pg.evaluate(async poisoned => {
+      const c = await caches.open('other-app');
+      await c.put('/other', new Response('x'));
+      await c.put(poisoned, new Response('window.__foreignCacheServed = true;', { headers: { 'Content-Type': 'text/javascript' } }));
+    }, base + 'js/main.js');
     await pg.goto(base);
 
     // ── registration + cache ──
@@ -90,6 +95,8 @@ async function checkVersionBump(pg, serveDir, oldCache) {
 
     // ── offline reload: the app still opens on the home screen ──
     await pg.waitForFunction(() => navigator.serviceWorker.controller !== null);
+    await pg.reload();
+    assert(await pg.evaluate(() => navigator.serviceWorker.controller !== null && window.__foreignCacheServed === undefined), "fetch never serves another app's cache entry for our URL (S-003)");
     await ctx.setOffline(true);
     await pg.reload();
     assert(await pg.evaluate(() => document.getElementById('screenHome').classList.contains('active')), 'offline reload shows the home screen');
