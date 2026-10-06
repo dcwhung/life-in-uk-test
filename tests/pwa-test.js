@@ -134,7 +134,7 @@ async function checkInstallDismiss(pg) {
   const after = await pg.evaluate(k => ({
     visible: byId('installBanner').classList.contains('visible'), stored: localStorage.getItem(k),
   }), INSTALL_DISMISSED);
-  assert(!after.visible && after.stored !== null, `✕ hides the banner and stores ${INSTALL_DISMISSED} (${after.stored})`);
+  assert(!after.visible && after.stored === 'true', `✕ hides the banner and stores ${INSTALL_DISMISSED} (${after.stored})`);
   await pg.reload();
   const again = await fireInstallPrompt(pg);
   assert(again.prevented && !again.visible, 'after dismissing, a new beforeinstallprompt (reload) stays hidden');
