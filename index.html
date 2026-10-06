@@ -282,6 +282,21 @@
     border: 1.5px solid var(--red-light); border-radius: 10px;
     padding: 10px 14px; margin-bottom: 14px; font-size: 13px; font-weight: 700; text-align: center;
   }
+  /* in-app confirm modal (replaces the browser's confirm box in exam mode) */
+  .modal-backdrop {
+    position: fixed; inset: 0; z-index: 300; /* above the sticky header (100) and info popover (200) */
+    background: rgba(26,39,68,0.55);
+    display: none; align-items: center; justify-content: center; padding: 16px;
+  }
+  .modal-backdrop.show { display: flex; animation: slideIn 0.18s ease; }
+  .modal-card {
+    background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+    width: 100%; max-width: 360px; padding: 22px 20px 18px; text-align: center;
+  }
+  .modal-title { font-size: 17px; font-weight: 800; color: var(--navy); margin-bottom: 8px; }
+  .modal-msg { font-size: 14px; color: var(--text-muted); line-height: 1.55; margin-bottom: 18px; white-space: pre-line; }
+  .modal-actions { display: flex; gap: 10px; }
+  .modal-actions .nav-btn { flex: 1; }
   .quiz-mode-badge {
     background: var(--navy);
     color: var(--gold-light);
@@ -907,6 +922,18 @@
 
 </main>
 
+<!-- in-app confirm modal -->
+<div class="modal-backdrop" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" onclick="if (event.target === this) closeConfirm()">
+  <div class="modal-card">
+    <div class="modal-title" id="confirmTitle"></div>
+    <div class="modal-msg" id="confirmMsg"></div>
+    <div class="modal-actions">
+      <button class="nav-btn secondary" id="confirmCancel" onclick="closeConfirm()">Cancel</button>
+      <button class="nav-btn" id="confirmOk">OK</button>
+    </div>
+  </div>
+</div>
+
 <script src="data/exams.js"></script>
 <script src="data/study.js"></script>
 <script src="js/utils.js"></script>
@@ -914,7 +941,7 @@
 // ════════════════════════════════════════
 // APP VERSION — single source of truth (shown in the header, drives the SW cache name)
 // ════════════════════════════════════════
-const APP_VERSION = '0.47';
+const APP_VERSION = '0.48';
 
 // ════════════════════════════════════════
 // APP STATE
@@ -1540,14 +1567,35 @@ function renderExamTools(idx) {
   flagBtn.setAttribute('aria-label', flagBtn.title);
 }
 
+// ── In-app confirm modal (no browser alert / confirm boxes during an exam) ──
+let confirmOnOk = null;
+function showConfirm({ title, message, okLabel, cancelLabel, onOk }) {
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMsg').textContent = message;
+  document.getElementById('confirmOk').textContent = okLabel;
+  document.getElementById('confirmCancel').textContent = cancelLabel;
+  confirmOnOk = onOk;
+  document.getElementById('confirmModal').classList.add('show');
+  document.getElementById('confirmOk').focus();
+}
+function closeConfirm() {
+  document.getElementById('confirmModal').classList.remove('show');
+  confirmOnOk = null;
+}
+document.getElementById('confirmOk').onclick = () => { const run = confirmOnOk; closeConfirm(); if (run) run(); };
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('confirmModal').classList.contains('show')) closeConfirm();
+});
+
 // exam: picks are saved as you go (and can be changed); Submit on the last question marks the
 // whole exam and opens the results — no right / wrong is shown before that
 function submitExam() {
   const unanswered = state.questions.filter((_, i) => !isAnswered(i)).length;
   const flagged = flaggedCount();
   const notes = [unanswered && `${unanswered} questions unanswered`, flagged && `${flagged} flagged`].filter(Boolean);
-  if (notes.length && !confirm(`${notes.join(', ')}. Submit anyway?`)) return;
-  finishExam();
+  if (!notes.length) { finishExam(); return; }
+  showConfirm({ title: 'Submit exam?', message: `${notes.join('\n')}\nYou can still go back and check them.`,
+    okLabel: 'Submit', cancelLabel: 'Keep going', onOk: finishExam });
 }
 
 function nextQ() {
@@ -1683,7 +1731,14 @@ function retryExam() {
 }
 
 function goHome() {
-  if (isExamRunning() && !confirm('Leave the exam? Your answers will be lost.')) return;
+  if (isExamRunning()) {
+    showConfirm({ title: 'Leave the exam?', message: 'Your answers will be lost.',
+      okLabel: 'Leave', cancelLabel: 'Stay', onOk: leaveToHome });
+    return;
+  }
+  leaveToHome();
+}
+function leaveToHome() {
   stopExamTimer();
   similarReturn = null;
   showScreen('screenHome');

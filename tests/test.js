@@ -54,12 +54,11 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.evaluate(i => { state.current = i; renderQuestion(); }, last);
   assert((await nextText()) === 'Submit' && !(await pg.$eval('#nextBtn', e => e.disabled)), 'last question: the Next button becomes Submit');
   assert(await pg.$eval('#nextBtn', e => e.parentElement.contains(document.getElementById('prevBtn'))), 'Submit sits next to Prev');
-  await pg.evaluate(() => { window.confirm = () => false; });
   await pg.click('#nextBtn');
+  assert(/22 questions unanswered/.test(await pg.$eval('#confirmMsg', e => e.textContent)), 'warning modal counts unanswered questions');
+  await pg.click('#confirmCancel');
   assert(await pg.evaluate(() => document.getElementById('screenQuiz').classList.contains('active')), 'cancel on the unanswered warning stays in the exam');
-  await pg.evaluate(() => { window.confirm = (m) => { window.lastConfirm = m; return true; }; });
-  await pg.click('#nextBtn');
-  assert(await pg.evaluate(() => /22 questions unanswered/.test(window.lastConfirm)), 'warning counts unanswered questions');
+  await pg.click('#nextBtn'); await pg.click('#confirmOk');
   assert(await pg.evaluate(() => document.getElementById('screenResult').classList.contains('active')), 'Submit opens the results');
   assert((await pg.$eval('#rbCorrect', e => e.textContent)) === '2', 'results score the saved picks (2 correct)');
 
@@ -68,10 +67,10 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
     pendingMode = 'exam'; startExam(1);
     state.questions.forEach((q, i) => { state.answers[i] = [...q.a]; });
     state.current = state.questions.length - 1; renderQuestion();
-    window.lastConfirm = null;
   });
   await pg.click('#nextBtn');
-  assert(await pg.evaluate(() => window.lastConfirm === null && document.getElementById('rbCorrect').textContent === '24'), 'all answered: submits without a warning, 24/24');
+  assert(await pg.evaluate(() => !document.getElementById('confirmModal').classList.contains('show') && document.getElementById('rbCorrect').textContent === '24'), 'all answered: submits without a warning, 24/24');
+  assert(dialogs.length === 0, 'exam never uses a browser alert / confirm box');
 
   // ── Practice mode: wrong answer must still reveal + lock ──
   await pg.evaluate(() => { pendingMode = 'practice'; startExam(1); });
