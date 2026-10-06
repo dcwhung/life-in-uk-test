@@ -25,6 +25,7 @@ LOCALES.en = {
     installTitle: 'Install for offline use',
     installText: 'Add to home screen to study without internet',
     installButton: 'Install',
+    installDismiss: 'Dismiss',
   },
 
   home: {
@@ -115,7 +116,8 @@ LOCALES.en = {
     node: 'E{exam}·Q{n}',
     legendCurrent: 'This question',
     legendInProgress: 'In progress',
-    practise: '▶ Practise these {n}',
+    // one similar question reads "this one" ("these 1" was CUI-0007)
+    practise: { one: '▶ Practise this one', other: '▶ Practise these {n}' },
   },
 
   flagged: {

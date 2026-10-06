@@ -22,14 +22,11 @@
   --border: #dde2f0;
   --divider: rgba(0,0,0,0.06);
 
-  /* text on navy / coloured fills, with the alpha steps used for secondary lines */
+  /* text on navy / coloured fills; v0.60: three semantic alpha steps for secondary lines (was 75 / 70 / 65 / 60 / 55 / 45) */
   --text-inverse: #fff;
-  --text-inverse-75: rgba(255,255,255,0.75);
-  --text-inverse-70: rgba(255,255,255,0.7);
-  --text-inverse-65: rgba(255,255,255,0.65);
-  --text-inverse-60: rgba(255,255,255,0.6);
-  --text-inverse-55: rgba(255,255,255,0.55);
-  --text-inverse-45: rgba(255,255,255,0.45);
+  --text-inverse-strong: rgba(255,255,255,0.75);  /* body copy on dark */
+  --text-inverse-muted: rgba(255,255,255,0.6);    /* sub-lines, captions, install ✕ */
+  --text-inverse-faint: rgba(255,255,255,0.45);   /* version tag, zero counts */
 
   /* state tints: light backgrounds behind right / wrong / selected / flagged */
   --success-bg: #edf8f2;

@@ -6,7 +6,7 @@
 }
 .flag-start svg { width: 26px; height: 26px; flex-shrink: 0; }
 .flag-start b { display: block; font-size: var(--fs-lg); }
-.flag-start .fs-sub { font-size: var(--fs-sm); color: var(--text-inverse-70); }
+.flag-start .fs-sub { font-size: var(--fs-sm); color: var(--text-inverse-strong); }
 .flag-start .go { margin-left: auto; font-size: 20px; color: var(--gold-light); }
 .flag-item { display: flex; align-items: flex-start; gap: 10px; background: var(--card); border-radius: var(--radius-md); padding: 11px 13px; margin-bottom: 8px; box-shadow: var(--shadow-sm); }
 .flag-item .fi-text { flex: 1; font-size: var(--fs-base); color: var(--navy); font-weight: 600; line-height: 1.45; }

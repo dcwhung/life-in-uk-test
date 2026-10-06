@@ -6,6 +6,7 @@ const { startPagesServer } = require('./pages-server');
 // App icon (CUI-0001): favicon + apple-touch-icon resolve, no 404 on page load.
 // Web manifest (CUI-0002): fetched + parsed, required fields, install texts = locale (S-019), icons at their
 // declared sizes, Chrome sees no manifest / installability errors, and the existing beforeinstallprompt banner still works.
+// v0.60 install banner: only on touch (coarse pointer) devices, and its ✕ hides it for good (lifeuk.installDismissed).
 // Served over http (python static server on the repo root, read-only) or APP_URL when that is http(s).
 const ROOT = path.resolve(__dirname, '..');
 const launchOpts = { args: ['--no-sandbox'] };
@@ -92,6 +93,53 @@ async function checkInstallable(pg) {
   assert(ids.length === 0, 'Chrome reports no installability errors' + (ids.length ? ': ' + ids.join(', ') : ''));
 }
 
+const INSTALL_DISMISSED = 'lifeuk.installDismissed';
+
+// init script: answer matchMedia('(pointer: coarse)') as a phone (coarse) or a mouse PC (fine); other queries untouched
+function emulatePointer(coarse) {
+  const realMatchMedia = window.matchMedia.bind(window);
+  window.matchMedia = q => (/pointer:\s*coarse/.test(q)
+    ? { matches: coarse, media: q, onchange: null, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} }
+    : realMatchMedia(q));
+}
+
+// in the page: fire a fake beforeinstallprompt; returns whether it was intercepted and whether the banner shows
+const fireInstallPrompt = pg => pg.evaluate(() => {
+  const e = new Event('beforeinstallprompt', { cancelable: true });
+  e.prompt = () => { window.__installPrompted = true; };
+  e.userChoice = Promise.resolve({ outcome: 'dismissed' });
+  window.dispatchEvent(e);
+  return { prevented: e.defaultPrevented, visible: byId('installBanner').classList.contains('visible') };
+});
+
+// a mouse / trackpad PC (fine pointer): the prompt is still intercepted but the banner never shows
+async function checkInstallBannerDesktop(ctx, base) {
+  const pg = await ctx.newPage();
+  await pg.addInitScript(emulatePointer, false);
+  await pg.goto(base);
+  const r = await fireInstallPrompt(pg);
+  assert(r.prevented && !r.visible, `fine pointer (PC): prompt intercepted, banner hidden (prevented=${r.prevented}, visible=${r.visible})`);
+  await pg.close();
+}
+
+// touch device: ✕ hides the banner, stores lifeuk.installDismissed, and later prompts (after reload) stay hidden
+async function checkInstallDismiss(pg) {
+  assert((await fireInstallPrompt(pg)).visible, 'coarse pointer (phone): beforeinstallprompt shows the banner');
+  const label = await pg.evaluate(() => {
+    const btn = document.querySelector('#installBanner .install-close');
+    return btn && { aria: btn.getAttribute('aria-label'), title: btn.title, text: t('app.installDismiss') };
+  });
+  assert(label && label.aria === label.text && label.title === label.text, `✕ button has aria-label / title from app.installDismiss (${JSON.stringify(label)})`);
+  await pg.click('#installBanner .install-close');
+  const after = await pg.evaluate(k => ({
+    visible: byId('installBanner').classList.contains('visible'), stored: localStorage.getItem(k),
+  }), INSTALL_DISMISSED);
+  assert(!after.visible && after.stored === 'true', `✕ hides the banner and stores ${INSTALL_DISMISSED} (${after.stored})`);
+  await pg.reload();
+  const again = await fireInstallPrompt(pg);
+  assert(again.prevented && !again.visible, 'after dismissing, a new beforeinstallprompt (reload) stays hidden');
+}
+
 // js/pwa/pwa.js: a beforeinstallprompt shows the banner; Install prompts and an accepted choice hides it
 async function checkInstallBanner(pg) {
   const shown = await pg.evaluate(() => {
@@ -117,6 +165,7 @@ async function checkInstallBanner(pg) {
   const ctx = await chromium.launchPersistentContext(profileDir, launchOpts);
   try {
     const pg = ctx.pages()[0] || await ctx.newPage();
+    await pg.addInitScript(emulatePointer, true);
     const failed = [];
     pg.on('response', r => { if (r.status() >= 400) failed.push(`${r.status()} ${r.url()}`); });
     pg.on('requestfailed', r => failed.push('failed ' + r.url()));
@@ -128,6 +177,8 @@ async function checkInstallBanner(pg) {
     await checkManifest(pg, links, ctx.request);
     await checkInstallable(pg);
     await checkInstallBanner(pg);
+    await checkInstallBannerDesktop(ctx, base);
+    await checkInstallDismiss(pg);
   } finally {
     await ctx.close();
     if (server) server.kill();

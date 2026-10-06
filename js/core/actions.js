@@ -11,6 +11,7 @@ const ACTIONS = {
   // header + home
   toggleInfo: () => toggleInfo(),
   install: () => promptInstall(),
+  dismissInstall: () => dismissInstallBanner(),
   openStudy: () => openStudy(),
   startMode: el => startMode(el.dataset.arg),
   setPracticeView: el => setPracticeView(el.dataset.arg),
