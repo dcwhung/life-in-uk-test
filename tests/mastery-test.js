@@ -19,6 +19,16 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert((await pg.$eval('#chapterGrid .chapter-btn:first-child .ch-count', e => e.textContent)) === '0/9 · 0%', 'chapter button shows mastery');
   await pg.click('#ptabExam');
   assert((await pg.$eval('#examGrid .exam-btn.all .exam-mastery', e => e.textContent)) === '0/408 · 0%', 'All Exams shows mastery in practice');
+  // mastery bar stays inside the rounded exam boxes (clipped), along the bottom edge
+  await pg.evaluate(() => { streaks = { '1.0': 3, '1.1': 3, '1.2': 3 }; setLS(STREAK_LS, streaks); buildExamGrid(); });
+  const barFit = await pg.$$eval('#examGrid .exam-btn', btns => btns.map(btn => {
+    const bar = btn.querySelector('.mastery-bar');
+    const cs = getComputedStyle(btn), bw = parseFloat(cs.borderBottomWidth);
+    const b = btn.getBoundingClientRect(), r = bar.getBoundingClientRect();
+    return cs.overflow === 'hidden' && r.left >= b.left && Math.abs(r.bottom - (b.bottom - bw)) < 1;
+  }));
+  assert(barFit.length === 18 && barFit.every(Boolean), 'exam box clips its mastery bar, which sits on the bottom edge');
+  await pg.evaluate(() => { streaks = {}; setLS(STREAK_LS, streaks); buildExamGrid(); });
   assert(await vis('#practiceReset') && !(await vis('#examReset')), 'practice reset row shown, exam reset hidden');
   assert((await pg.$eval('#practiceHint', e => e.textContent)).includes('3 times in a row'), 'hint text reads from MASTERY_STREAK');
 

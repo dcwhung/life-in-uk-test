@@ -165,6 +165,8 @@
   .exam-btn { padding-bottom: 8px; }
   .exam-btn .exam-mastery { display: block; font-size: 10px; font-weight: 600; color: var(--green); margin-top: 2px; }
   .exam-btn .exam-mastery.zero { color: var(--text-muted); font-weight: 500; }
+  /* clip the mastery bar to the rounded box; .done keeps overflow for its ✓ badge (exam mode only, no bar) */
+  .exam-btn:not(.done) { overflow: hidden; }
   .exam-btn .mastery-bar { border-radius: 0; }
   .exam-btn.all .exam-mastery { color: var(--gold-light); }
   .exam-btn.all .exam-mastery.zero { color: rgba(255,255,255,0.55); }
@@ -867,7 +869,7 @@
 // ════════════════════════════════════════
 // APP VERSION — single source of truth (shown in the header, drives the SW cache name)
 // ════════════════════════════════════════
-const APP_VERSION = '0.41';
+const APP_VERSION = '0.42';
 
 // ════════════════════════════════════════
 // APP STATE
