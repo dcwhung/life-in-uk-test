@@ -45,7 +45,8 @@
   .dot.done { background: var(--navy-light); border-color: var(--navy-light); color: #fff; }
   .dot.current { box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--gold); }
   .dot.flag { background: var(--orange); border-color: var(--orange); color: #fff; }
-  .dots-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 10.5px; color: var(--text-muted); margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+  .dots-meta { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; font-size: 10.5px; color: var(--text-muted); margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+  .dots-meta .sep { color: var(--border); }
   .dots-meta i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 4px; vertical-align: -1px; }
 
   /* question header */
@@ -102,7 +103,9 @@
     <div class="nav-dots" id="dots"></div>
     <div class="dots-meta">
       <span><i style="background:var(--navy-light)"></i>Answered <b id="cDone">0</b></span>
+      <span class="sep">|</span>
       <span><i style="border:1.5px solid var(--border)"></i>Unanswered <b id="cTodo">0</b></span>
+      <span class="sep">|</span>
       <span><i style="background:var(--orange)"></i>Flagged <b id="cFlag">0</b></span>
     </div>
     <div class="q-num">
