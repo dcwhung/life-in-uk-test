@@ -93,7 +93,7 @@ function optionClass(q, oi, { showAnswer, revealed }) {
 }
 function optionHtml(q, oi, view) {
   const optYue = view.yueOn && q.oy && q.oy[oi] ? `<span class="opt-yue">${escapeHtml(q.oy[oi])}</span>` : '';
-  return `<button class="${optionClass(q, oi, view)}" data-action="selectOption" data-arg="${oi}" id="opt${oi}">
+  return `<button class="${optionClass(q, oi, view)}" data-action="selectOption" data-arg="${escapeHtml(oi)}" id="opt${oi}">
       <span class="opt-letter">${OPTION_LETTERS[oi]}</span>
       <span class="opt-body"><span>${escapeHtml(q.o[oi])}</span>${optYue}</span>
     </button>`;

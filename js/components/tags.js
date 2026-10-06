@@ -15,14 +15,14 @@ function questionRefText({ examNum, origIdx }) { return `Exam ${examNum} · Q${o
 function masteryBarHtml(m) { return `<span class="mastery-bar" style="width:${m.pct}%"></span>`; }
 
 function chipHtml({ extraCls = '', active = false, action, arg, label, disabled = false }) {
-  const argAttr = arg === undefined ? '' : ` data-arg="${arg}"`;
-  return `<button class="chip${extraCls}${active ? ' active' : ''}" data-action="${action}"${argAttr}${disabled ? ' disabled' : ''}>${label}</button>`;
+  const argAttr = arg === undefined ? '' : ` data-arg="${escapeHtml(arg)}"`;
+  return `<button class="chip${extraCls}${active ? ' active' : ''}" data-action="${escapeHtml(action)}"${argAttr}${disabled ? ' disabled' : ''}>${label}</button>`;
 }
 
 // home practice set button (difficulty / chapter rows) with its mastery count + bar
 function setButtonHtml({ extraCls = '', action, arg, labelHtml, list }) {
   const m = masteryOf(list);
-  return `<button class="chapter-btn${extraCls}${m.pct === PERCENT ? ' complete' : ''}" data-action="${action}" data-arg="${arg}">
+  return `<button class="chapter-btn${extraCls}${m.pct === PERCENT ? ' complete' : ''}" data-action="${escapeHtml(action)}" data-arg="${escapeHtml(arg)}">
       ${labelHtml}
       <span class="ch-count mastery${m.mastered ? '' : ' zero'}">${masteryText(m)}</span>${masteryBarHtml(m)}
     </button>`;

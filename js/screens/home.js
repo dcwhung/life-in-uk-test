@@ -38,7 +38,7 @@ function allExamsButtonHtml(isPractice) {
   const inner = isPractice
     ? `🎯 All Exams (${TOTAL_QUESTIONS} Q)${examMasteryHtml(allQuestions())}`
     : `🎲 Random Exam<span class="exam-sub">${RANDOM_EXAM_SIZE} Qs from ${TOTAL_QUESTIONS} Qs</span>`;
-  return `<button class="exam-btn all" data-action="startExam" data-arg="${ALL_EXAM}">${inner}</button>`;
+  return `<button class="exam-btn all" data-action="startExam" data-arg="${escapeHtml(ALL_EXAM)}">${inner}</button>`;
 }
 function buildExamGrid() {
   const done = completedExams();
@@ -46,7 +46,7 @@ function buildExamGrid() {
   const buttons = EXAM_NUMBERS.map(n => {
     const doneCls = !isPractice && done[n] ? ' done' : '';
     const mastery = isPractice ? examMasteryHtml(examQuestions(n)) : '';
-    return `<button class="exam-btn${doneCls}" data-action="startExam" data-arg="${n}">Exam ${n}${mastery}</button>`;
+    return `<button class="exam-btn${doneCls}" data-action="startExam" data-arg="${escapeHtml(n)}">Exam ${n}${mastery}</button>`;
   });
   byId('examGrid').innerHTML = allExamsButtonHtml(isPractice) + buttons.join('');
   buildChapterGrid();

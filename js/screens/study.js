@@ -116,8 +116,8 @@ function factTagsHtml(f, opts) {
 function factMarkButtonsHtml(f) {
   const mastered = !!study.mastered[f.id];
   const marked = !!study.bookmarks[f.id];
-  return `<button class="fact-btn star${marked ? ' on' : ''}" title="Bookmark 書籤" data-action="studyToggleMark" data-mark="bookmarks" data-arg="${f.id}">${marked ? '★' : '☆'}</button>
-        <button class="fact-btn tick${mastered ? ' on' : ''}" title="Mastered 已掌握" data-action="studyToggleMark" data-mark="mastered" data-arg="${f.id}">✓</button>`;
+  return `<button class="fact-btn star${marked ? ' on' : ''}" title="Bookmark 書籤" data-action="studyToggleMark" data-mark="bookmarks" data-arg="${escapeHtml(f.id)}">${marked ? '★' : '☆'}</button>
+        <button class="fact-btn tick${mastered ? ' on' : ''}" title="Mastered 已掌握" data-action="studyToggleMark" data-mark="mastered" data-arg="${escapeHtml(f.id)}">✓</button>`;
 }
 function renderFact(f, opts = {}) {
   const mastered = !!study.mastered[f.id];

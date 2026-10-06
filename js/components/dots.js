@@ -5,7 +5,7 @@ const LEGEND_SEP = ' <span class="sep">|</span> ';
 
 // tap target: data-action receives the 0-based question index
 function dotButtonHtml(cls, action, idx) {
-  return `<button class="${cls}" data-action="${action}" data-arg="${idx}" aria-label="Question ${idx + 1}">${idx + 1}</button>`;
+  return `<button class="${cls}" data-action="${escapeHtml(action)}" data-arg="${escapeHtml(idx)}" aria-label="Question ${idx + 1}">${idx + 1}</button>`;
 }
 
 // entries: [legend class, label, count] → "Correct 3 | Wrong 1 | …"
