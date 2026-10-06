@@ -169,7 +169,7 @@ function renderStudy() {
   subRow.innerHTML = sub;
   subRow.hidden = !sub;
   const { html, shown, total } = STUDY_RENDERERS[study.tab]();
-  byId('studyCount').textContent = t('study.count', { shown, total });
+  byId('studyCount').textContent = t('study.count', { shown, total, n: total });
   byId('studyContent').innerHTML =
     shown ? html : `<div class="study-empty">${t('study.empty')}</div>`;
 }

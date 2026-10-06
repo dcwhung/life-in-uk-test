@@ -152,6 +152,18 @@ async function runtimeChecks(en) {
   // setLang: persists lifeuk.uiLang, sets <html lang>, re-applies static markup and re-renders the current screen;
   // a key the language lacks falls back to en (with a warning)
   await pg.click('#modeStudy');
+  // Study count is a plural picked by the total: "1 / 1 fact", "3 / 12 facts"
+  const studyCountFor = (shown, total) => pg.evaluate(([s, tot]) => {
+    const real = STUDY_RENDERERS[study.tab];
+    STUDY_RENDERERS[study.tab] = () => ({ html: '', shown: s, total: tot });
+    renderStudy();
+    STUDY_RENDERERS[study.tab] = real;
+    const out = byId('studyCount').textContent;
+    renderStudy();
+    return out;
+  }, [shown, total]);
+  assert((await studyCountFor(1, 1)) === '1 / 1 fact', 'study count singular: 1 / 1 fact');
+  assert((await studyCountFor(1, 12)) === '1 / 12 facts', 'study count plural by total: 1 / 12 facts');
   warns.length = 0;
   await pg.evaluate(() => {
     LOCALES.zz = { home: { chooseMode: 'ZZ mode' }, study: { hideMastered: 'ZZ hide' } };

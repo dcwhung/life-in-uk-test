@@ -133,7 +133,7 @@ LOCALES.en = {
     bookmarkedOnly: '★ Bookmarked only',
     warsOnly: '⚔️ Wars only',
     all: 'All',
-    count: '{shown} / {total} facts',
+    count: { one: '{shown} / {total} fact', other: '{shown} / {total} facts' },
     empty: 'No facts match.',
     chapterTitle: 'Chapter {n}: {title}',
     yearBC: '{n} BC',
