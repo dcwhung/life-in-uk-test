@@ -1,4 +1,4 @@
-# Life in the UK Test PWA — Handoff (v0.39)
+# Life in the UK Test PWA — Handoff (v0.40)
 
 - **Repo:** https://github.com/dcwhung/life-in-uk-test （main branch，GitHub Pages root `/`）
 - **Live:** https://dcwhung.github.io/life-in-uk-test/
@@ -13,11 +13,11 @@
 
 | File | 大小 | 內容 |
 |---|---|---|
-| `index.html` | 79 KB | CSS、HTML、app 邏輯（state / home / quiz / similar questions / results / study / SW） |
+| `index.html` | 80 KB | CSS、HTML、app 邏輯（state / home / quiz / similar questions / results / study / SW） |
 | `data/exams.js` | 181 KB | `EXAMS`：408 題，Exam 1–17 各 24 題 |
 | `data/study.js` | 65 KB | `CHAPTERS` + `STUDY`：236 條 dedupe 後嘅 facts |
 | `js/utils.js` | 2 KB | `shuffle`、`shuffleOptions`、`getLS`、`setLS`、`starsHtml`、`escapeHtml` |
-| `tests/*.js` | | 14 套 Playwright 測試，`tests/run-all.sh` 一次過跑 |
+| `tests/*.js` | | 15 套 Playwright 測試，`tests/run-all.sh` 一次過跑 |
 | `mockups/similar-question-map.html` | 17 KB | Similar Questions 嘅設計 mockup（獨立 HTML，頂部 tab 切換情景；PR 嘅 `Design Origin`） |
 
 載入次序：`data/exams.js` → `data/study.js` → `js/utils.js` → 主 script。全部全局變量，冇 ES module（`file://` 同 iOS PWA 兼容）。
@@ -94,6 +94,7 @@
 **Practice mode**
 - 題目同選項次序隨機；揀完即刻 reveal
 - 問題卡右上「Translate」掣：展開題目 + 每個選項嘅廣東話；答完自動固定顯示；下一題重設
+- **快捷 Prev / Next（v0.40）：** 答完（Practice reveal／Exam submit）之後，問題卡右上 Translate 嘅位置變做細粒「← Prev｜Next →」，同底部掣共用 `nextAction()`（Next → / Finish ✓ / See Results → / ↩ Back）；未答前唔顯示；窄 mon 時會換行靠右
 - 答案框格式：`✓ Correct! · 🔥 n/3` → 英文答案 → `【廣東話翻譯】 Q) … A) …` → `💡 備注：`（獨立一行）→ 備注內容（支援多行）
 - **掌握機制：** 同一題連續答啱 `MASTERY_STREAK`（=3）次 = 掌握，答錯即歸零；開練習時剔除已掌握題，全組掌握後再全部出；每輪最多抽 `PRACTICE_ROUND_MAX`（=25）條未掌握題（Chapter / Difficulty / All Exams；Exam 1–17 本身 24 題），**每題一輪只出一次，「Question X of Y」嘅 Y 唔會變**（v0.38 起；v0.32–v0.37 會將未掌握題重新排去 queue 尾，令 Y 越做越大，已取消）；答錯或未夠 3 次嘅題下一輪再抽；存 localStorage `practiceStreak` `{ "exam.idx": n }`
 - **Similar Questions（v0.35）：** 答完（啱或錯）喺 Prev / Next 掣下面顯示同一條 `STUDY` fact 嘅其他題目（`fact.src` 除本題外嘅 key；每題只屬一條 fact，408 題入面 284 題有類似題）。內容：Core Fact（英文 + 廣東話）、「Appears in」題號 chip（本題／已掌握／練緊／0/3）、每題 `Exam N · Qn` + 🔥 進度 + 題目同翻譯（唔顯示答案）。Exam mode 唔顯示；冇類似題就唔顯示
@@ -148,8 +149,9 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | `result-test.js` | 結果頁 PASSED / remark 只喺 Exam 1–17 顯示；重做掣按 mode 改字、上下兩組掣、Wrong first 排序同記住選擇 |
 | `batch-test.js` | Practice 每輪最多 25 題、下一輪由未掌握題抽、最後幾題每輪再出直至掌握 |
 | `similar-test.js` | Similar Questions section、Practise these N 臨時 session 同返回 |
+| `quicknav-test.js` | 答完先顯示嘅快捷 Prev / Next：位置、Prev disabled、最後一題 Finish / See Results / ↩ Back |
 
-## 版本記錄（v0.32–v0.38）
+## 版本記錄（v0.32–v0.40）
 
 | 版本 | PR | 改動 |
 |---|---|---|
@@ -159,8 +161,15 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | v0.35 | dcwhung/life-in-uk-test#4 | **Similar Questions**：答完顯示同一 fact 嘅其他題目 + Core Fact + 「Practise these N」臨時 session；加 `mockups/similar-question-map.html`、`tests/similar-test.js` |
 | v0.36–v0.37 | dcwhung/life-in-uk-test#5 | 臨時 session 返回掣改做「↩ Back」；Prev / Next 搬上 Similar Questions 前面；Practice 結果頁重做掣改做「Practise Again」（Exam mode 仍係「Retry Exam」） |
 | — | dcwhung/life-in-uk-test#6 | `oy-test` 唔再隨機 fail（搬有選項翻譯嘅題目去最前；年份題檢查改為搵出嚟先驗） |
-| v0.39 | — | 難度掣拎走中文；結果頁 Review Answers 加「Original order / Wrong first」；Review Answers 上面加多一組 Practise Again / Choose Another |
 | v0.38 | dcwhung/life-in-uk-test#7 | 取消 v0.32 嘅 in-session re-queue：每題一輪只出一次，「Question X of Y」嘅 Y 固定；未掌握題下一輪再出 |
+| — | dcwhung/life-in-uk-test#8 | HANDOFF.md：開發流程改為 PR、Similar Questions 設計決定、v0.32–v0.38 版本記錄 |
+| v0.39 | dcwhung/life-in-uk-test#9 | 難度掣拎走中文；結果頁 Review Answers 加「Original order / Wrong first」；Review Answers 上面加多一組 Practise Again / Choose Another |
+| v0.40 | — | 答完之後問題卡右上（Translate 位置）顯示快捷 Prev / Next；HANDOFF 補 PR #8 / #9 |
+
+**結果頁設計決定（v0.39）**
+- 「Wrong first」係**排序**唔係篩選：答錯排最前，答啱嘅照樣顯示喺後面；題號保留原本次序，對返做題時嘅位置
+- 預設「Original order」；用戶揀過就記住（`reviewOrder`）
+- Practise Again / Choose Another 喺 Review Answers 上面同最底各一組，長 review 唔使碌到底
 
 **Similar Questions 設計決定（v0.35，同用戶確認過）**
 - UI 文字用英文；題目／fact 嘅廣東話翻譯照顯示
@@ -186,6 +195,8 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 ## 主要 commit（新→舊）
 
 ```
+8e337ee feat: English-only difficulty labels; wrong-first review order and top action buttons on results (v0.39)
+73ed0de docs: HANDOFF.md v0.38 — PR flow, Similar Questions decisions, v0.32–v0.38 log
 d73331f fix: keep practice session length fixed; no in-session re-queue (v0.38)
 e273f4b test: make oy-test deterministic
 f4e9b79 fix: 'Practise Again' instead of 'Retry Exam' on practice results (v0.37)
