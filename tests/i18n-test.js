@@ -158,6 +158,16 @@ async function runtimeChecks(en) {
   assert(await pg.evaluate(() => getLang() === 'zz'), 'setLang ignores a language with no locale');
   await pg.reload();
   assert(await pg.evaluate(() => getLang() === 'en' && document.documentElement.lang === 'en'), 'stored language without a locale falls back to en');
+  // Object prototype keys are not locales (LOCALES is a plain object): a stored one loads as en without warnings
+  for (const protoKey of ['constructor', '__proto__']) {
+    await pg.evaluate(k => localStorage.setItem('lifeuk.uiLang', JSON.stringify(k)), protoKey);
+    warns.length = 0;
+    await pg.reload();
+    assert(await pg.evaluate(() => getLang() === 'en' && document.documentElement.lang === 'en'), `stored '${protoKey}' loads as en`);
+    assert(warns.filter(w => w.includes('[i18n]')).length === 0, `stored '${protoKey}' logs no i18n warnings (${warns.length})`);
+  }
+  await pg.evaluate(() => setLang('toString'));
+  assert(await pg.evaluate(() => getLang() === 'en' && localStorage.getItem('lifeuk.uiLang') !== JSON.stringify('toString')), "setLang('toString') is ignored");
   await pg.evaluate(() => setLang('en'));
   assert(await pg.evaluate(() => localStorage.getItem('lifeuk.uiLang') === JSON.stringify('en')), 'setLang(en) persists');
 

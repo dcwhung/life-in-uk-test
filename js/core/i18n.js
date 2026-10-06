@@ -40,17 +40,19 @@ function t(key, params = {}) {
 
 // ── language: stored as lifeuk.uiLang; a stored language with no locale reads as the default ──
 let uiLang = null;
+// own keys only: LOCALES is a plain object, so 'constructor' / '__proto__' would otherwise count as locales
+const hasLocale = lang => Object.prototype.hasOwnProperty.call(LOCALES, lang);
 function getLang() {
   if (uiLang === null) {
     const stored = getLS(UI_LANG_LS);
-    uiLang = LOCALES[stored] ? stored : DEFAULT_LANG;
+    uiLang = hasLocale(stored) ? stored : DEFAULT_LANG;
   }
   return uiLang;
 }
 // Language switch hook: no button yet (only en ships). A future switch calls setLang(code) once locales/<code>.js
 // is loaded after locales/en.js and listed in index.html + sw.js SHELL.
 function setLang(lang) {
-  if (!LOCALES[lang]) { console.warn('[i18n] no locale for', lang); return; }
+  if (!hasLocale(lang)) { console.warn('[i18n] no locale for', lang); return; }
   uiLang = lang;
   setLS(UI_LANG_LS, lang);
   applyLanguage();
