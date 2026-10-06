@@ -49,6 +49,9 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(!boxText.includes('Provide local services') && !boxText.includes('represent their local community'), 'no answers shown');
   assert((await pg.$$('#similarBox .sqm-angle')).length === 0, 'no question-angle tags');
   assert((await text('#similarBox .sqm-cta button')) === '▶ Practise these 2', 'practise button');
+  // CUI-0007: the button label is a plural — one similar question reads "this one", not "these 1"
+  assert(await pg.evaluate(() => t('similar.practise', { n: 1 })) === '▶ Practise this one', 'practise plural one: ▶ Practise this one');
+  assert(await pg.evaluate(() => t('similar.practise', { n: 3 })) === '▶ Practise these 3', 'practise plural other: ▶ Practise these 3');
   assert(await pg.evaluate(() => {
     const nav = document.querySelector('#screenQuiz .nav-row'), box = document.getElementById('similarBox');
     return !!(nav.compareDocumentPosition(box) & Node.DOCUMENT_POSITION_FOLLOWING);
@@ -59,6 +62,16 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await openQ('practice', 12, 5);
   await answer(false);
   assert(await vis('#similarBox'), 'similar section shown after a wrong answer');
+
+  // a fact with exactly two source questions -> one similar question -> singular button label
+  const pair = await pg.evaluate(() => {
+    const f = STUDY.find(f => f.src.length === 2);
+    const [e, i] = f.src[0].split('.').map(Number);
+    return { e, i };
+  });
+  await openQ('practice', pair.e, pair.i);
+  await answer(true);
+  assert((await text('#similarBox .sqm-cta button')) === '▶ Practise this one', 'one similar question: ▶ Practise this one');
 
   // question whose fact has no other source questions -> hidden
   const lonely = await pg.evaluate(() => {
