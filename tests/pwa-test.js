@@ -7,6 +7,8 @@ const { startPagesServer } = require('./pages-server');
 // Web manifest (CUI-0002): fetched + parsed, required fields, install texts = locale (S-019), icons at their
 // declared sizes, Chrome sees no manifest / installability errors, and the existing beforeinstallprompt banner still works.
 // v0.60 install banner: only on touch (coarse pointer) devices, and its ✕ hides it for good (lifeuk.installDismissed).
+// v0.61: CUI-0008 Install hides the banner on any outcome (cancel does not store the dismiss key), prompts once per event,
+// appinstalled hides it.
 // Served over http (python static server on the repo root, read-only) or APP_URL when that is http(s).
 const ROOT = path.resolve(__dirname, '..');
 const launchOpts = { args: ['--no-sandbox'] };
@@ -155,6 +157,44 @@ async function checkInstallBanner(pg) {
   assert(after.prompted && !after.visible, 'Install calls prompt() and an accepted choice hides the banner');
 }
 
+// in the page: fire a fake beforeinstallprompt whose prompt() counts its calls and whose choice is `outcome`
+const fireCountingPrompt = (pg, outcome) => pg.evaluate(o => {
+  window.__promptCalls = 0;
+  const e = new Event('beforeinstallprompt', { cancelable: true });
+  e.prompt = () => { window.__promptCalls += 1; };
+  e.userChoice = Promise.resolve({ outcome: o });
+  window.dispatchEvent(e);
+  return byId('installBanner').classList.contains('visible');
+}, outcome);
+const bannerState = (pg, key) => pg.evaluate(k => ({
+  visible: byId('installBanner').classList.contains('visible'), stored: localStorage.getItem(k),
+}), key);
+
+// CUI-0008 / S-020: cancelling the native dialog hides the banner (no dead Install button) but does not dismiss for good
+async function checkInstallCancelled(pg) {
+  assert(await fireCountingPrompt(pg, 'dismissed'), 'CUI-0008: banner shows before the cancelled-prompt check');
+  await pg.evaluate(() => promptInstall());
+  const after = await bannerState(pg, INSTALL_DISMISSED);
+  assert(!after.visible && after.stored === null, `CUI-0008: a dismissed native prompt hides the banner without storing ${INSTALL_DISMISSED} (${JSON.stringify(after)})`);
+}
+
+// CUI-0008: a double tap claims the event once, so prompt() runs only once per beforeinstallprompt
+async function checkInstallDoubleTap(pg) {
+  await fireCountingPrompt(pg, 'accepted');
+  const calls = await pg.evaluate(async () => {
+    await Promise.all([promptInstall(), promptInstall()]);
+    return window.__promptCalls;
+  });
+  assert(calls === 1, `CUI-0008: two promptInstall() calls on one event call prompt() once (${calls})`);
+}
+
+// CUI-0008: installing from the browser menu (appinstalled) also hides the banner
+async function checkAppInstalled(pg) {
+  assert(await fireCountingPrompt(pg, 'accepted'), 'CUI-0008: banner shows before appinstalled');
+  await pg.evaluate(() => window.dispatchEvent(new Event('appinstalled')));
+  assert(!(await bannerState(pg, INSTALL_DISMISSED)).visible, 'CUI-0008: an appinstalled event hides the banner');
+}
+
 (async () => {
   const external = /^https?:/.test(process.env.APP_URL || '');
   let server = null;
@@ -177,6 +217,9 @@ async function checkInstallBanner(pg) {
     await checkManifest(pg, links, ctx.request);
     await checkInstallable(pg);
     await checkInstallBanner(pg);
+    await checkInstallCancelled(pg);
+    await checkInstallDoubleTap(pg);
+    await checkAppInstalled(pg);
     await checkInstallBannerDesktop(ctx, base);
     await checkInstallDismiss(pg);
   } finally {

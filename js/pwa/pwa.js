@@ -20,14 +20,28 @@ window.addEventListener('beforeinstallprompt', e => {
   deferredPrompt = e;
   if (shouldShowInstallBanner()) byId('installBanner').classList.add('visible');
 });
-function dismissInstallBanner() {
+function hideInstallBanner() {
   byId('installBanner').classList.remove('visible');
+}
+// ✕: hide for good
+function dismissInstallBanner() {
+  hideInstallBanner();
   setLS(INSTALL_DISMISSED_LS, true);
 }
+// installed from the browser menu (or via our prompt): the banner has nothing left to offer
+window.addEventListener('appinstalled', hideInstallBanner);
 async function promptInstall() {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  const { outcome } = await deferredPrompt.userChoice;
-  if (outcome === 'accepted') byId('installBanner').classList.remove('visible');
+  // claim the event before awaiting: a second tap finds nothing, so prompt() runs at most once per event
+  // (Chromium rejects a second prompt() on the same event)
+  const ev = deferredPrompt;
+  if (!ev) return;
   deferredPrompt = null;
+  try {
+    await Promise.all([ev.prompt(), ev.userChoice]);
+  } catch {
+    // a rejected prompt still spends the event; fall through and hide the banner
+  }
+  // either outcome spends the event, so hide the banner. A cancelled dialog is not a ✕: no INSTALL_DISMISSED_LS,
+  // and the banner comes back when Chrome fires beforeinstallprompt again
+  hideInstallBanner();
 }
