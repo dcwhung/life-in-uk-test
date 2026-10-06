@@ -914,7 +914,7 @@
 // ════════════════════════════════════════
 // APP VERSION — single source of truth (shown in the header, drives the SW cache name)
 // ════════════════════════════════════════
-const APP_VERSION = '0.45';
+const APP_VERSION = '0.46';
 
 // ════════════════════════════════════════
 // APP STATE
@@ -945,7 +945,7 @@ function buildExamGrid() {
   };
   let html = isPractice
     ? `<button class="exam-btn all" onclick="startExam('all')">🎯 All Exams (408 Q)${mastery(allQuestions())}</button>`
-    : `<button class="exam-btn all" onclick="startExam('all')">🎲 Random Exam (${RANDOM_EXAM_SIZE} Q)<span class="exam-sub">from all ${allQuestions().length} questions · no similar questions</span></button>`;
+    : `<button class="exam-btn all" onclick="startExam('all')">🎲 Random Exam<span class="exam-sub">${RANDOM_EXAM_SIZE} Qs from ${allQuestions().length} Qs</span></button>`;
   for (let i = 1; i <= 17; i++) {
     const doneCls = !isPractice && done[i] ? ' done' : '';
     html += `<button class="exam-btn${doneCls}" onclick="startExam(${i})">Exam ${i}${mastery(examQuestions(i))}</button>`;
