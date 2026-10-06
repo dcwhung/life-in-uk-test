@@ -1,0 +1,90 @@
+const { chromium } = require('playwright-core');
+const path = require('path');
+const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
+const launchOpts = { args: ['--no-sandbox'] };
+if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_PATH;
+(async () => {
+  const b = await chromium.launch(launchOpts);
+  const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
+  const errs = []; pg.on('pageerror', e => errs.push(e.message));
+  const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('ok:', m); };
+  const vis = sel => pg.$eval(sel, e => e.offsetParent !== null || getComputedStyle(e).position === 'fixed');
+  const text = sel => pg.$eval(sel, e => e.textContent.trim());
+  const active = id => pg.evaluate(id => document.getElementById(id).classList.contains('active'), id);
+  const dotCls = () => pg.$$eval('#navDots .dot', els => els.map(e => e.className.replace('dot', '').trim()));
+  await pg.goto(APP_URL);
+  await pg.evaluate(() => localStorage.clear()); await pg.reload();
+  let confirmAnswer = true, lastConfirm = null;
+  pg.on('dialog', d => { lastConfirm = d.message(); confirmAnswer ? d.accept() : d.dismiss(); });
+
+  // practice: none of the exam tools
+  await pg.evaluate(() => { pendingMode = 'practice'; startExam(1); });
+  assert(!(await vis('#examTimer')) && !(await vis('#navDots')) && !(await vis('#flagBtn')), 'practice: no timer, dots or flag');
+  assert(await vis('#progressFill'), 'practice: progress bar kept');
+
+  // exam: timer replaces the badge, 24 dots, flag button, no progress bar
+  await pg.evaluate(() => { pendingMode = 'exam'; startExam(4); });
+  assert(await vis('#examTimer') && (await text('#examTimer')) === '⏱ 45:00', 'exam: timer starts at 45:00');
+  assert(!(await vis('#modeBadge')), 'exam: timer takes the badge place');
+  assert(!(await vis('.q-progress')), 'exam: dots replace the progress bar');
+  assert((await pg.$$('#navDots .dot')).length === 24, '24 numbered dots');
+  assert((await pg.$$eval('#navDots .dot', els => els.map(e => e.textContent).join(','))) === Array.from({ length: 24 }, (_, i) => i + 1).join(','), 'dots numbered 1–24');
+  assert((await dotCls())[0] === 'current', 'dot 1 is current');
+  assert((await text('#dotsMeta')).replace(/\s+/g, ' ') === 'Answered 0 | Unanswered 24 | Flagged 0', 'counts: 0 / 24 / 0');
+  assert(await vis('#flagBtn') && (await pg.$eval('#flagBtn', e => e.getAttribute('aria-label'))) === 'Flag for review', 'flag button (bookmark) visible before answering');
+
+  // answer Q1, flag Q1 (answered + flagged = solid orange) and Q3 (unanswered + flagged = orange outline)
+  await pg.click('#opt0');
+  await pg.click('#flagBtn');
+  assert((await pg.$eval('#flagBtn', e => e.classList.contains('on') && e.getAttribute('aria-label') === 'Unflag')), 'flag toggles on');
+  await pg.click('#navDots .dot:nth-child(3)');
+  assert(await pg.evaluate(() => state.current === 2), 'clicking dot 3 jumps to question 3');
+  await pg.click('#flagBtn');
+  const cls = await dotCls();
+  assert(cls[0] === 'done flag' && cls[1] === '' && cls[2] === 'flag current', 'dot states: answered+flagged / empty / flagged+current: ' + cls.slice(0, 3));
+  assert(await pg.$eval('#navDots .dot:nth-child(1)', e => getComputedStyle(e).backgroundColor !== getComputedStyle(e).borderColor ? false : getComputedStyle(e).backgroundColor !== 'rgb(255, 255, 255)'), 'answered + flagged: solid fill');
+  assert(await pg.$eval('#navDots .dot:nth-child(3)', e => getComputedStyle(e).backgroundColor === 'rgb(255, 255, 255)' && getComputedStyle(e).borderColor !== 'rgb(221, 226, 240)'), 'unanswered + flagged: outline only');
+  assert((await text('#dotsMeta')).replace(/\s+/g, ' ') === 'Answered 1 | Unanswered 23 | Flagged 2', 'counts update');
+  await pg.click('#flagBtn');
+  assert((await dotCls())[2] === 'current', 'flag toggles off');
+  await pg.click('#flagBtn');
+
+  // submit warns about unanswered and flagged
+  await pg.evaluate(() => { state.current = state.questions.length - 1; renderQuestion(); });
+  confirmAnswer = false;
+  await pg.click('#nextBtn');
+  assert(/23 questions unanswered, 2 flagged/.test(lastConfirm) && await active('screenQuiz'), 'submit warning names unanswered + flagged; cancel stays');
+
+  // Home asks before leaving a running exam
+  lastConfirm = null;
+  await pg.click('#screenQuiz .back-btn');
+  assert(/Leave the exam\? Your answers will be lost\./.test(lastConfirm) && await active('screenQuiz'), 'Home asks first; cancel stays');
+  confirmAnswer = true;
+  await pg.click('#screenQuiz .back-btn');
+  assert(await active('screenHome') && await pg.evaluate(() => examTimerId === null), 'confirm leaves and stops the timer');
+
+  // timer: red in the last 5 minutes, auto-submit at 0 straight to results with a note
+  await pg.evaluate(() => { pendingMode = 'exam'; startExam(4); selectOption(0); });
+  await pg.evaluate(() => { examDeadline = Date.now() + 4 * 60 * 1000 + 30 * 1000; examTick(); });
+  assert((await text('#examTimer')).startsWith('⏱ 04:') && await pg.$eval('#examTimer', e => e.classList.contains('warn')), 'last 5 minutes: red');
+  lastConfirm = null;
+  await pg.evaluate(() => { examDeadline = Date.now() - 1; examTick(); });
+  assert(await active('screenResult') && lastConfirm === null, 'time up: straight to results, no prompt');
+  assert(await vis('#resultTimeUp') && (await text('#resultTimeUp')).includes("Time's up"), 'results note the auto-submit');
+  assert(await pg.evaluate(() => examTimerId === null), 'timer stopped');
+  // a normal submit has no time-up note; results "Choose Another" does not ask
+  await pg.evaluate(() => { pendingMode = 'exam'; startExam(4); state.questions.forEach((q, i) => { state.answers[i] = [...q.a]; }); state.current = 23; renderQuestion(); });
+  await pg.click('#nextBtn');
+  assert(await active('screenResult') && !(await vis('#resultTimeUp')), 'manual submit: no time-up note');
+  lastConfirm = null;
+  await pg.evaluate(() => goHome());
+  assert(await active('screenHome') && lastConfirm === null, 'leaving the results does not ask');
+
+  // All Exams (408 Q) in exam mode: no 45-min timer / dots
+  await pg.evaluate(() => { pendingMode = 'exam'; startExam('all'); });
+  assert(!(await vis('#examTimer')) && !(await vis('#navDots')), 'All Exams: no timer or dots');
+
+  assert(errs.length === 0, 'no page errors: ' + errs.join('; '));
+  console.log('EXAMTOOLS PASS');
+  await b.close();
+})().catch(e => { console.error(e.message); process.exit(1); });
