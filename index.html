@@ -300,6 +300,19 @@
   }
   .yue-toggle.visible { display: inline-block; }
   .yue-toggle.on { background: var(--purple); color: #fff; }
+  /* header text keeps one line; on narrow screens the quick pair wraps below it, right-aligned */
+  .q-num.answered { flex-wrap: wrap; row-gap: 8px; }
+  .q-num.answered .q-num-text { flex: 1 0 auto; }
+  .quick-nav { display: none; gap: 6px; margin-left: auto; text-transform: none; letter-spacing: 0; }
+  .quick-nav.visible { display: inline-flex; }
+  .quick-btn {
+    background: var(--card); color: var(--navy);
+    border: 1.5px solid var(--border); border-radius: 999px;
+    padding: 5px 12px; font: inherit; font-size: 12px; font-weight: 700;
+    cursor: pointer; white-space: nowrap;
+  }
+  .quick-btn.primary { background: var(--navy); border-color: var(--navy); color: #fff; }
+  .quick-btn:disabled { opacity: 0.4; cursor: default; }
   .q-yue {
     display: none;
     margin-top: 10px;
@@ -798,6 +811,11 @@
       <div class="q-num">
         <span class="q-num-text" id="qNum">Question 1</span>
         <button class="yue-toggle" id="yueToggle" onclick="toggleQuestionYue()">Translate</button>
+        <!-- once answered: quick Prev / Next in the Translate spot (mirrors the bottom buttons) -->
+        <span class="quick-nav" id="quickNav">
+          <button class="quick-btn" id="quickPrev" onclick="prevQ()">← Prev</button>
+          <button class="quick-btn primary" id="quickNext">Next →</button>
+        </span>
       </div>
       <div class="q-text" id="qText"></div>
       <div class="q-yue" id="qYue"></div>
@@ -875,7 +893,7 @@
 // ════════════════════════════════════════
 // APP VERSION — single source of truth (shown in the header, drives the SW cache name)
 // ════════════════════════════════════════
-const APP_VERSION = '0.39';
+const APP_VERSION = '0.40';
 
 // ════════════════════════════════════════
 // APP STATE
@@ -1252,24 +1270,16 @@ function renderQuestion() {
     submitRow.style.display = 'none';
   }
 
-  // nav buttons
-  document.getElementById('prevBtn').disabled = idx === 0;
-  const nextBtn = document.getElementById('nextBtn');
-  if (idx === total - 1 && isSimilarSession()) {
-    nextBtn.textContent = '↩ Back';
-    nextBtn.onclick = returnFromSimilar;
-  } else if (idx === total - 1) {
-    if (state.mode === 'exam') {
-      nextBtn.textContent = 'See Results →';
-      nextBtn.onclick = finishExam;
-    } else {
-      nextBtn.textContent = 'Finish ✓';
-      nextBtn.onclick = finishExam;
-    }
-  } else {
-    nextBtn.textContent = 'Next →';
-    nextBtn.onclick = nextQ;
-  }
+  // nav buttons: bottom row, plus the quick pair in the question header once answered
+  const next = nextAction(idx, total);
+  ['prevBtn', 'quickPrev'].forEach(id => { document.getElementById(id).disabled = idx === 0; });
+  ['nextBtn', 'quickNext'].forEach(id => {
+    const btn = document.getElementById(id);
+    btn.textContent = next.label;
+    btn.onclick = next.run;
+  });
+  document.getElementById('quickNav').classList.toggle('visible', revealed);
+  document.querySelector('#screenQuiz .q-num').classList.toggle('answered', revealed);
 
   // header stats
   document.getElementById('headerStats').style.display = 'flex';
@@ -1351,6 +1361,13 @@ function returnFromSimilar() {
   similarReturn = null;
   renderQuestion();
   window.scrollTo(0, 0);
+}
+
+// what "Next" does on this question: next question, finish the set, or leave the similar session
+function nextAction(idx, total) {
+  if (idx < total - 1) return { label: 'Next →', run: nextQ };
+  if (isSimilarSession()) return { label: '↩ Back', run: returnFromSimilar };
+  return { label: state.mode === 'exam' ? 'See Results →' : 'Finish ✓', run: finishExam };
 }
 
 function selectOption(oi) {
