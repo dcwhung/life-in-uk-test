@@ -10,6 +10,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   const dialogs = []; pg.on('dialog', d => { dialogs.push(d.message()); d.dismiss(); });
   const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('ok:', m); };
   const vis = sel => pg.$eval(sel, e => getComputedStyle(e).display !== 'none');
+  const focusedId = () => pg.evaluate(() => document.activeElement && document.activeElement.id);
   const modalText = () => pg.evaluate(() => byId('confirmModal').classList.contains('show')
     && `${byId('confirmTitle').textContent} | ${byId('confirmMsg').textContent} | ${byId('confirmOk').textContent} / ${byId('confirmCancel').textContent}`);
   await pg.goto(APP_URL);
@@ -95,6 +96,8 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   // resets ask in the in-app modal (no browser confirm): Keep cancels, Reset clears
   await pg.click('#examReset .reset-btn');
   assert((await modalText()) === 'Reset completed exams? | All ✓ completed marks will be cleared. | Reset / Keep', 'reset completed exams asks in the modal: ' + await modalText());
+  // destructive: default focus on Keep so a stray Enter / Space does not wipe anything (v0.60)
+  assert((await focusedId()) === 'confirmCancel', 'reset completed exams focuses Keep');
   await pg.click('#confirmCancel');
   assert(await pg.$eval('#examGrid .exam-btn:nth-child(2)', e => e.classList.contains('done')), 'Keep leaves the ✓ marks');
   await pg.click('#examReset .reset-btn'); await pg.click('#confirmOk');
@@ -105,6 +108,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(await pg.$eval('#myReview', e => e.offsetParent !== null), 'My Review shown before reset');
   await pg.click('#practiceReset .reset-btn');
   assert((await modalText()) === 'Reset practice progress? | Mastery streaks, wrong answers and flags will be cleared. | Reset / Keep', 'reset progress asks in the modal: ' + await modalText());
+  assert((await focusedId()) === 'confirmCancel', 'reset practice progress focuses Keep');
   await pg.click('#confirmCancel');
   assert(await pg.evaluate(() => localStorage.getItem('lifeuk.wrongList') === '{"1.0":true}'), 'Keep leaves the progress');
   await pg.click('#practiceReset .reset-btn'); await pg.click('#confirmOk');
