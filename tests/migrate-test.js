@@ -77,6 +77,7 @@ const P = 'lifeuk.';
   s = await dump();
   assert(s[P + 'practiceFlags'] === '{"2.0":true}' && !('practiceFlags' in s), 'new key kept untouched, old removed');
   assert(s[P + 'homePrefs'] === '{"mode":"exam"}' && !('homePrefs' in s), 'unrelated legacy key still migrated');
+  assert((await text('#tileFlagged .t-num')) === '1', 'UI reads the new key (Flagged 1)');
 
   // d. malformed JSON is moved as-is and the app still starts
   await seed({ practiceFlags: '{bad json', wrongList: 'nope' });
