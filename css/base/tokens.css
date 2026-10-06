@@ -54,10 +54,11 @@
   --study-accent-strong: var(--navy-light);
   --study-accent-bg: var(--selected-bg);
 
-  /* radius scale: --radius for cards, then controls (md), small chips (sm), pills and circles */
+  /* radius scale: --radius for cards, then controls (md), small chips (sm), tags / badges / icon buttons (xs), pills and circles */
   --radius: 14px;
   --radius-md: 10px;
   --radius-sm: 8px;
+  --radius-xs: 6px;
   --radius-pill: 999px;
   --radius-circle: 50%;
 

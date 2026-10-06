@@ -37,7 +37,7 @@
 .fact-meta { flex: 1; display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
 .tag {
   font-size: 10.5px; font-weight: 700;
-  border-radius: 5px; padding: 2px 7px;
+  border-radius: var(--radius-xs); padding: 2px 7px;
   background: var(--bg); color: var(--text-muted);
 }
 .tag.year { background: var(--study-accent-bg); color: var(--study-accent-strong); }
@@ -48,7 +48,7 @@
 .fact-btn {
   background: var(--bg);
   border: 1.5px solid var(--border);
-  border-radius: 7px;
+  border-radius: var(--radius-xs);
   width: 32px; height: 32px;
   font-size: var(--fs-md); cursor: pointer;
   display: flex; align-items: center; justify-content: center;

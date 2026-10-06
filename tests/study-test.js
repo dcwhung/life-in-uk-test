@@ -120,6 +120,10 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
     return { w: r.width, h: r.height, top: at(r.left + r.width / 2, r.top - HIT_OFFSET), left: at(r.left - HIT_OFFSET, r.top + r.height / 2) };
   });
   assert(hit.w === 32 && hit.h === 32 && hit.top && hit.left, 'fact button 32x32 with a hit area beyond the box: ' + JSON.stringify(hit));
+  // O8: tag and fact button corners come from the --radius-xs token (were literal 5px / 7px)
+  const xs = await pg.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--radius-xs').trim());
+  assert(xs !== '' && await bmBtn.evaluate(e => getComputedStyle(e).borderTopLeftRadius) === xs
+    && await css('.fact .tag', 'borderTopLeftRadius') === xs, 'fact button + tag radius = --radius-xs: ' + xs);
   await bmBtn.click();
   assert(await aria(bmBtn) === 'Bookmark|true', 'bookmark aria-pressed=true after toggle');
   const onPath = await bmPath();
