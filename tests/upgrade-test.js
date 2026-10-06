@@ -8,6 +8,7 @@ const path = require('path');
 //   1. mixed shell: the v0.57 index.html (no migrate tag) + v0.58 js — the storage layer migrates lazily
 //   2. opposite mix: v0.57 files + v0.58 utils.js — no throw, v0.57 keys still read
 //   3. real service-worker upgrade over http: v0.57 SW → deploy current → reloads → byte-exact values, same UI
+//   4. third mix: v0.58 files + the v0.57 utils.js (no lazy migration) — the next full load's merge keeps everything
 // The v0.57 files come from git: V057_REF is the last v0.57 commit on main (merge of PR #29), pinned so a later
 // main does not silently turn this into a same-version test.
 const ROOT = path.resolve(__dirname, '..');
@@ -112,6 +113,37 @@ async function oppositeMix(b) {
   await pg.close();
 }
 
+// 4. W-005: v0.58 config / store with the v0.57 utils.js — that page reads and writes lifeuk.* without migrating;
+// the old keys must survive it and the next full v0.58 load must merge them with what it wrote
+async function v057UtilsMix(b) {
+  const dir = tmpDir('utils57');
+  copyCurrent(dir);
+  const utilsPath = path.join(dir, 'js/core/utils.js');
+  fs.writeFileSync(utilsPath, showV057('js/core/utils.js'));
+  const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
+  const errs = []; pg.on('pageerror', e => errs.push(e.message));
+  await pg.goto('file://' + path.join(dir, 'index.html'));
+  await seed(pg, LEGACY);
+  const newKey = await pg.evaluate(() => {
+    pendingMode = 'practice'; startExam('ch4');
+    const i = state.questions.findIndex(q => !(qKey(q) in streaks));
+    const q = state.questions[i]; state.current = i; state.answers[i] = [...q.a]; revealAnswer();
+    return qKey(q);
+  });
+  let s = await dump(pg);
+  assert(s.practiceStreak === LEGACY.practiceStreak && P + 'practiceStreak' in s && !(MARKER in s), 'v0.57 utils page: wrote lifeuk.practiceStreak, old key untouched, no marker');
+  fs.copyFileSync(path.join(ROOT, 'js/core/utils.js'), utilsPath);
+  await pg.reload();
+  s = await dump(pg);
+  const streak = JSON.parse(s[P + 'practiceStreak']);
+  assert(Object.entries(JSON.parse(LEGACY.practiceStreak)).every(([k, v]) => streak[k] === v) && streak[newKey] === 1, 'next full load: every legacy streak + the answer from the v0.57-utils page');
+  const maps = ['completedExams', 'practiceFlags', 'wrongList', 'studyMastered', 'studyBookmarks'];
+  assert(maps.every(k => Object.keys(JSON.parse(LEGACY[k])).every(e => JSON.parse(s[P + k])[e] === true)), 'next full load: every legacy map entry kept');
+  assert(LEGACY_NAMES.every(k => !(k in s)) && MARKER in s, 'next full load: old keys gone, marker written');
+  assert(errs.length === 0, 'v0.57 utils mix: no page errors: ' + errs.join(' | '));
+  await pg.close();
+}
+
 const PAGES_LIKE_SERVER = `
 import http.server, sys
 class H(http.server.SimpleHTTPRequestHandler):
@@ -185,6 +217,7 @@ async function swUpgrade(b) {
   await mixedShell(b);
   await oppositeMix(b);
   await swUpgrade(b);
+  await v057UtilsMix(b);
   console.log('UPGRADE PASS');
   await b.close();
   cleanUp();
