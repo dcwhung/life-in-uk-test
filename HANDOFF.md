@@ -15,7 +15,7 @@
 
 | File | 大小 | 內容 |
 |---|---|---|
-| `index.html` | 88 KB | CSS、HTML、app 邏輯（state / home / quiz / exam tools / similar questions / results / study / SW） |
+| `index.html` | 96 KB | CSS、HTML、app 邏輯（state / home / quiz / exam tools / confirm modal / similar questions / results + result dots / study / SW） |
 | `data/exams.js` | 181 KB | `EXAMS`：408 題，Exam 1–17 各 24 題 |
 | `data/study.js` | 65 KB | `CHAPTERS` + `STUDY`：236 條 dedupe 後嘅 facts |
 | `js/utils.js` | 2 KB | `shuffle`、`shuffleOptions`、`getLS`、`setLS`、`starsHtml`、`escapeHtml` |
@@ -200,10 +200,15 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | v0.45 | dcwhung/life-in-uk-test#18 | Exam mode All Exams 改做「🎲 Random Exam (24 Q)」：由 408 題隨機抽 24 題、唔會有相類似題（同一 fact 最多一題），用齊考試工具同 PASSED 判定；Practice 嘅 All Exams 唔變 |
 | — | dcwhung/life-in-uk-test#19 | HANDOFF.md：PR #18 版本記錄 |
 | v0.46 | dcwhung/life-in-uk-test#19 | Random Exam 掣文字改做「🎲 Random Exam」＋細字「24 Qs from 408 Qs」 |
-| v0.47 | — | Exam mode 問題卡頭嘅快捷 ← → 一直顯示（之前答完去下一條未答題會唔見咗） |
-| v0.48 | — | Exam 嘅 Submit / 離開提示改用 app 內 modal（唔再彈瀏覽器 alert box） |
-| v0.49 | — | Exam 結果頁掣文字：「Retry Exam」→「Retry」、「Choose Another」→「Another Exam」 |
-| v0.50 | — | Exam 結果頁：mode icon、分數只顯示一次（唔合格紅色）、24 粒結果圓點（撳跳題）、All / Wrong / Flagged filter、書籤 icon；Review 翻譯同備注分行排版；Practice 掣改「Retry / Another Practice」 |
+| v0.47 | dcwhung/life-in-uk-test#20 | Exam mode 問題卡頭嘅快捷 ← → 一直顯示（之前答完去下一條未答題會唔見咗） |
+| v0.48 | dcwhung/life-in-uk-test#20 | Exam 嘅 Submit / 離開提示改用 app 內 modal（唔再彈瀏覽器 alert box） |
+| v0.49 | dcwhung/life-in-uk-test#20 | Exam 結果頁掣文字：「Retry Exam」→「Retry」、「Choose Another」→「Another Exam」 |
+| v0.50 | dcwhung/life-in-uk-test#20 | Exam 結果頁：mode icon、分數只顯示一次（唔合格紅色）、24 粒結果圓點（撳跳題）、All / Wrong / Flagged filter、書籤 icon；Review 翻譯同備注分行排版；Practice 掣改「Retry / Another Practice」 |
+
+**Exam modal 設計決定（v0.48）**
+- 用戶要求交卷提示唔好用瀏覽器 alert box；離開考試提示順手都改用同一個 modal，保持一致
+- 掣名：Submit → 「Keep going / Submit」；Leave → 「Stay / Leave」；撳背景或 Esc = 取消
+- 首頁兩個 Reset 掣暫時仲用瀏覽器 confirm（如要一致可以之後改用 `showConfirm()`）
 
 **Exam 結果頁設計決定（v0.50，preview v1–v6 同用戶確認）**
 - flag 用方案 A（橙色圈），保留啱錯顏色；B（成粒橙）睇唔到啱錯
@@ -269,6 +274,13 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 ## 主要 commit（新→舊）
 
 ```
+05cee49 feat: exam results — mode icon, single score line, result dots, review filters (v0.50)
+67c98c1 fix: exam result buttons read 'Retry' / 'Another Exam' (v0.49)
+3366880..01296a8 chore: result dots preview v1–v6（preview 已 delete）
+3be4a05 feat: in-app modal for exam submit / leave confirmations (v0.48)
+12793fc fix: keep the quick ← → visible in exam mode on unanswered questions (v0.47)
+c39a8ac fix: Random Exam button text — 'Random Exam' / '24 Qs from 408 Qs' (v0.46)
+2b33bad docs: HANDOFF.md v0.45 — PR #18 in version log, commit list
 3e4b875 feat: exam mode All Exams becomes a 24-question Random Exam with no similar questions (v0.45)
 2b98ef7 docs: HANDOFF.md v0.44 — PR #17 in version log, exam flow decisions, commit list
 beb13ed feat: exam tools — 45-min countdown, bookmark flags, 24-dot question navigator (v0.44)
@@ -339,3 +351,5 @@ c10115b feat: randomise answer option order in Practice and Exam mode
 - [ ] 其他可整合記憶法嘅題組：君主／王朝時序、Civil War（1642–1651）相關、WWII 事件（Dunkirk、Blitz、D-Day）、Magna Carta 1215 三條重複題
 - [ ] Study fact 卡片加「跳去來源題目」（v2）；可以直接用 `FACT_BY_QKEY` / `fact.src` 同 `questionByKey()`
 - [ ] 記憶法備注同步落 `study.js` 對應 fact（目前只喺 `exams.js`）
+- [ ] Practice 加 flag 功能，再執 Practice 結果頁（圓點、filter、拎走三格；用戶已講會之後做）
+- [ ] 首頁 Reset 掣改用 app 內 modal（同 Exam 一致）
