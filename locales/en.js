@@ -70,6 +70,8 @@ LOCALES.en = {
     finishButton: 'Finish ✓',
     correct: '✓ Correct!',
     wrong: '✗ Wrong',
+    yueQ: 'Q)',
+    yueA: 'A)',
     roundNoteWrong: 'Round 1 of {rounds} · {n} of your {total} wrong answers',
     roundNoteFlagged: 'Round 1 of {rounds} · {n} of your {total} flagged questions',
   },

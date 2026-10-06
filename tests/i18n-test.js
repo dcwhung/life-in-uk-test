@@ -132,6 +132,16 @@ async function runtimeChecks(en) {
   });
   assert((await text('#confirmMsg')).startsWith('1 question unanswered'), 'submit modal uses the singular: ' + await text('#confirmMsg'));
   await pg.click('#confirmCancel');
+  // answer box Cantonese rows: Q) / A) labels come from quiz.yueQ / quiz.yueA (yue tests rely on the en text)
+  assert(en.quiz.yueQ === 'Q)' && en.quiz.yueA === 'A)', 'en quiz.yueQ / quiz.yueA are Q) / A)');
+  const yueLabels = await pg.evaluate(() => {
+    LOCALES.en.quiz.yueQ = 'QQ)'; LOCALES.en.quiz.yueA = 'AA)';
+    renderAnswerTranslation(state.questions[0]);
+    const labels = [...document.querySelectorAll('#ansYue .ans-yue-row b')].map(b => b.textContent);
+    LOCALES.en.quiz.yueQ = 'Q)'; LOCALES.en.quiz.yueA = 'A)';
+    return labels.join(' ');
+  });
+  assert(yueLabels === 'QQ) AA)', 'answer box Q) / A) labels are read from the locale: ' + yueLabels);
   await pg.evaluate(() => leaveToHome());
 
   // missing key: warns, falls back to the key itself

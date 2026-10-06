@@ -116,8 +116,8 @@ function renderAnswerTranslation(q) {
   const ansYueText = q.a.map(ai => (q.oy && q.oy[ai]) || q.o[ai]).join(ANSWER_SEP);
   byId('ansYue').innerHTML =
     `<div class="ans-yue-title">${t('common.yueTitle')}</div>
-       <div class="ans-yue-row"><b>Q)</b><span>${escapeHtml(q.yue)}</span></div>
-       <div class="ans-yue-row"><b>A)</b><span>${escapeHtml(ansYueText)}</span></div>`;
+       <div class="ans-yue-row"><b>${t('quiz.yueQ')}</b><span>${escapeHtml(q.yue)}</span></div>
+       <div class="ans-yue-row"><b>${t('quiz.yueA')}</b><span>${escapeHtml(ansYueText)}</span></div>`;
 }
 // bottom Prev / Next row, plus the quick pair in the question header
 function renderNavButtons(idx, total, revealed) {
