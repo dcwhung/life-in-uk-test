@@ -72,7 +72,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
 
   // exam mode: never shown
   await openQ('exam', 12, 5);
-  await pg.evaluate(() => { const q = state.questions[state.current]; state.answers[state.current] = [...q.a]; examSubmitAnswer(); });
+  await pg.evaluate(() => { const q = state.questions[state.current]; state.answers[state.current] = [...q.a]; renderQuestion(); });
   assert(!(await vis('#similarBox')), 'hidden in exam mode');
 
   // practise these N: one-off session, then back to the original question

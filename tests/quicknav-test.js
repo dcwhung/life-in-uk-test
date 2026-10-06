@@ -15,7 +15,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   const answer = () => pg.evaluate(() => {
     const i = state.current, q = state.questions[i];
     state.answers[i] = [...q.a];
-    if (state.mode === 'practice') revealAnswer(); else examSubmitAnswer();
+    if (state.mode === 'practice') revealAnswer(); else renderQuestion(); // exam: a pick is just saved
   });
 
   // practice: hidden before answering (Translate keeps its place), shown after
@@ -41,14 +41,16 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.click('#quickNext');
   assert(await vis('#screenResult'), 'quick Finish opens the results');
 
-  // exam: hidden until submitted, then See Results on the last question
+  // exam: quick nav once the question has a pick; no Next on the last question (Submit instead)
   await pg.evaluate(() => { pendingMode = 'exam'; startExam(1); });
-  assert(!(await vis('#quickNav')), 'exam: hidden before submit');
+  assert(!(await vis('#quickNav')), 'exam: hidden before picking');
   await answer();
-  assert(await vis('#quickNav'), 'exam: shown after submit');
+  assert(await vis('#quickNav') && (await text('#quickNext')) === '→', 'exam: shown once picked');
+  await pg.click('#quickNext');
+  assert(await pg.evaluate(() => state.current === 1 && state.answers[0].length > 0), 'exam: quick Next keeps the pick');
   await pg.evaluate(() => { state.current = state.questions.length - 1; renderQuestion(); });
   await answer();
-  assert((await text('#quickNext')) === '✓' && (await text('#nextBtn')) === 'See Results →', 'exam last question: ✓ / See Results →');
+  assert(!(await vis('#quickNext')) && await vis('#quickPrev') && (await text('#nextBtn')) === 'Submit', 'exam last question: bottom button is Submit, no quick submit');
 
   // similar session: last question goes back
   await pg.evaluate(() => {

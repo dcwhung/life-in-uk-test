@@ -424,8 +424,6 @@
   .nav-btn.secondary:hover { background: var(--navy); color: #fff; border-color: transparent; }
   .nav-btn:disabled { opacity: 0.4; cursor: default; }
 
-  /* exam mode — hide answer until submit */
-  .exam-submit-row { margin-bottom: 14px; }
 
   /* ── RESULT SCREEN ── */
   .result-card {
@@ -808,10 +806,6 @@
       <div class="ans-note" id="ansNote"></div>
     </div>
 
-    <!-- exam: submit button -->
-    <div class="exam-submit-row" id="examSubmitRow" style="display:none">
-      <button class="nav-btn" id="examSubmitBtn" onclick="examSubmitAnswer()" disabled>Submit Answer</button>
-    </div>
 
     <div class="nav-row">
       <button class="nav-btn secondary" id="prevBtn" onclick="prevQ()">← Prev</button>
@@ -869,7 +863,7 @@
 // ════════════════════════════════════════
 // APP VERSION — single source of truth (shown in the header, drives the SW cache name)
 // ════════════════════════════════════════
-const APP_VERSION = '0.42';
+const APP_VERSION = '0.43';
 
 // ════════════════════════════════════════
 // APP STATE
@@ -1046,7 +1040,7 @@ function examLabel(examNum) {
 
 const MODE_DESC = {
   practice: '<strong>Practice</strong> — See the answer and Cantonese translation immediately after each question. Pick a set by difficulty, chapter or exam; each shows how much you have mastered.',
-  exam: '<strong>Exam</strong> — Complete all 24 questions first, then review your score and answers. Pick an exam below.',
+  exam: '<strong>Exam</strong> — Answer all 24 questions like the real test; you can go back and change answers. Submit on the last question to see your score and answers. Pick an exam below.',
 };
 const DEFAULT_MODE = 'practice';
 const DEFAULT_PRACTICE_VIEW = 'difficulty';
@@ -1142,6 +1136,8 @@ function renderQuestion() {
   const answered = state.answers[idx] !== undefined;
   // state.revealed[idx] stores true/false (correct or not); presence = revealed
   const revealed = idx in state.revealed;
+  // exam mode never shows right / wrong, the answer or translations until the results page
+  const showAnswer = revealed && state.mode === 'practice';
 
   // header
   document.getElementById('quizLabel').textContent =
@@ -1157,12 +1153,11 @@ function renderQuestion() {
     `<span>Question ${idx + 1} of ${total}${isMulti ? ' (select ' + q.a.length + ')' : ''}</span>${starsHtml(q.d)}${scorePillHtml()}`;
   document.getElementById('qText').textContent = q.q;
 
-  // Cantonese translation of question + options:
-  //   - Practice: click "Translate" to show before answering
-  //   - Both modes: always shown once the answer is revealed
+  // Cantonese translation of question + options (practice only):
+  //   click "Translate" to show before answering; always shown once the answer is revealed
   const yueToggle = document.getElementById('yueToggle');
   const qYue = document.getElementById('qYue');
-  const yueOn = revealed || (state.mode === 'practice' && !!state.yueShown[idx]);
+  const yueOn = showAnswer || (state.mode === 'practice' && !!state.yueShown[idx]);
   yueToggle.classList.toggle('visible', state.mode === 'practice' && !revealed);
   yueToggle.classList.toggle('on', yueOn);
   yueToggle.textContent = yueOn ? 'Hide translation' : 'Translate';
@@ -1177,10 +1172,12 @@ function renderQuestion() {
     const userPicked = answered && (state.answers[idx] || []).includes(oi);
     const isCorrect = q.a.includes(oi);
 
-    if (revealed) {
+    if (showAnswer) {
       cls += ' disabled';
       if (isCorrect) cls += ' correct';
       else if (userPicked) cls += ' wrong';
+    } else if (revealed) {
+      cls += ' disabled' + (userPicked ? ' selected' : ''); // exam: submitted, locked, no right / wrong
     } else if (userPicked) {
       cls += ' selected'; // provisional blue highlight before reveal
     }
@@ -1193,9 +1190,9 @@ function renderQuestion() {
   });
   document.getElementById('optionsContainer').innerHTML = optHtml;
 
-  // answer box (shown in BOTH modes once revealed)
+  // answer box (practice only, once revealed)
   const box = document.getElementById('answerBox');
-  if (revealed) {
+  if (showAnswer) {
     const userAns = state.answers[idx] || [];
     const correct = q.a.every(a => userAns.includes(a)) && userAns.length === q.a.length;
     box.className = 'answer-box show' + (correct ? '' : ' wrong-ans');
@@ -1219,20 +1216,6 @@ function renderQuestion() {
   }
   renderSimilar(q, revealed);
 
-  // exam submit button
-  const submitRow = document.getElementById('examSubmitRow');
-  const submitBtn = document.getElementById('examSubmitBtn');
-  if (state.mode === 'exam') {
-    submitRow.style.display = 'block';
-    const selCount = (state.answers[idx] || []).length;
-    const needCount = q.a.length;
-    submitBtn.textContent = revealed
-      ? '✓ Submitted'
-      : `Submit Answer${isMulti ? ' (' + selCount + '/' + needCount + ' selected)' : ''}`;
-    submitBtn.disabled = revealed || selCount === 0;
-  } else {
-    submitRow.style.display = 'none';
-  }
 
   // nav buttons: bottom row, plus the quick pair in the question header once answered
   const next = nextAction(idx, total);
@@ -1245,7 +1228,11 @@ function renderQuestion() {
   quickNext.title = next.title;
   quickNext.setAttribute('aria-label', next.title);
   quickNext.onclick = next.run;
-  document.getElementById('quickNav').classList.toggle('visible', revealed);
+  // exam's last question: the bottom button is Submit; no quick submit in the header (avoid stray taps)
+  quickNext.style.display = next.quick === false ? 'none' : '';
+  // quick pair: practice once revealed; exam once something is picked (picks stay editable)
+  const picked = (state.answers[idx] || []).length > 0;
+  document.getElementById('quickNav').classList.toggle('visible', revealed || (state.mode === 'exam' && picked));
 
 }
 
@@ -1328,7 +1315,7 @@ function returnFromSimilar() {
 function nextAction(idx, total) {
   if (idx < total - 1) return { label: 'Next →', symbol: '→', title: 'Next', run: nextQ };
   if (isSimilarSession()) return { label: '↩ Back', symbol: '↩', title: 'Back', run: returnFromSimilar };
-  if (state.mode === 'exam') return { label: 'See Results →', symbol: '✓', title: 'See Results', run: finishExam };
+  if (state.mode === 'exam') return { label: 'Submit', symbol: '✓', title: 'Submit', run: submitExam, quick: false };
   return { label: 'Finish ✓', symbol: '✓', title: 'Finish', run: finishExam };
 }
 // practice: "✓ correct/answered" for this session, shown once something is answered
@@ -1404,18 +1391,12 @@ function revealAnswer() {
   renderQuestion();
 }
 
-function examSubmitAnswer() {
-  const idx = state.current;
-  if (idx in state.revealed) return;
-  if (!state.answers[idx] || state.answers[idx].length === 0) return;
-  const q = state.questions[idx];
-  const userAns = state.answers[idx];
-  const correct = q.a.every(a => userAns.includes(a)) && userAns.length === q.a.length;
-  state.revealed[idx] = correct;
-
-  // in exam mode reveal is done differently — just mark as done
-  // show the correct answers highlighted
-  renderQuestion();
+// exam: picks are saved as you go (and can be changed); Submit on the last question marks the
+// whole exam and opens the results — no right / wrong is shown before that
+function submitExam() {
+  const unanswered = state.questions.filter((_, i) => !(state.answers[i] || []).length).length;
+  if (unanswered && !confirm(`${unanswered} questions unanswered. Submit anyway?`)) return;
+  finishExam();
 }
 
 function nextQ() {
