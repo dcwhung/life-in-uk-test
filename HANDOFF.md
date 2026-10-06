@@ -13,7 +13,7 @@
 
 | File | 大小 | 內容 |
 |---|---|---|
-| `index.html` | 80 KB | CSS、HTML、app 邏輯（state / home / quiz / similar questions / results / study / SW） |
+| `index.html` | 81 KB | CSS、HTML、app 邏輯（state / home / quiz / similar questions / results / study / SW） |
 | `data/exams.js` | 181 KB | `EXAMS`：408 題，Exam 1–17 各 24 題 |
 | `data/study.js` | 65 KB | `CHAPTERS` + `STUDY`：236 條 dedupe 後嘅 facts |
 | `js/utils.js` | 2 KB | `shuffle`、`shuffleOptions`、`getLS`、`setLS`、`starsHtml`、`escapeHtml` |
@@ -164,7 +164,12 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | v0.38 | dcwhung/life-in-uk-test#7 | 取消 v0.32 嘅 in-session re-queue：每題一輪只出一次，「Question X of Y」嘅 Y 固定；未掌握題下一輪再出 |
 | — | dcwhung/life-in-uk-test#8 | HANDOFF.md：開發流程改為 PR、Similar Questions 設計決定、v0.32–v0.38 版本記錄 |
 | v0.39 | dcwhung/life-in-uk-test#9 | 難度掣拎走中文；結果頁 Review Answers 加「Original order / Wrong first」；Review Answers 上面加多一組 Practise Again / Choose Another |
-| v0.40 | — | 答完之後問題卡右上（Translate 位置）顯示快捷 Prev / Next；HANDOFF 補 PR #8 / #9 |
+| v0.40 | dcwhung/life-in-uk-test#10 | 答完之後問題卡右上（Translate 位置）顯示快捷 Prev / Next；HANDOFF 補 PR #8 / #9 |
+
+**快捷 Prev / Next 設計決定（v0.40）**
+- 只喺答完之後顯示（Practice reveal／Exam submit），未答前個位留返畀 Translate
+- 同底部掣共用 `nextAction()`，所以最後一題會跟住變 Finish ✓／See Results →／↩ Back，兩組唔會唔同步
+- 底部 Prev / Next 保留；快捷掣係細粒 pill（同 Translate 一樣大小），窄 mon 換行靠右，標題唔會被逼斷行
 
 **結果頁設計決定（v0.39）**
 - 「Wrong first」係**排序**唔係篩選：答錯排最前，答啱嘅照樣顯示喺後面；題號保留原本次序，對返做題時嘅位置
@@ -195,6 +200,8 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 ## 主要 commit（新→舊）
 
 ```
+a140e42 feat: quick Prev / Next in the question header once answered (v0.40)
+b61e701 docs: HANDOFF.md v0.39 — PR #8/#9 in version log, results design notes
 8e337ee feat: English-only difficulty labels; wrong-first review order and top action buttons on results (v0.39)
 73ed0de docs: HANDOFF.md v0.38 — PR flow, Similar Questions decisions, v0.32–v0.38 log
 d73331f fix: keep practice session length fixed; no in-session re-queue (v0.38)
