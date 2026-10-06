@@ -81,6 +81,7 @@ async function mixedShell(b) {
   // v0.59: the old shell has no locale / i18n tags; main.js loads them, then starts (async)
   await pg.waitForSelector('#examGrid .exam-btn', { state: 'attached' });
   assert(await pg.evaluate(() => typeof t === 'function' && !!document.querySelector('script[src="locales/en.js"]') && document.title === t('app.title')), 'mixed shell: missing locale + i18n scripts loaded at start-up');
+  assert(await pg.evaluate(() => typeof isSideSession === 'function' && !!document.querySelector('script[src="js/screens/sideSession.js"]')), 'mixed shell: missing sideSession.js loaded at start-up (v0.62)');
   assert((await text(pg, '#examGrid .exam-btn.all .exam-mastery')).startsWith('3/408'), 'mixed shell: legacy mastery shown (3/408)');
   assert((await text(pg, '#tileFlagged .t-num')) === '5', 'mixed shell: legacy Flagged 5 shown');
   const newKey = await pg.evaluate(() => {

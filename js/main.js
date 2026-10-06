@@ -1,9 +1,10 @@
 // ════════════════════════════════════════
 // INIT — runs last, after every other script has defined its globals
 // ════════════════════════════════════════
-// During a service-worker update a cached pre-v0.59 index.html can load these scripts without the
-// locale + i18n tags it never had (same cutover as CUI-0004): fetch them first, then start.
-const I18N_BOOT_SCRIPTS = ['locales/en.js', 'js/core/i18n.js'];
+// During a service-worker update a cached older index.html can load these scripts without the tags it never had
+// (same cutover as CUI-0004): fetch the missing ones first, in this order, then start.
+// locale + i18n: pre-v0.59 shells; sideSession: pre-v0.62 shells (startExam / leaveToHome call it)
+const LATE_BOOT_SCRIPTS = ['locales/en.js', 'js/core/i18n.js', 'js/screens/sideSession.js'];
 // shown when the scripts still fail after one reload; t() is not available then, so it cannot be a locale key
 const I18N_BOOT_FALLBACK_MSG = 'The app could not finish loading. Please check your connection and reload the page.';
 
@@ -16,8 +17,11 @@ function loadScript(src) {
     document.body.appendChild(el);
   });
 }
-async function loadI18nScripts() {
-  for (const src of I18N_BOOT_SCRIPTS) await loadScript(src); // in order: i18n.js after the locale
+function missingBootScripts() {
+  return LATE_BOOT_SCRIPTS.filter(src => !document.querySelector(`script[src="${src}"]`));
+}
+async function loadBootScripts(list) {
+  for (const src of list) await loadScript(src); // in order: i18n.js after the locale
 }
 
 function startApp() {
@@ -51,5 +55,6 @@ function clearI18nBootRetry() {
   try { sessionStorage.removeItem(I18N_RELOAD_SS); } catch {}
 }
 
-if (typeof t === 'function') startApp();
-else loadI18nScripts().then(() => { clearI18nBootRetry(); startApp(); }).catch(onI18nBootFailure);
+const bootMissing = missingBootScripts();
+if (!bootMissing.length) startApp();
+else loadBootScripts(bootMissing).then(() => { clearI18nBootRetry(); startApp(); }).catch(onI18nBootFailure);

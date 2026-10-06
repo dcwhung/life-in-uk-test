@@ -188,11 +188,40 @@ async function checkInstallDoubleTap(pg) {
   assert(calls === 1, `CUI-0008: two promptInstall() calls on one event call prompt() once (${calls})`);
 }
 
+const PROMPT_SETTLE_MS = 1000;
+// S-026: prompt() rejects (Chromium InvalidStateError) and userChoice never settles: Install must not hang —
+// promptInstall() finishes, the banner hides, no dismiss key, no unhandled rejection / page error
+async function checkInstallPromptRejected(pg) {
+  const errs = [];
+  const onError = e => errs.push(e.message);
+  pg.on('pageerror', onError);
+  const shown = await pg.evaluate(() => {
+    const e = new Event('beforeinstallprompt', { cancelable: true });
+    e.prompt = () => Promise.reject(new DOMException('prompt() already called', 'InvalidStateError'));
+    e.userChoice = new Promise(() => {}); // never settles
+    window.dispatchEvent(e);
+    return byId('installBanner').classList.contains('visible');
+  });
+  assert(shown, 'S-026: banner shows before the rejected-prompt check');
+  const settled = await pg.evaluate(ms => Promise.race([
+    promptInstall().then(() => true),
+    new Promise(resolve => setTimeout(() => resolve(false), ms)),
+  ]), PROMPT_SETTLE_MS);
+  const after = await bannerState(pg, INSTALL_DISMISSED);
+  pg.off('pageerror', onError);
+  assert(settled, `S-026: promptInstall() settles within ${PROMPT_SETTLE_MS}ms when prompt() rejects and userChoice never settles`);
+  assert(!after.visible && after.stored === null, `S-026: the banner hides and ${INSTALL_DISMISSED} stays null (${JSON.stringify(after)})`);
+  assert(errs.length === 0, 'S-026: no page error / unhandled rejection' + (errs.length ? ': ' + errs.join(' / ') : ''));
+}
+
 // CUI-0008: installing from the browser menu (appinstalled) also hides the banner
 async function checkAppInstalled(pg) {
   assert(await fireCountingPrompt(pg, 'accepted'), 'CUI-0008: banner shows before appinstalled');
   await pg.evaluate(() => window.dispatchEvent(new Event('appinstalled')));
   assert(!(await bannerState(pg, INSTALL_DISMISSED)).visible, 'CUI-0008: an appinstalled event hides the banner');
+  // S-027: the installed app's stale event is dropped, so a later promptInstall() never calls prompt() on it
+  const calls = await pg.evaluate(async () => { await promptInstall(); return window.__promptCalls; });
+  assert(calls === 0, `S-027: after appinstalled, promptInstall() does not call prompt() (${calls})`);
 }
 
 const CLOSE_HIT_OUTSET = 6;
@@ -243,6 +272,7 @@ async function checkCloseHitArea(pg) {
     await checkInstallBanner(pg);
     await checkInstallCancelled(pg);
     await checkInstallDoubleTap(pg);
+    await checkInstallPromptRejected(pg);
     await checkAppInstalled(pg);
     await checkCloseHitArea(pg);
     await checkInstallBannerDesktop(ctx, base);

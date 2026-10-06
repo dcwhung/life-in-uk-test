@@ -176,6 +176,7 @@ LOCALES.en = {
     chapterN: 'Chapter {n}',
     chapterShort: 'Ch {n}',
     similarSet: 'Similar Questions',
+    factSet: 'Fact #{id}',
     wrongSet: 'Wrong answers',
     flaggedSet: 'Flagged',
     questions: { one: '{n} question', other: '{n} questions' },
