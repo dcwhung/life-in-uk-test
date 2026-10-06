@@ -123,6 +123,23 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
     return { w: r.width, h: r.height, top: at(r.left + r.width / 2, r.top - HIT_OFFSET), left: at(r.left - HIT_OFFSET, r.top + r.height / 2) };
   });
   assert(hit.w === 32 && hit.h === 32 && hit.top && hit.left, 'fact button 32x32 with a hit area beyond the box: ' + JSON.stringify(hit));
+  // W-009: the buttons sit 4px apart, so their rings must meet in the gap, not overlap a visible box —
+  // a tap just inside the bookmark's right edge must not toggle Mastered (and vice versa); outer rings stay enlarged
+  const EDGE_INSET = 1; // 1px inside the visible 32px box
+  const seam = await pg.locator('.fact').first().evaluate((card, inset) => {
+    const [bm, tick] = [card.querySelector('.fact-btn.star'), card.querySelector('.fact-btn.tick')];
+    const [b, k] = [bm.getBoundingClientRect(), tick.getBoundingClientRect()];
+    const at = (x, y) => document.elementFromPoint(x, y)?.closest('.fact-btn');
+    const midY = b.top + b.height / 2;
+    const OUTER_RING = 4; // inside the ring: it is 6px off the padding box = 4.5px beyond the 1.5px border
+    return {
+      bmRightEdge: at(b.right - inset, midY) === bm,
+      tickLeftEdge: at(k.left + inset, midY) === tick,
+      tickRightRing: at(k.right + OUTER_RING, midY) === tick,
+      tickTopRing: at(k.left + k.width / 2, k.top - OUTER_RING) === tick,
+    };
+  }, EDGE_INSET);
+  assert(Object.values(seam).every(Boolean), 'fact button hit areas do not overlap a neighbour\'s visible box: ' + JSON.stringify(seam));
   // O8: tag and fact button corners come from the --radius-xs token (were literal 5px / 7px)
   const xs = await pg.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--radius-xs').trim());
   assert(xs !== '' && await bmBtn.evaluate(e => getComputedStyle(e).borderTopLeftRadius) === xs

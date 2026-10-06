@@ -44,7 +44,8 @@
 .tag.war { background: var(--danger-bg); color: var(--red); }
 .tag.freq { background: var(--gold-bg); color: var(--gold-text); }
 .tag.person { background: var(--person-bg); color: var(--navy-light); }
-.fact-actions { display: flex; gap: 4px; flex-shrink: 0; }
+/* --fact-actions-gap is shared with the hit rings below so they meet in the gap instead of overlapping (W-009) */
+.fact-actions { --fact-actions-gap: 4px; display: flex; gap: var(--fact-actions-gap); flex-shrink: 0; }
 .fact-btn {
   background: var(--bg);
   border: 1.5px solid var(--border);
@@ -58,6 +59,10 @@
 }
 /* O2: 32px box + 6px invisible ring = 44px touch target (WCAG 2.5.5) */
 .fact-btn::before { content: ''; position: absolute; inset: -6px; }
+/* W-009: on the facing sides the ring only reaches half the gap — a full 6px ring on the ✓ (later in the DOM,
+   so painted on top) covered the bookmark's right edge and a tap there toggled Mastered. No visual change. */
+.fact-btn.star::before { right: calc(var(--fact-actions-gap) / -2); }
+.fact-btn.tick::before { left: calc(var(--fact-actions-gap) / -2); }
 /* bookmark: same SVG + colours as the Practice .flag-btn (outline muted, on = orange fill); the path has no fill of its own */
 .fact-btn svg { width: 18px; height: 18px; }
 .fact-btn.star path { fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; }
