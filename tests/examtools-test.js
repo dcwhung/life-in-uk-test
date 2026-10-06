@@ -80,9 +80,32 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.evaluate(() => goHome());
   assert(await active('screenHome') && lastConfirm === null, 'leaving the results does not ask');
 
-  // All Exams (408 Q) in exam mode: no 45-min timer / dots
+  // Random Exam (exam mode › All Exams): 24 random questions from all 408, never two from the same fact
+  const draws = await pg.evaluate(() => Array.from({ length: 30 }, () => {
+    pendingMode = 'exam'; startExam('all');
+    const keys = state.questions.map(qKey);
+    const facts = keys.map(k => FACT_BY_QKEY[k].id);
+    return { n: keys.length, uniqKeys: new Set(keys).size, uniqFacts: new Set(facts).size, sig: keys.join(',') };
+  }));
+  assert(draws.every(d => d.n === 24 && d.uniqKeys === 24 && d.uniqFacts === 24), 'every draw: 24 questions, 24 different facts (no similar questions)');
+  assert(new Set(draws.map(d => d.sig)).size === draws.length, 'every draw is a different set');
   await pg.evaluate(() => { pendingMode = 'exam'; startExam('all'); });
-  assert(!(await vis('#examTimer')) && !(await vis('#navDots')), 'All Exams: no timer or dots');
+  assert(await vis('#examTimer') && (await pg.$$('#navDots .dot')).length === 24 && await vis('#flagBtn'), 'Random Exam: timer, 24 dots, flag');
+  assert((await text('#quizLabel')) === 'Random Exam', 'quiz label: Random Exam');
+  await pg.evaluate(() => { state.questions.forEach((q, i) => { state.answers[i] = [...q.a]; }); state.current = 23; renderQuestion(); });
+  await pg.click('#nextBtn');
+  assert(await active('screenResult') && (await text('#resultLabel2')) === 'PASSED' && (await text('#resultLabel')) === 'Random Exam', 'results: PASSED verdict, Random Exam label');
+  const before = await pg.evaluate(() => state.questions.map(qKey).join(','));
+  await pg.evaluate(() => retryExam());
+  assert(await pg.evaluate(b => state.questions.length === 24 && state.questions.map(qKey).join(',') !== b, before), 'retry draws a fresh set');
+  confirmAnswer = true; await pg.evaluate(() => goHome());
+  // home grid: exam mode shows Random Exam; practice keeps All Exams (408 Q)
+  await pg.click('#modeExam');
+  assert((await text('#examGrid .exam-btn.all')).startsWith('🎲 Random Exam (24 Q)'), 'exam grid: 🎲 Random Exam (24 Q)');
+  await pg.click('#modePractice'); await pg.click('#ptabExam');
+  assert((await text('#examGrid .exam-btn.all')).startsWith('🎯 All Exams (408 Q)'), 'practice grid keeps All Exams (408 Q)');
+  await pg.evaluate(() => { pendingMode = 'practice'; startExam('all'); });
+  assert(await pg.evaluate(() => state.questions.length === 25) && !(await vis('#examTimer')), 'practice All Exams unchanged: round of 25, no timer');
 
   assert(errs.length === 0, 'no page errors: ' + errs.join('; '));
   console.log('EXAMTOOLS PASS');

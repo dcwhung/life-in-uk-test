@@ -29,8 +29,9 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await start('practice', 'ch1');
   assert(await pg.evaluate(() => state.questions.length === 9), 'ch1 (9 Q): all 9 asked');
   // exam mode is never capped
+  // exam mode All Exams = Random Exam: 24 questions, no two from the same study fact
   await start('exam', 'all');
-  assert(await pg.evaluate(() => state.questions.length === 408), 'exam mode All Exams: all 408 asked');
+  assert(await pg.evaluate(() => state.questions.length === 24), 'exam mode Random Exam: 24 questions');
 
   // round 1 of Ch3 (167 Q): 25 picked, each answered once; master them over 3 rounds
   await start('practice', 'ch3');
