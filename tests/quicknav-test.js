@@ -41,13 +41,13 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.click('#quickNext');
   assert(await vis('#screenResult'), 'quick Finish opens the results');
 
-  // exam: quick nav once the question has a pick; no Next on the last question (Submit instead)
+  // exam: quick nav always shown (no Translate there), also on unanswered questions; no Next on the last question
   await pg.evaluate(() => { pendingMode = 'exam'; startExam(1); });
-  assert(!(await vis('#quickNav')), 'exam: hidden before picking');
+  assert(await vis('#quickNav') && (await text('#quickNext')) === '→', 'exam: shown before picking');
   await answer();
-  assert(await vis('#quickNav') && (await text('#quickNext')) === '→', 'exam: shown once picked');
   await pg.click('#quickNext');
   assert(await pg.evaluate(() => state.current === 1 && state.answers[0].length > 0), 'exam: quick Next keeps the pick');
+  assert(await vis('#quickNav'), 'exam: still shown on the next (unanswered) question');
   await pg.evaluate(() => { state.current = state.questions.length - 1; renderQuestion(); });
   await answer();
   assert(!(await vis('#quickNext')) && await vis('#quickPrev') && (await text('#nextBtn')) === 'Submit', 'exam last question: bottom button is Submit, no quick submit');

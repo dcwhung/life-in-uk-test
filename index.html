@@ -914,7 +914,7 @@
 // ════════════════════════════════════════
 // APP VERSION — single source of truth (shown in the header, drives the SW cache name)
 // ════════════════════════════════════════
-const APP_VERSION = '0.46';
+const APP_VERSION = '0.47';
 
 // ════════════════════════════════════════
 // APP STATE
@@ -1307,9 +1307,8 @@ function renderQuestion() {
   quickNext.onclick = next.run;
   // exam's last question: the bottom button is Submit; no quick submit in the header (avoid stray taps)
   quickNext.style.display = next.quick === false ? 'none' : '';
-  // quick pair: practice once revealed; exam once something is picked (picks stay editable)
-  const picked = (state.answers[idx] || []).length > 0;
-  document.getElementById('quickNav').classList.toggle('visible', revealed || (state.mode === 'exam' && picked));
+  // quick pair: practice once revealed (Translate holds the spot before that); exam always (no Translate there)
+  document.getElementById('quickNav').classList.toggle('visible', revealed || state.mode === 'exam');
 
 }
 
