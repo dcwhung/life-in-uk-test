@@ -1,14 +1,12 @@
 const { chromium } = require('playwright-core');
-const { spawn } = require('child_process');
 const fs = require('fs');
-const http = require('http');
 const os = require('os');
 const path = require('path');
+const { startPagesServer } = require('./pages-server');
 // Service worker: registers from sw.js, caches the whole app shell, and the app opens offline.
 // A service worker needs http(s), so this suite serves a copy of the app with a python3 static server
 // (or uses APP_URL when that is an http(s) URL, e.g. the live site).
 const ROOT = path.resolve(__dirname, '..');
-const PORT = 8700 + Math.floor(Math.random() * 200);
 const launchOpts = { args: ['--no-sandbox'] };
 if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_PATH;
 const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('ok:', m); };
@@ -18,24 +16,6 @@ const swSource = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
 const SHELL = [...swSource.match(/const SHELL = \[([\s\S]*?)\];/)[1].matchAll(/'([^']+)'/g)].map(m => m[1]);
 const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
 const pageFiles = [...html.matchAll(/<script[^>]*\ssrc="([^"]+)"/g), ...html.matchAll(/<link[^>]*\shref="([^"]+)"/g)].map(m => m[1]);
-
-// static server that sends GitHub Pages' Cache-Control, so stale HTTP-cache reads would show up here
-const PAGES_LIKE_SERVER = `
-import http.server, sys
-class H(http.server.SimpleHTTPRequestHandler):
-    def end_headers(self):
-        self.send_header('Cache-Control', 'max-age=600')
-        super().end_headers()
-    def log_message(self, *a): pass
-http.server.ThreadingHTTPServer(('127.0.0.1', int(sys.argv[1])), H).serve_forever()
-`;
-const waitForServer = url => new Promise((resolve, reject) => {
-  const started = Date.now();
-  const ping = () => http.get(url, res => { res.resume(); resolve(); }).on('error', () => {
-    if (Date.now() - started > 10000) reject(new Error('http.server did not start')); else setTimeout(ping, 100);
-  });
-  ping();
-});
 
 // version bump: only the imported config.js changes; the update must still install a new cache
 // (updateViaCache: 'none') and drop the old lifeuk cache, but leave other apps' caches alone
@@ -70,13 +50,12 @@ async function checkVersionBump(pg, serveDir, oldCache) {
 
   const external = /^https?:/.test(process.env.APP_URL || '');
   let server = null;
-  const base = external ? process.env.APP_URL.replace(/index\.html$/, '') : `http://127.0.0.1:${PORT}/`;
+  let base = external ? process.env.APP_URL.replace(/index\.html$/, '') : null;
   // serve a temp copy of the app so the version-bump check can edit its config.js
   const serveDir = external ? null : fs.mkdtempSync(path.join(os.tmpdir(), 'lifeuk-sw-'));
   if (!external) {
     ['index.html', 'sw.js', 'data', 'css', 'js'].forEach(f => fs.cpSync(path.join(ROOT, f), path.join(serveDir, f), { recursive: true }));
-    server = spawn('python3', ['-c', PAGES_LIKE_SERVER, String(PORT)], { cwd: serveDir, stdio: 'ignore' });
-    await waitForServer(base);
+    ({ base, server } = await startPagesServer(serveDir));
   }
   const b = await chromium.launch(launchOpts);
   try {

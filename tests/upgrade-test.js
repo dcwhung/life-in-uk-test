@@ -1,9 +1,9 @@
 const { chromium } = require('playwright-core');
-const { spawn, execFileSync } = require('child_process');
+const { execFileSync } = require('child_process');
 const fs = require('fs');
-const http = require('http');
 const os = require('os');
 const path = require('path');
+const { startPagesServer } = require('./pages-server');
 // v0.57 → v0.58 upgrade (CUI-0004): legacy progress must survive every mix of old and new files.
 //   1. mixed shell: the v0.57 index.html (no migrate tag) + v0.58 js — the storage layer migrates lazily
 //   2. opposite mix: v0.57 files + v0.58 utils.js — no throw, v0.57 keys still read
@@ -12,7 +12,6 @@ const path = require('path');
 // The v0.57 files come from git: V057_REF is the last v0.57 commit on main (merge of PR #29), pinned so a later
 // main does not silently turn this into a same-version test.
 const ROOT = path.resolve(__dirname, '..');
-const PORT = 8900 + Math.floor(Math.random() * 90);
 const launchOpts = { args: ['--no-sandbox'] };
 if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_PATH;
 const V057_REF = process.env.V057_REF || 'dc84cab549bf6dab4148d04a65a4ca60c831bcc1';
@@ -144,22 +143,6 @@ async function v057UtilsMix(b) {
   await pg.close();
 }
 
-const PAGES_LIKE_SERVER = `
-import http.server, sys
-class H(http.server.SimpleHTTPRequestHandler):
-    def end_headers(self):
-        self.send_header('Cache-Control', 'max-age=600')
-        super().end_headers()
-    def log_message(self, *a): pass
-http.server.ThreadingHTTPServer(('127.0.0.1', int(sys.argv[1])), H).serve_forever()
-`;
-const waitForServer = url => new Promise((resolve, reject) => {
-  const started = Date.now();
-  const ping = () => http.get(url, res => { res.resume(); resolve(); }).on('error', () => {
-    if (Date.now() - started > 10000) reject(new Error('http.server did not start')); else setTimeout(ping, 100);
-  });
-  ping();
-});
 // wait until the new worker controls the page and the old lifeuk cache is gone (install → skipWaiting → claim)
 const waitForCache = (pg, cache) => pg.evaluate(async cache => {
   const reg = await navigator.serviceWorker.getRegistration();
@@ -173,14 +156,13 @@ const waitForCache = (pg, cache) => pg.evaluate(async cache => {
   return false;
 }, cache);
 
-// 3. port of QA's upgrade-sim core: v0.57 SW installed → deploy current files in place → reload until v0.58 runs
+// 3. port of QA's upgrade-sim core: v0.57 SW installed → deploy current files in place → reload until v0.58 runs.
+// It checks the end state of a real upgrade; it does not force the SW cutover race (case 1 covers that deterministically).
 async function swUpgrade(b) {
   const dir = tmpDir('upgrade');
   extractV057(dir);
-  const base = `http://127.0.0.1:${PORT}/`;
-  const server = spawn('python3', ['-c', PAGES_LIKE_SERVER, String(PORT)], { cwd: dir, stdio: 'ignore' });
+  const { base, server } = await startPagesServer(dir);
   try {
-    await waitForServer(base);
     const ctx = await b.newContext({ viewport: { width: 390, height: 844 } });
     const pg = await ctx.newPage();
     const errs = []; pg.on('pageerror', e => errs.push(e.message));
@@ -212,7 +194,17 @@ async function swUpgrade(b) {
   }
 }
 
+// a shallow clone may not have the pinned v0.57 commit: say how to fix it instead of failing inside git archive
+function checkV057Ref() {
+  try {
+    execFileSync('git', ['-C', ROOT, 'cat-file', '-e', `${V057_REF}^{commit}`], { stdio: 'ignore' });
+  } catch {
+    throw new Error(`FAIL: v0.57 ref ${V057_REF} not in this clone — run \`git fetch --unshallow\` (or fetch that commit), or set V057_REF to a v0.57 commit`);
+  }
+}
+
 (async () => {
+  checkV057Ref();
   const b = await chromium.launch(launchOpts);
   await mixedShell(b);
   await oppositeMix(b);

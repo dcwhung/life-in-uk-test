@@ -231,6 +231,8 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 
 測試會重新產生 `tests/shot-*.png`，跑完用 `git ls-files -m 'tests/*.png' | xargs git checkout --` 還原，唔好一齊 commit。**唔好用 `git checkout -- tests/*.png`**：shell glob 會包埋 git 未追蹤嘅新截圖（例如 `shot-similar.png`），git 遇到唔認識嘅 path 會成句失敗，一張都冇還原（v0.53 因此誤 commit 咗截圖，要另開 commit 還原）；未追蹤嘅截圖直接 `rm`。
 
+`tests/pages-server.js` 唔係 suite：`sw-test` 同 `upgrade-test` 共用嘅 python static server（`Cache-Control: max-age=600`，port 0 由 OS 揀、server 印返 port；python 起唔到或者提早退出就即刻 fail）。`upgrade-test` 用嘅 v0.57 commit（`dc84cab`）喺 shallow clone 可能冇，會 fail 並提示 `git fetch --unshallow` 或者設 `V057_REF`。
+
 | Suite | 覆蓋 |
 |---|---|
 | `test.js` | Practice 基本流程、多選；Exam：揀選項中性藍色、Next / Prev 保留同可改答案、最後一題 Next 變 Submit（同 Prev 一行）、未答 confirm、按暫存答案計分 |
