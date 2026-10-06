@@ -13,7 +13,7 @@
 
 | File | 大小 | 內容 |
 |---|---|---|
-| `index.html` | 79 KB | CSS、HTML、app 邏輯（state / home / quiz / similar questions / results / study / SW） |
+| `index.html` | 80 KB | CSS、HTML、app 邏輯（state / home / quiz / similar questions / results / study / SW） |
 | `data/exams.js` | 181 KB | `EXAMS`：408 題，Exam 1–17 各 24 題 |
 | `data/study.js` | 65 KB | `CHAPTERS` + `STUDY`：236 條 dedupe 後嘅 facts |
 | `js/utils.js` | 2 KB | `shuffle`、`shuffleOptions`、`getLS`、`setLS`、`starsHtml`、`escapeHtml` |
@@ -149,7 +149,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | `batch-test.js` | Practice 每輪最多 25 題、下一輪由未掌握題抽、最後幾題每輪再出直至掌握 |
 | `similar-test.js` | Similar Questions section、Practise these N 臨時 session 同返回 |
 
-## 版本記錄（v0.32–v0.38）
+## 版本記錄（v0.32–v0.39）
 
 | 版本 | PR | 改動 |
 |---|---|---|
@@ -159,8 +159,14 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | v0.35 | dcwhung/life-in-uk-test#4 | **Similar Questions**：答完顯示同一 fact 嘅其他題目 + Core Fact + 「Practise these N」臨時 session；加 `mockups/similar-question-map.html`、`tests/similar-test.js` |
 | v0.36–v0.37 | dcwhung/life-in-uk-test#5 | 臨時 session 返回掣改做「↩ Back」；Prev / Next 搬上 Similar Questions 前面；Practice 結果頁重做掣改做「Practise Again」（Exam mode 仍係「Retry Exam」） |
 | — | dcwhung/life-in-uk-test#6 | `oy-test` 唔再隨機 fail（搬有選項翻譯嘅題目去最前；年份題檢查改為搵出嚟先驗） |
-| v0.39 | — | 難度掣拎走中文；結果頁 Review Answers 加「Original order / Wrong first」；Review Answers 上面加多一組 Practise Again / Choose Another |
 | v0.38 | dcwhung/life-in-uk-test#7 | 取消 v0.32 嘅 in-session re-queue：每題一輪只出一次，「Question X of Y」嘅 Y 固定；未掌握題下一輪再出 |
+| — | dcwhung/life-in-uk-test#8 | HANDOFF.md：開發流程改為 PR、Similar Questions 設計決定、v0.32–v0.38 版本記錄 |
+| v0.39 | dcwhung/life-in-uk-test#9 | 難度掣拎走中文；結果頁 Review Answers 加「Original order / Wrong first」；Review Answers 上面加多一組 Practise Again / Choose Another |
+
+**結果頁設計決定（v0.39）**
+- 「Wrong first」係**排序**唔係篩選：答錯排最前，答啱嘅照樣顯示喺後面；題號保留原本次序，對返做題時嘅位置
+- 預設「Original order」；用戶揀過就記住（`reviewOrder`）
+- Practise Again / Choose Another 喺 Review Answers 上面同最底各一組，長 review 唔使碌到底
 
 **Similar Questions 設計決定（v0.35，同用戶確認過）**
 - UI 文字用英文；題目／fact 嘅廣東話翻譯照顯示
@@ -186,6 +192,8 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 ## 主要 commit（新→舊）
 
 ```
+8e337ee feat: English-only difficulty labels; wrong-first review order and top action buttons on results (v0.39)
+73ed0de docs: HANDOFF.md v0.38 — PR flow, Similar Questions decisions, v0.32–v0.38 log
 d73331f fix: keep practice session length fixed; no in-session re-queue (v0.38)
 e273f4b test: make oy-test deterministic
 f4e9b79 fix: 'Practise Again' instead of 'Retry Exam' on practice results (v0.37)
