@@ -8,7 +8,7 @@ const { startPagesServer } = require('./pages-server');
 // declared sizes, Chrome sees no manifest / installability errors, and the existing beforeinstallprompt banner still works.
 // v0.60 install banner: only on touch (coarse pointer) devices, and its ✕ hides it for good (lifeuk.installDismissed).
 // v0.61: CUI-0008 Install hides the banner on any outcome (cancel does not store the dismiss key), prompts once per event,
-// appinstalled hides it.
+// appinstalled hides it; S-022 the 28px ✕ has a ~44px tap area that never covers Install.
 // Served over http (python static server on the repo root, read-only) or APP_URL when that is http(s).
 const ROOT = path.resolve(__dirname, '..');
 const launchOpts = { args: ['--no-sandbox'] };
@@ -195,6 +195,30 @@ async function checkAppInstalled(pg) {
   assert(!(await bannerState(pg, INSTALL_DISMISSED)).visible, 'CUI-0008: an appinstalled event hides the banner');
 }
 
+const CLOSE_HIT_OUTSET = 6;
+// S-022: the 28px ✕ keeps its look but its tap area reaches past its edges, and never covers the Install button
+async function checkCloseHitArea(pg) {
+  await fireCountingPrompt(pg, 'accepted');
+  await pg.locator('#installBanner').scrollIntoViewIfNeeded();
+  const hit = await pg.evaluate(d => {
+    const close = document.querySelector('#installBanner .install-close');
+    const btn = byId('installBtn');
+    const c = close.getBoundingClientRect();
+    const b = btn.getBoundingClientRect();
+    const at = (x, y) => document.elementFromPoint(x, y);
+    return {
+      size: `${c.width}x${c.height}`,
+      corner: at(c.right + d, c.top - d) === close,
+      left: at(c.left - d, c.top + c.height / 2) === close,
+      install: at(b.left + b.width / 2, b.top + b.height / 2) === btn,
+      installEdge: at(b.right - 1, b.top + b.height / 2) === btn,
+    };
+  }, CLOSE_HIT_OUTSET);
+  assert(hit.size === '28x28', `S-022: ✕ still looks 28x28 (${hit.size})`);
+  assert(hit.corner && hit.left, `S-022: a tap ${CLOSE_HIT_OUTSET}px outside the ✕ (top-right corner, left side) hits .install-close (${JSON.stringify(hit)})`);
+  assert(hit.install && hit.installEdge, `S-022: the Install button centre and right edge still hit #installBtn (${JSON.stringify(hit)})`);
+}
+
 (async () => {
   const external = /^https?:/.test(process.env.APP_URL || '');
   let server = null;
@@ -220,6 +244,7 @@ async function checkAppInstalled(pg) {
     await checkInstallCancelled(pg);
     await checkInstallDoubleTap(pg);
     await checkAppInstalled(pg);
+    await checkCloseHitArea(pg);
     await checkInstallBannerDesktop(ctx, base);
     await checkInstallDismiss(pg);
   } finally {

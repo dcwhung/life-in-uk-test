@@ -65,6 +65,7 @@
 }
 /* ✕: small round ghost button after Install (v0.60) */
 .install-close {
+  position: relative;
   flex-shrink: 0;
   width: 28px; height: 28px;
   display: flex; align-items: center; justify-content: center;
@@ -74,5 +75,8 @@
   font-size: var(--fs-md); line-height: 1;
   cursor: pointer;
 }
+/* S-022: keep the 28px look but grow the tap area to 44px (WCAG 2.5.5); 8px stays inside the banner's 14px gap,
+   so it never covers Install */
+.install-close::before { content: ''; position: absolute; inset: -8px; }
 .install-close:hover { color: var(--text-inverse); }
 .install-close:focus-visible { outline: 2px solid var(--text-inverse); outline-offset: 1px; }
