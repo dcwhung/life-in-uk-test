@@ -3,7 +3,7 @@ const { execFileSync } = require('child_process');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { startPagesServer } = require('./pages-server');
+const { startPagesServer, appFiles } = require('./pages-server');
 // v0.57 → v0.58 upgrade (CUI-0004): legacy progress must survive every mix of old and new files.
 //   1. mixed shell: the v0.57 index.html (no migrate tag) + v0.58 js — the storage layer migrates lazily
 //   2. opposite mix: v0.57 files + v0.58 utils.js — no throw, v0.57 keys still read
@@ -15,7 +15,8 @@ const ROOT = path.resolve(__dirname, '..');
 const launchOpts = { args: ['--no-sandbox'] };
 if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_PATH;
 const V057_REF = process.env.V057_REF || 'dc84cab549bf6dab4148d04a65a4ca60c831bcc1';
-const APP_FILES = ['index.html', 'sw.js', 'data', 'css', 'js'];
+// v0.57 had no icons / manifest; the current copy follows sw.js SHELL (appFiles)
+const V057_FILES = ['index.html', 'sw.js', 'data', 'css', 'js'];
 const P = 'lifeuk.';
 const MARKER = P + 'migrated';
 const CURRENT_VERSION = fs.readFileSync(path.join(ROOT, 'js/core/config.js'), 'utf8').match(/const APP_VERSION = '([^']+)'/)[1];
@@ -38,8 +39,8 @@ const LEGACY_NAMES = Object.keys(LEGACY).filter(k => k !== 'reviewOrder');
 const tmpDirs = [];
 const tmpDir = tag => { const d = fs.mkdtempSync(path.join(os.tmpdir(), `lifeuk-${tag}-`)); tmpDirs.push(d); return d; };
 const cleanUp = () => tmpDirs.forEach(d => fs.rmSync(d, { recursive: true, force: true }));
-const copyCurrent = dir => APP_FILES.forEach(f => fs.cpSync(path.join(ROOT, f), path.join(dir, f), { recursive: true }));
-const extractV057 = dir => execFileSync('sh', ['-c', `git -C "${ROOT}" archive ${V057_REF} ${APP_FILES.join(' ')} | tar -x -C "${dir}"`]);
+const copyCurrent = dir => appFiles(ROOT).forEach(f => fs.cpSync(path.join(ROOT, f), path.join(dir, f), { recursive: true }));
+const extractV057 = dir => execFileSync('sh', ['-c', `git -C "${ROOT}" archive ${V057_REF} ${V057_FILES.join(' ')} | tar -x -C "${dir}"`]);
 const showV057 = file => execFileSync('git', ['-C', ROOT, 'show', `${V057_REF}:${file}`]);
 const emptyDir = dir => fs.readdirSync(dir).forEach(f => fs.rmSync(path.join(dir, f), { recursive: true, force: true }));
 

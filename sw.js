@@ -12,6 +12,12 @@ const CACHE = CACHE_PREFIX + APP_VERSION;
 const SHELL = [
   './',
   'index.html',
+  'icons/icon.svg',
+  'icons/icon-192.png',
+  'icons/apple-touch-icon.png',
+  'icons/icon-512.png',
+  'icons/icon-maskable-512.png',
+  'manifest.webmanifest',
   'data/exams.js',
   'data/study.js',
   'css/base/tokens.css',
@@ -59,8 +65,10 @@ self.addEventListener('activate', e => {
     Promise.all(keys.filter(k => k.startsWith(CACHE_PREFIX) && k !== CACHE).map(k => caches.delete(k)))
   ).then(() => self.clients.claim()));
 });
+// caches.match() would search every cache on the shared origin, other apps' too (S-003): read only our own
+const fromOwnCache = request => caches.open(CACHE).then(c => c.match(request));
 // offline fallback to the app page only for page loads; a missing script / image just fails
-const offlineFallback = request => (request.mode === 'navigate' ? caches.match('./') : Response.error());
+const offlineFallback = request => (request.mode === 'navigate' ? fromOwnCache('./') : Response.error());
 self.addEventListener('fetch', e => {
-  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request).catch(() => offlineFallback(e.request))));
+  e.respondWith(fromOwnCache(e.request).then(r => r || fetch(e.request).catch(() => offlineFallback(e.request))));
 });

@@ -36,14 +36,18 @@ v0.57（P1 refactor）起 `index.html` 只剩 `<head>`、各 screen 嘅 markup �
 | `js/screens/*.js` | `home`、`quiz`（`state`、`startExam`、`renderQuestion` 同拆細嘅 helper、`selectOption`）、`examTools`（計時、flag、圓點、`submitExam`）、`similarPanel`、`result`（`finishExam` 同 review）、`flagged`、`study` |
 | `js/pwa/pwa.js` | `registerSW()`（`file://` 唔註冊）+ install banner |
 | `js/main.js` | init（最後載入） |
-| `tests/*.js` | 23 套 Playwright 測試，`tests/run-all.sh` 一次過跑 |
+| `manifest.webmanifest` | v0.59（CUI-0002）：web app manifest（`name`、`short_name`、`start_url` / `scope` `./`、`standalone`、背景 / theme 色 = header navy `#1a2744`、192 / 512 / 512 maskable icon）；Chrome 要有佢先裝得 app、`beforeinstallprompt` 先會彈 |
+| `icons/icon.svg` | v0.59（CUI-0001）：app icon **source**（navy 底 + 白色「UK」字，用戶確認嘅 wordmark）；同時係 SVG favicon。注意 SVG 註解唔可以有 `--`（XML 規定），有就成個 SVG decode 唔到 |
+| `icons/*.png` | 由 `icon.svg` 生成，**唔好手改**：`icon-192.png`（PNG favicon fallback + manifest）、`icon-512.png`、`icon-maskable-512.png`（navy 滿版、圖案縮到 80% 入 safe zone）、`apple-touch-icon.png`（180，navy 滿版，iOS 自己切圓角） |
+| `tests/tools/make-icons.js` | 改咗 `icon.svg` 之後跑：`NODE_PATH=… CHROMIUM_PATH=… node tests/tools/make-icons.js`，用 Chromium 按準確尺寸 render 晒所有 PNG（navy 由 `tokens.css` 讀），再 commit PNG |
+| `tests/*.js` | 25 套 Playwright 測試，`tests/run-all.sh` 一次過跑 |
 | `mockups/similar-question-map.html` | Similar Questions 嘅設計 mockup（獨立 HTML，頂部 tab 切換情景；PR 嘅 `Design Origin`） |
 
 **載入次序：** `data/exams.js` → `data/study.js` → `js/core/config.js` → `core/utils` → `core/store` → `domain/*` → `components/*` → `screens/*` → `core/actions` → `pwa/pwa` → `main`。全部係 classic `<script src>`，全局變量，冇 ES module（`file://` 同 iOS PWA 兼容）；唔好包 IIFE，因為頂層 `let`（`state`、`streaks`、`pendingMode`…）要喺全局 lexical scope，測試先改得到。檔案之間只可以喺 function 入面互相 call；頂層即刻行嘅 code 只可以用前面已載入嘅 file。`store.js` 頂層嘅 `getLS()` 係第一個讀 storage 嘅地方，舊 key 遷移就喺嗰下 lazy 行（v0.58 起冇獨立 `migrate.js`，見「localStorage keys」）。
 
 **加新 file 嘅規則（三步，漏一步就會離線壞咗）：**
 1. `index.html` 按載入次序加 `<link>` / `<script src>`
-2. `sw.js` 嘅 `SHELL` 加同一個 path（`tests/sw-test.js` 會檢查 index.html 每個 tag 都喺 SHELL）
+2. `sw.js` 嘅 `SHELL` 加同一個 path（`tests/sw-test.js` 會檢查 index.html 每個 tag 都喺 SHELL；`<link rel="icon">` / `manifest` 都計，manifest 入面嘅 icon 亦要加）。`sw-test` / `upgrade-test` 用 `appFiles()`（`tests/pages-server.js`）按 SHELL 抄 file 去 temp dir，新 folder 唔使改測試
 3. `js/core/config.js` 升 `APP_VERSION`（cache 名跟版本，已安裝嘅 app 先會攞新 file）
 
 **data-action 慣例（v0.57 起，冇 inline onclick）：**
@@ -191,6 +195,7 @@ v0.57（P1 refactor）起 `index.html` 只剩 `<head>`、各 screen 嘅 markup �
 - 四個 tab：Chapters（Ch1–5 chip）/ Timeline（10 個時代，戰爭紅色 + 「只顯示戰爭」）/ Geography（國家 chip → 類型分組）/ People（角色 chip，君主按時序）
 - 搜尋（英文 + 廣東話）、書籤 ★、已掌握 ✓、「隱藏已掌握」「只顯示書籤」chip
 - Prefs 存 `studyPrefs`、`studyMastered`、`studyBookmarks`
+- `studyLoad()` 會驗證 `studyPrefs`（v0.59，CUI-0003）：`tab` 要係 `STUDY_RENDERERS` 嘅 key、`chapter` 要喺 `CHAPTERS`、`nation` / `group` 要係 `all` 或者已知 key、每個值類型要同預設一樣（例如 `hideMastered` 要 boolean）；唔啱就用預設，成個 prefs 唔係 object 就全部預設。之前壞 `tab` 會令 `renderStudy` throw `STUDY_RENDERERS[study.tab] is not a function`，Study 一片空白
 
 **PWA**
 - Service Worker 係 root 嘅 `sw.js`（v0.57 起）：`importScripts('js/core/config.js')`，cache 名 `lifeuk-v${APP_VERSION}`，`SHELL` 預 cache `./`、`index.html`、data 同**所有** css / js
@@ -200,6 +205,9 @@ v0.57（P1 refactor）起 `index.html` 只剩 `<head>`、各 screen 嘅 markup �
 - Activate 只刪 `lifeuk-v*` 而又唔係今個版本嘅 cache：`dcwhung.github.io` 同其他 app 共用 origin，唔好刪人哋嘅 cache
 - 離線時 fetch 失敗只有 page navigation 先 fallback 去 `./`；script / css 唔會收到 HTML
 - Cache-first：升版本先會更新已安裝嘅 app
+- **Fetch 只讀自己個 cache**（v0.59，S-003）：`caches.open(CACHE).then(c => c.match(req))`（`fromOwnCache`），唔用 `caches.match()`：後者會搜晒成個 origin 所有 cache，包括其他 app 嘅；佢哋 cache 咗同一個 URL 就會俾我哋用錯。離線 fallback `./` 都係由自己 cache 攞
+- **Manifest / 安裝**（v0.59，CUI-0002）：`<head>` 有 `<link rel="manifest">`、SVG favicon + 192 PNG fallback、`apple-touch-icon`（180）、`theme-color` meta（navy，一早已有）。Chrome 嘅安裝條件（manifest + icon + 有 fetch handler 嘅 SW + https / localhost）齊晒，`js/pwa/pwa.js` 嘅 `beforeinstallprompt` → install banner 先真係會出（之前冇 manifest，banner 係死碼）；banner UI 冇改。`pwa-test` 用 CDP `Page.getInstallabilityErrors` 驗證（要 persistent profile：Playwright 嘅 `newContext()` 係 incognito，Chrome 一定報 `in-incognito`）
+- iOS 唔睇 manifest 裝 app，用返 `apple-mobile-web-app-*` meta + `apple-touch-icon`
 
 ## localStorage keys
 
@@ -253,7 +261,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 
 測試會重新產生 `tests/shot-*.png`，跑完用 `git ls-files -m 'tests/*.png' | xargs git checkout --` 還原，唔好一齊 commit。**唔好用 `git checkout -- tests/*.png`**：shell glob 會包埋 git 未追蹤嘅新截圖（例如 `shot-similar.png`），git 遇到唔認識嘅 path 會成句失敗，一張都冇還原（v0.53 因此誤 commit 咗截圖，要另開 commit 還原）；未追蹤嘅截圖直接 `rm`。
 
-`tests/pages-server.js` 唔係 suite：`sw-test` 同 `upgrade-test` 共用嘅 python static server（`Cache-Control: max-age=600`，port 0 由 OS 揀、server 印返 port；python 起唔到或者提早退出就即刻 fail）。`upgrade-test` 用嘅 v0.57 commit（`dc84cab`）喺 shallow clone 可能冇，會 fail 並提示 `git fetch --unshallow` 或者設 `V057_REF`。
+`tests/pages-server.js` 唔係 suite：`sw-test`、`upgrade-test` 同 `pwa-test` 共用嘅 python static server；另外 export `appFiles(root)`（`sw.js` + SHELL 每個 top-level file / folder，抄 app 去 temp dir 用）。Server（`Cache-Control: max-age=600`，port 0 由 OS 揀、server 印返 port；python 起唔到或者提早退出就即刻 fail）。`upgrade-test` 用嘅 v0.57 commit（`dc84cab`）喺 shallow clone 可能冇，會 fail 並提示 `git fetch --unshallow` 或者設 `V057_REF`。
 
 | Suite | 覆蓋 |
 |---|---|
@@ -271,10 +279,12 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | `review-test.js` | v0.53：「Practice by」標題同 tab 文字；冇記錄唔出 My Review；Practice flag 位置同 reload 後保留；兩格數字同 remark；錯題由 Practice / Exam 加入、只喺 review 答啱先清；>24 題嘅 round note 位置同文字；Flagged 列表、unflag、練 flagged、空列表；Practice 結果頁（icon、分數、圓點、filter、mastery note、streak tag） |
 | `examtools-test.js` | Submit / Leave 用 app 內 modal（掣名、Esc 取消、冇瀏覽器 dialog）；Random Exam（30 次抽題全部 24 題、24 個唔同 fact、每次唔同；工具、PASSED、Retry 抽新題、首頁掣名）；Exam 1–17 計時器（45:00、最後 5 分鐘變紅、到 0 自動交卷 + 結果頁提示）、24 圓點狀態同跳題、書籤 flag、計數、Submit / Home 提示；Practice 冇計時，圓點係啱／錯版（見 practicedots-test） |
 | `quicknav-test.js` | 快捷 ← / →（符號、title、最後一題 ✓ / ↩；Exam 最後一題 ✓ = Submit）；問題卡 header：Question X of Y、Practice 用圓圈唔用 progress bar、冇 score pill、header 冇 stats |
-| `sw-test.js` | v0.57：將 app copy 去 temp dir，用 python static server（加 GitHub Pages 一樣嘅 `Cache-Control: max-age=600`）serve（或者 http 嘅 `APP_URL`）；index.html 每個 `<script src>` / `<link href>` 都喺 `sw.js` SHELL、SHELL 每個 file 存在；`sw.js` 註冊成功、cache 名跟 `APP_VERSION`、SHELL 全部 cache 咗；`setOffline(true)` reload 仍然出首頁、css 生效、開到 Practice；同 origin 其他 app 嘅 cache（`other-app`）唔會俾 activate 刪；淨係改 temp copy 嘅 `config.js` 版本號就會裝新 cache、刪舊 `lifeuk-v*` cache；冇 page / console / SW error（瀏覽器自己 probe `/favicon.ico` 嘅 404 除外） |
+| `sw-test.js` | v0.57：將 app copy 去 temp dir，用 python static server（加 GitHub Pages 一樣嘅 `Cache-Control: max-age=600`）serve（或者 http 嘅 `APP_URL`）；index.html 每個 `<script src>` / `<link href>` 都喺 `sw.js` SHELL、SHELL 每個 file 存在；`sw.js` 註冊成功、cache 名跟 `APP_VERSION`、SHELL 全部 cache 咗；`setOffline(true)` reload 仍然出首頁、css 生效、開到 Practice；同 origin 其他 app 嘅 cache（`other-app`）唔會俾 activate 刪；`other-app` 入面放咗一個假 `js/main.js`（同 origin、我哋會 load 嘅 URL），SW 控制之後 reload 唔會用到佢（S-003）；淨係改 temp copy 嘅 `config.js` 版本號就會裝新 cache、刪舊 `lifeuk-v*` cache；冇 page / console / SW error（瀏覽器自己 probe `/favicon.ico` 嘅 404 除外） |
 | `structure-test.js` | v0.57：index.html / js 冇 inline `on*=`、index.html 冇 inline `<style>` / `<script>` / `style=`（progress bar 闊度除外）、每個 function ≤ 30 行、`tokens.css` 以外嘅 css 冇 hex / `rgb(a)(` 顏色（P2）、markup / template 每個 `data-action` 都有 `ACTIONS` handler 而每個 handler 都有人用、`file://` 載入冇 page error / console error / failed request |
 | `migrate-test.js` | v0.58：用似真用戶嘅舊資料（completedExams、homePrefs、practiceFlags、practiceStreak、reviewOrder、wrongList、studyPrefs / studyMastered / studyBookmarks，全部非空）+ 其他 app 嘅 key（`run365.prefs`、`tripspend.*.v1`）reload：`lifeuk.*` 係原始字串、舊 key 同 `reviewOrder` 刪咗、其他 app 嘅 key 一字不改、UI 跟資料（Practice › By Chapter、Flagged 5、mastery 數、Exam 1–5 ✓、Study geo tab）；全部搬完寫 `lifeuk.migrated`；有 marker 新舊都有 → 新嘅贏（UI 讀新 key）；冇 marker 新舊都有 → streak / flags 逐條 merge（同一題新嘅贏）、homePrefs 新嘅贏、舊 key 刪、寫 marker、UI 顯示 merge 後進度（3/408、Flagged 3）；一邊唔係 object（壞 JSON、array）→ 留新 value；再 reload 兩次唔變、app 寫入只落 `lifeuk.*`；壞 JSON 照搬唔 crash；空 storage 只生 marker；fail-safe：stub `setItem` 令 `lifeuk.practiceStreak` throw QuotaExceededError、`lifeuk.studyPrefs` 寫唔落（verify 唔對），今次載入 UI 照顯示舊進度（3/408、Study geo）、答題寫返舊 key、冇空新 key，fallback 期間冇 marker；拎走 stub reload 後舊 streak + 新答案全部喺 `lifeuk.practiceStreak`、舊 key 冇咗、寫 marker；冇 marker 新舊都有而 merge 寫入 throw → 兩個 key 原封不動、冇 marker、UI 讀舊 key，拎走 stub 後 merge 完成；g2（W-004）：merge 寫唔到、fallback 期間答題（1.2 → 3）落舊 key、新 key 記入 `lifeuk.migrateFallback`，下次載入舊嘅贏（1.2 = 3 唔係 stale 嘅 0）、兩邊 entry 都保留、舊 key 刪、寫 marker、清記錄；g3（S-010）：merge 寫入同記錄寫入都 throw → 冇記錄冇 marker，fallback 期間答題下次載入照保留（1.2 = 3）、舊 / 混合頁面 entry 都喺、寫 marker |
 | `upgrade-test.js` | v0.58（CUI-0004）：v0.57 檔案由 git 攞（pinned `dc84cab`，v0.57 嘅 main）。① 混合 shell（`file://`）：temp dir 放 v0.57 `index.html`（冇 migrate tag）+ 而家嘅 js / css / data，seed 舊 key → UI 即刻顯示舊進度（3/408、Flagged 5）；答一題，再開而家嘅 `index.html` → 舊 streak 全部 + 新答案都喺 `lifeuk.practiceStreak`、其他 value 原始字串、舊 key 冇咗、有 marker、其他 app key 唔郁。② 反方向混合：v0.57 全套 + 而家嘅 `utils.js` → 冇 error、照讀 v0.57 key、storage 唔郁。③ QA `upgrade-sim` 核心：python server（`max-age=600`）serve v0.57，SW 裝好、seed 舊資料、記低 UI；原地換做而家嘅 file，reload 等新 SW activate + 刪 `lifeuk-v0.57` cache，再 reload → v0.58、8 個 value 原始字串、舊 key + reviewOrder 冇咗、其他 app key 一樣、新 key 只多 marker、UI（mode / view、Flagged、Wrong、mastery grid、完成 ✓、Study tab / 掌握 / 書籤）同升級前一樣、再 reload 唔變（呢個 case 唔保證撞到 SW 換版嘅 race，race 由 ① deterministic 咁覆蓋）。④ 第三種混合：而家嘅 file + v0.57 `utils.js`，seed 舊 key、答一題 → 舊 key 原封不動、冇 marker；換返而家嘅 `utils.js` reload → 舊 streak 全部 + 新答案、5 個舊 map 每條 entry 都喺、舊 key 冇咗、有 marker。約 6 秒 |
+| `studyprefs-test.js` | v0.59（CUI-0003）：`lifeuk.studyPrefs` 壞 `tab`（唔 throw、返 chapters、有 fact）、chapter 99 → 1、未知 nation / group → `all`、`hideMastered: 'yes'` → `false`、prefs 唔係 object → 預設、正常 prefs（timeline + chapter 4）保留、冇 page error |
+| `pwa-test.js` | v0.59（CUI-0001 / 0002）：python server serve repo root（或者 http 嘅 `APP_URL`）；載入冇 4xx / failed request；`<link rel="icon">` 有 SVG + PNG（200、SVG decode 到、PNG 192×192）、`apple-touch-icon` 180×180；manifest link 200、JSON 有齊 name / short_name / start_url / scope / display / 兩個顏色（= `tokens.css` 嘅 `--navy`）、`theme-color` meta = navy、有 192 any / 512 any / 512 maskable，每個 icon load 到而尺寸同 `sizes` 一樣；CDP `Page.getAppManifest` 冇 error、`Page.getInstallabilityErrors` 冇 error（persistent profile）；假 `beforeinstallprompt` → banner 出、`promptInstall()` call `prompt()`、accepted 收 banner |
 | `practicedots-test.js` | v0.55：Practice 圓圈（24 / 9 / review 題數、冇 progress bar 同計時、啱綠錯紅、flag 橙邊、計數一行、撳跳題前後都得）；冇 score pill；Exam 最後一題快捷 ✓ 交卷（有未答彈 modal、全答直接去結果）；Flagged 列表「Practise flagged」書籤 icon 係橙色；首頁 Flagged 格 icon 橙色、Home 冇可見嘅黑色 SVG（v0.56） |
 
 ## 版本記錄（v0.32–v0.58）
@@ -315,6 +325,13 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | v0.56 | dcwhung/life-in-uk-test#28 | 首頁 My Review「Flagged」格嘅書籤 icon 由黑色改返橙色：`bookmarkSvg('rv-flag-tile')` 嘅 class 冇 CSS，SVG path 冇 fill 就係黑色；改為 `.rv-flag-tile path` 同 `.rv-flag` 共用橙色（v0.55 只修咗「Practise flagged」掣，今次由 class 根本修好，兩處一齊生效） |
 | v0.57 | （P1 refactor PR） | **拆檔 + clean code，外觀同行為 0 改動（除 SW）**：`index.html` 2350 行拆做 `css/{base,components,screens}` 同 `js/{core,domain,components,screens,pwa}` + `main.js`；inline onclick 全部改 `data-action` delegation；重複 code 合併（`isCorrectAnswer`、`toQuestionItem`、pool 由 `allQuestions()` 派生、圓點 + 計數 builder、streak label、diff / chapter 格、Study 書籤 / 掌握 toggle）；每個 function ≤ 30 行；408 / 17 / 24 / 75% 等數字由 data / config 計；題目、選項、備注插入 HTML 前 escape；拎走死碼（`.score-pill`、`alert('Please select a mode first…')`、被蓋過嘅 CSS）；**SW 修正**：改用 root `sw.js`（之前 blob: SW 一直註冊失敗）；加 `sw-test`、`structure-test`。驗證：`tests/tools/visual-diff.js dc73a15`（38 個畫面狀態 × 390 / 900px，逐個 element 對 computed style + 位置 + 文字）同 v0.56 一樣，只多咗 ⓘ popover 標題入面一個 inline `<span id="infoTitle">`（冇視覺分別）；review 後再加：SW 只清 `lifeuk-v*` cache、install 用 `cache: 'reload'`、`updateViaCache: 'none'`、離線 fallback 只限 navigation、`data-*` 值 escape、`MAX_DIFFICULTY` 由 `DIFF_LEVELS` 計 |
 | v0.58 | （localStorage prefix PR） | **localStorage key 加 `lifeuk.` prefix**（origin 同其他 app 共用）：`LS_PREFIX` + 全部 key 常數由佢砌；`js/core/utils.js` 嘅 `getLS` / `setLS` 第一次用 storage 時 lazy 將舊 key 搬過去（CUI-0004：SW 換版時 v0.57 `index.html` + v0.58 js 嘅混合頁面都會搬，所以冇獨立 `migrate.js`；原始字串照抄、確認先刪、`reviewOrder` 刪走、唔掂其他 app 嘅 key、出錯唔刪資料；抄唔到嘅 key 今次載入繼續用舊名（`LS_KEY_FALLBACK`）；全部搬完寫 `lifeuk.migrated` marker；冇 marker 而新舊都有 → object map 逐條 merge、prefs 新嘅贏；有 marker → 新 key 優先）；加 `migrate-test`、`upgrade-test`，舊測試改用新 key 名；v0.58 之後唔好 rollback 去 v0.57（CUI-0005）。原定 v0.58 嘅 P2（locale）順延做 v0.59 |
+
+**v0.59 (Lane C)**（PWA / Study prefs fixes）
+- CUI-0001：favicon 404 → 加 app icon（`icons/icon.svg` navy + 白「UK」，PNG 由 `tests/tools/make-icons.js` 生成）；`<head>` 加 SVG favicon、192 PNG fallback、180 `apple-touch-icon`
+- CUI-0002：加 `manifest.webmanifest`（standalone、`./` scope、navy 色、192 / 512 / 512 maskable icon），Chrome 而家裝得、install banner 唔再係死碼；manifest 同 icon 全部入 `SHELL`
+- CUI-0003：`studyLoad()` 驗證 `lifeuk.studyPrefs`（tab / chapter / nation / group / 類型），壞值用預設，Study 唔會再一片空白
+- S-003：SW fetch 只查自己個 cache（`fromOwnCache`），唔會用同 origin 其他 app cache 咗嘅 response
+- 測試：新 `studyprefs-test`、`pwa-test`；`sw-test` 加 S-003 assertion；`sw-test` / `upgrade-test` 改用 `appFiles()` 抄 app
 
 **Practice 數字圓圈設計決定（v0.55，preview 同用戶確認）**
 - 起因：用戶以為 Practice 「無咗」頂頭數字圓圈；查 code 同 git 記錄，v0.44 起圓圈一直只係 Exam 1–17 / Random Exam 先有，唔係 regression，改做新功能
