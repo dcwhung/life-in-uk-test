@@ -8,6 +8,15 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
   const errs = []; pg.on('pageerror', e => errs.push(e.message));
   const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('ok:', m); };
+  const tokenRgb = name => pg.evaluate(n => {
+    const el = document.createElement('i');
+    el.style.color = `var(${n})`;
+    document.body.appendChild(el);
+    const c = getComputedStyle(el).color;
+    el.remove();
+    return c;
+  }, name);
+  const css = (sel, prop) => pg.$eval(sel, (e, p) => getComputedStyle(e)[p], prop);
   await pg.goto(APP_URL);
   await pg.evaluate(() => localStorage.clear());
   await pg.reload();
@@ -19,6 +28,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
 
   // chapter practice
   await pg.click('#ptabChapter');
+  assert(await css('#chapterGrid .ch-num', 'backgroundColor') === await tokenRgb('--study-accent-strong'), 'Home chapter badge is study accent (Q2-a)');
   await pg.click('#chapterGrid .chapter-btn:nth-child(3)');
   assert(await pg.$eval('#quizLabel', e => e.textContent) === 'Chapter 3', 'chapter practice label');
   assert(await pg.$eval('#modeBadge', e => e.textContent) === 'Practice', 'chapter practice is practice mode');
@@ -36,15 +46,6 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert((await count()) === '2 / 2 facts', 'chapters tab default Ch1: ' + await count());
 
   // v0.62 (P3 T-101): selection colour is navy like Practice; purple only means Cantonese
-  const tokenRgb = name => pg.evaluate(n => {
-    const el = document.createElement('i');
-    el.style.color = `var(${n})`;
-    document.body.appendChild(el);
-    const c = getComputedStyle(el).color;
-    el.remove();
-    return c;
-  }, name);
-  const css = (sel, prop) => pg.$eval(sel, (e, p) => getComputedStyle(e)[p], prop);
   const navy = await tokenRgb('--navy');
   assert(await css('.study-tab.active', 'backgroundColor') === navy, 'active study tab is navy');
   assert(await css('#studySubChips .chip.ch.active', 'backgroundColor') === navy, 'active chapter chip is navy');
@@ -54,6 +55,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.click('#studySubChips .chip:nth-child(3)'); // Ch3
   assert((await count()) === '91 / 91 facts', 'Ch3 91 facts: ' + await count());
   await pg.screenshot({ path: 'shot-chapters.png' });
+  assert(await css('.tag.year', 'color') === await tokenRgb('--study-accent-strong') && await css('.tag.year', 'backgroundColor') === await tokenRgb('--study-accent-bg'), 'year tag uses study accent tokens');
 
   await pg.click('.study-tab[data-tab="timeline"]');
   assert((await count()) === '82 / 82 facts', 'timeline 82: ' + await count());
@@ -62,6 +64,13 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   const years = await pg.$$eval('.tl-year', els => els.map(e => e.textContent));
   assert(years[0] === 'c. 4000 BC' && years.includes('1066') && years.includes('1215'), 'year labels: ' + years.slice(0, 6).join(','));
   await pg.screenshot({ path: 'shot-timeline.png' });
+  // v0.62 (P3 T-102, Q2-a): decoration is the navy --study-accent (fact border, year, dot); war stays red
+  const accent = await tokenRgb('--study-accent');
+  assert(accent === await tokenRgb('--navy-light'), '--study-accent is navy-light');
+  assert(await css('.tl-item:not(.war) .tl-year', 'color') === accent, 'timeline year is study accent');
+  assert(await pg.$eval('.tl-item:not(.war) .tl-year', e => getComputedStyle(e, '::after').backgroundColor) === accent, 'timeline dot is study accent');
+  assert(await css('.tl-item:not(.war) .fact', 'borderLeftColor') === accent, 'fact left border is study accent');
+  assert(await css('.tl-item.war .tl-year', 'color') === await tokenRgb('--red'), 'war year stays red');
   await pg.click('.chip.war');
   assert((await count()) === '24 / 24 facts', 'wars only 24: ' + await count());
   assert(await pg.$$eval('.tl-item', els => els.every(e => e.classList.contains('war'))), 'all items war');
@@ -72,6 +81,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   const nations = await pg.$$eval('.study-group-title', els => els.map(e => e.textContent.trim().split(' ').slice(1).join(' ')));
   assert(nations.length === 5, 'geo 5 nation groups: ' + nations.join(' | '));
   await pg.screenshot({ path: 'shot-geo.png' });
+  assert(await css('.study-sub-title', 'color') === accent, 'geography sub-title is study accent');
 
   await pg.click('.study-tab[data-tab="people"]');
   assert((await count()) === '55 / 55 facts', 'people 55: ' + await count());

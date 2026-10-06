@@ -19,7 +19,7 @@
 .study-group-title:first-child { margin-top: 4px; }
 .study-group-title .cnt { font-size: var(--fs-xs); color: var(--text-muted); font-weight: 600; }
 .study-sub-title {
-  font-size: var(--fs-sm); font-weight: 700; color: var(--purple);
+  font-size: var(--fs-sm); font-weight: 700; color: var(--study-accent-strong);
   text-transform: uppercase; letter-spacing: 0.05em;
   margin: 14px 0 8px;
 }
@@ -27,7 +27,7 @@
   background: var(--card);
   border-radius: var(--radius-md);
   padding: 12px 14px;
-  border-left: 4px solid var(--purple-light);
+  border-left: 4px solid var(--study-accent);
   margin-bottom: 10px;
   transition: opacity 0.15s;
 }
@@ -40,7 +40,7 @@
   border-radius: 5px; padding: 2px 7px;
   background: var(--bg); color: var(--text-muted);
 }
-.tag.year { background: var(--year-bg); color: var(--purple); }
+.tag.year { background: var(--study-accent-bg); color: var(--study-accent-strong); }
 .tag.war { background: var(--danger-bg); color: var(--red); }
 .tag.freq { background: var(--gold-bg); color: var(--gold-text); }
 .tag.person { background: var(--person-bg); color: var(--navy-light); }
@@ -73,15 +73,15 @@
 .tl-era:first-child { margin-top: 4px; }
 .tl-item { display: grid; grid-template-columns: 74px 1fr; gap: 0 10px; position: relative; }
 .tl-year {
-  font-size: var(--fs-sm); font-weight: 800; color: var(--purple);
+  font-size: var(--fs-sm); font-weight: 800; color: var(--study-accent-strong);
   text-align: right; padding-top: 13px; line-height: 1.2;
   position: relative;
 }
 .tl-year::after {
   content: ''; position: absolute; right: -16px; top: 16px;
   width: 10px; height: 10px; border-radius: var(--radius-circle);
-  background: var(--purple-light); border: 2px solid var(--card);
-  box-shadow: 0 0 0 2px var(--purple-light);
+  background: var(--study-accent); border: 2px solid var(--card);
+  box-shadow: 0 0 0 2px var(--study-accent);
 }
 .tl-item.war .tl-year { color: var(--red); }
 .tl-item.war .tl-year::after { background: var(--red-light); box-shadow: 0 0 0 2px var(--red-light); }

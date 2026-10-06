@@ -47,8 +47,13 @@
   /* Cantonese translation (purple) and Study tag tints */
   --yue-bg: #f3eefa;
   --yue-bg-soft: #f7f4fc;
-  --year-bg: #ede6f7;
   --person-bg: #e6f0ff;
+
+  /* Study / Practice-by-chapter decoration (v0.62, P3 Q2-a: all navy; purple is kept for Cantonese only):
+     fact left border + timeline dot (accent), year text + chapter badge (strong), year tag fill (bg) */
+  --study-accent: var(--navy-light);
+  --study-accent-strong: var(--navy-light);
+  --study-accent-bg: var(--selected-bg);
 
   /* radius scale: --radius for cards, then controls (md), small chips (sm), pills and circles */
   --radius: 14px;
