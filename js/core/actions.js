@@ -52,16 +52,23 @@ const ACTIONS = {
   confirmBackdrop: (el, e) => { if (e.target === el) closeConfirm(); },
 };
 
+// an unknown name (typo in markup) warns instead of throwing, so the popover close below still runs
+function runAction(name, el, e) {
+  const handler = ACTIONS[name];
+  if (!handler) { console.warn(`[actions] no handler for data-action "${name}"`); return; }
+  handler(el, e);
+}
+
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-action]');
-  if (el && !el.disabled) ACTIONS[el.dataset.action](el, e);
+  if (el && !el.disabled) runAction(el.dataset.action, el, e);
   // the ⓘ button toggles the popover itself; any other click outside the popover closes it
   if (el && el.dataset.action === 'toggleInfo') return;
   if (!e.target.closest('#infoPop')) setInfoOpen(false);
 });
 document.addEventListener('input', e => {
   const el = e.target.closest('[data-input-action]');
-  if (el) ACTIONS[el.dataset.inputAction](el, e);
+  if (el) runAction(el.dataset.inputAction, el, e);
 });
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;

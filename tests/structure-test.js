@@ -31,6 +31,21 @@ function longFunctions(file) {
   return out;
 }
 
+// every action name the markup can produce: data-action / data-input-action literals, `action: 'x'`
+// options, and the action argument of dotButtonHtml / subChipRowHtml
+function actionNames() {
+  const names = new Set();
+  sources.forEach(f => {
+    const src = fs.readFileSync(f, 'utf8').split('\n').filter(l => !/^\s*\/\//.test(l)).join('\n'); // skip comments
+    for (const m of src.matchAll(/data-(?:input-)?action="(\w+)"/g)) names.add(m[1]);
+    for (const m of src.matchAll(/\baction: '(\w+)'/g)) names.add(m[1]);
+    for (const m of src.matchAll(/(?:dotButtonHtml|subChipRowHtml)\((.*)/g)) {
+      for (const q of m[1].matchAll(/'(\w+)'/g)) names.add(q[1]);
+    }
+  });
+  return [...names];
+}
+
 (async () => {
   const inline = sources.flatMap(f => fs.readFileSync(f, 'utf8').split('\n')
     .map((line, i) => (/\son[a-z]+\s*=\s*["'`]/.test(line) ? `${rel(f)}:${i + 1}` : null)).filter(Boolean));
@@ -52,6 +67,11 @@ function longFunctions(file) {
   await pg.goto(APP_URL);
   await pg.waitForTimeout(300);
   assert(await pg.$$eval('#examGrid .exam-btn', els => els.length) > 1, 'home renders');
+  const names = actionNames();
+  const unknown = await pg.evaluate(list => list.filter(n => typeof ACTIONS[n] !== 'function'), names);
+  assert(names.length > 20 && unknown.length === 0, `every data-action in markup / templates (${names.length}) has an ACTIONS handler` + (unknown.length ? ': missing ' + unknown.join(', ') : ''));
+  const unused = await pg.evaluate(list => Object.keys(ACTIONS).filter(k => !list.includes(k)), names);
+  assert(unused.length === 0, 'every ACTIONS handler is used by some markup' + (unused.length ? ': unused ' + unused.join(', ') : ''));
   assert(errs.length === 0, 'page loads with no page errors, console errors or failed requests' + (errs.length ? ': ' + errs.join(' / ') : ''));
   await b.close();
   console.log('STRUCTURE PASS');
