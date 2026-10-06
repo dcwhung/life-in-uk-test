@@ -1,4 +1,4 @@
-# Life in the UK Test PWA — Handoff (v0.56)
+# Life in the UK Test PWA — Handoff (v0.57)
 
 - **Repo:** https://github.com/dcwhung/life-in-uk-test （main branch，GitHub Pages root `/`）
 - **Live:** https://dcwhung.github.io/life-in-uk-test/
@@ -13,16 +13,45 @@
 
 ## File 結構
 
-| File | 大小 | 內容 |
-|---|---|---|
-| `index.html` | 97 KB | CSS、HTML、app 邏輯（state / home / quiz / exam tools / confirm modal / similar questions / results + result dots / study / SW） |
-| `data/exams.js` | 181 KB | `EXAMS`：408 題，Exam 1–17 各 24 題 |
-| `data/study.js` | 65 KB | `CHAPTERS` + `STUDY`：236 條 dedupe 後嘅 facts |
-| `js/utils.js` | 2 KB | `shuffle`、`shuffleOptions`、`getLS`、`setLS`、`starsHtml`、`escapeHtml` |
-| `tests/*.js` | | 19 套 Playwright 測試，`tests/run-all.sh` 一次過跑 |
-| `mockups/similar-question-map.html` | 17 KB | Similar Questions 嘅設計 mockup（獨立 HTML，頂部 tab 切換情景；PR 嘅 `Design Origin`） |
+v0.57（P1 refactor）起 `index.html` 只剩 `<head>`、各 screen 嘅 markup 同 `<link>` / `<script>` tag；CSS 同 JS 按類分 sub folder。
 
-載入次序：`data/exams.js` → `data/study.js` → `js/utils.js` → 主 script。全部全局變量，冇 ES module（`file://` 同 iOS PWA 兼容）。
+| File | 內容 |
+|---|---|
+| `index.html` | `<head>` + 各 screen markup（Home / Flagged / Study / Quiz / Result / confirm modal）+ 載入次序；冇 inline style / script / onclick |
+| `sw.js` | Service Worker（**一定要喺 root**，SW 只可以控制自己 path 或以下嘅 page）；`importScripts('js/core/config.js')` 攞 `APP_VERSION` 做 cache 名；`SHELL` 列齊所有 file |
+| `data/exams.js` | `EXAMS`：408 題，Exam 1–17 各 24 題 |
+| `data/study.js` | `CHAPTERS` + `STUDY`：236 條 dedupe 後嘅 facts |
+| `css/base/tokens.css` | `:root` 色 / radius / shadow tokens |
+| `css/base/layout.css` | reset、body、sticky header、main、`.screen` 切換、`[hidden]`、`.quiz-header` / `.section-title`、`@keyframes slideIn` |
+| `css/components/*.css` | `buttons`（back / nav / quick ← → / flag 掣 + 書籤 icon 顏色）、`chips`（practice / study tab 共用 base、`.chip`、`.stars`）、`dots`（`.dot` / `.rdot` 共用形狀、`.dots-meta` / `.rmeta` 計數）、`modal`、`popover`（ⓘ popover + install banner） |
+| `css/screens/*.css` | `home`、`quiz`（問題卡、選項、答案框、計時器、Similar `.sqm`）、`results`、`flagged`、`study`（含 timeline）；`@media (max-width: 480px)` 跟返各自 file 尾 |
+| `js/core/config.js` | 常數：`APP_VERSION`、mode / set id（`PRACTICE_MODE`、`ALL_EXAM`、`WRONG_EXAM`…）、`MASTERY_STREAK`、`PRACTICE_ROUND_MAX`、`REAL_TEST_SIZE`、`PASS_RATIO`、`EXAM_MINUTES`、localStorage key 等；**SW 都會 load，所以只可以有 const，唔可以掂 DOM 或者 data** |
+| `js/core/utils.js` | `shuffle`、`shuffleOptions`、`toQuestionItem`、`isCorrectAnswer`、`getLS` / `setLS`、`escapeHtml`、`pad2`、`keysOf`、`percent`、`byId`、`setShown`、`showScreen` |
+| `js/core/store.js` | `streaks` / `practiceFlags` / `wrongList`（`let`，測試會直接改）、completed exams、homePrefs 讀寫 |
+| `js/core/actions.js` | `ACTIONS` registry + 一個 document click / input / keydown（Esc）listener |
+| `js/domain/questions.js` | `EXAM_COUNT`、`TOTAL_QUESTIONS`、`DIFF_LEVELS`（由 data 計）、`allQuestions()`（單一 loop）同由佢 filter 出嚟嘅 exam / chapter / difficulty pool、`poolFor()`、`randomExamPick()`、`examLabel()`、`questionByKey()` |
+| `js/domain/mastery.js` | `qKey`、`streakOf`、`isMastered`、`recordPracticeAnswer`、`masteryOf`、`practicePool` |
+| `js/domain/similar.js` | `FACT_BY_QKEY`、`factOf`、`similarKeys` |
+| `js/components/*.js` | `icons`（`BOOKMARK_PATH`、`bookmarkSvg`、`starsHtml`）、`dots`（`dotButtonHtml`、`countsLegendHtml`，quiz 同結果頁共用）、`tags`（`streakLabel`、`streakTagHtml`、`questionRefText`、`chipHtml`、`setButtonHtml`）、`modal`（`showConfirm`）、`popover`（ⓘ + 由 data 填 408 / 17） |
+| `js/screens/*.js` | `home`、`quiz`（`state`、`startExam`、`renderQuestion` 同拆細嘅 helper、`selectOption`）、`examTools`（計時、flag、圓點、`submitExam`）、`similarPanel`、`result`（`finishExam` 同 review）、`flagged`、`study` |
+| `js/pwa/pwa.js` | `registerSW()`（`file://` 唔註冊）+ install banner |
+| `js/main.js` | init（最後載入） |
+| `tests/*.js` | 21 套 Playwright 測試，`tests/run-all.sh` 一次過跑 |
+| `mockups/similar-question-map.html` | Similar Questions 嘅設計 mockup（獨立 HTML，頂部 tab 切換情景；PR 嘅 `Design Origin`） |
+
+**載入次序：** `data/exams.js` → `data/study.js` → `js/core/config.js` → `core/utils` → `core/store` → `domain/*` → `components/*` → `screens/*` → `core/actions` → `pwa/pwa` → `main`。全部係 classic `<script src>`，全局變量，冇 ES module（`file://` 同 iOS PWA 兼容）；唔好包 IIFE，因為頂層 `let`（`state`、`streaks`、`pendingMode`…）要喺全局 lexical scope，測試先改得到。檔案之間只可以喺 function 入面互相 call；頂層即刻行嘅 code 只可以用前面已載入嘅 file。
+
+**加新 file 嘅規則（三步，漏一步就會離線壞咗）：**
+1. `index.html` 按載入次序加 `<link>` / `<script src>`
+2. `sw.js` 嘅 `SHELL` 加同一個 path（`tests/sw-test.js` 會檢查 index.html 每個 tag 都喺 SHELL）
+3. `js/core/config.js` 升 `APP_VERSION`（cache 名跟版本，已安裝嘅 app 先會攞新 file）
+
+**data-action 慣例（v0.57 起，冇 inline onclick）：**
+- 掣寫 `data-action="startExam" data-arg="3"`；input 寫 `data-input-action="studySetSearch"`；其他參數用自己嘅 `data-*`（例如 Study 書籤 / 掌握掣 `data-mark="bookmarks"`）
+- `js/core/actions.js` 嘅 `ACTIONS = { name: (el, event) => … }` 負責轉型（`numArg`、`examArg`：Exam 1–17 要係 number，`'all'` 等 set id 係 string）；disabled 嘅掣唔會行
+- 同一個 click listener 之後會關 ⓘ popover（click 喺 popover 入面或者 ⓘ 本身除外）；Esc：有 modal 就取消 modal，同時關 popover
+- 新加 action：markup 加 `data-action` + `ACTIONS` 加一行；`tests/structure-test.js` 會 fail 任何 `on*=` inline handler
+- 顯示 / 收埋用 `hidden` attribute（`layout.css` 有 `[hidden] { display: none !important; }`）；唯一例外 `#studySubChips` 仍然用 `style.display`，因為 `subfilter-test` 讀 `style.display`
 
 ## 數據結構
 
@@ -144,7 +173,9 @@
 - Prefs 存 `studyPrefs`、`studyMastered`、`studyBookmarks`
 
 **PWA**
-- Service Worker inline 於 `index.html`，cache 名 `lifeuk-v${APP_VERSION}`，`SHELL` 預 cache 四個 file
+- Service Worker 係 root 嘅 `sw.js`（v0.57 起）：`importScripts('js/core/config.js')`，cache 名 `lifeuk-v${APP_VERSION}`，`SHELL` 預 cache `./`、`index.html`、data 同**所有** css / js
+- 點解要改：v0.56 或之前用 `Blob` + `URL.createObjectURL` 註冊 inline SW，Chrome 一直 reject（console：`SW error: … The URL protocol of the script ('blob:...') is not supported`），所以其實從來冇離線 cache；SW 一定要係同 origin 嘅真 file
+- `registerSW()` 喺 `file://` 直接 skip（file 協議唔支援 SW，免得 console 出 error）
 - Cache-first：升版本先會更新已安裝嘅 app
 
 ## localStorage keys
@@ -163,7 +194,7 @@
 
 ```bash
 npm i playwright-core          # 任何位置，放入 NODE_PATH
-CHROMIUM_PATH=/opt/pw-browsers/chromium ./tests/run-all.sh
+NODE_PATH=/opt/node-tools/node_modules CHROMIUM_PATH=/opt/pw-browsers/chromium ./tests/run-all.sh
 APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 live
 ```
 
@@ -185,9 +216,11 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | `review-test.js` | v0.53：「Practice by」標題同 tab 文字；冇記錄唔出 My Review；Practice flag 位置同 reload 後保留；兩格數字同 remark；錯題由 Practice / Exam 加入、只喺 review 答啱先清；>24 題嘅 round note 位置同文字；Flagged 列表、unflag、練 flagged、空列表；Practice 結果頁（icon、分數、圓點、filter、mastery note、streak tag） |
 | `examtools-test.js` | Submit / Leave 用 app 內 modal（掣名、Esc 取消、冇瀏覽器 dialog）；Random Exam（30 次抽題全部 24 題、24 個唔同 fact、每次唔同；工具、PASSED、Retry 抽新題、首頁掣名）；Exam 1–17 計時器（45:00、最後 5 分鐘變紅、到 0 自動交卷 + 結果頁提示）、24 圓點狀態同跳題、書籤 flag、計數、Submit / Home 提示；Practice 冇計時，圓點係啱／錯版（見 practicedots-test） |
 | `quicknav-test.js` | 快捷 ← / →（符號、title、最後一題 ✓ / ↩；Exam 最後一題 ✓ = Submit）；問題卡 header：Question X of Y、Practice 用圓圈唔用 progress bar、冇 score pill、header 冇 stats |
+| `sw-test.js` | v0.57：用 `python3 -m http.server` serve repo（或者 http 嘅 `APP_URL`）；index.html 每個 `<script src>` / `<link href>` 都喺 `sw.js` SHELL、SHELL 每個 file 存在；`sw.js` 註冊成功、cache 名跟 `APP_VERSION`、SHELL 全部 cache 咗；`setOffline(true)` reload 仍然出首頁、css 生效、開到 Practice；冇 page / console / SW error（瀏覽器自己 probe `/favicon.ico` 嘅 404 除外） |
+| `structure-test.js` | v0.57：index.html / js 冇 inline `on*=`、index.html 冇 inline `<style>` / `<script>` / `style=`（progress bar 闊度除外）、每個 function ≤ 30 行、`file://` 載入冇 page error / console error / failed request |
 | `practicedots-test.js` | v0.55：Practice 圓圈（24 / 9 / review 題數、冇 progress bar 同計時、啱綠錯紅、flag 橙邊、計數一行、撳跳題前後都得）；冇 score pill；Exam 最後一題快捷 ✓ 交卷（有未答彈 modal、全答直接去結果）；Flagged 列表「Practise flagged」書籤 icon 係橙色；首頁 Flagged 格 icon 橙色、Home 冇可見嘅黑色 SVG（v0.56） |
 
-## 版本記錄（v0.32–v0.56）
+## 版本記錄（v0.32–v0.57）
 
 | 版本 | PR | 改動 |
 |---|---|---|
@@ -223,6 +256,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | — | dcwhung/life-in-uk-test#26 | HANDOFF.md：PR #24 / #25 版本記錄、commit 列表、截圖還原注意事項 |
 | v0.55 | dcwhung/life-in-uk-test#27 | Practice 加數字圓圈（取代 progress bar，啱綠錯紅、flag 橙邊、撳跳題、Correct / Wrong / Unanswered / Flagged 計數），拎走 ✓ n/m pill；Exam 最後一題快捷掣變 ✓ 做 Submit；Flagged 列表「Practise flagged」書籤 icon 由黑色改橙色 |
 | v0.56 | dcwhung/life-in-uk-test#28 | 首頁 My Review「Flagged」格嘅書籤 icon 由黑色改返橙色：`bookmarkSvg('rv-flag-tile')` 嘅 class 冇 CSS，SVG path 冇 fill 就係黑色；改為 `.rv-flag-tile path` 同 `.rv-flag` 共用橙色（v0.55 只修咗「Practise flagged」掣，今次由 class 根本修好，兩處一齊生效） |
+| v0.57 | （P1 refactor PR） | **拆檔 + clean code，外觀同行為 0 改動（除 SW）**：`index.html` 2350 行拆做 `css/{base,components,screens}` 同 `js/{core,domain,components,screens,pwa}` + `main.js`；inline onclick 全部改 `data-action` delegation；重複 code 合併（`isCorrectAnswer`、`toQuestionItem`、pool 由 `allQuestions()` 派生、圓點 + 計數 builder、streak label、diff / chapter 格、Study 書籤 / 掌握 toggle）；每個 function ≤ 30 行；408 / 17 / 24 / 75% 等數字由 data / config 計；題目、選項、備注插入 HTML 前 escape；拎走死碼（`.score-pill`、`alert('Please select a mode first…')`、被蓋過嘅 CSS）；**SW 修正**：改用 root `sw.js`（之前 blob: SW 一直註冊失敗）；加 `sw-test`、`structure-test`。驗證：38 個畫面狀態 × 390 / 900px 逐個 element 對 computed style + 位置 + 文字，同 v0.56 完全一樣 |
 
 **Practice 數字圓圈設計決定（v0.55，preview 同用戶確認）**
 - 起因：用戶以為 Practice 「無咗」頂頭數字圓圈；查 code 同 git 記錄，v0.44 起圓圈一直只係 Exam 1–17 / Random Exam 先有，唔係 regression，改做新功能
@@ -302,7 +336,9 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 - 冇 dark mode
 - 測試依賴 Playwright + Chromium，repo 冇 `package.json`
 - 備注嘅 `\n` 係直接寫喺 `exams.js` 字串入面，冇 markdown 解析；縮排靠空格 + `pre-wrap`
-- `bookmarkSvg(cls)` 輸出嘅 SVG path 冇 fill，新 class 一定要喺 CSS 設顏色，否則會係黑色（v0.55 / v0.56 踩過兩次）
+- `bookmarkSvg(cls)`（`js/components/icons.js`）輸出嘅 SVG path 冇 fill，新 class 一定要喺 CSS 設顏色（`css/components/buttons.css`），否則會係黑色（v0.55 / v0.56 踩過兩次）
+- CSS 仲有好多 hardcoded 顏色 / px（v0.57 照搬，冇改做 token，避免改到外觀）
+- `#reviewOrder` 係 Review filter chip 嘅容器，名係 v0.39 排序 chip 留低；測試用緊呢個 id，所以未改名
 - 1.19、14.3 兩條備注係單句列舉（曼島／五位演員），未改成分行
 - Similar Questions 臨時 session 期間，題號行嘅 score pill（✓ n/m）只計臨時 session；返回之後先變返原本 session 嘅數
 - 124 條題目（408 − 284）冇類似題，因為佢哋嘅 fact 只有一個來源
@@ -310,6 +346,8 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 ## 主要 commit（新→舊）
 
 ```
+a58ec97 test: add sw-test (http server, SHELL cached, offline reload) and structure-test
+1b810bb refactor: split index.html into css/ and js/ modules, data-action delegation, real sw.js (v0.57)
 5cf9314 fix: orange bookmark icon on the home Flagged tile (v0.56)
 8be543f docs: HANDOFF.md v0.55 — PR #27 in version log, practice dots design decisions, commit list
 8832313 feat: practice question dots, exam quick ✓ submit, orange Flagged icon (v0.55)
@@ -406,4 +444,7 @@ c10115b feat: randomise answer option order in Practice and Exam mode
 - [x] Practice 加 flag 功能，再執 Practice 結果頁（v0.53 完成）
 - [ ] 錯題 / Flagged review 中途離開可以續做（用戶話暫時唔做）
 - [x] 首頁「Reset progress」一併清 `wrongList` / `practiceFlags`（v0.54）
-- [ ] 首頁 Reset 掣改用 app 內 modal（同 Exam 一致）
+- [ ] 首頁 Reset 掣改用 app 內 modal（同 Exam 一致）（P2）
+- [x] 拆 `index.html`、data-action、真 `sw.js`（v0.57，P1）
+- [ ] P2：locale（`js/core/i18n.js` + `locales/en.js`）+ 字眼統一 + 清 hidden `#rbCorrect` 等；P3：Study mode 統一
+- [ ] CSS hardcoded 顏色 / 尺寸改用 `tokens.css` token
