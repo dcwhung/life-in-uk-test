@@ -4,7 +4,8 @@
 function registerSW() {
   // file:// pages cannot register a service worker; skip instead of logging an error
   if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
-  navigator.serviceWorker.register('sw.js')
+  // a version bump only changes the imported config.js, so update checks must bypass the HTTP cache
+  navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' })
     .catch(e => console.warn('SW error:', e));
 }
 
