@@ -193,6 +193,9 @@ async function checkAppInstalled(pg) {
   assert(await fireCountingPrompt(pg, 'accepted'), 'CUI-0008: banner shows before appinstalled');
   await pg.evaluate(() => window.dispatchEvent(new Event('appinstalled')));
   assert(!(await bannerState(pg, INSTALL_DISMISSED)).visible, 'CUI-0008: an appinstalled event hides the banner');
+  // S-027: the installed app's stale event is dropped, so a later promptInstall() never calls prompt() on it
+  const calls = await pg.evaluate(async () => { await promptInstall(); return window.__promptCalls; });
+  assert(calls === 0, `S-027: after appinstalled, promptInstall() does not call prompt() (${calls})`);
 }
 
 const CLOSE_HIT_OUTSET = 6;
