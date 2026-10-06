@@ -810,7 +810,7 @@
 
     <!-- exam: submit button -->
     <div class="exam-submit-row" id="examSubmitRow" style="display:none">
-      <button class="nav-btn" id="examSubmitBtn" onclick="examSubmitAnswer()" disabled>Submit Answer</button>
+      <button class="nav-btn" id="examSubmitBtn" onclick="submitExam()">Submit Answer</button>
     </div>
 
     <div class="nav-row">
@@ -1046,7 +1046,7 @@ function examLabel(examNum) {
 
 const MODE_DESC = {
   practice: '<strong>Practice</strong> — See the answer and Cantonese translation immediately after each question. Pick a set by difficulty, chapter or exam; each shows how much you have mastered.',
-  exam: '<strong>Exam</strong> — Complete all 24 questions first, then review your score and answers. Pick an exam below.',
+  exam: '<strong>Exam</strong> — Answer all 24 questions like the real test; you can go back and change answers. Submit on the last question to see your score and answers. Pick an exam below.',
 };
 const DEFAULT_MODE = 'practice';
 const DEFAULT_PRACTICE_VIEW = 'difficulty';
@@ -1222,20 +1222,9 @@ function renderQuestion() {
   }
   renderSimilar(q, revealed);
 
-  // exam submit button
-  const submitRow = document.getElementById('examSubmitRow');
-  const submitBtn = document.getElementById('examSubmitBtn');
-  if (state.mode === 'exam') {
-    submitRow.style.display = 'block';
-    const selCount = (state.answers[idx] || []).length;
-    const needCount = q.a.length;
-    submitBtn.textContent = revealed
-      ? '✓ Submitted'
-      : `Submit Answer${isMulti ? ' (' + selCount + '/' + needCount + ' selected)' : ''}`;
-    submitBtn.disabled = revealed || selCount === 0;
-  } else {
-    submitRow.style.display = 'none';
-  }
+  // exam: one Submit for the whole exam, on the last question only
+  const isExamLast = state.mode === 'exam' && idx === total - 1;
+  document.getElementById('examSubmitRow').style.display = isExamLast ? 'block' : 'none';
 
   // nav buttons: bottom row, plus the quick pair in the question header once answered
   const next = nextAction(idx, total);
@@ -1248,7 +1237,11 @@ function renderQuestion() {
   quickNext.title = next.title;
   quickNext.setAttribute('aria-label', next.title);
   quickNext.onclick = next.run;
-  document.getElementById('quickNav').classList.toggle('visible', revealed);
+  // exam's last question has Submit instead of Next
+  [nextBtn, quickNext].forEach(btn => { btn.style.display = isExamLast ? 'none' : ''; });
+  // quick pair: practice once revealed; exam once something is picked (picks stay editable)
+  const picked = (state.answers[idx] || []).length > 0;
+  document.getElementById('quickNav').classList.toggle('visible', revealed || (state.mode === 'exam' && picked));
 
 }
 
@@ -1331,7 +1324,6 @@ function returnFromSimilar() {
 function nextAction(idx, total) {
   if (idx < total - 1) return { label: 'Next →', symbol: '→', title: 'Next', run: nextQ };
   if (isSimilarSession()) return { label: '↩ Back', symbol: '↩', title: 'Back', run: returnFromSimilar };
-  if (state.mode === 'exam') return { label: 'See Results →', symbol: '✓', title: 'See Results', run: finishExam };
   return { label: 'Finish ✓', symbol: '✓', title: 'Finish', run: finishExam };
 }
 // practice: "✓ correct/answered" for this session, shown once something is answered
@@ -1407,18 +1399,12 @@ function revealAnswer() {
   renderQuestion();
 }
 
-function examSubmitAnswer() {
-  const idx = state.current;
-  if (idx in state.revealed) return;
-  if (!state.answers[idx] || state.answers[idx].length === 0) return;
-  const q = state.questions[idx];
-  const userAns = state.answers[idx];
-  const correct = q.a.every(a => userAns.includes(a)) && userAns.length === q.a.length;
-  state.revealed[idx] = correct;
-
-  // no right / wrong feedback in exam mode: go straight on; the last submit opens the results
-  if (idx < state.questions.length - 1) nextQ();
-  else finishExam();
+// exam: picks are saved as you go (and can be changed); Submit on the last question marks the
+// whole exam and opens the results — no right / wrong is shown before that
+function submitExam() {
+  const unanswered = state.questions.filter((_, i) => !(state.answers[i] || []).length).length;
+  if (unanswered && !confirm(`${unanswered} questions unanswered. Submit anyway?`)) return;
+  finishExam();
 }
 
 function nextQ() {

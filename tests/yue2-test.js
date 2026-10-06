@@ -44,9 +44,8 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   // exam mode: no translation at all until the results page (submit moves on; revisit stays plain)
   await pg.evaluate(() => { pendingMode = 'exam'; startExam(1); });
   assert(!(await vis('#yueToggle')) && !(await vis('#qYue')), 'exam: no toggle, no translation before submit');
-  await pg.click('#opt0'); await pg.click('#examSubmitBtn');
-  await pg.click('#prevBtn');
-  assert(!(await vis('#qYue')) && (await pg.$$('.opt-yue')).length === 0 && !(await vis('#answerBox')), 'exam: submitted question shows no translation or answer box');
+  await pg.click('#opt0'); await pg.click('#nextBtn'); await pg.click('#prevBtn');
+  assert(!(await vis('#qYue')) && (await pg.$$('.opt-yue')).length === 0 && !(await vis('#answerBox')), 'exam: answered question shows no translation or answer box');
   assert(errs.length === 0, 'no page errors: ' + errs.join(';'));
   await b.close(); console.log('YUE2 PASS');
 })().catch(e => { console.error(e.message); process.exit(1); });

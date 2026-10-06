@@ -108,8 +108,10 @@
 - 結果頁 PASSED / NEEDS IMPROVEMENT 同 remark 只喺 Exam 1–17（Exam mode 或 Practice > By Exam）顯示；Chapter / Difficulty / All Exams 只顯示分數
 
 **Exam mode**
-- 全部 24 題做完先睇結果；**Submit 之後唔會對答案**（v0.43 起）：唔顯示啱／錯、答案框、翻譯，直接跳去下一題；最後一題 Submit 直接去結果頁；用 Prev 返去已 submit 嘅題只見到自己揀咗嘅選項（藍色、鎖住）；唔影響掌握記錄
-- 實作：`renderQuestion()` 用 `showAnswer = revealed && state.mode === 'practice'` 控制顏色、答案框同翻譯；`examSubmitAnswer()` 記錄後 `nextQ()`／`finishExam()`
+- **真考試模式（v0.43）：** 揀選項即刻暫存（`state.answers`），唔使逐題 Submit；Next / Prev 自由走，返去見到自己揀嘅選項（藍色），**隨時可以改**；全程唔顯示啱／錯、答案框、翻譯
+- **Submit Answer 只喺最後一題出現**（嗰題冇 Next），撳咗就去結果頁；有未答題會先 `confirm("N questions unanswered. Submit anyway?")`，取消就留低繼續做
+- 快捷 ← → 喺有揀選項之後出現；唔影響掌握記錄
+- 實作：`renderQuestion()` 用 `showAnswer = revealed && state.mode === 'practice'` 控制顏色、答案框同翻譯；Exam mode 唔再用 `state.revealed`，`submitExam()` 計未答數再 `finishExam()`（按 `state.answers` 計分）
 - Results：分數、pass/fail（18/24）、按難度統計表、逐題 review
 
 **Study（溫習）**
@@ -143,7 +145,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 
 | Suite | 覆蓋 |
 |---|---|
-| `test.js` | Exam/Practice 基本流程、多選、submit 掣；Exam submit 後跳下一題、返去只見自己揀嘅選項、最後一題去結果頁 |
+| `test.js` | Practice 基本流程、多選；Exam：揀選項中性藍色、Next / Prev 保留同可改答案、Submit 只喺最後一題、未答 confirm、按暫存答案計分 |
 | `shuffle-test.js` | 408 題選項打亂後答案對應 |
 | `study-test.js`、`subfilter-test.js` | Study 四個 tab、搜尋、書籤、sub-filter |
 | `diff-test.js` | 難度數據完整、按難度練習、結果統計、難度掣只顯示英文 |
@@ -174,7 +176,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | — | dcwhung/life-in-uk-test#13 | HANDOFF.md：PR #11 / #12 版本記錄、開發流程備註 |
 | v0.42 | dcwhung/life-in-uk-test#14 | 修正 Practice › By Exam 進度條爆出圓角格仔：`.exam-btn:not(.done)` 加 `overflow: hidden`（`.done` 嘅 ✓ badge 只喺 Exam mode，要凸出所以唔 clip） |
 | — | dcwhung/life-in-uk-test#15 | HANDOFF.md：PR #14 版本記錄、mastery bar 備註 |
-| v0.43 | — | Exam mode Submit 唔再對答案：唔顯示啱／錯、答案框、翻譯，直接跳下一題；最後一題 Submit 去結果頁 |
+| v0.43 | — | Exam mode 改做真考試流程：揀選項即暫存、Next / Prev 返去可以改答案、全程唔對答案；Submit Answer 只喺最後一題，有未答題先 confirm，撳咗去結果頁 |
 
 **問題卡 header 設計決定（v0.41，先做 preview 同用戶確認）**
 - 目的：慳位，拎走問題卡上面獨立嘅一行同 progress bar

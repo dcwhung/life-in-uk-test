@@ -9,65 +9,70 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   const errs = []; pg.on('pageerror', e => errs.push(e.message));
   await pg.goto(APP_URL);
   const cls = i => pg.$eval('#opt' + i, e => Array.from(e.classList));
-  const submit = () => pg.$eval('#examSubmitBtn', e => ({ t: e.textContent, d: e.disabled }));
+  const dialogs = [];
   const box = () => pg.$eval('#answerBox', e => e.className);
   const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('ok:', m); };
 
-  // ── Exam mode, find a multi-select and a single question in Exam 1 ──
+  // ── Exam mode (real-test style): pick freely, change any time, one Submit on the last question ──
+  pg.on('dialog', d => { dialogs.push(d.message()); d.accept(); });
   await pg.evaluate(() => { pendingMode = 'exam'; startExam(1); });
   const multiIdx = await pg.evaluate(() => state.questions.findIndex(q => q.a.length > 1));
   const singleIdx = await pg.evaluate(() => state.questions.findIndex(q => q.a.length === 1));
-  console.log('multiIdx', multiIdx, 'singleIdx', singleIdx);
+  const last = await pg.evaluate(() => state.questions.length - 1);
+  const submitShown = () => pg.$eval('#examSubmitRow', e => e.style.display !== 'none');
+  const nextShown = () => pg.$eval('#nextBtn', e => getComputedStyle(e).display !== 'none');
 
-  // single question: select -> not disabled, no green/red, submit enabled
+  // single question: select is neutral, no answer box, no submit before the last question
   await pg.evaluate(i => { state.current = i; renderQuestion(); }, singleIdx);
   const wrongOpt = await pg.evaluate(() => state.questions[state.current].o.findIndex((_, i) => !state.questions[state.current].a.includes(i)));
   const rightOpt = await pg.evaluate(() => state.questions[state.current].a[0]);
   await pg.click('#opt' + wrongOpt);
   let c = await cls(wrongOpt);
-  assert(!c.includes('disabled') && !c.includes('wrong') && !c.includes('correct') && c.includes('selected'), 'Bug1: exam select is neutral, not disabled');
-  assert((await box()) === 'answer-box', 'Bug3: answer box hidden before submit');
-  let s = await submit(); assert(!s.d && s.t === 'Submit Answer', 'Bug4: single submit label/enabled');
-  // can change selection
-  await pg.click('#opt' + rightOpt);
-  assert((await cls(rightOpt)).includes('selected') && !(await cls(wrongOpt)).includes('selected'), 'Bug1: can change selection before submit');
-  await pg.click('#opt' + wrongOpt); // pick wrong, then submit -> revealed=false case
-  await pg.click('#examSubmitBtn');
-  // exam: submit never shows right / wrong — it moves straight on to the next question
-  assert(await pg.evaluate(i => state.current === i + 1 && state.revealed[i] === false, singleIdx), 'submit records the answer and jumps to the next question');
-  await pg.evaluate(() => prevQ());
+  assert(!c.includes('disabled') && !c.includes('wrong') && !c.includes('correct') && c.includes('selected'), 'exam select is neutral, not disabled');
+  assert((await box()) === 'answer-box', 'no answer box in exam mode');
+  assert(!(await submitShown()) && await nextShown(), 'not the last question: no Submit, Next shown');
+  // Next keeps the pick; Prev shows it again in blue and it can be changed
+  await pg.click('#nextBtn');
+  assert(await pg.evaluate(i => state.current === i + 1, singleIdx), 'Next moves on');
+  await pg.click('#prevBtn');
   c = await cls(wrongOpt);
-  assert(c.includes('disabled') && c.includes('selected') && !c.includes('wrong') && !c.includes('correct'), 'revisit: own pick shown neutral + locked, no red');
-  assert(!(await cls(rightOpt)).includes('correct'), 'revisit: correct option not revealed');
-  assert((await box()) === 'answer-box', 'revisit: no answer box in exam mode');
-  assert(!(await pg.$eval('#qYue', e => e.classList.contains('show'))) && (await pg.$$('.opt-yue')).length === 0, 'revisit: no translation in exam mode');
-  s = await submit(); assert(s.d && s.t === '✓ Submitted', 'Bug4: submitted label');
+  assert(c.includes('selected') && !c.includes('disabled') && !c.includes('wrong'), 'back with Prev: own pick in blue, still editable');
+  assert(!(await cls(rightOpt)).includes('correct'), 'correct option never revealed');
+  assert(!(await pg.$eval('#qYue', e => e.classList.contains('show'))) && (await pg.$$('.opt-yue')).length === 0, 'no translation in exam mode');
   await pg.click('#opt' + rightOpt);
-  assert(JSON.stringify(await pg.evaluate(() => state.answers[state.current])) === JSON.stringify([wrongOpt]), 'locked after submit');
+  assert(JSON.stringify(await pg.evaluate(() => state.answers[state.current])) === JSON.stringify([rightOpt]), 'answer can be changed after coming back');
+  assert(await pg.evaluate(() => Object.keys(state.revealed).length === 0), 'nothing is marked / scored before Submit');
 
-  // multi question in exam mode: no auto-submit
+  // multi question: toggles freely, never auto-submits
   await pg.evaluate(i => { state.current = i; renderQuestion(); }, multiIdx);
-  const need = await pg.evaluate(() => state.questions[state.current].a.length);
   const ans = await pg.evaluate(() => state.questions[state.current].a);
-  s = await submit(); assert(s.d && s.t === `Submit Answer (0/${need} selected)`, 'Bug4: multi 0/N label disabled');
-  await pg.click('#opt' + ans[0]);
-  s = await submit(); assert(!s.d && s.t === `Submit Answer (1/${need} selected)`, 'Bug4: multi 1/N');
-  await pg.click('#opt' + ans[1]);
-  s = await submit(); assert(!s.d && s.t === `Submit Answer (${need}/${need} selected)`, 'Bug4: multi N/N');
-  assert(await pg.evaluate(() => !(state.current in state.revealed)), 'Bug2: multi in exam does NOT auto-submit');
-  assert((await box()) === 'answer-box', 'Bug2/3: box still hidden');
-  await pg.click('#opt' + ans[1]); // deselect all-but-one
-  await pg.click('#opt' + ans[0]);
-  s = await submit(); assert(s.d && s.t === `Submit Answer (0/${need} selected)`, 'Bug4: deselect to 0 disables submit');
   await pg.click('#opt' + ans[0]); await pg.click('#opt' + ans[1]);
+  await pg.click('#opt' + ans[1]); await pg.click('#opt' + ans[1]);
+  assert(JSON.stringify(await pg.evaluate(() => [...state.answers[state.current]].sort())) === JSON.stringify([...ans].sort()), 'multi: toggle on / off, all picks kept');
+  assert((await box()) === 'answer-box' && !(await submitShown()), 'multi: no box, no submit');
+
+  // last question: Submit instead of Next; unanswered questions are confirmed first
+  await pg.evaluate(i => { state.current = i; renderQuestion(); }, last);
+  assert(await submitShown() && !(await nextShown()), 'last question: Submit shown, Next hidden');
+  assert((await pg.$eval('#examSubmitBtn', e => e.textContent)) === 'Submit Answer' && !(await pg.$eval('#examSubmitBtn', e => e.disabled)), 'Submit Answer enabled');
+  await pg.evaluate(() => { window.confirm = () => false; });
   await pg.click('#examSubmitBtn');
-  assert(await pg.evaluate(i => state.revealed[i] === true && state.current === i + 1, multiIdx), 'multi submit recorded as correct, moved on');
-  assert((await box()) === 'answer-box', 'no answer box after submit');
-  // submitting the last question opens the results
-  await pg.evaluate(() => { state.current = state.questions.length - 1; renderQuestion(); });
-  await pg.evaluate(() => { const q = state.questions[state.current]; state.answers[state.current] = [...q.a]; renderQuestion(); });
+  assert(await pg.evaluate(() => document.getElementById('screenQuiz').classList.contains('active')), 'cancel on the unanswered warning stays in the exam');
+  await pg.evaluate(() => { window.confirm = (m) => { window.lastConfirm = m; return true; }; });
   await pg.click('#examSubmitBtn');
-  assert(await pg.$eval('#screenResult', e => e.classList.contains('active') || getComputedStyle(e).display !== 'none'), 'last submit opens the results');
+  assert(await pg.evaluate(() => /22 questions unanswered/.test(window.lastConfirm)), 'warning counts unanswered questions');
+  assert(await pg.evaluate(() => document.getElementById('screenResult').classList.contains('active')), 'Submit opens the results');
+  assert((await pg.$eval('#rbCorrect', e => e.textContent)) === '2', 'results score the saved picks (2 correct)');
+
+  // everything answered: no warning
+  await pg.evaluate(() => {
+    pendingMode = 'exam'; startExam(1);
+    state.questions.forEach((q, i) => { state.answers[i] = [...q.a]; });
+    state.current = state.questions.length - 1; renderQuestion();
+    window.lastConfirm = null;
+  });
+  await pg.click('#examSubmitBtn');
+  assert(await pg.evaluate(() => window.lastConfirm === null && document.getElementById('rbCorrect').textContent === '24'), 'all answered: submits without a warning, 24/24');
 
   // ── Practice mode: wrong answer must still reveal + lock ──
   await pg.evaluate(() => { pendingMode = 'practice'; startExam(1); });

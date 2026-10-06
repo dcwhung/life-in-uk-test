@@ -15,7 +15,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   const answer = () => pg.evaluate(() => {
     const i = state.current, q = state.questions[i];
     state.answers[i] = [...q.a];
-    if (state.mode === 'practice') revealAnswer(); else examSubmitAnswer();
+    if (state.mode === 'practice') revealAnswer(); else renderQuestion(); // exam: a pick is just saved
   });
 
   // practice: hidden before answering (Translate keeps its place), shown after
@@ -41,15 +41,16 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.click('#quickNext');
   assert(await vis('#screenResult'), 'quick Finish opens the results');
 
-  // exam: submit jumps to the next question; quick nav shows when going back to a submitted one
+  // exam: quick nav once the question has a pick; no Next on the last question (Submit instead)
   await pg.evaluate(() => { pendingMode = 'exam'; startExam(1); });
-  assert(!(await vis('#quickNav')), 'exam: hidden before submit');
+  assert(!(await vis('#quickNav')), 'exam: hidden before picking');
   await answer();
-  assert(await pg.evaluate(() => state.current === 1) && !(await vis('#quickNav')), 'exam: submit moves on to an unanswered question');
-  await pg.click('#prevBtn');
-  assert(await vis('#quickNav') && (await text('#quickNext')) === '→', 'exam: submitted question shows quick nav');
+  assert(await vis('#quickNav') && (await text('#quickNext')) === '→', 'exam: shown once picked');
+  await pg.click('#quickNext');
+  assert(await pg.evaluate(() => state.current === 1 && state.answers[0].length > 0), 'exam: quick Next keeps the pick');
   await pg.evaluate(() => { state.current = state.questions.length - 1; renderQuestion(); });
-  assert((await text('#nextBtn')) === 'See Results →', 'exam last question: bottom button See Results →');
+  await answer();
+  assert(!(await vis('#quickNext')) && await vis('#quickPrev') && !(await vis('#nextBtn')), 'exam last question: no Next (quick or bottom)');
 
   // similar session: last question goes back
   await pg.evaluate(() => {
@@ -79,7 +80,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(await pg.$eval('#progressFill', e => e.style.width === '22%'), 'bar advances');
   await pg.evaluate(() => { pendingMode = 'exam'; startExam(1); });
   await answer();
-  assert((await pg.$$('#qNum .score-pill')).length === 0 && (await text('#qNum')).startsWith('Question 2 of 24'), 'exam mode: no score pill');
+  assert((await pg.$$('#qNum .score-pill')).length === 0 && (await text('#qNum')).startsWith('Question 1 of 24'), 'exam mode: no score pill');
 
   assert(errs.length === 0, 'no page errors: ' + errs.join('; '));
   console.log('QUICKNAV PASS');
