@@ -100,7 +100,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert((await text('#quizLabel')) === 'Random Exam', 'quiz label: Random Exam');
   await pg.evaluate(() => { state.questions.forEach((q, i) => { state.answers[i] = [...q.a]; }); state.current = 23; renderQuestion(); });
   await pg.click('#nextBtn');
-  assert(await active('screenResult') && (await text('#resultLabel2')) === 'PASSED' && (await text('#resultLabel')) === 'Random Exam', 'results: PASSED verdict, Random Exam label');
+  assert(await active('screenResult') && (await text('#resultLabel2')) === '🎉 PASSED' && (await text('#resultLabel')) === 'Random Exam', 'results: PASSED verdict, Random Exam label');
   const before = await pg.evaluate(() => state.questions.map(qKey).join(','));
   await pg.evaluate(() => retryExam());
   assert(await pg.evaluate(b => state.questions.length === 24 && state.questions.map(qKey).join(',') !== b, before), 'retry draws a fresh set');
@@ -111,7 +111,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.click('#modePractice'); await pg.click('#ptabExam');
   assert((await text('#examGrid .exam-btn.all')).startsWith('🎯 All Exams (408 Q)'), 'practice grid keeps All Exams (408 Q)');
   await pg.evaluate(() => { pendingMode = 'practice'; startExam('all'); });
-  assert(await pg.evaluate(() => state.questions.length === 25) && !(await vis('#examTimer')), 'practice All Exams unchanged: round of 25, no timer');
+  assert(await pg.evaluate(() => state.questions.length === 24) && !(await vis('#examTimer')), 'practice All Exams unchanged: round of 24, no timer');
 
   assert(nativeDialogs === 0, 'no browser alert / confirm boxes were used');
   assert(errs.length === 0, 'no page errors: ' + errs.join('; '));

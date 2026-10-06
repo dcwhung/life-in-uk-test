@@ -27,7 +27,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
 
   // practice by difficulty
   await pg.click('#diffGrid .diff-btn:nth-child(6)');
-  assert(await pg.evaluate(() => difficultyQuestions('hard').length === 85 && state.questions.length === 25 && state.questions.every(q => q.d >= 4)), 'hard set 85 Q; round of 25, all >=4');
+  assert(await pg.evaluate(() => difficultyQuestions('hard').length === 85 && state.questions.length === 24 && state.questions.every(q => q.d >= 4)), 'hard set 85 Q; round of 24, all >=4');
   assert((await pg.$eval('#quizLabel', e => e.textContent)) === 'Hard ★★★★+', 'hard label');
   assert((await pg.$eval('#qNum .stars', e => e.textContent)).length === 5, 'stars shown on question card');
   await pg.screenshot({ path: 'shot-diff-q.png' });

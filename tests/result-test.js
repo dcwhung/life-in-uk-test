@@ -21,7 +21,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
 
   // numbered exams (Exam mode or Practice > By Exam): PASSED + remark
   await finish('exam', 1);
-  assert(await verdictShown() && (await pg.$eval('#resultLabel2', e => e.textContent)) === 'PASSED', 'Exam mode: PASSED + remark shown');
+  assert(await verdictShown() && (await pg.$eval('#resultLabel2', e => e.textContent)) === '🎉 PASSED', 'Exam mode: PASSED + remark shown');
   await finish('practice', 2);
   assert(await verdictShown(), 'Practice exam: PASSED + remark shown');
   // other sets: no verdict, no remark, score still shown
