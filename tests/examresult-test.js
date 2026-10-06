@@ -68,6 +68,15 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(noteLines.length > 2 && noteLines.some(c => c.includes('bullet')), 'note split into rows with bullet indent');
   assert((await text(`#rv${noteIdx} .rv-note-label`)) === '💡 備注：', 'note label row');
 
+  // review items breathe: question / your answer / correct answer separated, roomy line height
+  const gaps = await pg.$eval('#rv2', e => {
+    const q = e.querySelector('.rv-q').getBoundingClientRect(), y = e.querySelector('.rv-your').getBoundingClientRect(),
+      c = e.querySelector('.rv-correct-ans').getBoundingClientRect();
+    const lh = parseFloat(getComputedStyle(e.querySelector('.rv-your')).lineHeight) / parseFloat(getComputedStyle(e.querySelector('.rv-your')).fontSize);
+    return { qy: y.top - q.bottom, yc: c.top - y.bottom, lh };
+  });
+  assert(gaps.qy >= 6 && gaps.yc >= 4 && gaps.lh >= 1.5, 'review item spacing: ' + JSON.stringify(gaps));
+
   // buttons
   assert(JSON.stringify(await texts('#screenResult .retry-btn')) === '["Retry","Retry"]' && JSON.stringify(await texts('#screenResult .another-btn')) === '["Another Exam","Another Exam"]', 'exam buttons: Retry / Another Exam');
 

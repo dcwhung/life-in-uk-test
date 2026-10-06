@@ -207,7 +207,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | v0.49 | dcwhung/life-in-uk-test#20 | Exam 結果頁掣文字：「Retry Exam」→「Retry」、「Choose Another」→「Another Exam」 |
 | v0.50 | dcwhung/life-in-uk-test#20 | Exam 結果頁：mode icon、分數只顯示一次（唔合格紅色）、24 粒結果圓點（撳跳題）、All / Wrong / Flagged filter、書籤 icon；Review 翻譯同備注分行排版；Practice 掣改「Retry / Another Practice」 |
 | — | dcwhung/life-in-uk-test#21 | HANDOFF.md：PR #20 版本記錄、modal 設計決定、follow-up |
-| v0.51 | — | 結果判定前面加返 icon：「🎉 PASSED」/「📚 NEEDS IMPROVEMENT」；結果頁「By Difficulty · 按難度」拎走中文 |
+| v0.51 | — | 結果判定前面加返 icon：「🎉 PASSED」/「📚 NEEDS IMPROVEMENT」；結果頁「By Difficulty · 按難度」拎走中文；Review Answers 加大行距同間隔 |
 
 **Exam modal 設計決定（v0.48）**
 - 用戶要求交卷提示唔好用瀏覽器 alert box；離開考試提示順手都改用同一個 modal，保持一致
