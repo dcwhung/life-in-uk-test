@@ -6,6 +6,8 @@
 - **用戶：** 香港廣東話使用者，備考 Life in the UK Test（ILR，BN(O) route）
 - **開發流程（v0.32 起）：** 每次改動喺 `claude/*` branch 做，開 PR 入 `main` 再 merge（merge commit）；`main` merge 後 GitHub Pages 自動部署。冇 `develop` branch。PR merge 咗之後，同一條 branch 要由最新 `main` 重新開過先加新 commit
 - **版本：** 改 app 嘅 commit `APP_VERSION` +0.01；只改測試／文件唔升版本
+- **UI 改動：** 用戶通常要求先做 preview／mockup 確認先改 code（例如 `mockups/similar-question-map.html`、v0.41 嘅臨時 quiz header preview）；臨時 preview 確認後要 delete，唔好留喺 `main`
+- **每輪改完：** 用戶通常會要求「開 PR 入 main 然後 merge」，之後再「更新 HANDOFF.md 記錄今次所有改動」
 
 ---
 
@@ -166,7 +168,8 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | — | dcwhung/life-in-uk-test#8 | HANDOFF.md：開發流程改為 PR、Similar Questions 設計決定、v0.32–v0.38 版本記錄 |
 | v0.39 | dcwhung/life-in-uk-test#9 | 難度掣拎走中文；結果頁 Review Answers 加「Original order / Wrong first」；Review Answers 上面加多一組 Practise Again / Choose Another |
 | v0.40 | dcwhung/life-in-uk-test#10 | 答完之後問題卡右上（Translate 位置）顯示快捷 Prev / Next；HANDOFF 補 PR #8 / #9 |
-| v0.41 | — | 問題卡同 progress 合併：bar 變卡頂邊、題號行「Question X of Y ★ ✓ n/m」、快捷掣只有符號；拎走 header 嘅 correct / done |
+| — | dcwhung/life-in-uk-test#11 | HANDOFF.md：PR #10 版本記錄、快捷 Prev / Next 設計決定 |
+| v0.41 | dcwhung/life-in-uk-test#12 | 問題卡同 progress 合併：bar 變卡頂邊、題號行「Question X of Y ★ ✓ n/m」、快捷掣只有符號；拎走 header 嘅 correct / done |
 
 **問題卡 header 設計決定（v0.41，先做 preview 同用戶確認）**
 - 目的：慳位，拎走問題卡上面獨立嘅一行同 progress bar
@@ -203,12 +206,16 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 - 測試依賴 Playwright + Chromium，repo 冇 `package.json`
 - 備注嘅 `\n` 係直接寫喺 `exams.js` 字串入面，冇 markdown 解析；縮排靠空格 + `pre-wrap`
 - 1.19、14.3 兩條備注係單句列舉（曼島／五位演員），未改成分行
-- Similar Questions 臨時 session 期間，header 嘅 ✅ correct / 📝 done 只計臨時 session；返回之後先變返原本 session 嘅數
+- Similar Questions 臨時 session 期間，題號行嘅 score pill（✓ n/m）只計臨時 session；返回之後先變返原本 session 嘅數
 - 124 條題目（408 − 284）冇類似題，因為佢哋嘅 fact 只有一個來源
 
 ## 主要 commit（新→舊）
 
 ```
+f905348 feat: merge progress into the question card; symbol-only quick nav (v0.41)
+0bf2332 chore: update temporary quiz header preview — option A, header stats removed（已 delete）
+6a5904d chore: add temporary quiz header preview (to be removed with the implementation)（已 delete）
+ce60c49 docs: HANDOFF.md v0.40 — PR #10 in version log, quick nav design notes
 a140e42 feat: quick Prev / Next in the question header once answered (v0.40)
 b61e701 docs: HANDOFF.md v0.39 — PR #8/#9 in version log, results design notes
 8e337ee feat: English-only difficulty labels; wrong-first review order and top action buttons on results (v0.39)
