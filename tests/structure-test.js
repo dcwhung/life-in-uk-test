@@ -12,6 +12,9 @@ const MAX_FUNCTION_LINES = 30;
 
 const jsFiles = dir => fs.readdirSync(dir, { withFileTypes: true }).flatMap(d =>
   d.isDirectory() ? jsFiles(path.join(dir, d.name)) : d.name.endsWith('.js') ? [path.join(dir, d.name)] : []);
+const cssFiles = dir => fs.readdirSync(dir, { withFileTypes: true }).flatMap(d =>
+  d.isDirectory() ? cssFiles(path.join(dir, d.name)) : d.name.endsWith('.css') ? [path.join(dir, d.name)] : []);
+const TOKENS_CSS = path.join(ROOT, 'css', 'base', 'tokens.css');
 const sources = [path.join(ROOT, 'index.html'), path.join(ROOT, 'sw.js'), ...jsFiles(path.join(ROOT, 'js'))];
 const rel = f => path.relative(ROOT, f);
 
@@ -57,6 +60,13 @@ function actionNames() {
 
   const long = jsFiles(path.join(ROOT, 'js')).flatMap(longFunctions);
   assert(long.length === 0, `every function is <= ${MAX_FUNCTION_LINES} lines` + (long.length ? ': ' + long.join(', ') : ''));
+
+  // colours live only in tokens.css; every other stylesheet uses var(--…)
+  const colourLiterals = cssFiles(path.join(ROOT, 'css')).filter(f => f !== TOKENS_CSS).flatMap(f =>
+    fs.readFileSync(f, 'utf8').split('\n')
+      .map((line, i) => (/#[0-9a-fA-F]{3,8}\b|rgba?\(/.test(line) ? `${rel(f)}:${i + 1}` : null)).filter(Boolean));
+  assert(colourLiterals.length === 0, 'no hex / rgb() colour literals in css outside css/base/tokens.css'
+    + (colourLiterals.length ? ': ' + colourLiterals.join(', ') : ''));
 
   const b = await chromium.launch(launchOpts);
   const pg = await b.newPage();
