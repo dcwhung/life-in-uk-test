@@ -88,7 +88,7 @@
 **首頁**
 - Header：`Life in the UK ⓘ` + `Exam Practice v${APP_VERSION}`；ⓘ 彈出簡介 popover
 - 三個 mode 掣一行：Study / Practice / Exam；預設 Practice；描述撳咗先顯示
-- Practice 下三個 tab：By Difficulty（預設；v0.39 起難度只顯示英文：Easy / Basic / Medium / Hard / Expert / Hard & Expert）/ By Chapter / By Exam，每粒掣顯示「已掌握/總數 · %」+ 進度條；下面嘅提示寫明「連續答啱 3 次 = 掌握、每輪最多 25 題、每題一輪一次」
+- Practice 下三個 tab：By Difficulty（預設；v0.39 起難度只顯示英文：Easy / Basic / Medium / Hard / Expert / Hard & Expert）/ By Chapter / By Exam，每粒掣顯示「已掌握/總數 · %」+ 進度條（`.mastery-bar`，absolute 貼格仔底；格仔要 `overflow: hidden` 先唔會爆出圓角，By Exam 喺 v0.42 補返）；下面嘅提示寫明「連續答啱 3 次 = 掌握、每輪最多 25 題、每題一輪一次」
 - Exam 下只有 Select Exam（完成過有 ✓）
 - Mode 同 tab 記住喺 localStorage `homePrefs`
 - 兩個 reset 掣：Practice「Reset progress」、Exam「Reset completed exams」（都要 confirm）
@@ -171,7 +171,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | — | dcwhung/life-in-uk-test#11 | HANDOFF.md：PR #10 版本記錄、快捷 Prev / Next 設計決定 |
 | v0.41 | dcwhung/life-in-uk-test#12 | 問題卡同 progress 合併：bar 變卡頂邊、題號行「Question X of Y ★ ✓ n/m」、快捷掣只有符號；拎走 header 嘅 correct / done |
 | — | dcwhung/life-in-uk-test#13 | HANDOFF.md：PR #11 / #12 版本記錄、開發流程備註 |
-| v0.42 | — | 修正 Practice › By Exam 進度條爆出圓角格仔：`.exam-btn:not(.done)` 加 `overflow: hidden`（`.done` 嘅 ✓ badge 只喺 Exam mode，要凸出所以唔 clip） |
+| v0.42 | dcwhung/life-in-uk-test#14 | 修正 Practice › By Exam 進度條爆出圓角格仔：`.exam-btn:not(.done)` 加 `overflow: hidden`（`.done` 嘅 ✓ badge 只喺 Exam mode，要凸出所以唔 clip） |
 
 **問題卡 header 設計決定（v0.41，先做 preview 同用戶確認）**
 - 目的：慳位，拎走問題卡上面獨立嘅一行同 progress bar
@@ -214,6 +214,8 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 ## 主要 commit（新→舊）
 
 ```
+f35f922 fix: keep By Exam mastery bars inside the rounded boxes (v0.42)
+5cfcdf6 docs: HANDOFF.md v0.41 — PR #11/#12 in version log, workflow notes, stale header-stats note
 f905348 feat: merge progress into the question card; symbol-only quick nav (v0.41)
 0bf2332 chore: update temporary quiz header preview — option A, header stats removed（已 delete）
 6a5904d chore: add temporary quiz header preview (to be removed with the implementation)（已 delete）
