@@ -61,6 +61,9 @@ const LEGACY_LS_MIGRATION = {
 };
 // written once every legacy key was moved with no fallback; until then a key present under both names is merged
 const MIGRATED_LS = LS_PREFIX + 'migrated';
+// new keys whose old key stayed in use (fallback) after a merge write failed: the old key holds the newer progress,
+// so the next load merges with the old side winning; removed once the marker is written
+const MIGRATE_FALLBACK_LS = LS_PREFIX + 'migrateFallback';
 // object maps ("exam.idx" / fact id → record) merged per entry when both names exist; the rest (prefs) keep the new value
 const MERGE_LS = [STREAK_LS, FLAGS_LS, WRONG_LS, COMPLETED_LS, STUDY_LS.mastered, STUDY_LS.bookmarks];
 // keys no version reads any more (reviewOrder: results-page sort chip, dropped in v0.53)

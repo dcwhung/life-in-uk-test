@@ -158,6 +158,22 @@ const MARKER = P + 'migrated';
   const merged = JSON.parse(s[P + 'practiceStreak']);
   assert(Object.entries(legacyStreak).every(([k, v]) => merged[k] === v) && merged['9.9'] === 1 && !('practiceStreak' in s) && MARKER in s, 'next load: merged, old key gone, marker written');
 
+  // g2. W-004: progress made while on the fallback (old key) must beat the stale new value on the next load
+  const RECORD = P + 'migrateFallback';
+  await pg.evaluate(() => sessionStorage.removeItem('stubOff'));
+  await seed({ practiceStreak: LEGACY.practiceStreak, [P + 'practiceStreak']: '{"1.2":0,"9.9":1}' });
+  await pg.evaluate(() => { streaks['1.2'] = 3; saveStreaks(); });
+  s = await dump();
+  assert(JSON.parse(s.practiceStreak)['1.2'] === 3 && s[P + 'practiceStreak'] === '{"1.2":0,"9.9":1}', 'fallback session: the answer went to the old key, stale new key untouched');
+  assert(JSON.parse(s[RECORD] || '[]').includes(P + 'practiceStreak'), 'fallback session: stale new key recorded in ' + RECORD);
+  await pg.evaluate(() => sessionStorage.setItem('stubOff', '1'));
+  await pg.reload();
+  s = await dump();
+  const afterFallback = JSON.parse(s[P + 'practiceStreak']);
+  assert(afterFallback['1.2'] === 3, 'next load: fallback-period value kept (1.2 → 3, not the stale 0): ' + s[P + 'practiceStreak']);
+  assert(afterFallback['1.0'] === 3 && afterFallback['9.9'] === 1, 'next load: entries from both sides kept');
+  assert(!('practiceStreak' in s) && MARKER in s && !(RECORD in s), 'next load: old key gone, marker written, fallback record cleared');
+
   assert(errs.length === 0, 'no page errors: ' + errs.join(' | '));
   console.log('MIGRATE PASS');
   await b.close();

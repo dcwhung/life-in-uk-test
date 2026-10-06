@@ -54,21 +54,36 @@ function ensureLegacyMigrated() {
 function migrateLegacyStorage() {
   // no marker yet: a new key may hold only what a mixed-version page wrote, so both sides are merged
   const mergeBoth = localStorage.getItem(MIGRATED_LS) === null;
+  const oldWinsKeys = readFallbackRecord();
+  const stillOld = [];
   const moved = Object.entries(LEGACY_LS_MIGRATION).map(([oldKey, newKey]) => {
-    // one key per try: a failure must not stop the others or delete anything
-    try { return migrateLegacyKey(oldKey, newKey, mergeBoth); } catch (e) { console.warn('localStorage migration skipped:', oldKey, e); }
-    return false;
+    const oldWins = oldWinsKeys.includes(newKey);
+    const done = migrateKeySafely(oldKey, newKey, { merge: mergeBoth || oldWins, oldWins });
+    // the old key carries this load's writes while the new key keeps an older value: next load the old side wins
+    if (!done && (oldWins || (LS_KEY_FALLBACK[newKey] && localStorage.getItem(newKey) !== null))) stillOld.push(newKey);
+    return done;
   });
   removeObsoleteKeys();
+  writeFallbackRecord(stillOld);
   if (mergeBoth && moved.every(Boolean)) writeMigratedMarker();
 }
 
+function migrateKeySafely(oldKey, newKey, rule) {
+  // one key per try: a failure must not stop the others or delete anything
+  try {
+    return migrateLegacyKey(oldKey, newKey, rule);
+  } catch (e) {
+    console.warn('localStorage migration skipped:', oldKey, e);
+  }
+  return false;
+}
+
 // true once oldKey is gone; false leaves it in place and in use for this load
-function migrateLegacyKey(oldKey, newKey, mergeBoth) {
+function migrateLegacyKey(oldKey, newKey, rule) {
   const oldValue = localStorage.getItem(oldKey);
   if (oldValue === null) return true;
   const newValue = localStorage.getItem(newKey);
-  const value = legacyTargetValue(newKey, oldValue, newValue, mergeBoth);
+  const value = legacyTargetValue(newKey, oldValue, newValue, rule);
   if (value !== newValue && !writeVerified(newKey, value, newValue)) {
     LS_KEY_FALLBACK[newKey] = oldKey;
     return false;
@@ -77,13 +92,34 @@ function migrateLegacyKey(oldKey, newKey, mergeBoth) {
   return true;
 }
 
-function legacyTargetValue(newKey, oldValue, newValue, mergeBoth) {
+// rule.merge: combine both sides (else the new key wins); rule.oldWins: the old side wins conflicts
+function legacyTargetValue(newKey, oldValue, newValue, rule) {
   if (newValue === null) return oldValue;
-  if (!mergeBoth || !MERGE_LS.includes(newKey)) return newValue;
-  const older = parsePlainObject(oldValue);
-  const newer = parsePlainObject(newValue);
-  // per entry: the newer record of a question wins, entries only the old key has are kept
-  return older && newer ? JSON.stringify({ ...older, ...newer }) : newValue;
+  if (!rule.merge) return newValue;
+  const [base, winner] = rule.oldWins ? [newValue, oldValue] : [oldValue, newValue];
+  if (!MERGE_LS.includes(newKey)) return winner;
+  const under = parsePlainObject(base);
+  const over = parsePlainObject(winner);
+  // per entry: the winning side's record of a question wins, entries only the other side has are kept
+  return under && over ? JSON.stringify({ ...under, ...over }) : winner;
+}
+
+function readFallbackRecord() {
+  try {
+    const keys = JSON.parse(localStorage.getItem(MIGRATE_FALLBACK_LS));
+    return Array.isArray(keys) ? keys : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeFallbackRecord(newKeys) {
+  try {
+    if (newKeys.length) localStorage.setItem(MIGRATE_FALLBACK_LS, JSON.stringify(newKeys));
+    else localStorage.removeItem(MIGRATE_FALLBACK_LS);
+  } catch (e) {
+    console.warn('localStorage fallback record not written:', e);
+  }
 }
 
 function parsePlainObject(raw) {

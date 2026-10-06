@@ -194,6 +194,7 @@ v0.58 起全部 key 都有 `lifeuk.` prefix（`LS_PREFIX`，`js/core/config.js`�
 | `lifeuk.wrongList` | `{ "exam.idx": true }`（v0.53，錯題庫；Practice + Exam 加入，只喺 Wrong answers review 答啱先清） |
 | `lifeuk.studyPrefs` / `lifeuk.studyMastered` / `lifeuk.studyBookmarks` | Study 頁狀態 |
 | `lifeuk.migrated` | v0.58 遷移完成 marker（`MIGRATED_LS`，值係寫入時嘅 `APP_VERSION`；只睇有冇） |
+| `lifeuk.migrateFallback` | v0.58 遷移用：JSON array，列出「merge 寫唔到、今次載入改用舊 key、但新 key 仲有舊 value」嘅新 key 名（`MIGRATE_FALLBACK_LS`）；寫 marker 時清走 |
 
 **舊 key 遷移（v0.58，code 全部喺 `js/core/utils.js`，lazy，idempotent）：**
 - **點解喺 `utils.js`（CUI-0004）**：SW 換版嗰下，舊 SW cache 嘅 v0.57 `index.html`（冇 migrate tag）可以配新 SW 俾嘅 v0.58 `config.js` / `utils.js` / `store.js`，頁面用 `lifeuk.*` 但冇遷移 → 顯示 0 進度，答一題寫咗細細個新 key，下次載入「新 key 優先」就刪咗真資料。v0.57 `index.html` 只會 load `config` / `utils` / `store`，所以遷移一定要喺呢幾個 file 入面；`getLS` / `setLS` 經 `lsKey()` 第一次用 storage 就行 `ensureLegacyMigrated()`（每次載入一次），任何用 v0.58 key 名嘅頁面讀寫之前都一定搬咗。`js/core/migrate.js` 已刪（tag + SHELL 一齊拎走）
@@ -205,6 +206,7 @@ v0.58 起全部 key 都有 `lifeuk.` prefix（`LS_PREFIX`，`js/core/config.js`�
   - 其他（prefs：homePrefs、studyPrefs）→ 新 key 贏
   - 任何一邊 parse 唔到做 plain object（壞 JSON、array、scalar）→ 留新 value，唔會 throw
   - 寫 merge 結果、讀返確認先刪舊 key；寫唔到 → 新 key 還原做原本 value、記 fallback（今次載入讀寫舊 key）、舊 key 保留，下次載入再 merge
+  - **W-004**：fallback 嗰陣新 key 已經有 value → 將新 key 名記入 `lifeuk.migrateFallback`。因為今次載入嘅答題寫咗落舊 key，新 key 反而係舊資料；下次載入對呢啲 key **倒轉優先次序**：object map `{...新, ...舊}`、prefs 用舊 value、parse 唔到用舊 value。成功搬完嘅 key 會喺記錄度拎走；寫 marker 時成個記錄刪走
 - 新舊都有，**有 marker** → 新 key 唔郁，刪舊 key（W-001，用戶接受嘅風險，見下面 v0.57 tab）
 - `lifeuk.migrated` 只喺**冇 marker 嘅一次載入入面全部 8 個 key 都處理完、冇 fallback** 先寫；空 storage 都會寫（之後 storage 入面最少有呢一個 key）
 - `OBSOLETE_LS`（`reviewOrder`，v0.53 起冇用）直接刪
@@ -212,6 +214,7 @@ v0.58 起全部 key 都有 `lifeuk.` prefix（`LS_PREFIX`，`js/core/config.js`�
 - 抄唔到（`setItem` throw，例如 QuotaExceededError；或者讀返唔一樣，呢個情況會刪走寫錯咗嘅新 key）→ 舊 key 保留，記入 `LS_KEY_FALLBACK[新 key] = 舊 key`；`getLS` / `setLS` 每次 call 都經 `lsKey()` 查表，所以**今次載入照讀寫舊 key**，唔會生個空新 key；之後有位嘅一次載入先搬完（嗰次先寫 marker）
 - 舊 key 名好普通（`wrongList`、`homePrefs`…）：同 origin 任何 app 如果有冇 prefix 而同名嘅 key，都會俾當係我哋嘅資料搬走（目前已知其他 app 全部有自己 prefix）
 - 已知風險（用戶接受）：如果同一個瀏覽器仲開住 v0.57 嘅 tab，v0.58 搬完之後嗰個 tab 照寫舊 key，下次載入會因「新 key 優先」被刪；iOS 主畫面 app / 單一 tab 用法唔受影響；升級前關晒其他 tab
+- 已知風險（W-004 多 tab 版本）：tab X 喺 fallback（讀寫舊 key），同時 tab Y 搬完寫咗 marker 同清咗 `lifeuk.migrateFallback`；之後 X 再寫舊 key，下次載入有 marker →「新 key 優先」，X 喺 Y 搬完之後寫嘅進度會冇咗。要 quota 爆 + 兩個 tab 同時開先會發生
 - 唔喺對照表嘅 key（其他 app）完全唔掂；`tests/migrate-test.js`、`tests/upgrade-test.js` 驗證
 - **v0.58 之後唔好 rollback 去 v0.57**（CUI-0005）：v0.57 只讀冇 prefix 嘅 key，搬完之後會顯示空進度；喺 v0.57 寫入嘅舊 key，再升返 v0.58 時（有 marker →「新 key 優先」）會被刪走。出事要 roll forward，或者 revert 去某個 v0.58.x commit（新 file 仍然讀 `lifeuk.*`）
 
