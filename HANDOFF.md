@@ -1,4 +1,4 @@
-# Life in the UK Test PWA — Handoff (v0.50)
+# Life in the UK Test PWA — Handoff (v0.51)
 
 - **Repo:** https://github.com/dcwhung/life-in-uk-test （main branch，GitHub Pages root `/`）
 - **Live:** https://dcwhung.github.io/life-in-uk-test/
@@ -106,6 +106,8 @@
 - 結果頁兩粒掣：Exam mode「Retry」/「Another Exam」，Practice mode「Retry」/「Another Practice」（v0.50；之前係 Retry Exam / Practise Again / Choose Another）；`.retry-btn` / `.another-btn` 上下兩組一齊改字；v0.39 起「重做 / Choose Another」掣喺 Review Answers 上面同最底各有一組（`.retry-btn`，兩粒一齊改字）
 - **Exam 結果頁（v0.50，先做 preview v1–v6 同用戶確認）：**
     ◦ 頂頭 icon 跟 mode（`MODE_ICONS`：Exam 📝、Practice 🎯）
+    ◦ 判定前面加返 icon（v0.51）：「🎉 PASSED」/「📚 NEEDS IMPROVEMENT」
+    ◦ 結果頁標題「By Difficulty」唔要中文（v0.51）
     ◦ 分數只顯示一次：「17 / 24 · 71%」，唔合格成行紅色（`.result-score.fail`），合格深藍；Exam mode 拎走 Correct / Wrong / Score 三格
     ◦ 結果卡入面 24 粒圓點（`#resultDots`）：綠 = 啱、紅 = 錯、白底紅框 = 未答、橙色圈 = flag 咗（保留啱錯顏色）；撳圓點跳去下面嗰題 review（`jumpToReview()`，被 filter 收埋就轉返 All，金框閃一下）
     ◦ 圓點下面靠右「Correct n | Wrong n | Unanswered n | Flagged n」（Wrong 唔包未答；大字分數嘅錯題 = Wrong + Unanswered）
@@ -176,7 +178,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | `examtools-test.js` | Submit / Leave 用 app 內 modal（掣名、Esc 取消、冇瀏覽器 dialog）；Random Exam（30 次抽題全部 24 題、24 個唔同 fact、每次唔同；工具、PASSED、Retry 抽新題、首頁掣名）；Exam 1–17 計時器（45:00、最後 5 分鐘變紅、到 0 自動交卷 + 結果頁提示）、24 圓點狀態同跳題、書籤 flag、計數、Submit / Home 提示；Practice 同 All Exams 冇呢啲工具 |
 | `quicknav-test.js` | 快捷 ← / →（符號、title、最後一題 ✓ / ↩）；問題卡 header：Question X of Y、progress bar 喺卡頂、score pill、header 冇 stats |
 
-## 版本記錄（v0.32–v0.50）
+## 版本記錄（v0.32–v0.51）
 
 | 版本 | PR | 改動 |
 |---|---|---|
@@ -204,6 +206,8 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | v0.48 | dcwhung/life-in-uk-test#20 | Exam 嘅 Submit / 離開提示改用 app 內 modal（唔再彈瀏覽器 alert box） |
 | v0.49 | dcwhung/life-in-uk-test#20 | Exam 結果頁掣文字：「Retry Exam」→「Retry」、「Choose Another」→「Another Exam」 |
 | v0.50 | dcwhung/life-in-uk-test#20 | Exam 結果頁：mode icon、分數只顯示一次（唔合格紅色）、24 粒結果圓點（撳跳題）、All / Wrong / Flagged filter、書籤 icon；Review 翻譯同備注分行排版；Practice 掣改「Retry / Another Practice」 |
+| — | dcwhung/life-in-uk-test#21 | HANDOFF.md：PR #20 版本記錄、modal 設計決定、follow-up |
+| v0.51 | — | 結果判定前面加返 icon：「🎉 PASSED」/「📚 NEEDS IMPROVEMENT」；結果頁「By Difficulty · 按難度」拎走中文 |
 
 **Exam modal 設計決定（v0.48）**
 - 用戶要求交卷提示唔好用瀏覽器 alert box；離開考試提示順手都改用同一個 modal，保持一致

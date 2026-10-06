@@ -31,7 +31,9 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert((await text('#resultEmoji')) === '📝', 'exam result icon follows the mode (📝)');
   assert((await text('#resultScore')) === '17 / 24 · 71%', 'score line: 17 / 24 · 71%');
   assert(await pg.$eval('#resultScore', e => e.classList.contains('fail')), 'failed: score line red');
+  assert((await text('#resultLabel2')) === '📚 NEEDS IMPROVEMENT', 'failed verdict with the book icon');
   assert(!(await vis('.result-breakdown')), 'exam: Correct / Wrong / Score boxes removed');
+  assert(await pg.$$eval('#screenResult .section-title', els => els.some(e => e.textContent === 'By Difficulty') && els.every(e => !/[\u4e00-\u9fff]/.test(e.textContent))), 'section title "By Difficulty", no Chinese');
 
   // dots: green correct, red wrong, red outline unanswered, orange ring flagged
   const dots = await pg.$$eval('#resultDots .rdot', els => els.map(e => e.className.replace('rdot', '').trim()));
@@ -72,7 +74,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   // passed: score line stays navy
   await finishExam4([2], [], []);
   assert((await text('#resultScore')) === '23 / 24 · 96%' && !(await pg.$eval('#resultScore', e => e.classList.contains('fail'))), 'passed: score line not red');
-  assert((await text('#resultLabel2')) === 'PASSED', 'PASSED verdict');
+  assert((await text('#resultLabel2')) === '🎉 PASSED', 'PASSED verdict with the celebration icon');
   assert(JSON.stringify(await texts('#reviewOrder .chip')) === JSON.stringify(['All 24', 'Wrong 1', 'Flagged 0']) && await pg.$eval('#reviewOrder .chip:nth-child(3)', e => e.disabled), 'empty filter disabled');
 
   // practice result: mode icon 🎯, keeps its boxes and order chips, new button text, no dots

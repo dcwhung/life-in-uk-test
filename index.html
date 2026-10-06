@@ -946,7 +946,7 @@
       </div>
     </div>
 
-    <div class="section-title">By Difficulty · 按難度</div>
+    <div class="section-title">By Difficulty</div>
     <div class="diff-table" id="diffTable"></div>
 
     <!-- same buttons above and below the review list, so a long review needs no scrolling -->
@@ -986,7 +986,7 @@
 // ════════════════════════════════════════
 // APP VERSION — single source of truth (shown in the header, drives the SW cache name)
 // ════════════════════════════════════════
-const APP_VERSION = '0.50';
+const APP_VERSION = '0.51';
 
 // ════════════════════════════════════════
 // APP STATE
@@ -1692,7 +1692,7 @@ function finishExam() {
   const scoreEl = document.getElementById('resultScore');
   scoreEl.innerHTML = isExamMode ? `${correct} <span>/ ${total} · ${pct}%</span>` : `${correct} <span>/ ${total}</span>`;
   const lbl2 = document.getElementById('resultLabel2');
-  lbl2.textContent = passed ? 'PASSED' : 'NEEDS IMPROVEMENT';
+  lbl2.textContent = passed ? '🎉 PASSED' : '📚 NEEDS IMPROVEMENT'; // verdict icon; the top icon shows the mode
   lbl2.className = 'result-label ' + (passed ? 'pass' : 'fail');
   const sub = document.getElementById('resultSub');
   sub.textContent =

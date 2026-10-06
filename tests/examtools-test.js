@@ -100,7 +100,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert((await text('#quizLabel')) === 'Random Exam', 'quiz label: Random Exam');
   await pg.evaluate(() => { state.questions.forEach((q, i) => { state.answers[i] = [...q.a]; }); state.current = 23; renderQuestion(); });
   await pg.click('#nextBtn');
-  assert(await active('screenResult') && (await text('#resultLabel2')) === 'PASSED' && (await text('#resultLabel')) === 'Random Exam', 'results: PASSED verdict, Random Exam label');
+  assert(await active('screenResult') && (await text('#resultLabel2')) === '🎉 PASSED' && (await text('#resultLabel')) === 'Random Exam', 'results: PASSED verdict, Random Exam label');
   const before = await pg.evaluate(() => state.questions.map(qKey).join(','));
   await pg.evaluate(() => retryExam());
   assert(await pg.evaluate(b => state.questions.length === 24 && state.questions.map(qKey).join(',') !== b, before), 'retry draws a fresh set');
