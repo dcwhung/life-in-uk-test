@@ -27,7 +27,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   // finish quickly: answer nothing, jump to last, finish -> no completedExams saved
   await pg.evaluate(() => { state.current = state.questions.length - 1; renderQuestion(); finishExam(); });
   assert(await pg.$eval('#resultLabel', e => e.textContent) === 'Chapter 3', 'result label chapter');
-  assert(await pg.evaluate(() => !localStorage.getItem('completedExams')), 'chapter practice does not mark exams complete');
+  assert(await pg.evaluate(() => !localStorage.getItem('lifeuk.completedExams')), 'chapter practice does not mark exams complete');
   await pg.click('#screenResult .another-btn >> nth=0');
 
   // study screen
@@ -76,7 +76,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.locator('.fact').first().locator('.fact-btn.star').click();
   await pg.locator('.fact').first().locator('.fact-btn.tick').click();
   assert(await pg.locator('.fact').first().evaluate(e => e.classList.contains('mastered')), 'mastered class applied');
-  assert(await pg.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('studyMastered'))).length === 1 && Object.keys(JSON.parse(localStorage.getItem('studyBookmarks'))).length === 1), 'persisted in localStorage');
+  assert(await pg.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('lifeuk.studyMastered'))).length === 1 && Object.keys(JSON.parse(localStorage.getItem('lifeuk.studyBookmarks'))).length === 1), 'persisted in localStorage');
   await pg.click('text=隱藏已掌握');
   assert((await count()) === '1 / 2 facts', 'hide mastered: ' + await count());
   await pg.click('text=隱藏已掌握');
