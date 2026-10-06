@@ -48,7 +48,7 @@ const STUDY_LS = {
   mastered: LS_PREFIX + 'studyMastered',
   bookmarks: LS_PREFIX + 'studyBookmarks',
 };
-// v0.58: unprefixed keys from v0.57 and earlier → their prefixed home (js/core/migrate.js moves them)
+// v0.58: unprefixed keys from v0.57 and earlier → their prefixed home (moved lazily by js/core/utils.js)
 const LEGACY_LS_MIGRATION = {
   practiceStreak: STREAK_LS,
   practiceFlags: FLAGS_LS,
@@ -59,5 +59,9 @@ const LEGACY_LS_MIGRATION = {
   studyMastered: STUDY_LS.mastered,
   studyBookmarks: STUDY_LS.bookmarks,
 };
+// written once every legacy key was moved with no fallback; until then a key present under both names is merged
+const MIGRATED_LS = LS_PREFIX + 'migrated';
+// object maps ("exam.idx" / fact id → record) merged per entry when both names exist; the rest (prefs) keep the new value
+const MERGE_LS = [STREAK_LS, FLAGS_LS, WRONG_LS, COMPLETED_LS, STUDY_LS.mastered, STUDY_LS.bookmarks];
 // keys no version reads any more (reviewOrder: results-page sort chip, dropped in v0.53)
 const OBSOLETE_LS = ['reviewOrder'];

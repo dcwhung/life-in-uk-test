@@ -28,7 +28,6 @@ const SHELL = [
   'css/screens/study.css',
   'js/core/config.js',
   'js/core/utils.js',
-  'js/core/migrate.js',
   'js/core/store.js',
   'js/domain/questions.js',
   'js/domain/mastery.js',
