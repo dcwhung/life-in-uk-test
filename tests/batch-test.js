@@ -20,10 +20,10 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
     }
   });
 
-  // big practice sets are capped at 25 distinct questions per round
+  // big practice sets are capped at 24 distinct questions per round
   for (const set of ['ch3', 'd3', 'dhard', 'all']) {
     await start('practice', set);
-    assert(await pg.evaluate(() => state.questions.length === 25), `${set}: round starts with 25 questions`);
+    assert(await pg.evaluate(() => state.questions.length === 24), `${set}: round starts with 24 questions`);
   }
   // small sets are not padded
   await start('practice', 'ch1');
@@ -33,18 +33,18 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await start('exam', 'all');
   assert(await pg.evaluate(() => state.questions.length === 24), 'exam mode Random Exam: 24 questions');
 
-  // round 1 of Ch3 (167 Q): 25 picked, each answered once; master them over 3 rounds
+  // round 1 of Ch3 (167 Q): 24 picked, each answered once; master them over 3 rounds
   await start('practice', 'ch3');
   const round1 = await pg.evaluate(() => state.questions.map(qKey));
   await answerSession();
-  assert(await pg.evaluate(() => state.questions.length === 25), 'round 1: 25 answers, length unchanged');
-  assert((await distinct()) === 25, 'round 1: 25 distinct questions');
+  assert(await pg.evaluate(() => state.questions.length === 24), 'round 1: 24 answers, length unchanged');
+  assert((await distinct()) === 24, 'round 1: 24 distinct questions');
   await pg.evaluate((r1) => r1.forEach(k => { streaks[k] = MASTERY_STREAK; }), round1);
-  assert(await pg.evaluate(() => masteryOf(chapterQuestions(3)).mastered === 25), 'Ch3: 25 mastered');
-  // round 2: next 25 drawn from the unmastered pool only
+  assert(await pg.evaluate(() => masteryOf(chapterQuestions(3)).mastered === 24), 'Ch3: 24 mastered');
+  // round 2: next 24 drawn from the unmastered pool only
   await start('practice', 'ch3');
-  assert(await pg.evaluate((r1) => state.questions.length === 25 && state.questions.every(q => !r1.includes(qKey(q))), round1), 'round 2: 25 new unmastered questions');
-  // last round: fewer than 25 left -> only those
+  assert(await pg.evaluate((r1) => state.questions.length === 24 && state.questions.every(q => !r1.includes(qKey(q))), round1), 'round 2: 24 new unmastered questions');
+  // last round: fewer than 24 left -> only those
   await pg.evaluate(() => {
     chapterQuestions(3).slice(0, 160).forEach(q => { streaks[qKey(q)] = MASTERY_STREAK; });
     chapterQuestions(3).slice(160).forEach(q => { delete streaks[qKey(q)]; });
@@ -57,10 +57,10 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
     assert(await pg.evaluate(() => state.questions.length === 7), `last 7 asked again in round ${r + 1}`);
     await answerSession();
   }
-  // whole set mastered -> review round, still capped at 25
+  // whole set mastered -> review round, still capped at 24
   await start('practice', 'ch3');
-  assert(await pg.evaluate(() => state.questions.length === 25), 'fully mastered set: review round of 25');
-  assert(await pg.evaluate(() => document.getElementById('practiceHint').textContent.includes('25')), 'hint mentions 25 per round');
+  assert(await pg.evaluate(() => state.questions.length === 24), 'fully mastered set: review round of 24');
+  assert(await pg.evaluate(() => document.getElementById('practiceHint').textContent.includes('24')), 'hint mentions 24 per round');
   assert(errs.length === 0, 'no page errors: ' + errs.join(';'));
   await b.close(); console.log('BATCH PASS');
 })().catch(e => { console.error(e.message); process.exit(1); });

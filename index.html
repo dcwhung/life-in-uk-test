@@ -987,7 +987,7 @@
 // ════════════════════════════════════════
 // APP VERSION — single source of truth (shown in the header, drives the SW cache name)
 // ════════════════════════════════════════
-const APP_VERSION = '0.51';
+const APP_VERSION = '0.52';
 
 // ════════════════════════════════════════
 // APP STATE
@@ -1044,7 +1044,7 @@ function chapterQuestions(ch) {
 }
 // ── Practice mastery: consecutive correct answers per question (practice mode only) ──
 const MASTERY_STREAK = 3;
-const PRACTICE_ROUND_MAX = 25; // distinct questions drawn per practice round
+const PRACTICE_ROUND_MAX = 24; // distinct questions drawn per practice round (same as the real test)
 const STREAK_LS = 'practiceStreak';
 let streaks = getLS(STREAK_LS) || {};
 const qKey = q => q.examNum + '.' + q.origIdx;

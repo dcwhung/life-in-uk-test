@@ -111,7 +111,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.click('#modePractice'); await pg.click('#ptabExam');
   assert((await text('#examGrid .exam-btn.all')).startsWith('🎯 All Exams (408 Q)'), 'practice grid keeps All Exams (408 Q)');
   await pg.evaluate(() => { pendingMode = 'practice'; startExam('all'); });
-  assert(await pg.evaluate(() => state.questions.length === 25) && !(await vis('#examTimer')), 'practice All Exams unchanged: round of 25, no timer');
+  assert(await pg.evaluate(() => state.questions.length === 24) && !(await vis('#examTimer')), 'practice All Exams unchanged: round of 24, no timer');
 
   assert(nativeDialogs === 0, 'no browser alert / confirm boxes were used');
   assert(errs.length === 0, 'no page errors: ' + errs.join('; '));
