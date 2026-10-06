@@ -115,7 +115,8 @@ LOCALES.en = {
     node: 'E{exam}·Q{n}',
     legendCurrent: 'This question',
     legendInProgress: 'In progress',
-    practise: '▶ Practise these {n}',
+    // one similar question reads "this one" ("these 1" was CUI-0007)
+    practise: { one: '▶ Practise this one', other: '▶ Practise these {n}' },
   },
 
   flagged: {

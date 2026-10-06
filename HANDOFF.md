@@ -97,14 +97,14 @@ v0.57（P1 refactor）起 `index.html` 只剩 `<head>`、各 screen 嘅 markup �
 | 題號 | `Exam 9 · Q15`；Similar map node `E9·Q15`（1-based） |
 | 章節 | chip / badge `Ch 3`；標題 `Chapter 3: …`；Quiz 標籤 `Chapter 3` |
 | Flag | 動作 `Flag for review` / `Unflag`；狀態 `Flagged`；`{n} flagged`（唔再用 saved）；空格提示 `Tap [書籤] on a question to flag it`；`Practise flagged (N)` 照舊 |
-| Practise / Practice | 英式：動詞 Practise、名詞 Practice |
+| Practise / Practice | 英式：動詞 Practise、名詞 Practice；Similar 掣 `▶ Practise these N`，1 題寫 `▶ Practise this one`（v0.60，CUI-0007） |
 | 掌握 | `🏆 Mastered` 全 app（Similar 列表同圖例都係）；進度 `🔥 n/3`（圖例 `🔥 0/3`） |
 | 錯題 | 名稱 `Wrong answers`；`Cleared X from your wrong answers · Y left` |
 | 掣 | 箭咀位置：`← Home`、`← Prev`、`Next →`、`↩ Back`、`Finish ✓`；分隔符 ` · ` 同 ` \| `（單空格，`LIST_SEP` / `ANSWER_SEP`）；`✓ Correct!` / `✗ Wrong` 單空格 |
 | 大細階 | 畫面 / section 標題 Title Case（`Choose Mode`、`My Review`、`Practice By`、`Similar Questions`、`Review Answers`）；掣、提示、hint sentence case（`Wrong answers` 做 tile 標題 OK） |
 | 判定 | `🎉 PASSED` / `📚 NEEDS IMPROVEMENT` 照舊（verdict 樣式） |
 | 廣東話 label | `【廣東話翻譯】`、`💡 備注：`（答案框 + 結果 review 一致） |
-| Modal | Submit：`Submit exam?` / Keep going · Submit；Leave：`Leave the exam?` / Stay · Leave；Reset progress：`Reset practice progress?` / `Mastery streaks, wrong answers and flags will be cleared.`；Reset completed：`Reset completed exams?` / `All ✓ completed marks will be cleared.`；兩個 Reset 都係 Keep · Reset |
+| Modal | Submit：`Submit exam?` / Keep going · Submit；Leave：`Leave the exam?` / Stay · Leave；Reset progress：`Reset practice progress?` / `Mastery streaks, wrong answers and flags will be cleared.`；Reset completed：`Reset completed exams?` / `All ✓ completed marks will be cleared.`；兩個 Reset 都係 Keep · Reset；預設 focus：Reset ×2 同 Leave 喺 Keep / Stay，Submit 喺 Submit（v0.60） |
 | Study | `📖 Study`、`Search facts (English / Cantonese)`、`✓ Hide mastered`、`★ Bookmarked only`、`⚔️ Wars only`、people chip `👑 Monarchs` `🏛️ Politics & military` `🔬 Scientists` `✒️ Writers` `🎨 Artists` `🏅 Sport` `✊ Reformers`、Geography 類型同 Timeline 時代只寫英文、`Appears ×n`、`No facts match.`、tooltip `Bookmark` / `Mastered`；★ 書籤 UI 唔郁（P3） |
 
 ## Design tokens
@@ -207,7 +207,7 @@ v0.57（P1 refactor）起 `index.html` 只剩 `<head>`、各 screen 嘅 markup �
 - 答案框格式：`✓ Correct! · 🔥 n/3` → 英文答案 → `【廣東話翻譯】 Q) … A) …` → `💡 備注：`（獨立一行）→ 備注內容（支援多行）
 - **掌握機制：** 同一題連續答啱 `MASTERY_STREAK`（=3）次 = 掌握，答錯即歸零；開練習時剔除已掌握題，全組掌握後再全部出；每輪最多抽 `PRACTICE_ROUND_MAX`（=24，v0.52 起；之前 25）條未掌握題（Chapter / Difficulty / All Exams；Exam 1–17 本身 24 題），**每題一輪只出一次，「Question X of Y」嘅 Y 唔會變**（v0.38 起；v0.32–v0.37 會將未掌握題重新排去 queue 尾，令 Y 越做越大，已取消）；答錯或未夠 3 次嘅題下一輪再抽；存 localStorage `practiceStreak` `{ "exam.idx": n }`
 - **Similar Questions（v0.35）：** 答完（啱或錯）喺 Prev / Next 掣下面顯示同一條 `STUDY` fact 嘅其他題目（`fact.src` 除本題外嘅 key；每題只屬一條 fact，408 題入面 284 題有類似題）。內容：Core Fact（英文 + 廣東話）、「Appears in」題號 chip（v0.59 起寫 `E9·Q15`，1-based；之前係 raw `9.14`；圖例：This question / 🏆 Mastered / In progress / 🔥 0/3）、每題 `Exam N · Qn` + 🔥 進度（掌握咗寫 🏆 Mastered，v0.58 或之前係 ✓ Mastered）+ 題目同翻譯（唔顯示答案）。Exam mode 唔顯示；冇類似題就唔顯示
-- **Practise these N：** 開臨時 session（`examNum = 'similar'`），按列出次序每題做一次，照計 `practiceStreak`；最後一題 Next 變「↩ Back」（v0.36 起；之前寫「Back to Question n」會誤以為係返去臨時 session 第 n 題），還原原本 session 同題目位置；session 內唔再顯示 Similar Questions；返 Home 或開新練習會清走暫存 session（`similarReturn`）
+- **Practise these N：** 掣字係 plural `similar.practise`：1 題寫「▶ Practise this one」，2 題以上「▶ Practise these N」（v0.60，CUI-0007；之前 1 題會寫「Practise these 1」）。開臨時 session（`examNum = 'similar'`），按列出次序每題做一次，照計 `practiceStreak`；最後一題 Next 變「↩ Back」（v0.36 起；之前寫「Back to Question n」會誤以為係返去臨時 session 第 n 題），還原原本 session 同題目位置；session 內唔再顯示 Similar Questions；返 Home 或開新練習會清走暫存 session（`similarReturn`）
 - 按 Chapter / Difficulty 練習唔會標記為完成 exam
 - 結果頁兩粒掣：Exam mode「Retry」/「Another Exam」，Practice mode「Retry」/「Another Practice」（v0.50；之前係 Retry Exam / Practise Again / Choose Another）；`.retry-btn` / `.another-btn` 上下兩組一齊改字；v0.39 起「重做 / Choose Another」掣喺 Review Answers 上面同最底各有一組（`.retry-btn`，兩粒一齊改字）
 - **Exam 結果頁（v0.50，先做 preview v1–v6 同用戶確認）：**
@@ -238,7 +238,7 @@ v0.57（P1 refactor）起 `index.html` 只剩 `<head>`、各 screen 嘅 markup �
     ◦ 圓點下面靠右「Answered n | Unanswered n | Flagged n」
     ◦ Submit 提示（v0.48 起用 app 內 modal `showConfirm()`，唔再用瀏覽器 confirm）：標題「Submit exam?」，內容逐行列「N questions unanswered」（1 題寫「1 question unanswered」）「M flagged」「You can still go back and check them.」，掣「Keep going」/「Submit」；全部答晒又冇 flag 就直接交
     ◦ 考試中撳 ← Home 先彈 modal「Leave the exam? / Your answers will be lost.」，掣「Stay」/「Leave」，Leave 先離開同停計時；結果頁返 Home 唔問
-    ◦ Modal：撳背景或 Esc = 取消；`z-index: 300` 蓋過 sticky header；v0.59 起首頁兩個 Reset 掣都用呢個 modal，成個 app 冇瀏覽器 alert / confirm
+    ◦ Modal：撳背景或 Esc = 取消；`z-index: 300` 蓋過 sticky header；v0.59 起首頁兩個 Reset 掣都用呢個 modal，成個 app 冇瀏覽器 alert / confirm；預設 focus（v0.60）：破壞性動作 Reset ×2 同 Leave 喺 Keep / Stay（`showConfirm({ focusCancel: true })`，誤撳 Enter / Space 唔會清資料），Submit 喺 Submit
 - 實作：`renderQuestion()` 用 `showAnswer = revealed && state.mode === 'practice'` 控制顏色、答案框同翻譯；Exam mode 唔再用 `state.revealed`，`nextAction()` 喺 Exam 最後一題返 `{ label: 'Submit', run: submitExam, quick: false }`；`submitExam()` 計未答數再 `finishExam()`（按 `state.answers` 計分）
 - Results：分數、pass/fail（18/24）、按難度統計表、逐題 review
 
@@ -324,13 +324,13 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | `diff-test.js` | 難度數據完整、按難度練習、結果統計、難度掣只顯示英文、只有 Easy–Expert 五行（冇 Hard & Expert） |
 | `yue-test.js`、`oy-test.js`、`yue2-test.js` | Translate 掣、選項翻譯、答案框格式、Exam mode 冇翻譯（`yue2-test` 跳去、`oy-test` 搬第一條有選項翻譯嘅題目去最前，避免抽到年份／True-False 題隨機失敗） |
 | `mode-test.js`、`info-test.js` | 首頁 mode/tab、持久化、ⓘ popover；考試中返 Home 會問 |
-| `mastery-test.js` | By Exam 進度條喺格仔入面、貼底（v0.42）；掌握機制（每輪每題一次、Y 固定、Ch1 要 3 輪先全掌握）、進度顯示、兩個 reset（v0.59 起經 app 內 modal：標題 / 內容 / 掣文字、Keep 唔清、Reset 先清、冇瀏覽器 dialog；Reset progress 一併清錯題同 flag，My Review 收埋） |
+| `mastery-test.js` | By Exam 進度條喺格仔入面、貼底（v0.42）；掌握機制（每輪每題一次、Y 固定、Ch1 要 3 輪先全掌握）、進度顯示、兩個 reset（v0.59 起經 app 內 modal：標題 / 內容 / 掣文字、預設 focus 喺 Keep（v0.60）、Keep 唔清、Reset 先清、冇瀏覽器 dialog；Reset progress 一併清錯題同 flag，My Review 收埋） |
 | `result-test.js` | 結果頁 PASSED / remark 只喺 Exam 1–17 顯示；重做掣按 mode 改字、上下兩組掣、Practice 結果 All / Wrong / Flagged filter |
 | `batch-test.js` | Exam mode Random Exam 24 題；Practice 每輪最多 24 題、下一輪由未掌握題抽、最後幾題每輪再出直至掌握 |
-| `similar-test.js` | Similar Questions section、Practise these N 臨時 session 同返回；map node `E12·Q6` 等 1-based、`🏆 Mastered` |
+| `similar-test.js` | Similar Questions section、Practise these N 臨時 session 同返回；掣字 plural（1 題 `▶ Practise this one`、3 題 `▶ Practise these 3`，v0.60）；map node `E12·Q6` 等 1-based、`🏆 Mastered` |
 | `examresult-test.js` | Exam 結果頁：icon、分數行（唔合格紅）、冇三格、24 圓點狀態、計數、All / Wrong / Flagged filter、書籤 icon、撳圓點跳題、翻譯 / 備注排版、掣文字；合格唔紅；Practice 都冇三格、有圓點同 filter + 🎯 + Retry / Another Practice |
 | `review-test.js` | v0.53：「Practice by」標題同 tab 文字；冇記錄唔出 My Review；Practice flag 位置同 reload 後保留；兩格數字同 remark；錯題由 Practice / Exam 加入、只喺 review 答啱先清；>24 題嘅 round note 位置同文字；Flagged 列表、unflag、練 flagged、空列表；Practice 結果頁（icon、分數、圓點、filter、mastery note、streak tag） |
-| `examtools-test.js` | Submit / Leave 用 app 內 modal（掣名、Esc 取消、冇瀏覽器 dialog）；Random Exam（30 次抽題全部 24 題、24 個唔同 fact、每次唔同；工具、PASSED、Retry 抽新題、首頁掣名）；Exam 1–17 計時器（45:00、最後 5 分鐘變紅、到 0 自動交卷 + 結果頁提示）、24 圓點狀態同跳題、書籤 flag、計數、Submit / Home 提示；Practice 冇計時，圓點係啱／錯版（見 practicedots-test） |
+| `examtools-test.js` | Submit / Leave 用 app 內 modal（掣名、Esc 取消、冇瀏覽器 dialog；預設 focus Submit → Submit、Leave → Stay，v0.60）；Random Exam（30 次抽題全部 24 題、24 個唔同 fact、每次唔同；工具、PASSED、Retry 抽新題、首頁掣名）；Exam 1–17 計時器（45:00、最後 5 分鐘變紅、到 0 自動交卷 + 結果頁提示）、24 圓點狀態同跳題、書籤 flag、計數、Submit / Home 提示；Practice 冇計時，圓點係啱／錯版（見 practicedots-test） |
 | `quicknav-test.js` | 快捷 ← / →（符號、title、最後一題 ✓ / ↩；Exam 最後一題 ✓ = Submit）；問題卡 header：Question X of Y、Practice 用圓圈唔用 progress bar、冇 score pill、header 冇 stats |
 | `sw-test.js` | v0.57：將 app copy 去 temp dir，用 python static server（加 GitHub Pages 一樣嘅 `Cache-Control: max-age=600`）serve（或者 http 嘅 `APP_URL`）；index.html 每個 `<script src>` / `<link href>` 都喺 `sw.js` SHELL、SHELL 每個 file 存在；`sw.js` 註冊成功、cache 名跟 `APP_VERSION`、SHELL 全部 cache 咗；`setOffline(true)` reload 仍然出首頁、css 生效、開到 Practice；同 origin 其他 app 嘅 cache（`other-app`）唔會俾 activate 刪；`other-app` 入面放咗一個假 `js/main.js`（同 origin、我哋會 load 嘅 URL），SW 控制之後 reload 唔會用到佢（S-003）；淨係改 temp copy 嘅 `config.js` 版本號就會裝新 cache、刪舊 `lifeuk-v*` cache；冇 page / console / SW error（瀏覽器自己 probe `/favicon.ico` 嘅 404 除外） |
 | `structure-test.js` | v0.57：index.html / js 冇 inline `on*=`、index.html 冇 inline `<style>` / `<script>` / `style=`（progress bar 闊度除外）、每個 function ≤ 30 行、`tokens.css` 以外嘅 css 冇 hex / `rgb(a)(` 顏色（P2）、markup / template 每個 `data-action` 都有 `ACTIONS` handler 而每個 handler 都有人用、`file://` 載入冇 page error / console error / failed request |
@@ -400,6 +400,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 **Exam modal 設計決定（v0.48）**
 - 用戶要求交卷提示唔好用瀏覽器 alert box；離開考試提示順手都改用同一個 modal，保持一致
 - 掣名：Submit → 「Keep going / Submit」；Leave → 「Stay / Leave」；撳背景或 Esc = 取消
+- 預設 focus（v0.60，用戶確認）：Reset ×2 同 Leave 預設 focus 喺 Keep / Stay，Submit 喺 Submit
 - ~~首頁兩個 Reset 掣暫時仲用瀏覽器 confirm（如要一致可以之後改用 `showConfirm()`）~~ **v0.59 已取代**：兩個 Reset 而家都用 `showConfirm()`（Keep / Reset）
 
 **Exam 結果頁設計決定（v0.50，preview v1–v6 同用戶確認）**

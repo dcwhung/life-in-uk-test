@@ -19,6 +19,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   pg.on('dialog', d => { nativeDialogs++; d.dismiss(); });
   const modalOpen = () => pg.$eval('#confirmModal', e => e.classList.contains('show'));
   const modalText = async () => (await text('#confirmTitle')) + ' ' + (await text('#confirmMsg'));
+  const focusedId = () => pg.evaluate(() => document.activeElement && document.activeElement.id);
 
   // practice: none of the exam tools
   await pg.evaluate(() => { pendingMode = 'practice'; startExam(1); });
@@ -57,6 +58,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.click('#nextBtn');
   assert(await modalOpen() && /Submit exam\?/.test(await modalText()) && /23 questions unanswered/.test(await modalText()) && /2 flagged/.test(await modalText()), 'submit opens the modal: unanswered + flagged');
   assert((await text('#confirmOk')) === 'Submit' && (await text('#confirmCancel')) === 'Keep going', 'modal buttons: Keep going / Submit');
+  assert((await focusedId()) === 'confirmOk', 'submit modal focuses Submit');
   await pg.click('#confirmCancel');
   assert(!(await modalOpen()) && await active('screenQuiz'), 'Keep going closes the modal and stays');
   await pg.click('#nextBtn'); await pg.keyboard.press('Escape');
@@ -66,6 +68,8 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.click('#screenQuiz .back-btn');
   assert(await modalOpen() && /Leave the exam\?/.test(await modalText()) && /Your answers will be lost\./.test(await modalText()), 'Home opens the leave modal');
   assert((await text('#confirmOk')) === 'Leave' && (await text('#confirmCancel')) === 'Stay', 'leave modal buttons: Stay / Leave');
+  // destructive: default focus on Stay (v0.60)
+  assert((await focusedId()) === 'confirmCancel', 'leave modal focuses Stay');
   await pg.click('#confirmCancel');
   assert(await active('screenQuiz'), 'Stay keeps the exam');
   await pg.click('#screenQuiz .back-btn'); await pg.click('#confirmOk');
