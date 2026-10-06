@@ -68,19 +68,19 @@ function renderQuestion() {
 }
 function renderQuizHeader(q, idx, total) {
   byId('quizLabel').textContent =
-    state.examNum === ALL_EXAM && !isRandomExam(state.examNum) ? 'All Exams (shuffled)' : examLabel(state.examNum);
-  byId('modeBadge').textContent = state.mode === PRACTICE_MODE ? 'Practice' : 'Exam';
+    state.examNum === ALL_EXAM && !isRandomExam(state.examNum) ? t('quiz.allShuffled') : examLabel(state.examNum);
+  byId('modeBadge').textContent = state.mode === PRACTICE_MODE ? t('common.practice') : t('common.exam');
   // progress: the question card's top border
   byId('progressFill').style.width = percent(idx + 1, total) + '%';
-  const multi = q.a.length > 1 ? ' (select ' + q.a.length + ')' : '';
-  byId('qNum').innerHTML = `<span>Question ${idx + 1} of ${total}${multi}</span>${starsHtml(q.d)}`;
+  const multi = q.a.length > 1 ? t('quiz.selectN', { n: q.a.length }) : '';
+  byId('qNum').innerHTML = `<span>${t('quiz.questionOf', { n: idx + 1, total })}${multi}</span>${starsHtml(q.d)}`;
   byId('qText').textContent = q.q;
 }
 function renderTranslation(q, revealed, yueOn) {
   const yueToggle = byId('yueToggle');
   yueToggle.classList.toggle('visible', state.mode === PRACTICE_MODE && !revealed);
   yueToggle.classList.toggle('on', yueOn);
-  yueToggle.textContent = yueOn ? 'Hide translation' : 'Translate';
+  yueToggle.textContent = yueOn ? t('quiz.hideTranslation') : t('quiz.translate');
   const qYue = byId('qYue');
   qYue.textContent = q.yue;
   qYue.classList.toggle('show', yueOn);
@@ -105,17 +105,17 @@ function renderAnswerBox(q, idx, showAnswer) {
   const correct = isCorrectAnswer(q, state.answers[idx]);
   box.className = 'answer-box show' + (correct ? '' : ' wrong-ans');
   byId('ansLabel').className = 'ans-label' + (correct ? '' : ' wrong');
-  byId('ansLabel').textContent = (correct ? '✓  Correct!' : '✗  Wrong') + '  ·  ' + streakLabel(q);
+  byId('ansLabel').textContent = (correct ? t('quiz.correct') : t('quiz.wrong')) + LIST_SEP + streakLabel(q);
   byId('ansEn').className = 'ans-en' + (correct ? '' : ' wrong');
-  byId('ansEn').textContent = q.a.map(ai => q.o[ai]).join('  |  ');
+  byId('ansEn').textContent = q.a.map(ai => q.o[ai]).join(ANSWER_SEP);
   renderAnswerTranslation(q);
   // .ans-note is pre-wrap: the note's own line breaks and indents show as written
-  byId('ansNote').innerHTML = q.note ? `<strong>💡 備注：</strong>\n${escapeHtml(q.note)}` : '';
+  byId('ansNote').innerHTML = q.note ? `<strong>${t('common.noteLabel')}</strong>\n${escapeHtml(q.note)}` : '';
 }
 function renderAnswerTranslation(q) {
-  const ansYueText = q.a.map(ai => (q.oy && q.oy[ai]) || q.o[ai]).join('  |  ');
+  const ansYueText = q.a.map(ai => (q.oy && q.oy[ai]) || q.o[ai]).join(ANSWER_SEP);
   byId('ansYue').innerHTML =
-    `<div class="ans-yue-title">【廣東話翻譯】</div>
+    `<div class="ans-yue-title">${t('common.yueTitle')}</div>
        <div class="ans-yue-row"><b>Q)</b><span>${escapeHtml(q.yue)}</span></div>
        <div class="ans-yue-row"><b>A)</b><span>${escapeHtml(ansYueText)}</span></div>`;
 }
@@ -137,19 +137,19 @@ function renderRoundNote() {
   const show = state.mode === PRACTICE_MODE && total > PRACTICE_ROUND_MAX && !isSimilarSession();
   setShown('roundRow', show);
   if (!show) return;
-  const what = state.examNum === WRONG_EXAM ? 'wrong answers' : 'flagged questions';
+  const noteKey = state.examNum === WRONG_EXAM ? 'quiz.roundNoteWrong' : 'quiz.roundNoteFlagged';
   byId('roundNote').textContent =
-    `Round 1 of ${Math.ceil(total / PRACTICE_ROUND_MAX)} · ${state.questions.length} of your ${total} ${what}`;
+    t(noteKey, { rounds: Math.ceil(total / PRACTICE_ROUND_MAX), n: state.questions.length, total });
 }
 
 // ── answering ──
 // what "Next" does on this question: next question, finish the set, or leave the similar session
 // label = bottom button, symbol + title = quick button in the question header
 function nextAction(idx, total) {
-  if (idx < total - 1) return { label: 'Next →', symbol: '→', title: 'Next', run: nextQ };
-  if (isSimilarSession()) return { label: '↩ Back', symbol: '↩', title: 'Back', run: returnFromSimilar };
-  if (state.mode === EXAM_MODE) return { label: 'Submit', symbol: '✓', title: 'Submit', run: submitExam };
-  return { label: 'Finish ✓', symbol: '✓', title: 'Finish', run: finishExam };
+  if (idx < total - 1) return { label: t('quiz.nextButton'), symbol: '→', title: t('quiz.next'), run: nextQ };
+  if (isSimilarSession()) return { label: t('quiz.backButton'), symbol: '↩', title: t('quiz.back'), run: returnFromSimilar };
+  if (state.mode === EXAM_MODE) return { label: t('exam.submit'), symbol: '✓', title: t('exam.submit'), run: submitExam };
+  return { label: t('quiz.finishButton'), symbol: '✓', title: t('quiz.finish'), run: finishExam };
 }
 function runNextAction() { nextAction(state.current, state.questions.length).run(); }
 

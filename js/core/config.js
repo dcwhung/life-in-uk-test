@@ -2,7 +2,7 @@
 // CONFIG — app-wide constants. sw.js loads this file with importScripts() to name its cache,
 // so it must stay worker-safe: plain constants only, no DOM and no question data.
 // ════════════════════════════════════════
-const APP_VERSION = '0.58';
+const APP_VERSION = '0.59';
 
 // ── modes and special set ids (state.examNum is 1..EXAM_COUNT or one of these) ──
 const PRACTICE_MODE = 'practice';
@@ -34,6 +34,11 @@ const DIFF_BAR_LOW_PCT = 60;   // results "By Difficulty" bar: red below this
 const DIFF_BAR_MID_PCT = 80;   // gold below this, green from here
 const REVIEW_HIGHLIGHT_MS = 1500;
 const OPTION_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
+const LIST_SEP = ' · ';    // between parts of one line ("✓ Correct! · 🔥 1/3")
+const ANSWER_SEP = ' | ';  // between the options of a multi-answer question
+
+// ── i18n (js/core/i18n.js; strings in locales/*.js) ──
+const DEFAULT_LANG = 'en';   // also the fallback for keys a language lacks
 
 // ── localStorage keys ──
 // the origin (dcwhung.github.io) is shared with other apps, so every key carries our own prefix
@@ -43,6 +48,7 @@ const FLAGS_LS = LS_PREFIX + 'practiceFlags';
 const WRONG_LS = LS_PREFIX + 'wrongList';
 const COMPLETED_LS = LS_PREFIX + 'completedExams';
 const HOME_PREFS_LS = LS_PREFIX + 'homePrefs';
+const UI_LANG_LS = LS_PREFIX + 'uiLang';   // v0.59: UI language (no switch shown yet)
 const STUDY_LS = {
   prefs: LS_PREFIX + 'studyPrefs',
   mastered: LS_PREFIX + 'studyMastered',

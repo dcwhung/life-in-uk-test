@@ -77,15 +77,15 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.locator('.fact').first().locator('.fact-btn.tick').click();
   assert(await pg.locator('.fact').first().evaluate(e => e.classList.contains('mastered')), 'mastered class applied');
   assert(await pg.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('lifeuk.studyMastered'))).length === 1 && Object.keys(JSON.parse(localStorage.getItem('lifeuk.studyBookmarks'))).length === 1), 'persisted in localStorage');
-  await pg.click('text=隱藏已掌握');
+  await pg.click('text=Hide mastered');
   assert((await count()) === '1 / 2 facts', 'hide mastered: ' + await count());
-  await pg.click('text=隱藏已掌握');
-  await pg.click('text=只顯示書籤');
+  await pg.click('text=Hide mastered');
+  await pg.click('text=Bookmarked only');
   assert((await count()) === '1 / 2 facts', 'bookmarks only: ' + await count());
   await pg.click('.study-tab[data-tab="people"]');
   assert((await count()) === '0 / 55 facts', 'bookmarks only carries across tabs: ' + await count());
   assert(await pg.$eval('#studyContent', e => e.textContent.includes('No facts match')), 'empty state shown');
-  await pg.click('text=只顯示書籤');
+  await pg.click('text=Bookmarked only');
 
   // prefs persist across reload
   await pg.reload();

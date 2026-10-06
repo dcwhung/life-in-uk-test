@@ -38,7 +38,8 @@ const LEGACY_NAMES = Object.keys(LEGACY).filter(k => k !== 'reviewOrder');
 const tmpDirs = [];
 const tmpDir = tag => { const d = fs.mkdtempSync(path.join(os.tmpdir(), `lifeuk-${tag}-`)); tmpDirs.push(d); return d; };
 const cleanUp = () => tmpDirs.forEach(d => fs.rmSync(d, { recursive: true, force: true }));
-const copyCurrent = dir => APP_FILES.forEach(f => fs.cpSync(path.join(ROOT, f), path.join(dir, f), { recursive: true }));
+// locales/ is new in v0.59 (not in the v0.57 tree)
+const copyCurrent = dir => [...APP_FILES, 'locales'].forEach(f => fs.cpSync(path.join(ROOT, f), path.join(dir, f), { recursive: true }));
 const extractV057 = dir => execFileSync('sh', ['-c', `git -C "${ROOT}" archive ${V057_REF} ${APP_FILES.join(' ')} | tar -x -C "${dir}"`]);
 const showV057 = file => execFileSync('git', ['-C', ROOT, 'show', `${V057_REF}:${file}`]);
 const emptyDir = dir => fs.readdirSync(dir).forEach(f => fs.rmSync(path.join(dir, f), { recursive: true, force: true }));
@@ -55,7 +56,7 @@ const captureUI = pg => pg.evaluate(() => {
   const snap = { mode: pendingMode, view: practiceView, flagged: t('#tileFlagged .t-num')[0], wrong: t('#tileWrong .t-num')[0] };
   const saved = pendingMode;
   pendingMode = 'practice'; buildExamGrid();
-  snap.examMastery = t('#examGrid .exam-btn'); snap.chapterMastery = t('#chapterGrid button');
+  snap.examMastery = t('#examGrid .exam-btn .exam-mastery'); snap.chapterMastery = t('#chapterGrid button');
   pendingMode = 'exam'; buildExamGrid();
   snap.done = [...document.querySelectorAll('#examGrid .exam-btn.done')].map(e => e.dataset.arg);
   pendingMode = saved; buildExamGrid();
@@ -76,6 +77,9 @@ async function mixedShell(b) {
   await pg.goto('file://' + path.join(dir, 'v057.html'));
   assert(await pg.evaluate(() => !document.querySelector('script[src="js/core/migrate.js"]') && APP_VERSION) === CURRENT_VERSION, `mixed shell: v0.57 index.html running v${CURRENT_VERSION} js`);
   await seed(pg, { ...LEGACY, ...FOREIGN });
+  // v0.59: the old shell has no locale / i18n tags; main.js loads them, then starts (async)
+  await pg.waitForSelector('#examGrid .exam-btn', { state: 'attached' });
+  assert(await pg.evaluate(() => typeof t === 'function' && !!document.querySelector('script[src="locales/en.js"]') && document.title === t('app.title')), 'mixed shell: missing locale + i18n scripts loaded at start-up');
   assert((await text(pg, '#examGrid .exam-btn.all .exam-mastery')).startsWith('3/408'), 'mixed shell: legacy mastery shown (3/408)');
   assert((await text(pg, '#tileFlagged .t-num')) === '5', 'mixed shell: legacy Flagged 5 shown');
   const newKey = await pg.evaluate(() => {

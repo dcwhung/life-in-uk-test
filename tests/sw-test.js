@@ -54,7 +54,7 @@ async function checkVersionBump(pg, serveDir, oldCache) {
   // serve a temp copy of the app so the version-bump check can edit its config.js
   const serveDir = external ? null : fs.mkdtempSync(path.join(os.tmpdir(), 'lifeuk-sw-'));
   if (!external) {
-    ['index.html', 'sw.js', 'data', 'css', 'js'].forEach(f => fs.cpSync(path.join(ROOT, f), path.join(serveDir, f), { recursive: true }));
+    ['index.html', 'sw.js', 'data', 'css', 'js', 'locales'].forEach(f => fs.cpSync(path.join(ROOT, f), path.join(serveDir, f), { recursive: true }));
     ({ base, server } = await startPagesServer(serveDir));
   }
   const b = await chromium.launch(launchOpts);

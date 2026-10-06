@@ -60,7 +60,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(await pg.evaluate(() => document.getElementById('screenQuiz').classList.contains('active')), 'cancel on the unanswered warning stays in the exam');
   await pg.click('#nextBtn'); await pg.click('#confirmOk');
   assert(await pg.evaluate(() => document.getElementById('screenResult').classList.contains('active')), 'Submit opens the results');
-  assert((await pg.$eval('#rbCorrect', e => e.textContent)) === '2', 'results score the saved picks (2 correct)');
+  assert((await pg.$eval('#resultScore', e => e.textContent)).startsWith('2 / 24 · '), 'results score the saved picks (2 correct)');
 
   // everything answered: no warning
   await pg.evaluate(() => {
@@ -69,7 +69,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
     state.current = state.questions.length - 1; renderQuestion();
   });
   await pg.click('#nextBtn');
-  assert(await pg.evaluate(() => !document.getElementById('confirmModal').classList.contains('show') && document.getElementById('rbCorrect').textContent === '24'), 'all answered: submits without a warning, 24/24');
+  assert(await pg.evaluate(() => !document.getElementById('confirmModal').classList.contains('show') && document.getElementById('resultScore').textContent === '24 / 24 · 100%'), 'all answered: submits without a warning, 24/24');
   assert(dialogs.length === 0, 'exam never uses a browser alert / confirm box');
 
   // ── Practice mode: wrong answer must still reveal + lock ──

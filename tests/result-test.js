@@ -28,7 +28,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   for (const set of ['ch1', 'd1', 'd4', 'all']) {
     await finish('practice', set);
     assert(!(await vis('#resultLabel2')) && !(await vis('#resultSub')), `${set}: no PASSED / remark`);
-    assert((await pg.$eval('#rbPct', e => e.textContent)) === '100%', `${set}: score still shown`);
+    assert((await pg.$eval('#resultScore', e => e.textContent)).endsWith(' · 100%'), `${set}: score still shown`);
   }
   // back to an exam: verdict comes back
   await finish('exam', 3);

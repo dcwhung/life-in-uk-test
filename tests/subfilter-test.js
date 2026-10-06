@@ -28,18 +28,18 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
 
   await pg.click('.study-tab[data-tab="people"]');
   assert((await pg.$$('#studySubChips .chip')).length === 8, 'people: All + 7 group chips');
-  await pg.click('#studySubChips >> text=作家');
+  await pg.click('#studySubChips >> text=Writers');
   const names = await pg.$$eval('.fact-name', els => els.map(e => e.textContent));
   assert(names.length === 11 && names.includes('Charles Dickens') && names.includes('William Shakespeare'), 'writers 11: ' + names.join(', '));
   assert((await pg.$$('.study-group-title')).length === 1, 'only writers group shown');
   await pg.screenshot({ path: 'shot-people-sub.png' });
 
   await pg.click('.study-tab[data-tab="timeline"]');
-  assert(await pg.$eval('#studySubChips', e => e.style.display === 'none'), 'timeline has no sub row');
+  assert(await pg.$eval('#studySubChips', e => e.hidden && getComputedStyle(e).display === 'none'), 'timeline has no sub row (hidden attribute)');
 
   await pg.reload(); await pg.click('#modeStudy');
   await pg.click('.study-tab[data-tab="people"]');
-  assert(await pg.$eval('#studySubChips .chip.active', e => e.textContent.includes('作家')), 'people group persisted');
+  assert(await pg.$eval('#studySubChips .chip.active', e => e.textContent.includes('Writers')), 'people group persisted');
   await pg.click('.study-tab[data-tab="geo"]');
   assert(await pg.$eval('#studySubChips .chip.active', e => e.textContent.includes('Scotland')), 'nation persisted');
 
