@@ -25,9 +25,8 @@ v0.57（P1 refactor）起 `index.html` 只剩 `<head>`、各 screen 嘅 markup �
 | `css/base/layout.css` | reset、body、sticky header、main、`.screen` 切換、`[hidden]`、`.quiz-header` / `.section-title`、`@keyframes slideIn` |
 | `css/components/*.css` | `buttons`（back / nav / quick ← → / flag 掣 + 書籤 icon 顏色）、`chips`（practice / study tab 共用 base、`.chip`、`.stars`）、`dots`（`.dot` / `.rdot` 共用形狀、`.dots-meta` / `.rmeta` 計數）、`modal`、`popover`（ⓘ popover + install banner） |
 | `css/screens/*.css` | `home`、`quiz`（問題卡、選項、答案框、計時器、Similar `.sqm`）、`results`、`flagged`、`study`（含 timeline）；`@media (max-width: 480px)` 跟返各自 file 尾 |
-| `js/core/config.js` | 常數：`APP_VERSION`、mode / set id（`PRACTICE_MODE`、`ALL_EXAM`、`WRONG_EXAM`…）、`MASTERY_STREAK`、`PRACTICE_ROUND_MAX`、`REAL_TEST_SIZE`、`PASS_RATIO`、`EXAM_MINUTES`、localStorage key（`LS_PREFIX` + 各 key、`LEGACY_LS_MIGRATION`、`OBSOLETE_LS`）等；**SW 都會 load，所以只可以有 const，唔可以掂 DOM 或者 data** |
-| `js/core/migrate.js` | v0.58：`migrateLegacyStorage()`，載入時（`store.js` 讀 storage 之前）將舊冇 prefix 嘅 key 搬去 `lifeuk.*`；搬唔到嘅 key 記入 `LS_KEY_FALLBACK`，見「localStorage keys」 |
-| `js/core/utils.js` | `shuffle`、`shuffleOptions`、`toQuestionItem`、`isCorrectAnswer`、`getLS` / `setLS`（經 `lsKey()` 查 `LS_KEY_FALLBACK`）、`escapeHtml`、`pad2`、`keysOf`、`percent`、`byId`、`setShown`、`showScreen` |
+| `js/core/config.js` | 常數：`APP_VERSION`、mode / set id（`PRACTICE_MODE`、`ALL_EXAM`、`WRONG_EXAM`…）、`MASTERY_STREAK`、`PRACTICE_ROUND_MAX`、`REAL_TEST_SIZE`、`PASS_RATIO`、`EXAM_MINUTES`、localStorage key（`LS_PREFIX` + 各 key、`LEGACY_LS_MIGRATION`、`MIGRATED_LS`、`MERGE_LS`、`OBSOLETE_LS`）等；**SW 都會 load，所以只可以有 const，唔可以掂 DOM 或者 data** |
+| `js/core/utils.js` | `shuffle`、`shuffleOptions`、`toQuestionItem`、`isCorrectAnswer`、`getLS` / `setLS`（經 `lsKey()`：第一次用 storage 時 lazy 行 `ensureLegacyMigrated()`，再查 `LS_KEY_FALLBACK`；舊 key 遷移全部 code 喺呢度，見「localStorage keys」）、`escapeHtml`、`pad2`、`keysOf`、`percent`、`byId`、`setShown`、`showScreen` |
 | `js/core/store.js` | `streaks` / `practiceFlags` / `wrongList`（`let`，測試會直接改）、completed exams、homePrefs 讀寫 |
 | `js/core/actions.js` | `ACTIONS` registry + 一個 document click / input / keydown（Esc）listener；未知 action 名 `console.warn` 唔會 throw |
 | `js/domain/questions.js` | `EXAM_COUNT`、`TOTAL_QUESTIONS`、`DIFF_LEVELS`（由 data 計）、`allQuestions()`（單一 loop）同由佢 filter 出嚟嘅 exam / chapter / difficulty pool、`poolFor()`、`randomExamPick()`、`examLabel()`、`questionByKey()` |
@@ -37,10 +36,10 @@ v0.57（P1 refactor）起 `index.html` 只剩 `<head>`、各 screen 嘅 markup �
 | `js/screens/*.js` | `home`、`quiz`（`state`、`startExam`、`renderQuestion` 同拆細嘅 helper、`selectOption`）、`examTools`（計時、flag、圓點、`submitExam`）、`similarPanel`、`result`（`finishExam` 同 review）、`flagged`、`study` |
 | `js/pwa/pwa.js` | `registerSW()`（`file://` 唔註冊）+ install banner |
 | `js/main.js` | init（最後載入） |
-| `tests/*.js` | 22 套 Playwright 測試，`tests/run-all.sh` 一次過跑 |
+| `tests/*.js` | 23 套 Playwright 測試，`tests/run-all.sh` 一次過跑 |
 | `mockups/similar-question-map.html` | Similar Questions 嘅設計 mockup（獨立 HTML，頂部 tab 切換情景；PR 嘅 `Design Origin`） |
 
-**載入次序：** `data/exams.js` → `data/study.js` → `js/core/config.js` → `core/utils` → `core/migrate` → `core/store` → `domain/*` → `components/*` → `screens/*` → `core/actions` → `pwa/pwa` → `main`。全部係 classic `<script src>`，全局變量，冇 ES module（`file://` 同 iOS PWA 兼容）；唔好包 IIFE，因為頂層 `let`（`state`、`streaks`、`pendingMode`…）要喺全局 lexical scope，測試先改得到。檔案之間只可以喺 function 入面互相 call；頂層即刻行嘅 code 只可以用前面已載入嘅 file。
+**載入次序：** `data/exams.js` → `data/study.js` → `js/core/config.js` → `core/utils` → `core/store` → `domain/*` → `components/*` → `screens/*` → `core/actions` → `pwa/pwa` → `main`。全部係 classic `<script src>`，全局變量，冇 ES module（`file://` 同 iOS PWA 兼容）；唔好包 IIFE，因為頂層 `let`（`state`、`streaks`、`pendingMode`…）要喺全局 lexical scope，測試先改得到。檔案之間只可以喺 function 入面互相 call；頂層即刻行嘅 code 只可以用前面已載入嘅 file。`store.js` 頂層嘅 `getLS()` 係第一個讀 storage 嘅地方，舊 key 遷移就喺嗰下 lazy 行（v0.58 起冇獨立 `migrate.js`，見「localStorage keys」）。
 
 **加新 file 嘅規則（三步，漏一步就會離線壞咗）：**
 1. `index.html` 按載入次序加 `<link>` / `<script src>`
@@ -194,17 +193,26 @@ v0.58 起全部 key 都有 `lifeuk.` prefix（`LS_PREFIX`，`js/core/config.js`�
 | `lifeuk.practiceFlags` | `{ "exam.idx": true }`（v0.53，Practice flag，長期保存） |
 | `lifeuk.wrongList` | `{ "exam.idx": true }`（v0.53，錯題庫；Practice + Exam 加入，只喺 Wrong answers review 答啱先清） |
 | `lifeuk.studyPrefs` / `lifeuk.studyMastered` / `lifeuk.studyBookmarks` | Study 頁狀態 |
+| `lifeuk.migrated` | v0.58 遷移完成 marker（`MIGRATED_LS`，值係寫入時嘅 `APP_VERSION`；只睇有冇） |
 
-**舊 key 遷移（v0.58，`js/core/migrate.js`，每次載入都行，idempotent）：**
+**舊 key 遷移（v0.58，code 全部喺 `js/core/utils.js`，lazy，idempotent）：**
+- **點解喺 `utils.js`（CUI-0004）**：SW 換版嗰下，舊 SW cache 嘅 v0.57 `index.html`（冇 migrate tag）可以配新 SW 俾嘅 v0.58 `config.js` / `utils.js` / `store.js`，頁面用 `lifeuk.*` 但冇遷移 → 顯示 0 進度，答一題寫咗細細個新 key，下次載入「新 key 優先」就刪咗真資料。v0.57 `index.html` 只會 load `config` / `utils` / `store`，所以遷移一定要喺呢幾個 file 入面；`getLS` / `setLS` 經 `lsKey()` 第一次用 storage 就行 `ensureLegacyMigrated()`（每次載入一次），任何用 v0.58 key 名嘅頁面讀寫之前都一定搬咗。`js/core/migrate.js` 已刪（tag + SHELL 一齊拎走）
+- `typeof LEGACY_LS_MIGRATION === 'undefined'`（反方向混合：v0.57 `config.js` + v0.58 `utils.js`）→ 唔搬，照用 v0.57 key，唔會 throw
 - 對照表係 `LEGACY_LS_MIGRATION`（舊名 → 新 key 常數）；加新 key 唔使改，只有改名先要加
 - 舊有、新冇 → 照抄**原始字串**（唔 parse，壞 JSON 都照搬）去新 key，讀返確認一樣先刪舊 key
-- 新舊都有 → 新 key 唔郁，刪舊 key
+- 新舊都有，**冇 marker**（`lifeuk.migrated` 未寫，即係新 key 可能只係混合頁面寫落嘅）→ merge：
+  - `MERGE_LS` 入面嘅 object map（practiceStreak、practiceFlags、wrongList、completedExams、studyMastered、studyBookmarks）逐條 entry `{...舊, ...新}`：同一題新嘅贏，舊有新冇嘅保留
+  - 其他（prefs：homePrefs、studyPrefs）→ 新 key 贏
+  - 任何一邊 parse 唔到做 plain object（壞 JSON、array、scalar）→ 留新 value，唔會 throw
+  - 寫 merge 結果、讀返確認先刪舊 key；寫唔到 → 新 key 還原做原本 value、記 fallback（今次載入讀寫舊 key）、舊 key 保留，下次載入再 merge
+- 新舊都有，**有 marker** → 新 key 唔郁，刪舊 key（W-001，用戶接受嘅風險，見下面 v0.57 tab）
+- `lifeuk.migrated` 只喺**冇 marker 嘅一次載入入面全部 8 個 key 都處理完、冇 fallback** 先寫；空 storage 都會寫（之後 storage 入面最少有呢一個 key）
 - `OBSOLETE_LS`（`reviewOrder`，v0.53 起冇用）直接刪
-- 每個 key 各自 try/catch：一個 key 出錯唔會停其他 key，只 `console.warn`，唔會刪資料、唔會令 app 開唔到；`OBSOLETE_LS` 清理另外一個 try
-- 抄唔到（`setItem` throw，例如 QuotaExceededError；或者讀返唔一樣，呢個情況會刪走寫錯咗嘅新 key）→ 舊 key 保留，記入 `LS_KEY_FALLBACK[新 key] = 舊 key`（`js/core/utils.js`）；`getLS` / `setLS` 每次 call 都經 `lsKey()` 查表，所以**今次載入照讀寫舊 key**，唔會生個空新 key；之後有位嘅一次載入先搬完
+- 每個 key 各自 try/catch：一個 key 出錯唔會停其他 key，只 `console.warn`，唔會刪資料、唔會令 app 開唔到；`OBSOLETE_LS` 清理、marker 寫入各自另外一個 try
+- 抄唔到（`setItem` throw，例如 QuotaExceededError；或者讀返唔一樣，呢個情況會刪走寫錯咗嘅新 key）→ 舊 key 保留，記入 `LS_KEY_FALLBACK[新 key] = 舊 key`；`getLS` / `setLS` 每次 call 都經 `lsKey()` 查表，所以**今次載入照讀寫舊 key**，唔會生個空新 key；之後有位嘅一次載入先搬完（嗰次先寫 marker）
 - 舊 key 名好普通（`wrongList`、`homePrefs`…）：同 origin 任何 app 如果有冇 prefix 而同名嘅 key，都會俾當係我哋嘅資料搬走（目前已知其他 app 全部有自己 prefix）
 - 已知風險（用戶接受）：如果同一個瀏覽器仲開住 v0.57 嘅 tab，v0.58 搬完之後嗰個 tab 照寫舊 key，下次載入會因「新 key 優先」被刪；iOS 主畫面 app / 單一 tab 用法唔受影響；升級前關晒其他 tab
-- 唔喺對照表嘅 key（其他 app）完全唔掂；`tests/migrate-test.js` 驗證
+- 唔喺對照表嘅 key（其他 app）完全唔掂；`tests/migrate-test.js`、`tests/upgrade-test.js` 驗證
 - **v0.58 之後唔好 rollback 去 v0.57**（CUI-0005）：v0.57 只讀冇 prefix 嘅 key，搬完之後會顯示空進度；喺 v0.57 寫入嘅舊 key，再升返 v0.58 時（有 marker →「新 key 優先」）會被刪走。出事要 roll forward，或者 revert 去某個 v0.58.x commit（新 file 仍然讀 `lifeuk.*`）
 
 ## 測試
@@ -237,7 +245,8 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | `quicknav-test.js` | 快捷 ← / →（符號、title、最後一題 ✓ / ↩；Exam 最後一題 ✓ = Submit）；問題卡 header：Question X of Y、Practice 用圓圈唔用 progress bar、冇 score pill、header 冇 stats |
 | `sw-test.js` | v0.57：將 app copy 去 temp dir，用 python static server（加 GitHub Pages 一樣嘅 `Cache-Control: max-age=600`）serve（或者 http 嘅 `APP_URL`）；index.html 每個 `<script src>` / `<link href>` 都喺 `sw.js` SHELL、SHELL 每個 file 存在；`sw.js` 註冊成功、cache 名跟 `APP_VERSION`、SHELL 全部 cache 咗；`setOffline(true)` reload 仍然出首頁、css 生效、開到 Practice；同 origin 其他 app 嘅 cache（`other-app`）唔會俾 activate 刪；淨係改 temp copy 嘅 `config.js` 版本號就會裝新 cache、刪舊 `lifeuk-v*` cache；冇 page / console / SW error（瀏覽器自己 probe `/favicon.ico` 嘅 404 除外） |
 | `structure-test.js` | v0.57：index.html / js 冇 inline `on*=`、index.html 冇 inline `<style>` / `<script>` / `style=`（progress bar 闊度除外）、每個 function ≤ 30 行、markup / template 每個 `data-action` 都有 `ACTIONS` handler 而每個 handler 都有人用、`file://` 載入冇 page error / console error / failed request |
-| `migrate-test.js` | v0.58：用似真用戶嘅舊資料（completedExams、homePrefs、practiceFlags、practiceStreak、reviewOrder、wrongList、studyPrefs / studyMastered / studyBookmarks，全部非空）+ 其他 app 嘅 key（`run365.prefs`、`tripspend.*.v1`）reload：`lifeuk.*` 係原始字串、舊 key 同 `reviewOrder` 刪咗、其他 app 嘅 key 一字不改、UI 跟資料（Practice › By Chapter、Flagged 5、mastery 數、Exam 1–5 ✓、Study geo tab）；新舊都有新嘅贏（UI 讀新 key）；再 reload 兩次唔變、app 寫入只落 `lifeuk.*`；壞 JSON 照搬唔 crash；空 storage 唔會生 key；fail-safe：stub `setItem` 令 `lifeuk.practiceStreak` throw QuotaExceededError、`lifeuk.studyPrefs` 寫唔落（verify 唔對），今次載入 UI 照顯示舊進度（3/408、Study geo）、答題寫返舊 key、冇空新 key，拎走 stub reload 後舊 streak + 新答案全部喺 `lifeuk.practiceStreak`、舊 key 冇咗 |
+| `migrate-test.js` | v0.58：用似真用戶嘅舊資料（completedExams、homePrefs、practiceFlags、practiceStreak、reviewOrder、wrongList、studyPrefs / studyMastered / studyBookmarks，全部非空）+ 其他 app 嘅 key（`run365.prefs`、`tripspend.*.v1`）reload：`lifeuk.*` 係原始字串、舊 key 同 `reviewOrder` 刪咗、其他 app 嘅 key 一字不改、UI 跟資料（Practice › By Chapter、Flagged 5、mastery 數、Exam 1–5 ✓、Study geo tab）；全部搬完寫 `lifeuk.migrated`；有 marker 新舊都有 → 新嘅贏（UI 讀新 key）；冇 marker 新舊都有 → streak / flags 逐條 merge（同一題新嘅贏）、homePrefs 新嘅贏、舊 key 刪、寫 marker、UI 顯示 merge 後進度（3/408、Flagged 3）；一邊唔係 object（壞 JSON、array）→ 留新 value；再 reload 兩次唔變、app 寫入只落 `lifeuk.*`；壞 JSON 照搬唔 crash；空 storage 只生 marker；fail-safe：stub `setItem` 令 `lifeuk.practiceStreak` throw QuotaExceededError、`lifeuk.studyPrefs` 寫唔落（verify 唔對），今次載入 UI 照顯示舊進度（3/408、Study geo）、答題寫返舊 key、冇空新 key，fallback 期間冇 marker；拎走 stub reload 後舊 streak + 新答案全部喺 `lifeuk.practiceStreak`、舊 key 冇咗、寫 marker；冇 marker 新舊都有而 merge 寫入 throw → 兩個 key 原封不動、冇 marker、UI 讀舊 key，拎走 stub 後 merge 完成 |
+| `upgrade-test.js` | v0.58（CUI-0004）：v0.57 檔案由 git 攞（pinned `dc84cab`，v0.57 嘅 main）。① 混合 shell（`file://`）：temp dir 放 v0.57 `index.html`（冇 migrate tag）+ 而家嘅 js / css / data，seed 舊 key → UI 即刻顯示舊進度（3/408、Flagged 5）；答一題，再開而家嘅 `index.html` → 舊 streak 全部 + 新答案都喺 `lifeuk.practiceStreak`、其他 value 原始字串、舊 key 冇咗、有 marker、其他 app key 唔郁。② 反方向混合：v0.57 全套 + 而家嘅 `utils.js` → 冇 error、照讀 v0.57 key、storage 唔郁。③ QA `upgrade-sim` 核心：python server（`max-age=600`）serve v0.57，SW 裝好、seed 舊資料、記低 UI；原地換做而家嘅 file，reload 等新 SW activate + 刪 `lifeuk-v0.57` cache，再 reload → v0.58、8 個 value 原始字串、舊 key + reviewOrder 冇咗、其他 app key 一樣、新 key 只多 marker、UI（mode / view、Flagged、Wrong、mastery grid、完成 ✓、Study tab / 掌握 / 書籤）同升級前一樣、再 reload 唔變。約 5 秒 |
 | `practicedots-test.js` | v0.55：Practice 圓圈（24 / 9 / review 題數、冇 progress bar 同計時、啱綠錯紅、flag 橙邊、計數一行、撳跳題前後都得）；冇 score pill；Exam 最後一題快捷 ✓ 交卷（有未答彈 modal、全答直接去結果）；Flagged 列表「Practise flagged」書籤 icon 係橙色；首頁 Flagged 格 icon 橙色、Home 冇可見嘅黑色 SVG（v0.56） |
 
 ## 版本記錄（v0.32–v0.58）
@@ -277,7 +286,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | v0.55 | dcwhung/life-in-uk-test#27 | Practice 加數字圓圈（取代 progress bar，啱綠錯紅、flag 橙邊、撳跳題、Correct / Wrong / Unanswered / Flagged 計數），拎走 ✓ n/m pill；Exam 最後一題快捷掣變 ✓ 做 Submit；Flagged 列表「Practise flagged」書籤 icon 由黑色改橙色 |
 | v0.56 | dcwhung/life-in-uk-test#28 | 首頁 My Review「Flagged」格嘅書籤 icon 由黑色改返橙色：`bookmarkSvg('rv-flag-tile')` 嘅 class 冇 CSS，SVG path 冇 fill 就係黑色；改為 `.rv-flag-tile path` 同 `.rv-flag` 共用橙色（v0.55 只修咗「Practise flagged」掣，今次由 class 根本修好，兩處一齊生效） |
 | v0.57 | （P1 refactor PR） | **拆檔 + clean code，外觀同行為 0 改動（除 SW）**：`index.html` 2350 行拆做 `css/{base,components,screens}` 同 `js/{core,domain,components,screens,pwa}` + `main.js`；inline onclick 全部改 `data-action` delegation；重複 code 合併（`isCorrectAnswer`、`toQuestionItem`、pool 由 `allQuestions()` 派生、圓點 + 計數 builder、streak label、diff / chapter 格、Study 書籤 / 掌握 toggle）；每個 function ≤ 30 行；408 / 17 / 24 / 75% 等數字由 data / config 計；題目、選項、備注插入 HTML 前 escape；拎走死碼（`.score-pill`、`alert('Please select a mode first…')`、被蓋過嘅 CSS）；**SW 修正**：改用 root `sw.js`（之前 blob: SW 一直註冊失敗）；加 `sw-test`、`structure-test`。驗證：`tests/tools/visual-diff.js dc73a15`（38 個畫面狀態 × 390 / 900px，逐個 element 對 computed style + 位置 + 文字）同 v0.56 一樣，只多咗 ⓘ popover 標題入面一個 inline `<span id="infoTitle">`（冇視覺分別）；review 後再加：SW 只清 `lifeuk-v*` cache、install 用 `cache: 'reload'`、`updateViaCache: 'none'`、離線 fallback 只限 navigation、`data-*` 值 escape、`MAX_DIFFICULTY` 由 `DIFF_LEVELS` 計 |
-| v0.58 | （localStorage prefix PR） | **localStorage key 加 `lifeuk.` prefix**（origin 同其他 app 共用）：`LS_PREFIX` + 全部 key 常數由佢砌；新 `js/core/migrate.js` 喺 `store.js` 之前將舊 key 搬過去（原始字串照抄、確認先刪、新 key 優先、`reviewOrder` 刪走、唔掂其他 app 嘅 key、出錯唔刪資料；抄唔到嘅 key 今次載入繼續用舊名（`LS_KEY_FALLBACK`），之後載入先搬完）；加 `migrate-test`，舊測試改用新 key 名。原定 v0.58 嘅 P2（locale）順延做 v0.59 |
+| v0.58 | （localStorage prefix PR） | **localStorage key 加 `lifeuk.` prefix**（origin 同其他 app 共用）：`LS_PREFIX` + 全部 key 常數由佢砌；`js/core/utils.js` 嘅 `getLS` / `setLS` 第一次用 storage 時 lazy 將舊 key 搬過去（CUI-0004：SW 換版時 v0.57 `index.html` + v0.58 js 嘅混合頁面都會搬，所以冇獨立 `migrate.js`；原始字串照抄、確認先刪、`reviewOrder` 刪走、唔掂其他 app 嘅 key、出錯唔刪資料；抄唔到嘅 key 今次載入繼續用舊名（`LS_KEY_FALLBACK`）；全部搬完寫 `lifeuk.migrated` marker；冇 marker 而新舊都有 → object map 逐條 merge、prefs 新嘅贏；有 marker → 新 key 優先）；加 `migrate-test`、`upgrade-test`，舊測試改用新 key 名；v0.58 之後唔好 rollback 去 v0.57（CUI-0005）。原定 v0.58 嘅 P2（locale）順延做 v0.59 |
 
 **Practice 數字圓圈設計決定（v0.55，preview 同用戶確認）**
 - 起因：用戶以為 Practice 「無咗」頂頭數字圓圈；查 code 同 git 記錄，v0.44 起圓圈一直只係 Exam 1–17 / Random Exam 先有，唔係 regression，改做新功能
