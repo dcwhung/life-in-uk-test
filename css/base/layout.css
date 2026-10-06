@@ -1,0 +1,55 @@
+/* Page layout: reset, body, sticky header, main column, screens, shared headings */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── HEADER ── */
+header {
+  background: var(--navy);
+  padding: 0 20px;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.25);
+}
+.header-inner {
+  max-width: 780px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 58px;
+}
+.logo { display: flex; align-items: center; gap: 10px; }
+.logo-flag { font-size: 22px; }
+.logo-text { display: flex; align-items: center; gap: 6px; color: #fff; font-size: 15px; font-weight: 700; letter-spacing: 0.01em; }
+.logo-sub { color: var(--gold); font-size: 11px; font-weight: 500; margin-top: 1px; }
+.app-version { color: rgba(255,255,255,0.45); font-weight: 600; margin-left: 4px; }
+
+/* ── MAIN ── */
+main { max-width: 780px; margin: 0 auto; padding: 20px 16px 100px; }
+
+/* screen management */
+.screen { display: none; }
+.screen.active { display: block; }
+/* hidden attribute always wins over a component's own display value */
+[hidden] { display: none !important; }
+
+/* screen header row (back button + label) */
+.quiz-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.quiz-label {
+  font-size: 13px; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+
+.section-title {
+  font-size: 13px; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.06em;
+  margin-bottom: 12px;
+}
+
+/* shared entrance animation (answer box, similar questions, modal) */
+@keyframes slideIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }

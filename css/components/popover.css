@@ -1,0 +1,65 @@
+/* ── HEADER: info button + popover (replaces the old home hero) ── */
+.info-btn {
+  background: transparent; border: none; padding: 0;
+  color: rgba(255,255,255,0.6);
+  font-size: 16px; line-height: 1;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.info-btn:hover, .info-btn.open { color: var(--gold-light); }
+.info-pop {
+  display: none;
+  position: absolute; left: 16px; top: 64px;
+  width: min(360px, calc(100vw - 32px));
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
+  color: #fff;
+  border: 1px solid rgba(201,168,76,0.35);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.35);
+  z-index: 200;
+}
+.info-pop.show { display: block; }
+.info-pop::after {
+  content: ''; position: absolute; left: 150px; top: -7px;
+  width: 12px; height: 12px;
+  background: var(--navy); border-left: 1px solid rgba(201,168,76,0.35); border-top: 1px solid rgba(201,168,76,0.35);
+  transform: rotate(45deg);
+}
+.info-pop h2 { font-size: 17px; font-weight: 800; margin-bottom: 6px; }
+.info-pop p { font-size: 13px; color: rgba(255,255,255,0.75); line-height: 1.5; }
+@media (min-width: 812px) { .info-pop { left: calc((100vw - 780px) / 2); } }
+
+/* info popover badges */
+.hero-meta {
+  display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap;
+}
+.hero-badge {
+  background: rgba(201,168,76,0.18);
+  border: 1px solid rgba(201,168,76,0.35);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px; color: var(--gold-light);
+  font-weight: 600;
+}
+
+/* install banner */
+.install-banner {
+  background: linear-gradient(135deg, var(--navy-mid), var(--navy));
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  display: none; align-items: center; gap: 14px;
+  margin-bottom: 20px;
+}
+.install-banner.visible { display: flex; }
+.install-text { flex: 1; }
+.install-text strong { color: #fff; font-size: 14px; display: block; margin-bottom: 2px; }
+.install-text span { color: rgba(255,255,255,0.65); font-size: 12px; }
+.install-btn {
+  background: var(--gold);
+  color: var(--navy);
+  border: none; border-radius: 8px;
+  padding: 9px 16px;
+  font-size: 13px; font-weight: 800;
+  cursor: pointer; white-space: nowrap;
+}

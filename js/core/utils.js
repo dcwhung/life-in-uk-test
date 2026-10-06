@@ -1,5 +1,5 @@
 // ════════════════════════════════════════
-// UTILS — pure helpers shared by the app (loaded before the main script)
+// UTILS — small pure helpers + DOM shortcuts shared by every screen
 // ════════════════════════════════════════
 function shuffle(arr) {
   const a = [...arr];
@@ -22,6 +22,17 @@ function shuffleOptions(q) {
   };
 }
 
+// { q, examNum, origIdx } pool item → session question (shuffled options + its origin)
+function toQuestionItem({ q, examNum, origIdx }) {
+  return { ...shuffleOptions(q), examNum, origIdx };
+}
+
+// every correct option picked and nothing else
+function isCorrectAnswer(q, ans) {
+  const picked = ans || [];
+  return q.a.every(a => picked.includes(a)) && picked.length === q.a.length;
+}
+
 function getLS(key) {
   try { return JSON.parse(localStorage.getItem(key)); } catch { return null; }
 }
@@ -29,12 +40,18 @@ function setLS(key, val) {
   try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
 }
 
-// Difficulty stars (1-5) as inline HTML.
-function starsHtml(d) {
-  return `<span class="stars" title="Difficulty ${d}/5">${'★'.repeat(d)}<span class="off">${'★'.repeat(5 - d)}</span></span>`;
-}
-
 // Escape text for safe insertion into innerHTML.
 function escapeHtml(s) {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+const pad2 = n => String(n).padStart(2, '0');
+const keysOf = obj => Object.keys(obj).filter(k => obj[k]);
+const percent = (part, whole) => (whole ? Math.round((part / whole) * PERCENT) : 0);
+
+const byId = id => document.getElementById(id);
+function setShown(id, visible) { byId(id).hidden = !visible; }
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  byId(id).classList.add('active');
 }

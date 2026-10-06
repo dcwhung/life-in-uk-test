@@ -9,815 +9,18 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Life in UK">
 <title>Life in the UK · Exam Practice</title>
-<style>
-  :root {
-    --orange: #d9822b;
-    --navy: #1a2744;
-    --navy-mid: #243460;
-    --navy-light: #2e4080;
-    --gold: #c9a84c;
-    --gold-light: #e8c97a;
-    --green: #2d6a4f;
-    --green-light: #52b788;
-    --red: #922b21;
-    --red-light: #e74c3c;
-    --purple: #6b3fa0;
-    --purple-light: #9b6dca;
-    --bg: #f0f2f7;
-    --card: #ffffff;
-    --text: #1a2744;
-    --text-muted: #5a6a8a;
-    --border: #dde2f0;
-    --radius: 14px;
-    --shadow: 0 4px 24px rgba(26,39,68,0.10);
-    --shadow-sm: 0 2px 8px rgba(26,39,68,0.07);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    -webkit-font-smoothing: antialiased;
-  }
-
-  /* ── HEADER ── */
-  header {
-    background: var(--navy);
-    padding: 0 20px;
-    position: sticky; top: 0; z-index: 100;
-    box-shadow: 0 2px 16px rgba(0,0,0,0.25);
-  }
-  .header-inner {
-    max-width: 780px; margin: 0 auto;
-    display: flex; align-items: center; justify-content: space-between;
-    height: 58px;
-  }
-  .logo { display: flex; align-items: center; gap: 10px; }
-  .logo-flag { font-size: 22px; }
-  .logo-text { color: #fff; font-size: 15px; font-weight: 700; letter-spacing: 0.01em; }
-  .logo-sub { color: var(--gold); font-size: 11px; font-weight: 500; margin-top: 1px; }
-  .app-version { color: rgba(255,255,255,0.45); font-weight: 600; margin-left: 4px; }
-
-  /* ── MAIN ── */
-  main { max-width: 780px; margin: 0 auto; padding: 20px 16px 100px; }
-
-  /* ── HEADER: info button + popover (replaces the old home hero) ── */
-  .logo-text { display: flex; align-items: center; gap: 6px; }
-  .info-btn {
-    background: transparent; border: none; padding: 0;
-    color: rgba(255,255,255,0.6);
-    font-size: 16px; line-height: 1;
-    cursor: pointer;
-    transition: color 0.15s;
-  }
-  .info-btn:hover, .info-btn.open { color: var(--gold-light); }
-  .info-pop {
-    display: none;
-    position: absolute; left: 16px; top: 64px;
-    width: min(360px, calc(100vw - 32px));
-    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
-    color: #fff;
-    border: 1px solid rgba(201,168,76,0.35);
-    border-radius: var(--radius);
-    padding: 18px 20px;
-    box-shadow: 0 12px 32px rgba(0,0,0,0.35);
-    z-index: 200;
-  }
-  .info-pop.show { display: block; }
-  .info-pop::after {
-    content: ''; position: absolute; left: 150px; top: -7px;
-    width: 12px; height: 12px;
-    background: var(--navy); border-left: 1px solid rgba(201,168,76,0.35); border-top: 1px solid rgba(201,168,76,0.35);
-    transform: rotate(45deg);
-  }
-  .info-pop h2 { font-size: 17px; font-weight: 800; margin-bottom: 6px; }
-  .info-pop p { font-size: 13px; color: rgba(255,255,255,0.75); line-height: 1.5; }
-  @media (min-width: 812px) { .info-pop { left: calc((100vw - 780px) / 2); } }
-
-  /* ── HOME SCREEN ── */
-  .hero-meta {
-    display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap;
-  }
-  .hero-badge {
-    background: rgba(201,168,76,0.18);
-    border: 1px solid rgba(201,168,76,0.35);
-    border-radius: 8px;
-    padding: 6px 12px;
-    font-size: 12px; color: var(--gold-light);
-    font-weight: 600;
-  }
-
-  .mode-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-  .mode-card {
-    background: var(--card);
-    border-radius: var(--radius);
-    padding: 16px 10px;
-    border: 2px solid var(--border);
-    cursor: pointer;
-    transition: all 0.18s;
-    text-align: center;
-    font: inherit;
-  }
-  .mode-card:hover { border-color: var(--navy-light); transform: translateY(-2px); box-shadow: var(--shadow); }
-  .mode-card.selected { border-color: var(--navy); background: #f0f4ff; }
-  .practice-tabs { display: none; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 14px; }
-  .practice-tabs.show { display: grid; }
-  .practice-tab {
-    background: var(--card);
-    border: 2px solid var(--border);
-    border-radius: 10px;
-    padding: 9px 4px;
-    font: inherit; font-size: 12px; font-weight: 700; color: var(--text-muted);
-    cursor: pointer; text-align: center;
-    transition: all 0.15s;
-  }
-  .practice-tab.active { background: var(--navy); border-color: var(--navy); color: #fff; }
-  .exam-select-section.hidden { display: none; }
-  .reset-row {
-    display: none;
-    align-items: center; gap: 12px; flex-wrap: wrap;
-    background: var(--card);
-    border: 1.5px dashed var(--border);
-    border-radius: 10px;
-    padding: 10px 14px;
-    margin-bottom: 24px;
-    font-size: 12px; color: var(--text-muted); line-height: 1.5;
-  }
-  .reset-row.show { display: flex; }
-  .reset-hint { flex: 1; min-width: 180px; }
-  .reset-hint b { color: var(--navy); }
-  .reset-btn {
-    background: var(--card);
-    border: 1.5px solid var(--red-light);
-    color: var(--red);
-    border-radius: 8px;
-    padding: 6px 12px;
-    font: inherit; font-size: 12px; font-weight: 700;
-    cursor: pointer; white-space: nowrap;
-  }
-  .reset-btn:hover { background: var(--red-light); color: #fff; }
-  /* mastery progress inside set buttons */
-  .chapter-btn { position: relative; overflow: hidden; }
-  .chapter-btn .ch-count.mastery { color: var(--green); font-weight: 700; }
-  .chapter-btn .ch-count.mastery.zero { color: var(--text-muted); font-weight: 500; }
-  .mastery-bar { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--green-light); border-radius: 0 2px 2px 0; }
-  .chapter-btn.complete { border-color: var(--green-light); }
-  .exam-btn { padding-bottom: 8px; }
-  .exam-btn .exam-mastery { display: block; font-size: 10px; font-weight: 600; color: var(--green); margin-top: 2px; }
-  .exam-btn .exam-mastery.zero { color: var(--text-muted); font-weight: 500; }
-  /* clip the mastery bar to the rounded box; .done keeps overflow for its ✓ badge (exam mode only, no bar) */
-  .exam-btn:not(.done) { overflow: hidden; }
-  .exam-btn .mastery-bar { border-radius: 0; }
-  .exam-btn.all .exam-mastery { color: var(--gold-light); }
-  .exam-btn .exam-sub { display: block; font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.65); margin-top: 2px; }
-  .exam-btn.all .exam-mastery.zero { color: rgba(255,255,255,0.55); }
-  .mode-icon { font-size: 26px; margin-bottom: 6px; }
-  .mode-title { font-size: 14px; font-weight: 700; color: var(--navy); }
-  .mode-desc-panel {
-    display: none;
-    background: var(--card);
-    border-left: 4px solid var(--navy);
-    border-radius: 10px;
-    padding: 12px 14px;
-    font-size: 13px; color: var(--text-muted); line-height: 1.55;
-    margin-bottom: 24px;
-  }
-  .mode-desc-panel.show { display: block; }
-  .mode-desc-panel strong { color: var(--navy); }
-
-  .exam-select-section { margin-bottom: 24px; }
-  .section-title {
-    font-size: 13px; font-weight: 700; color: var(--text-muted);
-    text-transform: uppercase; letter-spacing: 0.06em;
-    margin-bottom: 12px;
-  }
-  .exam-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; }
-  .exam-btn {
-    background: var(--card);
-    border: 2px solid var(--border);
-    border-radius: 10px;
-    padding: 10px 6px;
-    font-size: 13px; font-weight: 700;
-    color: var(--navy);
-    cursor: pointer; text-align: center;
-    transition: all 0.15s;
-    position: relative;
-  }
-  .exam-btn:hover { border-color: var(--navy); background: var(--navy); color: #fff; }
-  .exam-btn.done { border-color: var(--green); color: var(--green); }
-  .exam-btn.done::after {
-    content: '✓';
-    position: absolute; top: -6px; right: -6px;
-    background: var(--green); color: #fff;
-    border-radius: 50%; width: 16px; height: 16px;
-    font-size: 10px; display: flex; align-items: center; justify-content: center;
-    font-weight: 700;
-  }
-  .exam-btn.all {
-    background: linear-gradient(135deg, var(--navy), var(--navy-mid));
-    color: #fff; border-color: transparent;
-    grid-column: 1 / -1;
-    padding: 12px;
-  }
-
-  /* ── QUIZ SCREEN ── */
-  .quiz-header {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 16px;
-  }
-  .back-btn {
-    background: var(--card);
-    border: 1.5px solid var(--border);
-    border-radius: 8px;
-    padding: 7px 14px;
-    font-size: 13px; font-weight: 600; color: var(--navy);
-    cursor: pointer; display: flex; align-items: center; gap: 6px;
-  }
-  .back-btn:hover { background: var(--navy); color: #fff; border-color: transparent; }
-  .quiz-label {
-    font-size: 13px; font-weight: 700; color: var(--text-muted);
-    text-transform: uppercase; letter-spacing: 0.05em;
-  }
-  /* practice "My Review": sets built from what the user has done (wrong answers, flagged) */
-  .my-review { display: none; margin-bottom: 4px; }
-  .my-review.show { display: block; }
-  .my-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px; }
-  .my-tile {
-    background: var(--card); border: 2px solid var(--border); border-radius: 12px;
-    padding: 12px 12px 11px; text-align: left; cursor: pointer; box-shadow: var(--shadow-sm); font: inherit;
-  }
-  .my-tile .t-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-  .my-tile .t-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 900; }
-  .my-tile.wrong { border-left: 4px solid var(--red-light); }
-  .my-tile.wrong .t-icon { background: #fdf0ef; color: var(--red-light); }
-  .my-tile.flagged { border-left: 4px solid var(--orange); }
-  .my-tile.flagged .t-icon { background: #fdf3e8; }
-  .my-tile .t-icon svg { width: 17px; height: 17px; }
-  .my-tile .t-num { font-size: 24px; font-weight: 900; color: var(--navy); line-height: 1; }
-  .my-tile b { display: block; font-size: 13.5px; color: var(--navy); }
-  .my-tile .sub { display: block; font-size: 11px; color: var(--text-muted); margin-top: 2px; line-height: 1.4; }
-  .my-tile.empty { cursor: default; opacity: 0.6; border-left-color: var(--border); box-shadow: none; }
-  .my-note { font-size: 11px; color: var(--text-muted); margin-bottom: 20px; }
-  .bm-inline { width: 12px; height: 12px; vertical-align: -2px; }
-  .bm-inline path { fill: none; stroke: var(--text-muted); stroke-width: 2; stroke-linejoin: round; }
-  .practice-by-title { display: none; }
-  .practice-by-title.show { display: block; }
-  /* Flagged list screen */
-  .flag-start {
-    display: flex; align-items: center; gap: 12px; width: 100%; font: inherit; text-align: left; border: none;
-    background: linear-gradient(135deg, var(--navy), var(--navy-mid)); color: #fff;
-    border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; cursor: pointer;
-  }
-  .flag-start svg { width: 26px; height: 26px; flex-shrink: 0; }
-  .flag-start b { display: block; font-size: 15px; }
-  .flag-start .fs-sub { font-size: 12px; color: rgba(255,255,255,0.7); }
-  .flag-start .go { margin-left: auto; font-size: 20px; color: var(--gold-light); }
-  .flag-item { display: flex; align-items: flex-start; gap: 10px; background: var(--card); border-radius: 10px; padding: 11px 13px; margin-bottom: 8px; box-shadow: var(--shadow-sm); }
-  .flag-item .fi-text { flex: 1; font-size: 13px; color: var(--navy); font-weight: 600; line-height: 1.45; }
-  .flag-item small { display: block; font-size: 10.5px; color: var(--text-muted); font-weight: 700; margin-bottom: 2px; }
-  .flag-item .fi-yue { font-size: 12px; color: var(--purple); font-weight: 400; margin-top: 3px; }
-  .flag-item button { background: none; border: none; cursor: pointer; padding: 2px; }
-  .flag-item button svg { width: 20px; height: 20px; }
-  .empty-hint { font-size: 12.5px; color: var(--text-muted); text-align: center; padding: 14px; border: 1.5px dashed var(--border); border-radius: 10px; }
-  /* review round note (above the question card, right) */
-  .round-row { display: none; justify-content: flex-end; margin: -4px 0 8px; }
-  .round-note { background: #fdf0ef; color: var(--red); border-radius: 6px; padding: 3px 8px; font-size: 11px; font-weight: 700; }
-  .result-note { font-size: 13px; color: var(--text-muted); margin-top: 8px; }
-  .rv-streak { float: right; font-size: 11px; font-weight: 700; color: var(--text-muted); margin-left: 8px; }
-  /* exam tools (Exam 1–17 in exam mode): 45-min timer, question navigator dots, bookmark flag */
-  .exam-timer {
-    display: none; align-items: center;
-    background: var(--navy); color: #fff;
-    border-radius: 999px; padding: 5px 11px;
-    font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums;
-  }
-  .exam-timer.warn { background: var(--red-light); animation: timerPulse 1s ease-in-out infinite; }
-  @keyframes timerPulse { 50% { opacity: 0.7; } }
-  .nav-dots { display: none; grid-template-columns: repeat(12, 1fr); gap: 6px; margin-bottom: 8px; }
-  .dot {
-    aspect-ratio: 1; width: 100%; max-width: 30px; justify-self: center; padding: 0;
-    border-radius: 50%; border: 1.5px solid var(--border); background: var(--card);
-    color: var(--text-muted); font-size: 10.5px; font-weight: 800;
-    display: flex; align-items: center; justify-content: center; cursor: pointer;
-  }
-  .dot.done { background: var(--navy-light); border-color: var(--navy-light); color: #fff; }
-  .dot.flag { border: 2px solid var(--orange); color: var(--orange); }          /* unanswered + flagged: outline */
-  .dot.done.flag { background: var(--orange); color: #fff; }                    /* answered + flagged: solid */
-  .dot.ok { background: var(--green-light); border-color: var(--green-light); color: #fff; }  /* practice: answered right */
-  .dot.bad { background: var(--red-light); border-color: var(--red-light); color: #fff; }    /* practice: answered wrong */
-  .dot.ok.flag, .dot.bad.flag { border: 2.5px solid var(--orange); color: #fff; }           /* practice flag keeps the right / wrong fill */
-  .dot.current { box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--gold); }
-  .dots-meta {
-    display: none; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 8px;
-    font-size: 10.5px; color: var(--text-muted);
-    margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
-  }
-  .dots-meta .sep { color: var(--border); }
-  .dots-meta.practice { gap: 4px; font-size: 10px; }   /* four counts fit one line at 390px */
-  .dots-meta.practice i { margin-right: 3px; }
-  .dots-meta i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 4px; vertical-align: -1px; }
-  .dots-meta .lg-done { background: var(--navy-light); }
-  .dots-meta .lg-todo { border: 1.5px solid var(--border); }
-  .dots-meta .lg-flag { background: var(--orange); }
-  .dots-meta .lg-ok { background: var(--green-light); }
-  .dots-meta .lg-bad { background: var(--red-light); }
-  .flag-btn {
-    display: none; width: 32px; height: 32px; padding: 0; border: none; background: none;
-    color: var(--text-muted); cursor: pointer; align-items: center; justify-content: center; flex-shrink: 0;
-  }
-  .flag-btn svg { width: 24px; height: 24px; }
-  .flag-btn path { fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; }
-  .flag-btn.on { color: var(--orange); }
-  .flag-btn.on path { fill: currentColor; }
-  .result-timeup {
-    display: none; background: #fdf0ef; color: var(--red);
-    border: 1.5px solid var(--red-light); border-radius: 10px;
-    padding: 10px 14px; margin-bottom: 14px; font-size: 13px; font-weight: 700; text-align: center;
-  }
-  /* in-app confirm modal (replaces the browser's confirm box in exam mode) */
-  .modal-backdrop {
-    position: fixed; inset: 0; z-index: 300; /* above the sticky header (100) and info popover (200) */
-    background: rgba(26,39,68,0.55);
-    display: none; align-items: center; justify-content: center; padding: 16px;
-  }
-  .modal-backdrop.show { display: flex; animation: slideIn 0.18s ease; }
-  .modal-card {
-    background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
-    width: 100%; max-width: 360px; padding: 22px 20px 18px; text-align: center;
-  }
-  .modal-title { font-size: 17px; font-weight: 800; color: var(--navy); margin-bottom: 8px; }
-  .modal-msg { font-size: 14px; color: var(--text-muted); line-height: 1.55; margin-bottom: 18px; white-space: pre-line; }
-  .modal-actions { display: flex; gap: 10px; }
-  .modal-actions .nav-btn { flex: 1; }
-  .quiz-mode-badge {
-    background: var(--navy);
-    color: var(--gold-light);
-    border-radius: 20px;
-    padding: 4px 12px;
-    font-size: 11px; font-weight: 700;
-  }
-
-
-  /* question card */
-  .q-card {
-    position: relative; overflow: hidden;
-    background: var(--card);
-    border-radius: var(--radius);
-    padding: 26px 22px;
-    box-shadow: var(--shadow-sm);
-    margin-bottom: 14px;
-  }
-  /* progress bar = the question card's top border */
-  .q-progress { position: absolute; left: 0; right: 0; top: 0; height: 5px; background: var(--border); }
-  .q-progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--green-light), var(--gold));
-    transition: width 0.4s ease;
-  }
-  .q-num {
-    font-size: 11px; font-weight: 700; color: var(--text-muted);
-    text-transform: uppercase; letter-spacing: 0.05em;
-    margin-bottom: 10px;
-    display: flex; align-items: center; gap: 8px; min-height: 30px;
-  }
-  /* "Question X of Y" ★★★ ✓ n/m — the pill wraps to a second line when the row is full */
-  .q-num .q-num-text { flex: 1; display: flex; flex-wrap: wrap; align-items: center; column-gap: 6px; row-gap: 4px; white-space: nowrap; }
-  .score-pill {
-    text-transform: none; letter-spacing: 0;
-    background: #edf8f2; color: var(--green);
-    border-radius: 999px; padding: 2px 7px;
-    font-size: 10.5px; font-weight: 800;
-  }
-  .yue-toggle {
-    text-transform: none; letter-spacing: 0;
-    background: #f3eefa;
-    border: 1.5px solid var(--purple-light);
-    color: var(--purple);
-    border-radius: 999px;
-    padding: 5px 12px;
-    font-size: 12px; font-weight: 700;
-    cursor: pointer;
-    display: none;
-  }
-  .yue-toggle.visible { display: inline-block; }
-  .yue-toggle.on { background: var(--purple); color: #fff; }
-  .quick-nav { display: none; gap: 6px; flex-shrink: 0; text-transform: none; letter-spacing: 0; }
-  .quick-nav.visible { display: inline-flex; }
-  .quick-btn {
-    width: 32px; height: 32px; border-radius: 50%;
-    background: var(--card); color: var(--navy);
-    border: 1.5px solid var(--border);
-    font: inherit; font-size: 15px; font-weight: 800; line-height: 1;
-    display: inline-flex; align-items: center; justify-content: center;
-    cursor: pointer;
-  }
-  .quick-btn.primary { background: var(--navy); border-color: var(--navy); color: #fff; }
-  .quick-btn:disabled { opacity: 0.4; cursor: default; }
-  .q-yue {
-    display: none;
-    margin-top: 10px;
-    padding: 10px 12px;
-    background: #f7f4fc;
-    border-left: 3px solid var(--purple-light);
-    border-radius: 0 8px 8px 0;
-    color: var(--purple);
-    font-size: 14px; line-height: 1.6;
-  }
-  .q-yue.show { display: block; }
-  .opt-body { display: flex; flex-direction: column; gap: 3px; }
-  .opt-yue { font-size: 12.5px; font-weight: 500; color: var(--purple); line-height: 1.5; }
-  .q-text {
-    font-size: 17px; font-weight: 700; line-height: 1.55;
-    color: var(--navy);
-  }
-
-  /* options */
-  .options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
-  .opt {
-    background: var(--card);
-    border: 2px solid var(--border);
-    border-radius: 11px;
-    padding: 14px 16px;
-    font-size: 14px; font-weight: 500;
-    color: var(--text);
-    cursor: pointer;
-    display: flex; align-items: flex-start; gap: 12px;
-    transition: all 0.15s;
-    text-align: left;
-  }
-  .opt:hover:not(.disabled) { border-color: var(--navy-light); background: #f0f4ff; }
-  .opt-letter {
-    min-width: 26px; height: 26px;
-    border-radius: 50%;
-    background: var(--bg);
-    border: 1.5px solid var(--border);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 12px; font-weight: 700; color: var(--text-muted);
-    flex-shrink: 0; margin-top: 1px;
-  }
-  .opt.correct { border-color: var(--green-light); background: #edf8f2; }
-  .opt.correct .opt-letter { background: var(--green); border-color: var(--green); color: #fff; }
-  .opt.wrong { border-color: var(--red-light); background: #fdf0ef; }
-  .opt.wrong .opt-letter { background: var(--red-light); border-color: var(--red-light); color: #fff; }
-  .opt.disabled { cursor: default; }
-  /* provisional selection before Submit — blue, so it never reads as "wrong" */
-  .opt.selected { border-color: var(--navy-light); background: #f0f4ff; }
-  .opt.selected .opt-letter { background: var(--navy-light); border-color: var(--navy-light); color: #fff; }
-
-  /* answer reveal */
-  .answer-box {
-    background: #edf8f2;
-    border: 1.5px solid var(--green-light);
-    border-radius: 11px;
-    padding: 16px 18px;
-    margin-bottom: 14px;
-    display: none;
-  }
-  .answer-box.show { display: block; animation: slideIn 0.25s ease; }
-  .answer-box.wrong-ans { background: #fdf0ef; border-color: var(--red-light); }
-  @keyframes slideIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
-  .ans-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--green); margin-bottom: 6px; }
-  .ans-label.wrong { color: var(--red); }
-  .ans-en { font-size: 14px; font-weight: 700; color: var(--green); margin-bottom: 10px; line-height: 1.5; }
-  .ans-en.wrong { color: var(--red); }
-  .divider { height: 1px; background: rgba(0,0,0,0.06); margin: 10px 0; }
-  .ans-yue { font-size: 13px; color: var(--purple); font-weight: 600; margin-bottom: 4px; line-height: 1.6; }
-  .ans-yue-title { font-weight: 800; margin-bottom: 2px; }
-  .ans-yue-row { display: flex; gap: 6px; }
-  .ans-yue-row b { flex-shrink: 0; }
-  .ans-note { white-space: pre-wrap; font-size: 12px; color: var(--text-muted); line-height: 1.55; }
-  .ans-note strong { color: #b5680a; }
-
-  /* similar questions — other questions built from the same STUDY fact (practice only) */
-  .sqm { display: none; background: var(--card); border: 1.5px solid var(--border); border-radius: 11px; margin: 16px 0 14px; padding: 14px 18px 16px; }
-  .sqm.show { display: block; animation: slideIn 0.25s ease; }
-  .sqm-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-  .sqm-icon { width: 30px; height: 30px; border-radius: 8px; background: #fbf5e6; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
-  .sqm-title { flex: 1; }
-  .sqm-title b { display: block; font-size: 14px; color: var(--navy); }
-  .sqm-title span { font-size: 12px; color: var(--text-muted); }
-  .sqm-count { background: var(--navy); color: var(--gold-light); border-radius: 999px; padding: 3px 9px; font-size: 11px; font-weight: 800; }
-  .sqm-fact { background: #fbf5e6; border-left: 3px solid var(--gold); border-radius: 0 8px 8px 0; padding: 10px 12px; margin-bottom: 14px; }
-  .sqm-fact-label { font-size: 10px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #9a7a22; margin-bottom: 4px; }
-  .sqm-fact-en { font-size: 13px; line-height: 1.55; color: var(--navy); font-weight: 600; }
-  .sqm-fact-yue { font-size: 12.5px; line-height: 1.6; color: var(--purple); margin-top: 4px; }
-  .sqm-map { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 14px; }
-  .sqm-map-label { font-size: 11px; color: var(--text-muted); font-weight: 700; margin-right: 2px; }
-  .sqm-node { font-size: 11px; font-weight: 700; padding: 4px 9px; border-radius: 999px; border: 1.5px solid var(--border); color: var(--text-muted); background: var(--card); }
-  .sqm-node.current { background: var(--navy); border-color: var(--navy); color: #fff; }
-  .sqm-node.mastered { border-color: var(--green-light); color: var(--green); background: #edf8f2; }
-  .sqm-node.weak { border-color: var(--red-light); color: var(--red); background: #fdf0ef; }
-  .sqm-legend { display: flex; gap: 12px; font-size: 10.5px; color: var(--text-muted); margin: -6px 0 14px; flex-wrap: wrap; }
-  .sqm-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
-  .sqm-list { display: flex; flex-direction: column; gap: 8px; }
-  .sqm-item { border: 1.5px solid var(--border); border-radius: 10px; padding: 11px 13px; }
-  .sqm-item-top { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
-  .sqm-id { font-size: 10.5px; font-weight: 800; color: var(--text-muted); letter-spacing: 0.04em; }
-  .sqm-streak { margin-left: auto; font-size: 11px; font-weight: 700; color: var(--text-muted); }
-  .sqm-streak.done { color: var(--green); }
-  .sqm-q { font-size: 13.5px; font-weight: 600; color: var(--navy); line-height: 1.5; }
-  .sqm-qy { font-size: 12px; color: var(--purple); line-height: 1.5; margin-top: 2px; }
-  .sqm-cta { margin-top: 14px; }
-  .sqm-cta button { width: 100%; border-radius: 10px; padding: 11px 10px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; background: var(--gold); color: var(--navy); border: none; }
-
-  /* nav buttons */
-  .nav-row { display: flex; gap: 10px; justify-content: flex-end; }
-  .nav-btn {
-    background: var(--navy);
-    color: #fff;
-    border: none;
-    border-radius: 10px;
-    padding: 12px 24px;
-    font-size: 14px; font-weight: 700;
-    cursor: pointer; transition: all 0.15s;
-  }
-  .nav-btn:hover { background: var(--navy-light); }
-  .nav-btn.secondary { background: var(--card); color: var(--navy); border: 2px solid var(--border); }
-  .nav-btn.secondary:hover { background: var(--navy); color: #fff; border-color: transparent; }
-  .nav-btn:disabled { opacity: 0.4; cursor: default; }
-
-
-  /* ── RESULT SCREEN ── */
-  .result-card {
-    background: var(--card);
-    border-radius: var(--radius);
-    padding: 32px 24px;
-    text-align: center;
-    box-shadow: var(--shadow);
-    margin-bottom: 20px;
-  }
-  .result-emoji { font-size: 52px; margin-bottom: 12px; }
-  .result-score {
-    font-size: 52px; font-weight: 900; color: var(--navy);
-    line-height: 1;
-  }
-  .result-score span { font-size: 22px; color: var(--text-muted); font-weight: 500; }
-  /* exam: failed score line is red; passed stays navy */
-  .result-score.fail, .result-score.fail span { color: var(--red-light); }
-  /* exam: per-question result dots (tap to jump to the review) */
-  .rdots-wrap { display: none; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); }
-  .rdots { display: grid; grid-template-columns: repeat(12, 1fr); gap: 6px; }
-  .rdot {
-    aspect-ratio: 1; width: 100%; max-width: 30px; justify-self: center; padding: 0;
-    border-radius: 50%; border: 2px solid transparent; color: #fff;
-    font-size: 10.5px; font-weight: 800; display: flex; align-items: center; justify-content: center; cursor: pointer;
-  }
-  .rdot.ok { background: var(--green-light); border-color: var(--green-light); }
-  .rdot.bad { background: var(--red-light); border-color: var(--red-light); }
-  .rdot.skip { background: var(--card); border-color: var(--red-light); color: var(--red-light); }
-  .rdot.flag { box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--orange); }
-  .rmeta {
-    display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 5px; margin-top: 10px;
-    font-size: 10px; color: var(--text-muted); white-space: nowrap;
-  }
-  .rmeta .sep { color: var(--border); }
-  .rmeta i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 3px; vertical-align: -1px; }
-  .rmeta .lg-ok { background: var(--green-light); }
-  .rmeta .lg-bad { background: var(--red-light); }
-  .rmeta .lg-skip { border: 2px solid var(--red-light); }
-  .rmeta .lg-flag { box-shadow: 0 0 0 2px var(--orange); }
-  .result-label { font-size: 16px; font-weight: 700; margin: 8px 0 4px; }
-  .result-sub { font-size: 13px; color: var(--text-muted); }
-  .pass { color: var(--green); }
-  .fail { color: var(--red); }
-  .result-breakdown {
-    display: grid; grid-template-columns: 1fr 1fr 1fr;
-    gap: 12px; margin-top: 20px;
-  }
-  .rb-item {
-    background: var(--bg);
-    border-radius: 10px;
-    padding: 14px 8px;
-  }
-  .rb-num { font-size: 22px; font-weight: 800; }
-  .rb-lbl { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-
-  .result-actions { margin-bottom: 20px; }
-  .review-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
-  .review-item {
-    background: var(--card);
-    border-radius: 10px;
-    padding: 16px 18px;
-    border-left: 4px solid var(--border);
-    font-size: 13px;
-    line-height: 1.55;
-  }
-  .review-item.rv-correct { border-color: var(--green-light); }
-  .review-item.rv-wrong { border-color: var(--red-light); }
-  .rv-q { font-weight: 600; color: var(--navy); margin-bottom: 8px; line-height: 1.5; }
-  .rv-your { color: var(--text-muted); font-size: 12.5px; line-height: 1.6; margin-bottom: 4px; }
-  .rv-correct-ans { color: var(--green); font-size: 12.5px; font-weight: 600; line-height: 1.6; }
-  /* translation + note: own block under the answer, one row per note line, hanging indent for bullets */
-  .rv-tr { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); }
-  .rv-yue { color: var(--purple); font-size: 12.5px; line-height: 1.6; }
-  .rv-note { margin-top: 10px; color: var(--purple); font-size: 12.5px; line-height: 1.6; }
-  .rv-note-label { color: #b5680a; font-weight: 700; margin-bottom: 4px; }
-  .rv-note-line { margin-bottom: 6px; }
-  .rv-note-line:last-child { margin-bottom: 0; }
-  .rv-note-line.bullet { padding-left: 1.1em; text-indent: -1.1em; }
-  .rv-note-line.sub { padding-left: 2.2em; text-indent: -1.1em; }
-  .rv-note-gap { height: 6px; }
-  .rv-flag { width: 15px; height: 15px; margin-left: 5px; vertical-align: -2px; }
-  .rv-flag path, .chip-flag path, .rv-flag-tile path { fill: var(--orange); stroke: var(--orange); stroke-width: 2; stroke-linejoin: round; }
-  .chip-flag { width: 13px; height: 13px; vertical-align: -2px; margin-right: 3px; }
-  .chip.active .chip-flag path { fill: currentColor; stroke: currentColor; }
-  .chip:disabled { opacity: 0.45; cursor: default; }
-  .review-item { scroll-margin-top: 80px; transition: box-shadow 0.3s; }
-  .review-item.hl { box-shadow: 0 0 0 3px var(--gold); }
-
-  /* install banner */
-  .install-banner {
-    background: linear-gradient(135deg, var(--navy-mid), var(--navy));
-    border-radius: var(--radius);
-    padding: 16px 18px;
-    display: flex; align-items: center; gap: 14px;
-    margin-bottom: 20px;
-    display: none;
-  }
-  .install-banner.visible { display: flex; }
-  .install-text { flex: 1; }
-  .install-text strong { color: #fff; font-size: 14px; display: block; margin-bottom: 2px; }
-  .install-text span { color: rgba(255,255,255,0.65); font-size: 12px; }
-  .install-btn {
-    background: var(--gold);
-    color: var(--navy);
-    border: none; border-radius: 8px;
-    padding: 9px 16px;
-    font-size: 13px; font-weight: 800;
-    cursor: pointer; white-space: nowrap;
-  }
-
-  /* ── HOME: chapter / difficulty practice ── */
-  .chapter-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
-  .chapter-btn {
-    background: var(--card);
-    border: 2px solid var(--border);
-    border-radius: 10px;
-    padding: 10px 14px;
-    display: flex; align-items: center; gap: 10px;
-    cursor: pointer; text-align: left;
-    font-size: 13px; color: var(--navy);
-    transition: all 0.15s;
-  }
-  .chapter-btn:hover { border-color: var(--purple); }
-  .chapter-btn .ch-num {
-    background: var(--purple); color: #fff;
-    border-radius: 6px; padding: 3px 8px;
-    font-size: 11px; font-weight: 800; flex-shrink: 0;
-  }
-  .chapter-btn .ch-name { font-weight: 700; flex: 1; }
-  .chapter-btn .ch-count { color: var(--text-muted); font-size: 12px; white-space: nowrap; }
-
-  /* ── difficulty stars ── */
-  .stars { color: var(--gold); letter-spacing: 1px; font-size: 12px; white-space: nowrap; }
-  .stars .off { color: var(--border); }
-  .diff-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
-  .diff-btn .stars { font-size: 14px; flex: 1; }
-  .diff-btn .ch-name { flex: 0; white-space: nowrap; color: var(--text-muted); font-weight: 600; font-size: 12px; }
-  .diff-table { background: var(--card); border-radius: 10px; padding: 6px 14px; margin-bottom: 20px; }
-  .diff-row { display: grid; grid-template-columns: 82px 1fr 82px; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
-  .diff-row:last-child { border-bottom: none; }
-  .diff-bar { height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
-  .diff-bar > div { height: 100%; background: var(--green-light); border-radius: 4px; }
-  .diff-bar.low > div { background: var(--red-light); }
-  .diff-bar.mid > div { background: var(--gold); }
-  .diff-pct { text-align: right; font-weight: 700; color: var(--navy); font-size: 12px; white-space: nowrap; }
-  .tag.diff { background: #fdf6e3; color: #8a6d1f; letter-spacing: 1px; }
-
-  /* ── STUDY SCREEN ── */
-  .study-search {
-    width: 100%;
-    background: var(--card);
-    border: 2px solid var(--border);
-    border-radius: 10px;
-    padding: 11px 14px;
-    font-size: 14px; color: var(--text);
-    margin-bottom: 12px;
-    outline: none;
-  }
-  .study-search:focus { border-color: var(--purple); }
-  .study-tabs {
-    display: grid; grid-template-columns: repeat(4, 1fr);
-    gap: 6px; margin-bottom: 12px;
-  }
-  .study-tab {
-    background: var(--card);
-    border: 2px solid var(--border);
-    border-radius: 10px;
-    padding: 9px 4px;
-    font-size: 12px; font-weight: 700; color: var(--text-muted);
-    cursor: pointer; text-align: center;
-    transition: all 0.15s;
-  }
-  .study-tab.active { background: var(--purple); border-color: var(--purple); color: #fff; }
-  .chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
-  .chip {
-    background: var(--card);
-    border: 1.5px solid var(--border);
-    border-radius: 999px;
-    padding: 5px 12px;
-    font-size: 12px; font-weight: 600; color: var(--text-muted);
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .chip.active { background: var(--navy); border-color: var(--navy); color: #fff; }
-  .chip.war.active { background: var(--red); border-color: var(--red); }
-  .chip.ch.active { background: var(--purple); border-color: var(--purple); }
-  .study-count { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
-  .study-group-title {
-    font-size: 14px; font-weight: 800; color: var(--navy);
-    margin: 22px 0 10px;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .study-group-title:first-child { margin-top: 4px; }
-  .study-group-title .cnt { font-size: 11px; color: var(--text-muted); font-weight: 600; }
-  .study-sub-title {
-    font-size: 12px; font-weight: 700; color: var(--purple);
-    text-transform: uppercase; letter-spacing: 0.05em;
-    margin: 14px 0 8px;
-  }
-  .fact {
-    background: var(--card);
-    border-radius: 10px;
-    padding: 12px 14px;
-    border-left: 4px solid var(--purple-light);
-    margin-bottom: 10px;
-    transition: opacity 0.15s;
-  }
-  .fact.war { border-left-color: var(--red-light); }
-  .fact.mastered { opacity: 0.55; border-left-color: var(--green-light); }
-  .fact-top { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 6px; }
-  .fact-meta { flex: 1; display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
-  .tag {
-    font-size: 10.5px; font-weight: 700;
-    border-radius: 5px; padding: 2px 7px;
-    background: var(--bg); color: var(--text-muted);
-  }
-  .tag.year { background: #ede6f7; color: var(--purple); }
-  .tag.war { background: #fdf0ef; color: var(--red); }
-  .tag.freq { background: #fdf6e3; color: #8a6d1f; }
-  .tag.person { background: #e6f0ff; color: var(--navy-light); }
-  .fact-actions { display: flex; gap: 4px; flex-shrink: 0; }
-  .fact-btn {
-    background: var(--bg);
-    border: 1.5px solid var(--border);
-    border-radius: 7px;
-    width: 30px; height: 28px;
-    font-size: 14px; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    color: var(--text-muted);
-    transition: all 0.15s;
-  }
-  .fact-btn.on.star { background: #fdf6e3; border-color: var(--gold); color: #b8860b; }
-  .fact-btn.on.tick { background: #edf8f2; border-color: var(--green); color: var(--green); }
-  .fact-name { font-size: 14px; font-weight: 800; color: var(--navy); margin-bottom: 4px; }
-  .fact-en { font-size: 14px; font-weight: 500; color: var(--text); line-height: 1.5; }
-  .fact-yue { font-size: 13px; color: var(--purple); line-height: 1.6; margin-top: 5px; }
-  .study-empty { text-align: center; color: var(--text-muted); font-size: 13px; padding: 30px 0; }
-
-  /* timeline */
-  .tl-era {
-    font-size: 13px; font-weight: 800; color: #fff;
-    background: linear-gradient(135deg, var(--navy), var(--navy-mid));
-    border-radius: 8px; padding: 8px 12px;
-    margin: 22px 0 12px;
-    display: flex; justify-content: space-between; align-items: center;
-  }
-  .tl-era:first-child { margin-top: 4px; }
-  .tl-era span { font-size: 11px; opacity: 0.75; font-weight: 600; }
-  .tl-item { display: grid; grid-template-columns: 74px 1fr; gap: 0 10px; position: relative; }
-  .tl-year {
-    font-size: 12px; font-weight: 800; color: var(--purple);
-    text-align: right; padding-top: 13px; line-height: 1.2;
-    position: relative;
-  }
-  .tl-year::after {
-    content: ''; position: absolute; right: -16px; top: 16px;
-    width: 10px; height: 10px; border-radius: 50%;
-    background: var(--purple-light); border: 2px solid var(--card);
-    box-shadow: 0 0 0 2px var(--purple-light);
-  }
-  .tl-item.war .tl-year { color: var(--red); }
-  .tl-item.war .tl-year::after { background: var(--red-light); box-shadow: 0 0 0 2px var(--red-light); }
-  .tl-body { border-left: 2px solid var(--border); padding-left: 16px; padding-bottom: 2px; }
-  .tl-body .fact { margin-bottom: 8px; }
-
-  /* screen management */
-  .screen { display: none; }
-  .screen.active { display: block; }
-
-  @media (max-width: 480px) {
-    .mode-card { padding: 14px 6px; }
-    .mode-title { font-size: 13px; }
-    .study-tab { font-size: 11px; padding: 8px 2px; }
-    .tl-item { grid-template-columns: 62px 1fr; }
-    .tl-year { font-size: 11px; }
-    .q-text { font-size: 15px; }
-    .result-breakdown { grid-template-columns: 1fr 1fr 1fr; }
-    .result-score { font-size: 42px; }
-  }
-</style>
+<link rel="stylesheet" href="css/base/tokens.css">
+<link rel="stylesheet" href="css/base/layout.css">
+<link rel="stylesheet" href="css/components/buttons.css">
+<link rel="stylesheet" href="css/components/chips.css">
+<link rel="stylesheet" href="css/components/dots.css">
+<link rel="stylesheet" href="css/components/modal.css">
+<link rel="stylesheet" href="css/components/popover.css">
+<link rel="stylesheet" href="css/screens/home.css">
+<link rel="stylesheet" href="css/screens/quiz.css">
+<link rel="stylesheet" href="css/screens/results.css">
+<link rel="stylesheet" href="css/screens/flagged.css">
+<link rel="stylesheet" href="css/screens/study.css">
 </head>
 <body>
 
@@ -826,17 +29,17 @@
     <div class="logo">
       <span class="logo-flag">🇬🇧</span>
       <div>
-        <div class="logo-text">Life in the UK <button class="info-btn" id="infoBtn" aria-label="About this app" aria-expanded="false" onclick="toggleInfo(event)">ⓘ</button></div>
+        <div class="logo-text">Life in the UK <button class="info-btn" id="infoBtn" aria-label="About this app" aria-expanded="false" data-action="toggleInfo">ⓘ</button></div>
         <div class="logo-sub">Exam Practice <span class="app-version" id="appVersion"></span></div>
       </div>
     </div>
   </div>
   <div class="info-pop" id="infoPop" role="dialog" aria-label="About this app">
-    <h2>Exam 1–17 Practice <span class="app-version" id="appVersionPop"></span></h2>
-    <p>408 official-style questions from lifeintheuktestweb.co.uk, with Cantonese translations and notes.</p>
+    <h2 id="infoTitle">Exam 1–17 Practice <span class="app-version" id="appVersionPop"></span></h2>
+    <p id="infoIntro">408 official-style questions from lifeintheuktestweb.co.uk, with Cantonese translations and notes.</p>
     <div class="hero-meta">
-      <div class="hero-badge">📋 17 Exams</div>
-      <div class="hero-badge">❓ 408 Questions</div>
+      <div class="hero-badge" id="infoExamCount">📋 17 Exams</div>
+      <div class="hero-badge" id="infoQuestionCount">❓ 408 Questions</div>
       <div class="hero-badge">🔒 Works Offline</div>
     </div>
   </div>
@@ -852,20 +55,20 @@
         <strong>Install for offline use</strong>
         <span>Add to home screen to study without internet</span>
       </div>
-      <button class="install-btn" id="installBtn">Install</button>
+      <button class="install-btn" id="installBtn" data-action="install">Install</button>
     </div>
 
     <div class="section-title">Choose Mode</div>
     <div class="mode-grid">
-      <button class="mode-card" id="modeStudy" onclick="openStudy()">
+      <button class="mode-card" id="modeStudy" data-action="openStudy">
         <div class="mode-icon">📖</div>
         <div class="mode-title">Study</div>
       </button>
-      <button class="mode-card" id="modePractice" onclick="startMode('practice')">
+      <button class="mode-card" id="modePractice" data-action="startMode" data-arg="practice">
         <div class="mode-icon">🎯</div>
         <div class="mode-title">Practice</div>
       </button>
-      <button class="mode-card" id="modeExam" onclick="startMode('exam')">
+      <button class="mode-card" id="modeExam" data-action="startMode" data-arg="exam">
         <div class="mode-icon">📝</div>
         <div class="mode-title">Exam</div>
       </button>
@@ -876,8 +79,8 @@
     <div class="my-review" id="myReview">
       <div class="section-title">My Review</div>
       <div class="my-grid">
-        <button class="my-tile wrong" id="tileWrong" onclick="startWrongReview()"></button>
-        <button class="my-tile flagged" id="tileFlagged" onclick="openFlagged()"></button>
+        <button class="my-tile wrong" id="tileWrong" data-action="startWrongReview"></button>
+        <button class="my-tile flagged" id="tileFlagged" data-action="openFlagged"></button>
       </div>
       <div class="my-note" id="myReviewNote"></div>
     </div>
@@ -885,9 +88,9 @@
     <!-- practice: the questions' own categories -->
     <div class="section-title practice-by-title" id="practiceByTitle">Practice by</div>
     <div class="practice-tabs" id="practiceTabs">
-      <button class="practice-tab" id="ptabDifficulty" onclick="setPracticeView('difficulty')">Difficulty</button>
-      <button class="practice-tab" id="ptabChapter" onclick="setPracticeView('chapter')">Chapter</button>
-      <button class="practice-tab" id="ptabExam" onclick="setPracticeView('exam')">Exam</button>
+      <button class="practice-tab" id="ptabDifficulty" data-action="setPracticeView" data-arg="difficulty">Difficulty</button>
+      <button class="practice-tab" id="ptabChapter" data-action="setPracticeView" data-arg="chapter">Chapter</button>
+      <button class="practice-tab" id="ptabExam" data-action="setPracticeView" data-arg="exam">Exam</button>
     </div>
 
     <div class="exam-select-section" id="secDifficulty">
@@ -905,11 +108,11 @@
 
     <div class="reset-row" id="practiceReset">
       <span class="reset-hint" id="practiceHint"></span>
-      <button class="reset-btn" onclick="resetPracticeProgress()">↺ Reset progress</button>
+      <button class="reset-btn" data-action="resetPracticeProgress">↺ Reset progress</button>
     </div>
     <div class="reset-row" id="examReset">
       <span class="reset-hint">Completed exams are marked with ✓.</span>
-      <button class="reset-btn" onclick="resetCompletedExams()">↺ Reset completed exams</button>
+      <button class="reset-btn" data-action="resetCompletedExams">↺ Reset completed exams</button>
     </div>
 
   </div>
@@ -917,27 +120,27 @@
   <!-- ── FLAGGED (practice) ── -->
   <div class="screen" id="screenFlagged">
     <div class="quiz-header">
-      <button class="back-btn" onclick="goHome()">← Home</button>
+      <button class="back-btn" data-action="goHome">← Home</button>
       <span class="quiz-label">Flagged</span>
     </div>
-    <button class="flag-start" id="flaggedStart" onclick="startFlaggedPractice()"></button>
+    <button class="flag-start" id="flaggedStart" data-action="startFlaggedPractice"></button>
     <div id="flaggedList"></div>
   </div>
 
   <!-- ── STUDY ── -->
   <div class="screen" id="screenStudy">
     <div class="quiz-header">
-      <button class="back-btn" onclick="goHome()">← Home</button>
+      <button class="back-btn" data-action="goHome">← Home</button>
       <span class="quiz-label">📖 Study · 溫習</span>
     </div>
 
-    <input class="study-search" id="studySearch" type="search" placeholder="Search facts… 搜尋（英文 / 廣東話）" oninput="studySetSearch(this.value)">
+    <input class="study-search" id="studySearch" type="search" placeholder="Search facts… 搜尋（英文 / 廣東話）" data-input-action="studySetSearch">
 
     <div class="study-tabs" id="studyTabs">
-      <button class="study-tab" data-tab="chapters" onclick="studySetTab('chapters')">📚 Chapters</button>
-      <button class="study-tab" data-tab="timeline" onclick="studySetTab('timeline')">📅 Timeline</button>
-      <button class="study-tab" data-tab="geo" onclick="studySetTab('geo')">🗺️ Geography</button>
-      <button class="study-tab" data-tab="people" onclick="studySetTab('people')">👤 People</button>
+      <button class="study-tab" data-tab="chapters" data-action="studySetTab" data-arg="chapters">📚 Chapters</button>
+      <button class="study-tab" data-tab="timeline" data-action="studySetTab" data-arg="timeline">📅 Timeline</button>
+      <button class="study-tab" data-tab="geo" data-action="studySetTab" data-arg="geo">🗺️ Geography</button>
+      <button class="study-tab" data-tab="people" data-action="studySetTab" data-arg="people">👤 People</button>
     </div>
 
     <div class="chip-row" id="studyChips"></div>
@@ -949,28 +152,29 @@
   <!-- ── QUIZ ── -->
   <div class="screen" id="screenQuiz">
     <div class="quiz-header">
-      <button class="back-btn" onclick="goHome()">← Home</button>
-      <div style="display:flex;align-items:center;gap:8px">
+      <button class="back-btn" data-action="goHome">← Home</button>
+      <div class="quiz-meta">
         <span class="quiz-label" id="quizLabel">Exam 1</span>
         <span class="quiz-mode-badge" id="modeBadge">Practice</span>
-        <span class="exam-timer" id="examTimer" role="timer" aria-live="off">⏱ 45:00</span>
+        <span class="exam-timer" id="examTimer" role="timer" aria-live="off" hidden>⏱ 45:00</span>
       </div>
     </div>
 
-    <div class="round-row" id="roundRow"><span class="round-note" id="roundNote"></span></div>
+    <div class="round-row" id="roundRow" hidden><span class="round-note" id="roundNote"></span></div>
     <div class="q-card">
       <div class="q-progress"><div class="q-progress-fill" id="progressFill" style="width:0%"></div></div>
-      <!-- exam: question navigator (tap a number to jump) + answered / unanswered / flagged counts -->
-      <div class="nav-dots" id="navDots"></div>
-      <div class="dots-meta" id="dotsMeta"></div>
+      <!-- question navigator (tap a number to jump) + answered / unanswered / flagged counts -->
+      <div class="nav-dots" id="navDots" hidden></div>
+      <div class="dots-meta" id="dotsMeta" hidden></div>
       <div class="q-num">
         <span class="q-num-text" id="qNum">Question 1</span>
-        <button class="flag-btn" id="flagBtn" onclick="toggleFlag()" title="Flag for review" aria-label="Flag for review"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 3.5h9A2.5 2.5 0 0 1 19 6v14.5l-7-5.1-7 5.1V6a2.5 2.5 0 0 1 2.5-2.5z"/></svg></button>
-        <button class="yue-toggle" id="yueToggle" onclick="toggleQuestionYue()">Translate</button>
+        <!-- bookmark icon filled in from bookmarkSvg() at init (single source for the path) -->
+        <button class="flag-btn" id="flagBtn" data-action="toggleFlag" title="Flag for review" aria-label="Flag for review" hidden></button>
+        <button class="yue-toggle" id="yueToggle" data-action="toggleQuestionYue">Translate</button>
         <!-- once answered: quick Prev / Next in the Translate spot (mirrors the bottom buttons) -->
         <span class="quick-nav" id="quickNav">
-          <button class="quick-btn" id="quickPrev" title="Previous" aria-label="Previous" onclick="prevQ()">←</button>
-          <button class="quick-btn primary" id="quickNext" title="Next" aria-label="Next">→</button>
+          <button class="quick-btn" id="quickPrev" title="Previous" aria-label="Previous" data-action="prevQ">←</button>
+          <button class="quick-btn primary" id="quickNext" title="Next" aria-label="Next" data-action="next">→</button>
         </span>
       </div>
       <div class="q-text" id="qText"></div>
@@ -990,8 +194,8 @@
 
 
     <div class="nav-row">
-      <button class="nav-btn secondary" id="prevBtn" onclick="prevQ()">← Prev</button>
-      <button class="nav-btn" id="nextBtn" onclick="nextQ()">Next →</button>
+      <button class="nav-btn secondary" id="prevBtn" data-action="prevQ">← Prev</button>
+      <button class="nav-btn" id="nextBtn" data-action="next">Next →</button>
     </div>
 
     <!-- practice: other questions built from the same study fact (below Prev / Next) -->
@@ -1001,24 +205,25 @@
   <!-- ── RESULT ── -->
   <div class="screen" id="screenResult">
     <div class="quiz-header">
-      <button class="back-btn" onclick="goHome()">← Home</button>
+      <button class="back-btn" data-action="goHome">← Home</button>
       <span class="quiz-label" id="resultLabel">Results</span>
     </div>
 
-    <div class="result-timeup" id="resultTimeUp">⏱ Time's up — your exam was submitted automatically.</div>
+    <div class="result-timeup" id="resultTimeUp" hidden>⏱ Time's up — your exam was submitted automatically.</div>
     <div class="result-card">
       <div class="result-emoji" id="resultEmoji">🎉</div>
       <div class="result-score" id="resultScore">18 <span>/ 24</span></div>
       <div class="result-label" id="resultLabel2">PASSED</div>
       <div class="result-sub" id="resultSub">You need 18/24 (75%) to pass the real test.</div>
       <div class="result-note" id="resultNote"></div>
-      <div class="result-breakdown">
+      <!-- hidden: the score is shown once (score line + dots legend) -->
+      <div class="result-breakdown" hidden>
         <div class="rb-item"><div class="rb-num pass" id="rbCorrect">0</div><div class="rb-lbl">Correct</div></div>
         <div class="rb-item"><div class="rb-num fail" id="rbWrong">0</div><div class="rb-lbl">Wrong</div></div>
-        <div class="rb-item"><div class="rb-num" id="rbPct" style="color:var(--navy)">0%</div><div class="rb-lbl">Score</div></div>
+        <div class="rb-item"><div class="rb-num rb-pct" id="rbPct">0%</div><div class="rb-lbl">Score</div></div>
       </div>
-      <!-- exam: one dot per question (green correct · red wrong · red outline unanswered · orange ring flagged) -->
-      <div class="rdots-wrap" id="resultDotsWrap">
+      <!-- one dot per question (green correct · red wrong · red outline unanswered · orange ring flagged) -->
+      <div class="rdots-wrap" id="resultDotsWrap" hidden>
         <div class="rdots" id="resultDots"></div>
         <div class="rmeta" id="resultDotsMeta"></div>
       </div>
@@ -1029,8 +234,8 @@
 
     <!-- same buttons above and below the review list, so a long review needs no scrolling -->
     <div class="nav-row result-actions">
-      <button class="nav-btn secondary retry-btn" onclick="retryExam()">Retry Exam</button>
-      <button class="nav-btn another-btn" onclick="goHome()">Choose Another</button>
+      <button class="nav-btn secondary retry-btn" data-action="retryExam">Retry Exam</button>
+      <button class="nav-btn another-btn" data-action="goHome">Choose Another</button>
     </div>
 
     <div class="section-title">Review Answers</div>
@@ -1038,1313 +243,47 @@
     <div class="review-list" id="reviewList"></div>
 
     <div class="nav-row">
-      <button class="nav-btn secondary retry-btn" onclick="retryExam()">Retry Exam</button>
-      <button class="nav-btn another-btn" onclick="goHome()">Choose Another</button>
+      <button class="nav-btn secondary retry-btn" data-action="retryExam">Retry Exam</button>
+      <button class="nav-btn another-btn" data-action="goHome">Choose Another</button>
     </div>
   </div>
 
 </main>
 
 <!-- in-app confirm modal -->
-<div class="modal-backdrop" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" onclick="if (event.target === this) closeConfirm()">
+<div class="modal-backdrop" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" data-action="confirmBackdrop">
   <div class="modal-card">
     <div class="modal-title" id="confirmTitle"></div>
     <div class="modal-msg" id="confirmMsg"></div>
     <div class="modal-actions">
-      <button class="nav-btn secondary" id="confirmCancel" onclick="closeConfirm()">Cancel</button>
-      <button class="nav-btn" id="confirmOk">OK</button>
+      <button class="nav-btn secondary" id="confirmCancel" data-action="closeConfirm">Cancel</button>
+      <button class="nav-btn" id="confirmOk" data-action="confirmAccept">OK</button>
     </div>
   </div>
 </div>
-
+<!-- load order: data → core → domain → components → screens → actions → pwa → main (classic scripts, shared globals) -->
 <script src="data/exams.js"></script>
 <script src="data/study.js"></script>
-<script src="js/utils.js"></script>
-<script>
-// ════════════════════════════════════════
-// APP VERSION — single source of truth (shown in the header, drives the SW cache name)
-// ════════════════════════════════════════
-const APP_VERSION = '0.56';
-
-// ════════════════════════════════════════
-// APP STATE
-// ════════════════════════════════════════
-let state = {
-  mode: 'practice',      // 'practice' | 'exam'
-  examNum: 1,
-  questions: [],
-  current: 0,
-  answers: {},           // index -> [selected option indices]
-  revealed: {},          // index -> bool
-  yueShown: {},          // index -> bool (practice: question translation expanded)
-  sessionCorrect: 0,
-  sessionTotal: 0,
-};
-
-// ════════════════════════════════════════
-// HOME
-// ════════════════════════════════════════
-function buildExamGrid() {
-  const grid = document.getElementById('examGrid');
-  const done = getLS('completedExams') || {};
-  const isPractice = pendingMode === 'practice';
-  const mastery = list => {
-    if (!isPractice) return '';
-    const m = masteryOf(list);
-    return `<span class="exam-mastery${m.mastered ? '' : ' zero'}">${masteryText(m)}</span>${masteryBar(m)}`;
-  };
-  let html = isPractice
-    ? `<button class="exam-btn all" onclick="startExam('all')">🎯 All Exams (408 Q)${mastery(allQuestions())}</button>`
-    : `<button class="exam-btn all" onclick="startExam('all')">🎲 Random Exam<span class="exam-sub">${RANDOM_EXAM_SIZE} Qs from ${allQuestions().length} Qs</span></button>`;
-  for (let i = 1; i <= 17; i++) {
-    const doneCls = !isPractice && done[i] ? ' done' : '';
-    html += `<button class="exam-btn${doneCls}" onclick="startExam(${i})">Exam ${i}${mastery(examQuestions(i))}</button>`;
-  }
-  grid.innerHTML = html;
-  buildChapterGrid();
-  buildDiffGrid();
-}
-
-const CHAPTER_SHORT = {
-  1: 'Values & principles',
-  2: 'What is the UK?',
-  3: 'History',
-  4: 'Modern society',
-  5: 'Government & law',
-};
-function chapterQuestions(ch) {
-  const out = [];
-  for (let i = 1; i <= 17; i++) {
-    EXAMS[i].forEach((q, idx) => { if (q.ch === ch) out.push({ q, examNum: i, origIdx: idx }); });
-  }
-  return out;
-}
-// ── Practice mastery: consecutive correct answers per question (practice mode only) ──
-const MASTERY_STREAK = 3;
-const PRACTICE_ROUND_MAX = 24; // distinct questions drawn per practice round (same as the real test)
-const STREAK_LS = 'practiceStreak';
-let streaks = getLS(STREAK_LS) || {};
-const qKey = q => q.examNum + '.' + q.origIdx;
-function streakOf(q) { return streaks[qKey(q)] || 0; }
-function isMastered(q) { return streakOf(q) >= MASTERY_STREAK; }
-function recordPracticeAnswer(q, correct) {
-  const k = qKey(q);
-  streaks[k] = correct ? Math.min(MASTERY_STREAK, (streaks[k] || 0) + 1) : 0;
-  setLS(STREAK_LS, streaks);
-}
-// ── Similar questions: every question belongs to one STUDY fact (fact.src = "exam.idx" keys);
-// other questions of the same fact are the same point asked differently ──
-const SIMILAR_EXAM = 'similar';
-const FACT_BY_QKEY = {};
-STUDY.forEach(f => f.src.forEach(k => { FACT_BY_QKEY[k] = f; }));
-let similarReturn = null; // the stashed session while practising similar questions
-function factOf(q) { return FACT_BY_QKEY[qKey(q)]; }
-function similarKeys(q) {
-  const f = factOf(q);
-  return f ? f.src.filter(k => k !== qKey(q)) : [];
-}
-function questionByKey(k) {
-  const [examNum, origIdx] = k.split('.').map(Number);
-  return { q: EXAMS[examNum][origIdx], examNum, origIdx };
-}
-function isSimilarSession() { return similarReturn !== null; }
-// ── Practice "My Review": persistent flags + wrong-answer list (practice and exam mistakes) ──
-const FLAGS_LS = 'practiceFlags';
-const WRONG_LS = 'wrongList';
-const WRONG_EXAM = 'wrong';
-const FLAGGED_EXAM = 'flagged';
-let practiceFlags = getLS(FLAGS_LS) || {};
-let wrongList = getLS(WRONG_LS) || {};
-const keysOf = obj => Object.keys(obj).filter(k => obj[k]);
-function isPracticeFlagged(q) { return !!practiceFlags[qKey(q)]; }
-function setPracticeFlag(key, on) {
-  if (on) practiceFlags[key] = true; else delete practiceFlags[key];
-  setLS(FLAGS_LS, practiceFlags);
-}
-function addWrong(q) { wrongList[qKey(q)] = true; setLS(WRONG_LS, wrongList); }
-function clearWrong(q) { delete wrongList[qKey(q)]; setLS(WRONG_LS, wrongList); }
-function isReviewSet(examNum) { return examNum === WRONG_EXAM || examNum === FLAGGED_EXAM; }
-function reviewSetPool(examNum) {
-  return keysOf(examNum === WRONG_EXAM ? wrongList : practiceFlags).map(questionByKey);
-}
-function masteryOf(list) {
-  const mastered = list.filter(({ q, examNum, origIdx }) => isMastered({ examNum, origIdx })).length;
-  return { mastered, total: list.length, pct: list.length ? Math.round((mastered / list.length) * 100) : 0 };
-}
-function masteryText(m) { return `${m.mastered}/${m.total} · ${m.pct}%`; }
-function masteryBar(m) { return `<span class="mastery-bar" style="width:${m.pct}%"></span>`; }
-// questions still to practise: skip mastered ones until the whole set is mastered
-function practicePool(list) {
-  const remaining = list.filter(({ examNum, origIdx }) => !isMastered({ examNum, origIdx }));
-  return remaining.length ? remaining : list;
-}
-function resetPracticeProgress() {
-  if (!confirm('Reset all practice progress? 掌握進度、錯題同 flag 會全部清除。')) return;
-  streaks = {};
-  setLS(STREAK_LS, streaks);
-  wrongList = {};
-  setLS(WRONG_LS, wrongList);
-  practiceFlags = {};
-  setLS(FLAGS_LS, practiceFlags);
-  buildExamGrid();
-  renderMyReview();
-}
-function resetCompletedExams() {
-  if (!confirm('Reset all completed exams? 所有 ✓ 完成記錄會清除。')) return;
-  setLS('completedExams', {});
-  buildExamGrid();
-}
-function examQuestions(n) {
-  return EXAMS[n].map((q, idx) => ({ q, examNum: n, origIdx: idx }));
-}
-
-const DIFF_LABELS = { 1: 'Easy', 2: 'Basic', 3: 'Medium', 4: 'Hard', 5: 'Expert' };
-function allQuestions() {
-  const out = [];
-  for (let i = 1; i <= 17; i++) EXAMS[i].forEach((q, idx) => out.push({ q, examNum: i, origIdx: idx }));
-  return out;
-}
-function difficultyQuestions(level) {
-  return allQuestions().filter(({ q }) => q.d === level);
-}
-function buildDiffGrid() {
-  const grid = document.getElementById('diffGrid');
-  let html = '';
-  for (let d = 1; d <= 5; d++) {
-    const m = masteryOf(difficultyQuestions(d));
-    html += `<button class="chapter-btn diff-btn${m.pct === 100 ? ' complete' : ''}" onclick="startDifficulty(${d})">
-      ${starsHtml(d)}<span class="ch-name">${DIFF_LABELS[d]}</span>
-      <span class="ch-count mastery${m.mastered ? '' : ' zero'}">${masteryText(m)}</span>${masteryBar(m)}
-    </button>`;
-  }
-  grid.innerHTML = html;
-}
-function startDifficulty(level) {
-  pendingMode = 'practice';
-  startExam('d' + level);
-}
-
-function buildChapterGrid() {
-  const grid = document.getElementById('chapterGrid');
-  let html = '';
-  for (let ch = 1; ch <= 5; ch++) {
-    const m = masteryOf(chapterQuestions(ch));
-    html += `<button class="chapter-btn${m.pct === 100 ? ' complete' : ''}" onclick="startChapter(${ch})">
-      <span class="ch-num">Ch ${ch}</span>
-      <span class="ch-name">${CHAPTER_SHORT[ch]}</span>
-      <span class="ch-count mastery${m.mastered ? '' : ' zero'}">${masteryText(m)}</span>${masteryBar(m)}
-    </button>`;
-  }
-  grid.innerHTML = html;
-}
-function startChapter(ch) {
-  pendingMode = 'practice';
-  startExam('ch' + ch);
-}
-
-function isChapterExam(examNum) { return typeof examNum === 'string' && examNum.startsWith('ch'); }
-function chapterOf(examNum) { return Number(examNum.slice(2)); }
-// Exam 1–17 (Exam mode or Practice > By Exam) — the only sets shaped like the real test
-function isNumberedExam(examNum) { return typeof examNum === 'number'; }
-// exam mode › All Exams = Random Exam: RANDOM_EXAM_SIZE questions drawn from all 408, at most one per study fact
-const RANDOM_EXAM_SIZE = 24;
-function isRandomExam(examNum) { return examNum === 'all' && state.mode === 'exam'; }
-function randomExamPick(pool) {
-  const usedFacts = new Set();
-  const picked = [];
-  for (const item of shuffle(pool)) {
-    const fact = FACT_BY_QKEY[qKey(item)];
-    const factId = fact ? fact.id : qKey(item);
-    if (usedFacts.has(factId)) continue;
-    usedFacts.add(factId);
-    picked.push(item);
-    if (picked.length === RANDOM_EXAM_SIZE) break;
-  }
-  return picked;
-}
-function isDifficultyExam(examNum) { return typeof examNum === 'string' && examNum.startsWith('d'); }
-function difficultyOf(examNum) { return Number(examNum.slice(1)); }
-function examLabel(examNum) {
-  if (isRandomExam(examNum)) return 'Random Exam';
-  if (examNum === 'all') return 'All Exams';
-  if (isChapterExam(examNum)) return `Chapter ${chapterOf(examNum)}`;
-  if (isDifficultyExam(examNum)) {
-    const lv = difficultyOf(examNum);
-    return '★'.repeat(lv) + ' ' + DIFF_LABELS[lv];
-  }
-  if (examNum === SIMILAR_EXAM) return 'Similar Questions';
-  if (examNum === WRONG_EXAM) return 'Wrong answers';
-  if (examNum === FLAGGED_EXAM) return 'Flagged';
-  return `Exam ${examNum}`;
-}
-
-const MODE_DESC = {
-  practice: '<strong>Practice</strong> — See the answer and Cantonese translation immediately after each question. Pick a set by difficulty, chapter or exam; each shows how much you have mastered.',
-  exam: '<strong>Exam</strong> — Answer all 24 questions like the real test; you can go back and change answers. Submit on the last question to see your score and answers. Pick an exam below.',
-};
-const DEFAULT_MODE = 'practice';
-const DEFAULT_PRACTICE_VIEW = 'difficulty';
-const PRACTICE_VIEWS = ['difficulty', 'chapter', 'exam'];
-const HOME_PREFS_LS = 'homePrefs';
-let pendingMode = DEFAULT_MODE;
-let practiceView = DEFAULT_PRACTICE_VIEW;
-function loadHomePrefs() {
-  const p = getLS(HOME_PREFS_LS) || {};
-  if (p.mode === 'practice' || p.mode === 'exam') pendingMode = p.mode;
-  if (PRACTICE_VIEWS.includes(p.view)) practiceView = p.view;
-}
-function saveHomePrefs() {
-  setLS(HOME_PREFS_LS, { mode: pendingMode, view: practiceView });
-}
-function startMode(mode) {
-  pendingMode = mode;
-  saveHomePrefs();
-  buildExamGrid(); // mastery labels vs ✓ done depend on the mode
-  renderModeSelection();
-}
-function setPracticeView(view) {
-  practiceView = view;
-  saveHomePrefs();
-  renderModeSelection();
-}
-function renderModeSelection() {
-  document.getElementById('modePractice').classList.toggle('selected', pendingMode === 'practice');
-  document.getElementById('modeExam').classList.toggle('selected', pendingMode === 'exam');
-  const panel = document.getElementById('modeDesc');
-  panel.innerHTML = pendingMode ? MODE_DESC[pendingMode] : '';
-  panel.classList.toggle('show', !!pendingMode);
-
-  const isPractice = pendingMode === 'practice';
-  document.getElementById('practiceTabs').classList.toggle('show', isPractice);
-  document.getElementById('practiceByTitle').classList.toggle('show', isPractice);
-  renderMyReview();
-  PRACTICE_VIEWS.forEach(v => {
-    const id = v.charAt(0).toUpperCase() + v.slice(1);
-    document.getElementById('ptab' + id).classList.toggle('active', isPractice && practiceView === v);
-    // Practice: only the chosen view; Exam: only the exam list
-    const show = isPractice ? practiceView === v : v === 'exam';
-    document.getElementById('sec' + id).classList.toggle('hidden', !show);
-  });
-  // the "Select Exam" header is only needed when there are no practice tabs
-  document.getElementById('secExamTitle').style.display = isPractice ? 'none' : '';
-  document.getElementById('practiceHint').innerHTML =
-    `Answer a question correctly <b>${MASTERY_STREAK} times in a row</b> to master it. Each round draws up to <b>${PRACTICE_ROUND_MAX}</b> unmastered questions, each asked once; unmastered ones come back in the next round. Mastered ones are skipped until the whole set is mastered.`;
-  document.getElementById('practiceReset').classList.toggle('show', isPractice);
-  document.getElementById('examReset').classList.toggle('show', pendingMode === 'exam');
-}
-
-function startExam(examNum) {
-  if (!pendingMode) {
-    alert('Please select a mode first (Practice or Exam).');
-    return;
-  }
-  state.mode = pendingMode;
-  state.examNum = examNum;
-  similarReturn = null;
-
-  let pool;
-  if (isReviewSet(examNum)) pool = reviewSetPool(examNum);
-  else if (examNum === 'all') pool = allQuestions();
-  else if (isChapterExam(examNum)) pool = chapterQuestions(chapterOf(examNum));
-  else if (isDifficultyExam(examNum)) pool = difficultyQuestions(difficultyOf(examNum));
-  else pool = examQuestions(examNum);
-
-  // Practice: skip mastered questions until the whole set is mastered, shuffle, then draw
-  // at most PRACTICE_ROUND_MAX for this round. Exam: fixed exam order, all questions.
-  // review sets (wrong answers / flagged) ask every question in the list, mastered or not
-  state.setPool = pool;
-  state.masteredBefore = masteryOf(pool).mastered;
-  state.reviewTotal = isReviewSet(examNum) ? pool.length : 0;
-  state.cleared = 0;
-  if (state.mode === 'practice') {
-    state.questions = shuffle(isReviewSet(examNum) ? pool : practicePool(pool)).slice(0, PRACTICE_ROUND_MAX)
-      .map(({ q, examNum: e, origIdx }) => ({ ...shuffleOptions(q), examNum: e, origIdx }));
-  } else if (isRandomExam(examNum)) {
-    state.questions = randomExamPick(pool).map(({ q, examNum: e, origIdx }) => ({ ...shuffleOptions(q), examNum: e, origIdx }));
-  } else {
-    const ordered = examNum === 'all' ? shuffle(pool) : pool;
-    state.questions = ordered.map(({ q, examNum: e, origIdx }) => ({ ...shuffleOptions(q), examNum: e, origIdx }));
-  }
-
-  state.current = 0;
-  state.answers = {};
-  state.revealed = {};
-  state.yueShown = {};
-  state.flags = {};
-
-  examTimeUp = false;
-  if (hasExamTools()) startExamTimer(); else stopExamTimer();
-  showScreen('screenQuiz');
-  renderQuestion();
-}
-
-// ════════════════════════════════════════
-// QUIZ
-// ════════════════════════════════════════
-function renderQuestion() {
-  const q = state.questions[state.current];
-  const total = state.questions.length;
-  const idx = state.current;
-  const isMulti = q.a.length > 1;
-  const answered = state.answers[idx] !== undefined;
-  // state.revealed[idx] stores true/false (correct or not); presence = revealed
-  const revealed = idx in state.revealed;
-  // exam mode never shows right / wrong, the answer or translations until the results page
-  const showAnswer = revealed && state.mode === 'practice';
-
-  // header
-  document.getElementById('quizLabel').textContent =
-    state.examNum === 'all' && !isRandomExam(state.examNum) ? `All Exams (shuffled)` : examLabel(state.examNum);
-  document.getElementById('modeBadge').textContent =
-    state.mode === 'practice' ? 'Practice' : 'Exam';
-
-  // progress: the question card's top border
-  document.getElementById('progressFill').style.width = Math.round(((idx + 1) / total) * 100) + '%';
-
-  // question header: "Question X of Y" + stars + session score pill (practice, once answered)
-  document.getElementById('qNum').innerHTML =
-    `<span>Question ${idx + 1} of ${total}${isMulti ? ' (select ' + q.a.length + ')' : ''}</span>${starsHtml(q.d)}`;
-  document.getElementById('qText').textContent = q.q;
-
-  // Cantonese translation of question + options (practice only):
-  //   click "Translate" to show before answering; always shown once the answer is revealed
-  const yueToggle = document.getElementById('yueToggle');
-  const qYue = document.getElementById('qYue');
-  const yueOn = showAnswer || (state.mode === 'practice' && !!state.yueShown[idx]);
-  yueToggle.classList.toggle('visible', state.mode === 'practice' && !revealed);
-  yueToggle.classList.toggle('on', yueOn);
-  yueToggle.textContent = yueOn ? 'Hide translation' : 'Translate';
-  qYue.textContent = q.yue;
-  qYue.classList.toggle('show', yueOn);
-
-  // options
-  const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
-  let optHtml = '';
-  q.o.forEach((opt, oi) => {
-    let cls = 'opt';
-    const userPicked = answered && (state.answers[idx] || []).includes(oi);
-    const isCorrect = q.a.includes(oi);
-
-    if (showAnswer) {
-      cls += ' disabled';
-      if (isCorrect) cls += ' correct';
-      else if (userPicked) cls += ' wrong';
-    } else if (revealed) {
-      cls += ' disabled' + (userPicked ? ' selected' : ''); // exam: submitted, locked, no right / wrong
-    } else if (userPicked) {
-      cls += ' selected'; // provisional blue highlight before reveal
-    }
-
-    const optYue = yueOn && q.oy && q.oy[oi] ? `<span class="opt-yue">${q.oy[oi]}</span>` : '';
-    optHtml += `<button class="${cls}" onclick="selectOption(${oi})" id="opt${oi}">
-      <span class="opt-letter">${letters[oi]}</span>
-      <span class="opt-body"><span>${opt}</span>${optYue}</span>
-    </button>`;
-  });
-  document.getElementById('optionsContainer').innerHTML = optHtml;
-
-  // answer box (practice only, once revealed)
-  const box = document.getElementById('answerBox');
-  if (showAnswer) {
-    const userAns = state.answers[idx] || [];
-    const correct = q.a.every(a => userAns.includes(a)) && userAns.length === q.a.length;
-    box.className = 'answer-box show' + (correct ? '' : ' wrong-ans');
-    document.getElementById('ansLabel').className = 'ans-label' + (correct ? '' : ' wrong');
-    let label = correct ? '✓  Correct!' : '✗  Wrong';
-    if (state.mode === 'practice') {
-      const st = streakOf(q);
-      label += st >= MASTERY_STREAK ? '  ·  🏆 Mastered' : `  ·  🔥 ${st}/${MASTERY_STREAK}`;
-    }
-    document.getElementById('ansLabel').textContent = label;
-    document.getElementById('ansEn').className = 'ans-en' + (correct ? '' : ' wrong');
-    document.getElementById('ansEn').textContent = q.a.map(ai => q.o[ai]).join('  |  ');
-    const ansYueText = q.a.map(ai => (q.oy && q.oy[ai]) || q.o[ai]).join('  |  ');
-    document.getElementById('ansYue').innerHTML =
-      `<div class="ans-yue-title">【廣東話翻譯】</div>
-       <div class="ans-yue-row"><b>Q)</b><span>${escapeHtml(q.yue)}</span></div>
-       <div class="ans-yue-row"><b>A)</b><span>${escapeHtml(ansYueText)}</span></div>`;
-    document.getElementById('ansNote').innerHTML = q.note ? `<strong>💡 備注：</strong>\n${q.note}` : '';
-  } else {
-    box.className = 'answer-box';
-  }
-  renderSimilar(q, revealed);
-
-
-  renderExamTools(idx);
-
-  // nav buttons: bottom row, plus the quick pair in the question header once answered
-  const next = nextAction(idx, total);
-  ['prevBtn', 'quickPrev'].forEach(id => { document.getElementById(id).disabled = idx === 0; });
-  const nextBtn = document.getElementById('nextBtn');
-  nextBtn.textContent = next.label;
-  nextBtn.onclick = next.run;
-  const quickNext = document.getElementById('quickNext');
-  quickNext.textContent = next.symbol;
-  quickNext.title = next.title;
-  quickNext.setAttribute('aria-label', next.title);
-  quickNext.onclick = next.run;
-  // quick pair: practice once revealed (Translate holds the spot before that); exam always (no Translate there)
-  document.getElementById('quickNav').classList.toggle('visible', revealed || state.mode === 'exam');
-
-}
-
-// ── Similar questions section (practice only, once answered; hidden inside a similar session) ──
-function similarNodeClass(k) {
-  const st = streakOf(questionByKey(k));
-  return st >= MASTERY_STREAK ? ' mastered' : st > 0 ? ' weak' : '';
-}
-function similarItemHtml(k) {
-  const { q, examNum, origIdx } = questionByKey(k);
-  const st = streakOf({ examNum, origIdx });
-  const done = st >= MASTERY_STREAK;
-  return `<div class="sqm-item">
-      <div class="sqm-item-top">
-        <span class="sqm-id">Exam ${examNum} · Q${origIdx + 1}</span>
-        <span class="sqm-streak${done ? ' done' : ''}">${done ? '✓ Mastered' : `🔥 ${st}/${MASTERY_STREAK}`}</span>
-      </div>
-      <div class="sqm-q">${escapeHtml(q.q)}</div>
-      <div class="sqm-qy">${escapeHtml(q.yue)}</div>
-    </div>`;
-}
-function renderSimilar(q, revealed) {
-  const box = document.getElementById('similarBox');
-  const show = state.mode === 'practice' && revealed && !isSimilarSession();
-  const keys = show ? similarKeys(q) : [];
-  box.classList.toggle('show', keys.length > 0);
-  if (!keys.length) { box.innerHTML = ''; return; }
-  const f = factOf(q);
-  const nodes = [`<span class="sqm-node current">${qKey(q)}</span>`]
-    .concat(keys.map(k => `<span class="sqm-node${similarNodeClass(k)}">${k}</span>`));
-  box.innerHTML = `
-    <div class="sqm-head">
-      <span class="sqm-icon">🗺️</span>
-      <span class="sqm-title"><b>Similar Questions</b><span>Same fact, asked differently</span></span>
-      <span class="sqm-count">+${keys.length}</span>
-    </div>
-    <div class="sqm-fact">
-      <div class="sqm-fact-label">📌 Core Fact #${f.id}</div>
-      <div class="sqm-fact-en">${escapeHtml(f.en)}</div>
-      <div class="sqm-fact-yue">${escapeHtml(f.yue)}</div>
-    </div>
-    <div class="sqm-map"><span class="sqm-map-label">Appears in:</span>${nodes.join('')}</div>
-    <div class="sqm-legend">
-      <span><i style="background:var(--navy)"></i>This question</span>
-      <span><i style="background:var(--green-light)"></i>Mastered ${MASTERY_STREAK}/${MASTERY_STREAK}</span>
-      <span><i style="background:var(--red-light)"></i>In progress</span>
-      <span><i style="background:var(--border)"></i>0/${MASTERY_STREAK}</span>
-    </div>
-    <div class="sqm-list">${keys.map(similarItemHtml).join('')}</div>
-    <div class="sqm-cta"><button onclick="startSimilarPractice()">▶ Practise these ${keys.length}</button></div>`;
-}
-
-// one-off session over the similar questions (each once, listed order); the original session
-// is stashed and restored at the same question when the last one is done
-function startSimilarPractice() {
-  const keys = similarKeys(state.questions[state.current]);
-  if (!keys.length) return;
-  similarReturn = state;
-  state = {
-    ...state,
-    examNum: SIMILAR_EXAM,
-    questions: keys.map(questionByKey).map(({ q, examNum, origIdx }) => ({ ...shuffleOptions(q), examNum, origIdx })),
-    current: 0,
-    answers: {},
-    revealed: {},
-    yueShown: {},
-  };
-  renderQuestion();
-  window.scrollTo(0, 0);
-}
-function returnFromSimilar() {
-  state = similarReturn;
-  similarReturn = null;
-  renderQuestion();
-  window.scrollTo(0, 0);
-}
-
-// what "Next" does on this question: next question, finish the set, or leave the similar session
-// label = bottom button, symbol + title = quick button in the question header
-function nextAction(idx, total) {
-  if (idx < total - 1) return { label: 'Next →', symbol: '→', title: 'Next', run: nextQ };
-  if (isSimilarSession()) return { label: '↩ Back', symbol: '↩', title: 'Back', run: returnFromSimilar };
-  if (state.mode === 'exam') return { label: 'Submit', symbol: '✓', title: 'Submit', run: submitExam };
-  return { label: 'Finish ✓', symbol: '✓', title: 'Finish', run: finishExam };
-}
-// practice: "✓ correct/answered" for this session, shown once something is answered
-
-function selectOption(oi) {
-  const idx = state.current;
-  const q = state.questions[idx];
-  const isMulti = q.a.length > 1;
-
-  if (idx in state.revealed) return; // already revealed (true = correct, false = wrong)
-
-  if (state.mode === 'practice') {
-    // select and immediately reveal
-    if (!isMulti) {
-      state.answers[idx] = [oi];
-      revealAnswer();
-    } else {
-      // multi-select: toggle
-      if (!state.answers[idx]) state.answers[idx] = [];
-      const sel = state.answers[idx];
-      const pos = sel.indexOf(oi);
-      if (pos === -1) {
-        if (sel.length < q.a.length) sel.push(oi);
-      } else {
-        sel.splice(pos, 1);
-      }
-      // auto-reveal when enough selected
-      if (sel.length === q.a.length) {
-        revealAnswer();
-      } else {
-        renderQuestion();
-      }
-    }
-  } else {
-    // exam mode: select but don't reveal
-    if (!isMulti) {
-      state.answers[idx] = [oi];
-    } else {
-      if (!state.answers[idx]) state.answers[idx] = [];
-      const sel = state.answers[idx];
-      const pos = sel.indexOf(oi);
-      if (pos === -1) {
-        if (sel.length < q.a.length) sel.push(oi);
-      } else {
-        sel.splice(pos, 1);
-      }
-    }
-    renderQuestion();
-  }
-}
-
-function toggleQuestionYue() {
-  if (state.mode !== 'practice' || (state.current in state.revealed)) return;
-  state.yueShown[state.current] = !state.yueShown[state.current];
-  renderQuestion();
-}
-
-function revealAnswer() {
-  const idx = state.current;
-  const q = state.questions[idx];
-  const userAns = state.answers[idx] || [];
-  const correct = q.a.every(a => userAns.includes(a)) && userAns.length === q.a.length;
-  state.revealed[idx] = correct;
-  if (state.mode === 'practice') {
-    recordPracticeAnswer(q, correct); // session length stays fixed; unmastered ones return next session
-    // wrong answers join the review list; only a correct answer inside the review clears one
-    if (!correct) addWrong(q);
-    else if (state.examNum === WRONG_EXAM && wrongList[qKey(q)]) { clearWrong(q); state.cleared++; }
-  }
-  renderQuestion();
-}
-
-// ── Exam tools (Exam 1–17 in exam mode): 45-min countdown, flags, numbered question navigator ──
-const EXAM_MINUTES = 45;
-const EXAM_WARN_SECONDS = 5 * 60;
-const EXAM_TICK_MS = 1000;
-const SECONDS_PER_MINUTE = 60;
-const MS_PER_SECOND = 1000;
-let examTimerId = null;
-let examDeadline = 0;
-let examTimeUp = false;
-function hasExamTools() { return state.mode === 'exam' && (isNumberedExam(state.examNum) || isRandomExam(state.examNum)); }
-function isExamRunning() {
-  return state.mode === 'exam' && document.getElementById('screenQuiz').classList.contains('active');
-}
-function isAnswered(i) { return (state.answers[i] || []).length > 0; }
-function flaggedCount() { return Object.values(state.flags || {}).filter(Boolean).length; }
-function startExamTimer() {
-  stopExamTimer();
-  examDeadline = Date.now() + EXAM_MINUTES * SECONDS_PER_MINUTE * MS_PER_SECOND;
-  examTimerId = setInterval(examTick, EXAM_TICK_MS);
-  examTick();
-}
-function stopExamTimer() {
-  if (examTimerId !== null) clearInterval(examTimerId);
-  examTimerId = null;
-}
-const pad2 = n => String(n).padStart(2, '0');
-// time up: submit as is, straight to the results (no prompt)
-function examTick() {
-  const left = Math.max(0, Math.ceil((examDeadline - Date.now()) / MS_PER_SECOND));
-  const el = document.getElementById('examTimer');
-  el.textContent = `⏱ ${pad2(Math.floor(left / SECONDS_PER_MINUTE))}:${pad2(left % SECONDS_PER_MINUTE)}`;
-  el.classList.toggle('warn', left <= EXAM_WARN_SECONDS);
-  if (left === 0) { examTimeUp = true; finishExam(); }
-}
-// exam: flags live for the session; practice: flags are saved (My Review › Flagged)
-function toggleFlag() {
-  const i = state.current;
-  if (state.mode === 'practice') setPracticeFlag(qKey(state.questions[i]), !isPracticeFlagged(state.questions[i]));
-  else state.flags[i] = !state.flags[i];
-  renderQuestion();
-}
-function isFlaggedNow(i) {
-  return state.mode === 'practice' ? isPracticeFlagged(state.questions[i]) : !!state.flags[i];
-}
-function goToQuestion(i) {
-  state.current = i;
-  renderQuestion();
-}
-// practice dots show right / wrong once revealed; exam dots only answered / unanswered
-function dotStateCls(i) {
-  if (state.mode !== 'practice') return isAnswered(i) && 'done';
-  if (!(i in state.revealed)) return '';
-  return state.revealed[i] ? 'ok' : 'bad';
-}
-function navDotsHtml() {
-  return state.questions.map((_, i) => {
-    const cls = ['dot', dotStateCls(i), isFlaggedNow(i) && 'flag', i === state.current && 'current'].filter(Boolean).join(' ');
-    return `<button class="${cls}" onclick="goToQuestion(${i})" aria-label="Question ${i + 1}">${i + 1}</button>`;
-  }).join('');
-}
-function practiceDotsMetaHtml() {
-  const results = Object.values(state.revealed), correct = results.filter(Boolean).length;
-  const flagged = state.questions.filter((_, i) => isFlaggedNow(i)).length;
-  return [`<span><i class="lg-ok"></i>Correct <b>${correct}</b></span>`,
-    `<span><i class="lg-bad"></i>Wrong <b>${results.length - correct}</b></span>`,
-    `<span><i class="lg-todo"></i>Unanswered <b>${state.questions.length - results.length}</b></span>`,
-    `<span><i class="lg-flag"></i>Flagged <b>${flagged}</b></span>`].join(' <span class="sep">|</span> ');
-}
-function dotsMetaHtml() {
-  if (state.mode === 'practice') return practiceDotsMetaHtml();
-  const done = state.questions.filter((_, i) => isAnswered(i)).length;
-  return [`<span><i class="lg-done"></i>Answered <b>${done}</b></span>`,
-    `<span><i class="lg-todo"></i>Unanswered <b>${state.questions.length - done}</b></span>`,
-    `<span><i class="lg-flag"></i>Flagged <b>${flaggedCount()}</b></span>`].join(' <span class="sep">|</span> ');
-}
-function hasNavDots() { return hasExamTools() || state.mode === 'practice'; }
-function renderExamTools(idx) {
-  const on = hasExamTools(), dots = hasNavDots();
-  const show = (id, display, visible) => { document.getElementById(id).style.display = visible ? display : 'none'; };
-  show('examTimer', 'inline-flex', on);
-  show('navDots', 'grid', dots);
-  show('dotsMeta', 'flex', dots);
-  document.getElementById('modeBadge').style.display = on ? 'none' : '';
-  document.querySelector('#screenQuiz .q-progress').style.display = dots ? 'none' : '';
-  renderRoundNote();
-  const flagBtn = document.getElementById('flagBtn');
-  flagBtn.style.display = on || state.mode === 'practice' ? 'inline-flex' : 'none';
-  if (dots) {
-    document.getElementById('navDots').innerHTML = navDotsHtml();
-    document.getElementById('dotsMeta').innerHTML = dotsMetaHtml();
-    document.getElementById('dotsMeta').classList.toggle('practice', state.mode === 'practice');
-  }
-  const flagged = isFlaggedNow(idx);
-  flagBtn.classList.toggle('on', flagged);
-  flagBtn.title = flagged ? 'Unflag' : 'Flag for review';
-  flagBtn.setAttribute('aria-label', flagBtn.title);
-}
-
-// ── In-app confirm modal (no browser alert / confirm boxes during an exam) ──
-let confirmOnOk = null;
-function showConfirm({ title, message, okLabel, cancelLabel, onOk }) {
-  document.getElementById('confirmTitle').textContent = title;
-  document.getElementById('confirmMsg').textContent = message;
-  document.getElementById('confirmOk').textContent = okLabel;
-  document.getElementById('confirmCancel').textContent = cancelLabel;
-  confirmOnOk = onOk;
-  document.getElementById('confirmModal').classList.add('show');
-  document.getElementById('confirmOk').focus();
-}
-function closeConfirm() {
-  document.getElementById('confirmModal').classList.remove('show');
-  confirmOnOk = null;
-}
-document.getElementById('confirmOk').onclick = () => { const run = confirmOnOk; closeConfirm(); if (run) run(); };
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && document.getElementById('confirmModal').classList.contains('show')) closeConfirm();
-});
-
-// exam: picks are saved as you go (and can be changed); Submit on the last question marks the
-// whole exam and opens the results — no right / wrong is shown before that
-function submitExam() {
-  const unanswered = state.questions.filter((_, i) => !isAnswered(i)).length;
-  const flagged = flaggedCount();
-  const notes = [unanswered && `${unanswered} questions unanswered`, flagged && `${flagged} flagged`].filter(Boolean);
-  if (!notes.length) { finishExam(); return; }
-  showConfirm({ title: 'Submit exam?', message: `${notes.join('\n')}\nYou can still go back and check them.`,
-    okLabel: 'Submit', cancelLabel: 'Keep going', onOk: finishExam });
-}
-
-function nextQ() {
-  if (state.current < state.questions.length - 1) {
-    state.current++;
-    renderQuestion();
-    window.scrollTo(0, 0);
-  }
-}
-
-function prevQ() {
-  if (state.current > 0) {
-    state.current--;
-    renderQuestion();
-    window.scrollTo(0, 0);
-  }
-}
-
-// ════════════════════════════════════════
-// RESULTS
-// ════════════════════════════════════════
-function finishExam() {
-  stopExamTimer();
-  document.getElementById('resultTimeUp').style.display = examTimeUp ? 'block' : 'none';
-  examTimeUp = false;
-  const total = state.questions.length;
-  let correct = 0;
-  const wrongItems = [];
-
-  state.questions.forEach((q, idx) => {
-    const userAns = state.answers[idx] || [];
-    const isCorrect = q.a.every(a => userAns.includes(a)) && userAns.length === q.a.length;
-    if (isCorrect) correct++;
-    else wrongItems.push({ q, userAns, idx });
-    if (state.mode === 'exam' && userAns.length && !isCorrect) addWrong(q); // practice adds as it goes
-  });
-
-  // save completed (numbered exams only)
-  if (isNumberedExam(state.examNum)) {
-    const done = getLS('completedExams') || {};
-    done[state.examNum] = true;
-    setLS('completedExams', done);
-  }
-
-  const pct = Math.round((correct / total) * 100);
-  const passed = pct >= 75;
-
-  const isExamMode = state.mode === 'exam';
-  document.getElementById('resultEmoji').textContent = MODE_ICONS[state.mode];
-  const scoreEl = document.getElementById('resultScore');
-  scoreEl.innerHTML = `${correct} <span>/ ${total} · ${pct}%</span>`;
-  const lbl2 = document.getElementById('resultLabel2');
-  lbl2.textContent = passed ? '🎉 PASSED' : '📚 NEEDS IMPROVEMENT'; // verdict icon; the top icon shows the mode
-  lbl2.className = 'result-label ' + (passed ? 'pass' : 'fail');
-  const sub = document.getElementById('resultSub');
-  sub.textContent =
-    total <= 24
-      ? `You need 18/24 (75%) to pass the real test.`
-      : `75% pass threshold. You scored ${pct}%.`;
-  // pass / fail verdict + remark only make sense for real-test-shaped sets
-  const showVerdict = isNumberedExam(state.examNum) || isRandomExam(state.examNum);
-  lbl2.style.display = showVerdict ? '' : 'none';
-  sub.style.display = showVerdict ? '' : 'none';
-  scoreEl.classList.toggle('fail', isExamMode && showVerdict && !passed);
-  // the score is shown once (score line + dots legend), so the 3 boxes go
-  document.querySelector('#screenResult .result-breakdown').style.display = 'none';
-  const note = document.getElementById('resultNote');
-  note.textContent = isExamMode ? '' : practiceResultNote();
-  note.style.display = note.textContent ? '' : 'none';
-  const retryLabel = 'Retry';
-  const anotherLabel = isExamMode ? 'Another Exam' : 'Another Practice';
-  document.querySelectorAll('#screenResult .retry-btn').forEach(btn => { btn.textContent = retryLabel; });
-  document.querySelectorAll('#screenResult .another-btn').forEach(btn => { btn.textContent = anotherLabel; });
-  document.getElementById('rbCorrect').textContent = correct;
-  document.getElementById('rbWrong').textContent = total - correct;
-  document.getElementById('rbPct').textContent = pct + '%';
-
-  // label
-  document.getElementById('resultLabel').textContent = examLabel(state.examNum);
-
-  // by difficulty
-  const byDiff = {};
-  state.questions.forEach((q, idx) => {
-    const userAns = state.answers[idx] || [];
-    const ok = q.a.every(a => userAns.includes(a)) && userAns.length === q.a.length;
-    byDiff[q.d] = byDiff[q.d] || { c: 0, t: 0 };
-    byDiff[q.d].t++; if (ok) byDiff[q.d].c++;
-  });
-  document.getElementById('diffTable').innerHTML = Object.keys(byDiff).sort().map(d => {
-    const { c, t } = byDiff[d];
-    const p = Math.round((c / t) * 100);
-    const cls = p < 60 ? 'low' : p < 80 ? 'mid' : '';
-    return `<div class="diff-row">${starsHtml(Number(d))}
-      <div class="diff-bar ${cls}"><div style="width:${p}%"></div></div>
-      <div class="diff-pct">${c}/${t} · ${p}%</div></div>`;
-  }).join('');
-
-  // review list (+ exam result dots)
-  reviewItems = state.questions.map((q, idx) => {
-    const userAns = state.answers[idx] || [];
-    return { q, idx, userAns, flagged: isFlaggedNow(idx), isCorrect: q.a.every(a => userAns.includes(a)) && userAns.length === q.a.length };
-  });
-  reviewIsPractice = !isExamMode;
-  reviewFilter = 'all';
-  renderResultDots();
-  renderReview();
-
-  showScreen('screenResult');
-  window.scrollTo(0, 0);
-}
-
-let reviewItems = [];
-const MODE_ICONS = { practice: '🎯', exam: '📝' };
-const BOOKMARK_PATH = 'M7.5 3.5h9A2.5 2.5 0 0 1 19 6v14.5l-7-5.1-7 5.1V6a2.5 2.5 0 0 1 2.5-2.5z';
-const bookmarkSvg = cls => `<svg class="${cls}" viewBox="0 0 24 24" aria-label="Flagged"><path d="${BOOKMARK_PATH}"/></svg>`;
-// exam results: All / Wrong (incl. unanswered) / Flagged filter instead of the practice order chips
-const REVIEW_FILTERS = [
-  { key: 'all', label: 'All', keep: () => true },
-  { key: 'wrong', label: 'Wrong', keep: r => !r.isCorrect },
-  { key: 'flagged', label: 'Flagged', keep: r => r.flagged, icon: true },
-];
-let reviewIsPractice = false;
-let reviewFilter = 'all';
-function setReviewFilter(key) {
-  reviewFilter = key;
-  renderReview();
-}
-function visibleReviewItems() {
-  return reviewItems.filter(REVIEW_FILTERS.find(f => f.key === reviewFilter).keep);
-}
-// note text: one row per \n line; "•" / "→" start a bullet, leading spaces + "◦" a sub-bullet, blank = gap
-function noteHtml(note) {
-  return note.split('\n').map(line => {
-    if (!line.trim()) return '<div class="rv-note-gap"></div>';
-    const cls = /^\s{2,}/.test(line) ? ' sub' : /^\s*[•◦→]/.test(line) ? ' bullet' : '';
-    return `<div class="rv-note-line${cls}">${escapeHtml(line.trim())}</div>`;
-  }).join('');
-}
-function reviewItemHtml({ q, idx, userAns, isCorrect, flagged }) {
-  const correctText = q.a.map(ai => q.o[ai]).join(' | ');
-  const userText = userAns.length ? userAns.map(ai => q.o[ai]).join(' | ') : 'No answer';
-  const note = q.note ? `<div class="rv-note"><div class="rv-note-label">💡 備注：</div>${noteHtml(q.note)}</div>` : '';
-  return `<div class="review-item ${isCorrect ? 'rv-correct' : 'rv-wrong'}" id="rv${idx}">
-      <div class="rv-q">${reviewIsPractice ? streakTag(q) : ''}${idx + 1}. ${q.q}${flagged ? bookmarkSvg('rv-flag') : ''}</div>
-      ${!isCorrect ? `<div class="rv-your">Your answer: ${userText}</div>` : ''}
-      <div class="rv-correct-ans">✅ ${correctText}</div>
-      <div class="rv-tr"><div class="rv-yue">【廣東話】${q.yue}</div>${note}</div>
-    </div>`;
-}
-function streakTag(q) {
-  const st = streakOf(q);
-  return `<span class="rv-streak">${st >= MASTERY_STREAK ? '🏆 Mastered' : `🔥 ${st}/${MASTERY_STREAK}`}</span>`;
-}
-function reviewChipsHtml() {
-  return REVIEW_FILTERS.map(f => {
-    const n = reviewItems.filter(f.keep).length;
-    return `<button class="chip${reviewFilter === f.key ? ' active' : ''}" onclick="setReviewFilter('${f.key}')"${n ? '' : ' disabled'}>${f.icon ? bookmarkSvg('chip-flag') : ''}${f.label} <b>${n}</b></button>`;
-  }).join('');
-}
-function renderReview() {
-  document.getElementById('reviewOrder').innerHTML = reviewChipsHtml();
-  document.getElementById('reviewList').innerHTML = visibleReviewItems().map(reviewItemHtml).join('');
-}
-function resultDotClass(r) {
-  const st = r.isCorrect ? 'ok' : r.userAns.length ? 'bad' : 'skip';
-  return 'rdot ' + st + (r.flagged ? ' flag' : '');
-}
-function renderResultDots() {
-  document.getElementById('resultDotsWrap').style.display = 'block';
-  document.getElementById('resultDots').innerHTML = reviewItems.map(r =>
-    `<button class="${resultDotClass(r)}" onclick="jumpToReview(${r.idx})" aria-label="Question ${r.idx + 1}">${r.idx + 1}</button>`).join('');
-  const count = pred => reviewItems.filter(pred).length;
-  document.getElementById('resultDotsMeta').innerHTML = [
-    `<span><i class="lg-ok"></i>Correct <b>${count(r => r.isCorrect)}</b></span>`,
-    `<span><i class="lg-bad"></i>Wrong <b>${count(r => !r.isCorrect && r.userAns.length)}</b></span>`,
-    `<span><i class="lg-skip"></i>Unanswered <b>${count(r => !r.userAns.length)}</b></span>`,
-    `<span><i class="lg-flag"></i>Flagged <b>${count(r => r.flagged)}</b></span>`,
-  ].join(' <span class="sep">|</span> ');
-}
-// tap a result dot: show that question's review (switch to All if the filter hides it) and highlight it
-const REVIEW_HIGHLIGHT_MS = 1500;
-function jumpToReview(idx) {
-  if (!document.getElementById('rv' + idx)) setReviewFilter('all');
-  const el = document.getElementById('rv' + idx);
-  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  el.classList.add('hl');
-  setTimeout(() => el.classList.remove('hl'), REVIEW_HIGHLIGHT_MS);
-}
-
-// practice result line: wrong-answer review → cleared / left; other sets → mastery gained this round
-function practiceResultNote() {
-  if (state.examNum === WRONG_EXAM) {
-    return `Cleared ${state.cleared} from your wrong list · ${keysOf(wrongList).length} left`;
-  }
-  if (state.examNum === SIMILAR_EXAM || !state.setPool) return '';
-  const m = masteryOf(state.setPool);
-  return `Mastered ${Math.max(0, m.mastered - state.masteredBefore)} more this round · ${m.mastered}/${m.total} in ${examLabel(state.examNum)}`;
-}
-// review sets bigger than one round: "Round 1 of N · 24 of your T wrong answers" above the question card
-function renderRoundNote() {
-  const total = state.reviewTotal || 0;
-  const show = state.mode === 'practice' && total > PRACTICE_ROUND_MAX && !isSimilarSession();
-  document.getElementById('roundRow').style.display = show ? 'flex' : 'none';
-  if (!show) return;
-  const what = state.examNum === WRONG_EXAM ? 'wrong answers' : 'flagged questions';
-  document.getElementById('roundNote').textContent =
-    `Round 1 of ${Math.ceil(total / PRACTICE_ROUND_MAX)} · ${state.questions.length} of your ${total} ${what}`;
-}
-function renderMyReview() {
-  const wrongN = keysOf(wrongList).length, flagN = keysOf(practiceFlags).length;
-  document.getElementById('myReview').classList.toggle('show', pendingMode === 'practice' && (wrongN + flagN) > 0);
-  const tile = (id, n, iconHtml, title, sub) => {
-    const el = document.getElementById(id);
-    el.classList.toggle('empty', !n);
-    el.disabled = !n;
-    el.innerHTML = `<div class="t-top"><span class="t-icon">${iconHtml}</span><span class="t-num">${n}</span></div><b>${title}</b><span class="sub">${sub}</span>`;
-  };
-  tile('tileWrong', wrongN, '✗', 'Wrong answers',
-    !wrongN ? 'Nothing to review yet' : wrongN > PRACTICE_ROUND_MAX ? `${wrongN} to clear · ${PRACTICE_ROUND_MAX} per round` : `${wrongN} to clear`);
-  tile('tileFlagged', flagN, bookmarkSvg('rv-flag-tile'), 'Flagged',
-    flagN ? `${flagN} saved` : `Tap ${bookmarkSvg('bm-inline')} on a question to save it`);
-  document.getElementById('myReviewNote').textContent =
-    `Wrong answers come from Practice and Exam, and clear when you get them right here. Up to ${PRACTICE_ROUND_MAX} per round.`;
-}
-function startWrongReview() { pendingMode = 'practice'; startExam(WRONG_EXAM); }
-function startFlaggedPractice() { pendingMode = 'practice'; startExam(FLAGGED_EXAM); }
-function openFlagged() {
-  const keys = keysOf(practiceFlags);
-  const start = document.getElementById('flaggedStart');
-  start.style.display = keys.length ? '' : 'none';
-  start.innerHTML = `${bookmarkSvg('rv-flag-tile')}<div><b>Practise flagged (${keys.length})</b><span class="fs-sub">Each question once · up to ${PRACTICE_ROUND_MAX} per round</span></div><span class="go">→</span>`;
-  document.getElementById('flaggedList').innerHTML = !keys.length
-    ? '<div class="empty-hint">No flagged questions left.</div>'
-    : keys.map(k => {
-      const { q, examNum, origIdx } = questionByKey(k);
-      return `<div class="flag-item"><div class="fi-text"><small>Exam ${examNum} · Q${origIdx + 1} · ${starsHtml(q.d)}</small>${escapeHtml(q.q)}<div class="fi-yue">${escapeHtml(q.yue)}</div></div>
-        <button onclick="unflagFromList('${k}')" title="Unflag" aria-label="Unflag">${bookmarkSvg('rv-flag')}</button></div>`;
-    }).join('');
-  showScreen('screenFlagged');
-}
-function unflagFromList(key) { setPracticeFlag(key, false); openFlagged(); }
-
-function retryExam() {
-  startExam(state.examNum);
-}
-
-function goHome() {
-  if (isExamRunning()) {
-    showConfirm({ title: 'Leave the exam?', message: 'Your answers will be lost.',
-      okLabel: 'Leave', cancelLabel: 'Stay', onOk: leaveToHome });
-    return;
-  }
-  leaveToHome();
-}
-function leaveToHome() {
-  stopExamTimer();
-  similarReturn = null;
-  showScreen('screenHome');
-  buildExamGrid();
-  renderModeSelection(); // keeps the last chosen mode and practice tab
-}
-
-// ════════════════════════════════════════
-// STUDY
-// ════════════════════════════════════════
-const STUDY_LS = { prefs: 'studyPrefs', mastered: 'studyMastered', bookmarks: 'studyBookmarks' };
-const ERAS = [
-  { name: 'Stone Age & Iron Age', yue: '石器·鐵器時代', max: -55 },
-  { name: 'Romans', yue: '羅馬時期', max: 410 },
-  { name: 'Anglo-Saxons & Vikings', yue: '盎格魯撒克遜·維京', max: 1066 },
-  { name: 'Normans & Middle Ages', yue: '諾曼·中世紀', max: 1485 },
-  { name: 'Tudors', yue: '都鐸王朝', max: 1603 },
-  { name: 'Stuarts', yue: '斯圖亞特王朝', max: 1714 },
-  { name: 'Georgian', yue: '喬治時代', max: 1837 },
-  { name: 'Victorian', yue: '維多利亞時代', max: 1901 },
-  { name: '20th century', yue: '20 世紀', max: 2000 },
-  { name: '21st century', yue: '21 世紀', max: Infinity },
-];
-const NATIONS = [
-  { key: 'UK', label: '🇬🇧 United Kingdom', chip: '🇬🇧 UK' },
-  { key: 'England', label: '🏴󠁧󠁢󠁥󠁮󠁧󠁿 England', chip: '🏴󠁧󠁢󠁥󠁮󠁧󠁿 England' },
-  { key: 'Scotland', label: '🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scotland', chip: '🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scotland' },
-  { key: 'Wales', label: '🏴󠁧󠁢󠁷󠁬󠁳󠁿 Wales', chip: '🏴󠁧󠁢󠁷󠁬󠁳󠁿 Wales' },
-  { key: 'Northern Ireland', label: '☘️ Northern Ireland', chip: '☘️ N. Ireland' },
-];
-const GEO_TYPES = {
-  city: '🏙️ Cities & capitals · 城市·首都',
-  nature: '⛰️ Mountains, parks & nature · 山·國家公園·自然',
-  landmark: '🏛️ Landmarks & buildings · 地標·建築',
-  region: '🗺️ Regions & territories · 地區·領土',
-};
-const PEOPLE_GROUPS = [
-  { key: 'monarch', label: '👑 Monarchs & rulers · 君主', chip: '👑 君主' },
-  { key: 'politician', label: '🏛️ Prime Ministers, politicians & military · 首相·政治家·軍事', chip: '🏛️ 政治·軍事' },
-  { key: 'scientist', label: '🔬 Scientists, inventors & engineers · 科學家·發明家', chip: '🔬 科學家' },
-  { key: 'writer', label: '✒️ Writers & poets · 作家·詩人', chip: '✒️ 作家' },
-  { key: 'artist', label: '🎨 Artists, architects & composers · 藝術家·建築師·音樂家', chip: '🎨 藝術家' },
-  { key: 'sport', label: '🏅 Sport & exploration · 運動員·探險家', chip: '🏅 運動員' },
-  { key: 'reformer', label: '✊ Reformers & others · 改革者·其他', chip: '✊ 改革者' },
-];
-const CHAPTER_ICONS = { 1: '⚖️', 2: '🇬🇧', 3: '📜', 4: '🎭', 5: '🏛️' };
-
-const study = {
-  tab: 'chapters',
-  chapter: 1,
-  search: '',
-  hideMastered: false,
-  bookmarksOnly: false,
-  warsOnly: false,
-  nation: 'all',      // geo sub-filter
-  group: 'all',       // people sub-filter
-  mastered: {},
-  bookmarks: {},
-};
-
-function studyLoad() {
-  const prefs = getLS(STUDY_LS.prefs) || {};
-  ['tab', 'chapter', 'hideMastered', 'bookmarksOnly', 'warsOnly', 'nation', 'group'].forEach(k => {
-    if (prefs[k] !== undefined) study[k] = prefs[k];
-  });
-  study.mastered = getLS(STUDY_LS.mastered) || {};
-  study.bookmarks = getLS(STUDY_LS.bookmarks) || {};
-}
-function studySavePrefs() {
-  const { tab, chapter, hideMastered, bookmarksOnly, warsOnly, nation, group } = study;
-  setLS(STUDY_LS.prefs, { tab, chapter, hideMastered, bookmarksOnly, warsOnly, nation, group });
-}
-
-function openStudy() {
-  studyLoad();
-  document.getElementById('studySearch').value = study.search;
-  showScreen('screenStudy');
-  renderStudy();
-  window.scrollTo(0, 0);
-}
-function studySetTab(tab) { study.tab = tab; studySavePrefs(); renderStudy(); }
-function studySetChapter(ch) { study.chapter = ch; studySavePrefs(); renderStudy(); }
-function studySetNation(n) { study.nation = n; studySavePrefs(); renderStudy(); }
-function studySetGroup(g) { study.group = g; studySavePrefs(); renderStudy(); }
-function studySetSearch(v) { study.search = v.trim().toLowerCase(); renderStudy(); }
-function studyToggle(key) { study[key] = !study[key]; studySavePrefs(); renderStudy(); }
-function studyToggleMastered(id) {
-  if (study.mastered[id]) delete study.mastered[id]; else study.mastered[id] = true;
-  setLS(STUDY_LS.mastered, study.mastered);
-  renderStudy();
-}
-function studyToggleBookmark(id) {
-  if (study.bookmarks[id]) delete study.bookmarks[id]; else study.bookmarks[id] = true;
-  setLS(STUDY_LS.bookmarks, study.bookmarks);
-  renderStudy();
-}
-
-function factMatches(f) {
-  if (study.hideMastered && study.mastered[f.id]) return false;
-  if (study.bookmarksOnly && !study.bookmarks[f.id]) return false;
-  if (!study.search) return true;
-  const hay = (f.en + ' ' + f.yue + ' ' + (f.p ? f.p[0] : '') + ' ' + (f.yl || '')).toLowerCase();
-  return hay.includes(study.search);
-}
-
-function yearLabel(f) {
-  if (f.yl) return f.yl;
-  if (f.y < 0) return `${-f.y} BC`;
-  return String(f.y);
-}
-function renderFact(f, opts = {}) {
-  const tags = [];
-  if (f.y !== undefined && !opts.noYear) tags.push(`<span class="tag year">📅 ${escapeHtml(yearLabel(f))}</span>`);
-  if (f.w) tags.push(`<span class="tag war">⚔️ War / battle</span>`);
-  if (f.p && !opts.noPerson) tags.push(`<span class="tag person">👤 ${escapeHtml(f.p[0])}</span>`);
-  if (!opts.noChapter) tags.push(`<span class="tag">${CHAPTER_ICONS[f.ch]} Ch ${f.ch}</span>`);
-  tags.push(`<span class="tag diff" title="Difficulty ${f.d}/5">${'★'.repeat(f.d)}</span>`);
-  if (f.src.length >= 2) tags.push(`<span class="tag freq">×${f.src.length} 出現${f.src.length}次</span>`);
-  const mastered = !!study.mastered[f.id];
-  const marked = !!study.bookmarks[f.id];
-  return `<div class="fact${f.w ? ' war' : ''}${mastered ? ' mastered' : ''}">
-    <div class="fact-top">
-      <div class="fact-meta">${tags.join('')}</div>
-      <div class="fact-actions">
-        <button class="fact-btn star${marked ? ' on' : ''}" title="Bookmark 書籤" onclick="studyToggleBookmark(${f.id})">${marked ? '★' : '☆'}</button>
-        <button class="fact-btn tick${mastered ? ' on' : ''}" title="Mastered 已掌握" onclick="studyToggleMastered(${f.id})">✓</button>
-      </div>
-    </div>
-    ${opts.title ? `<div class="fact-name">${escapeHtml(opts.title)}</div>` : ''}
-    <div class="fact-en">${escapeHtml(f.en)}</div>
-    <div class="fact-yue">${escapeHtml(f.yue)}</div>
-  </div>`;
-}
-
-function renderStudy() {
-  document.querySelectorAll('.study-tab').forEach(t =>
-    t.classList.toggle('active', t.dataset.tab === study.tab));
-
-  // chips
-  let chips = `<button class="chip${study.hideMastered ? ' active' : ''}" onclick="studyToggle('hideMastered')">✓ 隱藏已掌握</button>
-    <button class="chip${study.bookmarksOnly ? ' active' : ''}" onclick="studyToggle('bookmarksOnly')">★ 只顯示書籤</button>`;
-  if (study.tab === 'timeline') {
-    chips += `<button class="chip war${study.warsOnly ? ' active' : ''}" onclick="studyToggle('warsOnly')">⚔️ 只顯示戰爭</button>`;
-  }
-  document.getElementById('studyChips').innerHTML = chips;
-
-  // sub-filter row (chapter / nation / people group)
-  let sub = '';
-  if (study.tab === 'chapters') {
-    for (let ch = 1; ch <= 5; ch++) {
-      sub += `<button class="chip ch${study.chapter === ch ? ' active' : ''}" onclick="studySetChapter(${ch})">${CHAPTER_ICONS[ch]} Ch ${ch}</button>`;
-    }
-  } else if (study.tab === 'geo') {
-    sub += `<button class="chip ch${study.nation === 'all' ? ' active' : ''}" onclick="studySetNation('all')">All</button>`;
-    NATIONS.forEach(n => {
-      sub += `<button class="chip ch${study.nation === n.key ? ' active' : ''}" onclick="studySetNation('${n.key}')">${n.chip}</button>`;
-    });
-  } else if (study.tab === 'people') {
-    sub += `<button class="chip ch${study.group === 'all' ? ' active' : ''}" onclick="studySetGroup('all')">All</button>`;
-    PEOPLE_GROUPS.forEach(g => {
-      sub += `<button class="chip ch${study.group === g.key ? ' active' : ''}" onclick="studySetGroup('${g.key}')">${g.chip}</button>`;
-    });
-  }
-  const subRow = document.getElementById('studySubChips');
-  subRow.innerHTML = sub;
-  subRow.style.display = sub ? 'flex' : 'none';
-
-  const renderers = { chapters: renderStudyChapters, timeline: renderStudyTimeline, geo: renderStudyGeo, people: renderStudyPeople };
-  const { html, shown, total } = renderers[study.tab]();
-  document.getElementById('studyCount').textContent = `${shown} / ${total} facts`;
-  document.getElementById('studyContent').innerHTML =
-    shown ? html : '<div class="study-empty">No facts match. 冇符合嘅內容。</div>';
-}
-
-function renderStudyChapters() {
-  // when searching, look across all chapters (same rule for nation / people-group filters)
-  const pool = study.search ? STUDY : STUDY.filter(f => f.ch === study.chapter);
-  const facts = pool.filter(factMatches);
-  let html = '';
-  if (study.search) {
-    for (let ch = 1; ch <= 5; ch++) {
-      const list = facts.filter(f => f.ch === ch);
-      if (!list.length) continue;
-      html += `<div class="study-group-title">${CHAPTER_ICONS[ch]} Chapter ${ch}: ${escapeHtml(CHAPTERS[ch])} <span class="cnt">${list.length}</span></div>`;
-      html += list.map(f => renderFact(f, { noChapter: true })).join('');
-    }
-  } else {
-    html += `<div class="study-group-title">${CHAPTER_ICONS[study.chapter]} Chapter ${study.chapter}: ${escapeHtml(CHAPTERS[study.chapter])} <span class="cnt">${facts.length}</span></div>`;
-    html += facts.map(f => renderFact(f, { noChapter: true })).join('');
-  }
-  return { html, shown: facts.length, total: pool.length };
-}
-
-function eraOf(y) { return ERAS.find(e => y < e.max); }
-function renderStudyTimeline() {
-  const pool = STUDY.filter(f => f.y !== undefined && (!study.warsOnly || f.w));
-  const facts = pool.filter(factMatches).sort((a, b) => a.y - b.y || a.id - b.id);
-  let html = '', lastEra = null;
-  facts.forEach(f => {
-    const era = eraOf(f.y);
-    if (era !== lastEra) {
-      html += `<div class="tl-era">${escapeHtml(era.name)} <span>${escapeHtml(era.yue)}</span></div>`;
-      lastEra = era;
-    }
-    html += `<div class="tl-item${f.w ? ' war' : ''}">
-      <div class="tl-year">${escapeHtml(yearLabel(f))}</div>
-      <div class="tl-body">${renderFact(f, { noYear: true })}</div>
-    </div>`;
-  });
-  return { html, shown: facts.length, total: pool.length };
-}
-
-function renderStudyGeo() {
-  const pool = STUDY.filter(f => f.geo && (study.search || study.nation === 'all' || f.geo[0] === study.nation));
-  const facts = pool.filter(factMatches);
-  let html = '';
-  NATIONS.forEach(n => {
-    const list = facts.filter(f => f.geo[0] === n.key);
-    if (!list.length) return;
-    html += `<div class="study-group-title">${n.label} <span class="cnt">${list.length}</span></div>`;
-    Object.keys(GEO_TYPES).forEach(t => {
-      const sub = list.filter(f => f.geo[1] === t);
-      if (!sub.length) return;
-      html += `<div class="study-sub-title">${GEO_TYPES[t]}</div>`;
-      html += sub.map(f => renderFact(f)).join('');
-    });
-  });
-  return { html, shown: facts.length, total: pool.length };
-}
-
-function renderStudyPeople() {
-  const pool = STUDY.filter(f => f.p && (study.search || study.group === 'all' || f.p[1] === study.group));
-  const facts = pool.filter(factMatches);
-  let html = '';
-  PEOPLE_GROUPS.forEach(g => {
-    let list = facts.filter(f => f.p[1] === g.key);
-    if (!list.length) return;
-    list = g.key === 'monarch'
-      ? list.sort((a, b) => (a.y ?? 9999) - (b.y ?? 9999) || a.id - b.id)
-      : list.sort((a, b) => a.p[0].localeCompare(b.p[0]));
-    html += `<div class="study-group-title">${g.label} <span class="cnt">${list.length}</span></div>`;
-    html += list.map(f => renderFact(f, { noPerson: true, title: f.p[0] })).join('');
-  });
-  return { html, shown: facts.length, total: pool.length };
-}
-
-// ════════════════════════════════════════
-// HEADER INFO POPOVER
-// ════════════════════════════════════════
-function setInfoOpen(open) {
-  document.getElementById('infoPop').classList.toggle('show', open);
-  const btn = document.getElementById('infoBtn');
-  btn.classList.toggle('open', open);
-  btn.setAttribute('aria-expanded', String(open));
-}
-function toggleInfo(e) {
-  e.stopPropagation();
-  setInfoOpen(!document.getElementById('infoPop').classList.contains('show'));
-}
-document.addEventListener('click', e => {
-  if (!e.target.closest('#infoPop')) setInfoOpen(false);
-});
-document.addEventListener('keydown', e => { if (e.key === 'Escape') setInfoOpen(false); });
-
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-
-// ════════════════════════════════════════
-// PWA — Service Worker
-// ════════════════════════════════════════
-const SW_CODE = `
-const CACHE = 'lifeuk-v${APP_VERSION}';
-const SHELL = ['./', 'index.html', 'data/exams.js', 'data/study.js', 'js/utils.js'];
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
-});
-self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys =>
-    Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-  ).then(() => self.clients.claim()));
-});
-self.addEventListener('fetch', e => {
-  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request).catch(() => caches.match('./'))));
-});
-`;
-
-function registerSW() {
-  if (!('serviceWorker' in navigator)) return;
-  const blob = new Blob([SW_CODE], { type: 'application/javascript' });
-  const url = URL.createObjectURL(blob);
-  navigator.serviceWorker.register(url, { scope: './' })
-    .then(() => console.log('SW registered'))
-    .catch(e => console.log('SW error:', e));
-}
-
-// Install prompt
-let deferredPrompt = null;
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredPrompt = e;
-  document.getElementById('installBanner').classList.add('visible');
-});
-document.getElementById('installBtn').onclick = async () => {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  const { outcome } = await deferredPrompt.userChoice;
-  if (outcome === 'accepted') {
-    document.getElementById('installBanner').classList.remove('visible');
-  }
-  deferredPrompt = null;
-};
-
-// ════════════════════════════════════════
-// INIT
-// ════════════════════════════════════════
-document.getElementById('appVersion').textContent = 'v' + APP_VERSION;
-document.getElementById('appVersionPop').textContent = 'v' + APP_VERSION;
-loadHomePrefs();
-buildExamGrid();
-renderModeSelection();
-registerSW();
-</script>
+<script src="js/core/config.js"></script>
+<script src="js/core/utils.js"></script>
+<script src="js/core/store.js"></script>
+<script src="js/domain/questions.js"></script>
+<script src="js/domain/mastery.js"></script>
+<script src="js/domain/similar.js"></script>
+<script src="js/components/icons.js"></script>
+<script src="js/components/dots.js"></script>
+<script src="js/components/tags.js"></script>
+<script src="js/components/modal.js"></script>
+<script src="js/components/popover.js"></script>
+<script src="js/screens/home.js"></script>
+<script src="js/screens/quiz.js"></script>
+<script src="js/screens/examTools.js"></script>
+<script src="js/screens/similarPanel.js"></script>
+<script src="js/screens/result.js"></script>
+<script src="js/screens/flagged.js"></script>
+<script src="js/screens/study.js"></script>
+<script src="js/core/actions.js"></script>
+<script src="js/pwa/pwa.js"></script>
+<script src="js/main.js"></script>
 </body>
 </html>
