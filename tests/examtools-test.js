@@ -22,7 +22,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
 
   // practice: none of the exam tools
   await pg.evaluate(() => { pendingMode = 'practice'; startExam(1); });
-  assert(!(await vis('#examTimer')) && !(await vis('#navDots')) && !(await vis('#flagBtn')), 'practice: no timer, dots or flag');
+  assert(!(await vis('#examTimer')) && !(await vis('#navDots')), 'practice: no timer or dots (its flag is saved instead, see review-test)');
   assert(await vis('#progressFill'), 'practice: progress bar kept');
 
   // exam: timer replaces the badge, 24 dots, flag button, no progress bar

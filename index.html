@@ -239,6 +239,52 @@
     font-size: 13px; font-weight: 700; color: var(--text-muted);
     text-transform: uppercase; letter-spacing: 0.05em;
   }
+  /* practice "My Review": sets built from what the user has done (wrong answers, flagged) */
+  .my-review { display: none; margin-bottom: 4px; }
+  .my-review.show { display: block; }
+  .my-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px; }
+  .my-tile {
+    background: var(--card); border: 2px solid var(--border); border-radius: 12px;
+    padding: 12px 12px 11px; text-align: left; cursor: pointer; box-shadow: var(--shadow-sm); font: inherit;
+  }
+  .my-tile .t-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .my-tile .t-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 900; }
+  .my-tile.wrong { border-left: 4px solid var(--red-light); }
+  .my-tile.wrong .t-icon { background: #fdf0ef; color: var(--red-light); }
+  .my-tile.flagged { border-left: 4px solid var(--orange); }
+  .my-tile.flagged .t-icon { background: #fdf3e8; }
+  .my-tile .t-icon svg { width: 17px; height: 17px; }
+  .my-tile .t-num { font-size: 24px; font-weight: 900; color: var(--navy); line-height: 1; }
+  .my-tile b { display: block; font-size: 13.5px; color: var(--navy); }
+  .my-tile .sub { display: block; font-size: 11px; color: var(--text-muted); margin-top: 2px; line-height: 1.4; }
+  .my-tile.empty { cursor: default; opacity: 0.6; border-left-color: var(--border); box-shadow: none; }
+  .my-note { font-size: 11px; color: var(--text-muted); margin-bottom: 20px; }
+  .bm-inline { width: 12px; height: 12px; vertical-align: -2px; }
+  .bm-inline path { fill: none; stroke: var(--text-muted); stroke-width: 2; stroke-linejoin: round; }
+  .practice-by-title { display: none; }
+  .practice-by-title.show { display: block; }
+  /* Flagged list screen */
+  .flag-start {
+    display: flex; align-items: center; gap: 12px; width: 100%; font: inherit; text-align: left; border: none;
+    background: linear-gradient(135deg, var(--navy), var(--navy-mid)); color: #fff;
+    border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; cursor: pointer;
+  }
+  .flag-start svg { width: 26px; height: 26px; flex-shrink: 0; }
+  .flag-start b { display: block; font-size: 15px; }
+  .flag-start .fs-sub { font-size: 12px; color: rgba(255,255,255,0.7); }
+  .flag-start .go { margin-left: auto; font-size: 20px; color: var(--gold-light); }
+  .flag-item { display: flex; align-items: flex-start; gap: 10px; background: var(--card); border-radius: 10px; padding: 11px 13px; margin-bottom: 8px; box-shadow: var(--shadow-sm); }
+  .flag-item .fi-text { flex: 1; font-size: 13px; color: var(--navy); font-weight: 600; line-height: 1.45; }
+  .flag-item small { display: block; font-size: 10.5px; color: var(--text-muted); font-weight: 700; margin-bottom: 2px; }
+  .flag-item .fi-yue { font-size: 12px; color: var(--purple); font-weight: 400; margin-top: 3px; }
+  .flag-item button { background: none; border: none; cursor: pointer; padding: 2px; }
+  .flag-item button svg { width: 20px; height: 20px; }
+  .empty-hint { font-size: 12.5px; color: var(--text-muted); text-align: center; padding: 14px; border: 1.5px dashed var(--border); border-radius: 10px; }
+  /* review round note (above the question card, right) */
+  .round-row { display: none; justify-content: flex-end; margin: -4px 0 8px; }
+  .round-note { background: #fdf0ef; color: var(--red); border-radius: 6px; padding: 3px 8px; font-size: 11px; font-weight: 700; }
+  .result-note { font-size: 13px; color: var(--text-muted); margin-top: 8px; }
+  .rv-streak { float: right; font-size: 11px; font-weight: 700; color: var(--text-muted); margin-left: 8px; }
   /* exam tools (Exam 1–17 in exam mode): 45-min timer, question navigator dots, bookmark flag */
   .exam-timer {
     display: none; align-items: center;
@@ -819,10 +865,22 @@
     </div>
     <div class="mode-desc-panel" id="modeDesc"></div>
 
+    <!-- practice: sets built from what the user has done (shown once there is something in them) -->
+    <div class="my-review" id="myReview">
+      <div class="section-title">My Review</div>
+      <div class="my-grid">
+        <button class="my-tile wrong" id="tileWrong" onclick="startWrongReview()"></button>
+        <button class="my-tile flagged" id="tileFlagged" onclick="openFlagged()"></button>
+      </div>
+      <div class="my-note" id="myReviewNote"></div>
+    </div>
+
+    <!-- practice: the questions' own categories -->
+    <div class="section-title practice-by-title" id="practiceByTitle">Practice by</div>
     <div class="practice-tabs" id="practiceTabs">
-      <button class="practice-tab" id="ptabDifficulty" onclick="setPracticeView('difficulty')">By Difficulty</button>
-      <button class="practice-tab" id="ptabChapter" onclick="setPracticeView('chapter')">By Chapter</button>
-      <button class="practice-tab" id="ptabExam" onclick="setPracticeView('exam')">By Exam</button>
+      <button class="practice-tab" id="ptabDifficulty" onclick="setPracticeView('difficulty')">Difficulty</button>
+      <button class="practice-tab" id="ptabChapter" onclick="setPracticeView('chapter')">Chapter</button>
+      <button class="practice-tab" id="ptabExam" onclick="setPracticeView('exam')">Exam</button>
     </div>
 
     <div class="exam-select-section" id="secDifficulty">
@@ -847,6 +905,16 @@
       <button class="reset-btn" onclick="resetCompletedExams()">↺ Reset completed exams</button>
     </div>
 
+  </div>
+
+  <!-- ── FLAGGED (practice) ── -->
+  <div class="screen" id="screenFlagged">
+    <div class="quiz-header">
+      <button class="back-btn" onclick="goHome()">← Home</button>
+      <span class="quiz-label">Flagged</span>
+    </div>
+    <button class="flag-start" id="flaggedStart" onclick="startFlaggedPractice()"></button>
+    <div id="flaggedList"></div>
   </div>
 
   <!-- ── STUDY ── -->
@@ -882,6 +950,7 @@
       </div>
     </div>
 
+    <div class="round-row" id="roundRow"><span class="round-note" id="roundNote"></span></div>
     <div class="q-card">
       <div class="q-progress"><div class="q-progress-fill" id="progressFill" style="width:0%"></div></div>
       <!-- exam: question navigator (tap a number to jump) + answered / unanswered / flagged counts -->
@@ -889,8 +958,8 @@
       <div class="dots-meta" id="dotsMeta"></div>
       <div class="q-num">
         <span class="q-num-text" id="qNum">Question 1</span>
-        <button class="yue-toggle" id="yueToggle" onclick="toggleQuestionYue()">Translate</button>
         <button class="flag-btn" id="flagBtn" onclick="toggleFlag()" title="Flag for review" aria-label="Flag for review"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 3.5h9A2.5 2.5 0 0 1 19 6v14.5l-7-5.1-7 5.1V6a2.5 2.5 0 0 1 2.5-2.5z"/></svg></button>
+        <button class="yue-toggle" id="yueToggle" onclick="toggleQuestionYue()">Translate</button>
         <!-- once answered: quick Prev / Next in the Translate spot (mirrors the bottom buttons) -->
         <span class="quick-nav" id="quickNav">
           <button class="quick-btn" id="quickPrev" title="Previous" aria-label="Previous" onclick="prevQ()">←</button>
@@ -935,6 +1004,7 @@
       <div class="result-score" id="resultScore">18 <span>/ 24</span></div>
       <div class="result-label" id="resultLabel2">PASSED</div>
       <div class="result-sub" id="resultSub">You need 18/24 (75%) to pass the real test.</div>
+      <div class="result-note" id="resultNote"></div>
       <div class="result-breakdown">
         <div class="rb-item"><div class="rb-num pass" id="rbCorrect">0</div><div class="rb-lbl">Correct</div></div>
         <div class="rb-item"><div class="rb-num fail" id="rbWrong">0</div><div class="rb-lbl">Wrong</div></div>
@@ -987,7 +1057,7 @@
 // ════════════════════════════════════════
 // APP VERSION — single source of truth (shown in the header, drives the SW cache name)
 // ════════════════════════════════════════
-const APP_VERSION = '0.52';
+const APP_VERSION = '0.53';
 
 // ════════════════════════════════════════
 // APP STATE
@@ -1071,6 +1141,25 @@ function questionByKey(k) {
   return { q: EXAMS[examNum][origIdx], examNum, origIdx };
 }
 function isSimilarSession() { return similarReturn !== null; }
+// ── Practice "My Review": persistent flags + wrong-answer list (practice and exam mistakes) ──
+const FLAGS_LS = 'practiceFlags';
+const WRONG_LS = 'wrongList';
+const WRONG_EXAM = 'wrong';
+const FLAGGED_EXAM = 'flagged';
+let practiceFlags = getLS(FLAGS_LS) || {};
+let wrongList = getLS(WRONG_LS) || {};
+const keysOf = obj => Object.keys(obj).filter(k => obj[k]);
+function isPracticeFlagged(q) { return !!practiceFlags[qKey(q)]; }
+function setPracticeFlag(key, on) {
+  if (on) practiceFlags[key] = true; else delete practiceFlags[key];
+  setLS(FLAGS_LS, practiceFlags);
+}
+function addWrong(q) { wrongList[qKey(q)] = true; setLS(WRONG_LS, wrongList); }
+function clearWrong(q) { delete wrongList[qKey(q)]; setLS(WRONG_LS, wrongList); }
+function isReviewSet(examNum) { return examNum === WRONG_EXAM || examNum === FLAGGED_EXAM; }
+function reviewSetPool(examNum) {
+  return keysOf(examNum === WRONG_EXAM ? wrongList : practiceFlags).map(questionByKey);
+}
 function masteryOf(list) {
   const mastered = list.filter(({ q, examNum, origIdx }) => isMastered({ examNum, origIdx })).length;
   return { mastered, total: list.length, pct: list.length ? Math.round((mastered / list.length) * 100) : 0 };
@@ -1098,14 +1187,13 @@ function examQuestions(n) {
 }
 
 const DIFF_LABELS = { 1: 'Easy', 2: 'Basic', 3: 'Medium', 4: 'Hard', 5: 'Expert' };
-const HARD_MIN = 4;
 function allQuestions() {
   const out = [];
   for (let i = 1; i <= 17; i++) EXAMS[i].forEach((q, idx) => out.push({ q, examNum: i, origIdx: idx }));
   return out;
 }
 function difficultyQuestions(level) {
-  return allQuestions().filter(({ q }) => level === 'hard' ? q.d >= HARD_MIN : q.d === level);
+  return allQuestions().filter(({ q }) => q.d === level);
 }
 function buildDiffGrid() {
   const grid = document.getElementById('diffGrid');
@@ -1117,11 +1205,6 @@ function buildDiffGrid() {
       <span class="ch-count mastery${m.mastered ? '' : ' zero'}">${masteryText(m)}</span>${masteryBar(m)}
     </button>`;
   }
-  const mh = masteryOf(difficultyQuestions('hard'));
-  html += `<button class="chapter-btn diff-btn${mh.pct === 100 ? ' complete' : ''}" onclick="startDifficulty('hard')">
-    <span class="stars">★★★★+</span><span class="ch-name">Hard &amp; Expert</span>
-    <span class="ch-count mastery${mh.mastered ? '' : ' zero'}">${masteryText(mh)}</span>${masteryBar(mh)}
-  </button>`;
   grid.innerHTML = html;
 }
 function startDifficulty(level) {
@@ -1168,16 +1251,18 @@ function randomExamPick(pool) {
   return picked;
 }
 function isDifficultyExam(examNum) { return typeof examNum === 'string' && examNum.startsWith('d'); }
-function difficultyOf(examNum) { const v = examNum.slice(1); return v === 'hard' ? 'hard' : Number(v); }
+function difficultyOf(examNum) { return Number(examNum.slice(1)); }
 function examLabel(examNum) {
   if (isRandomExam(examNum)) return 'Random Exam';
   if (examNum === 'all') return 'All Exams';
   if (isChapterExam(examNum)) return `Chapter ${chapterOf(examNum)}`;
   if (isDifficultyExam(examNum)) {
     const lv = difficultyOf(examNum);
-    return lv === 'hard' ? 'Hard ★★★★+' : '★'.repeat(lv) + ' ' + DIFF_LABELS[lv];
+    return '★'.repeat(lv) + ' ' + DIFF_LABELS[lv];
   }
   if (examNum === SIMILAR_EXAM) return 'Similar Questions';
+  if (examNum === WRONG_EXAM) return 'Wrong answers';
+  if (examNum === FLAGGED_EXAM) return 'Flagged';
   return `Exam ${examNum}`;
 }
 
@@ -1219,6 +1304,8 @@ function renderModeSelection() {
 
   const isPractice = pendingMode === 'practice';
   document.getElementById('practiceTabs').classList.toggle('show', isPractice);
+  document.getElementById('practiceByTitle').classList.toggle('show', isPractice);
+  renderMyReview();
   PRACTICE_VIEWS.forEach(v => {
     const id = v.charAt(0).toUpperCase() + v.slice(1);
     document.getElementById('ptab' + id).classList.toggle('active', isPractice && practiceView === v);
@@ -1244,15 +1331,21 @@ function startExam(examNum) {
   similarReturn = null;
 
   let pool;
-  if (examNum === 'all') pool = allQuestions();
+  if (isReviewSet(examNum)) pool = reviewSetPool(examNum);
+  else if (examNum === 'all') pool = allQuestions();
   else if (isChapterExam(examNum)) pool = chapterQuestions(chapterOf(examNum));
   else if (isDifficultyExam(examNum)) pool = difficultyQuestions(difficultyOf(examNum));
   else pool = examQuestions(examNum);
 
   // Practice: skip mastered questions until the whole set is mastered, shuffle, then draw
   // at most PRACTICE_ROUND_MAX for this round. Exam: fixed exam order, all questions.
+  // review sets (wrong answers / flagged) ask every question in the list, mastered or not
+  state.setPool = pool;
+  state.masteredBefore = masteryOf(pool).mastered;
+  state.reviewTotal = isReviewSet(examNum) ? pool.length : 0;
+  state.cleared = 0;
   if (state.mode === 'practice') {
-    state.questions = shuffle(practicePool(pool)).slice(0, PRACTICE_ROUND_MAX)
+    state.questions = shuffle(isReviewSet(examNum) ? pool : practicePool(pool)).slice(0, PRACTICE_ROUND_MAX)
       .map(({ q, examNum: e, origIdx }) => ({ ...shuffleOptions(q), examNum: e, origIdx }));
   } else if (isRandomExam(examNum)) {
     state.questions = randomExamPick(pool).map(({ q, examNum: e, origIdx }) => ({ ...shuffleOptions(q), examNum: e, origIdx }));
@@ -1536,6 +1629,9 @@ function revealAnswer() {
   state.revealed[idx] = correct;
   if (state.mode === 'practice') {
     recordPracticeAnswer(q, correct); // session length stays fixed; unmastered ones return next session
+    // wrong answers join the review list; only a correct answer inside the review clears one
+    if (!correct) addWrong(q);
+    else if (state.examNum === WRONG_EXAM && wrongList[qKey(q)]) { clearWrong(q); state.cleared++; }
   }
   renderQuestion();
 }
@@ -1574,9 +1670,15 @@ function examTick() {
   el.classList.toggle('warn', left <= EXAM_WARN_SECONDS);
   if (left === 0) { examTimeUp = true; finishExam(); }
 }
+// exam: flags live for the session; practice: flags are saved (My Review › Flagged)
 function toggleFlag() {
-  state.flags[state.current] = !state.flags[state.current];
+  const i = state.current;
+  if (state.mode === 'practice') setPracticeFlag(qKey(state.questions[i]), !isPracticeFlagged(state.questions[i]));
+  else state.flags[i] = !state.flags[i];
   renderQuestion();
+}
+function isFlaggedNow(i) {
+  return state.mode === 'practice' ? isPracticeFlagged(state.questions[i]) : !!state.flags[i];
 }
 function goToQuestion(i) {
   state.current = i;
@@ -1600,14 +1702,16 @@ function renderExamTools(idx) {
   show('examTimer', 'inline-flex');
   show('navDots', 'grid');
   show('dotsMeta', 'flex');
-  show('flagBtn', 'inline-flex');
   document.getElementById('modeBadge').style.display = on ? 'none' : '';
   document.querySelector('#screenQuiz .q-progress').style.display = on ? 'none' : '';
-  if (!on) return;
-  document.getElementById('navDots').innerHTML = navDotsHtml();
-  document.getElementById('dotsMeta').innerHTML = dotsMetaHtml();
+  renderRoundNote();
   const flagBtn = document.getElementById('flagBtn');
-  const flagged = !!state.flags[idx];
+  flagBtn.style.display = on || state.mode === 'practice' ? 'inline-flex' : 'none';
+  if (on) {
+    document.getElementById('navDots').innerHTML = navDotsHtml();
+    document.getElementById('dotsMeta').innerHTML = dotsMetaHtml();
+  }
+  const flagged = isFlaggedNow(idx);
   flagBtn.classList.toggle('on', flagged);
   flagBtn.title = flagged ? 'Unflag' : 'Flag for review';
   flagBtn.setAttribute('aria-label', flagBtn.title);
@@ -1676,6 +1780,7 @@ function finishExam() {
     const isCorrect = q.a.every(a => userAns.includes(a)) && userAns.length === q.a.length;
     if (isCorrect) correct++;
     else wrongItems.push({ q, userAns, idx });
+    if (state.mode === 'exam' && userAns.length && !isCorrect) addWrong(q); // practice adds as it goes
   });
 
   // save completed (numbered exams only)
@@ -1691,7 +1796,7 @@ function finishExam() {
   const isExamMode = state.mode === 'exam';
   document.getElementById('resultEmoji').textContent = MODE_ICONS[state.mode];
   const scoreEl = document.getElementById('resultScore');
-  scoreEl.innerHTML = isExamMode ? `${correct} <span>/ ${total} · ${pct}%</span>` : `${correct} <span>/ ${total}</span>`;
+  scoreEl.innerHTML = `${correct} <span>/ ${total} · ${pct}%</span>`;
   const lbl2 = document.getElementById('resultLabel2');
   lbl2.textContent = passed ? '🎉 PASSED' : '📚 NEEDS IMPROVEMENT'; // verdict icon; the top icon shows the mode
   lbl2.className = 'result-label ' + (passed ? 'pass' : 'fail');
@@ -1705,8 +1810,11 @@ function finishExam() {
   lbl2.style.display = showVerdict ? '' : 'none';
   sub.style.display = showVerdict ? '' : 'none';
   scoreEl.classList.toggle('fail', isExamMode && showVerdict && !passed);
-  // exam: the score is shown once (score line + dots legend), so the 3 boxes go
-  document.querySelector('#screenResult .result-breakdown').style.display = isExamMode ? 'none' : '';
+  // the score is shown once (score line + dots legend), so the 3 boxes go
+  document.querySelector('#screenResult .result-breakdown').style.display = 'none';
+  const note = document.getElementById('resultNote');
+  note.textContent = isExamMode ? '' : practiceResultNote();
+  note.style.display = note.textContent ? '' : 'none';
   const retryLabel = 'Retry';
   const anotherLabel = isExamMode ? 'Another Exam' : 'Another Practice';
   document.querySelectorAll('#screenResult .retry-btn').forEach(btn => { btn.textContent = retryLabel; });
@@ -1736,12 +1844,11 @@ function finishExam() {
   }).join('');
 
   // review list (+ exam result dots)
-  const flags = state.flags || {};
   reviewItems = state.questions.map((q, idx) => {
     const userAns = state.answers[idx] || [];
-    return { q, idx, userAns, flagged: !!flags[idx], isCorrect: q.a.every(a => userAns.includes(a)) && userAns.length === q.a.length };
+    return { q, idx, userAns, flagged: isFlaggedNow(idx), isCorrect: q.a.every(a => userAns.includes(a)) && userAns.length === q.a.length };
   });
-  reviewIsExam = isExamMode;
+  reviewIsPractice = !isExamMode;
   reviewFilter = 'all';
   renderResultDots();
   renderReview();
@@ -1750,23 +1857,7 @@ function finishExam() {
   window.scrollTo(0, 0);
 }
 
-// ── Review answers: original order or wrong answers first (choice remembered) ──
-const REVIEW_ORDER_LS = 'reviewOrder';
-const REVIEW_ORDERS = [
-  { key: 'original', label: 'Original order' },
-  { key: 'wrongFirst', label: 'Wrong first' },
-];
 let reviewItems = [];
-let reviewOrder = getLS(REVIEW_ORDER_LS) === 'wrongFirst' ? 'wrongFirst' : 'original';
-function setReviewOrder(order) {
-  reviewOrder = order;
-  setLS(REVIEW_ORDER_LS, order);
-  renderReview();
-}
-function orderedReviewItems() {
-  if (reviewOrder !== 'wrongFirst') return reviewItems;
-  return [...reviewItems.filter(r => !r.isCorrect), ...reviewItems.filter(r => r.isCorrect)];
-}
 const MODE_ICONS = { practice: '🎯', exam: '📝' };
 const BOOKMARK_PATH = 'M7.5 3.5h9A2.5 2.5 0 0 1 19 6v14.5l-7-5.1-7 5.1V6a2.5 2.5 0 0 1 2.5-2.5z';
 const bookmarkSvg = cls => `<svg class="${cls}" viewBox="0 0 24 24" aria-label="Flagged"><path d="${BOOKMARK_PATH}"/></svg>`;
@@ -1776,14 +1867,13 @@ const REVIEW_FILTERS = [
   { key: 'wrong', label: 'Wrong', keep: r => !r.isCorrect },
   { key: 'flagged', label: 'Flagged', keep: r => r.flagged, icon: true },
 ];
-let reviewIsExam = false;
+let reviewIsPractice = false;
 let reviewFilter = 'all';
 function setReviewFilter(key) {
   reviewFilter = key;
   renderReview();
 }
 function visibleReviewItems() {
-  if (!reviewIsExam) return orderedReviewItems();
   return reviewItems.filter(REVIEW_FILTERS.find(f => f.key === reviewFilter).keep);
 }
 // note text: one row per \n line; "•" / "→" start a bullet, leading spaces + "◦" a sub-bullet, blank = gap
@@ -1799,17 +1889,17 @@ function reviewItemHtml({ q, idx, userAns, isCorrect, flagged }) {
   const userText = userAns.length ? userAns.map(ai => q.o[ai]).join(' | ') : 'No answer';
   const note = q.note ? `<div class="rv-note"><div class="rv-note-label">💡 備注：</div>${noteHtml(q.note)}</div>` : '';
   return `<div class="review-item ${isCorrect ? 'rv-correct' : 'rv-wrong'}" id="rv${idx}">
-      <div class="rv-q">${idx + 1}. ${q.q}${flagged ? bookmarkSvg('rv-flag') : ''}</div>
+      <div class="rv-q">${reviewIsPractice ? streakTag(q) : ''}${idx + 1}. ${q.q}${flagged ? bookmarkSvg('rv-flag') : ''}</div>
       ${!isCorrect ? `<div class="rv-your">Your answer: ${userText}</div>` : ''}
       <div class="rv-correct-ans">✅ ${correctText}</div>
       <div class="rv-tr"><div class="rv-yue">【廣東話】${q.yue}</div>${note}</div>
     </div>`;
 }
+function streakTag(q) {
+  const st = streakOf(q);
+  return `<span class="rv-streak">${st >= MASTERY_STREAK ? '🏆 Mastered' : `🔥 ${st}/${MASTERY_STREAK}`}</span>`;
+}
 function reviewChipsHtml() {
-  if (!reviewIsExam) {
-    return REVIEW_ORDERS.map(o =>
-      `<button class="chip${reviewOrder === o.key ? ' active' : ''}" onclick="setReviewOrder('${o.key}')">${o.label}</button>`).join('');
-  }
   return REVIEW_FILTERS.map(f => {
     const n = reviewItems.filter(f.keep).length;
     return `<button class="chip${reviewFilter === f.key ? ' active' : ''}" onclick="setReviewFilter('${f.key}')"${n ? '' : ' disabled'}>${f.icon ? bookmarkSvg('chip-flag') : ''}${f.label} <b>${n}</b></button>`;
@@ -1824,8 +1914,7 @@ function resultDotClass(r) {
   return 'rdot ' + st + (r.flagged ? ' flag' : '');
 }
 function renderResultDots() {
-  document.getElementById('resultDotsWrap').style.display = reviewIsExam ? 'block' : 'none';
-  if (!reviewIsExam) return;
+  document.getElementById('resultDotsWrap').style.display = 'block';
   document.getElementById('resultDots').innerHTML = reviewItems.map(r =>
     `<button class="${resultDotClass(r)}" onclick="jumpToReview(${r.idx})" aria-label="Question ${r.idx + 1}">${r.idx + 1}</button>`).join('');
   const count = pred => reviewItems.filter(pred).length;
@@ -1845,6 +1934,59 @@ function jumpToReview(idx) {
   el.classList.add('hl');
   setTimeout(() => el.classList.remove('hl'), REVIEW_HIGHLIGHT_MS);
 }
+
+// practice result line: wrong-answer review → cleared / left; other sets → mastery gained this round
+function practiceResultNote() {
+  if (state.examNum === WRONG_EXAM) {
+    return `Cleared ${state.cleared} from your wrong list · ${keysOf(wrongList).length} left`;
+  }
+  if (state.examNum === SIMILAR_EXAM || !state.setPool) return '';
+  const m = masteryOf(state.setPool);
+  return `Mastered ${Math.max(0, m.mastered - state.masteredBefore)} more this round · ${m.mastered}/${m.total} in ${examLabel(state.examNum)}`;
+}
+// review sets bigger than one round: "Round 1 of N · 24 of your T wrong answers" above the question card
+function renderRoundNote() {
+  const total = state.reviewTotal || 0;
+  const show = state.mode === 'practice' && total > PRACTICE_ROUND_MAX && !isSimilarSession();
+  document.getElementById('roundRow').style.display = show ? 'flex' : 'none';
+  if (!show) return;
+  const what = state.examNum === WRONG_EXAM ? 'wrong answers' : 'flagged questions';
+  document.getElementById('roundNote').textContent =
+    `Round 1 of ${Math.ceil(total / PRACTICE_ROUND_MAX)} · ${state.questions.length} of your ${total} ${what}`;
+}
+function renderMyReview() {
+  const wrongN = keysOf(wrongList).length, flagN = keysOf(practiceFlags).length;
+  document.getElementById('myReview').classList.toggle('show', pendingMode === 'practice' && (wrongN + flagN) > 0);
+  const tile = (id, n, iconHtml, title, sub) => {
+    const el = document.getElementById(id);
+    el.classList.toggle('empty', !n);
+    el.disabled = !n;
+    el.innerHTML = `<div class="t-top"><span class="t-icon">${iconHtml}</span><span class="t-num">${n}</span></div><b>${title}</b><span class="sub">${sub}</span>`;
+  };
+  tile('tileWrong', wrongN, '✗', 'Wrong answers',
+    !wrongN ? 'Nothing to review yet' : wrongN > PRACTICE_ROUND_MAX ? `${wrongN} to clear · ${PRACTICE_ROUND_MAX} per round` : `${wrongN} to clear`);
+  tile('tileFlagged', flagN, bookmarkSvg('rv-flag-tile'), 'Flagged',
+    flagN ? `${flagN} saved` : `Tap ${bookmarkSvg('bm-inline')} on a question to save it`);
+  document.getElementById('myReviewNote').textContent =
+    `Wrong answers come from Practice and Exam, and clear when you get them right here. Up to ${PRACTICE_ROUND_MAX} per round.`;
+}
+function startWrongReview() { pendingMode = 'practice'; startExam(WRONG_EXAM); }
+function startFlaggedPractice() { pendingMode = 'practice'; startExam(FLAGGED_EXAM); }
+function openFlagged() {
+  const keys = keysOf(practiceFlags);
+  const start = document.getElementById('flaggedStart');
+  start.style.display = keys.length ? '' : 'none';
+  start.innerHTML = `${bookmarkSvg('rv-flag-tile')}<div><b>Practise flagged (${keys.length})</b><span class="fs-sub">Each question once · up to ${PRACTICE_ROUND_MAX} per round</span></div><span class="go">→</span>`;
+  document.getElementById('flaggedList').innerHTML = !keys.length
+    ? '<div class="empty-hint">No flagged questions left.</div>'
+    : keys.map(k => {
+      const { q, examNum, origIdx } = questionByKey(k);
+      return `<div class="flag-item"><div class="fi-text"><small>Exam ${examNum} · Q${origIdx + 1} · ${starsHtml(q.d)}</small>${escapeHtml(q.q)}<div class="fi-yue">${escapeHtml(q.yue)}</div></div>
+        <button onclick="unflagFromList('${k}')" title="Unflag" aria-label="Unflag">${bookmarkSvg('rv-flag')}</button></div>`;
+    }).join('');
+  showScreen('screenFlagged');
+}
+function unflagFromList(key) { setPracticeFlag(key, false); openFlagged(); }
 
 function retryExam() {
   startExam(state.examNum);
