@@ -20,15 +20,15 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
 
   // home grid
   const counts = await pg.$$eval('#diffGrid .ch-count', els => els.map(e => parseInt(e.textContent.split('/')[1])));
-  assert(counts.length === 6 && counts.slice(0, 5).reduce((a, b) => a + b, 0) === 408 && counts[5] === counts[3] + counts[4], 'difficulty grid counts: ' + counts.join('/'));
+  assert(counts.length === 5 && counts.reduce((a, b) => a + b, 0) === 408, 'difficulty grid counts (Easy to Expert only): ' + counts.join('/'));
   const names = await pg.$$eval('#diffGrid .ch-name', els => els.map(e => e.textContent));
-  assert(JSON.stringify(names) === JSON.stringify(['Easy', 'Basic', 'Medium', 'Hard', 'Expert', 'Hard & Expert']), 'English-only difficulty labels: ' + names);
+  assert(JSON.stringify(names) === JSON.stringify(['Easy', 'Basic', 'Medium', 'Hard', 'Expert']), 'English-only difficulty labels, no Hard & Expert row: ' + names);
   await pg.screenshot({ path: 'shot-diff-home.png', fullPage: true });
 
   // practice by difficulty
-  await pg.click('#diffGrid .diff-btn:nth-child(6)');
-  assert(await pg.evaluate(() => difficultyQuestions('hard').length === 85 && state.questions.length === 24 && state.questions.every(q => q.d >= 4)), 'hard set 85 Q; round of 24, all >=4');
-  assert((await pg.$eval('#quizLabel', e => e.textContent)) === 'Hard ★★★★+', 'hard label');
+  await pg.click('#diffGrid .diff-btn:nth-child(4)');
+  assert(await pg.evaluate(() => difficultyQuestions(4).length > 24 && state.questions.length === 24 && state.questions.every(q => q.d === 4)), 'Hard set: round of 24, all d=4');
+  assert((await pg.$eval('#quizLabel', e => e.textContent)) === '★★★★ Hard', 'Hard label');
   assert((await pg.$eval('#qNum .stars', e => e.textContent)).length === 5, 'stars shown on question card');
   await pg.screenshot({ path: 'shot-diff-q.png' });
   await pg.click('#screenQuiz .back-btn');

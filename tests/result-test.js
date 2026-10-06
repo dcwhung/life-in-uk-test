@@ -25,7 +25,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await finish('practice', 2);
   assert(await verdictShown(), 'Practice exam: PASSED + remark shown');
   // other sets: no verdict, no remark, score still shown
-  for (const set of ['ch1', 'd1', 'dhard', 'all']) {
+  for (const set of ['ch1', 'd1', 'd4', 'all']) {
     await finish('practice', set);
     assert(!(await vis('#resultLabel2')) && !(await vis('#resultSub')), `${set}: no PASSED / remark`);
     assert((await pg.$eval('#rbPct', e => e.textContent)) === '100%', `${set}: score still shown`);
@@ -56,26 +56,21 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   }
   await finish('exam', 1);
   assert((await retryText()) === 'Retry' && (await anotherText()) === 'Another Exam', 'Retry / Another Exam again after a practice set');
-  // review order: wrong answers first (original question numbers kept), choice remembered
-  const finishWithWrong = (wrongIdx) => pg.evaluate((wrongIdx) => {
+  // practice review: All / Wrong / Flagged filters (the old order chips are gone); original numbers kept
+  await pg.evaluate(() => {
     pendingMode = 'practice'; startExam('ch1');
-    state.questions.forEach((q, i) => {
-      state.answers[i] = wrongIdx.includes(i) ? [q.o.findIndex((_, k) => !q.a.includes(k))] : [...q.a];
-    });
+    state.questions.forEach((q, i) => { state.answers[i] = [2, 5].includes(i) ? [q.o.findIndex((_, k) => !q.a.includes(k))] : [...q.a]; });
     finishExam();
-  }, wrongIdx);
-  const chips = () => pg.$$eval('#reviewOrder .chip', els => els.map(e => e.textContent + (e.classList.contains('active') ? '*' : '')));
-  const items = () => pg.$$eval('#reviewList .review-item', els => els.map(e => e.querySelector('.rv-q').textContent.split('.')[0] + (e.classList.contains('rv-wrong') ? 'x' : '')));
-  await finishWithWrong([2, 5]);
-  assert(JSON.stringify(await chips()) === JSON.stringify(['Original order*', 'Wrong first']), 'order chips, original by default');
-  assert(JSON.stringify(await items()) === JSON.stringify(['1', '2', '3x', '4', '5', '6x', '7', '8', '9']), 'original order');
+  });
+  const chips = () => pg.$$eval('#reviewOrder .chip', els => els.map(e => e.textContent.replace(/\s+/g, ' ').trim() + (e.classList.contains('active') ? '*' : '')));
+  // question number = the rv-q text without the practice streak tag
+  const items = () => pg.$$eval('#reviewList .review-item', els => els.map(e => {
+    const q = e.querySelector('.rv-q').cloneNode(true); q.querySelectorAll('.rv-streak').forEach(t => t.remove());
+    return q.textContent.split('.')[0] + (e.classList.contains('rv-wrong') ? 'x' : '');
+  }));
+  assert(JSON.stringify(await chips()) === JSON.stringify(['All 9*', 'Wrong 2', 'Flagged 0']), 'practice filter chips, All by default');
   await pg.click('#reviewOrder .chip:nth-child(2)');
-  assert(JSON.stringify(await chips()) === JSON.stringify(['Original order', 'Wrong first*']), 'wrong-first chip active');
-  assert(JSON.stringify(await items()) === JSON.stringify(['3x', '6x', '1', '2', '4', '5', '7', '8', '9']), 'wrong answers first, original numbers kept');
-  await finishWithWrong([0]);
-  assert(JSON.stringify(await items()) === JSON.stringify(['1x', '2', '3', '4', '5', '6', '7', '8', '9']) && (await chips())[1] === 'Wrong first*', 'choice remembered for the next result');
-  await pg.click('#reviewOrder .chip:nth-child(1)');
-  assert(JSON.stringify(await chips()) === JSON.stringify(['Original order*', 'Wrong first']), 'back to original order');
+  assert(JSON.stringify(await items()) === JSON.stringify(['3x', '6x']), 'Wrong filter: only the wrong ones, original numbers kept');
   assert(errs.length === 0, 'no page errors: ' + errs.join(';'));
   await b.close(); console.log('RESULT PASS');
 })().catch(e => { console.error(e.message); process.exit(1); });

@@ -91,7 +91,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.reload();
   await pg.click('#modeStudy');
   assert(await pg.$eval('.study-tab.active', e => e.dataset.tab) === 'people', 'tab persisted after reload');
-  await pg.click('.back-btn');
+  await pg.click('#screenStudy .back-btn');
   assert(await pg.$eval('#screenHome', e => e.classList.contains('active')), 'back to home');
 
   assert(errs.length === 0, 'no page errors: ' + errs.join(';'));

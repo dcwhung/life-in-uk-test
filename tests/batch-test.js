@@ -21,7 +21,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   });
 
   // big practice sets are capped at 24 distinct questions per round
-  for (const set of ['ch3', 'd3', 'dhard', 'all']) {
+  for (const set of ['ch3', 'd3', 'd4', 'all']) {
     await start('practice', set);
     assert(await pg.evaluate(() => state.questions.length === 24), `${set}: round starts with 24 questions`);
   }

@@ -86,11 +86,11 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert((await text('#resultLabel2')) === '🎉 PASSED', 'PASSED verdict with the celebration icon');
   assert(JSON.stringify(await texts('#reviewOrder .chip')) === JSON.stringify(['All 24', 'Wrong 1', 'Flagged 0']) && await pg.$eval('#reviewOrder .chip:nth-child(3)', e => e.disabled), 'empty filter disabled');
 
-  // practice result: mode icon 🎯, keeps its boxes and order chips, new button text, no dots
+  // practice result now follows the exam layout (details in review-test.js)
   await pg.evaluate(() => { pendingMode = 'practice'; startExam('ch1'); state.questions.forEach((q, i) => { state.answers[i] = [...q.a]; }); finishExam(); });
   assert((await text('#resultEmoji')) === '🎯', 'practice result icon follows the mode (🎯)');
-  assert(await vis('.result-breakdown') && !(await vis('#resultDots')), 'practice: boxes kept, no dots (to be redone later)');
-  assert(JSON.stringify(await texts('#reviewOrder .chip')) === JSON.stringify(['Original order', 'Wrong first']), 'practice keeps the order chips');
+  assert(!(await vis('.result-breakdown')) && await vis('#resultDots'), 'practice: no boxes, result dots shown');
+  assert(JSON.stringify(await texts('#reviewOrder .chip')) === JSON.stringify(['All 9', 'Wrong 0', 'Flagged 0']), 'practice uses the All / Wrong / Flagged filters');
   assert(JSON.stringify(await texts('#screenResult .retry-btn')) === '["Retry","Retry"]' && JSON.stringify(await texts('#screenResult .another-btn')) === '["Another Practice","Another Practice"]', 'practice buttons: Retry / Another Practice');
 
   assert(errs.length === 0, 'no page errors: ' + errs.join('; '));
