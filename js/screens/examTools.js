@@ -28,7 +28,7 @@ function stopExamTimer() {
 function examTick() {
   const left = Math.max(0, Math.ceil((examDeadline - Date.now()) / MS_PER_SECOND));
   const el = byId('examTimer');
-  el.textContent = `⏱ ${pad2(Math.floor(left / SECONDS_PER_MINUTE))}:${pad2(left % SECONDS_PER_MINUTE)}`;
+  el.textContent = t('exam.timer', { time: `${pad2(Math.floor(left / SECONDS_PER_MINUTE))}:${pad2(left % SECONDS_PER_MINUTE)}` });
   el.classList.toggle('warn', left <= EXAM_WARN_SECONDS);
   // time up: submit as is, straight to the results (no prompt)
   if (left === 0) { examTimeUp = true; finishExam(); }
@@ -61,19 +61,19 @@ function practiceDotsMetaHtml() {
   const results = Object.values(state.revealed), correct = results.filter(Boolean).length;
   const flagged = state.questions.filter((_, i) => isFlaggedNow(i)).length;
   return countsLegendHtml([
-    ['lg-ok', 'Correct', correct],
-    ['lg-bad', 'Wrong', results.length - correct],
-    ['lg-todo', 'Unanswered', state.questions.length - results.length],
-    ['lg-flag', 'Flagged', flagged],
+    ['lg-ok', t('common.correct'), correct],
+    ['lg-bad', t('common.wrong'), results.length - correct],
+    ['lg-todo', t('common.unanswered'), state.questions.length - results.length],
+    ['lg-flag', t('common.flagged'), flagged],
   ]);
 }
 function dotsMetaHtml() {
   if (state.mode === PRACTICE_MODE) return practiceDotsMetaHtml();
   const done = state.questions.filter((_, i) => isAnswered(i)).length;
   return countsLegendHtml([
-    ['lg-done', 'Answered', done],
-    ['lg-todo', 'Unanswered', state.questions.length - done],
-    ['lg-flag', 'Flagged', flaggedCount()],
+    ['lg-done', t('common.answered'), done],
+    ['lg-todo', t('common.unanswered'), state.questions.length - done],
+    ['lg-flag', t('common.flagged'), flaggedCount()],
   ]);
 }
 
@@ -101,7 +101,7 @@ function renderFlagButton(idx, visible) {
   flagBtn.hidden = !visible;
   const flagged = isFlaggedNow(idx);
   flagBtn.classList.toggle('on', flagged);
-  flagBtn.title = flagged ? 'Unflag' : 'Flag for review';
+  flagBtn.title = flagged ? t('common.unflag') : t('common.flagForReview');
   flagBtn.setAttribute('aria-label', flagBtn.title);
 }
 
@@ -110,8 +110,12 @@ function renderFlagButton(idx, visible) {
 function submitExam() {
   const unanswered = state.questions.filter((_, i) => !isAnswered(i)).length;
   const flagged = flaggedCount();
-  const notes = [unanswered && `${unanswered} questions unanswered`, flagged && `${flagged} flagged`].filter(Boolean);
+  const notes = [
+    unanswered && t('modal.submitUnanswered', { n: unanswered }),
+    flagged && t('modal.submitFlagged', { n: flagged }),
+  ].filter(Boolean);
   if (!notes.length) { finishExam(); return; }
-  showConfirm({ title: 'Submit exam?', message: `${notes.join('\n')}\nYou can still go back and check them.`,
-    okLabel: 'Submit', cancelLabel: 'Keep going', onOk: finishExam });
+  // the modal message is pre-line: one note per line
+  showConfirm({ title: t('modal.submitTitle'), message: [...notes, t('modal.submitCheck')].join('\n'),
+    okLabel: t('exam.submit'), cancelLabel: t('modal.submitCancel'), onOk: finishExam });
 }

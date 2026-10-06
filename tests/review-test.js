@@ -22,8 +22,8 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
     revealAnswer();
   }, correct);
 
-  // home: "Practice by" categories; no My Review until something is recorded
-  assert((await text('#practiceByTitle')) === 'Practice by', '"Practice by" section title');
+  // home: "Practice By" categories; no My Review until something is recorded
+  assert((await text('#practiceByTitle')) === 'Practice By', '"Practice By" section title (Title Case)');
   assert(JSON.stringify(await texts('#practiceTabs .practice-tab')) === JSON.stringify(['Difficulty', 'Chapter', 'Exam']), 'category tabs: Difficulty / Chapter / Exam');
   assert(!(await vis('#myReview')), 'fresh start: no My Review section');
 
@@ -41,7 +41,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.evaluate(() => goHome());
   assert(await vis('#myReview'), 'My Review appears once something is recorded');
   assert(await pg.$eval('#tileWrong', e => e.classList.contains('empty')) && (await text('#tileWrong .t-num')) === '0', 'Wrong answers tile empty');
-  assert((await text('#tileFlagged .t-num')) === '1' && (await text('#tileFlagged .sub')) === '1 saved', 'Flagged tile: 1 saved');
+  assert((await text('#tileFlagged .t-num')) === '1' && (await text('#tileFlagged .sub')) === '1 flagged', 'Flagged tile: 1 flagged');
   await pg.click('#modeExam');
   assert(!(await vis('#myReview')), 'My Review only under Practice');
   await pg.click('#modePractice');
@@ -80,7 +80,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await answer(false);
   assert((await ls('lifeuk.wrongList'))[secondKey] === true, 'wrong in Review: stays');
   await pg.evaluate(() => finishExam());
-  assert((await text('#resultNote')) === 'Cleared 1 from your wrong list · 1 left', 'result note: cleared / left');
+  assert((await text('#resultNote')) === 'Cleared 1 from your wrong answers · 1 left', 'result note: cleared / left');
 
   // more than 24 wrong: round of 24 with a note above the question card
   await pg.evaluate(() => { const w = {}; for (let i = 0; i < 30; i++) w['3.' + (i % 24)] = true; for (let i = 0; i < 6; i++) w['5.' + i] = true; localStorage.setItem('lifeuk.wrongList', JSON.stringify(w)); wrongList = w; goHome(); });
@@ -110,7 +110,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
     state.questions.forEach((q, i) => { state.current = i; state.answers[i] = i % 4 ? [...q.a] : [q.o.findIndex((_, k) => !q.a.includes(k))]; revealAnswer(); });
     finishExam();
   });
-  assert((await text('#resultEmoji')) === '🎯' && !(await vis('.result-breakdown')), 'practice result: 🎯, no boxes');
+  assert((await text('#resultEmoji')) === '🎯' && (await pg.$$('.result-breakdown')).length === 0, 'practice result: 🎯, no boxes');
   assert((await text('#resultScore')) === '18 / 24 · 75%' && !(await pg.$eval('#resultScore', e => e.classList.contains('fail'))), 'score line, never red in practice');
   assert((await pg.$$('#resultDots .rdot')).length === 24 && await pg.evaluate(() => document.querySelector('#resultDots .rdot.flag') !== null), 'practice result dots incl. flag ring');
   assert(JSON.stringify(await texts('#reviewOrder .chip')) === JSON.stringify(['All 24', 'Wrong 6', 'Flagged 1']), 'practice review filters');

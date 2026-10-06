@@ -32,7 +32,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert((await text('#resultScore')) === '17 / 24 · 71%', 'score line: 17 / 24 · 71%');
   assert(await pg.$eval('#resultScore', e => e.classList.contains('fail')), 'failed: score line red');
   assert((await text('#resultLabel2')) === '📚 NEEDS IMPROVEMENT', 'failed verdict with the book icon');
-  assert(!(await vis('.result-breakdown')), 'exam: Correct / Wrong / Score boxes removed');
+  assert((await pg.$$('.result-breakdown, #rbCorrect, #rbWrong, #rbPct')).length === 0, 'exam: Correct / Wrong / Score boxes removed from the page');
   assert(await pg.$$eval('#screenResult .section-title', els => els.some(e => e.textContent === 'By Difficulty') && els.every(e => !/[\u4e00-\u9fff]/.test(e.textContent))), 'section title "By Difficulty", no Chinese');
 
   // dots: green correct, red wrong, red outline unanswered, orange ring flagged
@@ -62,7 +62,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(await pg.$eval('#rv4', e => { const r = e.getBoundingClientRect(); return r.top >= 0 && r.top < innerHeight; }), 'target scrolled into view');
 
   // translation + note: separated block, one row per note line, bullets indented
-  assert(await pg.$eval('#rv0 .rv-tr .rv-yue', e => e.textContent.startsWith('【廣東話】')), 'Cantonese translation in its own block');
+  assert(await pg.$eval('#rv0 .rv-tr .rv-yue', e => e.textContent.startsWith('【廣東話翻譯】')), 'Cantonese translation in its own block, labelled 【廣東話翻譯】');
   const noteIdx = await pg.evaluate(() => state.questions.findIndex(q => q.note && q.note.split('\n').some(l => /^\s*[•→]/.test(l))));
   const noteLines = await pg.$$eval(`#rv${noteIdx} .rv-note-line`, els => els.map(e => e.className));
   assert(noteLines.length > 2 && noteLines.some(c => c.includes('bullet')), 'note split into rows with bullet indent');
@@ -89,7 +89,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   // practice result now follows the exam layout (details in review-test.js)
   await pg.evaluate(() => { pendingMode = 'practice'; startExam('ch1'); state.questions.forEach((q, i) => { state.answers[i] = [...q.a]; }); finishExam(); });
   assert((await text('#resultEmoji')) === '🎯', 'practice result icon follows the mode (🎯)');
-  assert(!(await vis('.result-breakdown')) && await vis('#resultDots'), 'practice: no boxes, result dots shown');
+  assert((await pg.$$('.result-breakdown')).length === 0 && await vis('#resultDots'), 'practice: no boxes, result dots shown');
   assert(JSON.stringify(await texts('#reviewOrder .chip')) === JSON.stringify(['All 9', 'Wrong 0', 'Flagged 0']), 'practice uses the All / Wrong / Flagged filters');
   assert(JSON.stringify(await texts('#screenResult .retry-btn')) === '["Retry","Retry"]' && JSON.stringify(await texts('#screenResult .another-btn')) === '["Another Practice","Another Practice"]', 'practice buttons: Retry / Another Practice');
 

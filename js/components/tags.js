@@ -1,16 +1,15 @@
 // ════════════════════════════════════════
 // TAGS — small shared HTML pieces: streak labels, question refs, chips, mastery set buttons
 // ════════════════════════════════════════
-const MASTERED_LABEL = '🏆 Mastered';
-
-// "🔥 n/3" or the mastered label (call sites keep their own mastered wording)
-function streakLabel(q, masteredLabel = MASTERED_LABEL) {
+// "🔥 n/3" progress, or "🏆 Mastered" once the streak is complete
+function streakText(n) { return t('common.streak', { n, max: MASTERY_STREAK }); }
+function streakLabel(q) {
   const st = streakOf(q);
-  return st >= MASTERY_STREAK ? masteredLabel : `🔥 ${st}/${MASTERY_STREAK}`;
+  return st >= MASTERY_STREAK ? t('common.mastered') : streakText(st);
 }
 function streakTagHtml(q) { return `<span class="rv-streak">${streakLabel(q)}</span>`; }
 
-function questionRefText({ examNum, origIdx }) { return `Exam ${examNum} · Q${origIdx + 1}`; }
+function questionRefText({ examNum, origIdx }) { return t('common.questionRef', { exam: examNum, n: origIdx + 1 }); }
 
 function masteryBarHtml(m) { return `<span class="mastery-bar" style="width:${m.pct}%"></span>`; }
 

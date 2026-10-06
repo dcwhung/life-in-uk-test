@@ -2,41 +2,41 @@
 .back-btn {
   background: var(--card);
   border: 1.5px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   padding: 7px 14px;
-  font-size: 13px; font-weight: 600; color: var(--navy);
+  font-size: var(--fs-base); font-weight: 600; color: var(--navy);
   cursor: pointer; display: flex; align-items: center; gap: 6px;
 }
-.back-btn:hover { background: var(--navy); color: #fff; border-color: transparent; }
+.back-btn:hover { background: var(--navy); color: var(--text-inverse); border-color: transparent; }
 
 /* nav buttons */
 .nav-row { display: flex; gap: 10px; justify-content: flex-end; }
 .nav-btn {
   background: var(--navy);
-  color: #fff;
+  color: var(--text-inverse);
   border: none;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   padding: 12px 24px;
-  font-size: 14px; font-weight: 700;
+  font-size: var(--fs-md); font-weight: 700;
   cursor: pointer; transition: all 0.15s;
 }
 .nav-btn:hover { background: var(--navy-light); }
 .nav-btn.secondary { background: var(--card); color: var(--navy); border: 2px solid var(--border); }
-.nav-btn.secondary:hover { background: var(--navy); color: #fff; border-color: transparent; }
+.nav-btn.secondary:hover { background: var(--navy); color: var(--text-inverse); border-color: transparent; }
 .nav-btn:disabled { opacity: 0.4; cursor: default; }
 
 /* quick Prev / Next in the question header */
 .quick-nav { display: none; gap: 6px; flex-shrink: 0; text-transform: none; letter-spacing: 0; }
 .quick-nav.visible { display: inline-flex; }
 .quick-btn {
-  width: 32px; height: 32px; border-radius: 50%;
+  width: 32px; height: 32px; border-radius: var(--radius-circle);
   background: var(--card); color: var(--navy);
   border: 1.5px solid var(--border);
-  font: inherit; font-size: 15px; font-weight: 800; line-height: 1;
+  font: inherit; font-size: var(--fs-lg); font-weight: 800; line-height: 1;
   display: inline-flex; align-items: center; justify-content: center;
   cursor: pointer;
 }
-.quick-btn.primary { background: var(--navy); border-color: var(--navy); color: #fff; }
+.quick-btn.primary { background: var(--navy); border-color: var(--navy); color: var(--text-inverse); }
 .quick-btn:disabled { opacity: 0.4; cursor: default; }
 
 /* bookmark flag button + bookmark icon colours */

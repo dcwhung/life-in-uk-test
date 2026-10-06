@@ -16,30 +16,18 @@
 /* exam: failed score line is red; passed stays navy */
 .result-score.fail, .result-score.fail span { color: var(--red-light); }
 .result-label { font-size: 16px; font-weight: 700; margin: 8px 0 4px; }
-.result-sub { font-size: 13px; color: var(--text-muted); }
+.result-sub { font-size: var(--fs-base); color: var(--text-muted); }
 .pass { color: var(--green); }
 .fail { color: var(--red); }
-.result-breakdown {
-  display: grid; grid-template-columns: 1fr 1fr 1fr;
-  gap: 12px; margin-top: 20px;
-}
-.rb-item {
-  background: var(--bg);
-  border-radius: 10px;
-  padding: 14px 8px;
-}
-.rb-num { font-size: 22px; font-weight: 800; }
-.rb-num.rb-pct { color: var(--navy); }
-.rb-lbl { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
 
 .result-actions { margin-bottom: 20px; }
 .review-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
 .review-item {
   background: var(--card);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   padding: 16px 18px;
   border-left: 4px solid var(--border);
-  font-size: 13px;
+  font-size: var(--fs-base);
   line-height: 1.55;
   scroll-margin-top: 80px; transition: box-shadow 0.3s;
 }
@@ -52,7 +40,7 @@
 .rv-tr { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); }
 .rv-yue { color: var(--purple); font-size: 12.5px; line-height: 1.6; }
 .rv-note { margin-top: 10px; color: var(--purple); font-size: 12.5px; line-height: 1.6; }
-.rv-note-label { color: #b5680a; font-weight: 700; margin-bottom: 4px; }
+.rv-note-label { color: var(--note-label); font-weight: 700; margin-bottom: 4px; }
 .rv-note-line { margin-bottom: 6px; }
 .rv-note-line:last-child { margin-bottom: 0; }
 .rv-note-line.bullet { padding-left: 1.1em; text-indent: -1.1em; }
@@ -61,23 +49,22 @@
 .review-item.hl { box-shadow: 0 0 0 3px var(--gold); }
 
 .result-timeup {
-  background: #fdf0ef; color: var(--red);
-  border: 1.5px solid var(--red-light); border-radius: 10px;
-  padding: 10px 14px; margin-bottom: 14px; font-size: 13px; font-weight: 700; text-align: center;
+  background: var(--danger-bg); color: var(--red);
+  border: 1.5px solid var(--red-light); border-radius: var(--radius-md);
+  padding: 10px 14px; margin-bottom: 14px; font-size: var(--fs-base); font-weight: 700; text-align: center;
 }
-.result-note { font-size: 13px; color: var(--text-muted); margin-top: 8px; }
-.rv-streak { float: right; font-size: 11px; font-weight: 700; color: var(--text-muted); margin-left: 8px; }
+.result-note { font-size: var(--fs-base); color: var(--text-muted); margin-top: 8px; }
+.rv-streak { float: right; font-size: var(--fs-xs); font-weight: 700; color: var(--text-muted); margin-left: 8px; }
 
-.diff-table { background: var(--card); border-radius: 10px; padding: 6px 14px; margin-bottom: 20px; }
-.diff-row { display: grid; grid-template-columns: 82px 1fr 82px; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.diff-table { background: var(--card); border-radius: var(--radius-md); padding: 6px 14px; margin-bottom: 20px; }
+.diff-row { display: grid; grid-template-columns: 82px 1fr 82px; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: var(--fs-base); }
 .diff-row:last-child { border-bottom: none; }
 .diff-bar { height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
 .diff-bar > div { height: 100%; background: var(--green-light); border-radius: 4px; }
 .diff-bar.low > div { background: var(--red-light); }
 .diff-bar.mid > div { background: var(--gold); }
-.diff-pct { text-align: right; font-weight: 700; color: var(--navy); font-size: 12px; white-space: nowrap; }
+.diff-pct { text-align: right; font-weight: 700; color: var(--navy); font-size: var(--fs-sm); white-space: nowrap; }
 
 @media (max-width: 480px) {
-  .result-breakdown { grid-template-columns: 1fr 1fr 1fr; }
   .result-score { font-size: 42px; }
 }

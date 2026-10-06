@@ -105,11 +105,11 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.evaluate(() => retryExam());
   assert(await pg.evaluate(b => state.questions.length === 24 && state.questions.map(qKey).join(',') !== b, before), 'retry draws a fresh set');
   await pg.evaluate(() => goHome()); await pg.click('#confirmOk');
-  // home grid: exam mode shows Random Exam; practice keeps All Exams (408 Q)
+  // home grid: exam mode shows Random Exam; practice keeps All Exams (408 questions)
   await pg.click('#modeExam');
-  assert((await pg.$eval('#examGrid .exam-btn.all', e => e.firstChild.textContent.trim())) === '🎲 Random Exam' && (await text('#examGrid .exam-btn.all .exam-sub')) === '24 Qs from 408 Qs', 'exam grid: 🎲 Random Exam / 24 Qs from 408 Qs');
+  assert((await pg.$eval('#examGrid .exam-btn.all', e => e.firstChild.textContent.trim())) === '🎲 Random Exam' && (await text('#examGrid .exam-btn.all .exam-sub')) === '24 questions from 408', 'exam grid: 🎲 Random Exam / 24 questions from 408');
   await pg.click('#modePractice'); await pg.click('#ptabExam');
-  assert((await text('#examGrid .exam-btn.all')).startsWith('🎯 All Exams (408 Q)'), 'practice grid keeps All Exams (408 Q)');
+  assert((await text('#examGrid .exam-btn.all')).startsWith('🎯 All Exams (408 questions)'), 'practice grid keeps All Exams (408 questions)');
   await pg.evaluate(() => { pendingMode = 'practice'; startExam('all'); });
   assert(await pg.evaluate(() => state.questions.length === 24) && !(await vis('#examTimer')), 'practice All Exams unchanged: round of 24, no timer');
 

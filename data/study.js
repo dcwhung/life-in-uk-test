@@ -3,13 +3,8 @@
 // id, ch (chapter 1-5), d (difficulty 1-5 stars), src ["exam.idx"], y (year; negative = BC), yl (year label),
 // w (war/battle), geo [nation, type], p [person name, group], en, yue
 // ════════════════════════════════════════
-const CHAPTERS = {
-  1: "The values and principles of the UK",
-  2: "What is the UK?",
-  3: "A long and illustrious history",
-  4: "A modern, thriving society",
-  5: "The UK government, the law and your role",
-};
+// chapter numbers of the official handbook; titles are UI labels in locales (data.chapters / data.chapterShort)
+const CHAPTERS = [1, 2, 3, 4, 5];
 const STUDY = [
 {id:1,ch:1,d:1,src:["1.0","6.0","7.0","9.4","15.7"],en:"As a British citizen or permanent resident you should: respect and obey the law; respect the rights of others (including their right to their own opinions); treat others with fairness; look after yourself and your family; look after the area in which you live and the environment; and pay taxes.",yue:"作為英國公民或永久居民嘅責任：遵守法律、尊重他人權利同意見、公平待人、照顧自己同家人、照顧居住環境，同埋交稅。"},
 {id:2,ch:1,d:2,src:["3.0","5.4","6.12","8.9"],en:"The five fundamental principles of British life are: democracy, the rule of law, individual liberty, tolerance of those with different faiths and beliefs, and participation in community life. Monarchy is NOT one of them.",yue:"英國生活五大基本原則：民主、法治、個人自由、寬容不同信仰、參與社區生活。「君主制」唔係其中之一。"},

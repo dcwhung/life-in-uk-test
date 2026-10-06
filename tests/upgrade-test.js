@@ -3,19 +3,21 @@ const { execFileSync } = require('child_process');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { startPagesServer } = require('./pages-server');
+const { startPagesServer, appFiles } = require('./pages-server');
 // v0.57 → v0.58 upgrade (CUI-0004): legacy progress must survive every mix of old and new files.
 //   1. mixed shell: the v0.57 index.html (no migrate tag) + v0.58 js — the storage layer migrates lazily
 //   2. opposite mix: v0.57 files + v0.58 utils.js — no throw, v0.57 keys still read
 //   3. real service-worker upgrade over http: v0.57 SW → deploy current → reloads → byte-exact values, same UI
 //   4. third mix: v0.58 files + the v0.57 utils.js (no lazy migration) — the next full load's merge keeps everything
+//   5. S-014: mixed shell whose locale file fails to load — one reload, then an English fallback message (no half-started page)
 // The v0.57 files come from git: V057_REF is the last v0.57 commit on main (merge of PR #29), pinned so a later
 // main does not silently turn this into a same-version test.
 const ROOT = path.resolve(__dirname, '..');
 const launchOpts = { args: ['--no-sandbox'] };
 if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_PATH;
 const V057_REF = process.env.V057_REF || 'dc84cab549bf6dab4148d04a65a4ca60c831bcc1';
-const APP_FILES = ['index.html', 'sw.js', 'data', 'css', 'js'];
+// v0.57 had no icons / manifest; the current copy follows sw.js SHELL (appFiles)
+const V057_FILES = ['index.html', 'sw.js', 'data', 'css', 'js'];
 const P = 'lifeuk.';
 const MARKER = P + 'migrated';
 const CURRENT_VERSION = fs.readFileSync(path.join(ROOT, 'js/core/config.js'), 'utf8').match(/const APP_VERSION = '([^']+)'/)[1];
@@ -38,8 +40,8 @@ const LEGACY_NAMES = Object.keys(LEGACY).filter(k => k !== 'reviewOrder');
 const tmpDirs = [];
 const tmpDir = tag => { const d = fs.mkdtempSync(path.join(os.tmpdir(), `lifeuk-${tag}-`)); tmpDirs.push(d); return d; };
 const cleanUp = () => tmpDirs.forEach(d => fs.rmSync(d, { recursive: true, force: true }));
-const copyCurrent = dir => APP_FILES.forEach(f => fs.cpSync(path.join(ROOT, f), path.join(dir, f), { recursive: true }));
-const extractV057 = dir => execFileSync('sh', ['-c', `git -C "${ROOT}" archive ${V057_REF} ${APP_FILES.join(' ')} | tar -x -C "${dir}"`]);
+const copyCurrent = dir => appFiles(ROOT).forEach(f => fs.cpSync(path.join(ROOT, f), path.join(dir, f), { recursive: true }));
+const extractV057 = dir => execFileSync('sh', ['-c', `git -C "${ROOT}" archive ${V057_REF} ${V057_FILES.join(' ')} | tar -x -C "${dir}"`]);
 const showV057 = file => execFileSync('git', ['-C', ROOT, 'show', `${V057_REF}:${file}`]);
 const emptyDir = dir => fs.readdirSync(dir).forEach(f => fs.rmSync(path.join(dir, f), { recursive: true, force: true }));
 
@@ -55,7 +57,7 @@ const captureUI = pg => pg.evaluate(() => {
   const snap = { mode: pendingMode, view: practiceView, flagged: t('#tileFlagged .t-num')[0], wrong: t('#tileWrong .t-num')[0] };
   const saved = pendingMode;
   pendingMode = 'practice'; buildExamGrid();
-  snap.examMastery = t('#examGrid .exam-btn'); snap.chapterMastery = t('#chapterGrid button');
+  snap.examMastery = t('#examGrid .exam-btn .exam-mastery'); snap.chapterMastery = t('#chapterGrid button');
   pendingMode = 'exam'; buildExamGrid();
   snap.done = [...document.querySelectorAll('#examGrid .exam-btn.done')].map(e => e.dataset.arg);
   pendingMode = saved; buildExamGrid();
@@ -76,6 +78,9 @@ async function mixedShell(b) {
   await pg.goto('file://' + path.join(dir, 'v057.html'));
   assert(await pg.evaluate(() => !document.querySelector('script[src="js/core/migrate.js"]') && APP_VERSION) === CURRENT_VERSION, `mixed shell: v0.57 index.html running v${CURRENT_VERSION} js`);
   await seed(pg, { ...LEGACY, ...FOREIGN });
+  // v0.59: the old shell has no locale / i18n tags; main.js loads them, then starts (async)
+  await pg.waitForSelector('#examGrid .exam-btn', { state: 'attached' });
+  assert(await pg.evaluate(() => typeof t === 'function' && !!document.querySelector('script[src="locales/en.js"]') && document.title === t('app.title')), 'mixed shell: missing locale + i18n scripts loaded at start-up');
   assert((await text(pg, '#examGrid .exam-btn.all .exam-mastery')).startsWith('3/408'), 'mixed shell: legacy mastery shown (3/408)');
   assert((await text(pg, '#tileFlagged .t-num')) === '5', 'mixed shell: legacy Flagged 5 shown');
   const newKey = await pg.evaluate(() => {
@@ -94,6 +99,28 @@ async function mixedShell(b) {
   assert(Object.entries(FOREIGN).every(([k, v]) => s[k] === v), "mixed shell: other apps' keys untouched");
   assert((await text(pg, '#examGrid .exam-btn.all .exam-mastery')).startsWith('3/408'), 'current index.html: UI still 3/408');
   assert(errs.length === 0, 'mixed shell: no page errors: ' + errs.join(' | '));
+  await pg.close();
+}
+
+// 5. S-014: the old shell's locale fetch fails (file missing) — main.js reloads once, then shows its fallback text
+const I18N_BOOT_FALLBACK = fs.readFileSync(path.join(ROOT, 'js/main.js'), 'utf8').match(/const I18N_BOOT_FALLBACK_MSG =\s*'([^']+)'/);
+const BOOT_SETTLE_MS = 1000;
+async function i18nBootFailure(b) {
+  const dir = tmpDir('noi18n');
+  copyCurrent(dir);
+  fs.writeFileSync(path.join(dir, 'v057.html'), showV057('index.html'));
+  fs.rmSync(path.join(dir, 'locales/en.js'));
+  const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
+  const errs = []; pg.on('pageerror', e => errs.push(e.message));
+  // main-frame navigations, not 'load': the reload can happen before the first load event fires
+  let loads = 0; pg.on('framenavigated', f => { if (f === pg.mainFrame()) loads++; });
+  await pg.goto('file://' + path.join(dir, 'v057.html'));
+  await pg.waitForTimeout(BOOT_SETTLE_MS);
+  assert(loads === 2, `locale load failure: exactly one reload (${loads} page loads)`);
+  assert(I18N_BOOT_FALLBACK, 'main.js names an I18N_BOOT_FALLBACK_MSG');
+  const grid = await text(pg, '#examGrid');
+  assert(grid === I18N_BOOT_FALLBACK[1], 'after the reload: #examGrid shows the English fallback: ' + grid);
+  assert(errs.length === 0, 'locale load failure: no page errors: ' + errs.join(' | '));
   await pg.close();
 }
 
@@ -210,6 +237,7 @@ function checkV057Ref() {
   await oppositeMix(b);
   await swUpgrade(b);
   await v057UtilsMix(b);
+  await i18nBootFailure(b);
   console.log('UPGRADE PASS');
   await b.close();
   cleanUp();

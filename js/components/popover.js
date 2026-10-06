@@ -12,9 +12,8 @@ function toggleInfo() {
 }
 // counts in the popover text come from the data
 function fillInfoCounts() {
-  byId('infoTitle').textContent = `Exam 1–${EXAM_COUNT} Practice`;
-  byId('infoIntro').textContent =
-    `${TOTAL_QUESTIONS} official-style questions from lifeintheuktestweb.co.uk, with Cantonese translations and notes.`;
-  byId('infoExamCount').textContent = `📋 ${EXAM_COUNT} Exams`;
-  byId('infoQuestionCount').textContent = `❓ ${TOTAL_QUESTIONS} Questions`;
+  byId('infoTitle').textContent = t('app.infoTitle', { n: EXAM_COUNT });
+  byId('infoIntro').textContent = t('app.infoIntro', { n: TOTAL_QUESTIONS });
+  byId('infoExamCount').textContent = t('app.infoExams', { n: EXAM_COUNT });
+  byId('infoQuestionCount').textContent = t('app.infoQuestions', { n: TOTAL_QUESTIONS });
 }

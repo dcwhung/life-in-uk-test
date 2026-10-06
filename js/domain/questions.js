@@ -4,17 +4,7 @@
 // ════════════════════════════════════════
 const EXAM_NUMBERS = Object.keys(EXAMS).map(Number);
 const EXAM_COUNT = EXAM_NUMBERS.length;
-const CHAPTER_NUMBERS = Object.keys(CHAPTERS).map(Number);
-const DIFF_LABELS = { 1: 'Easy', 2: 'Basic', 3: 'Medium', 4: 'Hard', 5: 'Expert' };
-const DIFF_LEVELS = Object.keys(DIFF_LABELS).map(Number);
-const MAX_DIFFICULTY = Math.max(...DIFF_LEVELS); // stars shown out of this many
-const CHAPTER_SHORT = {
-  1: 'Values & principles',
-  2: 'What is the UK?',
-  3: 'History',
-  4: 'Modern society',
-  5: 'Government & law',
-};
+const CHAPTER_NUMBERS = [...CHAPTERS];
 
 // every question in exam order (Exam 1 Q1 … last exam's last question)
 function allQuestions() {
@@ -23,6 +13,9 @@ function allQuestions() {
   return out;
 }
 const TOTAL_QUESTIONS = allQuestions().length;
+// difficulty levels present in the data (labels: locales data.difficulty)
+const DIFF_LEVELS = [...new Set(allQuestions().map(({ q }) => q.d))].sort((a, b) => a - b);
+const MAX_DIFFICULTY = Math.max(...DIFF_LEVELS); // stars shown out of this many
 function examQuestions(n) { return allQuestions().filter(item => item.examNum === Number(n)); }
 function chapterQuestions(ch) { return allQuestions().filter(({ q }) => q.ch === ch); }
 function difficultyQuestions(level) { return allQuestions().filter(({ q }) => q.d === level); }
@@ -67,14 +60,16 @@ function randomExamPick(pool) {
   return picked;
 }
 
-const SET_LABELS = { [SIMILAR_EXAM]: 'Similar Questions', [WRONG_EXAM]: 'Wrong answers', [FLAGGED_EXAM]: 'Flagged' };
+const SET_LABEL_KEYS = { [SIMILAR_EXAM]: 'common.similarSet', [WRONG_EXAM]: 'common.wrongSet', [FLAGGED_EXAM]: 'common.flaggedSet' };
+function difficultyLabel(level) { return t(`data.difficulty.${level}`); }
 function examLabel(examNum) {
-  if (isRandomExam(examNum)) return 'Random Exam';
-  if (examNum === ALL_EXAM) return 'All Exams';
-  if (isChapterExam(examNum)) return `Chapter ${chapterOf(examNum)}`;
+  if (isRandomExam(examNum)) return t('common.randomExam');
+  if (examNum === ALL_EXAM) return t('common.allExams');
+  if (isChapterExam(examNum)) return t('common.chapterN', { n: chapterOf(examNum) });
   if (isDifficultyExam(examNum)) {
     const lv = difficultyOf(examNum);
-    return '★'.repeat(lv) + ' ' + DIFF_LABELS[lv];
+    return '★'.repeat(lv) + ' ' + difficultyLabel(lv);
   }
-  return SET_LABELS[examNum] || `Exam ${examNum}`;
+  const setLabelKey = SET_LABEL_KEYS[examNum];
+  return setLabelKey ? t(setLabelKey) : t('common.examN', { n: examNum });
 }

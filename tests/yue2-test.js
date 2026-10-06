@@ -30,7 +30,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   // 1) answer box format
   const yue = await pg.$eval('#ansYue', e => e.innerText);
   const q = await pg.evaluate(() => state.questions[state.current]);
-  const expA = q.a.map(i => q.oy[i] || q.o[i]).join('  |  ');
+  const expA = q.a.map(i => q.oy[i] || q.o[i]).join(' | ');
   assert(yue.startsWith('【廣東話翻譯】') && yue.includes('Q)') && yue.includes(q.yue) && yue.includes('A)') && yue.replace(/\s+/g, ' ').includes(expA.replace(/\s+/g, ' ')), 'answer box: 【廣東話翻譯】 / Q) / A): ' + yue.replace(/\n/g, ' ⏎ '));
   assert(!(await pg.$eval('#ansEn', e => e.textContent)).includes('（'), 'English answer line has no inline translation');
   await pg.screenshot({ path: 'shot-answer-format.png', fullPage: true });

@@ -14,7 +14,7 @@ function similarItemHtml(k) {
   return `<div class="sqm-item">
       <div class="sqm-item-top">
         <span class="sqm-id">${questionRefText(item)}</span>
-        <span class="sqm-streak${isMastered(item) ? ' done' : ''}">${streakLabel(item, '✓ Mastered')}</span>
+        <span class="sqm-streak${isMastered(item) ? ' done' : ''}">${streakLabel(item)}</span>
       </div>
       <div class="sqm-q">${escapeHtml(item.q.q)}</div>
       <div class="sqm-qy">${escapeHtml(item.q.yue)}</div>
@@ -22,36 +22,38 @@ function similarItemHtml(k) {
 }
 function similarFactHtml(f) {
   return `<div class="sqm-fact">
-      <div class="sqm-fact-label">📌 Core Fact #${f.id}</div>
+      <div class="sqm-fact-label">${t('similar.coreFact', { id: f.id })}</div>
       <div class="sqm-fact-en">${escapeHtml(f.en)}</div>
       <div class="sqm-fact-yue">${escapeHtml(f.yue)}</div>
     </div>`;
 }
+// map node "E9·Q15" (1-based, like the "Exam 9 · Q15" refs)
+function similarNodeText({ examNum, origIdx }) { return t('similar.node', { exam: examNum, n: origIdx + 1 }); }
 function similarMapHtml(q, keys) {
-  const nodes = [`<span class="sqm-node current">${qKey(q)}</span>`]
-    .concat(keys.map(k => `<span class="sqm-node${similarNodeClass(k)}">${k}</span>`));
-  return `<div class="sqm-map"><span class="sqm-map-label">Appears in:</span>${nodes.join('')}</div>`;
+  const nodes = [`<span class="sqm-node current">${similarNodeText(q)}</span>`]
+    .concat(keys.map(k => `<span class="sqm-node${similarNodeClass(k)}">${similarNodeText(questionByKey(k))}</span>`));
+  return `<div class="sqm-map"><span class="sqm-map-label">${t('similar.appearsIn')}</span>${nodes.join('')}</div>`;
 }
 function similarLegendHtml() {
   return `<div class="sqm-legend">
-      <span><i class="lg-current"></i>This question</span>
-      <span><i class="lg-mastered"></i>Mastered ${MASTERY_STREAK}/${MASTERY_STREAK}</span>
-      <span><i class="lg-weak"></i>In progress</span>
-      <span><i class="lg-new"></i>0/${MASTERY_STREAK}</span>
+      <span><i class="lg-current"></i>${t('similar.legendCurrent')}</span>
+      <span><i class="lg-mastered"></i>${t('common.mastered')}</span>
+      <span><i class="lg-weak"></i>${t('similar.legendInProgress')}</span>
+      <span><i class="lg-new"></i>${streakText(0)}</span>
     </div>`;
 }
 function similarPanelHtml(q, keys) {
   return `
     <div class="sqm-head">
       <span class="sqm-icon">🗺️</span>
-      <span class="sqm-title"><b>Similar Questions</b><span>Same fact, asked differently</span></span>
+      <span class="sqm-title"><b>${t('similar.title')}</b><span>${t('similar.subtitle')}</span></span>
       <span class="sqm-count">+${keys.length}</span>
     </div>
     ${similarFactHtml(factOf(q))}
     ${similarMapHtml(q, keys)}
     ${similarLegendHtml()}
     <div class="sqm-list">${keys.map(similarItemHtml).join('')}</div>
-    <div class="sqm-cta"><button data-action="startSimilarPractice">▶ Practise these ${keys.length}</button></div>`;
+    <div class="sqm-cta"><button data-action="startSimilarPractice">${t('similar.practise', { n: keys.length })}</button></div>`;
 }
 function renderSimilar(q, revealed) {
   const box = byId('similarBox');
