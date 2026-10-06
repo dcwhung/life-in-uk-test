@@ -89,6 +89,11 @@ function staticChecks() {
   const strings = ([, v]) => (typeof v === 'string' ? [v] : Object.values(v));
   const cjkValues = enLeaves.filter(([k, v]) => !CJK_WHITELIST.includes(k) && strings([k, v]).some(s => CJK.test(s)));
   assert(cjkValues.length === 0, 'en values have no CJK (whitelist: ' + CJK_WHITELIST.join(', ') + ')' + (cjkValues.length ? ': ' + cjkValues.map(([k]) => k).join(', ') : ''));
+  // markup only in …Html keys (inserted with innerHTML); other values go through textContent, so a tag or an
+  // entity would show literally. A plain " & " is text.
+  const MARKUP = /<|&[a-z#]/i;
+  const markupValues = enLeaves.filter(([k, v]) => !/Html$/.test(k) && strings([k, v]).some(s => MARKUP.test(s)));
+  assert(markupValues.length === 0, 'en values outside …Html keys have no tags or entities' + (markupValues.length ? ': ' + markupValues.map(([k]) => k).join(', ') : ''));
   assert(CJK_WHITELIST.every(k => CJK.test(enLeaves.find(([key]) => key === k)[1])), 'whitelisted Cantonese labels are in en');
   const sources = [path.join(ROOT, 'index.html'), path.join(ROOT, 'sw.js'), ...jsFiles(path.join(ROOT, 'js'))];
   const cjkLines = sources.flatMap(f => read(f).split('\n').map((l, i) => (CJK.test(l) ? `${rel(f)}:${i + 1}` : null)).filter(Boolean));
