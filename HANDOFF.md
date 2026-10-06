@@ -71,7 +71,7 @@ v0.57（P1 refactor）起 `index.html` 只剩 `<head>`、各 screen 嘅 markup �
 
 - **新顏色一定要加喺 `tokens.css`**（按意思命名，同值同意思就重用現有 token）；`tests/structure-test.js` 會 fail 任何喺其他 css file 出現嘅 hex 或者 `rgb(` / `rgba(`
 - Spacing（padding / margin / gap）冇統一 scale，仍然寫 px；只有重複又共用嘅 radius / font-size 先做 token
-- `tests/tools/visual-diff.js` 會將新 custom property 當 computed style 差異（每個 element 都繼承 `:root` token），所以加 token 嘅 refactor 會報 diff；要 filter 走 `--*` property 先睇到真正差異
+- `tests/tools/visual-diff.js` 比較 computed style 時會略過 `--*` custom property（每個 element 都繼承 `:root` token），所以加 / 改 token 名唔會報 diff，只報真正外觀差異
 
 ## 數據結構
 
