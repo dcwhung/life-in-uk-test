@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Result Dots Preview</title>
+<style>
+  :root {
+    --navy: #1a2744; --navy-mid: #243460; --navy-light: #2e4080;
+    --gold: #c9a84c; --gold-light: #e8c97a;
+    --green: #2d6a4f; --green-light: #52b788;
+    --red: #922b21; --red-light: #e74c3c;
+    --orange: #d9822b;
+    --bg: #f0f2f7; --card: #ffffff; --text: #1a2744; --text-muted: #5a6a8a; --border: #dde2f0;
+    --radius: 14px; --shadow: 0 4px 24px rgba(26,39,68,0.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); }
+  button { font: inherit; }
+  .wrap { max-width: 560px; margin: 0 auto; padding: 16px; }
+  .mock-bar { background: #3a2a0a; color: #fff; padding: 10px 16px; font-size: 12px; line-height: 1.5; position: sticky; top: 0; z-index: 5; }
+  .mock-bar b { color: var(--gold-light); }
+  .mock-tab { margin: 6px 6px 0 0; background: transparent; border: 1.5px solid rgba(255,255,255,0.35); color: #fff; border-radius: 999px; padding: 4px 10px; font-size: 11.5px; font-weight: 700; cursor: pointer; }
+  .mock-tab.on { background: var(--gold); border-color: var(--gold); color: var(--navy); }
+
+  /* existing result card (unchanged) */
+  .result-card { background: var(--card); border-radius: var(--radius); padding: 28px 22px 22px; text-align: center; box-shadow: var(--shadow); margin-bottom: 20px; }
+  .result-emoji { font-size: 48px; }
+  .result-score { font-size: 46px; font-weight: 900; color: var(--navy); line-height: 1; margin-top: 8px; }
+  .result-score span { font-size: 22px; font-weight: 500; color: var(--text-muted); }
+  .result-label { font-size: 15px; font-weight: 800; color: var(--red); margin-top: 8px; letter-spacing: 0.02em; }
+  .result-sub { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+  .rb { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 18px; }
+  .rb div { background: var(--bg); border-radius: 10px; padding: 12px 6px; }
+  .rb b { display: block; font-size: 22px; } .rb small { font-size: 12px; color: var(--text-muted); }
+
+  /* NEW: question result dots (inside the result card, under the 3 boxes) */
+  .rdots-wrap { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); }
+  .rdots { display: grid; grid-template-columns: repeat(12, 1fr); gap: 6px; }
+  .rdot { aspect-ratio: 1; width: 100%; max-width: 30px; justify-self: center; padding: 0; border-radius: 50%; border: 2px solid transparent; font-size: 10.5px; font-weight: 800; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .rdot.ok { background: var(--green-light); border-color: var(--green-light); }
+  .rdot.bad { background: var(--red-light); border-color: var(--red-light); }
+  .rdot.skip { background: var(--card); border-color: var(--red-light); color: var(--red-light); }
+  /* option A: flag = orange ring around the green / red dot */
+  .flagA .rdot.flag { box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--orange); }
+  /* option B: flag = solid orange */
+  .flagB .rdot.flag { background: var(--orange); border-color: var(--orange); color: #fff; }
+  .rmeta { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 5px; margin-top: 10px; font-size: 10px; color: var(--text-muted); white-space: nowrap; }
+  .rmeta .sep { color: var(--border); }
+  .rmeta i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 3px; vertical-align: -1px; }
+  .rhint { font-size: 10.5px; color: var(--text-muted); text-align: left; margin-top: 4px; }
+
+  .section-title { font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin: 4px 0 12px; }
+  .review-item { background: var(--card); border-radius: 10px; padding: 14px 16px; border-left: 4px solid var(--border); font-size: 13px; margin-bottom: 10px; scroll-margin-top: 90px; transition: box-shadow 0.3s; }
+  .review-item.ok { border-color: var(--green-light); } .review-item.bad { border-color: var(--red-light); }
+  .review-item.hl { box-shadow: 0 0 0 3px var(--gold); }
+  .rv-q { font-weight: 600; color: var(--navy); margin-bottom: 4px; }
+  .rv-your { color: var(--text-muted); font-size: 12px; }
+  .rv-ans { color: var(--green); font-size: 12px; font-weight: 600; }
+  .rv-flag { color: var(--orange); font-size: 11px; font-weight: 800; margin-left: 4px; }
+</style>
+</head>
+<body>
+<div class="mock-bar">
+  <b>PREVIEW</b> · Result page — 24 question dots (green correct · red wrong · flagged). 撳圓點會跳去下面嗰題。<br>
+  Flag 點顯示：<span id="tabs"></span>
+</div>
+
+<div class="wrap">
+  <div class="result-card">
+    <div class="result-emoji">📚</div>
+    <div class="result-score" id="score"></div>
+    <div class="result-label">NEEDS IMPROVEMENT</div>
+    <div class="result-sub">You need 18/24 (75%) to pass the real test.</div>
+    <div class="rb">
+      <div><b style="color:var(--green)" id="nOk"></b><small>Correct</small></div>
+      <div><b style="color:var(--red)" id="nBad"></b><small>Wrong</small></div>
+      <div><b id="pct"></b><small>Score</small></div>
+    </div>
+    <div class="rdots-wrap" id="rwrap">
+      <div class="rdots" id="rdots"></div>
+      <div class="rmeta" id="rmeta"></div>
+    </div>
+  </div>
+
+  <div class="section-title">Review Answers</div>
+  <div id="review"></div>
+</div>
+
+<script>
+  const QS = [{"q":"What was the last battle between Great Britain and France?","ans":"The Battle of Waterloo","o":["The Battle of Trafalgar","The Battle of Waterloo","The Battle of Hastings","The Battle of Agincourt"],"a":[1],"d":1},{"q":"Which flower is associated with Wales?","ans":"Daffodil","o":["Daffodil","Rose","Shamrock","Thistle"],"a":[0],"d":2},{"q":"During the reign of Charles II, parts of London were destroyed by:","ans":"A fire","o":["A war","A flood","A fire","An earthquake"],"a":[2],"d":3},{"q":"How often are general elections held in the UK?","ans":"Every 5 years","o":["Every 3 years","Every 4 years","Every 5 years","Every 10 years"],"a":[2],"d":2},{"q":"Scotland has its own banknotes, which are valid everywhere in the UK. True or False?","ans":"True","o":["True","False"],"a":[0],"d":5},{"q":"What charity works to preserve important buildings, coastline and countryside in the UK?","ans":"The National Trust","o":["Shelter","Age UK","Crisis","The National Trust"],"a":[3],"d":2},{"q":"Great Britain refers only to England, Wales and Scotland. True or False?","ans":"True","o":["True","False"],"a":[0],"d":4},{"q":"What job did Isaac Newton have at the Royal Mint?","ans":"Warden / Master","o":["Accountant","Warden / Master","Designer","Security guard"],"a":[1],"d":5},{"q":"Where is Ben Nevis?","ans":"Scotland","o":["Wales","England","Scotland","Northern Ireland"],"a":[2],"d":2},{"q":"What is the official home of the Prime Minister?","ans":"10 Downing Street","o":["Buckingham Palace","10 Downing Street","Windsor Castle","The Houses of Parliament"],"a":[1],"d":1},{"q":"What is the capital city of England?","ans":"London","o":["Manchester","Birmingham","Leeds","London"],"a":[3],"d":1},{"q":"What is Diwali?","ans":"A Hindu festival also known as the Festival of Lights","o":["A Muslim festival marking the end of Ramadan","A Sikh harvest festival","A Hindu festival also known as the Festival of Lights","A Buddhist celebration"],"a":[2],"d":2},{"q":"When did the First World War end?","ans":"1918","o":["1916","1917","1918","1919"],"a":[2],"d":3},{"q":"What is the Domesday Book?","ans":"A survey of England commissioned by William the Conqueror in 1086","o":["A book of English laws","A survey of England commissioned by William the Conqueror in 1086","A medieval Bible","A record of all criminal cases"],"a":[1],"d":3},{"q":"Where is Snowdonia National Park?","ans":"Wales","o":["England","Wales","Scotland","Northern Ireland"],"a":[1],"d":2},{"q":"What is the Church of England?","ans":"The established Protestant church of England, founded by Henry VIII","o":["A Catholic church","The established Protestant church of England, founded by Henry VIII","A Presbyterian church","A Methodist church"],"a":[1],"d":2},{"q":"What limited the power of the English King in 1215?","ans":"The Magna Carta","o":["The Bill of Rights","The Magna Carta","The Act of Union","The Petition of Right"],"a":[1],"d":1},{"q":"Who defeated Harold at the Battle of Hastings?","ans":"William, Duke of Normandy","o":["King Canute","William, Duke of Normandy","Julius Caesar","Edward the Confessor"],"a":[1],"d":1},{"q":"What is the Eden Project?","ans":"A visitor attraction in Cornwall featuring giant greenhouse biomes","o":["A visitor attraction in Cornwall featuring giant greenhouse biomes","A national park in Devon","A royal garden in London","A science museum in Bristol"],"a":[0],"d":3},{"q":"What do Members of the House of Lords do?","ans":"Examine and revise laws proposed by the House of Commons","o":["Write new laws independently","Examine and revise laws proposed by the House of Commons","Manage local councils","Appoint judges"],"a":[1],"d":1},{"q":"The National Assembly for Wales is located in which city?","ans":"Cardiff","o":["Swansea","Cardiff","Newport","Bangor"],"a":[1],"d":4},{"q":"Who wrote 'Pride and Prejudice'?","ans":"Jane Austen","o":["Charlotte Brontë","George Eliot","Jane Austen","Thomas Hardy"],"a":[2],"d":2},{"q":"What happened during the Blitz?","ans":"Germany bombed British cities during WWII","o":["A German land invasion","Germany bombed British cities during WWII","The Battle of Britain air fight","British bombing of Berlin"],"a":[1],"d":3},{"q":"Who is referred to as the Iron Duke?","ans":"The Duke of Wellington","o":["Oliver Cromwell","The Duke of Wellington","Winston Churchill","Admiral Nelson"],"a":[1],"d":1}];
+  // sample outcome: 17 correct, 6 wrong, 1 unanswered; 5 flagged (mix of right and wrong)
+  const WRONG = [2, 6, 9, 14, 19, 21];
+  const SKIPPED = [17];
+  const FLAGGED = [1, 2, 12, 16, 22];
+  const OPTIONS = [
+    { key: 'A', tab: 'A · 橙色圈（保留啱／錯顏色）' },
+    { key: 'B', tab: 'B · 成粒橙色' },
+  ];
+  let mode = 'A';
+  const status = i => SKIPPED.includes(i) ? 'skip' : WRONG.includes(i) ? 'bad' : 'ok';
+
+  function render() {
+    document.getElementById('tabs').innerHTML = OPTIONS.map(o =>
+      `<button class="mock-tab ${o.key === mode ? 'on' : ''}" onclick="mode='${o.key}';render()">${o.tab}</button>`).join('');
+    const ok = QS.filter((_, i) => status(i) === 'ok').length;
+    document.getElementById('score').innerHTML = `${ok} <span>/ ${QS.length}</span>`;
+    document.getElementById('nOk').textContent = ok;
+    document.getElementById('nBad').textContent = QS.length - ok;
+    document.getElementById('pct').textContent = Math.round(ok / QS.length * 100) + '%';
+    document.getElementById('rwrap').className = 'rdots-wrap flag' + mode;
+    document.getElementById('rdots').innerHTML = QS.map((_, i) =>
+      `<button class="rdot ${status(i)}${FLAGGED.includes(i) ? ' flag' : ''}" onclick="jump(${i})" title="Question ${i + 1}">${i + 1}</button>`).join('');
+    const skip = SKIPPED.length, bad = QS.length - ok - skip;
+    document.getElementById('rmeta').innerHTML = [
+      `<span><i style="background:var(--green-light)"></i>Correct <b>${ok}</b></span>`,
+      `<span><i style="background:var(--red-light)"></i>Wrong <b>${bad}</b></span>`,
+      `<span><i style="border:2px solid var(--red-light)"></i>Unanswered <b>${skip}</b></span>`,
+      `<span><i style="${mode === 'A' ? 'box-shadow:0 0 0 2px var(--orange)' : 'background:var(--orange)'}"></i>Flagged <b>${FLAGGED.length}</b></span>`,
+    ].join(' <span class="sep">|</span> ');
+    document.getElementById('review').innerHTML = QS.map((q, i) => {
+      const st = status(i);
+      const your = st === 'ok' ? '' : `<div class="rv-your">Your answer: ${st === 'skip' ? 'No answer' : q.o.find((_, k) => !q.a.includes(k))}</div>`;
+      return `<div class="review-item ${st === 'ok' ? 'ok' : 'bad'}" id="rv${i}">
+        <div class="rv-q">${i + 1}. ${q.q}${FLAGGED.includes(i) ? '<span class="rv-flag">🔖 Flagged</span>' : ''}</div>${your}
+        <div class="rv-ans">✅ ${q.ans}</div></div>`;
+    }).join('');
+  }
+  function jump(i) {
+    const el = document.getElementById('rv' + i);
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    el.classList.add('hl'); setTimeout(() => el.classList.remove('hl'), 1500);
+  }
+  render();
+</script>
+</body>
+</html>
