@@ -4,7 +4,8 @@
 - **Live:** https://dcwhung.github.io/life-in-uk-test/
 - **Stack:** 純 HTML + vanilla JS + CSS，冇 build tool、冇 dependency；PWA（Service Worker 離線）
 - **用戶：** 香港廣東話使用者，備考 Life in the UK Test（ILR，BN(O) route）
-- **開發流程：** 每次改動 commit 到 `claude/life-in-uk-test-pwa-seeedf`，再直接 push 去 `main`；`APP_VERSION` 每次 +0.01
+- **開發流程（v0.32 起）：** 每次改動喺 `claude/*` branch 做，開 PR 入 `main` 再 merge（merge commit）；`main` merge 後 GitHub Pages 自動部署。冇 `develop` branch。PR merge 咗之後，同一條 branch 要由最新 `main` 重新開過先加新 commit
+- **版本：** 改 app 嘅 commit `APP_VERSION` +0.01；只改測試／文件唔升版本
 
 ---
 
@@ -12,11 +13,12 @@
 
 | File | 大小 | 內容 |
 |---|---|---|
-| `index.html` | 70 KB | CSS、HTML、app 邏輯（state / home / quiz / results / study / SW） |
+| `index.html` | 79 KB | CSS、HTML、app 邏輯（state / home / quiz / similar questions / results / study / SW） |
 | `data/exams.js` | 181 KB | `EXAMS`：408 題，Exam 1–17 各 24 題 |
 | `data/study.js` | 65 KB | `CHAPTERS` + `STUDY`：236 條 dedupe 後嘅 facts |
 | `js/utils.js` | 2 KB | `shuffle`、`shuffleOptions`、`getLS`、`setLS`、`starsHtml`、`escapeHtml` |
-| `tests/*.js` | | 11 套 Playwright 測試，`tests/run-all.sh` 一次過跑 |
+| `tests/*.js` | | 14 套 Playwright 測試，`tests/run-all.sh` 一次過跑 |
+| `mockups/similar-question-map.html` | 17 KB | Similar Questions 嘅設計 mockup（獨立 HTML，頂部 tab 切換情景；PR 嘅 `Design Origin`） |
 
 載入次序：`data/exams.js` → `data/study.js` → `js/utils.js` → 主 script。全部全局變量，冇 ES module（`file://` 同 iOS PWA 兼容）。
 
@@ -82,9 +84,9 @@
 ## 功能現況
 
 **首頁**
-- Header：`Life in the UK ⓘ` + `Exam Practice v0.20`；ⓘ 彈出簡介 popover
+- Header：`Life in the UK ⓘ` + `Exam Practice v${APP_VERSION}`；ⓘ 彈出簡介 popover
 - 三個 mode 掣一行：Study / Practice / Exam；預設 Practice；描述撳咗先顯示
-- Practice 下三個 tab：By Difficulty（預設）/ By Chapter / By Exam，每粒掣顯示「已掌握/總數 · %」+ 進度條
+- Practice 下三個 tab：By Difficulty（預設）/ By Chapter / By Exam，每粒掣顯示「已掌握/總數 · %」+ 進度條；下面嘅提示寫明「連續答啱 3 次 = 掌握、每輪最多 25 題、每題一輪一次」
 - Exam 下只有 Select Exam（完成過有 ✓）
 - Mode 同 tab 記住喺 localStorage `homePrefs`
 - 兩個 reset 掣：Practice「Reset progress」、Exam「Reset completed exams」（都要 confirm）
@@ -140,10 +142,32 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | `diff-test.js` | 難度數據完整、按難度練習、結果統計 |
 | `yue-test.js`、`oy-test.js`、`yue2-test.js` | Translate 掣、選項翻譯、答案框格式（`yue2-test` 跳去、`oy-test` 搬第一條有選項翻譯嘅題目去最前，避免抽到年份／True-False 題隨機失敗） |
 | `mode-test.js`、`info-test.js` | 首頁 mode/tab、持久化、ⓘ popover |
-| `mastery-test.js` | 掌握機制、進度顯示、兩個 reset |
+| `mastery-test.js` | 掌握機制（每輪每題一次、Y 固定、Ch1 要 3 輪先全掌握）、進度顯示、兩個 reset |
 | `result-test.js` | 結果頁 PASSED / remark 只喺 Exam 1–17 顯示；重做掣按 mode 改字 |
-| `batch-test.js` | Practice 每輪最多 25 題、下一輪由未掌握題抽 |
+| `batch-test.js` | Practice 每輪最多 25 題、下一輪由未掌握題抽、最後幾題每輪再出直至掌握 |
 | `similar-test.js` | Similar Questions section、Practise these N 臨時 session 同返回 |
+
+## 版本記錄（v0.32–v0.38）
+
+| 版本 | PR | 改動 |
+|---|---|---|
+| v0.32 | dcwhung/life-in-uk-test#1 | Practice 同一 session 內將未掌握題重新排去 queue 尾（**v0.38 已取消**） |
+| v0.33 | dcwhung/life-in-uk-test#2 | 結果頁 PASSED / remark 只喺 Exam 1–17 顯示 |
+| v0.34 | dcwhung/life-in-uk-test#3 | Practice 每輪最多抽 25 條未掌握題 |
+| v0.35 | dcwhung/life-in-uk-test#4 | **Similar Questions**：答完顯示同一 fact 嘅其他題目 + Core Fact + 「Practise these N」臨時 session；加 `mockups/similar-question-map.html`、`tests/similar-test.js` |
+| v0.36–v0.37 | dcwhung/life-in-uk-test#5 | 臨時 session 返回掣改做「↩ Back」；Prev / Next 搬上 Similar Questions 前面；Practice 結果頁重做掣改做「Practise Again」（Exam mode 仍係「Retry Exam」） |
+| — | dcwhung/life-in-uk-test#6 | `oy-test` 唔再隨機 fail（搬有選項翻譯嘅題目去最前；年份題檢查改為搵出嚟先驗） |
+| v0.38 | dcwhung/life-in-uk-test#7 | 取消 v0.32 嘅 in-session re-queue：每題一輪只出一次，「Question X of Y」嘅 Y 固定；未掌握題下一輪再出 |
+
+**Similar Questions 設計決定（v0.35，同用戶確認過）**
+- UI 文字用英文；題目／fact 嘅廣東話翻譯照顯示
+- 答啱答錯都顯示，列出全部類似題，唔收埋、唔分頁
+- 類似題**唔顯示答案**，亦冇「撳一下睇答案」
+- 標題唔顯示掌握數字（試過「Mastered 1/2」同「Fact mastery 1/3」，都覺得誤導，拎走）
+- 冇「提問角度」標籤（例如 Asks: function），因為要每題人手加欄位
+- 冇「View in Study」掣：Study 頁冇得返去答題，會冇咗成個練習 session；Core Fact 已經係同一段溫習內容
+- 圖例最後一格寫「0/3」唔寫「Not attempted」，因為答錯歸零同未做過分唔到
+- Exam mode 唔加
 
 ## 已知限制 / 未做
 
@@ -153,10 +177,25 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 - 測試依賴 Playwright + Chromium，repo 冇 `package.json`
 - 備注嘅 `\n` 係直接寫喺 `exams.js` 字串入面，冇 markdown 解析；縮排靠空格 + `pre-wrap`
 - 1.19、14.3 兩條備注係單句列舉（曼島／五位演員），未改成分行
+- Similar Questions 臨時 session 期間，header 嘅 ✅ correct / 📝 done 只計臨時 session；返回之後先變返原本 session 嘅數
+- 124 條題目（408 − 284）冇類似題，因為佢哋嘅 fact 只有一個來源
 
 ## 主要 commit（新→舊）
 
 ```
+d73331f fix: keep practice session length fixed; no in-session re-queue (v0.38)
+e273f4b test: make oy-test deterministic
+f4e9b79 fix: 'Practise Again' instead of 'Retry Exam' on practice results (v0.37)
+25b49f6 fix: place Prev / Next above the Similar Questions section
+7648116 fix: plain 'Back' label on the similar-session return button
+6d184c1 fix: name the original set on the similar-session back button (v0.36)
+f49019c chore: merge main; bump to v0.35
+f75e081 feat: Similar Questions section after answering in practice (v0.34)
+8e41753 chore: add Similar Question Map mockup（之後 4 個 commit 按用戶意見改 mockup）
+d680609 feat: cap practice rounds at 25 unmastered questions (v0.34)
+fcd3c5b feat: show pass/fail verdict only for numbered exams on results (v0.33)
+bbe86d7 feat: re-queue unmastered practice questions within the session (v0.32)
+06d3bf9 docs: HANDOFF.md v0.31 — note format rules, mnemonic group list, session commits
 4d5eaf9 feat: line break after note label; arrow on first voting-timeline line (v0.31)
 40229b2 feat: battle timeline mnemonic note for defeat questions (v0.30)
 630acd3 feat: three-tier Crown dependency mnemonic note; notes keep indentation (v0.29)
@@ -192,5 +231,5 @@ c10115b feat: randomise answer option order in Practice and Exam mode
 
 - [ ] 1.19、14.3 備注改成分行列點
 - [ ] 其他可整合記憶法嘅題組：君主／王朝時序、Civil War（1642–1651）相關、WWII 事件（Dunkirk、Blitz、D-Day）、Magna Carta 1215 三條重複題
-- [ ] Study fact 卡片加「跳去來源題目」（v2）
+- [ ] Study fact 卡片加「跳去來源題目」（v2）；可以直接用 `FACT_BY_QKEY` / `fact.src` 同 `questionByKey()`
 - [ ] 記憶法備注同步落 `study.js` 對應 fact（目前只喺 `exams.js`）
