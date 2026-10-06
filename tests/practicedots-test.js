@@ -68,6 +68,12 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.evaluate(() => { practiceFlags = { '4.1': true }; setLS('practiceFlags', practiceFlags); openFlagged(); });
   const fill = await pg.$eval('#flaggedStart svg path', e => getComputedStyle(e).fill);
   assert(fill === 'rgb(217, 130, 43)', 'Practise flagged icon is orange: ' + fill);
+  // every bookmark icon is styled (an SVG path with no fill renders black)
+  await pg.evaluate(() => goHome());
+  const tileFill = await pg.$eval('#tileFlagged .t-icon svg path', e => getComputedStyle(e).fill);
+  assert(tileFill === 'rgb(217, 130, 43)', 'home Flagged tile icon is orange: ' + tileFill);
+  const black = await pg.evaluate(() => [...document.querySelectorAll('svg path')].filter(p => p.getClientRects().length && getComputedStyle(p).fill === 'rgb(0, 0, 0)').length);
+  assert(black === 0, 'no visible black SVG icons on Home: ' + black);
 
   assert(errs.length === 0, 'no page errors: ' + errs.join('; '));
   console.log('PRACTICEDOTS PASS');
