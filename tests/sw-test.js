@@ -2,7 +2,7 @@ const { chromium } = require('playwright-core');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { startPagesServer } = require('./pages-server');
+const { startPagesServer, appFiles } = require('./pages-server');
 // Service worker: registers from sw.js, caches the whole app shell, and the app opens offline.
 // A service worker needs http(s), so this suite serves a copy of the app with a python3 static server
 // (or uses APP_URL when that is an http(s) URL, e.g. the live site).
@@ -54,7 +54,7 @@ async function checkVersionBump(pg, serveDir, oldCache) {
   // serve a temp copy of the app so the version-bump check can edit its config.js
   const serveDir = external ? null : fs.mkdtempSync(path.join(os.tmpdir(), 'lifeuk-sw-'));
   if (!external) {
-    ['index.html', 'sw.js', 'data', 'css', 'js'].forEach(f => fs.cpSync(path.join(ROOT, f), path.join(serveDir, f), { recursive: true }));
+    appFiles(ROOT).forEach(f => fs.cpSync(path.join(ROOT, f), path.join(serveDir, f), { recursive: true }));
     ({ base, server } = await startPagesServer(serveDir));
   }
   const b = await chromium.launch(launchOpts);

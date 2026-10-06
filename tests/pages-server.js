@@ -1,7 +1,9 @@
 const { spawn } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 // Static python3 server for a directory, sending GitHub Pages' Cache-Control so stale HTTP-cache reads show up.
 // Port 0: the OS picks a free port and the server prints it, so parallel or leftover runs never collide.
-// Used by sw-test.js and upgrade-test.js (not a suite itself; run-all.sh lists suites by name).
+// Used by sw-test.js, upgrade-test.js and pwa-test.js (not a suite itself; run-all.sh lists suites by name).
 const PAGES_LIKE_SERVER = `
 import http.server, sys
 class H(http.server.SimpleHTTPRequestHandler):
@@ -28,4 +30,12 @@ function startPagesServer(dir) {
   });
 }
 
-module.exports = { startPagesServer };
+// top-level files / folders a served copy of the app needs: sw.js plus everything its SHELL lists,
+// so a new asset (icons/, manifest.webmanifest) is copied without editing each suite's list
+function appFiles(root) {
+  const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
+  const shell = [...sw.match(/const SHELL = \[([\s\S]*?)\];/)[1].matchAll(/'([^']+)'/g)].map(m => m[1]);
+  return [...new Set(['sw.js', ...shell.filter(f => f !== './').map(f => f.split('/')[0])])];
+}
+
+module.exports = { startPagesServer, appFiles };

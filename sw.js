@@ -12,6 +12,9 @@ const CACHE = CACHE_PREFIX + APP_VERSION;
 const SHELL = [
   './',
   'index.html',
+  'icons/icon.svg',
+  'icons/icon-192.png',
+  'icons/apple-touch-icon.png',
   'data/exams.js',
   'data/study.js',
   'css/base/tokens.css',
