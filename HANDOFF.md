@@ -122,6 +122,7 @@ v0.57（P1 refactor）起 `index.html` 只剩 `<head>`、各 screen 嘅 markup �
 | Shadow / overlay | `--shadow`、`--shadow-sm`、`--shadow-header`、`--shadow-pop`、`--overlay` |
 
 - **新顏色一定要加喺 `tokens.css`**（按意思命名，同值同意思就重用現有 token）；`tests/structure-test.js` 會 fail 任何喺其他 css file 出現嘅 hex 或者 `rgb(` / `rgba(`
+- `--text-inverse-*` 嘅 alpha 級數（75 / 70 / 65 / 60 / 55 / 45）係刻意按值命名：v0.59 token 化要 0 視覺改動，所以照搬原本每個 alpha；P3 候選：合併做 2–3 個語意級（例如 strong / muted / faint），會有輕微視覺改動，要用戶確認（S-018）
 - Spacing（padding / margin / gap）冇統一 scale，仍然寫 px；只有重複又共用嘅 radius / font-size 先做 token
 - `tests/tools/visual-diff.js` 比較 computed style 時會略過 `--*` custom property（每個 element 都繼承 `:root` token），所以加 / 改 token 名唔會報 diff，只報真正外觀差異
 
