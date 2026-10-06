@@ -58,3 +58,12 @@ function returnFromSideSession() {
   sessionReturn = null;
   SESSION_RETURNS[ret.kind](ret);
 }
+
+// Study fact → its source questions (f.src order, each once), header "Fact #id"; ↩ Back returns to Study
+// at the same scroll. No entry button yet (v0.62 engine only); PR-3 adds "▶ Practise these N" on the fact card.
+function startFactPractice(factId) {
+  const fact = STUDY.find(f => f.id === factId);
+  if (!fact) return;
+  startSideSession(FACT_PREFIX + factId, fact.src.map(questionByKey).map(toQuestionItem),
+    { kind: SESSION_RETURN_KIND.study, scrollY: window.scrollY });
+}
