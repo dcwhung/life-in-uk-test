@@ -7,9 +7,11 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   const b = await chromium.launch(launchOpts);
   const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
   const errs = []; pg.on('pageerror', e => errs.push(e.message));
-  pg.on('dialog', d => d.accept());
+  const dialogs = []; pg.on('dialog', d => { dialogs.push(d.message()); d.dismiss(); });
   const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('ok:', m); };
   const vis = sel => pg.$eval(sel, e => getComputedStyle(e).display !== 'none');
+  const modalText = () => pg.evaluate(() => byId('confirmModal').classList.contains('show')
+    && `${byId('confirmTitle').textContent} | ${byId('confirmMsg').textContent} | ${byId('confirmOk').textContent} / ${byId('confirmCancel').textContent}`);
   await pg.goto(APP_URL);
   await pg.evaluate(() => localStorage.clear()); await pg.reload();
 
@@ -90,16 +92,26 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(await pg.evaluate((b) => JSON.stringify(JSON.parse(localStorage.getItem('lifeuk.practiceStreak'))) === b, before), 'exam mode leaves streaks untouched');
   await pg.evaluate(() => goHome());
   assert(await pg.$eval('#examGrid .exam-btn:nth-child(2)', e => e.classList.contains('done')), 'Exam 1 marked done');
+  // resets ask in the in-app modal (no browser confirm): Keep cancels, Reset clears
   await pg.click('#examReset .reset-btn');
+  assert((await modalText()) === 'Reset completed exams? | All ✓ completed marks will be cleared. | Reset / Keep', 'reset completed exams asks in the modal: ' + await modalText());
+  await pg.click('#confirmCancel');
+  assert(await pg.$eval('#examGrid .exam-btn:nth-child(2)', e => e.classList.contains('done')), 'Keep leaves the ✓ marks');
+  await pg.click('#examReset .reset-btn'); await pg.click('#confirmOk');
   assert(!(await pg.$eval('#examGrid .exam-btn:nth-child(2)', e => e.classList.contains('done'))), 'reset completed exams clears ✓');
   // reset practice progress
   await pg.evaluate(() => { wrongList = { '1.0': true }; setLS('lifeuk.wrongList', wrongList); practiceFlags = { '2.3': true }; setLS('lifeuk.practiceFlags', practiceFlags); });
   await pg.click('#modePractice');
   assert(await pg.$eval('#myReview', e => e.offsetParent !== null), 'My Review shown before reset');
   await pg.click('#practiceReset .reset-btn');
+  assert((await modalText()) === 'Reset practice progress? | Mastery streaks, wrong answers and flags will be cleared. | Reset / Keep', 'reset progress asks in the modal: ' + await modalText());
+  await pg.click('#confirmCancel');
+  assert(await pg.evaluate(() => localStorage.getItem('lifeuk.wrongList') === '{"1.0":true}'), 'Keep leaves the progress');
+  await pg.click('#practiceReset .reset-btn'); await pg.click('#confirmOk');
   assert((await pg.$eval('#diffGrid .diff-btn:first-child .ch-count', e => e.textContent)) === '0/84 · 0%' && await pg.evaluate(() => localStorage.getItem('lifeuk.practiceStreak') === '{}'), 'reset progress clears streaks');
   assert(await pg.evaluate(() => localStorage.getItem('lifeuk.wrongList') === '{}' && localStorage.getItem('lifeuk.practiceFlags') === '{}' && !Object.keys(wrongList).length && !Object.keys(practiceFlags).length), 'reset progress clears the wrong list and flags');
   assert(!(await pg.$eval('#myReview', e => e.offsetParent !== null)), 'My Review hidden after reset');
+  assert(dialogs.length === 0, 'no browser alert / confirm boxes: ' + dialogs.join(';'));
   assert(errs.length === 0, 'no page errors: ' + errs.join(';'));
   await b.close(); console.log('MASTERY PASS');
 })().catch(e => { console.error(e.message); process.exit(1); });

@@ -5,9 +5,9 @@ const MODE_ICONS = { [PRACTICE_MODE]: '🎯', [EXAM_MODE]: '📝' };
 const PASS_PCT = PASS_RATIO * PERCENT;
 const PASS_MARK = REAL_TEST_SIZE * PASS_RATIO;
 const REVIEW_FILTERS = [
-  { key: 'all', label: 'All', keep: () => true },
-  { key: 'wrong', label: 'Wrong', keep: r => !r.isCorrect },   // includes unanswered
-  { key: 'flagged', label: 'Flagged', keep: r => r.flagged, icon: true },
+  { key: 'all', labelKey: 'review.filterAll', keep: () => true },
+  { key: 'wrong', labelKey: 'review.filterWrong', keep: r => !r.isCorrect },   // includes unanswered
+  { key: 'flagged', labelKey: 'review.filterFlagged', keep: r => r.flagged, icon: true },
 ];
 let reviewItems = [];        // one per session question: { q, idx, userAns, flagged, isCorrect }
 let reviewIsPractice = false;
@@ -22,16 +22,20 @@ function finishExam() {
     return { q, idx, userAns, flagged: isFlaggedNow(idx), isCorrect: isCorrectAnswer(q, userAns) };
   });
   recordExamResults();
+  reviewIsPractice = state.mode !== EXAM_MODE;
+  reviewFilter = 'all';
+  renderResults();
+  showScreen('screenResult');
+  window.scrollTo(0, 0);
+}
+// draws the results from reviewItems without recording anything (also used to re-render on a language change)
+function renderResults() {
   renderScore(reviewItems.filter(r => r.isCorrect).length, reviewItems.length);
   renderResultActions();
   byId('resultLabel').textContent = examLabel(state.examNum);
   byId('diffTable').innerHTML = diffTableHtml();
-  reviewIsPractice = state.mode !== EXAM_MODE;
-  reviewFilter = 'all';
   renderResultDots();
   renderReview();
-  showScreen('screenResult');
-  window.scrollTo(0, 0);
 }
 function recordExamResults() {
   // practice adds wrong answers as it goes; exam adds the answered-but-wrong ones here (unanswered are not added)
@@ -50,19 +54,16 @@ function renderScore(correct, total) {
   scoreEl.innerHTML = `${correct} <span>/ ${total} · ${pct}%</span>`;
   scoreEl.classList.toggle('fail', state.mode === EXAM_MODE && showVerdict && !passed);
   renderVerdict(passed, pct, total, showVerdict);
-  byId('rbCorrect').textContent = correct;
-  byId('rbWrong').textContent = total - correct;
-  byId('rbPct').textContent = pct + '%';
 }
 function renderVerdict(passed, pct, total, showVerdict) {
   const verdict = byId('resultLabel2');
-  verdict.textContent = passed ? '🎉 PASSED' : '📚 NEEDS IMPROVEMENT'; // verdict icon; the top icon shows the mode
+  verdict.textContent = passed ? t('result.passed') : t('result.needsImprovement'); // verdict icon; the top icon shows the mode
   verdict.className = 'result-label ' + (passed ? 'pass' : 'fail');
   verdict.hidden = !showVerdict;
   const sub = byId('resultSub');
   sub.textContent = total <= REAL_TEST_SIZE
-    ? `You need ${PASS_MARK}/${REAL_TEST_SIZE} (${PASS_PCT}%) to pass the real test.`
-    : `${PASS_PCT}% pass threshold. You scored ${pct}%.`;
+    ? t('result.passNeeded', { mark: PASS_MARK, size: REAL_TEST_SIZE, pct: PASS_PCT })
+    : t('result.passThreshold', { pct: PASS_PCT, score: pct });
   sub.hidden = !showVerdict;
 }
 function renderResultActions() {
@@ -70,18 +71,20 @@ function renderResultActions() {
   const note = byId('resultNote');
   note.textContent = isExamMode ? '' : practiceResultNote();
   note.hidden = !note.textContent;
-  const anotherLabel = isExamMode ? 'Another Exam' : 'Another Practice';
-  document.querySelectorAll('#screenResult .retry-btn').forEach(btn => { btn.textContent = 'Retry'; });
+  const anotherLabel = isExamMode ? t('result.anotherExam') : t('result.anotherPractice');
+  document.querySelectorAll('#screenResult .retry-btn').forEach(btn => { btn.textContent = t('result.retry'); });
   document.querySelectorAll('#screenResult .another-btn').forEach(btn => { btn.textContent = anotherLabel; });
 }
 // practice result line: wrong-answer review → cleared / left; other sets → mastery gained this round
 function practiceResultNote() {
   if (state.examNum === WRONG_EXAM) {
-    return `Cleared ${state.cleared} from your wrong list · ${keysOf(wrongList).length} left`;
+    return t('result.clearedNote', { n: state.cleared, left: keysOf(wrongList).length });
   }
   if (state.examNum === SIMILAR_EXAM || !state.setPool) return '';
   const m = masteryOf(state.setPool);
-  return `Mastered ${Math.max(0, m.mastered - state.masteredBefore)} more this round · ${m.mastered}/${m.total} in ${examLabel(state.examNum)}`;
+  return t('result.masteredNote', {
+    n: Math.max(0, m.mastered - state.masteredBefore), mastered: m.mastered, total: m.total, set: examLabel(state.examNum),
+  });
 }
 
 // ── result dots (tap to jump to the review) ──
@@ -94,10 +97,10 @@ function renderResultDots() {
   byId('resultDots').innerHTML = reviewItems.map(r => dotButtonHtml(resultDotClass(r), 'jumpToReview', r.idx)).join('');
   const count = pred => reviewItems.filter(pred).length;
   byId('resultDotsMeta').innerHTML = countsLegendHtml([
-    ['lg-ok', 'Correct', count(r => r.isCorrect)],
-    ['lg-bad', 'Wrong', count(r => !r.isCorrect && r.userAns.length)],
-    ['lg-skip', 'Unanswered', count(r => !r.userAns.length)],
-    ['lg-flag', 'Flagged', count(r => r.flagged)],
+    ['lg-ok', t('common.correct'), count(r => r.isCorrect)],
+    ['lg-bad', t('common.wrong'), count(r => !r.isCorrect && r.userAns.length)],
+    ['lg-skip', t('common.unanswered'), count(r => !r.userAns.length)],
+    ['lg-flag', t('common.flagged'), count(r => r.flagged)],
   ]);
 }
 // tap a result dot: show that question's review (switch to All if the filter hides it) and highlight it
@@ -144,20 +147,20 @@ function noteHtml(note) {
   }).join('');
 }
 function reviewItemHtml({ q, idx, userAns, isCorrect, flagged }) {
-  const correctText = q.a.map(ai => q.o[ai]).join(' | ');
-  const userText = userAns.length ? userAns.map(ai => q.o[ai]).join(' | ') : 'No answer';
-  const note = q.note ? `<div class="rv-note"><div class="rv-note-label">💡 備注：</div>${noteHtml(q.note)}</div>` : '';
+  const correctText = q.a.map(ai => q.o[ai]).join(ANSWER_SEP);
+  const userText = userAns.length ? userAns.map(ai => q.o[ai]).join(ANSWER_SEP) : t('review.noAnswer');
+  const note = q.note ? `<div class="rv-note"><div class="rv-note-label">${t('common.noteLabel')}</div>${noteHtml(q.note)}</div>` : '';
   return `<div class="review-item ${isCorrect ? 'rv-correct' : 'rv-wrong'}" id="rv${idx}">
       <div class="rv-q">${reviewIsPractice ? streakTagHtml(q) : ''}${idx + 1}. ${escapeHtml(q.q)}${flagged ? bookmarkSvg('rv-flag') : ''}</div>
-      ${!isCorrect ? `<div class="rv-your">Your answer: ${escapeHtml(userText)}</div>` : ''}
+      ${!isCorrect ? `<div class="rv-your">${escapeHtml(t('review.yourAnswer', { answer: userText }))}</div>` : ''}
       <div class="rv-correct-ans">✅ ${escapeHtml(correctText)}</div>
-      <div class="rv-tr"><div class="rv-yue">【廣東話】${escapeHtml(q.yue)}</div>${note}</div>
+      <div class="rv-tr"><div class="rv-yue">${t('common.yueTitle')}${escapeHtml(q.yue)}</div>${note}</div>
     </div>`;
 }
 function reviewChipsHtml() {
   return REVIEW_FILTERS.map(f => {
     const n = reviewItems.filter(f.keep).length;
-    const label = `${f.icon ? bookmarkSvg('chip-flag') : ''}${f.label} <b>${n}</b>`;
+    const label = `${f.icon ? bookmarkSvg('chip-flag') : ''}${t(f.labelKey)} <b>${n}</b>`;
     return chipHtml({ active: reviewFilter === f.key, action: 'setReviewFilter', arg: f.key, label, disabled: !n });
   }).join('');
 }

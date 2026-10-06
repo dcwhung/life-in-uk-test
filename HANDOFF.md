@@ -1,4 +1,4 @@
-# Life in the UK Test PWA — Handoff (v0.58)
+# Life in the UK Test PWA — Handoff (v0.59)
 
 - **Repo:** https://github.com/dcwhung/life-in-uk-test （main branch，GitHub Pages root `/`）
 - **Live:** https://dcwhung.github.io/life-in-uk-test/
@@ -17,33 +17,35 @@ v0.57（P1 refactor）起 `index.html` 只剩 `<head>`、各 screen 嘅 markup �
 
 | File | 內容 |
 |---|---|
-| `index.html` | `<head>` + 各 screen markup（Home / Flagged / Study / Quiz / Result / confirm modal）+ 載入次序；冇 inline script / onclick，inline style 只剩 `#progressFill` 嘅 `width:0%`（JS 動態改闊度） |
+| `index.html` | `<head>` + 各 screen markup（Home / Flagged / Study / Quiz / Result / confirm modal）+ 載入次序；冇 inline script / onclick，inline style 只剩 `#progressFill` 嘅 `width:0%`（JS 動態改闊度）；v0.59 起冇 UI 文字：靜態文字用 `data-i18n` / `data-i18n-attr`，JS 會填嘅 element 留空（`<title>` 同 meta 例外，見「i18n」） |
+| `locales/en.js` | v0.59：`LOCALES.en`，全部 UI 文字（`app` / `home` / `quiz` / `exam` / `result` / `review` / `similar` / `flagged` / `study` / `modal` / `common` / `data`），見「i18n」 |
 | `sw.js` | Service Worker（**一定要喺 root**，SW 只可以控制自己 path 或以下嘅 page）；`importScripts('js/core/config.js')` 攞 `APP_VERSION` 做 cache 名；`SHELL` 列齊所有 file |
 | `data/exams.js` | `EXAMS`：408 題，Exam 1–17 各 24 題 |
-| `data/study.js` | `CHAPTERS` + `STUDY`：236 條 dedupe 後嘅 facts |
+| `data/study.js` | `CHAPTERS`（v0.59 起只係章節號 `[1, 2, 3, 4, 5]`，標題喺 locale `data.chapters`）+ `STUDY`：236 條 dedupe 後嘅 facts |
 | `css/base/tokens.css` | `:root` design tokens：所有顏色、shadow / overlay、radius 同 font-size scale（見「Design tokens」） |
 | `css/base/layout.css` | reset、body、sticky header、main、`.screen` 切換、`[hidden]`、`.quiz-header` / `.section-title`、`@keyframes slideIn` |
 | `css/components/*.css` | `buttons`（back / nav / quick ← → / flag 掣 + 書籤 icon 顏色）、`chips`（practice / study tab 共用 base、`.chip`、`.stars`）、`dots`（`.dot` / `.rdot` 共用形狀、`.dots-meta` / `.rmeta` 計數）、`modal`、`popover`（ⓘ popover + install banner） |
 | `css/screens/*.css` | `home`、`quiz`（問題卡、選項、答案框、計時器、Similar `.sqm`）、`results`、`flagged`、`study`（含 timeline）；`@media (max-width: 480px)` 跟返各自 file 尾 |
-| `js/core/config.js` | 常數：`APP_VERSION`、mode / set id（`PRACTICE_MODE`、`ALL_EXAM`、`WRONG_EXAM`…）、`MASTERY_STREAK`、`PRACTICE_ROUND_MAX`、`REAL_TEST_SIZE`、`PASS_RATIO`、`EXAM_MINUTES`、localStorage key（`LS_PREFIX` + 各 key、`LEGACY_LS_MIGRATION`、`MIGRATED_LS`、`MERGE_LS`、`OBSOLETE_LS`）等；**SW 都會 load，所以只可以有 const，唔可以掂 DOM 或者 data** |
+| `js/core/config.js` | 常數：`APP_VERSION`、mode / set id（`PRACTICE_MODE`、`ALL_EXAM`、`WRONG_EXAM`…）、`MASTERY_STREAK`、`PRACTICE_ROUND_MAX`、`REAL_TEST_SIZE`、`PASS_RATIO`、`EXAM_MINUTES`、localStorage key（`LS_PREFIX` + 各 key、`LEGACY_LS_MIGRATION`、`MIGRATED_LS`、`MERGE_LS`、`OBSOLETE_LS`、v0.59 `UI_LANG_LS`）、`DEFAULT_LANG`、分隔符 `LIST_SEP`（` · `）/ `ANSWER_SEP`（` | `）等；**SW 都會 load，所以只可以有 const，唔可以掂 DOM 或者 data** |
 | `js/core/utils.js` | `shuffle`、`shuffleOptions`、`toQuestionItem`、`isCorrectAnswer`、`getLS` / `setLS`（經 `lsKey()`：第一次用 storage 時 lazy 行 `ensureLegacyMigrated()`，再查 `LS_KEY_FALLBACK`；舊 key 遷移全部 code 喺呢度，見「localStorage keys」）、`escapeHtml`、`pad2`、`keysOf`、`percent`、`byId`、`setShown`、`showScreen` |
+| `js/core/i18n.js` | v0.59：`t(key, params)`、`getLang()` / `setLang()`、`applyLanguage()`、`applyStaticI18n()`、`applyDocumentI18n()`、`rerenderCurrentScreen()`，見「i18n」 |
 | `js/core/store.js` | `streaks` / `practiceFlags` / `wrongList`（`let`，測試會直接改）、completed exams、homePrefs 讀寫 |
 | `js/core/actions.js` | `ACTIONS` registry + 一個 document click / input / keydown（Esc）listener；未知 action 名 `console.warn` 唔會 throw |
-| `js/domain/questions.js` | `EXAM_COUNT`、`TOTAL_QUESTIONS`、`DIFF_LEVELS`（由 data 計）、`allQuestions()`（單一 loop）同由佢 filter 出嚟嘅 exam / chapter / difficulty pool、`poolFor()`、`randomExamPick()`、`examLabel()`、`questionByKey()` |
+| `js/domain/questions.js` | `EXAM_COUNT`、`TOTAL_QUESTIONS`、`DIFF_LEVELS`（v0.59 起由題目嘅 `d` 計，標籤喺 locale `data.difficulty`）、`difficultyLabel()`、`allQuestions()`（單一 loop）同由佢 filter 出嚟嘅 exam / chapter / difficulty pool、`poolFor()`、`randomExamPick()`、`examLabel()`、`questionByKey()` |
 | `js/domain/mastery.js` | `qKey`、`streakOf`、`isMastered`、`recordPracticeAnswer`、`masteryOf`、`practicePool` |
 | `js/domain/similar.js` | `FACT_BY_QKEY`、`factOf`、`similarKeys` |
 | `js/components/*.js` | `icons`（`BOOKMARK_PATH`、`bookmarkSvg`、`starsHtml`）、`dots`（`dotButtonHtml`、`countsLegendHtml`，quiz 同結果頁共用）、`tags`（`streakLabel`、`streakTagHtml`、`questionRefText`、`chipHtml`、`setButtonHtml`）、`modal`（`showConfirm`）、`popover`（ⓘ + 由 data 填 408 / 17） |
 | `js/screens/*.js` | `home`、`quiz`（`state`、`startExam`、`renderQuestion` 同拆細嘅 helper、`selectOption`）、`examTools`（計時、flag、圓點、`submitExam`）、`similarPanel`、`result`（`finishExam` 同 review）、`flagged`、`study` |
 | `js/pwa/pwa.js` | `registerSW()`（`file://` 唔註冊）+ install banner |
-| `js/main.js` | init（最後載入） |
+| `js/main.js` | init（最後載入）：`startApp()`；v0.59 起如果 `t` 未定義（SW 換版時舊 cache 嘅 v0.58 或更早 `index.html` 冇 locale / i18n tag）會先動態載入 `locales/en.js` + `js/core/i18n.js` 再開（同 CUI-0004 一樣嘅混合頁面） |
 | `manifest.webmanifest` | v0.59（CUI-0002）：web app manifest（`name`、`short_name`、`start_url` / `scope` `./`、`standalone`、背景 / theme 色 = header navy `#1a2744`、192 / 512 / 512 maskable icon）；Chrome 要有佢先裝得 app、`beforeinstallprompt` 先會彈 |
 | `icons/icon.svg` | v0.59（CUI-0001）：app icon **source**（navy 底 + 白色「UK」字，用戶確認嘅 wordmark）；同時係 SVG favicon。注意 SVG 註解唔可以有 `--`（XML 規定），有就成個 SVG decode 唔到 |
 | `icons/*.png` | 由 `icon.svg` 生成，**唔好手改**：`icon-192.png`（PNG favicon fallback + manifest）、`icon-512.png`、`icon-maskable-512.png`（navy 滿版、圖案縮到 80% 入 safe zone）、`apple-touch-icon.png`（180，navy 滿版，iOS 自己切圓角） |
 | `tests/tools/make-icons.js` | 改咗 `icon.svg` 之後跑：`NODE_PATH=… CHROMIUM_PATH=… node tests/tools/make-icons.js`，用 Chromium 按準確尺寸 render 晒所有 PNG（navy 由 `tokens.css` 讀），再 commit PNG |
-| `tests/*.js` | 25 套 Playwright 測試，`tests/run-all.sh` 一次過跑 |
+| `tests/*.js` | 26 套測試（大部分 Playwright），`tests/run-all.sh` 一次過跑 |
 | `mockups/similar-question-map.html` | Similar Questions 嘅設計 mockup（獨立 HTML，頂部 tab 切換情景；PR 嘅 `Design Origin`） |
 
-**載入次序：** `data/exams.js` → `data/study.js` → `js/core/config.js` → `core/utils` → `core/store` → `domain/*` → `components/*` → `screens/*` → `core/actions` → `pwa/pwa` → `main`。全部係 classic `<script src>`，全局變量，冇 ES module（`file://` 同 iOS PWA 兼容）；唔好包 IIFE，因為頂層 `let`（`state`、`streaks`、`pendingMode`…）要喺全局 lexical scope，測試先改得到。檔案之間只可以喺 function 入面互相 call；頂層即刻行嘅 code 只可以用前面已載入嘅 file。`store.js` 頂層嘅 `getLS()` 係第一個讀 storage 嘅地方，舊 key 遷移就喺嗰下 lazy 行（v0.58 起冇獨立 `migrate.js`，見「localStorage keys」）。
+**載入次序：** `data/exams.js` → `data/study.js` → `js/core/config.js` → `core/utils` → `locales/en.js` → `core/i18n`（v0.59）→ `core/store` → `domain/*` → `components/*` → `screens/*` → `core/actions` → `pwa/pwa` → `main`。全部係 classic `<script src>`，全局變量，冇 ES module（`file://` 同 iOS PWA 兼容）；唔好包 IIFE，因為頂層 `let`（`state`、`streaks`、`pendingMode`…）要喺全局 lexical scope，測試先改得到。檔案之間只可以喺 function 入面互相 call；頂層即刻行嘅 code 只可以用前面已載入嘅 file。`store.js` 頂層嘅 `getLS()` 係第一個讀 storage 嘅地方，舊 key 遷移就喺嗰下 lazy 行（v0.58 起冇獨立 `migrate.js`，見「localStorage keys」）。
 
 **加新 file 嘅規則（三步，漏一步就會離線壞咗）：**
 1. `index.html` 按載入次序加 `<link>` / `<script src>`
@@ -55,7 +57,53 @@ v0.57（P1 refactor）起 `index.html` 只剩 `<head>`、各 screen 嘅 markup �
 - `js/core/actions.js` 嘅 `ACTIONS = { name: (el, event) => … }` 負責轉型（`numArg`、`examArg`：Exam 1–17 要係 number，`'all'` 等 set id 係 string）；disabled 嘅掣唔會行
 - 同一個 click listener 之後會關 ⓘ popover（click 喺 popover 入面或者 ⓘ 本身除外）；Esc：有 modal 就取消 modal，同時關 popover
 - 新加 action：markup 加 `data-action` + `ACTIONS` 加一行；`tests/structure-test.js` 會 fail 任何 `on*=` inline handler
-- 顯示 / 收埋用 `hidden` attribute（`layout.css` 有 `[hidden] { display: none !important; }`）；唯一例外 `#studySubChips` 仍然用 `style.display`，因為 `subfilter-test` 讀 `style.display`
+- 顯示 / 收埋用 `hidden` attribute（`layout.css` 有 `[hidden] { display: none !important; }`）；v0.59 起冇例外（`#studySubChips` 都改咗用 `hidden`，`subfilter-test` 跟住改，S-004）
+
+## i18n（v0.59）
+
+全部 UI 文字喺 `locales/en.js`（`LOCALES.en`），經 `js/core/i18n.js` 讀；`js/`、`index.html` 冇 UI 字串亦冇中文（`tests/i18n-test.js` 會 fail）。**題目內容唔係 UI 文字**，照舊喺 `data/*.js`：題目、選項、`yue`、`oy`、`note` / 記憶法、fact `en` / `yue`、`yl` 年份標籤、人名。
+
+**用法**
+- `t('home.chooseMode')`；參數 `t('common.questionRef', { exam: 9, n: 15 })` → `Exam 9 · Q15`（值入面寫 `{exam}`、`{n}`）
+- 單複數：值寫 `{ one: '{n} question', other: '{n} questions' }`，按 `params.n` 揀（`Intl.PluralRules`，第二種語言都 work）
+- 缺 key：當前語言冇 → 用 `en`；`en` 都冇 → 返 key 本身；兩種都 `console.warn('[i18n] missing key', key)`
+- 靜態 markup：`<div data-i18n="home.chooseMode"></div>`（填 `textContent`，element 留空）；attribute：`data-i18n-attr="placeholder:study.search;aria-label:app.about"`
+- JS 每次 render 都會再填嘅 element（`#quizLabel`、`#nextBtn`、`#resultLabel2`…）markup 留空，唔使 `data-i18n`
+- `<title>`、meta description、`apple-mobile-web-app-title` 喺 `index.html` 保留英文原文（冇 JS / 分享預覽用），init 時 `applyDocumentI18n()` 用 `t()` 再寫一次（description 嘅 `1–17` 由 data 計）；`i18n-test` 檢查兩邊一樣
+- `getLang()` / `setLang(lang)`：存 `lifeuk.uiLang`（`getLS` / `setLS`）、預設 `en`；`setLang()` 設 `<html lang>`、`applyStaticI18n()`、`applyDocumentI18n()`，再 re-render 當前畫面（`SCREEN_RERENDER`：Home、Quiz、Result 用 `renderResults()`（唔會再記錄成績）、Flagged、Study）；冇 locale 嘅語言唔理
+- **未有語言切換掣**：`setLang()` 就係 hook，出 zh locale 先加掣
+
+**Key 命名**
+- 第一層 = 畫面 / 用途：`app`（header、ⓘ、install、`<title>`）、`home`、`quiz`、`exam`、`result`、`review`、`similar`、`flagged`、`study`、`modal`（所有 confirm modal 文案）、`common`（幾個畫面共用：`← Home`、Correct / Wrong…、`Exam {n}`、`🏆 Mastered`、`🔥 {n}/{max}`、廣東話 label）、`data`（data enum 嘅標籤）
+- 第二層 camelCase；值含 HTML 嘅 key 一定要用 `Html` 結尾（`home.practiceDescHtml`），用 `innerHTML` 插入，傳入去嘅參數要自己 escape
+- `t()` 第一個參數要係 literal（`t('a.b')`），或者名叫 `…Key` 嘅變數 / property（`t(f.labelKey)`、`t(titleKey)`）；`'section.key'` 形狀嘅字串 literal 都當「有用」；動態 key 只可以用白名單 prefix：`t(\`data.difficulty.${d}\`)`（`data.chapters.`、`data.chapterShort.`、`data.difficulty.`、`data.eras.`、`data.nations.`、`data.geoTypes.`、`data.people.`，白名單喺 `tests/i18n-test.js` 嘅 `DYNAMIC_PREFIXES`）
+- Data enum：source 只留 key（`CHAPTERS = [1..5]`、`DIFF_LEVELS` 由題目計、`ERAS = [{ key, max }]`、`NATIONS` / `GEO_TYPES` / `PEOPLE_GROUPS` 係 key array），標籤喺 `data.*`。**ERAS 決定**：只顯示英文時代名（`data.eras`），舊嘅廣東話時代名拎走咗；將來 zh locale 喺 `LOCALES.zh.data.eras` 提供
+
+**白名單（en 入面可以有中文嘅 key，`CJK_WHITELIST`）**：`common.yueTitle`（`【廣東話翻譯】`）、`common.noteLabel`（`💡 備注：`）。用戶決定 en 版保留中文 label，答案框同結果頁 review 統一用呢兩個
+
+**加一句 UI 文字**：`locales/en.js` 加 key（啱嘅 section）→ markup 用 `data-i18n` 或者 JS 用 `t()` → 跑 `node tests/i18n-test.js`（會捉缺 key、冇用嘅 key、中文）
+
+**加一種語言**：`locales/<code>.js` 寫 `LOCALES.<code> = { … }`（同 en 一樣嘅 key，缺嘅會 fallback 去 en）→ `index.html` 喺 `locales/en.js` 後面加 `<script>` → `sw.js` SHELL 加 path → 升 `APP_VERSION` → 加切換掣 call `setLang('<code>')`
+
+**SW 換版混合頁面**：舊 SW cache 嘅 v0.58 或更早 `index.html` 冇 `locales/en.js` / `i18n.js` tag，但可能 load 到 v0.59 js（同 CUI-0004 一樣）；`js/main.js` 見到 `t` 未定義就自己載入嗰兩個 file 再 `startApp()`（`upgrade-test` ① 覆蓋）
+
+### 字眼 glossary（v0.59，用戶確認；全 app 統一）
+
+| 概念 | 用字 |
+|---|---|
+| 題數 | 全寫：`🎯 All Exams (408 questions)`、`24 questions from 408`、`N questions unanswered`；單數 `1 question`；數字由 data 計。ⓘ popover 用 Title Case：`📋 17 Exams`、`❓ 408 Questions` |
+| 題號 | `Exam 9 · Q15`；Similar map node `E9·Q15`（1-based） |
+| 章節 | chip / badge `Ch 3`；標題 `Chapter 3: …`；Quiz 標籤 `Chapter 3` |
+| Flag | 動作 `Flag for review` / `Unflag`；狀態 `Flagged`；`{n} flagged`（唔再用 saved）；空格提示 `Tap [書籤] on a question to flag it`；`Practise flagged (N)` 照舊 |
+| Practise / Practice | 英式：動詞 Practise、名詞 Practice |
+| 掌握 | `🏆 Mastered` 全 app（Similar 列表同圖例都係）；進度 `🔥 n/3`（圖例 `🔥 0/3`） |
+| 錯題 | 名稱 `Wrong answers`；`Cleared X from your wrong answers · Y left` |
+| 掣 | 箭咀位置：`← Home`、`← Prev`、`Next →`、`↩ Back`、`Finish ✓`；分隔符 ` · ` 同 ` \| `（單空格，`LIST_SEP` / `ANSWER_SEP`）；`✓ Correct!` / `✗ Wrong` 單空格 |
+| 大細階 | 畫面 / section 標題 Title Case（`Choose Mode`、`My Review`、`Practice By`、`Similar Questions`、`Review Answers`）；掣、提示、hint sentence case（`Wrong answers` 做 tile 標題 OK） |
+| 判定 | `🎉 PASSED` / `📚 NEEDS IMPROVEMENT` 照舊（verdict 樣式） |
+| 廣東話 label | `【廣東話翻譯】`、`💡 備注：`（答案框 + 結果 review 一致） |
+| Modal | Submit：`Submit exam?` / Keep going · Submit；Leave：`Leave the exam?` / Stay · Leave；Reset progress：`Reset practice progress?` / `Mastery streaks, wrong answers and flags will be cleared.`；Reset completed：`Reset completed exams?` / `All ✓ completed marks will be cleared.`；兩個 Reset 都係 Keep · Reset |
+| Study | `📖 Study`、`Search facts (English / Cantonese)`、`✓ Hide mastered`、`★ Bookmarked only`、`⚔️ Wars only`、people chip `👑 Monarchs` `🏛️ Politics & military` `🔬 Scientists` `✒️ Writers` `🎨 Artists` `🏅 Sport` `✊ Reformers`、Geography 類型同 Timeline 時代只寫英文、`Appears ×n`、`No facts match.`、tooltip `Bookmark` / `Mastered`；★ 書籤 UI 唔郁（P3） |
 
 ## Design tokens
 
@@ -141,11 +189,11 @@ v0.57（P1 refactor）起 `index.html` 只剩 `<head>`、各 screen 嘅 markup �
 **首頁**
 - Header：`Life in the UK ⓘ` + `Exam Practice v${APP_VERSION}`；ⓘ 彈出簡介 popover
 - 三個 mode 掣一行：Study / Practice / Exam；預設 Practice；描述撳咗先顯示
-- **My Review（v0.53）：** Practice mode 描述下面一個獨立 section，兩格：「Wrong answers」（數字 + 「N to clear」，超過 24 題加「· 24 per round」）同「Flagged」（「N saved」）；下面小字「Wrong answers come from Practice and Exam, and clear when you get them right here. Up to 24 per round.」；**錯題同 flag 都冇記錄時成個 section 唔顯示**；只喺 Practice 出；一格係 0 就灰色（Flagged 空格提示用 app 內嘅書籤 SVG icon，唔用 🔖 emoji）
-- My Review 下面標題「Practice by」，三個 tab 文字改做 Difficulty / Chapter / Exam（id 不變）：Difficulty（預設；v0.39 起難度只顯示英文；v0.53 起只有 Easy / Basic / Medium / Hard / Expert 五行，拎走「Hard & Expert」）/ Chapter / Exam，每粒掣顯示「已掌握/總數 · %」+ 進度條（`.mastery-bar`，absolute 貼格仔底；格仔要 `overflow: hidden` 先唔會爆出圓角，By Exam 喺 v0.42 補返）；下面嘅提示寫明「連續答啱 3 次 = 掌握、每輪最多 24 題、每題一輪一次」
+- **My Review（v0.53）：** Practice mode 描述下面一個獨立 section，兩格：「Wrong answers」（數字 + 「N to clear」，超過 24 題加「· 24 per round」）同「Flagged」（「N flagged」；v0.58 或之前係「N saved」；空格提示「Tap ［書籤 SVG］ on a question to flag it」）；下面小字「Wrong answers come from Practice and Exam, and clear when you get them right here. Up to 24 per round.」；**錯題同 flag 都冇記錄時成個 section 唔顯示**；只喺 Practice 出；一格係 0 就灰色（Flagged 空格提示用 app 內嘅書籤 SVG icon，唔用 🔖 emoji）
+- My Review 下面標題「Practice By」（v0.59 改 Title Case），三個 tab 文字改做 Difficulty / Chapter / Exam（id 不變）：Difficulty（預設；v0.39 起難度只顯示英文；v0.53 起只有 Easy / Basic / Medium / Hard / Expert 五行，拎走「Hard & Expert」）/ Chapter / Exam，每粒掣顯示「已掌握/總數 · %」+ 進度條（`.mastery-bar`，absolute 貼格仔底；格仔要 `overflow: hidden` 先唔會爆出圓角，By Exam 喺 v0.42 補返）；下面嘅提示寫明「連續答啱 3 次 = 掌握、每輪最多 24 題、每題一輪一次」
 - Exam 下只有 Select Exam（完成過有 ✓）
 - Mode 同 tab 記住喺 localStorage `homePrefs`
-- 兩個 reset 掣：Practice「Reset progress」、Exam「Reset completed exams」（都要 confirm）；v0.54 起「Reset progress」會一齊清 `practiceStreak`、`wrongList`、`practiceFlags`，My Review 隨即收埋
+- 兩個 reset 掣：Practice「Reset progress」、Exam「Reset completed exams」（v0.59 起用 app 內 modal：「Reset practice progress?」/「Mastery streaks, wrong answers and flags will be cleared.」同「Reset completed exams?」/「All ✓ completed marks will be cleared.」，掣「Keep」/「Reset」；之前係瀏覽器 confirm）；v0.54 起「Reset progress」會一齊清 `practiceStreak`、`wrongList`、`practiceFlags`，My Review 隨即收埋
 
 **Practice mode**
 - 題目同選項次序隨機；揀完即刻 reveal
@@ -155,7 +203,7 @@ v0.57（P1 refactor）起 `index.html` 只剩 `<head>`、各 screen 嘅 markup �
 - **快捷 Prev / Next（v0.40；v0.41 改做只有符號）：** 答完（Practice reveal／Exam submit）之後，問題卡右上 Translate 嘅位置變做兩粒圓形「←」「→」（最後一題 ✓、臨時 session ↩；`title` / `aria-label` 寫返文字），同底部掣共用 `nextAction()`（Next → / Finish ✓ / See Results → / ↩ Back）；未答前唔顯示；窄 mon 時會換行靠右
 - 答案框格式：`✓ Correct! · 🔥 n/3` → 英文答案 → `【廣東話翻譯】 Q) … A) …` → `💡 備注：`（獨立一行）→ 備注內容（支援多行）
 - **掌握機制：** 同一題連續答啱 `MASTERY_STREAK`（=3）次 = 掌握，答錯即歸零；開練習時剔除已掌握題，全組掌握後再全部出；每輪最多抽 `PRACTICE_ROUND_MAX`（=24，v0.52 起；之前 25）條未掌握題（Chapter / Difficulty / All Exams；Exam 1–17 本身 24 題），**每題一輪只出一次，「Question X of Y」嘅 Y 唔會變**（v0.38 起；v0.32–v0.37 會將未掌握題重新排去 queue 尾，令 Y 越做越大，已取消）；答錯或未夠 3 次嘅題下一輪再抽；存 localStorage `practiceStreak` `{ "exam.idx": n }`
-- **Similar Questions（v0.35）：** 答完（啱或錯）喺 Prev / Next 掣下面顯示同一條 `STUDY` fact 嘅其他題目（`fact.src` 除本題外嘅 key；每題只屬一條 fact，408 題入面 284 題有類似題）。內容：Core Fact（英文 + 廣東話）、「Appears in」題號 chip（本題／已掌握／練緊／0/3）、每題 `Exam N · Qn` + 🔥 進度 + 題目同翻譯（唔顯示答案）。Exam mode 唔顯示；冇類似題就唔顯示
+- **Similar Questions（v0.35）：** 答完（啱或錯）喺 Prev / Next 掣下面顯示同一條 `STUDY` fact 嘅其他題目（`fact.src` 除本題外嘅 key；每題只屬一條 fact，408 題入面 284 題有類似題）。內容：Core Fact（英文 + 廣東話）、「Appears in」題號 chip（v0.59 起寫 `E9·Q15`，1-based；之前係 raw `9.14`；圖例：This question / 🏆 Mastered / In progress / 🔥 0/3）、每題 `Exam N · Qn` + 🔥 進度（掌握咗寫 🏆 Mastered，v0.58 或之前係 ✓ Mastered）+ 題目同翻譯（唔顯示答案）。Exam mode 唔顯示；冇類似題就唔顯示
 - **Practise these N：** 開臨時 session（`examNum = 'similar'`），按列出次序每題做一次，照計 `practiceStreak`；最後一題 Next 變「↩ Back」（v0.36 起；之前寫「Back to Question n」會誤以為係返去臨時 session 第 n 題），還原原本 session 同題目位置；session 內唔再顯示 Similar Questions；返 Home 或開新練習會清走暫存 session（`similarReturn`）
 - 按 Chapter / Difficulty 練習唔會標記為完成 exam
 - 結果頁兩粒掣：Exam mode「Retry」/「Another Exam」，Practice mode「Retry」/「Another Practice」（v0.50；之前係 Retry Exam / Practise Again / Choose Another）；`.retry-btn` / `.another-btn` 上下兩組一齊改字；v0.39 起「重做 / Choose Another」掣喺 Review Answers 上面同最底各有一組（`.retry-btn`，兩粒一齊改字）
@@ -167,33 +215,33 @@ v0.57（P1 refactor）起 `index.html` 只剩 `<head>`、各 screen 嘅 markup �
     ◦ 結果卡入面 24 粒圓點（`#resultDots`）：綠 = 啱、紅 = 錯、白底紅框 = 未答、橙色圈 = flag 咗（保留啱錯顏色）；撳圓點跳去下面嗰題 review（`jumpToReview()`，被 filter 收埋就轉返 All，金框閃一下）
     ◦ 圓點下面靠右「Correct n | Wrong n | Unanswered n | Flagged n」（Wrong 唔包未答；大字分數嘅錯題 = Wrong + Unanswered）
     ◦ Review Answers filter：「All n / Wrong n / 🔖 Flagged n」（Wrong 包未答；0 題 disabled）；flag 咗嘅題目後面有橙色書籤 icon（同問題卡一樣，冇「Flagged」字）
-- **Review Answers 排版（兩個 mode，v0.50）：** 答案下面虛線分隔，「【廣東話】」翻譯同「💡 備注：」各自一段；備注逐行一個 row（`noteHtml()`），•／→ 開頭 hanging indent，前置空格 + ◦ 子項再縮，空行保留
+- **Review Answers 排版（兩個 mode，v0.50）：** 答案下面虛線分隔，「【廣東話翻譯】」翻譯（v0.59 起同答案框一致；之前係「【廣東話】」）同「💡 備注：」各自一段；備注逐行一個 row（`noteHtml()`），•／→ 開頭 hanging indent，前置空格 + ◦ 子項再縮，空行保留
 - **Practice flag（v0.53）：** Practice 問題卡都有書籤掣（放喺 Translate 左邊），flag **長期保存**喺 localStorage `practiceFlags` `{ "exam.idx": true }`，reload 後仍然 on；Exam 嘅 flag 照舊只喺該次考試（`state.flags`）；`isFlaggedNow(i)` 按 mode 揀來源
 - **錯題庫（v0.53）：** localStorage `wrongList` `{ "exam.idx": true }`；Practice 每次 reveal 答錯就加；Exam 交卷時「有答但答錯」嘅題加入（未答唔加）；**只有喺 Wrong answers review 入面答啱先會清走**（`examNum === 'wrong'`），平時練習答啱唔清
 - **Review round（v0.53）：** 撳 Wrong answers 格 → `startExam('wrong')`；Flagged 格 → Flagged 列表畫面。Review set 唔理掌握過濾，全部洗牌後抽最多 24 題（`PRACTICE_ROUND_MAX`）；題數多過 24 時問題卡**上面靠右**出細字「Round 1 of N · 24 of your T wrong answers / flagged questions」（`renderRoundNote()`）；暫時冇中途續做
 - **Flagged 列表畫面（v0.53，`#screenFlagged`）：** 頂頭「Practise flagged (N)」掣；每題一行：題目 + 廣東話 + 「Exam N · Qn」+ 書籤掣（撳即 unflag，列表即時更新）；冇 flag 剩低就顯示「No flagged questions left.」
-- **Practice 結果頁（v0.53，跟 Exam 結果頁排版）：** 🎯 icon、「18 / 24 · 75%」分數行（Practice 永遠唔紅）、拎走 Correct / Wrong / Score 三格、24 粒結果圓點（flag 橙圈）、All / Wrong / Flagged filter；下面一行 note：一般練習「Mastered N more this round · m/total in {set}」，錯題 review「Cleared X from your wrong list · Y left」；每題 review 開頭有 streak tag（🔥 n/3 或 🏆 Mastered，`streakTag()`）；舊嘅「Original order / Wrong first」chip 同 `reviewOrder` 已拎走
+- **Practice 結果頁（v0.53，跟 Exam 結果頁排版）：** 🎯 icon、「18 / 24 · 75%」分數行（Practice 永遠唔紅）、拎走 Correct / Wrong / Score 三格、24 粒結果圓點（flag 橙圈）、All / Wrong / Flagged filter；下面一行 note：一般練習「Mastered N more this round · m/total in {set}」，錯題 review「Cleared X from your wrong answers · Y left」（v0.59；之前寫 wrong list）；每題 review 開頭有 streak tag（🔥 n/3 或 🏆 Mastered，`streakTag()`）；舊嘅「Original order / Wrong first」chip 同 `reviewOrder` 已拎走
 - 結果頁 PASSED / NEEDS IMPROVEMENT 同 remark 只喺 Exam 1–17（Exam mode 或 Practice > By Exam）顯示；Chapter / Difficulty / All Exams 只顯示分數
 
 **Exam mode**
 - **真考試模式（v0.43）：** 揀選項即刻暫存（`state.answers`），唔使逐題 Submit；Next / Prev 自由走，返去見到自己揀嘅選項（藍色），**隨時可以改**；全程唔顯示啱／錯、答案框、翻譯
-- **最後一題底部 Next 掣變做「Submit」**（同 ← Prev 一行；冇另外嘅 Submit 行，`#examSubmitRow` 已拎走；v0.55 起問題卡頭嘅快捷掣喺最後一題變「✓」（title「Submit」），同 Practice 最後一題嘅 ✓ 一樣，行同一個 `submitExam()`；v0.43–v0.54 係收埋），撳咗就去結果頁；有未答題會先 `confirm("N questions unanswered. Submit anyway?")`，取消就留低繼續做
+- **最後一題底部 Next 掣變做「Submit」**（同 ← Prev 一行；冇另外嘅 Submit 行，`#examSubmitRow` 已拎走；v0.55 起問題卡頭嘅快捷掣喺最後一題變「✓」（title「Submit」），同 Practice 最後一題嘅 ✓ 一樣，行同一個 `submitExam()`；v0.43–v0.54 係收埋），撳咗就去結果頁；有未答題會先彈 Submit modal（見下面），取消就留低繼續做
 - 快捷 ← → 喺 Exam mode 一直顯示（v0.47 起；之前要揀咗選項先出，去到未答嘅下一題就唔見咗）；唔影響掌握記錄
-- **Random Exam（v0.45）：** Exam mode 嘅 All Exams 掣變做「🎲 Random Exam」（細字「24 Qs from 408 Qs」）：每次由全部 408 題隨機抽 `RANDOM_EXAM_SIZE`（=24）題，**同一條 STUDY fact 最多抽一題**（`randomExamPick()` 用 `FACT_BY_QKEY` 去重，即係唔會有相類似題）；用齊考試工具同 PASSED / NEEDS IMPROVEMENT 判定；Retry 會再抽過一套新題；唔會標記 completed。Practice › By Exam 嘅「🎯 All Exams (408 Q)」維持原狀（每輪 24 條未掌握題）
+- **Random Exam（v0.45）：** Exam mode 嘅 All Exams 掣變做「🎲 Random Exam」（細字「24 questions from 408」，v0.59；之前「24 Qs from 408 Qs」）：每次由全部 408 題隨機抽 `RANDOM_EXAM_SIZE`（=24）題，**同一條 STUDY fact 最多抽一題**（`randomExamPick()` 用 `FACT_BY_QKEY` 去重，即係唔會有相類似題）；用齊考試工具同 PASSED / NEEDS IMPROVEMENT 判定；Retry 會再抽過一套新題；唔會標記 completed。Practice › By Exam 嘅「🎯 All Exams (408 questions)」（v0.59；之前「(408 Q)」）維持原狀（每輪 24 條未掌握題）
 - **考試工具（v0.44，Exam 1–17；v0.45 起 Random Exam 都有）：**
     ◦ 45 分鐘倒數（`EXAM_MINUTES`），右上角取代「Exam」標籤，一直顯示；剩 5 分鐘（`EXAM_WARN_SECONDS`）變紅閃；到 0 自動交卷，直接去結果頁，頁頂紅框「⏱ Time's up — your exam was submitted automatically.」（`#resultTimeUp`）；計時用 `examDeadline`（Date.now），唔怕 setInterval 延遲
     ◦ 書籤 icon（SVG，冇圓圈）flag 每一題（`state.flags`），未 flag 灰色空心、flag 咗橙色實心
     ◦ 問題卡頂 24 個有數字嘅圓點（12 × 2），撳就跳題（`goToQuestion()`）：已答深藍實心、未答白色、已答 + flag 橙色實心、未答 + flag 橙色空心框、做緊嗰題金色圈；Exam mode 唔顯示 progress bar（圓點已經代表進度）
     ◦ 圓點下面靠右「Answered n | Unanswered n | Flagged n」
-    ◦ Submit 提示（v0.48 起用 app 內 modal `showConfirm()`，唔再用瀏覽器 confirm）：標題「Submit exam?」，內容逐行列「N questions unanswered」「M flagged」「You can still go back and check them.」，掣「Keep going」/「Submit」；全部答晒又冇 flag 就直接交
+    ◦ Submit 提示（v0.48 起用 app 內 modal `showConfirm()`，唔再用瀏覽器 confirm）：標題「Submit exam?」，內容逐行列「N questions unanswered」（1 題寫「1 question unanswered」）「M flagged」「You can still go back and check them.」，掣「Keep going」/「Submit」；全部答晒又冇 flag 就直接交
     ◦ 考試中撳 ← Home 先彈 modal「Leave the exam? / Your answers will be lost.」，掣「Stay」/「Leave」，Leave 先離開同停計時；結果頁返 Home 唔問
-    ◦ Modal：撳背景或 Esc = 取消；`z-index: 300` 蓋過 sticky header；首頁兩個 Reset 掣仍然用瀏覽器 confirm（未改）
+    ◦ Modal：撳背景或 Esc = 取消；`z-index: 300` 蓋過 sticky header；v0.59 起首頁兩個 Reset 掣都用呢個 modal，成個 app 冇瀏覽器 alert / confirm
 - 實作：`renderQuestion()` 用 `showAnswer = revealed && state.mode === 'practice'` 控制顏色、答案框同翻譯；Exam mode 唔再用 `state.revealed`，`nextAction()` 喺 Exam 最後一題返 `{ label: 'Submit', run: submitExam, quick: false }`；`submitExam()` 計未答數再 `finishExam()`（按 `state.answers` 計分）
 - Results：分數、pass/fail（18/24）、按難度統計表、逐題 review
 
 **Study（溫習）**
-- 四個 tab：Chapters（Ch1–5 chip）/ Timeline（10 個時代，戰爭紅色 + 「只顯示戰爭」）/ Geography（國家 chip → 類型分組）/ People（角色 chip，君主按時序）
-- 搜尋（英文 + 廣東話）、書籤 ★、已掌握 ✓、「隱藏已掌握」「只顯示書籤」chip
+- 四個 tab：Chapters（Ch1–5 chip）/ Timeline（10 個時代，戰爭紅色 + 「⚔️ Wars only」）/ Geography（國家 chip → 類型分組）/ People（角色 chip，君主按時序）
+- 搜尋（英文 + 廣東話）、書籤 ★、已掌握 ✓、「✓ Hide mastered」「★ Bookmarked only」chip；v0.59 起 Study 介面全部英文（`📖 Study`、搜尋 placeholder「Search facts (English / Cantonese)」、people chip 例如「👑 Monarchs」「✒️ Writers」、Geography 類型同 Timeline 時代只寫英文、「Appears ×n」、「No facts match.」、tooltip Bookmark / Mastered）；fact 內容（en + yue）照舊
 - Prefs 存 `studyPrefs`、`studyMastered`、`studyBookmarks`
 - `studyLoad()` 會驗證 `studyPrefs`（v0.59，CUI-0003）：`tab` 要係 `STUDY_RENDERERS` 嘅 key、`chapter` 要喺 `CHAPTERS`、`nation` / `group` 要係 `all` 或者已知 key、每個值類型要同預設一樣（例如 `hideMastered` 要 boolean）；唔啱就用預設，成個 prefs 唔係 object 就全部預設。之前壞 `tab` 會令 `renderStudy` throw `STUDY_RENDERERS[study.tab] is not a function`，Study 一片空白
 
@@ -221,6 +269,7 @@ v0.58 起全部 key 都有 `lifeuk.` prefix（`LS_PREFIX`，`js/core/config.js`�
 | `lifeuk.practiceFlags` | `{ "exam.idx": true }`（v0.53，Practice flag，長期保存） |
 | `lifeuk.wrongList` | `{ "exam.idx": true }`（v0.53，錯題庫；Practice + Exam 加入，只喺 Wrong answers review 答啱先清） |
 | `lifeuk.studyPrefs` / `lifeuk.studyMastered` / `lifeuk.studyBookmarks` | Study 頁狀態 |
+| `lifeuk.uiLang` | v0.59：UI 語言（JSON 字串，例如 `"en"`；`setLang()` 寫入，冇就用 `DEFAULT_LANG` `en`；存咗但冇對應 locale 都當 `en`）。未有語言切換掣，所以 app 本身未會寫；唔喺 `LEGACY_LS_MIGRATION`（新 key，冇舊名） |
 | `lifeuk.migrated` | v0.58 遷移完成 marker（`MIGRATED_LS`，值係寫入時嘅 `APP_VERSION`；只睇有冇） |
 | `lifeuk.migrateFallback` | v0.58 遷移用：JSON array，列出「merge 寫唔到、今次載入改用舊 key、但新 key 仲有舊 value」嘅新 key 名（`MIGRATE_FALLBACK_LS`）；寫 marker 時清走 |
 
@@ -267,14 +316,14 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 |---|---|
 | `test.js` | Practice 基本流程、多選；Exam：揀選項中性藍色、Next / Prev 保留同可改答案、最後一題 Next 變 Submit（同 Prev 一行）、未答 confirm、按暫存答案計分 |
 | `shuffle-test.js` | 408 題選項打亂後答案對應 |
-| `study-test.js`、`subfilter-test.js` | Study 四個 tab、搜尋、書籤、sub-filter |
+| `study-test.js`、`subfilter-test.js` | Study 四個 tab、搜尋、書籤、sub-filter（v0.59：chip 英文 `Hide mastered` / `Bookmarked only` / `Writers`；`#studySubChips` 用 `hidden` attribute） |
 | `diff-test.js` | 難度數據完整、按難度練習、結果統計、難度掣只顯示英文、只有 Easy–Expert 五行（冇 Hard & Expert） |
 | `yue-test.js`、`oy-test.js`、`yue2-test.js` | Translate 掣、選項翻譯、答案框格式、Exam mode 冇翻譯（`yue2-test` 跳去、`oy-test` 搬第一條有選項翻譯嘅題目去最前，避免抽到年份／True-False 題隨機失敗） |
 | `mode-test.js`、`info-test.js` | 首頁 mode/tab、持久化、ⓘ popover；考試中返 Home 會問 |
-| `mastery-test.js` | By Exam 進度條喺格仔入面、貼底（v0.42）；掌握機制（每輪每題一次、Y 固定、Ch1 要 3 輪先全掌握）、進度顯示、兩個 reset（Reset progress 一併清錯題同 flag，My Review 收埋） |
+| `mastery-test.js` | By Exam 進度條喺格仔入面、貼底（v0.42）；掌握機制（每輪每題一次、Y 固定、Ch1 要 3 輪先全掌握）、進度顯示、兩個 reset（v0.59 起經 app 內 modal：標題 / 內容 / 掣文字、Keep 唔清、Reset 先清、冇瀏覽器 dialog；Reset progress 一併清錯題同 flag，My Review 收埋） |
 | `result-test.js` | 結果頁 PASSED / remark 只喺 Exam 1–17 顯示；重做掣按 mode 改字、上下兩組掣、Practice 結果 All / Wrong / Flagged filter |
 | `batch-test.js` | Exam mode Random Exam 24 題；Practice 每輪最多 24 題、下一輪由未掌握題抽、最後幾題每輪再出直至掌握 |
-| `similar-test.js` | Similar Questions section、Practise these N 臨時 session 同返回 |
+| `similar-test.js` | Similar Questions section、Practise these N 臨時 session 同返回；map node `E12·Q6` 等 1-based、`🏆 Mastered` |
 | `examresult-test.js` | Exam 結果頁：icon、分數行（唔合格紅）、冇三格、24 圓點狀態、計數、All / Wrong / Flagged filter、書籤 icon、撳圓點跳題、翻譯 / 備注排版、掣文字；合格唔紅；Practice 都冇三格、有圓點同 filter + 🎯 + Retry / Another Practice |
 | `review-test.js` | v0.53：「Practice by」標題同 tab 文字；冇記錄唔出 My Review；Practice flag 位置同 reload 後保留；兩格數字同 remark；錯題由 Practice / Exam 加入、只喺 review 答啱先清；>24 題嘅 round note 位置同文字；Flagged 列表、unflag、練 flagged、空列表；Practice 結果頁（icon、分數、圓點、filter、mastery note、streak tag） |
 | `examtools-test.js` | Submit / Leave 用 app 內 modal（掣名、Esc 取消、冇瀏覽器 dialog）；Random Exam（30 次抽題全部 24 題、24 個唔同 fact、每次唔同；工具、PASSED、Retry 抽新題、首頁掣名）；Exam 1–17 計時器（45:00、最後 5 分鐘變紅、到 0 自動交卷 + 結果頁提示）、24 圓點狀態同跳題、書籤 flag、計數、Submit / Home 提示；Practice 冇計時，圓點係啱／錯版（見 practicedots-test） |
@@ -282,12 +331,13 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | `sw-test.js` | v0.57：將 app copy 去 temp dir，用 python static server（加 GitHub Pages 一樣嘅 `Cache-Control: max-age=600`）serve（或者 http 嘅 `APP_URL`）；index.html 每個 `<script src>` / `<link href>` 都喺 `sw.js` SHELL、SHELL 每個 file 存在；`sw.js` 註冊成功、cache 名跟 `APP_VERSION`、SHELL 全部 cache 咗；`setOffline(true)` reload 仍然出首頁、css 生效、開到 Practice；同 origin 其他 app 嘅 cache（`other-app`）唔會俾 activate 刪；`other-app` 入面放咗一個假 `js/main.js`（同 origin、我哋會 load 嘅 URL），SW 控制之後 reload 唔會用到佢（S-003）；淨係改 temp copy 嘅 `config.js` 版本號就會裝新 cache、刪舊 `lifeuk-v*` cache；冇 page / console / SW error（瀏覽器自己 probe `/favicon.ico` 嘅 404 除外） |
 | `structure-test.js` | v0.57：index.html / js 冇 inline `on*=`、index.html 冇 inline `<style>` / `<script>` / `style=`（progress bar 闊度除外）、每個 function ≤ 30 行、`tokens.css` 以外嘅 css 冇 hex / `rgb(a)(` 顏色（P2）、markup / template 每個 `data-action` 都有 `ACTIONS` handler 而每個 handler 都有人用、`file://` 載入冇 page error / console error / failed request |
 | `migrate-test.js` | v0.58：用似真用戶嘅舊資料（completedExams、homePrefs、practiceFlags、practiceStreak、reviewOrder、wrongList、studyPrefs / studyMastered / studyBookmarks，全部非空）+ 其他 app 嘅 key（`run365.prefs`、`tripspend.*.v1`）reload：`lifeuk.*` 係原始字串、舊 key 同 `reviewOrder` 刪咗、其他 app 嘅 key 一字不改、UI 跟資料（Practice › By Chapter、Flagged 5、mastery 數、Exam 1–5 ✓、Study geo tab）；全部搬完寫 `lifeuk.migrated`；有 marker 新舊都有 → 新嘅贏（UI 讀新 key）；冇 marker 新舊都有 → streak / flags 逐條 merge（同一題新嘅贏）、homePrefs 新嘅贏、舊 key 刪、寫 marker、UI 顯示 merge 後進度（3/408、Flagged 3）；一邊唔係 object（壞 JSON、array）→ 留新 value；再 reload 兩次唔變、app 寫入只落 `lifeuk.*`；壞 JSON 照搬唔 crash；空 storage 只生 marker；fail-safe：stub `setItem` 令 `lifeuk.practiceStreak` throw QuotaExceededError、`lifeuk.studyPrefs` 寫唔落（verify 唔對），今次載入 UI 照顯示舊進度（3/408、Study geo）、答題寫返舊 key、冇空新 key，fallback 期間冇 marker；拎走 stub reload 後舊 streak + 新答案全部喺 `lifeuk.practiceStreak`、舊 key 冇咗、寫 marker；冇 marker 新舊都有而 merge 寫入 throw → 兩個 key 原封不動、冇 marker、UI 讀舊 key，拎走 stub 後 merge 完成；g2（W-004）：merge 寫唔到、fallback 期間答題（1.2 → 3）落舊 key、新 key 記入 `lifeuk.migrateFallback`，下次載入舊嘅贏（1.2 = 3 唔係 stale 嘅 0）、兩邊 entry 都保留、舊 key 刪、寫 marker、清記錄；g3（S-010）：merge 寫入同記錄寫入都 throw → 冇記錄冇 marker，fallback 期間答題下次載入照保留（1.2 = 3）、舊 / 混合頁面 entry 都喺、寫 marker |
-| `upgrade-test.js` | v0.58（CUI-0004）：v0.57 檔案由 git 攞（pinned `dc84cab`，v0.57 嘅 main）。① 混合 shell（`file://`）：temp dir 放 v0.57 `index.html`（冇 migrate tag）+ 而家嘅 js / css / data，seed 舊 key → UI 即刻顯示舊進度（3/408、Flagged 5）；答一題，再開而家嘅 `index.html` → 舊 streak 全部 + 新答案都喺 `lifeuk.practiceStreak`、其他 value 原始字串、舊 key 冇咗、有 marker、其他 app key 唔郁。② 反方向混合：v0.57 全套 + 而家嘅 `utils.js` → 冇 error、照讀 v0.57 key、storage 唔郁。③ QA `upgrade-sim` 核心：python server（`max-age=600`）serve v0.57，SW 裝好、seed 舊資料、記低 UI；原地換做而家嘅 file，reload 等新 SW activate + 刪 `lifeuk-v0.57` cache，再 reload → v0.58、8 個 value 原始字串、舊 key + reviewOrder 冇咗、其他 app key 一樣、新 key 只多 marker、UI（mode / view、Flagged、Wrong、mastery grid、完成 ✓、Study tab / 掌握 / 書籤）同升級前一樣、再 reload 唔變（呢個 case 唔保證撞到 SW 換版嘅 race，race 由 ① deterministic 咁覆蓋）。④ 第三種混合：而家嘅 file + v0.57 `utils.js`，seed 舊 key、答一題 → 舊 key 原封不動、冇 marker；換返而家嘅 `utils.js` reload → 舊 streak 全部 + 新答案、5 個舊 map 每條 entry 都喺、舊 key 冇咗、有 marker。約 6 秒 |
+| `upgrade-test.js` | v0.58（CUI-0004）：v0.57 檔案由 git 攞（pinned `dc84cab`，v0.57 嘅 main）。v0.59：① 舊 shell 冇 locale / i18n tag → `main.js` 自己載入再開（等 `#examGrid` 出咗先讀 UI）；`captureUI` 只比較掌握數（`.exam-mastery`），唔比較會改字嘅掣名；current copy 包埋 `locales/`。① 混合 shell（`file://`）：temp dir 放 v0.57 `index.html`（冇 migrate tag）+ 而家嘅 js / css / data，seed 舊 key → UI 即刻顯示舊進度（3/408、Flagged 5）；答一題，再開而家嘅 `index.html` → 舊 streak 全部 + 新答案都喺 `lifeuk.practiceStreak`、其他 value 原始字串、舊 key 冇咗、有 marker、其他 app key 唔郁。② 反方向混合：v0.57 全套 + 而家嘅 `utils.js` → 冇 error、照讀 v0.57 key、storage 唔郁。③ QA `upgrade-sim` 核心：python server（`max-age=600`）serve v0.57，SW 裝好、seed 舊資料、記低 UI；原地換做而家嘅 file，reload 等新 SW activate + 刪 `lifeuk-v0.57` cache，再 reload → v0.58、8 個 value 原始字串、舊 key + reviewOrder 冇咗、其他 app key 一樣、新 key 只多 marker、UI（mode / view、Flagged、Wrong、mastery grid、完成 ✓、Study tab / 掌握 / 書籤）同升級前一樣、再 reload 唔變（呢個 case 唔保證撞到 SW 換版嘅 race，race 由 ① deterministic 咁覆蓋）。④ 第三種混合：而家嘅 file + v0.57 `utils.js`，seed 舊 key、答一題 → 舊 key 原封不動、冇 marker；換返而家嘅 `utils.js` reload → 舊 streak 全部 + 新答案、5 個舊 map 每條 entry 都喺、舊 key 冇咗、有 marker。約 6 秒 |
 | `studyprefs-test.js` | v0.59（CUI-0003）：`lifeuk.studyPrefs` 壞 `tab`（唔 throw、返 chapters、有 fact）、chapter 99 → 1、未知 nation / group → `all`、`hideMastered: 'yes'` → `false`、prefs 唔係 object → 預設、正常 prefs（timeline + chapter 4）保留、冇 page error |
 | `pwa-test.js` | v0.59（CUI-0001 / 0002）：python server serve repo root（或者 http 嘅 `APP_URL`）；載入冇 4xx / failed request；`<link rel="icon">` 有 SVG + PNG（200、SVG decode 到、PNG 192×192）、`apple-touch-icon` 180×180；manifest link 200、JSON 有齊 name / short_name / start_url / scope / display / 兩個顏色（= `tokens.css` 嘅 `--navy`）、`theme-color` meta = navy、有 192 any / 512 any / 512 maskable，每個 icon load 到而尺寸同 `sizes` 一樣；CDP `Page.getAppManifest` 冇 error、`Page.getInstallabilityErrors` 冇 error（persistent profile）；假 `beforeinstallprompt` → banner 出、`promptInstall()` call `prompt()`、accepted 收 banner |
+| `i18n-test.js` | v0.59：靜態掃描（node）：`js/` 每個 `t()` key、`index.html` 每個 `data-i18n` / `data-i18n-attr` key 都喺 `LOCALES.en`；動態 key 只准白名單 prefix（`DYNAMIC_PREFIXES`）；en 冇冇用嘅 key；en 值冇中文（白名單 `common.yueTitle` / `common.noteLabel`）；`js/`、`index.html`、`sw.js` 冇中文（`data/`、`locales/` 除外）。Browser：預設 `en` + `<html lang>`、每個 `data-i18n` element 有字、attribute 值啱、`<title>` / description = index.html 原文、interpolation、單複數（`1 question` / `408 questions`，Submit modal `1 question unanswered`）、缺 key 返 key + warn、`setLang` 寫 `lifeuk.uiLang` + `<html lang>` + 重填 markup + re-render Study、缺 key fallback en + warn、冇 locale 嘅語言唔理、存咗冇 locale 嘅語言 reload 當 en |
 | `practicedots-test.js` | v0.55：Practice 圓圈（24 / 9 / review 題數、冇 progress bar 同計時、啱綠錯紅、flag 橙邊、計數一行、撳跳題前後都得）；冇 score pill；Exam 最後一題快捷 ✓ 交卷（有未答彈 modal、全答直接去結果）；Flagged 列表「Practise flagged」書籤 icon 係橙色；首頁 Flagged 格 icon 橙色、Home 冇可見嘅黑色 SVG（v0.56） |
 
-## 版本記錄（v0.32–v0.58）
+## 版本記錄（v0.32–v0.59）
 
 | 版本 | PR | 改動 |
 |---|---|---|
@@ -325,6 +375,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | v0.56 | dcwhung/life-in-uk-test#28 | 首頁 My Review「Flagged」格嘅書籤 icon 由黑色改返橙色：`bookmarkSvg('rv-flag-tile')` 嘅 class 冇 CSS，SVG path 冇 fill 就係黑色；改為 `.rv-flag-tile path` 同 `.rv-flag` 共用橙色（v0.55 只修咗「Practise flagged」掣，今次由 class 根本修好，兩處一齊生效） |
 | v0.57 | （P1 refactor PR） | **拆檔 + clean code，外觀同行為 0 改動（除 SW）**：`index.html` 2350 行拆做 `css/{base,components,screens}` 同 `js/{core,domain,components,screens,pwa}` + `main.js`；inline onclick 全部改 `data-action` delegation；重複 code 合併（`isCorrectAnswer`、`toQuestionItem`、pool 由 `allQuestions()` 派生、圓點 + 計數 builder、streak label、diff / chapter 格、Study 書籤 / 掌握 toggle）；每個 function ≤ 30 行；408 / 17 / 24 / 75% 等數字由 data / config 計；題目、選項、備注插入 HTML 前 escape；拎走死碼（`.score-pill`、`alert('Please select a mode first…')`、被蓋過嘅 CSS）；**SW 修正**：改用 root `sw.js`（之前 blob: SW 一直註冊失敗）；加 `sw-test`、`structure-test`。驗證：`tests/tools/visual-diff.js dc73a15`（38 個畫面狀態 × 390 / 900px，逐個 element 對 computed style + 位置 + 文字）同 v0.56 一樣，只多咗 ⓘ popover 標題入面一個 inline `<span id="infoTitle">`（冇視覺分別）；review 後再加：SW 只清 `lifeuk-v*` cache、install 用 `cache: 'reload'`、`updateViaCache: 'none'`、離線 fallback 只限 navigation、`data-*` 值 escape、`MAX_DIFFICULTY` 由 `DIFF_LEVELS` 計 |
 | v0.58 | （localStorage prefix PR） | **localStorage key 加 `lifeuk.` prefix**（origin 同其他 app 共用）：`LS_PREFIX` + 全部 key 常數由佢砌；`js/core/utils.js` 嘅 `getLS` / `setLS` 第一次用 storage 時 lazy 將舊 key 搬過去（CUI-0004：SW 換版時 v0.57 `index.html` + v0.58 js 嘅混合頁面都會搬，所以冇獨立 `migrate.js`；原始字串照抄、確認先刪、`reviewOrder` 刪走、唔掂其他 app 嘅 key、出錯唔刪資料；抄唔到嘅 key 今次載入繼續用舊名（`LS_KEY_FALLBACK`）；全部搬完寫 `lifeuk.migrated` marker；冇 marker 而新舊都有 → object map 逐條 merge、prefs 新嘅贏；有 marker → 新 key 優先）；加 `migrate-test`、`upgrade-test`，舊測試改用新 key 名；v0.58 之後唔好 rollback 去 v0.57（CUI-0005）。原定 v0.58 嘅 P2（locale）順延做 v0.59 |
+| v0.59 | （P2 locale PR） | **i18n + 字眼統一**：`js/core/i18n.js`（`t()`、plural、fallback、`getLang` / `setLang` → `lifeuk.uiLang`、`data-i18n`）+ `locales/en.js`（全部 UI 文字；data enum 只留 key，標籤喺 `data.*`；ERAS 只留英文名）；未有語言切換掣；字眼跟 glossary（`408 questions`、`24 questions from 408`、`1 question unanswered`、`E9·Q15`、`🏆 Mastered` 全 app、`🔥 0/3`、`N flagged`、`wrong answers`、單空格分隔符、`Practice By`、結果 review 都用 `【廣東話翻譯】`、Study 介面英文）；首頁兩個 Reset 改用 app 內 modal（Keep / Reset）；`#studySubChips` 改用 `hidden`（S-004）；拎走隱藏咗嘅 `#rbCorrect` / `#rbWrong` / `#rbPct` 同 CSS；`main.js` 喺舊 shell（冇 locale tag）自己載入 i18n 再開；加 `i18n-test`，受字眼影響嘅 assertion 跟住改。（同一輪 P2 仲有其他 lane：CSS token、favicon / manifest、SW fetch、studyLoad，見佢哋嘅 PR） |
 
 **v0.59 (Lane C)**（PWA / Study prefs fixes）
 - CUI-0001：favicon 404 → 加 app icon（`icons/icon.svg` navy + 白「UK」，PNG 由 `tests/tools/make-icons.js` 生成）；`<head>` 加 SVG favicon、192 PNG fallback、180 `apple-touch-icon`
@@ -419,6 +470,8 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 ## 主要 commit（新→舊）
 
 ```
+b56c8f7 feat: i18n architecture, en locale and unified wording (v0.59)
+8535b7d test: add i18n-test for locale keys, CJK leftovers, setLang and plurals
 a58ec97 test: add sw-test (http server, SHELL cached, offline reload) and structure-test
 1b810bb refactor: split index.html into css/ and js/ modules, data-action delegation, real sw.js (v0.57)
 5cf9314 fix: orange bookmark icon on the home Flagged tile (v0.56)
@@ -517,7 +570,9 @@ c10115b feat: randomise answer option order in Practice and Exam mode
 - [x] Practice 加 flag 功能，再執 Practice 結果頁（v0.53 完成）
 - [ ] 錯題 / Flagged review 中途離開可以續做（用戶話暫時唔做）
 - [x] 首頁「Reset progress」一併清 `wrongList` / `practiceFlags`（v0.54）
-- [ ] 首頁 Reset 掣改用 app 內 modal（同 Exam 一致）（P2）
+- [x] 首頁 Reset 掣改用 app 內 modal（同 Exam 一致）（v0.59）
 - [x] 拆 `index.html`、data-action、真 `sw.js`（v0.57，P1）
 - [x] localStorage key 加 `lifeuk.` prefix + 舊資料遷移（v0.58）
-- [ ] P2（v0.59）：locale（`js/core/i18n.js` + `locales/en.js`）+ 字眼統一 + 清 hidden `#rbCorrect` 等；P3：Study mode 統一
+- [x] P2（v0.59）：locale（`js/core/i18n.js` + `locales/en.js`）+ 字眼統一 + 清 hidden `#rbCorrect` 等
+- [ ] P3：Study mode 統一
+- [ ] 中文（zh）locale + 語言切換掣（hook：`setLang()`）

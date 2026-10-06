@@ -38,11 +38,11 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert((await text('#similarBox .sqm-fact-label')).includes('Core Fact #203'), 'core fact label');
   assert((await text('#similarBox .sqm-fact-en')).startsWith('Towns, cities and rural areas'), 'core fact English');
   const nodes = await pg.$$eval('#similarBox .sqm-node', els => els.map(e => e.textContent + ':' + e.className));
-  assert(JSON.stringify(nodes) === JSON.stringify(['12.5:sqm-node current', '9.14:sqm-node mastered', '12.18:sqm-node weak']), 'appears-in chips with state: ' + nodes);
+  assert(JSON.stringify(nodes) === JSON.stringify(['E12·Q6:sqm-node current', 'E9·Q15:sqm-node mastered', 'E12·Q19:sqm-node weak']), 'appears-in chips (E9·Q15, 1-based) with state: ' + nodes);
   const ids = await pg.$$eval('#similarBox .sqm-id', els => els.map(e => e.textContent));
   assert(JSON.stringify(ids) === JSON.stringify(['Exam 9 · Q15', 'Exam 12 · Q19']), 'every similar question listed: ' + ids);
   const streaks = await pg.$$eval('#similarBox .sqm-streak', els => els.map(e => e.textContent));
-  assert(JSON.stringify(streaks) === JSON.stringify(['✓ Mastered', '🔥 1/3']), 'per-question streak: ' + streaks);
+  assert(JSON.stringify(streaks) === JSON.stringify(['🏆 Mastered', '🔥 1/3']), 'per-question streak: ' + streaks);
   assert((await text('#similarBox .sqm-q')) === 'What do local councils do?', 'question text shown');
   assert((await text('#similarBox .sqm-qy')) === '地區議會做乜嘢？', 'question translation shown');
   const boxText = await text('#similarBox');

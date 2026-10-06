@@ -1,40 +1,28 @@
 // ════════════════════════════════════════
 // STUDY — fact browser: Chapters / Timeline / Geography / People, search, bookmarks, mastered marks
 // ════════════════════════════════════════
+// enum keys only: labels live in locales (data.eras / data.nations / data.geoTypes / data.people)
+// timeline eras: a fact belongs to the first era whose max year is above its year
 const ERAS = [
-  { name: 'Stone Age & Iron Age', yue: '石器·鐵器時代', max: -55 },
-  { name: 'Romans', yue: '羅馬時期', max: 410 },
-  { name: 'Anglo-Saxons & Vikings', yue: '盎格魯撒克遜·維京', max: 1066 },
-  { name: 'Normans & Middle Ages', yue: '諾曼·中世紀', max: 1485 },
-  { name: 'Tudors', yue: '都鐸王朝', max: 1603 },
-  { name: 'Stuarts', yue: '斯圖亞特王朝', max: 1714 },
-  { name: 'Georgian', yue: '喬治時代', max: 1837 },
-  { name: 'Victorian', yue: '維多利亞時代', max: 1901 },
-  { name: '20th century', yue: '20 世紀', max: 2000 },
-  { name: '21st century', yue: '21 世紀', max: Infinity },
+  { key: 'stone', max: -55 },
+  { key: 'roman', max: 410 },
+  { key: 'anglo', max: 1066 },
+  { key: 'norman', max: 1485 },
+  { key: 'tudor', max: 1603 },
+  { key: 'stuart', max: 1714 },
+  { key: 'georgian', max: 1837 },
+  { key: 'victorian', max: 1901 },
+  { key: 'c20', max: 2000 },
+  { key: 'c21', max: Infinity },
 ];
-const NATIONS = [
-  { key: 'UK', label: '🇬🇧 United Kingdom', chip: '🇬🇧 UK' },
-  { key: 'England', label: '🏴󠁧󠁢󠁥󠁮󠁧󠁿 England', chip: '🏴󠁧󠁢󠁥󠁮󠁧󠁿 England' },
-  { key: 'Scotland', label: '🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scotland', chip: '🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scotland' },
-  { key: 'Wales', label: '🏴󠁧󠁢󠁷󠁬󠁳󠁿 Wales', chip: '🏴󠁧󠁢󠁷󠁬󠁳󠁿 Wales' },
-  { key: 'Northern Ireland', label: '☘️ Northern Ireland', chip: '☘️ N. Ireland' },
-];
-const GEO_TYPES = {
-  city: '🏙️ Cities & capitals · 城市·首都',
-  nature: '⛰️ Mountains, parks & nature · 山·國家公園·自然',
-  landmark: '🏛️ Landmarks & buildings · 地標·建築',
-  region: '🗺️ Regions & territories · 地區·領土',
-};
-const PEOPLE_GROUPS = [
-  { key: 'monarch', label: '👑 Monarchs & rulers · 君主', chip: '👑 君主' },
-  { key: 'politician', label: '🏛️ Prime Ministers, politicians & military · 首相·政治家·軍事', chip: '🏛️ 政治·軍事' },
-  { key: 'scientist', label: '🔬 Scientists, inventors & engineers · 科學家·發明家', chip: '🔬 科學家' },
-  { key: 'writer', label: '✒️ Writers & poets · 作家·詩人', chip: '✒️ 作家' },
-  { key: 'artist', label: '🎨 Artists, architects & composers · 藝術家·建築師·音樂家', chip: '🎨 藝術家' },
-  { key: 'sport', label: '🏅 Sport & exploration · 運動員·探險家', chip: '🏅 運動員' },
-  { key: 'reformer', label: '✊ Reformers & others · 改革者·其他', chip: '✊ 改革者' },
-];
+// = fact.geo[0] / fact.geo[1] / fact.p[1] values in data/study.js, in display order
+const NATIONS = ['UK', 'England', 'Scotland', 'Wales', 'Northern Ireland'];
+const GEO_TYPES = ['city', 'nature', 'landmark', 'region'];
+const PEOPLE_GROUPS = ['monarch', 'politician', 'scientist', 'writer', 'artist', 'sport', 'reformer'];
+const nationText = (key, field) => t(`data.nations.${key}.${field}`);
+const peopleText = (key, field) => t(`data.people.${key}.${field}`);
+const LABEL_FIELD = 'label';
+const CHIP_FIELD = 'chip';
 const CHAPTER_ICONS = { 1: '⚖️', 2: '🇬🇧', 3: '📜', 4: '🎭', 5: '🏛️' };
 const ALL_FILTER = 'all';
 const STUDY_PREF_KEYS = ['tab', 'chapter', 'hideMastered', 'bookmarksOnly', 'warsOnly', 'nation', 'group'];
@@ -111,7 +99,7 @@ function factMatches(f) {
 }
 function yearLabel(f) {
   if (f.yl) return f.yl;
-  if (f.y < 0) return `${-f.y} BC`;
+  if (f.y < 0) return t('study.yearBC', { n: -f.y });
   return String(f.y);
 }
 
@@ -119,18 +107,18 @@ function yearLabel(f) {
 function factTagsHtml(f, opts) {
   const tags = [];
   if (f.y !== undefined && !opts.noYear) tags.push(`<span class="tag year">📅 ${escapeHtml(yearLabel(f))}</span>`);
-  if (f.w) tags.push(`<span class="tag war">⚔️ War / battle</span>`);
+  if (f.w) tags.push(`<span class="tag war">${t('study.war')}</span>`);
   if (f.p && !opts.noPerson) tags.push(`<span class="tag person">👤 ${escapeHtml(f.p[0])}</span>`);
-  if (!opts.noChapter) tags.push(`<span class="tag">${CHAPTER_ICONS[f.ch]} Ch ${f.ch}</span>`);
-  tags.push(`<span class="tag diff" title="Difficulty ${f.d}/${MAX_DIFFICULTY}">${'★'.repeat(f.d)}</span>`);
-  if (f.src.length > 1) tags.push(`<span class="tag freq">×${f.src.length} 出現${f.src.length}次</span>`);
+  if (!opts.noChapter) tags.push(`<span class="tag">${CHAPTER_ICONS[f.ch]} ${t('common.chapterShort', { n: f.ch })}</span>`);
+  tags.push(`<span class="tag diff" title="${difficultyTitle(f.d)}">${'★'.repeat(f.d)}</span>`);
+  if (f.src.length > 1) tags.push(`<span class="tag freq">${t('study.appears', { n: f.src.length })}</span>`);
   return tags.join('');
 }
 function factMarkButtonsHtml(f) {
   const mastered = !!study.mastered[f.id];
   const marked = !!study.bookmarks[f.id];
-  return `<button class="fact-btn star${marked ? ' on' : ''}" title="Bookmark 書籤" data-action="studyToggleMark" data-mark="bookmarks" data-arg="${escapeHtml(f.id)}">${marked ? '★' : '☆'}</button>
-        <button class="fact-btn tick${mastered ? ' on' : ''}" title="Mastered 已掌握" data-action="studyToggleMark" data-mark="mastered" data-arg="${escapeHtml(f.id)}">✓</button>`;
+  return `<button class="fact-btn star${marked ? ' on' : ''}" title="${escapeHtml(t('study.bookmark'))}" data-action="studyToggleMark" data-mark="bookmarks" data-arg="${escapeHtml(f.id)}">${marked ? '★' : '☆'}</button>
+        <button class="fact-btn tick${mastered ? ' on' : ''}" title="${escapeHtml(t('study.mastered'))}" data-action="studyToggleMark" data-mark="mastered" data-arg="${escapeHtml(f.id)}">✓</button>`;
 }
 function renderFact(f, opts = {}) {
   const mastered = !!study.mastered[f.id];
@@ -149,25 +137,26 @@ function renderFact(f, opts = {}) {
 
 // ── chip rows ──
 function studyChipsHtml() {
-  let chips = chipHtml({ active: study.hideMastered, action: 'studyToggle', arg: 'hideMastered', label: '✓ 隱藏已掌握' })
-    + chipHtml({ active: study.bookmarksOnly, action: 'studyToggle', arg: 'bookmarksOnly', label: '★ 只顯示書籤' });
+  let chips = chipHtml({ active: study.hideMastered, action: 'studyToggle', arg: 'hideMastered', label: t('study.hideMastered') })
+    + chipHtml({ active: study.bookmarksOnly, action: 'studyToggle', arg: 'bookmarksOnly', label: t('study.bookmarkedOnly') });
   if (study.tab === 'timeline') {
-    chips += chipHtml({ extraCls: ' war', active: study.warsOnly, action: 'studyToggle', arg: 'warsOnly', label: '⚔️ 只顯示戰爭' });
+    chips += chipHtml({ extraCls: ' war', active: study.warsOnly, action: 'studyToggle', arg: 'warsOnly', label: t('study.warsOnly') });
   }
   return chips;
 }
-function subChipRowHtml(action, current, items) {
-  return [{ key: ALL_FILTER, chip: 'All' }, ...items]
+// "All" + one chip per enum key; chipText(key) gives the chip label
+function subChipRowHtml(action, current, keys, chipText) {
+  return [{ key: ALL_FILTER, chip: t('study.all') }, ...keys.map(key => ({ key, chip: chipText(key) }))]
     .map(it => chipHtml({ extraCls: ' ch', active: current === it.key, action, arg: it.key, label: it.chip })).join('');
 }
 // sub-filter row: chapter / nation / people group (timeline has none)
 function studySubChipsHtml() {
   if (study.tab === 'chapters') {
     return CHAPTER_NUMBERS.map(ch => chipHtml({ extraCls: ' ch', active: study.chapter === ch,
-      action: 'studySetChapter', arg: ch, label: `${CHAPTER_ICONS[ch]} Ch ${ch}` })).join('');
+      action: 'studySetChapter', arg: ch, label: `${CHAPTER_ICONS[ch]} ${t('common.chapterShort', { n: ch })}` })).join('');
   }
-  if (study.tab === 'geo') return subChipRowHtml('studySetNation', study.nation, NATIONS);
-  if (study.tab === 'people') return subChipRowHtml('studySetGroup', study.group, PEOPLE_GROUPS);
+  if (study.tab === 'geo') return subChipRowHtml('studySetNation', study.nation, NATIONS, k => nationText(k, CHIP_FIELD));
+  if (study.tab === 'people') return subChipRowHtml('studySetGroup', study.group, PEOPLE_GROUPS, k => peopleText(k, CHIP_FIELD));
   return '';
 }
 
@@ -178,17 +167,17 @@ function renderStudy() {
   const sub = studySubChipsHtml();
   const subRow = byId('studySubChips');
   subRow.innerHTML = sub;
-  // inline display rather than [hidden]: subfilter-test reads style.display
-  subRow.style.display = sub ? 'flex' : 'none';
+  subRow.hidden = !sub;
   const { html, shown, total } = STUDY_RENDERERS[study.tab]();
-  byId('studyCount').textContent = `${shown} / ${total} facts`;
+  byId('studyCount').textContent = t('study.count', { shown, total });
   byId('studyContent').innerHTML =
-    shown ? html : '<div class="study-empty">No facts match. 冇符合嘅內容。</div>';
+    shown ? html : `<div class="study-empty">${t('study.empty')}</div>`;
 }
 
 // ── tab renderers: each returns { html, shown, total } ──
 function chapterGroupHtml(ch, list) {
-  return `<div class="study-group-title">${CHAPTER_ICONS[ch]} Chapter ${ch}: ${escapeHtml(CHAPTERS[ch])} <span class="cnt">${list.length}</span></div>`
+  const title = t('study.chapterTitle', { n: ch, title: t(`data.chapters.${ch}`) });
+  return `<div class="study-group-title">${CHAPTER_ICONS[ch]} ${escapeHtml(title)} <span class="cnt">${list.length}</span></div>`
     + list.map(f => renderFact(f, { noChapter: true })).join('');
 }
 function renderStudyChapters() {
@@ -211,7 +200,7 @@ function renderStudyTimeline() {
   facts.forEach(f => {
     const era = eraOf(f.y);
     if (era !== lastEra) {
-      html += `<div class="tl-era">${escapeHtml(era.name)} <span>${escapeHtml(era.yue)}</span></div>`;
+      html += `<div class="tl-era">${escapeHtml(t(`data.eras.${era.key}`))}</div>`;
       lastEra = era;
     }
     html += `<div class="tl-item${f.w ? ' war' : ''}">
@@ -226,14 +215,14 @@ function renderStudyGeo() {
   const pool = STUDY.filter(f => f.geo && (study.search || study.nation === ALL_FILTER || f.geo[0] === study.nation));
   const facts = pool.filter(factMatches);
   let html = '';
-  NATIONS.forEach(n => {
-    const list = facts.filter(f => f.geo[0] === n.key);
+  NATIONS.forEach(nation => {
+    const list = facts.filter(f => f.geo[0] === nation);
     if (!list.length) return;
-    html += `<div class="study-group-title">${n.label} <span class="cnt">${list.length}</span></div>`;
-    Object.keys(GEO_TYPES).forEach(t => {
-      const sub = list.filter(f => f.geo[1] === t);
+    html += `<div class="study-group-title">${nationText(nation, LABEL_FIELD)} <span class="cnt">${list.length}</span></div>`;
+    GEO_TYPES.forEach(type => {
+      const sub = list.filter(f => f.geo[1] === type);
       if (!sub.length) return;
-      html += `<div class="study-sub-title">${GEO_TYPES[t]}</div>`;
+      html += `<div class="study-sub-title">${t(`data.geoTypes.${type}`)}</div>`;
       html += sub.map(f => renderFact(f)).join('');
     });
   });
@@ -249,11 +238,11 @@ function renderStudyPeople() {
   const pool = STUDY.filter(f => f.p && (study.search || study.group === ALL_FILTER || f.p[1] === study.group));
   const facts = pool.filter(factMatches);
   let html = '';
-  PEOPLE_GROUPS.forEach(g => {
-    const list = facts.filter(f => f.p[1] === g.key);
+  PEOPLE_GROUPS.forEach(group => {
+    const list = facts.filter(f => f.p[1] === group);
     if (!list.length) return;
-    sortPeople(g.key, list);
-    html += `<div class="study-group-title">${g.label} <span class="cnt">${list.length}</span></div>`;
+    sortPeople(group, list);
+    html += `<div class="study-group-title">${peopleText(group, LABEL_FIELD)} <span class="cnt">${list.length}</span></div>`;
     html += list.map(f => renderFact(f, { noPerson: true, title: f.p[0] })).join('');
   });
   return { html, shown: facts.length, total: pool.length };

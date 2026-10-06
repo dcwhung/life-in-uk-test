@@ -2,12 +2,13 @@
 // FLAGGED — practice flags list (My Review › Flagged): unflag one by one or practise them all
 // ════════════════════════════════════════
 function flaggedStartHtml(n) {
-  return `${bookmarkSvg('rv-flag-tile')}<div><b>Practise flagged (${n})</b><span class="fs-sub">Each question once · up to ${PRACTICE_ROUND_MAX} per round</span></div><span class="go">→</span>`;
+  return `${bookmarkSvg('rv-flag-tile')}<div><b>${t('flagged.practise', { n })}</b><span class="fs-sub">${t('flagged.practiseSub', { max: PRACTICE_ROUND_MAX })}</span></div><span class="go">→</span>`;
 }
 function flaggedItemHtml(k) {
   const item = questionByKey(k);
-  return `<div class="flag-item"><div class="fi-text"><small>${questionRefText(item)} · ${starsHtml(item.q.d)}</small>${escapeHtml(item.q.q)}<div class="fi-yue">${escapeHtml(item.q.yue)}</div></div>
-        <button data-action="unflagFromList" data-arg="${escapeHtml(k)}" title="Unflag" aria-label="Unflag">${bookmarkSvg('rv-flag')}</button></div>`;
+  const unflag = escapeHtml(t('common.unflag'));
+  return `<div class="flag-item"><div class="fi-text"><small>${questionRefText(item)}${LIST_SEP}${starsHtml(item.q.d)}</small>${escapeHtml(item.q.q)}<div class="fi-yue">${escapeHtml(item.q.yue)}</div></div>
+        <button data-action="unflagFromList" data-arg="${escapeHtml(k)}" title="${unflag}" aria-label="${unflag}">${bookmarkSvg('rv-flag')}</button></div>`;
 }
 function openFlagged() {
   const keys = keysOf(practiceFlags);
@@ -15,7 +16,7 @@ function openFlagged() {
   byId('flaggedStart').innerHTML = flaggedStartHtml(keys.length);
   byId('flaggedList').innerHTML = keys.length
     ? keys.map(flaggedItemHtml).join('')
-    : '<div class="empty-hint">No flagged questions left.</div>';
+    : `<div class="empty-hint">${t('flagged.empty')}</div>`;
   showScreen('screenFlagged');
 }
 function unflagFromList(key) { setPracticeFlag(key, false); openFlagged(); }

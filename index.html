@@ -33,18 +33,18 @@
     <div class="logo">
       <span class="logo-flag">🇬🇧</span>
       <div>
-        <div class="logo-text">Life in the UK <button class="info-btn" id="infoBtn" aria-label="About this app" aria-expanded="false" data-action="toggleInfo">ⓘ</button></div>
-        <div class="logo-sub">Exam Practice <span class="app-version" id="appVersion"></span></div>
+        <div class="logo-text"><span data-i18n="app.name"></span> <button class="info-btn" id="infoBtn" data-i18n-attr="aria-label:app.about" aria-expanded="false" data-action="toggleInfo">ⓘ</button></div>
+        <div class="logo-sub"><span data-i18n="app.sub"></span> <span class="app-version" id="appVersion"></span></div>
       </div>
     </div>
   </div>
-  <div class="info-pop" id="infoPop" role="dialog" aria-label="About this app">
-    <h2><span id="infoTitle">Exam 1–17 Practice</span> <span class="app-version" id="appVersionPop"></span></h2>
-    <p id="infoIntro">408 official-style questions from lifeintheuktestweb.co.uk, with Cantonese translations and notes.</p>
+  <div class="info-pop" id="infoPop" role="dialog" data-i18n-attr="aria-label:app.about">
+    <h2><span id="infoTitle"></span> <span class="app-version" id="appVersionPop"></span></h2>
+    <p id="infoIntro"></p>
     <div class="hero-meta">
-      <div class="hero-badge" id="infoExamCount">📋 17 Exams</div>
-      <div class="hero-badge" id="infoQuestionCount">❓ 408 Questions</div>
-      <div class="hero-badge">🔒 Works Offline</div>
+      <div class="hero-badge" id="infoExamCount"></div>
+      <div class="hero-badge" id="infoQuestionCount"></div>
+      <div class="hero-badge" data-i18n="app.infoOffline"></div>
     </div>
   </div>
 </header>
@@ -56,32 +56,32 @@
 
     <div class="install-banner" id="installBanner">
       <div class="install-text">
-        <strong>Install for offline use</strong>
-        <span>Add to home screen to study without internet</span>
+        <strong data-i18n="app.installTitle"></strong>
+        <span data-i18n="app.installText"></span>
       </div>
-      <button class="install-btn" id="installBtn" data-action="install">Install</button>
+      <button class="install-btn" id="installBtn" data-action="install" data-i18n="app.installButton"></button>
     </div>
 
-    <div class="section-title">Choose Mode</div>
+    <div class="section-title" data-i18n="home.chooseMode"></div>
     <div class="mode-grid">
       <button class="mode-card" id="modeStudy" data-action="openStudy">
         <div class="mode-icon">📖</div>
-        <div class="mode-title">Study</div>
+        <div class="mode-title" data-i18n="home.modeStudy"></div>
       </button>
       <button class="mode-card" id="modePractice" data-action="startMode" data-arg="practice">
         <div class="mode-icon">🎯</div>
-        <div class="mode-title">Practice</div>
+        <div class="mode-title" data-i18n="home.modePractice"></div>
       </button>
       <button class="mode-card" id="modeExam" data-action="startMode" data-arg="exam">
         <div class="mode-icon">📝</div>
-        <div class="mode-title">Exam</div>
+        <div class="mode-title" data-i18n="home.modeExam"></div>
       </button>
     </div>
     <div class="mode-desc-panel" id="modeDesc"></div>
 
     <!-- practice: sets built from what the user has done (shown once there is something in them) -->
     <div class="my-review" id="myReview">
-      <div class="section-title">My Review</div>
+      <div class="section-title" data-i18n="home.myReview"></div>
       <div class="my-grid">
         <button class="my-tile wrong" id="tileWrong" data-action="startWrongReview"></button>
         <button class="my-tile flagged" id="tileFlagged" data-action="openFlagged"></button>
@@ -90,11 +90,11 @@
     </div>
 
     <!-- practice: the questions' own categories -->
-    <div class="section-title practice-by-title" id="practiceByTitle">Practice by</div>
+    <div class="section-title practice-by-title" id="practiceByTitle" data-i18n="home.practiceBy"></div>
     <div class="practice-tabs" id="practiceTabs">
-      <button class="practice-tab" id="ptabDifficulty" data-action="setPracticeView" data-arg="difficulty">Difficulty</button>
-      <button class="practice-tab" id="ptabChapter" data-action="setPracticeView" data-arg="chapter">Chapter</button>
-      <button class="practice-tab" id="ptabExam" data-action="setPracticeView" data-arg="exam">Exam</button>
+      <button class="practice-tab" id="ptabDifficulty" data-action="setPracticeView" data-arg="difficulty" data-i18n="home.tabDifficulty"></button>
+      <button class="practice-tab" id="ptabChapter" data-action="setPracticeView" data-arg="chapter" data-i18n="home.tabChapter"></button>
+      <button class="practice-tab" id="ptabExam" data-action="setPracticeView" data-arg="exam" data-i18n="home.tabExam"></button>
     </div>
 
     <div class="exam-select-section" id="secDifficulty">
@@ -106,17 +106,17 @@
     </div>
 
     <div class="exam-select-section" id="secExam">
-      <div class="section-title" id="secExamTitle">Select Exam</div>
+      <div class="section-title" id="secExamTitle" data-i18n="home.selectExam"></div>
       <div class="exam-grid" id="examGrid"></div>
     </div>
 
     <div class="reset-row" id="practiceReset">
       <span class="reset-hint" id="practiceHint"></span>
-      <button class="reset-btn" data-action="resetPracticeProgress">↺ Reset progress</button>
+      <button class="reset-btn" data-action="resetPracticeProgress" data-i18n="home.resetProgress"></button>
     </div>
     <div class="reset-row" id="examReset">
-      <span class="reset-hint">Completed exams are marked with ✓.</span>
-      <button class="reset-btn" data-action="resetCompletedExams">↺ Reset completed exams</button>
+      <span class="reset-hint" data-i18n="home.examResetHint"></span>
+      <button class="reset-btn" data-action="resetCompletedExams" data-i18n="home.resetCompleted"></button>
     </div>
 
   </div>
@@ -124,8 +124,8 @@
   <!-- ── FLAGGED (practice) ── -->
   <div class="screen" id="screenFlagged">
     <div class="quiz-header">
-      <button class="back-btn" data-action="goHome">← Home</button>
-      <span class="quiz-label">Flagged</span>
+      <button class="back-btn" data-action="goHome" data-i18n="common.home"></button>
+      <span class="quiz-label" data-i18n="flagged.title"></span>
     </div>
     <button class="flag-start" id="flaggedStart" data-action="startFlaggedPractice"></button>
     <div id="flaggedList"></div>
@@ -134,21 +134,21 @@
   <!-- ── STUDY ── -->
   <div class="screen" id="screenStudy">
     <div class="quiz-header">
-      <button class="back-btn" data-action="goHome">← Home</button>
-      <span class="quiz-label">📖 Study · 溫習</span>
+      <button class="back-btn" data-action="goHome" data-i18n="common.home"></button>
+      <span class="quiz-label" data-i18n="study.title"></span>
     </div>
 
-    <input class="study-search" id="studySearch" type="search" placeholder="Search facts… 搜尋（英文 / 廣東話）" data-input-action="studySetSearch">
+    <input class="study-search" id="studySearch" type="search" data-i18n-attr="placeholder:study.search" data-input-action="studySetSearch">
 
     <div class="study-tabs" id="studyTabs">
-      <button class="study-tab" data-tab="chapters" data-action="studySetTab" data-arg="chapters">📚 Chapters</button>
-      <button class="study-tab" data-tab="timeline" data-action="studySetTab" data-arg="timeline">📅 Timeline</button>
-      <button class="study-tab" data-tab="geo" data-action="studySetTab" data-arg="geo">🗺️ Geography</button>
-      <button class="study-tab" data-tab="people" data-action="studySetTab" data-arg="people">👤 People</button>
+      <button class="study-tab" data-tab="chapters" data-action="studySetTab" data-arg="chapters" data-i18n="study.tabChapters"></button>
+      <button class="study-tab" data-tab="timeline" data-action="studySetTab" data-arg="timeline" data-i18n="study.tabTimeline"></button>
+      <button class="study-tab" data-tab="geo" data-action="studySetTab" data-arg="geo" data-i18n="study.tabGeo"></button>
+      <button class="study-tab" data-tab="people" data-action="studySetTab" data-arg="people" data-i18n="study.tabPeople"></button>
     </div>
 
     <div class="chip-row" id="studyChips"></div>
-    <div class="chip-row" id="studySubChips"></div>
+    <div class="chip-row" id="studySubChips" hidden></div>
     <div class="study-count" id="studyCount"></div>
     <div id="studyContent"></div>
   </div>
@@ -156,11 +156,11 @@
   <!-- ── QUIZ ── -->
   <div class="screen" id="screenQuiz">
     <div class="quiz-header">
-      <button class="back-btn" data-action="goHome">← Home</button>
+      <button class="back-btn" data-action="goHome" data-i18n="common.home"></button>
       <div class="quiz-meta">
-        <span class="quiz-label" id="quizLabel">Exam 1</span>
-        <span class="quiz-mode-badge" id="modeBadge">Practice</span>
-        <span class="exam-timer" id="examTimer" role="timer" aria-live="off" hidden>⏱ 45:00</span>
+        <span class="quiz-label" id="quizLabel"></span>
+        <span class="quiz-mode-badge" id="modeBadge"></span>
+        <span class="exam-timer" id="examTimer" role="timer" aria-live="off" hidden></span>
       </div>
     </div>
 
@@ -171,14 +171,14 @@
       <div class="nav-dots" id="navDots" hidden></div>
       <div class="dots-meta" id="dotsMeta" hidden></div>
       <div class="q-num">
-        <span class="q-num-text" id="qNum">Question 1</span>
+        <span class="q-num-text" id="qNum"></span>
         <!-- bookmark icon filled in from bookmarkSvg() at init (single source for the path) -->
-        <button class="flag-btn" id="flagBtn" data-action="toggleFlag" title="Flag for review" aria-label="Flag for review" hidden></button>
-        <button class="yue-toggle" id="yueToggle" data-action="toggleQuestionYue">Translate</button>
+        <button class="flag-btn" id="flagBtn" data-action="toggleFlag" hidden></button>
+        <button class="yue-toggle" id="yueToggle" data-action="toggleQuestionYue"></button>
         <!-- once answered: quick Prev / Next in the Translate spot (mirrors the bottom buttons) -->
         <span class="quick-nav" id="quickNav">
-          <button class="quick-btn" id="quickPrev" title="Previous" aria-label="Previous" data-action="prevQ">←</button>
-          <button class="quick-btn primary" id="quickNext" title="Next" aria-label="Next" data-action="next">→</button>
+          <button class="quick-btn" id="quickPrev" data-i18n-attr="title:quiz.previous;aria-label:quiz.previous" data-action="prevQ">←</button>
+          <button class="quick-btn primary" id="quickNext" data-action="next">→</button>
         </span>
       </div>
       <div class="q-text" id="qText"></div>
@@ -189,7 +189,7 @@
 
     <!-- practice: show after selection -->
     <div class="answer-box" id="answerBox">
-      <div class="ans-label" id="ansLabel">Correct!</div>
+      <div class="ans-label" id="ansLabel"></div>
       <div class="ans-en" id="ansEn"></div>
       <div class="divider"></div>
       <div class="ans-yue" id="ansYue"></div>
@@ -198,8 +198,8 @@
 
 
     <div class="nav-row">
-      <button class="nav-btn secondary" id="prevBtn" data-action="prevQ">← Prev</button>
-      <button class="nav-btn" id="nextBtn" data-action="next">Next →</button>
+      <button class="nav-btn secondary" id="prevBtn" data-action="prevQ" data-i18n="quiz.prevButton"></button>
+      <button class="nav-btn" id="nextBtn" data-action="next"></button>
     </div>
 
     <!-- practice: other questions built from the same study fact (below Prev / Next) -->
@@ -209,23 +209,17 @@
   <!-- ── RESULT ── -->
   <div class="screen" id="screenResult">
     <div class="quiz-header">
-      <button class="back-btn" data-action="goHome">← Home</button>
-      <span class="quiz-label" id="resultLabel">Results</span>
+      <button class="back-btn" data-action="goHome" data-i18n="common.home"></button>
+      <span class="quiz-label" id="resultLabel"></span>
     </div>
 
-    <div class="result-timeup" id="resultTimeUp" hidden>⏱ Time's up — your exam was submitted automatically.</div>
+    <div class="result-timeup" id="resultTimeUp" hidden data-i18n="exam.timeUp"></div>
     <div class="result-card">
-      <div class="result-emoji" id="resultEmoji">🎉</div>
-      <div class="result-score" id="resultScore">18 <span>/ 24</span></div>
-      <div class="result-label" id="resultLabel2">PASSED</div>
-      <div class="result-sub" id="resultSub">You need 18/24 (75%) to pass the real test.</div>
+      <div class="result-emoji" id="resultEmoji"></div>
+      <div class="result-score" id="resultScore"></div>
+      <div class="result-label" id="resultLabel2"></div>
+      <div class="result-sub" id="resultSub"></div>
       <div class="result-note" id="resultNote"></div>
-      <!-- hidden: the score is shown once (score line + dots legend) -->
-      <div class="result-breakdown" hidden>
-        <div class="rb-item"><div class="rb-num pass" id="rbCorrect">0</div><div class="rb-lbl">Correct</div></div>
-        <div class="rb-item"><div class="rb-num fail" id="rbWrong">0</div><div class="rb-lbl">Wrong</div></div>
-        <div class="rb-item"><div class="rb-num rb-pct" id="rbPct">0%</div><div class="rb-lbl">Score</div></div>
-      </div>
       <!-- one dot per question (green correct · red wrong · red outline unanswered · orange ring flagged) -->
       <div class="rdots-wrap" id="resultDotsWrap" hidden>
         <div class="rdots" id="resultDots"></div>
@@ -233,22 +227,22 @@
       </div>
     </div>
 
-    <div class="section-title">By Difficulty</div>
+    <div class="section-title" data-i18n="result.byDifficulty"></div>
     <div class="diff-table" id="diffTable"></div>
 
     <!-- same buttons above and below the review list, so a long review needs no scrolling -->
     <div class="nav-row result-actions">
-      <button class="nav-btn secondary retry-btn" data-action="retryExam">Retry Exam</button>
-      <button class="nav-btn another-btn" data-action="goHome">Choose Another</button>
+      <button class="nav-btn secondary retry-btn" data-action="retryExam"></button>
+      <button class="nav-btn another-btn" data-action="goHome"></button>
     </div>
 
-    <div class="section-title">Review Answers</div>
+    <div class="section-title" data-i18n="result.reviewAnswers"></div>
     <div class="chip-row" id="reviewOrder"></div>
     <div class="review-list" id="reviewList"></div>
 
     <div class="nav-row">
-      <button class="nav-btn secondary retry-btn" data-action="retryExam">Retry Exam</button>
-      <button class="nav-btn another-btn" data-action="goHome">Choose Another</button>
+      <button class="nav-btn secondary retry-btn" data-action="retryExam"></button>
+      <button class="nav-btn another-btn" data-action="goHome"></button>
     </div>
   </div>
 
@@ -260,16 +254,18 @@
     <div class="modal-title" id="confirmTitle"></div>
     <div class="modal-msg" id="confirmMsg"></div>
     <div class="modal-actions">
-      <button class="nav-btn secondary" id="confirmCancel" data-action="closeConfirm">Cancel</button>
-      <button class="nav-btn" id="confirmOk" data-action="confirmAccept">OK</button>
+      <button class="nav-btn secondary" id="confirmCancel" data-action="closeConfirm"></button>
+      <button class="nav-btn" id="confirmOk" data-action="confirmAccept"></button>
     </div>
   </div>
 </div>
-<!-- load order: data → core → domain → components → screens → actions → pwa → main (classic scripts, shared globals) -->
+<!-- load order: data → config → utils → locales → i18n → store → domain → components → screens → actions → pwa → main (classic scripts, shared globals) -->
 <script src="data/exams.js"></script>
 <script src="data/study.js"></script>
 <script src="js/core/config.js"></script>
 <script src="js/core/utils.js"></script>
+<script src="locales/en.js"></script>
+<script src="js/core/i18n.js"></script>
 <script src="js/core/store.js"></script>
 <script src="js/domain/questions.js"></script>
 <script src="js/domain/mastery.js"></script>
