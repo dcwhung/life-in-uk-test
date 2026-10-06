@@ -907,7 +907,7 @@
     <!-- same buttons above and below the review list, so a long review needs no scrolling -->
     <div class="nav-row result-actions">
       <button class="nav-btn secondary retry-btn" onclick="retryExam()">Retry Exam</button>
-      <button class="nav-btn" onclick="goHome()">Choose Another</button>
+      <button class="nav-btn another-btn" onclick="goHome()">Choose Another</button>
     </div>
 
     <div class="section-title">Review Answers</div>
@@ -916,7 +916,7 @@
 
     <div class="nav-row">
       <button class="nav-btn secondary retry-btn" onclick="retryExam()">Retry Exam</button>
-      <button class="nav-btn" onclick="goHome()">Choose Another</button>
+      <button class="nav-btn another-btn" onclick="goHome()">Choose Another</button>
     </div>
   </div>
 
@@ -941,7 +941,7 @@
 // ════════════════════════════════════════
 // APP VERSION — single source of truth (shown in the header, drives the SW cache name)
 // ════════════════════════════════════════
-const APP_VERSION = '0.48';
+const APP_VERSION = '0.49';
 
 // ════════════════════════════════════════
 // APP STATE
@@ -1656,8 +1656,11 @@ function finishExam() {
   const showVerdict = isNumberedExam(state.examNum) || isRandomExam(state.examNum);
   lbl2.style.display = showVerdict ? '' : 'none';
   sub.style.display = showVerdict ? '' : 'none';
-  const retryLabel = state.mode === 'exam' ? 'Retry Exam' : 'Practise Again';
+  const isExamMode = state.mode === 'exam';
+  const retryLabel = isExamMode ? 'Retry' : 'Practise Again';
+  const anotherLabel = isExamMode ? 'Another Exam' : 'Choose Another';
   document.querySelectorAll('#screenResult .retry-btn').forEach(btn => { btn.textContent = retryLabel; });
+  document.querySelectorAll('#screenResult .another-btn').forEach(btn => { btn.textContent = anotherLabel; });
   document.getElementById('rbCorrect').textContent = correct;
   document.getElementById('rbWrong').textContent = total - correct;
   document.getElementById('rbPct').textContent = pct + '%';

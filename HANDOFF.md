@@ -1,4 +1,4 @@
-# Life in the UK Test PWA — Handoff (v0.48)
+# Life in the UK Test PWA — Handoff (v0.49)
 
 - **Repo:** https://github.com/dcwhung/life-in-uk-test （main branch，GitHub Pages root `/`）
 - **Live:** https://dcwhung.github.io/life-in-uk-test/
@@ -103,7 +103,7 @@
 - **Similar Questions（v0.35）：** 答完（啱或錯）喺 Prev / Next 掣下面顯示同一條 `STUDY` fact 嘅其他題目（`fact.src` 除本題外嘅 key；每題只屬一條 fact，408 題入面 284 題有類似題）。內容：Core Fact（英文 + 廣東話）、「Appears in」題號 chip（本題／已掌握／練緊／0/3）、每題 `Exam N · Qn` + 🔥 進度 + 題目同翻譯（唔顯示答案）。Exam mode 唔顯示；冇類似題就唔顯示
 - **Practise these N：** 開臨時 session（`examNum = 'similar'`），按列出次序每題做一次，照計 `practiceStreak`；最後一題 Next 變「↩ Back」（v0.36 起；之前寫「Back to Question n」會誤以為係返去臨時 session 第 n 題），還原原本 session 同題目位置；session 內唔再顯示 Similar Questions；返 Home 或開新練習會清走暫存 session（`similarReturn`）
 - 按 Chapter / Difficulty 練習唔會標記為完成 exam
-- 結果頁重做掣：Exam mode「Retry Exam」，Practice mode「Practise Again」（v0.37）；v0.39 起「重做 / Choose Another」掣喺 Review Answers 上面同最底各有一組（`.retry-btn`，兩粒一齊改字）
+- 結果頁兩粒掣：Exam mode「Retry」/「Another Exam」（v0.49；之前係「Retry Exam」/「Choose Another」），Practice mode「Practise Again」/「Choose Another」（v0.37）；`.retry-btn` / `.another-btn` 上下兩組一齊改字；v0.39 起「重做 / Choose Another」掣喺 Review Answers 上面同最底各有一組（`.retry-btn`，兩粒一齊改字）
 - 結果頁 Review Answers 有「Original order / Wrong first」chip（v0.39）：Wrong first 將答錯題排最前，題號保留原本次序；選擇存 localStorage `reviewOrder`
 - 結果頁 PASSED / NEEDS IMPROVEMENT 同 remark 只喺 Exam 1–17（Exam mode 或 Practice > By Exam）顯示；Chapter / Difficulty / All Exams 只顯示分數
 
@@ -167,7 +167,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | `examtools-test.js` | Submit / Leave 用 app 內 modal（掣名、Esc 取消、冇瀏覽器 dialog）；Random Exam（30 次抽題全部 24 題、24 個唔同 fact、每次唔同；工具、PASSED、Retry 抽新題、首頁掣名）；Exam 1–17 計時器（45:00、最後 5 分鐘變紅、到 0 自動交卷 + 結果頁提示）、24 圓點狀態同跳題、書籤 flag、計數、Submit / Home 提示；Practice 同 All Exams 冇呢啲工具 |
 | `quicknav-test.js` | 快捷 ← / →（符號、title、最後一題 ✓ / ↩）；問題卡 header：Question X of Y、progress bar 喺卡頂、score pill、header 冇 stats |
 
-## 版本記錄（v0.32–v0.48）
+## 版本記錄（v0.32–v0.49）
 
 | 版本 | PR | 改動 |
 |---|---|---|
@@ -193,6 +193,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | v0.46 | dcwhung/life-in-uk-test#19 | Random Exam 掣文字改做「🎲 Random Exam」＋細字「24 Qs from 408 Qs」 |
 | v0.47 | — | Exam mode 問題卡頭嘅快捷 ← → 一直顯示（之前答完去下一條未答題會唔見咗） |
 | v0.48 | — | Exam 嘅 Submit / 離開提示改用 app 內 modal（唔再彈瀏覽器 alert box） |
+| v0.49 | — | Exam 結果頁掣文字：「Retry Exam」→「Retry」、「Choose Another」→「Another Exam」 |
 
 **Random Exam 設計決定（v0.45，同用戶確認）**
 - 只改 Exam mode；Practice 嘅 All Exams 保留「由 408 題抽未掌握題」嘅練法
