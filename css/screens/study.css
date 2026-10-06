@@ -49,12 +49,15 @@
   background: var(--bg);
   border: 1.5px solid var(--border);
   border-radius: 7px;
-  width: 30px; height: 28px;
+  width: 32px; height: 32px;
   font-size: var(--fs-md); cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   color: var(--text-muted);
   transition: all 0.15s;
+  position: relative;
 }
+/* O2: 32px box + 6px invisible ring = 44px touch target (WCAG 2.5.5) */
+.fact-btn::before { content: ''; position: absolute; inset: -6px; }
 /* bookmark: same SVG + colours as the Practice .flag-btn (outline muted, on = orange fill); the path has no fill of its own */
 .fact-btn svg { width: 18px; height: 18px; }
 .fact-btn.star path { fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; }

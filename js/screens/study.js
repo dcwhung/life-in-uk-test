@@ -114,11 +114,15 @@ function factTagsHtml(f, opts) {
   if (f.src.length > 1) tags.push(`<span class="tag freq">${t('study.appears', { n: f.src.length })}</span>`);
   return tags.join('');
 }
+// one per-fact toggle (kind = study mark key); the visible content is an icon, so the label lives in aria-label (O1)
+function factMarkButtonHtml(f, { kind, cls, labelKey, content }) {
+  const on = !!study[kind][f.id];
+  const label = escapeHtml(t(labelKey));
+  return `<button class="fact-btn ${cls}${on ? ' on' : ''}" title="${label}" aria-label="${label}" aria-pressed="${on}" data-action="studyToggleMark" data-mark="${kind}" data-arg="${escapeHtml(f.id)}">${content}</button>`;
+}
 function factMarkButtonsHtml(f) {
-  const mastered = !!study.mastered[f.id];
-  const marked = !!study.bookmarks[f.id];
-  return `<button class="fact-btn star${marked ? ' on' : ''}" title="${escapeHtml(t('study.bookmark'))}" data-action="studyToggleMark" data-mark="bookmarks" data-arg="${escapeHtml(f.id)}">${bookmarkSvg('', { decorative: true })}</button>
-        <button class="fact-btn tick${mastered ? ' on' : ''}" title="${escapeHtml(t('study.mastered'))}" data-action="studyToggleMark" data-mark="mastered" data-arg="${escapeHtml(f.id)}">✓</button>`;
+  return factMarkButtonHtml(f, { kind: 'bookmarks', cls: 'star', labelKey: 'study.bookmark', content: bookmarkSvg('', { decorative: true }) })
+    + factMarkButtonHtml(f, { kind: 'mastered', cls: 'tick', labelKey: 'study.mastered', content: '✓' });
 }
 function renderFact(f, opts = {}) {
   const mastered = !!study.mastered[f.id];

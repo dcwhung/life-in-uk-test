@@ -109,11 +109,24 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(offPath.fill === 'none' && offPath.stroke === await tokenRgb('--text-muted'), 'bookmark off: outline in text-muted: ' + JSON.stringify(offPath));
   const bmChip = pg.locator('#studyChips .chip[data-arg="bookmarksOnly"]');
   assert(await bmChip.locator('svg.chip-flag path').count() === 1 && (await bmChip.textContent()).trim() === 'Bookmarked only', 'Bookmarked only chip has the flag SVG and no ★');
+  // v0.62 (P3 T-105, O1 / O2): labelled toggle buttons with aria-pressed; 32px box, 44px hit area
+  const tickBtn = pg.locator('.fact').first().locator('.fact-btn.tick');
+  const aria = loc => loc.evaluate(e => [e.getAttribute('aria-label'), e.getAttribute('aria-pressed')].join('|'));
+  assert(await aria(bmBtn) === 'Bookmark|false' && await aria(tickBtn) === 'Mastered|false', 'fact buttons: aria-label + aria-pressed=false');
+  const hit = await bmBtn.evaluate(e => {
+    const r = e.getBoundingClientRect();
+    const HIT_OFFSET = 5; // inside the 6px ::before ring, outside the 32px box
+    const at = (x, y) => document.elementFromPoint(x, y)?.closest('.fact-btn') === e;
+    return { w: r.width, h: r.height, top: at(r.left + r.width / 2, r.top - HIT_OFFSET), left: at(r.left - HIT_OFFSET, r.top + r.height / 2) };
+  });
+  assert(hit.w === 32 && hit.h === 32 && hit.top && hit.left, 'fact button 32x32 with a hit area beyond the box: ' + JSON.stringify(hit));
   await bmBtn.click();
+  assert(await aria(bmBtn) === 'Bookmark|true', 'bookmark aria-pressed=true after toggle');
   const onPath = await bmPath();
   assert(onPath.fill === orange && onPath.stroke === orange, 'bookmark on: orange fill: ' + JSON.stringify(onPath));
   assert(await bmBtn.evaluate(e => getComputedStyle(e).backgroundColor) === await tokenRgb('--flag-bg'), 'bookmark on: flag-bg background');
-  await pg.locator('.fact').first().locator('.fact-btn.tick').click();
+  await tickBtn.click();
+  assert(await aria(tickBtn) === 'Mastered|true', 'mastered aria-pressed=true after toggle');
   assert(await pg.locator('.fact').first().evaluate(e => e.classList.contains('mastered')), 'mastered class applied');
   assert(await pg.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('lifeuk.studyMastered'))).length === 1 && Object.keys(JSON.parse(localStorage.getItem('lifeuk.studyBookmarks'))).length === 1), 'persisted in localStorage');
   await pg.click('text=Hide mastered');
