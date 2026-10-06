@@ -1,17 +1,17 @@
 /* Flagged list screen */
 .flag-start {
   display: flex; align-items: center; gap: 12px; width: 100%; font: inherit; text-align: left; border: none;
-  background: linear-gradient(135deg, var(--navy), var(--navy-mid)); color: #fff;
+  background: linear-gradient(135deg, var(--navy), var(--navy-mid)); color: var(--text-inverse);
   border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; cursor: pointer;
 }
 .flag-start svg { width: 26px; height: 26px; flex-shrink: 0; }
-.flag-start b { display: block; font-size: 15px; }
-.flag-start .fs-sub { font-size: 12px; color: rgba(255,255,255,0.7); }
+.flag-start b { display: block; font-size: var(--fs-lg); }
+.flag-start .fs-sub { font-size: var(--fs-sm); color: var(--text-inverse-70); }
 .flag-start .go { margin-left: auto; font-size: 20px; color: var(--gold-light); }
-.flag-item { display: flex; align-items: flex-start; gap: 10px; background: var(--card); border-radius: 10px; padding: 11px 13px; margin-bottom: 8px; box-shadow: var(--shadow-sm); }
-.flag-item .fi-text { flex: 1; font-size: 13px; color: var(--navy); font-weight: 600; line-height: 1.45; }
+.flag-item { display: flex; align-items: flex-start; gap: 10px; background: var(--card); border-radius: var(--radius-md); padding: 11px 13px; margin-bottom: 8px; box-shadow: var(--shadow-sm); }
+.flag-item .fi-text { flex: 1; font-size: var(--fs-base); color: var(--navy); font-weight: 600; line-height: 1.45; }
 .flag-item small { display: block; font-size: 10.5px; color: var(--text-muted); font-weight: 700; margin-bottom: 2px; }
-.flag-item .fi-yue { font-size: 12px; color: var(--purple); font-weight: 400; margin-top: 3px; }
+.flag-item .fi-yue { font-size: var(--fs-sm); color: var(--purple); font-weight: 400; margin-top: 3px; }
 .flag-item button { background: none; border: none; cursor: pointer; padding: 2px; }
 .flag-item button svg { width: 20px; height: 20px; }
-.empty-hint { font-size: 12.5px; color: var(--text-muted); text-align: center; padding: 14px; border: 1.5px dashed var(--border); border-radius: 10px; }
+.empty-hint { font-size: 12.5px; color: var(--text-muted); text-align: center; padding: 14px; border: 1.5px dashed var(--border); border-radius: var(--radius-md); }

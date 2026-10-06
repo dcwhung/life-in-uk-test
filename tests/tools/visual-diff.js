@@ -1,5 +1,6 @@
 // Visual regression check for refactors: renders the app at a git ref and the working tree in the
-// same app states and compares every rendered element's computed style (incl. ::before / ::after),
+// same app states and compares every rendered element's computed style (incl. ::before / ::after;
+// --* custom properties are skipped since every element inherits each :root token),
 // box and text. Not part of run-all.sh — run it by hand when a change must not alter the UI.
 //   NODE_PATH=… CHROMIUM_PATH=… node tests/tools/visual-diff.js [git-ref=HEAD] [max-diffs-to-print=40]
 const { chromium } = require('playwright-core');
@@ -94,10 +95,10 @@ const dump = () => {
     if (skip(e) || !e.getClientRects().length) continue;
     const cs = getComputedStyle(e), r = e.getBoundingClientRect();
     const st = [];
-    for (let i = 0; i < cs.length; i++) st.push(cs[i] + ':' + cs.getPropertyValue(cs[i]));
+    for (let i = 0; i < cs.length; i++) if (!cs[i].startsWith('--')) st.push(cs[i] + ':' + cs.getPropertyValue(cs[i]));
     for (const pse of ['::before', '::after']) {
       const p = getComputedStyle(e, pse);
-      if (p.content && p.content !== 'none' && p.content !== 'normal') for (let i = 0; i < p.length; i++) st.push(pse + p[i] + ':' + p.getPropertyValue(p[i]));
+      if (p.content && p.content !== 'none' && p.content !== 'normal') for (let i = 0; i < p.length; i++) if (!p[i].startsWith('--')) st.push(pse + p[i] + ':' + p.getPropertyValue(p[i]));
     }
     res[keyOf(e)] = {
       cls: e.getAttribute('class') || '', st: st.sort().join(';'),

@@ -2,39 +2,39 @@
 .practice-tab, .study-tab {
   background: var(--card);
   border: 2px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   padding: 9px 4px;
-  font-size: 12px; font-weight: 700; color: var(--text-muted);
+  font-size: var(--fs-sm); font-weight: 700; color: var(--text-muted);
   cursor: pointer; text-align: center;
   transition: all 0.15s;
 }
 .practice-tab { font-family: inherit; }
-.practice-tab.active { background: var(--navy); border-color: var(--navy); color: #fff; }
+.practice-tab.active { background: var(--navy); border-color: var(--navy); color: var(--text-inverse); }
 .study-tabs {
   display: grid; grid-template-columns: repeat(4, 1fr);
   gap: 6px; margin-bottom: 12px;
 }
-.study-tab.active { background: var(--purple); border-color: var(--purple); color: #fff; }
+.study-tab.active { background: var(--purple); border-color: var(--purple); color: var(--text-inverse); }
 
 .chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
 .chip {
   background: var(--card);
   border: 1.5px solid var(--border);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   padding: 5px 12px;
-  font-size: 12px; font-weight: 600; color: var(--text-muted);
+  font-size: var(--fs-sm); font-weight: 600; color: var(--text-muted);
   cursor: pointer;
   transition: all 0.15s;
 }
-.chip.active { background: var(--navy); border-color: var(--navy); color: #fff; }
+.chip.active { background: var(--navy); border-color: var(--navy); color: var(--text-inverse); }
 .chip.war.active { background: var(--red); border-color: var(--red); }
 .chip.ch.active { background: var(--purple); border-color: var(--purple); }
 .chip:disabled { opacity: 0.45; cursor: default; }
 
 /* difficulty stars */
-.stars { color: var(--gold); letter-spacing: 1px; font-size: 12px; white-space: nowrap; }
+.stars { color: var(--gold); letter-spacing: 1px; font-size: var(--fs-sm); white-space: nowrap; }
 .stars .off { color: var(--border); }
 
 @media (max-width: 480px) {
-  .study-tab { font-size: 11px; padding: 8px 2px; }
+  .study-tab { font-size: var(--fs-xs); padding: 8px 2px; }
 }
