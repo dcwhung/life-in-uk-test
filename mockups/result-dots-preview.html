@@ -66,7 +66,16 @@
   .review-item.hl { box-shadow: 0 0 0 3px var(--gold); }
   .rv-q { font-weight: 600; color: var(--navy); margin-bottom: 4px; }
   .rv-your { color: var(--text-muted); font-size: 12px; }
-  .rv-yue { color: #6b3fa0; font-size: 12px; margin-top: 4px; white-space: pre-wrap; line-height: 1.55; }
+  /* translation + note: separated from the answer, one row per note line, hanging indent for bullets */
+  .rv-tr { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); }
+  .rv-yue { color: #6b3fa0; font-size: 12.5px; line-height: 1.6; }
+  .rv-note { margin-top: 10px; color: #6b3fa0; font-size: 12.5px; line-height: 1.6; }
+  .rv-note-label { color: #b5680a; font-weight: 700; margin-bottom: 4px; }
+  .rv-note-line { margin-bottom: 6px; }
+  .rv-note-line:last-child { margin-bottom: 0; }
+  .rv-note-line.bullet { padding-left: 1.1em; text-indent: -1.1em; }
+  .rv-note-line.sub { padding-left: 2.2em; text-indent: -1.1em; }
+  .rv-note-gap { height: 6px; }
   .rv-ans { color: var(--green); font-size: 12px; font-weight: 600; }
   .rv-flag { width: 15px; height: 15px; margin-left: 5px; vertical-align: -2px; }
   .rv-flag path { fill: var(--orange); stroke: var(--orange); stroke-width: 2; stroke-linejoin: round; }
@@ -74,7 +83,7 @@
 </head>
 <body>
 <div class="mock-bar">
-  <b>PREVIEW v5</b> · Exam result page — Review Answers 加返廣東話翻譯同備注。撳圓點會跳去下面嗰題。<br>
+  <b>PREVIEW v6</b> · Exam result page — 備注逐行分開、列點縮排，唔再擠埋一齊。撳圓點會跳去下面嗰題。<br>
   <button class="mock-tab" onclick="demo(false)">唔合格 17/24</button><button class="mock-tab" onclick="demo(true)">合格 19/24</button>
 </div>
 
@@ -105,6 +114,15 @@
   const PASS_MARK = 18;
   let wrongSet = [2, 6, 9, 14, 19, 21];
   let filter = 'all';
+  // note text uses \n per line; "• " / "→ " start a bullet, 4 leading spaces + "◦ " a sub-bullet
+  function noteHtml(note) {
+    return note.split('\n').map(line => {
+      if (!line.trim()) return '<div class="rv-note-gap"></div>';
+      const sub = /^\s{2,}/.test(line), bullet = /^\s*[•◦→]/.test(line);
+      const cls = sub ? 'sub' : bullet ? 'bullet' : '';
+      return `<div class="rv-note-line ${cls}">${line.trim()}</div>`;
+    }).join('');
+  }
   function setFilter(f) { filter = f; render(); }
   function demo(pass) { wrongSet = pass ? [2, 9, 14, 21] : [2, 6, 9, 14, 19, 21]; render(); }
   const FLAG_ICON = '<svg class="rv-flag" viewBox="0 0 24 24" aria-label="Flagged"><path d="M7.5 3.5h9A2.5 2.5 0 0 1 19 6v14.5l-7-5.1-7 5.1V6a2.5 2.5 0 0 1 2.5-2.5z"/></svg>';
@@ -141,7 +159,10 @@
       return `<div class="review-item ${st === 'ok' ? 'ok' : 'bad'}" id="rv${i}">
         <div class="rv-q">${i + 1}. ${q.q}${FLAGGED.includes(i) ? FLAG_ICON : ''}</div>${your}
         <div class="rv-ans">✅ ${q.ans}</div>
-        <div class="rv-yue">【廣東話】${q.yue}${q.note ? '\n💡 備注：\n' + q.note : ''}</div></div>`;
+        <div class="rv-tr">
+          <div class="rv-yue">【廣東話】${q.yue}</div>
+          ${q.note ? `<div class="rv-note"><div class="rv-note-label">💡 備注：</div>${noteHtml(q.note)}</div>` : ''}
+        </div></div>`;
     }).join('');
   }
   function jump(i) {
