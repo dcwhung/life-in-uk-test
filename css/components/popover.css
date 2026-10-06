@@ -1,7 +1,7 @@
 /* ── HEADER: info button + popover (replaces the old home hero) ── */
 .info-btn {
   background: transparent; border: none; padding: 0;
-  color: rgba(255,255,255,0.6);
+  color: var(--text-inverse-60);
   font-size: 16px; line-height: 1;
   cursor: pointer;
   transition: color 0.15s;
@@ -12,22 +12,22 @@
   position: absolute; left: 16px; top: 64px;
   width: min(360px, calc(100vw - 32px));
   background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
-  color: #fff;
-  border: 1px solid rgba(201,168,76,0.35);
+  color: var(--text-inverse);
+  border: 1px solid var(--gold-border);
   border-radius: var(--radius);
   padding: 18px 20px;
-  box-shadow: 0 12px 32px rgba(0,0,0,0.35);
+  box-shadow: var(--shadow-pop);
   z-index: 200;
 }
 .info-pop.show { display: block; }
 .info-pop::after {
   content: ''; position: absolute; left: 150px; top: -7px;
   width: 12px; height: 12px;
-  background: var(--navy); border-left: 1px solid rgba(201,168,76,0.35); border-top: 1px solid rgba(201,168,76,0.35);
+  background: var(--navy); border-left: 1px solid var(--gold-border); border-top: 1px solid var(--gold-border);
   transform: rotate(45deg);
 }
 .info-pop h2 { font-size: 17px; font-weight: 800; margin-bottom: 6px; }
-.info-pop p { font-size: 13px; color: rgba(255,255,255,0.75); line-height: 1.5; }
+.info-pop p { font-size: var(--fs-base); color: var(--text-inverse-75); line-height: 1.5; }
 @media (min-width: 812px) { .info-pop { left: calc((100vw - 780px) / 2); } }
 
 /* info popover badges */
@@ -35,11 +35,11 @@
   display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap;
 }
 .hero-badge {
-  background: rgba(201,168,76,0.18);
-  border: 1px solid rgba(201,168,76,0.35);
-  border-radius: 8px;
+  background: var(--gold-tint);
+  border: 1px solid var(--gold-border);
+  border-radius: var(--radius-sm);
   padding: 6px 12px;
-  font-size: 12px; color: var(--gold-light);
+  font-size: var(--fs-sm); color: var(--gold-light);
   font-weight: 600;
 }
 
@@ -53,13 +53,13 @@
 }
 .install-banner.visible { display: flex; }
 .install-text { flex: 1; }
-.install-text strong { color: #fff; font-size: 14px; display: block; margin-bottom: 2px; }
-.install-text span { color: rgba(255,255,255,0.65); font-size: 12px; }
+.install-text strong { color: var(--text-inverse); font-size: var(--fs-md); display: block; margin-bottom: 2px; }
+.install-text span { color: var(--text-inverse-65); font-size: var(--fs-sm); }
 .install-btn {
   background: var(--gold);
   color: var(--navy);
-  border: none; border-radius: 8px;
+  border: none; border-radius: var(--radius-sm);
   padding: 9px 16px;
-  font-size: 13px; font-weight: 800;
+  font-size: var(--fs-base); font-weight: 800;
   cursor: pointer; white-space: nowrap;
 }
