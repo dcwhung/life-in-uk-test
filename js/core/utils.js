@@ -48,7 +48,11 @@ function ensureLegacyMigrated() {
   legacyMigrationRan = true;
   // a v0.57 config.js next to this file (the opposite mix) has no table and still uses the unprefixed keys
   if (typeof LEGACY_LS_MIGRATION === 'undefined') return;
-  try { migrateLegacyStorage(); } catch (e) { console.warn('localStorage migration skipped:', e); }
+  try {
+    migrateLegacyStorage();
+  } catch (e) {
+    console.warn('localStorage migration skipped:', e);
+  }
 }
 
 function migrateLegacyStorage() {
@@ -60,7 +64,9 @@ function migrateLegacyStorage() {
     const oldWins = oldWinsKeys.includes(newKey);
     const done = migrateKeySafely(oldKey, newKey, { merge: mergeBoth || oldWins, oldWins });
     // the old key carries this load's writes while the new key keeps an older value: next load the old side wins
-    if (!done && (oldWins || (LS_KEY_FALLBACK[newKey] && localStorage.getItem(newKey) !== null))) stillOld.push(newKey);
+    if (!done && (oldWins || (LS_KEY_FALLBACK[newKey] && localStorage.getItem(newKey) !== null))) {
+      stillOld.push(newKey);
+    }
     return done;
   });
   removeObsoleteKeys();
@@ -115,8 +121,11 @@ function readFallbackRecord() {
 
 function writeFallbackRecord(newKeys) {
   try {
-    if (newKeys.length) localStorage.setItem(MIGRATE_FALLBACK_LS, JSON.stringify(newKeys));
-    else localStorage.removeItem(MIGRATE_FALLBACK_LS);
+    if (newKeys.length) {
+      localStorage.setItem(MIGRATE_FALLBACK_LS, JSON.stringify(newKeys));
+    } else {
+      localStorage.removeItem(MIGRATE_FALLBACK_LS);
+    }
   } catch (e) {
     console.warn('localStorage fallback record not written:', e);
   }
@@ -126,7 +135,9 @@ function parsePlainObject(raw) {
   try {
     const value = JSON.parse(raw);
     return value && typeof value === 'object' && !Array.isArray(value) ? value : null;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 function writeVerified(key, value, previous) {
@@ -138,8 +149,14 @@ function writeVerified(key, value, previous) {
   }
   // a wrong value left behind would "win" next load and delete the real data
   try {
-    if (previous === null) localStorage.removeItem(key); else localStorage.setItem(key, previous);
-  } catch {}
+    if (previous === null) {
+      localStorage.removeItem(key);
+    } else {
+      localStorage.setItem(key, previous);
+    }
+  } catch (e) {
+    console.warn('localStorage migration: could not restore', key, e);
+  }
   return false;
 }
 
@@ -152,7 +169,11 @@ function removeObsoleteKeys() {
 }
 
 function writeMigratedMarker() {
-  try { localStorage.setItem(MIGRATED_LS, APP_VERSION); } catch (e) { console.warn('localStorage marker not written:', e); }
+  try {
+    localStorage.setItem(MIGRATED_LS, APP_VERSION);
+  } catch (e) {
+    console.warn('localStorage marker not written:', e);
+  }
 }
 
 // resolved per call so a failed migration keeps reading/writing the old key instead of starting an empty new one
