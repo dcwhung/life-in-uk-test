@@ -2,7 +2,7 @@
 // CONFIG — app-wide constants. sw.js loads this file with importScripts() to name its cache,
 // so it must stay worker-safe: plain constants only, no DOM and no question data.
 // ════════════════════════════════════════
-const APP_VERSION = '0.57';
+const APP_VERSION = '0.58';
 
 // ── modes and special set ids (state.examNum is 1..EXAM_COUNT or one of these) ──
 const PRACTICE_MODE = 'practice';
@@ -36,9 +36,28 @@ const REVIEW_HIGHLIGHT_MS = 1500;
 const OPTION_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 
 // ── localStorage keys ──
-const STREAK_LS = 'practiceStreak';
-const FLAGS_LS = 'practiceFlags';
-const WRONG_LS = 'wrongList';
-const COMPLETED_LS = 'completedExams';
-const HOME_PREFS_LS = 'homePrefs';
-const STUDY_LS = { prefs: 'studyPrefs', mastered: 'studyMastered', bookmarks: 'studyBookmarks' };
+// the origin (dcwhung.github.io) is shared with other apps, so every key carries our own prefix
+const LS_PREFIX = 'lifeuk.';
+const STREAK_LS = LS_PREFIX + 'practiceStreak';
+const FLAGS_LS = LS_PREFIX + 'practiceFlags';
+const WRONG_LS = LS_PREFIX + 'wrongList';
+const COMPLETED_LS = LS_PREFIX + 'completedExams';
+const HOME_PREFS_LS = LS_PREFIX + 'homePrefs';
+const STUDY_LS = {
+  prefs: LS_PREFIX + 'studyPrefs',
+  mastered: LS_PREFIX + 'studyMastered',
+  bookmarks: LS_PREFIX + 'studyBookmarks',
+};
+// v0.58: unprefixed keys from v0.57 and earlier → their prefixed home (js/core/migrate.js moves them)
+const LEGACY_LS_MIGRATION = {
+  practiceStreak: STREAK_LS,
+  practiceFlags: FLAGS_LS,
+  wrongList: WRONG_LS,
+  completedExams: COMPLETED_LS,
+  homePrefs: HOME_PREFS_LS,
+  studyPrefs: STUDY_LS.prefs,
+  studyMastered: STUDY_LS.mastered,
+  studyBookmarks: STUDY_LS.bookmarks,
+};
+// keys no version reads any more (reviewOrder: results-page sort chip, dropped in v0.53)
+const OBSOLETE_LS = ['reviewOrder'];

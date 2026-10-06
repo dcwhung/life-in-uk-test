@@ -51,13 +51,13 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await answerRest(1);
   assert(await pg.evaluate(() => state.questions.length === 9), 'one session = 9 answers, no repeats');
   assert(await pg.evaluate(() => new Set(state.questions.map(qKey)).size === 9), 'each question once per session');
-  assert(await pg.evaluate(() => Object.values(JSON.parse(localStorage.getItem('practiceStreak'))).every(v => v === 1)), 'all Ch1 streaks at 1 after one session');
+  assert(await pg.evaluate(() => Object.values(JSON.parse(localStorage.getItem('lifeuk.practiceStreak'))).every(v => v === 1)), 'all Ch1 streaks at 1 after one session');
   // sessions 2 and 3: unmastered questions come back, all 9 each time
   for (const n of [2, 3]) {
     assert(await pg.evaluate(() => { startExam('ch1'); return state.questions.length === 9; }), `session ${n}: unmastered questions come back`);
     await answerRest(0);
   }
-  assert(await pg.evaluate(() => Object.values(JSON.parse(localStorage.getItem('practiceStreak'))).every(v => v === 3)), 'all Ch1 streaks at 3 after three sessions');
+  assert(await pg.evaluate(() => Object.values(JSON.parse(localStorage.getItem('lifeuk.practiceStreak'))).every(v => v === 3)), 'all Ch1 streaks at 3 after three sessions');
   assert((await pg.$eval('#ansLabel', e => e.textContent)).includes('🏆 Mastered'), 'mastered label at 3/3');
   await pg.evaluate(() => goHome());
   await pg.click('#ptabChapter');
@@ -85,20 +85,20 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert((await pg.$$('#examGrid .exam-mastery')).length === 0, 'no mastery text in exam mode');
   await pg.evaluate(() => { startExam(1); selectOption(state.questions[0].a[0]); });
   assert(!(await pg.$eval('#answerBox', e => e.classList.contains('show'))), 'exam mode shows no answer box (and no streak indicator)');
-  const before = await pg.evaluate(() => JSON.stringify(JSON.parse(localStorage.getItem('practiceStreak'))));
+  const before = await pg.evaluate(() => JSON.stringify(JSON.parse(localStorage.getItem('lifeuk.practiceStreak'))));
   await pg.evaluate(() => { state.current = state.questions.length - 1; finishExam(); });
-  assert(await pg.evaluate((b) => JSON.stringify(JSON.parse(localStorage.getItem('practiceStreak'))) === b, before), 'exam mode leaves streaks untouched');
+  assert(await pg.evaluate((b) => JSON.stringify(JSON.parse(localStorage.getItem('lifeuk.practiceStreak'))) === b, before), 'exam mode leaves streaks untouched');
   await pg.evaluate(() => goHome());
   assert(await pg.$eval('#examGrid .exam-btn:nth-child(2)', e => e.classList.contains('done')), 'Exam 1 marked done');
   await pg.click('#examReset .reset-btn');
   assert(!(await pg.$eval('#examGrid .exam-btn:nth-child(2)', e => e.classList.contains('done'))), 'reset completed exams clears ✓');
   // reset practice progress
-  await pg.evaluate(() => { wrongList = { '1.0': true }; setLS('wrongList', wrongList); practiceFlags = { '2.3': true }; setLS('practiceFlags', practiceFlags); });
+  await pg.evaluate(() => { wrongList = { '1.0': true }; setLS('lifeuk.wrongList', wrongList); practiceFlags = { '2.3': true }; setLS('lifeuk.practiceFlags', practiceFlags); });
   await pg.click('#modePractice');
   assert(await pg.$eval('#myReview', e => e.offsetParent !== null), 'My Review shown before reset');
   await pg.click('#practiceReset .reset-btn');
-  assert((await pg.$eval('#diffGrid .diff-btn:first-child .ch-count', e => e.textContent)) === '0/84 · 0%' && await pg.evaluate(() => localStorage.getItem('practiceStreak') === '{}'), 'reset progress clears streaks');
-  assert(await pg.evaluate(() => localStorage.getItem('wrongList') === '{}' && localStorage.getItem('practiceFlags') === '{}' && !Object.keys(wrongList).length && !Object.keys(practiceFlags).length), 'reset progress clears the wrong list and flags');
+  assert((await pg.$eval('#diffGrid .diff-btn:first-child .ch-count', e => e.textContent)) === '0/84 · 0%' && await pg.evaluate(() => localStorage.getItem('lifeuk.practiceStreak') === '{}'), 'reset progress clears streaks');
+  assert(await pg.evaluate(() => localStorage.getItem('lifeuk.wrongList') === '{}' && localStorage.getItem('lifeuk.practiceFlags') === '{}' && !Object.keys(wrongList).length && !Object.keys(practiceFlags).length), 'reset progress clears the wrong list and flags');
   assert(!(await pg.$eval('#myReview', e => e.offsetParent !== null)), 'My Review hidden after reset');
   assert(errs.length === 0, 'no page errors: ' + errs.join(';'));
   await b.close(); console.log('MASTERY PASS');

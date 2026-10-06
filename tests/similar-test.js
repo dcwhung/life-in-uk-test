@@ -25,7 +25,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
     revealAnswer();
   }, correct);
 
-  await pg.evaluate(() => { localStorage.setItem('practiceStreak', JSON.stringify({ '9.14': 3, '12.18': 1 })); });
+  await pg.evaluate(() => { localStorage.setItem('lifeuk.practiceStreak', JSON.stringify({ '9.14': 3, '12.18': 1 })); });
   await pg.reload();
   await openQ('practice', 12, 5);
   assert(!(await vis('#similarBox')), 'similar section hidden before answering');
@@ -86,7 +86,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await answer(false);
   assert(!(await vis('#similarBox')), 'no nested similar section inside the temporary session');
   assert(await pg.evaluate(() => state.questions.length === 2), 'wrong answer is not re-queued (each question once)');
-  assert(await pg.evaluate(() => JSON.parse(localStorage.getItem('practiceStreak'))['9.14'] === 0), 'streak still recorded in the temporary session');
+  assert(await pg.evaluate(() => JSON.parse(localStorage.getItem('lifeuk.practiceStreak'))['9.14'] === 0), 'streak still recorded in the temporary session');
   assert((await text('#nextBtn')) === 'Next →', 'next button before the last question');
   await pg.click('#nextBtn');
   await answer(true);

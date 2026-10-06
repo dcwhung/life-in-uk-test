@@ -34,7 +34,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.click('#screenQuiz .back-btn');
   await pg.click('#diffGrid .diff-btn:nth-child(2)');
   assert(await pg.evaluate(() => state.questions.every(q => q.d === 2)), 'level 2 set all d=2');
-  assert(await pg.evaluate(() => !localStorage.getItem('completedExams')), 'difficulty practice not saved as completed');
+  assert(await pg.evaluate(() => !localStorage.getItem('lifeuk.completedExams')), 'difficulty practice not saved as completed');
   await pg.click('#screenQuiz .back-btn');
 
   // exam mode still shows stars, results breakdown

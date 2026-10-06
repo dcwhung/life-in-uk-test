@@ -50,7 +50,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.evaluate(() => { pendingMode = 'practice'; startExam('ch1'); });
   assert((await pg.$$('#navDots .dot')).length === 9, 'Ch1: 9 dots');
   // review round has dots too
-  await pg.evaluate(() => { wrongList = { '3.0': true, '3.1': true, '3.2': true }; setLS('wrongList', wrongList); pendingMode = 'practice'; startExam('wrong'); });
+  await pg.evaluate(() => { wrongList = { '3.0': true, '3.1': true, '3.2': true }; setLS('lifeuk.wrongList', wrongList); pendingMode = 'practice'; startExam('wrong'); });
   assert(await vis('#navDots') && (await pg.$$('#navDots .dot')).length === 3, 'Wrong answers review: 3 dots');
 
   // exam: last question quick ✓ submits (same as Practice Finish ✓)
@@ -65,7 +65,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(await pg.evaluate(() => document.getElementById('screenResult').classList.contains('active')), 'quick ✓ with everything answered goes to results');
 
   // Flagged list: start button bookmark icon visible on navy (orange, not black)
-  await pg.evaluate(() => { practiceFlags = { '4.1': true }; setLS('practiceFlags', practiceFlags); openFlagged(); });
+  await pg.evaluate(() => { practiceFlags = { '4.1': true }; setLS('lifeuk.practiceFlags', practiceFlags); openFlagged(); });
   const fill = await pg.$eval('#flaggedStart svg path', e => getComputedStyle(e).fill);
   assert(fill === 'rgb(217, 130, 43)', 'Practise flagged icon is orange: ' + fill);
   // every bookmark icon is styled (an SVG path with no fill renders black)
