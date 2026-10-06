@@ -15,7 +15,7 @@
 
 | File | 大小 | 內容 |
 |---|---|---|
-| `index.html` | 86 KB | CSS、HTML、app 邏輯（state / home / quiz / exam tools / similar questions / results / study / SW） |
+| `index.html` | 88 KB | CSS、HTML、app 邏輯（state / home / quiz / exam tools / similar questions / results / study / SW） |
 | `data/exams.js` | 181 KB | `EXAMS`：408 題，Exam 1–17 各 24 題 |
 | `data/study.js` | 65 KB | `CHAPTERS` + `STUDY`：236 條 dedupe 後嘅 facts |
 | `js/utils.js` | 2 KB | `shuffle`、`shuffleOptions`、`getLS`、`setLS`、`starsHtml`、`escapeHtml` |
@@ -187,7 +187,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | — | dcwhung/life-in-uk-test#15 | HANDOFF.md：PR #14 版本記錄、mastery bar 備註 |
 | v0.43 | dcwhung/life-in-uk-test#16 | Exam mode 改做真考試流程：揀選項即暫存、Next / Prev 返去可以改答案、全程唔對答案；最後一題 Next 變「Submit」，有未答題先 confirm，撳咗去結果頁 |
 | v0.44 | dcwhung/life-in-uk-test#17 | Exam 1–17 考試工具：45 分鐘倒數（到 0 自動交卷）、書籤 flag、24 個數字圓點（狀態 + 跳題）、Answered / Unanswered / Flagged 計數；考試中返 Home 先問（先做 preview 確認） |
-| v0.45 | — | Exam mode All Exams 改做「🎲 Random Exam (24 Q)」：由 408 題隨機抽 24 題、唔會有相類似題（同一 fact 最多一題），用齊考試工具同 PASSED 判定；Practice 嘅 All Exams 唔變 |
+| v0.45 | dcwhung/life-in-uk-test#18 | Exam mode All Exams 改做「🎲 Random Exam (24 Q)」：由 408 題隨機抽 24 題、唔會有相類似題（同一 fact 最多一題），用齊考試工具同 PASSED 判定；Practice 嘅 All Exams 唔變 |
 
 **Random Exam 設計決定（v0.45，同用戶確認）**
 - 只改 Exam mode；Practice 嘅 All Exams 保留「由 408 題抽未掌握題」嘅練法
@@ -247,6 +247,8 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 ## 主要 commit（新→舊）
 
 ```
+3e4b875 feat: exam mode All Exams becomes a 24-question Random Exam with no similar questions (v0.45)
+2b98ef7 docs: HANDOFF.md v0.44 — PR #17 in version log, exam flow decisions, commit list
 beb13ed feat: exam tools — 45-min countdown, bookmark flags, 24-dot question navigator (v0.44)
 a7d7c38 chore: exam preview — legend counts right-aligned with separators（preview 已 delete）
 11f77f7 chore: update temporary exam mode preview — bookmark flag, orange flagged dots, legend counts（preview 已 delete）
