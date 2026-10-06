@@ -7,6 +7,8 @@ const { startPagesServer } = require('./pages-server');
 // Web manifest (CUI-0002): fetched + parsed, required fields, install texts = locale (S-019), icons at their
 // declared sizes, Chrome sees no manifest / installability errors, and the existing beforeinstallprompt banner still works.
 // v0.60 install banner: only on touch (coarse pointer) devices, and its ✕ hides it for good (lifeuk.installDismissed).
+// v0.61: CUI-0008 Install hides the banner on any outcome (cancel does not store the dismiss key), prompts once per event,
+// appinstalled hides it; S-022 the 28px ✕ has a ~44px tap area that never covers Install.
 // Served over http (python static server on the repo root, read-only) or APP_URL when that is http(s).
 const ROOT = path.resolve(__dirname, '..');
 const launchOpts = { args: ['--no-sandbox'] };
@@ -155,6 +157,68 @@ async function checkInstallBanner(pg) {
   assert(after.prompted && !after.visible, 'Install calls prompt() and an accepted choice hides the banner');
 }
 
+// in the page: fire a fake beforeinstallprompt whose prompt() counts its calls and whose choice is `outcome`
+const fireCountingPrompt = (pg, outcome) => pg.evaluate(o => {
+  window.__promptCalls = 0;
+  const e = new Event('beforeinstallprompt', { cancelable: true });
+  e.prompt = () => { window.__promptCalls += 1; };
+  e.userChoice = Promise.resolve({ outcome: o });
+  window.dispatchEvent(e);
+  return byId('installBanner').classList.contains('visible');
+}, outcome);
+const bannerState = (pg, key) => pg.evaluate(k => ({
+  visible: byId('installBanner').classList.contains('visible'), stored: localStorage.getItem(k),
+}), key);
+
+// CUI-0008 / S-020: cancelling the native dialog hides the banner (no dead Install button) but does not dismiss for good
+async function checkInstallCancelled(pg) {
+  assert(await fireCountingPrompt(pg, 'dismissed'), 'CUI-0008: banner shows before the cancelled-prompt check');
+  await pg.evaluate(() => promptInstall());
+  const after = await bannerState(pg, INSTALL_DISMISSED);
+  assert(!after.visible && after.stored === null, `CUI-0008: a dismissed native prompt hides the banner without storing ${INSTALL_DISMISSED} (${JSON.stringify(after)})`);
+}
+
+// CUI-0008: a double tap claims the event once, so prompt() runs only once per beforeinstallprompt
+async function checkInstallDoubleTap(pg) {
+  await fireCountingPrompt(pg, 'accepted');
+  const calls = await pg.evaluate(async () => {
+    await Promise.all([promptInstall(), promptInstall()]);
+    return window.__promptCalls;
+  });
+  assert(calls === 1, `CUI-0008: two promptInstall() calls on one event call prompt() once (${calls})`);
+}
+
+// CUI-0008: installing from the browser menu (appinstalled) also hides the banner
+async function checkAppInstalled(pg) {
+  assert(await fireCountingPrompt(pg, 'accepted'), 'CUI-0008: banner shows before appinstalled');
+  await pg.evaluate(() => window.dispatchEvent(new Event('appinstalled')));
+  assert(!(await bannerState(pg, INSTALL_DISMISSED)).visible, 'CUI-0008: an appinstalled event hides the banner');
+}
+
+const CLOSE_HIT_OUTSET = 6;
+// S-022: the 28px ✕ keeps its look but its tap area reaches past its edges, and never covers the Install button
+async function checkCloseHitArea(pg) {
+  await fireCountingPrompt(pg, 'accepted');
+  await pg.locator('#installBanner').scrollIntoViewIfNeeded();
+  const hit = await pg.evaluate(d => {
+    const close = document.querySelector('#installBanner .install-close');
+    const btn = byId('installBtn');
+    const c = close.getBoundingClientRect();
+    const b = btn.getBoundingClientRect();
+    const at = (x, y) => document.elementFromPoint(x, y);
+    return {
+      size: `${c.width}x${c.height}`,
+      corner: at(c.right + d, c.top - d) === close,
+      left: at(c.left - d, c.top + c.height / 2) === close,
+      install: at(b.left + b.width / 2, b.top + b.height / 2) === btn,
+      installEdge: at(b.right - 1, b.top + b.height / 2) === btn,
+    };
+  }, CLOSE_HIT_OUTSET);
+  assert(hit.size === '28x28', `S-022: ✕ still looks 28x28 (${hit.size})`);
+  assert(hit.corner && hit.left, `S-022: a tap ${CLOSE_HIT_OUTSET}px outside the ✕ (top-right corner, left side) hits .install-close (${JSON.stringify(hit)})`);
+  assert(hit.install && hit.installEdge, `S-022: the Install button centre and right edge still hit #installBtn (${JSON.stringify(hit)})`);
+}
+
 (async () => {
   const external = /^https?:/.test(process.env.APP_URL || '');
   let server = null;
@@ -177,6 +241,10 @@ async function checkInstallBanner(pg) {
     await checkManifest(pg, links, ctx.request);
     await checkInstallable(pg);
     await checkInstallBanner(pg);
+    await checkInstallCancelled(pg);
+    await checkInstallDoubleTap(pg);
+    await checkAppInstalled(pg);
+    await checkCloseHitArea(pg);
     await checkInstallBannerDesktop(ctx, base);
     await checkInstallDismiss(pg);
   } finally {
