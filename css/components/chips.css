@@ -14,7 +14,8 @@
   display: grid; grid-template-columns: repeat(4, 1fr);
   gap: 6px; margin-bottom: 12px;
 }
-.study-tab.active { background: var(--purple); border-color: var(--purple); color: var(--text-inverse); }
+/* v0.62: selection is navy like .practice-tab / .chip (purple means Cantonese only); class name is an upgrade-test hook */
+.study-tab.active { background: var(--navy); border-color: var(--navy); color: var(--text-inverse); }
 
 .chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
 .chip {
@@ -28,7 +29,6 @@
 }
 .chip.active { background: var(--navy); border-color: var(--navy); color: var(--text-inverse); }
 .chip.war.active { background: var(--red); border-color: var(--red); }
-.chip.ch.active { background: var(--purple); border-color: var(--purple); }
 .chip:disabled { opacity: 0.45; cursor: default; }
 
 /* difficulty stars */

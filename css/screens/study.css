@@ -9,7 +9,7 @@
   margin-bottom: 12px;
   outline: none;
 }
-.study-search:focus { border-color: var(--purple); }
+.study-search:focus { border-color: var(--navy-light); }
 .study-count { font-size: var(--fs-sm); color: var(--text-muted); margin-bottom: 10px; }
 .study-group-title {
   font-size: var(--fs-md); font-weight: 800; color: var(--navy);

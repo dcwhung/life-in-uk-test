@@ -34,6 +34,23 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.click('#modeStudy');
   const count = () => pg.$eval('#studyCount', e => e.textContent);
   assert((await count()) === '2 / 2 facts', 'chapters tab default Ch1: ' + await count());
+
+  // v0.62 (P3 T-101): selection colour is navy like Practice; purple only means Cantonese
+  const tokenRgb = name => pg.evaluate(n => {
+    const el = document.createElement('i');
+    el.style.color = `var(${n})`;
+    document.body.appendChild(el);
+    const c = getComputedStyle(el).color;
+    el.remove();
+    return c;
+  }, name);
+  const css = (sel, prop) => pg.$eval(sel, (e, p) => getComputedStyle(e)[p], prop);
+  const navy = await tokenRgb('--navy');
+  assert(await css('.study-tab.active', 'backgroundColor') === navy, 'active study tab is navy');
+  assert(await css('#studySubChips .chip.ch.active', 'backgroundColor') === navy, 'active chapter chip is navy');
+  await pg.focus('#studySearch');
+  assert(await css('#studySearch', 'borderTopColor') === await tokenRgb('--navy-light'), 'search focus border is navy-light');
+  await pg.$eval('#studySearch', e => e.blur());
   await pg.click('#studySubChips .chip:nth-child(3)'); // Ch3
   assert((await count()) === '91 / 91 facts', 'Ch3 91 facts: ' + await count());
   await pg.screenshot({ path: 'shot-chapters.png' });
