@@ -90,11 +90,33 @@ function migrateLegacyKey(oldKey, newKey, rule) {
   if (oldValue === null) return true;
   const newValue = localStorage.getItem(newKey);
   const value = legacyTargetValue(newKey, oldValue, newValue, rule);
-  if (value !== newValue && !writeVerified(newKey, value, newValue)) {
-    LS_KEY_FALLBACK[newKey] = oldKey;
-    return false;
-  }
+  if (value !== newValue && !writeNewValue(oldKey, newKey, { value, oldValue, newValue })) return false;
   localStorage.removeItem(oldKey);
+  return true;
+}
+
+// false keeps the old key; LS_KEY_FALLBACK sends this load's writes to it only when the next load cannot lose them
+function writeNewValue(oldKey, newKey, { value, oldValue, newValue }) {
+  // the stale new value must not win the next merge: record it first (W-004) or, failing that, fold it into the old key
+  const recorded = newValue === null || reserveFallbackRecord(newKey);
+  if (recorded && writeVerified(newKey, value, newValue)) return true;
+  if (recorded || foldIntoOldKey(oldKey, newKey, value, oldValue)) {
+    LS_KEY_FALLBACK[newKey] = oldKey;
+  }
+  // otherwise (nothing writable) stay on the new key: its writes win the next merge and the old key is kept
+  return false;
+}
+
+function reserveFallbackRecord(newKey) {
+  const keys = readFallbackRecord();
+  if (keys.includes(newKey)) return true;
+  return writeVerified(MIGRATE_FALLBACK_LS, JSON.stringify([...keys, newKey]), localStorage.getItem(MIGRATE_FALLBACK_LS));
+}
+
+// no record possible: the old key takes the merged value and the stale new key goes, so only one copy is left
+function foldIntoOldKey(oldKey, newKey, value, oldValue) {
+  if (!writeVerified(oldKey, value, oldValue)) return false;
+  localStorage.removeItem(newKey);
   return true;
 }
 

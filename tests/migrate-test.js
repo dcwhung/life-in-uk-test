@@ -174,6 +174,28 @@ const MARKER = P + 'migrated';
   assert(afterFallback['1.0'] === 3 && afterFallback['9.9'] === 1, 'next load: entries from both sides kept');
   assert(!('practiceStreak' in s) && MARKER in s && !(RECORD in s), 'next load: old key gone, marker written, fallback record cleared');
 
+  // g3. S-010: the merge write AND the fallback record write both throw → the session's progress must still win next load
+  await pg.addInitScript(() => {
+    if (!sessionStorage.getItem('stubRecord')) return;
+    const innerSet = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (k, v) {
+      if (k === 'lifeuk.migrateFallback') throw new DOMException('quota', 'QuotaExceededError');
+      return innerSet.call(this, k, v);
+    };
+  });
+  await pg.evaluate(() => { sessionStorage.removeItem('stubOff'); sessionStorage.setItem('stubRecord', '1'); });
+  await seed({ practiceStreak: LEGACY.practiceStreak, [P + 'practiceStreak']: '{"1.2":0,"9.9":1}' });
+  await pg.evaluate(() => { streaks['1.2'] = 3; saveStreaks(); });
+  s = await dump();
+  assert(!(RECORD in s) && !(MARKER in s), 'record write fails: no record, no marker');
+  await pg.evaluate(() => { sessionStorage.setItem('stubOff', '1'); sessionStorage.removeItem('stubRecord'); });
+  await pg.reload();
+  s = await dump();
+  const afterNoRecord = JSON.parse(s[P + 'practiceStreak']);
+  assert(afterNoRecord['1.2'] === 3, 'next load: progress from the load without a record kept (1.2 → 3): ' + s[P + 'practiceStreak']);
+  assert(afterNoRecord['1.0'] === 3 && afterNoRecord['9.9'] === 1, 'next load: legacy and mixed-page entries kept');
+  assert(!('practiceStreak' in s) && MARKER in s && !(RECORD in s), 'next load: old key gone, marker written, no record');
+
   assert(errs.length === 0, 'no page errors: ' + errs.join(' | '));
   console.log('MIGRATE PASS');
   await b.close();

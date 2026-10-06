@@ -209,6 +209,7 @@ v0.58 起全部 key 都有 `lifeuk.` prefix（`LS_PREFIX`，`js/core/config.js`�
   - 任何一邊 parse 唔到做 plain object（壞 JSON、array、scalar）→ 留新 value，唔會 throw
   - 寫 merge 結果、讀返確認先刪舊 key；寫唔到 → 新 key 還原做原本 value、記 fallback（今次載入讀寫舊 key）、舊 key 保留，下次載入再 merge
   - **W-004**：fallback 嗰陣新 key 已經有 value → 將新 key 名記入 `lifeuk.migrateFallback`。因為今次載入嘅答題寫咗落舊 key，新 key 反而係舊資料；下次載入對呢啲 key **倒轉優先次序**：object map `{...新, ...舊}`、prefs 用舊 value、parse 唔到用舊 value。成功搬完嘅 key 會喺記錄度拎走；寫 marker 時成個記錄刪走
+  - **S-010**：個記錄喺寫新 key **之前**先寫（reserve）。記錄都寫唔到（quota 爆到連幾十 byte 都冇）→ 唔寫新 key，改為將 merge 結果寫落**舊 key**（確認先）再刪走舊嘅新 key，今次載入用舊 key（下次載入淨係得舊 key，照抄）；連舊 key 都寫唔到 → 今次載入留喺新 key（寫得入就下次 merge 新嘅贏，寫唔入就乜都冇改），兩個 key 都唔刪
 - 新舊都有，**有 marker** → 新 key 唔郁，刪舊 key（W-001，用戶接受嘅風險，見下面 v0.57 tab）
 - `lifeuk.migrated` 只喺**冇 marker 嘅一次載入入面全部 8 個 key 都處理完、冇 fallback** 先寫；空 storage 都會寫（之後 storage 入面最少有呢一個 key）
 - `OBSOLETE_LS`（`reviewOrder`，v0.53 起冇用）直接刪
