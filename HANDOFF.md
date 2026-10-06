@@ -217,7 +217,7 @@ v0.58 起全部 key 都有 `lifeuk.` prefix（`LS_PREFIX`，`js/core/config.js`�
 - 已知風險（用戶接受）：如果同一個瀏覽器仲開住 v0.57 嘅 tab，v0.58 搬完之後嗰個 tab 照寫舊 key，下次載入會因「新 key 優先」被刪；iOS 主畫面 app / 單一 tab 用法唔受影響；升級前關晒其他 tab
 - 已知風險（W-004 多 tab 版本）：tab X 喺 fallback（讀寫舊 key），同時 tab Y 搬完寫咗 marker 同清咗 `lifeuk.migrateFallback`；之後 X 再寫舊 key，下次載入有 marker →「新 key 優先」，X 喺 Y 搬完之後寫嘅進度會冇咗。要 quota 爆 + 兩個 tab 同時開先會發生
 - 唔喺對照表嘅 key（其他 app）完全唔掂；`tests/migrate-test.js`、`tests/upgrade-test.js` 驗證
-- **v0.58 之後唔好 rollback 去 v0.57**（CUI-0005）：v0.57 只讀冇 prefix 嘅 key，搬完之後會顯示空進度；喺 v0.57 寫入嘅舊 key，再升返 v0.58 時（有 marker →「新 key 優先」）會被刪走。出事要 roll forward，或者 revert 去某個 v0.58.x commit（新 file 仍然讀 `lifeuk.*`）
+- **v0.58 之後唔好 rollback 去 v0.57**（CUI-0005）：v0.57 只讀冇 prefix 嘅 key，搬完之後會顯示空進度；喺 v0.57 寫入嘅舊 key，再升返 v0.58 時（有 marker →「新 key 優先」）會被刪走。出事要 roll forward，或者 revert 去某個 v0.58.x commit（新 file 仍然讀 `lifeuk.*`）。**revert 定 roll forward 都一定要升 `APP_VERSION`**（例如 v0.59），否則 cache 名唔變，已安裝嘅 PWA 會一直用舊 cache，永遠攞唔到新 file
 
 ## 測試
 
