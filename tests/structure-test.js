@@ -68,6 +68,13 @@ function actionNames() {
   assert(colourLiterals.length === 0, 'no hex / rgb() colour literals in css outside css/base/tokens.css'
     + (colourLiterals.length ? ': ' + colourLiterals.join(', ') : ''));
 
+  // v0.60: white-on-dark text uses the 3 semantic steps (strong / muted / faint), not the old value-named alphas
+  const oldInverse = cssFiles(path.join(ROOT, 'css')).flatMap(f =>
+    fs.readFileSync(f, 'utf8').split('\n')
+      .map((line, i) => (/--text-inverse-[0-9]/.test(line) ? `${rel(f)}:${i + 1}` : null)).filter(Boolean));
+  assert(oldInverse.length === 0, 'no value-named --text-inverse-NN tokens in css (use strong / muted / faint)'
+    + (oldInverse.length ? ': ' + oldInverse.join(', ') : ''));
+
   const b = await chromium.launch(launchOpts);
   const pg = await b.newPage();
   const errs = [];

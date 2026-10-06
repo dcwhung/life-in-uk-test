@@ -50,8 +50,8 @@
 .exam-btn:not(.done) { overflow: hidden; }
 .exam-btn .mastery-bar { border-radius: 0; }
 .exam-btn.all .exam-mastery { color: var(--gold-light); }
-.exam-btn .exam-sub { display: block; font-size: var(--fs-2xs); font-weight: 600; color: var(--text-inverse-65); margin-top: 2px; }
-.exam-btn.all .exam-mastery.zero { color: var(--text-inverse-55); }
+.exam-btn .exam-sub { display: block; font-size: var(--fs-2xs); font-weight: 600; color: var(--text-inverse-muted); margin-top: 2px; }
+.exam-btn.all .exam-mastery.zero { color: var(--text-inverse-faint); }
 .mode-icon { font-size: 26px; margin-bottom: 6px; }
 .mode-title { font-size: var(--fs-md); font-weight: 700; color: var(--navy); }
 .mode-desc-panel {
