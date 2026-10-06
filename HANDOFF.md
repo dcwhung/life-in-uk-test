@@ -138,14 +138,12 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | `shuffle-test.js` | 408 題選項打亂後答案對應 |
 | `study-test.js`、`subfilter-test.js` | Study 四個 tab、搜尋、書籤、sub-filter |
 | `diff-test.js` | 難度數據完整、按難度練習、結果統計 |
-| `yue-test.js`、`oy-test.js`、`yue2-test.js` | Translate 掣、選項翻譯、答案框格式（`yue2-test` 會跳去第一條有選項翻譯嘅題目，避免抽到年份題隨機失敗） |
+| `yue-test.js`、`oy-test.js`、`yue2-test.js` | Translate 掣、選項翻譯、答案框格式（`yue2-test` 跳去、`oy-test` 搬第一條有選項翻譯嘅題目去最前，避免抽到年份／True-False 題隨機失敗） |
 | `mode-test.js`、`info-test.js` | 首頁 mode/tab、持久化、ⓘ popover |
 | `mastery-test.js` | 掌握機制、進度顯示、兩個 reset |
 | `result-test.js` | 結果頁 PASSED / remark 只喺 Exam 1–17 顯示；重做掣按 mode 改字 |
 | `batch-test.js` | Practice 每輪最多 25 題、下一輪由未掌握題抽 |
 | `similar-test.js` | Similar Questions section、Practise these N 臨時 session 同返回 |
-
-`oy-test.js` 會隨機抽第一題，抽到冇選項翻譯嘅題（年份／True-False）會 fail，大約三次一次，同 `yue2-test` 之前嘅問題一樣，未修。
 
 ## 已知限制 / 未做
 

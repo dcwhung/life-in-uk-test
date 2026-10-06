@@ -19,7 +19,14 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
     return { bad, translated, total, misaligned };
   });
   assert(r.bad === 0 && r.misaligned === 0, `oy aligned for all questions and after shuffle (${r.translated}/${r.total} options translated)`);
-  await pg.evaluate(() => { pendingMode = 'practice'; startExam(1); });
+  // the session order is shuffled: move a question that has option translations to the front,
+  // otherwise a year / True-False question (oy all "") can land first and nothing is shown
+  await pg.evaluate(() => {
+    pendingMode = 'practice'; startExam(1);
+    const i = state.questions.findIndex(q => q.oy.some(Boolean));
+    state.questions.unshift(...state.questions.splice(i, 1));
+    renderQuestion();
+  });
   assert((await pg.$eval('#yueToggle', e => e.textContent)) === 'Translate', 'button says Translate');
   assert((await pg.$$('.opt-yue')).length === 0, 'no option translations before toggle');
   await pg.click('#yueToggle');
@@ -41,9 +48,13 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert((await pg.$$('.opt-yue')).length === n, 'option translations stay after reveal');
   await pg.screenshot({ path: 'shot-translate.png' });
   // year-only options: no translation shown
-  await pg.evaluate(() => { state.current = 2; state.yueShown[2] = true; renderQuestion(); }); // Q 1.2 all years
-  const yrs = await pg.evaluate(() => state.questions[2].o.every(o => /^\d{4}$/.test(o)) ? 'years' : 'other');
-  if (yrs === 'years') assert((await pg.$$('.opt-yue')).length === 0, 'year-only options show no translation line');
+  const yearIdx = await pg.evaluate(() => {
+    const i = state.questions.findIndex(q => q.o.every(o => /^\d{4}$/.test(o)));
+    if (i !== -1) { state.current = i; state.yueShown[i] = true; renderQuestion(); }
+    return i;
+  });
+  assert(yearIdx !== -1, 'session has a year-only question');
+  assert((await pg.$$('.opt-yue')).length === 0, 'year-only options show no translation line');
   // exam mode: never
   await pg.evaluate(() => { pendingMode = 'exam'; startExam(1); state.yueShown[0] = true; renderQuestion(); });
   assert((await pg.$$('.opt-yue')).length === 0, 'exam mode never shows option translations');
