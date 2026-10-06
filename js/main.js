@@ -4,7 +4,14 @@
 // During a service-worker update a cached older index.html can load these scripts without the tags it never had
 // (same cutover as CUI-0004): fetch the missing ones first, in this order, then start.
 // locale + i18n: pre-v0.59 shells; sideSession: pre-v0.62 shells (startExam / leaveToHome call it)
-const LATE_BOOT_SCRIPTS = ['locales/en.js', 'js/core/i18n.js', 'js/screens/sideSession.js'];
+// W-010: "loaded" = the file's global exists, not that its <script> tag does — a current shell whose i18n.js failed
+// still has the tag, and must get the same retry → reload → fallback (S-014). Ready files are never re-run
+// (re-running en.js would throw "LOCALES has already been declared").
+const LATE_BOOT_SCRIPTS = [
+  { src: 'locales/en.js', ready: () => typeof LOCALES !== 'undefined' },
+  { src: 'js/core/i18n.js', ready: () => typeof t === 'function' },
+  { src: 'js/screens/sideSession.js', ready: () => typeof isSideSession === 'function' },
+];
 // shown when the scripts still fail after one reload; t() is not available then, so it cannot be a locale key
 const I18N_BOOT_FALLBACK_MSG = 'The app could not finish loading. Please check your connection and reload the page.';
 
@@ -18,7 +25,7 @@ function loadScript(src) {
   });
 }
 function missingBootScripts() {
-  return LATE_BOOT_SCRIPTS.filter(src => !document.querySelector(`script[src="${src}"]`));
+  return LATE_BOOT_SCRIPTS.filter(s => !s.ready()).map(s => s.src);
 }
 async function loadBootScripts(list) {
   for (const src of list) await loadScript(src); // in order: i18n.js after the locale

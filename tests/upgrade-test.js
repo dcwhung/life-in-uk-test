@@ -10,6 +10,7 @@ const { startPagesServer, appFiles } = require('./pages-server');
 //   3. real service-worker upgrade over http: v0.57 SW → deploy current → reloads → byte-exact values, same UI
 //   4. third mix: v0.58 files + the v0.57 utils.js (no lazy migration) — the next full load's merge keeps everything
 //   5. S-014: mixed shell whose locale file fails to load — one reload, then an English fallback message (no half-started page)
+//      W-010: the current shell (all tags present) whose i18n.js fails to load — same reload + fallback
 // The v0.57 files come from git: V057_REF is the last v0.57 commit on main (merge of PR #29), pinned so a later
 // main does not silently turn this into a same-version test.
 const ROOT = path.resolve(__dirname, '..');
@@ -106,22 +107,23 @@ async function mixedShell(b) {
 // 5. S-014: the old shell's locale fetch fails (file missing) — main.js reloads once, then shows its fallback text
 const I18N_BOOT_FALLBACK = fs.readFileSync(path.join(ROOT, 'js/main.js'), 'utf8').match(/const I18N_BOOT_FALLBACK_MSG =\s*'([^']+)'/);
 const BOOT_SETTLE_MS = 1000;
-async function i18nBootFailure(b) {
+// W-010: same for the current shell (every tag present) when js/core/i18n.js fails — the tag alone must not count as loaded
+async function i18nBootFailure(b, { tag, shell, missing }) {
   const dir = tmpDir('noi18n');
   copyCurrent(dir);
-  fs.writeFileSync(path.join(dir, 'v057.html'), showV057('index.html'));
-  fs.rmSync(path.join(dir, 'locales/en.js'));
+  if (shell === 'v057.html') fs.writeFileSync(path.join(dir, shell), showV057('index.html'));
+  fs.rmSync(path.join(dir, missing));
   const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
   const errs = []; pg.on('pageerror', e => errs.push(e.message));
   // main-frame navigations, not 'load': the reload can happen before the first load event fires
   let loads = 0; pg.on('framenavigated', f => { if (f === pg.mainFrame()) loads++; });
-  await pg.goto('file://' + path.join(dir, 'v057.html'));
+  await pg.goto('file://' + path.join(dir, shell));
   await pg.waitForTimeout(BOOT_SETTLE_MS);
-  assert(loads === 2, `locale load failure: exactly one reload (${loads} page loads)`);
+  assert(loads === 2, `${tag}: exactly one reload (${loads} page loads)`);
   assert(I18N_BOOT_FALLBACK, 'main.js names an I18N_BOOT_FALLBACK_MSG');
   const grid = await text(pg, '#examGrid');
-  assert(grid === I18N_BOOT_FALLBACK[1], 'after the reload: #examGrid shows the English fallback: ' + grid);
-  assert(errs.length === 0, 'locale load failure: no page errors: ' + errs.join(' | '));
+  assert(grid === I18N_BOOT_FALLBACK[1], `${tag}: after the reload #examGrid shows the English fallback: ` + grid);
+  assert(errs.length === 0, `${tag}: no page errors: ` + errs.join(' | '));
   await pg.close();
 }
 
@@ -238,7 +240,8 @@ function checkV057Ref() {
   await oppositeMix(b);
   await swUpgrade(b);
   await v057UtilsMix(b);
-  await i18nBootFailure(b);
+  await i18nBootFailure(b, { tag: 'old shell, locale missing', shell: 'v057.html', missing: 'locales/en.js' });
+  await i18nBootFailure(b, { tag: 'current shell, i18n.js missing', shell: 'index.html', missing: 'js/core/i18n.js' });
   console.log('UPGRADE PASS');
   await b.close();
   cleanUp();
