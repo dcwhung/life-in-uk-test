@@ -28,6 +28,8 @@
   .result-emoji { font-size: 48px; }
   .result-score { font-size: 46px; font-weight: 900; color: var(--navy); line-height: 1; margin-top: 8px; }
   .result-score span { font-size: 22px; font-weight: 500; color: var(--text-muted); }
+  /* fail: whole score line red; pass stays navy */
+  .result-score.fail, .result-score.fail span { color: var(--red-light); }
   .result-label { font-size: 15px; font-weight: 800; color: var(--red); margin-top: 8px; letter-spacing: 0.02em; }
   .result-sub { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
   .rb { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 18px; }
@@ -63,14 +65,15 @@
 </head>
 <body>
 <div class="mock-bar">
-  <b>PREVIEW v2</b> · Exam result page — mode icon 📝 · score shown once · dots (option A) · bookmark icon in review. 撳圓點會跳去下面嗰題。
+  <b>PREVIEW v3</b> · Exam result page — 唔合格分數紅色、合格黑色。撳圓點會跳去下面嗰題。<br>
+  <button class="mock-tab" onclick="demo(false)">唔合格 17/24</button><button class="mock-tab" onclick="demo(true)">合格 19/24</button>
 </div>
 
 <div class="wrap">
   <div class="result-card">
-    <div class="result-emoji" title="Exam mode">📝</div>
+    <div class="result-emoji" id="emoji" title="Exam mode">📝</div>
     <div class="result-score" id="score"></div>
-    <div class="result-label">NEEDS IMPROVEMENT</div>
+    <div class="result-label" id="verdict">NEEDS IMPROVEMENT</div>
     <div class="result-sub">You need 18/24 (75%) to pass the real test.</div>
     <div class="rdots-wrap" id="rwrap">
       <div class="rdots" id="rdots"></div>
@@ -89,12 +92,19 @@
   const SKIPPED = [17];
   const FLAGGED = [1, 2, 12, 16, 22];
   const mode = 'A';
+  const PASS_MARK = 18;
+  let wrongSet = [2, 6, 9, 14, 19, 21];
+  function demo(pass) { wrongSet = pass ? [2, 9, 14, 21] : [2, 6, 9, 14, 19, 21]; render(); }
   const FLAG_ICON = '<svg class="rv-flag" viewBox="0 0 24 24" aria-label="Flagged"><path d="M7.5 3.5h9A2.5 2.5 0 0 1 19 6v14.5l-7-5.1-7 5.1V6a2.5 2.5 0 0 1 2.5-2.5z"/></svg>';
-  const status = i => SKIPPED.includes(i) ? 'skip' : WRONG.includes(i) ? 'bad' : 'ok';
+  const status = i => SKIPPED.includes(i) ? 'skip' : wrongSet.includes(i) ? 'bad' : 'ok';
 
   function render() {
     const ok = QS.filter((_, i) => status(i) === 'ok').length;
     document.getElementById('score').innerHTML = `${ok} <span>/ ${QS.length} · ${Math.round(ok / QS.length * 100)}%</span>`;
+    document.getElementById('score').classList.toggle('fail', ok < PASS_MARK);
+    document.getElementById('verdict').textContent = ok >= PASS_MARK ? 'PASSED' : 'NEEDS IMPROVEMENT';
+    document.getElementById('verdict').style.color = ok >= PASS_MARK ? 'var(--green)' : 'var(--red)';
+    document.getElementById('emoji').textContent = '📝';
     document.getElementById('rwrap').className = 'rdots-wrap flag' + mode;
     document.getElementById('rdots').innerHTML = QS.map((_, i) =>
       `<button class="rdot ${status(i)}${FLAGGED.includes(i) ? ' flag' : ''}" onclick="jump(${i})" title="Question ${i + 1}">${i + 1}</button>`).join('');
