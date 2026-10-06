@@ -1,0 +1,150 @@
+/* ── HOME SCREEN ── */
+.mode-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.mode-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 16px 10px;
+  border: 2px solid var(--border);
+  cursor: pointer;
+  transition: all 0.18s;
+  text-align: center;
+  font: inherit;
+}
+.mode-card:hover { border-color: var(--navy-light); transform: translateY(-2px); box-shadow: var(--shadow); }
+.mode-card.selected { border-color: var(--navy); background: #f0f4ff; }
+.practice-tabs { display: none; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 14px; }
+.practice-tabs.show { display: grid; }
+.exam-select-section.hidden { display: none; }
+.reset-row {
+  display: none;
+  align-items: center; gap: 12px; flex-wrap: wrap;
+  background: var(--card);
+  border: 1.5px dashed var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 24px;
+  font-size: 12px; color: var(--text-muted); line-height: 1.5;
+}
+.reset-row.show { display: flex; }
+.reset-hint { flex: 1; min-width: 180px; }
+.reset-hint b { color: var(--navy); }
+.reset-btn {
+  background: var(--card);
+  border: 1.5px solid var(--red-light);
+  color: var(--red);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font: inherit; font-size: 12px; font-weight: 700;
+  cursor: pointer; white-space: nowrap;
+}
+.reset-btn:hover { background: var(--red-light); color: #fff; }
+/* mastery progress inside set buttons */
+.chapter-btn { position: relative; overflow: hidden; }
+.chapter-btn .ch-count.mastery { color: var(--green); font-weight: 700; }
+.chapter-btn .ch-count.mastery.zero { color: var(--text-muted); font-weight: 500; }
+.mastery-bar { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--green-light); border-radius: 0 2px 2px 0; }
+.chapter-btn.complete { border-color: var(--green-light); }
+.exam-btn .exam-mastery { display: block; font-size: 10px; font-weight: 600; color: var(--green); margin-top: 2px; }
+.exam-btn .exam-mastery.zero { color: var(--text-muted); font-weight: 500; }
+/* clip the mastery bar to the rounded box; .done keeps overflow for its ✓ badge (exam mode only, no bar) */
+.exam-btn:not(.done) { overflow: hidden; }
+.exam-btn .mastery-bar { border-radius: 0; }
+.exam-btn.all .exam-mastery { color: var(--gold-light); }
+.exam-btn .exam-sub { display: block; font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.65); margin-top: 2px; }
+.exam-btn.all .exam-mastery.zero { color: rgba(255,255,255,0.55); }
+.mode-icon { font-size: 26px; margin-bottom: 6px; }
+.mode-title { font-size: 14px; font-weight: 700; color: var(--navy); }
+.mode-desc-panel {
+  display: none;
+  background: var(--card);
+  border-left: 4px solid var(--navy);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 13px; color: var(--text-muted); line-height: 1.55;
+  margin-bottom: 24px;
+}
+.mode-desc-panel.show { display: block; }
+.mode-desc-panel strong { color: var(--navy); }
+.exam-select-section { margin-bottom: 24px; }
+.exam-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; }
+.exam-btn {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 6px;
+  font-size: 13px; font-weight: 700;
+  color: var(--navy);
+  cursor: pointer; text-align: center;
+  transition: all 0.15s;
+  position: relative;
+}
+.exam-btn:hover { border-color: var(--navy); background: var(--navy); color: #fff; }
+.exam-btn.done { border-color: var(--green); color: var(--green); }
+.exam-btn.done::after {
+  content: '✓';
+  position: absolute; top: -6px; right: -6px;
+  background: var(--green); color: #fff;
+  border-radius: 50%; width: 16px; height: 16px;
+  font-size: 10px; display: flex; align-items: center; justify-content: center;
+  font-weight: 700;
+}
+.exam-btn.all {
+  background: linear-gradient(135deg, var(--navy), var(--navy-mid));
+  color: #fff; border-color: transparent;
+  grid-column: 1 / -1;
+  padding: 12px;
+}
+
+/* practice "My Review": sets built from what the user has done (wrong answers, flagged) */
+.my-review { display: none; margin-bottom: 4px; }
+.my-review.show { display: block; }
+.my-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px; }
+.my-tile {
+  background: var(--card); border: 2px solid var(--border); border-radius: 12px;
+  padding: 12px 12px 11px; text-align: left; cursor: pointer; box-shadow: var(--shadow-sm); font: inherit;
+}
+.my-tile .t-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.my-tile .t-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 900; }
+.my-tile.wrong { border-left: 4px solid var(--red-light); }
+.my-tile.wrong .t-icon { background: #fdf0ef; color: var(--red-light); }
+.my-tile.flagged { border-left: 4px solid var(--orange); }
+.my-tile.flagged .t-icon { background: #fdf3e8; }
+.my-tile .t-icon svg { width: 17px; height: 17px; }
+.my-tile .t-num { font-size: 24px; font-weight: 900; color: var(--navy); line-height: 1; }
+.my-tile b { display: block; font-size: 13.5px; color: var(--navy); }
+.my-tile .sub { display: block; font-size: 11px; color: var(--text-muted); margin-top: 2px; line-height: 1.4; }
+.my-tile.empty { cursor: default; opacity: 0.6; border-left-color: var(--border); box-shadow: none; }
+.my-note { font-size: 11px; color: var(--text-muted); margin-bottom: 20px; }
+.bm-inline { width: 12px; height: 12px; vertical-align: -2px; }
+.bm-inline path { fill: none; stroke: var(--text-muted); stroke-width: 2; stroke-linejoin: round; }
+.practice-by-title { display: none; }
+.practice-by-title.show { display: block; }
+
+/* ── HOME: chapter / difficulty practice ── */
+.chapter-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+.chapter-btn {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex; align-items: center; gap: 10px;
+  cursor: pointer; text-align: left;
+  font-size: 13px; color: var(--navy);
+  transition: all 0.15s;
+}
+.chapter-btn:hover { border-color: var(--purple); }
+.chapter-btn .ch-num {
+  background: var(--purple); color: #fff;
+  border-radius: 6px; padding: 3px 8px;
+  font-size: 11px; font-weight: 800; flex-shrink: 0;
+}
+.chapter-btn .ch-name { font-weight: 700; flex: 1; }
+.chapter-btn .ch-count { color: var(--text-muted); font-size: 12px; white-space: nowrap; }
+.diff-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+.diff-btn .stars { font-size: 14px; flex: 1; }
+.diff-btn .ch-name { flex: 0; white-space: nowrap; color: var(--text-muted); font-weight: 600; font-size: 12px; }
+
+@media (max-width: 480px) {
+  .mode-card { padding: 14px 6px; }
+  .mode-title { font-size: 13px; }
+}

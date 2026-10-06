@@ -1,0 +1,23 @@
+/* Design tokens: colours, radius, shadows */
+:root {
+  --orange: #d9822b;
+  --navy: #1a2744;
+  --navy-mid: #243460;
+  --navy-light: #2e4080;
+  --gold: #c9a84c;
+  --gold-light: #e8c97a;
+  --green: #2d6a4f;
+  --green-light: #52b788;
+  --red: #922b21;
+  --red-light: #e74c3c;
+  --purple: #6b3fa0;
+  --purple-light: #9b6dca;
+  --bg: #f0f2f7;
+  --card: #ffffff;
+  --text: #1a2744;
+  --text-muted: #5a6a8a;
+  --border: #dde2f0;
+  --radius: 14px;
+  --shadow: 0 4px 24px rgba(26,39,68,0.10);
+  --shadow-sm: 0 2px 8px rgba(26,39,68,0.07);
+}

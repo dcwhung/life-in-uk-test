@@ -1,0 +1,40 @@
+/* tabs: practice categories (home) and study sections */
+.practice-tab, .study-tab {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  padding: 9px 4px;
+  font-size: 12px; font-weight: 700; color: var(--text-muted);
+  cursor: pointer; text-align: center;
+  transition: all 0.15s;
+}
+.practice-tab { font-family: inherit; }
+.practice-tab.active { background: var(--navy); border-color: var(--navy); color: #fff; }
+.study-tabs {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 6px; margin-bottom: 12px;
+}
+.study-tab.active { background: var(--purple); border-color: var(--purple); color: #fff; }
+
+.chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.chip {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 12px; font-weight: 600; color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.chip.active { background: var(--navy); border-color: var(--navy); color: #fff; }
+.chip.war.active { background: var(--red); border-color: var(--red); }
+.chip.ch.active { background: var(--purple); border-color: var(--purple); }
+.chip:disabled { opacity: 0.45; cursor: default; }
+
+/* difficulty stars */
+.stars { color: var(--gold); letter-spacing: 1px; font-size: 12px; white-space: nowrap; }
+.stars .off { color: var(--border); }
+
+@media (max-width: 480px) {
+  .study-tab { font-size: 11px; padding: 8px 2px; }
+}
