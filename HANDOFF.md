@@ -1,4 +1,4 @@
-# Life in the UK Test PWA — Handoff (v0.38)
+# Life in the UK Test PWA — Handoff (v0.39)
 
 - **Repo:** https://github.com/dcwhung/life-in-uk-test （main branch，GitHub Pages root `/`）
 - **Live:** https://dcwhung.github.io/life-in-uk-test/
@@ -86,7 +86,7 @@
 **首頁**
 - Header：`Life in the UK ⓘ` + `Exam Practice v${APP_VERSION}`；ⓘ 彈出簡介 popover
 - 三個 mode 掣一行：Study / Practice / Exam；預設 Practice；描述撳咗先顯示
-- Practice 下三個 tab：By Difficulty（預設）/ By Chapter / By Exam，每粒掣顯示「已掌握/總數 · %」+ 進度條；下面嘅提示寫明「連續答啱 3 次 = 掌握、每輪最多 25 題、每題一輪一次」
+- Practice 下三個 tab：By Difficulty（預設；v0.39 起難度只顯示英文：Easy / Basic / Medium / Hard / Expert / Hard & Expert）/ By Chapter / By Exam，每粒掣顯示「已掌握/總數 · %」+ 進度條；下面嘅提示寫明「連續答啱 3 次 = 掌握、每輪最多 25 題、每題一輪一次」
 - Exam 下只有 Select Exam（完成過有 ✓）
 - Mode 同 tab 記住喺 localStorage `homePrefs`
 - 兩個 reset 掣：Practice「Reset progress」、Exam「Reset completed exams」（都要 confirm）
@@ -99,7 +99,8 @@
 - **Similar Questions（v0.35）：** 答完（啱或錯）喺 Prev / Next 掣下面顯示同一條 `STUDY` fact 嘅其他題目（`fact.src` 除本題外嘅 key；每題只屬一條 fact，408 題入面 284 題有類似題）。內容：Core Fact（英文 + 廣東話）、「Appears in」題號 chip（本題／已掌握／練緊／0/3）、每題 `Exam N · Qn` + 🔥 進度 + 題目同翻譯（唔顯示答案）。Exam mode 唔顯示；冇類似題就唔顯示
 - **Practise these N：** 開臨時 session（`examNum = 'similar'`），按列出次序每題做一次，照計 `practiceStreak`；最後一題 Next 變「↩ Back」（v0.36 起；之前寫「Back to Question n」會誤以為係返去臨時 session 第 n 題），還原原本 session 同題目位置；session 內唔再顯示 Similar Questions；返 Home 或開新練習會清走暫存 session（`similarReturn`）
 - 按 Chapter / Difficulty 練習唔會標記為完成 exam
-- 結果頁重做掣：Exam mode「Retry Exam」，Practice mode「Practise Again」（v0.37）
+- 結果頁重做掣：Exam mode「Retry Exam」，Practice mode「Practise Again」（v0.37）；v0.39 起「重做 / Choose Another」掣喺 Review Answers 上面同最底各有一組（`.retry-btn`，兩粒一齊改字）
+- 結果頁 Review Answers 有「Original order / Wrong first」chip（v0.39）：Wrong first 將答錯題排最前，題號保留原本次序；選擇存 localStorage `reviewOrder`
 - 結果頁 PASSED / NEEDS IMPROVEMENT 同 remark 只喺 Exam 1–17（Exam mode 或 Practice > By Exam）顯示；Chapter / Difficulty / All Exams 只顯示分數
 
 **Exam mode**
@@ -122,6 +123,7 @@
 | `completedExams` | `{ examNum: true }` |
 | `practiceStreak` | `{ "exam.idx": n }` |
 | `homePrefs` | `{ mode, view }` |
+| `reviewOrder` | `"original"` / `"wrongFirst"`（結果頁 review 排序） |
 | `studyPrefs` / `studyMastered` / `studyBookmarks` | Study 頁狀態 |
 
 ## 測試
@@ -139,11 +141,11 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | `test.js` | Exam/Practice 基本流程、多選、submit 掣 |
 | `shuffle-test.js` | 408 題選項打亂後答案對應 |
 | `study-test.js`、`subfilter-test.js` | Study 四個 tab、搜尋、書籤、sub-filter |
-| `diff-test.js` | 難度數據完整、按難度練習、結果統計 |
+| `diff-test.js` | 難度數據完整、按難度練習、結果統計、難度掣只顯示英文 |
 | `yue-test.js`、`oy-test.js`、`yue2-test.js` | Translate 掣、選項翻譯、答案框格式（`yue2-test` 跳去、`oy-test` 搬第一條有選項翻譯嘅題目去最前，避免抽到年份／True-False 題隨機失敗） |
 | `mode-test.js`、`info-test.js` | 首頁 mode/tab、持久化、ⓘ popover |
 | `mastery-test.js` | 掌握機制（每輪每題一次、Y 固定、Ch1 要 3 輪先全掌握）、進度顯示、兩個 reset |
-| `result-test.js` | 結果頁 PASSED / remark 只喺 Exam 1–17 顯示；重做掣按 mode 改字 |
+| `result-test.js` | 結果頁 PASSED / remark 只喺 Exam 1–17 顯示；重做掣按 mode 改字、上下兩組掣、Wrong first 排序同記住選擇 |
 | `batch-test.js` | Practice 每輪最多 25 題、下一輪由未掌握題抽、最後幾題每輪再出直至掌握 |
 | `similar-test.js` | Similar Questions section、Practise these N 臨時 session 同返回 |
 
@@ -157,6 +159,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | v0.35 | dcwhung/life-in-uk-test#4 | **Similar Questions**：答完顯示同一 fact 嘅其他題目 + Core Fact + 「Practise these N」臨時 session；加 `mockups/similar-question-map.html`、`tests/similar-test.js` |
 | v0.36–v0.37 | dcwhung/life-in-uk-test#5 | 臨時 session 返回掣改做「↩ Back」；Prev / Next 搬上 Similar Questions 前面；Practice 結果頁重做掣改做「Practise Again」（Exam mode 仍係「Retry Exam」） |
 | — | dcwhung/life-in-uk-test#6 | `oy-test` 唔再隨機 fail（搬有選項翻譯嘅題目去最前；年份題檢查改為搵出嚟先驗） |
+| v0.39 | — | 難度掣拎走中文；結果頁 Review Answers 加「Original order / Wrong first」；Review Answers 上面加多一組 Practise Again / Choose Another |
 | v0.38 | dcwhung/life-in-uk-test#7 | 取消 v0.32 嘅 in-session re-queue：每題一輪只出一次，「Question X of Y」嘅 Y 固定；未掌握題下一輪再出 |
 
 **Similar Questions 設計決定（v0.35，同用戶確認過）**

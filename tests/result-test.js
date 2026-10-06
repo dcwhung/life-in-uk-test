@@ -34,7 +34,17 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await finish('exam', 3);
   assert(await verdictShown(), 'verdict shown again after a non-exam set');
   // retry button names the mode: practice sets are not exams
-  const retryText = () => pg.$eval('#retryBtn', e => e.textContent);
+  // two button rows: one above Review Answers, one at the bottom; both carry the same label
+  const retryText = async () => {
+    const t = await pg.$$eval('#screenResult .retry-btn', els => els.map(e => e.textContent));
+    return t.length === 2 && t[0] === t[1] ? t[0] : 'mismatch: ' + t.join(' / ');
+  };
+  assert(await pg.evaluate(() => {
+    const rows = document.querySelectorAll('#screenResult .nav-row');
+    const review = document.getElementById('reviewList');
+    return rows.length === 2 && !!(rows[0].compareDocumentPosition(review) & Node.DOCUMENT_POSITION_FOLLOWING)
+      && !!(review.compareDocumentPosition(rows[1]) & Node.DOCUMENT_POSITION_FOLLOWING);
+  }), 'button rows above and below Review Answers');
   assert((await retryText()) === 'Retry Exam', 'Exam mode: Retry Exam');
   for (const set of [2, 'ch1', 'd1', 'all']) {
     await finish('practice', set);
@@ -42,6 +52,26 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   }
   await finish('exam', 1);
   assert((await retryText()) === 'Retry Exam', 'Retry Exam again after a practice set');
+  // review order: wrong answers first (original question numbers kept), choice remembered
+  const finishWithWrong = (wrongIdx) => pg.evaluate((wrongIdx) => {
+    pendingMode = 'practice'; startExam('ch1');
+    state.questions.forEach((q, i) => {
+      state.answers[i] = wrongIdx.includes(i) ? [q.o.findIndex((_, k) => !q.a.includes(k))] : [...q.a];
+    });
+    finishExam();
+  }, wrongIdx);
+  const chips = () => pg.$$eval('#reviewOrder .chip', els => els.map(e => e.textContent + (e.classList.contains('active') ? '*' : '')));
+  const items = () => pg.$$eval('#reviewList .review-item', els => els.map(e => e.querySelector('.rv-q').textContent.split('.')[0] + (e.classList.contains('rv-wrong') ? 'x' : '')));
+  await finishWithWrong([2, 5]);
+  assert(JSON.stringify(await chips()) === JSON.stringify(['Original order*', 'Wrong first']), 'order chips, original by default');
+  assert(JSON.stringify(await items()) === JSON.stringify(['1', '2', '3x', '4', '5', '6x', '7', '8', '9']), 'original order');
+  await pg.click('#reviewOrder .chip:nth-child(2)');
+  assert(JSON.stringify(await chips()) === JSON.stringify(['Original order', 'Wrong first*']), 'wrong-first chip active');
+  assert(JSON.stringify(await items()) === JSON.stringify(['3x', '6x', '1', '2', '4', '5', '7', '8', '9']), 'wrong answers first, original numbers kept');
+  await finishWithWrong([0]);
+  assert(JSON.stringify(await items()) === JSON.stringify(['1x', '2', '3', '4', '5', '6', '7', '8', '9']) && (await chips())[1] === 'Wrong first*', 'choice remembered for the next result');
+  await pg.click('#reviewOrder .chip:nth-child(1)');
+  assert(JSON.stringify(await chips()) === JSON.stringify(['Original order*', 'Wrong first']), 'back to original order');
   assert(errs.length === 0, 'no page errors: ' + errs.join(';'));
   await b.close(); console.log('RESULT PASS');
 })().catch(e => { console.error(e.message); process.exit(1); });

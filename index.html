@@ -457,6 +457,7 @@
   .rb-num { font-size: 22px; font-weight: 800; }
   .rb-lbl { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
 
+  .result-actions { margin-bottom: 20px; }
   .review-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
   .review-item {
     background: var(--card);
@@ -849,11 +850,18 @@
     <div class="section-title">By Difficulty · 按難度</div>
     <div class="diff-table" id="diffTable"></div>
 
+    <!-- same buttons above and below the review list, so a long review needs no scrolling -->
+    <div class="nav-row result-actions">
+      <button class="nav-btn secondary retry-btn" onclick="retryExam()">Retry Exam</button>
+      <button class="nav-btn" onclick="goHome()">Choose Another</button>
+    </div>
+
     <div class="section-title">Review Answers</div>
+    <div class="chip-row" id="reviewOrder"></div>
     <div class="review-list" id="reviewList"></div>
 
     <div class="nav-row">
-      <button class="nav-btn secondary" id="retryBtn" onclick="retryExam()">Retry Exam</button>
+      <button class="nav-btn secondary retry-btn" onclick="retryExam()">Retry Exam</button>
       <button class="nav-btn" onclick="goHome()">Choose Another</button>
     </div>
   </div>
@@ -867,7 +875,7 @@
 // ════════════════════════════════════════
 // APP VERSION — single source of truth (shown in the header, drives the SW cache name)
 // ════════════════════════════════════════
-const APP_VERSION = '0.38';
+const APP_VERSION = '0.39';
 
 // ════════════════════════════════════════
 // APP STATE
@@ -975,7 +983,7 @@ function examQuestions(n) {
   return EXAMS[n].map((q, idx) => ({ q, examNum: n, origIdx: idx }));
 }
 
-const DIFF_LABELS = { 1: 'Easy · 易', 2: 'Basic · 基本', 3: 'Medium · 中', 4: 'Hard · 難', 5: 'Expert · 極難' };
+const DIFF_LABELS = { 1: 'Easy', 2: 'Basic', 3: 'Medium', 4: 'Hard', 5: 'Expert' };
 const HARD_MIN = 4;
 function allQuestions() {
   const out = [];
@@ -997,7 +1005,7 @@ function buildDiffGrid() {
   }
   const mh = masteryOf(difficultyQuestions('hard'));
   html += `<button class="chapter-btn diff-btn${mh.pct === 100 ? ' complete' : ''}" onclick="startDifficulty('hard')">
-    <span class="stars">★★★★+</span><span class="ch-name">Hard &amp; Expert · 難題合集</span>
+    <span class="stars">★★★★+</span><span class="ch-name">Hard &amp; Expert</span>
     <span class="ch-count mastery${mh.mastered ? '' : ' zero'}">${masteryText(mh)}</span>${masteryBar(mh)}
   </button>`;
   grid.innerHTML = html;
@@ -1036,7 +1044,7 @@ function examLabel(examNum) {
   if (isChapterExam(examNum)) return `Chapter ${chapterOf(examNum)}`;
   if (isDifficultyExam(examNum)) {
     const lv = difficultyOf(examNum);
-    return lv === 'hard' ? 'Hard ★★★★+' : '★'.repeat(lv) + ' ' + DIFF_LABELS[lv].split(' ·')[0];
+    return lv === 'hard' ? 'Hard ★★★★+' : '★'.repeat(lv) + ' ' + DIFF_LABELS[lv];
   }
   if (examNum === SIMILAR_EXAM) return 'Similar Questions';
   return `Exam ${examNum}`;
@@ -1479,7 +1487,8 @@ function finishExam() {
   const showVerdict = isNumberedExam(state.examNum);
   lbl2.style.display = showVerdict ? '' : 'none';
   sub.style.display = showVerdict ? '' : 'none';
-  document.getElementById('retryBtn').textContent = state.mode === 'exam' ? 'Retry Exam' : 'Practise Again';
+  const retryLabel = state.mode === 'exam' ? 'Retry Exam' : 'Practise Again';
+  document.querySelectorAll('#screenResult .retry-btn').forEach(btn => { btn.textContent = retryLabel; });
   document.getElementById('rbCorrect').textContent = correct;
   document.getElementById('rbWrong').textContent = total - correct;
   document.getElementById('rbPct').textContent = pct + '%';
@@ -1505,24 +1514,47 @@ function finishExam() {
   }).join('');
 
   // review list
-  const list = document.getElementById('reviewList');
-  list.innerHTML = '';
-  state.questions.forEach((q, idx) => {
+  reviewItems = state.questions.map((q, idx) => {
     const userAns = state.answers[idx] || [];
-    const isCorrect = q.a.every(a => userAns.includes(a)) && userAns.length === q.a.length;
-    const correctText = q.a.map(ai => q.o[ai]).join(' | ');
-    const userText = userAns.length ? userAns.map(ai => q.o[ai]).join(' | ') : 'No answer';
-    const cls = 'review-item ' + (isCorrect ? 'rv-correct' : 'rv-wrong');
-    list.innerHTML += `<div class="${cls}">
+    return { q, idx, userAns, isCorrect: q.a.every(a => userAns.includes(a)) && userAns.length === q.a.length };
+  });
+  renderReview();
+
+  showScreen('screenResult');
+  window.scrollTo(0, 0);
+}
+
+// ── Review answers: original order or wrong answers first (choice remembered) ──
+const REVIEW_ORDER_LS = 'reviewOrder';
+const REVIEW_ORDERS = [
+  { key: 'original', label: 'Original order' },
+  { key: 'wrongFirst', label: 'Wrong first' },
+];
+let reviewItems = [];
+let reviewOrder = getLS(REVIEW_ORDER_LS) === 'wrongFirst' ? 'wrongFirst' : 'original';
+function setReviewOrder(order) {
+  reviewOrder = order;
+  setLS(REVIEW_ORDER_LS, order);
+  renderReview();
+}
+function orderedReviewItems() {
+  if (reviewOrder !== 'wrongFirst') return reviewItems;
+  return [...reviewItems.filter(r => !r.isCorrect), ...reviewItems.filter(r => r.isCorrect)];
+}
+function reviewItemHtml({ q, idx, userAns, isCorrect }) {
+  const correctText = q.a.map(ai => q.o[ai]).join(' | ');
+  const userText = userAns.length ? userAns.map(ai => q.o[ai]).join(' | ') : 'No answer';
+  return `<div class="review-item ${isCorrect ? 'rv-correct' : 'rv-wrong'}">
       <div class="rv-q">${idx + 1}. ${q.q}</div>
       ${!isCorrect ? `<div class="rv-your">Your answer: ${userText}</div>` : ''}
       <div class="rv-correct-ans">✅ ${correctText}</div>
       <div class="rv-yue">【廣東話】${q.yue}${q.note ? '\n💡 備注：\n' + q.note : ''}</div>
     </div>`;
-  });
-
-  showScreen('screenResult');
-  window.scrollTo(0, 0);
+}
+function renderReview() {
+  document.getElementById('reviewOrder').innerHTML = REVIEW_ORDERS.map(o =>
+    `<button class="chip${reviewOrder === o.key ? ' active' : ''}" onclick="setReviewOrder('${o.key}')">${o.label}</button>`).join('');
+  document.getElementById('reviewList').innerHTML = orderedReviewItems().map(reviewItemHtml).join('');
 }
 
 function retryExam() {
