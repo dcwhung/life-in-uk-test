@@ -11,9 +11,10 @@ const LEGACY = {
   // spaces kept on purpose: migration must copy the raw string, not re-serialise it
   practiceStreak: '{"1.0":3, "1.1":3, "1.2":1, "2.5":3, "3.4":2, "7.7":0}',
   reviewOrder: 'original',
-  studyBookmarks: '{}',
+  studyBookmarks: '{"7":true}',
+  studyMastered: '{"12":true,"40":true}',
   studyPrefs: '{"tab":"geo","chapter":4,"hideMastered":false,"bookmarksOnly":false}',
-  wrongList: '{}',
+  wrongList: '{"3.4":true,"8.1":true}',
 };
 const FOREIGN = {
   'run365.prefs': '{"units":"km","goal":365}',
@@ -44,7 +45,7 @@ const P = 'lifeuk.';
   }
   assert(OLD_KEYS.every(k => !(k in s)) && !('reviewOrder' in s), 'legacy keys and obsolete reviewOrder removed');
   assert(Object.entries(FOREIGN).every(([k, v]) => s[k] === v), 'other apps\' keys byte-identical');
-  assert(!(P + 'studyMastered' in s) && !(P + 'reviewOrder' in s), 'no key created for data that was never there');
+  assert(!(P + 'reviewOrder' in s), 'obsolete reviewOrder not carried over');
   assert(await pg.$eval('#modePractice', e => e.classList.contains('selected')) && await pg.$eval('#ptabChapter', e => e.classList.contains('active')), 'home restored to Practice › By Chapter');
   assert((await text('#tileFlagged .t-num')) === '5', 'My Review Flagged tile shows 5');
   assert((await text('#examGrid .exam-btn:nth-child(2) .exam-mastery')).startsWith('2/24'), 'Exam 1 mastery reflects streak-3 entries');
@@ -55,6 +56,8 @@ const P = 'lifeuk.';
   await pg.click('#modePractice');
   await pg.click('#modeStudy');
   assert(await pg.$eval('.study-tab.active', e => e.dataset.tab) === 'geo', 'Study opens on the geo tab');
+  assert(await pg.evaluate(() => keysOf(study.mastered).length === 2 && keysOf(study.bookmarks).length === 1), 'Study mastered / bookmarks restored');
+  assert((await text('#tileWrong .t-num')) === '2', 'My Review Wrong tile shows 2');
 
   // c. idempotent across reloads; app writes only lifeuk.* keys
   const before = await dump();
@@ -84,6 +87,38 @@ const P = 'lifeuk.';
   // e. fresh storage: migration creates nothing
   await seed({});
   assert(Object.keys(await dump()).length === 0, 'fresh storage: no keys created at load');
+
+  // f. fail-safe: a write that throws (quota) or does not stick keeps the old key in use this load
+  await pg.addInitScript(() => {
+    if (sessionStorage.getItem('stubOff')) return;
+    const realSet = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (k, v) {
+      if (k === 'lifeuk.practiceStreak') throw new DOMException('quota', 'QuotaExceededError');
+      if (k === 'lifeuk.studyPrefs') return; // silently dropped → verify mismatch
+      return realSet.call(this, k, v);
+    };
+  });
+  await seed({ ...LEGACY });
+  assert((await text('#examGrid .exam-btn.all .exam-mastery')).startsWith('3/408'), 'quota: legacy mastery still shown (3/408)');
+  s = await dump();
+  assert(!(P + 'practiceStreak' in s) && s.practiceStreak === LEGACY.practiceStreak, 'quota: old streak key kept, no empty new key');
+  assert(s[P + 'practiceFlags'] === LEGACY.practiceFlags && !('practiceFlags' in s), 'quota: other keys still migrated');
+  const newKey = await pg.evaluate(() => {
+    pendingMode = 'practice'; startExam('ch4');
+    const i = state.questions.findIndex(q => !(qKey(q) in streaks));
+    const q = state.questions[i]; state.current = i; state.answers[i] = [...q.a]; revealAnswer();
+    return qKey(q);
+  });
+  await pg.evaluate(() => goHome());
+  await pg.click('#modeStudy');
+  assert(await pg.$eval('.study-tab.active', e => e.dataset.tab) === 'geo', 'verify mismatch: Study still on geo from the old key');
+  await pg.evaluate(() => sessionStorage.setItem('stubOff', '1'));
+  await pg.reload();
+  s = await dump();
+  const streak = JSON.parse(s[P + 'practiceStreak']);
+  const legacyStreak = JSON.parse(LEGACY.practiceStreak);
+  assert(Object.entries(legacyStreak).every(([k, v]) => streak[k] === v) && streak[newKey] === 1, 'next load: legacy streaks + the new answer under ' + P + 'practiceStreak');
+  assert(!('practiceStreak' in s) && !('studyPrefs' in s) && JSON.parse(s[P + 'studyPrefs']).tab === 'geo', 'next load: old keys gone, migration completed');
 
   assert(errs.length === 0, 'no page errors: ' + errs.join(' | '));
   console.log('MIGRATE PASS');
