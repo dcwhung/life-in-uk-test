@@ -64,7 +64,7 @@ function migrateLegacyStorage() {
     const oldWins = oldWinsKeys.includes(newKey);
     const done = migrateKeySafely(oldKey, newKey, { merge: mergeBoth || oldWins, oldWins });
     // the old key carries this load's writes while the new key keeps an older value: next load the old side wins
-    if (!done && (oldWins || (LS_KEY_FALLBACK[newKey] && localStorage.getItem(newKey) !== null))) {
+    if (LS_KEY_FALLBACK[newKey] && localStorage.getItem(newKey) !== null) {
       stillOld.push(newKey);
     }
     return done;
