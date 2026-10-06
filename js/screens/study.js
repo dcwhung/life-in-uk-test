@@ -110,7 +110,7 @@ function factTagsHtml(f, opts) {
   if (f.w) tags.push(`<span class="tag war">${t('study.war')}</span>`);
   if (f.p && !opts.noPerson) tags.push(`<span class="tag person">👤 ${escapeHtml(f.p[0])}</span>`);
   if (!opts.noChapter) tags.push(`<span class="tag">${CHAPTER_ICONS[f.ch]} ${t('common.chapterShort', { n: f.ch })}</span>`);
-  tags.push(`<span class="tag diff" title="${difficultyTitle(f.d)}">${'★'.repeat(f.d)}</span>`);
+  tags.push(starsHtml(f.d)); // same stars as the question card (v0.62)
   if (f.src.length > 1) tags.push(`<span class="tag freq">${t('study.appears', { n: f.src.length })}</span>`);
   return tags.join('');
 }

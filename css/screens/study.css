@@ -87,7 +87,6 @@
 .tl-item.war .tl-year::after { background: var(--red-light); box-shadow: 0 0 0 2px var(--red-light); }
 .tl-body { border-left: 2px solid var(--border); padding-left: 16px; padding-bottom: 2px; }
 .tl-body .fact { margin-bottom: 8px; }
-.tag.diff { background: var(--gold-bg); color: var(--gold-text); letter-spacing: 1px; }
 
 @media (max-width: 480px) {
   .tl-item { grid-template-columns: 62px 1fr; }
