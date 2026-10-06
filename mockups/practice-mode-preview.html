@@ -32,14 +32,23 @@
 
   /* ── HOME ── */
   .section-title { font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 12px; }
-  /* NEW: wrong-answer review card */
-  .wrong-card { display: flex; align-items: center; gap: 14px; background: #fdf3e8; border: 1.5px solid #f0c592; border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; cursor: pointer; }
-  .wrong-badge { min-width: 40px; height: 40px; border-radius: 50%; background: var(--orange); color: #fff; font-weight: 800; font-size: 15px; display: flex; align-items: center; justify-content: center; }
-  .wrong-text { flex: 1; }
-  .wrong-text b { display: block; color: var(--navy); font-size: 15px; margin-bottom: 2px; }
-  .wrong-text span { font-size: 12.5px; color: var(--text-muted); line-height: 1.45; }
-  .wrong-arrow { color: var(--orange); font-size: 22px; font-weight: 700; }
-  .ptabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 14px; }
+  /* NEW: "My review" — sets built from what the user has done (separate from the question categories) */
+  .my-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px; }
+  .my-tile { position: relative; background: var(--card); border: 2px solid var(--border); border-radius: 12px; padding: 12px 12px 11px; text-align: left; cursor: pointer; box-shadow: var(--shadow-sm); }
+  .my-tile .t-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .my-tile .t-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 900; }
+  .my-tile.wrong .t-icon { background: #fdf0ef; color: var(--red-light); }
+  .my-tile.flagged .t-icon { background: #fdf3e8; }
+  .my-tile .t-icon .bm { width: 17px; height: 17px; }
+  .my-tile .t-num { font-size: 24px; font-weight: 900; color: var(--navy); line-height: 1; }
+  .my-tile b { display: block; font-size: 13.5px; color: var(--navy); }
+  .my-tile span.sub { display: block; font-size: 11px; color: var(--text-muted); margin-top: 2px; line-height: 1.4; }
+  .my-tile.wrong { border-left: 4px solid var(--red-light); }
+  .my-tile.flagged { border-left: 4px solid var(--orange); }
+  .my-tile.empty { cursor: default; opacity: 0.6; border-left-color: var(--border); box-shadow: none; }
+  .my-note { font-size: 11px; color: var(--text-muted); margin-bottom: 22px; }
+  .round-note { display: inline-block; text-transform: none; letter-spacing: 0; background: #fdf0ef; color: var(--red); border-radius: 6px; padding: 2px 7px; font-size: 10.5px; font-weight: 700; margin-top: 6px; }
+  .ptabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 14px; }
   .ptab { background: var(--card); border: 2px solid var(--border); border-radius: 10px; padding: 9px 2px; font-size: 11.5px; font-weight: 700; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 3px; white-space: nowrap; }
   .ptab.on { background: var(--navy); border-color: var(--navy); color: #fff; }
   .ptab .bm { width: 13px; height: 13px; vertical-align: 0; }
@@ -117,7 +126,7 @@
 </head>
 <body>
 <div class="mock-bar">
-  <b>PREVIEW</b> · Practice mode — flag · 🔖 Flagged tab · Review wrong answers · Practice result page<br>
+  <b>PREVIEW v2</b> · Practice mode — My Review（Wrong answers / Flagged）· Practice by · flag · result<br>
   <span id="screenTabs"></span>
 </div>
 <div class="app-head">🇬🇧 Life in the UK</div>
@@ -130,56 +139,67 @@
   const stars = d => '★'.repeat(d) + `<span class="off">${'★'.repeat(5 - d)}</span>`;
   // sample state: persistent flags + wrong list
   const flags = new Set([1, 2, 12, 16, 22]);
-  const wrongList = [2, 6, 9, 14, 19, 21, 3, 8, 11, 13, 15, 18, 20, 23];
+  let wrongCount = 14;
+  const ROUND_MAX = 24;
   const SCREENS = [
     { key: 'home', tab: '① Home' },
-    { key: 'flagged', tab: '② Flagged tab' },
-    { key: 'question', tab: '③ Question' },
-    { key: 'result', tab: '④ Result' },
+    { key: 'homeBig', tab: '② Home · 38 錯題' },
+    { key: 'homeEmpty', tab: '③ Home · 未有記錄' },
+    { key: 'question', tab: '④ Question' },
+    { key: 'result', tab: '⑤ Result (wrong review)' },
   ];
   let screen = 'home';
 
-  function home() {
+  function myReview(wrongN, flagN) {
+    const wrongSub = !wrongN ? 'Nothing to review yet'
+      : wrongN > ROUND_MAX ? `${wrongN} to clear · ${ROUND_MAX} per round` : `${wrongN} to clear`;
+    const flagSub = !flagN ? 'Tap 🔖 on a question to save it' : `${flagN} saved`;
+    return `
+      <div class="section-title">My Review</div>
+      <div class="my-grid">
+        <div class="my-tile wrong${wrongN ? '' : ' empty'}" ${wrongN ? `onclick="go('question')"` : ''}>
+          <div class="t-top"><span class="t-icon">✗</span><span class="t-num">${wrongN}</span></div>
+          <b>Wrong answers</b><span class="sub">${wrongSub}</span>
+        </div>
+        <div class="my-tile flagged${flagN ? '' : ' empty'}" ${flagN ? `onclick="go('question')"` : ''}>
+          <div class="t-top"><span class="t-icon">${bm()}</span><span class="t-num">${flagN}</span></div>
+          <b>Flagged</b><span class="sub">${flagSub}</span>
+        </div>
+      </div>
+      <div class="my-note">Wrong answers come from Practice and Exam, and clear when you get them right here. Up to ${ROUND_MAX} per round.</div>`;
+  }
+  function categories() {
     const diff = [['Easy', 84, 31], ['Basic', 91, 22], ['Medium', 148, 30], ['Hard', 66, 14], ['Expert', 19, 6]];
     return `
-      <div class="note">新：頂部「Review wrong answers」卡（有錯題先出）；第 4 個 tab「🔖 Flagged」。</div>
-      <div class="section-title">Practice</div>
-      <div class="wrong-card" onclick="go('question')">
-        <div class="wrong-badge">${wrongList.length}</div>
-        <div class="wrong-text"><b>Review wrong answers</b><span>Drill the ${wrongList.length} questions you've missed. Answer right to clear them.</span></div>
-        <div class="wrong-arrow">→</div>
-      </div>
-      <div class="ptabs">
-        <button class="ptab on">By Difficulty</button><button class="ptab">By Chapter</button>
-        <button class="ptab">By Exam</button><button class="ptab" onclick="go('flagged')">${bm()}Flagged</button>
-      </div>
+      <div class="section-title">Practice by</div>
+      <div class="ptabs"><button class="ptab on">Difficulty</button><button class="ptab">Chapter</button><button class="ptab">Exam</button></div>
       ${diff.map(([n, t, m], i) => `<div class="row-btn"><span class="stars">${stars(i + 1)}</span><span class="nm">${n}</span><span class="ct">${m}/${t} · ${Math.round(m / t * 100)}%</span><span class="bar" style="width:${Math.round(m / t * 100)}%"></span></div>`).join('')}`;
   }
-  function flagged() {
-    const list = [...flags];
-    return `
-      <div class="note">撳 Flagged tab：上面一粒掣開始練晒所有 flag 咗嘅題（每題一次）；下面列出題目，撳書籤可以即刻取消。冇 flag 時顯示提示。</div>
-      <div class="ptabs">
-        <button class="ptab" onclick="go('home')">By Difficulty</button><button class="ptab">By Chapter</button>
-        <button class="ptab">By Exam</button><button class="ptab on">${bm()}Flagged</button>
-      </div>
-      ${list.length ? `<div class="flag-start" onclick="go('question')">${bm()}<div><b>Practise flagged (${list.length})</b><span>Each flagged question once · flags stay until you remove them</span></div><span class="go">→</span></div>` : ''}
-      ${list.length ? list.map(i => `<div class="flag-item"><div class="fi-text"><small>Exam 4 · Q${i + 1}</small>${QS[i].q}</div><button onclick="flags.delete(${i});render()" title="Unflag">${bm()}</button></div>`).join('')
-        : '<div class="empty-hint">No flagged questions yet. Tap the bookmark on any practice question to save it here.</div>'}`;
+  function home() {
+    return `<div class="note">「My Review」自成一區（做過先有）：Wrong answers / Flagged 兩格，撳就開始練；下面「Practice by」先係題目本身嘅分類（Difficulty / Chapter / Exam）。</div>`
+      + myReview(14, flags.size) + categories();
+  }
+  function homeBig() {
+    return `<div class="note">錯題多過 24 題：格仔寫「38 to clear · 24 per round」，每輪抽 24 題，答啱先會清走。</div>`
+      + myReview(38, flags.size) + categories();
+  }
+  function homeEmpty() {
+    return `<div class="note">新用戶 / 冇錯題同 flag：兩格變灰、撳唔到，寫提示。</div>` + myReview(0, 0) + categories();
   }
   function question() {
     const i = 2, q = QS[i], picked = q.o.findIndex((_, k) => !q.a.includes(k));
     return `
-      <div class="note">Practice 問題卡加書籤（喺 Translate／← → 左邊）。Flag 長期保存，下次開 app 仍然喺度。呢度示範：已答錯 + 已 flag。</div>
+      <div class="note">練錯題途中：Practice 問題卡加書籤（喺 Translate／← → 左邊），flag 長期保存。標題下面寫埋今輪係錯題清單嘅邊部分。</div>
       <div class="quiz-header"><span class="back-btn">← Home</span><span><span class="quiz-label">Wrong answers</span><span class="badge">Practice</span></span></div>
       <div class="q-card">
         <div class="q-progress"><div style="width:21%"></div></div>
         <div class="q-num">
-          <span class="q-num-text"><span>Question 3 of 14</span><span class="stars">${stars(q.d)}</span><span class="pill">✓ 1/3</span></span>
+          <span class="q-num-text"><span>Question 3 of 24</span><span class="stars">${stars(q.d)}</span><span class="pill">✓ 1/3</span></span>
           <button class="flag-btn ${flags.has(i) ? 'on' : ''}" onclick="flags.has(${i})?flags.delete(${i}):flags.add(${i});render()" title="Flag"><svg viewBox="0 0 24 24"><path d="${BM}"/></svg></button>
           <span class="icon-btn">←</span><span class="icon-btn primary">→</span>
         </div>
         <div class="q-text">${q.q}</div><div class="q-yue">${q.yue}</div>
+        <div class="round-note">Round 1 of 2 · 24 of your 38 wrong answers</div>
       </div>
       ${q.o.map((o, k) => `<div class="opt ${q.a.includes(k) ? 'correct' : k === picked ? 'wrong' : ''}"><span class="opt-letter">${'ABCD'[k]}</span><span>${o}</span></div>`).join('')}`;
   }
@@ -187,12 +207,12 @@
     const W = [2, 6, 9, 14, 19, 21], ok = 24 - W.length;
     const dot = i => `<span class="rdot ${W.includes(i) ? 'bad' : 'ok'}${flags.has(i) ? ' flag' : ''}">${i + 1}</span>`;
     return `
-      <div class="note">Practice 結果頁跟 Exam 版：🎯 icon、分數只顯示一次（冇 PASSED 判定、唔變紅）、結果圓點、All / Wrong / Flagged filter；Review 每題加連續答啱進度（🔥 n/3）。</div>
-      <div class="quiz-header"><span class="back-btn">← Home</span><span class="quiz-label">★★★ Medium</span></div>
+      <div class="note">Practice 結果頁跟 Exam 版：🎯 icon、分數只顯示一次（冇 PASSED、唔變紅）、結果圓點、All / Wrong / Flagged filter。練錯題嗰輪：副標題講清走咗幾多、仲剩幾多（下一輪）。</div>
+      <div class="quiz-header"><span class="back-btn">← Home</span><span class="quiz-label">Wrong answers</span></div>
       <div class="result-card">
         <div class="result-emoji">🎯</div>
         <div class="result-score">${ok} <span>/ 24 · ${Math.round(ok / 24 * 100)}%</span></div>
-        <div class="result-sub">Mastered 7 more this round · 61/148 in Medium</div>
+        <div class="result-sub">Cleared 18 from your wrong list · 20 left (next round)</div>
         <div class="rdots-wrap"><div class="rdots">${QS.map((_, i) => dot(i)).join('')}</div>
           <div class="rmeta"><span><i style="background:var(--green-light)"></i>Correct <b>${ok}</b></span><span class="sep">|</span><span><i style="background:var(--red-light)"></i>Wrong <b>${W.length}</b></span><span class="sep">|</span><span><i style="box-shadow:0 0 0 2px var(--orange)"></i>Flagged <b>${flags.size}</b></span></div></div>
       </div>
@@ -201,7 +221,7 @@
       <div class="chips"><span class="chip on">All <b>24</b></span><span class="chip">Wrong <b>${W.length}</b></span><span class="chip">${bm()}Flagged <b>${flags.size}</b></span></div>
       ${[0, 2].map(i => `<div class="review-item ${W.includes(i) ? 'bad' : ''}"><div class="rv-q">${i + 1}. ${QS[i].q} ${flags.has(i) ? bm() : ''}<span class="streak">${W.includes(i) ? '🔥 0/3' : '🔥 2/3'}</span></div>${W.includes(i) ? `<div class="rv-your">Your answer: ${QS[i].o.find((_, k) => !QS[i].a.includes(k))}</div>` : ''}<div class="rv-ans">✅ ${QS[i].a.map(k => QS[i].o[k]).join(' | ')}</div><div class="rv-tr">【廣東話】${QS[i].yue}</div></div>`).join('')}`;
   }
-  const VIEWS = { home, flagged, question, result };
+  const VIEWS = { home, homeBig, homeEmpty, question, result };
   function go(s) { screen = s; render(); scrollTo(0, 0); }
   function render() {
     document.getElementById('screenTabs').innerHTML = SCREENS.map(s => `<button class="mock-tab ${s.key === screen ? 'on' : ''}" onclick="go('${s.key}')">${s.tab}</button>`).join('');
