@@ -117,7 +117,7 @@ function factTagsHtml(f, opts) {
 function factMarkButtonsHtml(f) {
   const mastered = !!study.mastered[f.id];
   const marked = !!study.bookmarks[f.id];
-  return `<button class="fact-btn star${marked ? ' on' : ''}" title="${escapeHtml(t('study.bookmark'))}" data-action="studyToggleMark" data-mark="bookmarks" data-arg="${escapeHtml(f.id)}">${marked ? '★' : '☆'}</button>
+  return `<button class="fact-btn star${marked ? ' on' : ''}" title="${escapeHtml(t('study.bookmark'))}" data-action="studyToggleMark" data-mark="bookmarks" data-arg="${escapeHtml(f.id)}">${bookmarkSvg('', { decorative: true })}</button>
         <button class="fact-btn tick${mastered ? ' on' : ''}" title="${escapeHtml(t('study.mastered'))}" data-action="studyToggleMark" data-mark="mastered" data-arg="${escapeHtml(f.id)}">✓</button>`;
 }
 function renderFact(f, opts = {}) {
@@ -137,8 +137,10 @@ function renderFact(f, opts = {}) {
 
 // ── chip rows ──
 function studyChipsHtml() {
+  // decorative icon: the chip text already says "Bookmarked" (a labelled SVG would read "Flagged")
+  const bookmarkLabel = bookmarkSvg('chip-flag', { decorative: true }) + t('study.bookmarkedOnly');
   let chips = chipHtml({ active: study.hideMastered, action: 'studyToggle', arg: 'hideMastered', label: t('study.hideMastered') })
-    + chipHtml({ active: study.bookmarksOnly, action: 'studyToggle', arg: 'bookmarksOnly', label: t('study.bookmarkedOnly') });
+    + chipHtml({ active: study.bookmarksOnly, action: 'studyToggle', arg: 'bookmarksOnly', label: bookmarkLabel });
   if (study.tab === 'timeline') {
     chips += chipHtml({ extraCls: ' war', active: study.warsOnly, action: 'studyToggle', arg: 'warsOnly', label: t('study.warsOnly') });
   }

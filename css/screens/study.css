@@ -55,7 +55,11 @@
   color: var(--text-muted);
   transition: all 0.15s;
 }
-.fact-btn.on.star { background: var(--gold-bg); border-color: var(--gold); color: var(--star-on); }
+/* bookmark: same SVG + colours as the Practice .flag-btn (outline muted, on = orange fill); the path has no fill of its own */
+.fact-btn svg { width: 18px; height: 18px; }
+.fact-btn.star path { fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; }
+.fact-btn.star.on { background: var(--flag-bg); border-color: var(--orange); color: var(--orange); }
+.fact-btn.star.on path { fill: currentColor; }
 .fact-btn.on.tick { background: var(--success-bg); border-color: var(--green); color: var(--green); }
 .fact-name { font-size: var(--fs-md); font-weight: 800; color: var(--navy); margin-bottom: 4px; }
 .fact-en { font-size: var(--fs-md); font-weight: 500; color: var(--text); line-height: 1.5; }

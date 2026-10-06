@@ -135,7 +135,7 @@ LOCALES.en = {
     tabGeo: '🗺️ Geography',
     tabPeople: '👤 People',
     hideMastered: '✓ Hide mastered',
-    bookmarkedOnly: '★ Bookmarked only',
+    bookmarkedOnly: 'Bookmarked only',
     warsOnly: '⚔️ Wars only',
     all: 'All',
     count: { one: '{shown} / {total} fact', other: '{shown} / {total} facts' },

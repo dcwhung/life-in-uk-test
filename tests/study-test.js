@@ -100,7 +100,19 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
 
   // bookmark + mastered
   await pg.click('#studySubChips .chip:nth-child(1)'); // Ch1
-  await pg.locator('.fact').first().locator('.fact-btn.star').click();
+  // v0.62 (P3 T-104): bookmark is the Practice flag SVG — outline muted, on = orange fill; no ☆ / ★ text
+  const bmBtn = pg.locator('.fact').first().locator('.fact-btn.star');
+  const bmPath = () => bmBtn.locator('svg path').evaluate(e => ({ fill: getComputedStyle(e).fill, stroke: getComputedStyle(e).stroke }));
+  const orange = await tokenRgb('--orange');
+  assert((await bmBtn.textContent()).trim() === '' && await bmBtn.locator('svg[aria-hidden="true"] path').count() === 1, 'bookmark button is a decorative SVG, no star text');
+  const offPath = await bmPath();
+  assert(offPath.fill === 'none' && offPath.stroke === await tokenRgb('--text-muted'), 'bookmark off: outline in text-muted: ' + JSON.stringify(offPath));
+  const bmChip = pg.locator('#studyChips .chip[data-arg="bookmarksOnly"]');
+  assert(await bmChip.locator('svg.chip-flag path').count() === 1 && (await bmChip.textContent()).trim() === 'Bookmarked only', 'Bookmarked only chip has the flag SVG and no ★');
+  await bmBtn.click();
+  const onPath = await bmPath();
+  assert(onPath.fill === orange && onPath.stroke === orange, 'bookmark on: orange fill: ' + JSON.stringify(onPath));
+  assert(await bmBtn.evaluate(e => getComputedStyle(e).backgroundColor) === await tokenRgb('--flag-bg'), 'bookmark on: flag-bg background');
   await pg.locator('.fact').first().locator('.fact-btn.tick').click();
   assert(await pg.locator('.fact').first().evaluate(e => e.classList.contains('mastered')), 'mastered class applied');
   assert(await pg.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('lifeuk.studyMastered'))).length === 1 && Object.keys(JSON.parse(localStorage.getItem('lifeuk.studyBookmarks'))).length === 1), 'persisted in localStorage');
