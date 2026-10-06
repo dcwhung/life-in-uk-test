@@ -29,10 +29,10 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(!(await vis('#infoPop')), 'click outside closes');
   await pg.click('#infoBtn'); await pg.keyboard.press('Escape');
   assert(!(await vis('#infoPop')), 'Escape closes');
-  // still works on quiz screen with stats visible
+  // still works on the quiz screen
   await pg.evaluate(() => { pendingMode = 'practice'; startExam(1); });
   await pg.click('#infoBtn');
-  assert(await vis('#infoPop') && await vis('#headerStats'), 'works on quiz screen alongside stats');
+  assert(await vis('#infoPop'), 'works on quiz screen');
   assert(errs.length === 0, 'no page errors: ' + errs.join(';'));
   await b.close(); console.log('INFO PASS');
 })().catch(e => { console.error(e.message); process.exit(1); });

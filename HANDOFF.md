@@ -1,4 +1,4 @@
-# Life in the UK Test PWA — Handoff (v0.40)
+# Life in the UK Test PWA — Handoff (v0.41)
 
 - **Repo:** https://github.com/dcwhung/life-in-uk-test （main branch，GitHub Pages root `/`）
 - **Live:** https://dcwhung.github.io/life-in-uk-test/
@@ -94,7 +94,8 @@
 **Practice mode**
 - 題目同選項次序隨機；揀完即刻 reveal
 - 問題卡右上「Translate」掣：展開題目 + 每個選項嘅廣東話；答完自動固定顯示；下一題重設
-- **快捷 Prev / Next（v0.40）：** 答完（Practice reveal／Exam submit）之後，問題卡右上 Translate 嘅位置變做細粒「← Prev｜Next →」，同底部掣共用 `nextAction()`（Next → / Finish ✓ / See Results → / ↩ Back）；未答前唔顯示；窄 mon 時會換行靠右
+- **問題卡 header（v0.41）：** 原本獨立一行嘅「Question X of Y · n/m correct」同 progress bar 拎走；progress bar 變咗問題卡頂邊（5px，`.q-progress`）；題號行寫「QUESTION X OF Y ★★★」，Practice 答咗題之後星星後面有綠色 pill「✓ 答啱/已答」（`scorePillHtml()`），窄 mon 放唔落會換去第二行；最頂深藍 header 嘅「✅ correct · 📝 done」已拎走
+- **快捷 Prev / Next（v0.40；v0.41 改做只有符號）：** 答完（Practice reveal／Exam submit）之後，問題卡右上 Translate 嘅位置變做兩粒圓形「←」「→」（最後一題 ✓、臨時 session ↩；`title` / `aria-label` 寫返文字），同底部掣共用 `nextAction()`（Next → / Finish ✓ / See Results → / ↩ Back）；未答前唔顯示；窄 mon 時會換行靠右
 - 答案框格式：`✓ Correct! · 🔥 n/3` → 英文答案 → `【廣東話翻譯】 Q) … A) …` → `💡 備注：`（獨立一行）→ 備注內容（支援多行）
 - **掌握機制：** 同一題連續答啱 `MASTERY_STREAK`（=3）次 = 掌握，答錯即歸零；開練習時剔除已掌握題，全組掌握後再全部出；每輪最多抽 `PRACTICE_ROUND_MAX`（=25）條未掌握題（Chapter / Difficulty / All Exams；Exam 1–17 本身 24 題），**每題一輪只出一次，「Question X of Y」嘅 Y 唔會變**（v0.38 起；v0.32–v0.37 會將未掌握題重新排去 queue 尾，令 Y 越做越大，已取消）；答錯或未夠 3 次嘅題下一輪再抽；存 localStorage `practiceStreak` `{ "exam.idx": n }`
 - **Similar Questions（v0.35）：** 答完（啱或錯）喺 Prev / Next 掣下面顯示同一條 `STUDY` fact 嘅其他題目（`fact.src` 除本題外嘅 key；每題只屬一條 fact，408 題入面 284 題有類似題）。內容：Core Fact（英文 + 廣東話）、「Appears in」題號 chip（本題／已掌握／練緊／0/3）、每題 `Exam N · Qn` + 🔥 進度 + 題目同翻譯（唔顯示答案）。Exam mode 唔顯示；冇類似題就唔顯示
@@ -149,9 +150,9 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | `result-test.js` | 結果頁 PASSED / remark 只喺 Exam 1–17 顯示；重做掣按 mode 改字、上下兩組掣、Wrong first 排序同記住選擇 |
 | `batch-test.js` | Practice 每輪最多 25 題、下一輪由未掌握題抽、最後幾題每輪再出直至掌握 |
 | `similar-test.js` | Similar Questions section、Practise these N 臨時 session 同返回 |
-| `quicknav-test.js` | 答完先顯示嘅快捷 Prev / Next：位置、Prev disabled、最後一題 Finish / See Results / ↩ Back |
+| `quicknav-test.js` | 快捷 ← / →（符號、title、最後一題 ✓ / ↩）；問題卡 header：Question X of Y、progress bar 喺卡頂、score pill、header 冇 stats |
 
-## 版本記錄（v0.32–v0.40）
+## 版本記錄（v0.32–v0.41）
 
 | 版本 | PR | 改動 |
 |---|---|---|
@@ -165,6 +166,14 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | — | dcwhung/life-in-uk-test#8 | HANDOFF.md：開發流程改為 PR、Similar Questions 設計決定、v0.32–v0.38 版本記錄 |
 | v0.39 | dcwhung/life-in-uk-test#9 | 難度掣拎走中文；結果頁 Review Answers 加「Original order / Wrong first」；Review Answers 上面加多一組 Practise Again / Choose Another |
 | v0.40 | dcwhung/life-in-uk-test#10 | 答完之後問題卡右上（Translate 位置）顯示快捷 Prev / Next；HANDOFF 補 PR #8 / #9 |
+| v0.41 | — | 問題卡同 progress 合併：bar 變卡頂邊、題號行「Question X of Y ★ ✓ n/m」、快捷掣只有符號；拎走 header 嘅 correct / done |
+
+**問題卡 header 設計決定（v0.41，先做 preview 同用戶確認）**
+- 目的：慳位，拎走問題卡上面獨立嘅一行同 progress bar
+- 「n/m correct」試過 3 個擺法（星星後 pill／bar 下面／拎走），用戶揀 pill，同時拎走最頂 header 重複嘅「✅ correct · 📝 done」
+- Pill 只喺 Practice、答咗至少一題先出；Exam mode 唔顯示（同以前一樣）
+- 窄 mon（≤ 390px）pill 會換去第二行，用戶接受；← → 掣永遠喺右邊同一行
+- 快捷掣只有符號；底部大掣保留文字（Next → / Finish ✓ / See Results → / ↩ Back）
 
 **快捷 Prev / Next 設計決定（v0.40）**
 - 只喺答完之後顯示（Practice reveal／Exam submit），未答前個位留返畀 Translate

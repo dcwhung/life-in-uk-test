@@ -57,18 +57,6 @@
   .logo-text { color: #fff; font-size: 15px; font-weight: 700; letter-spacing: 0.01em; }
   .logo-sub { color: var(--gold); font-size: 11px; font-weight: 500; margin-top: 1px; }
   .app-version { color: rgba(255,255,255,0.45); font-weight: 600; margin-left: 4px; }
-  .header-stats {
-    display: flex; gap: 16px; align-items: center;
-  }
-  .stat-chip {
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 20px;
-    padding: 4px 12px;
-    font-size: 12px; color: rgba(255,255,255,0.85);
-    display: flex; align-items: center; gap: 5px;
-  }
-  .stat-chip b { color: var(--gold-light); }
 
   /* ── MAIN ── */
   main { max-width: 780px; margin: 0 auto; padding: 20px 16px 100px; }
@@ -255,38 +243,37 @@
     font-size: 11px; font-weight: 700;
   }
 
-  /* progress bar */
-  .progress-wrap { margin-bottom: 20px; }
-  .progress-meta {
-    display: flex; justify-content: space-between;
-    font-size: 12px; color: var(--text-muted);
-    margin-bottom: 6px;
-  }
-  .progress-track {
-    height: 6px; background: var(--border); border-radius: 10px; overflow: hidden;
-  }
-  .progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--green-light), var(--gold));
-    border-radius: 10px;
-    transition: width 0.4s ease;
-  }
 
   /* question card */
   .q-card {
+    position: relative; overflow: hidden;
     background: var(--card);
     border-radius: var(--radius);
     padding: 26px 22px;
     box-shadow: var(--shadow-sm);
     margin-bottom: 14px;
   }
+  /* progress bar = the question card's top border */
+  .q-progress { position: absolute; left: 0; right: 0; top: 0; height: 5px; background: var(--border); }
+  .q-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green-light), var(--gold));
+    transition: width 0.4s ease;
+  }
   .q-num {
     font-size: 11px; font-weight: 700; color: var(--text-muted);
-    text-transform: uppercase; letter-spacing: 0.07em;
+    text-transform: uppercase; letter-spacing: 0.05em;
     margin-bottom: 10px;
-    display: flex; align-items: center; gap: 8px;
+    display: flex; align-items: center; gap: 8px; min-height: 30px;
   }
-  .q-num .q-num-text { flex: 1; }
+  /* "Question X of Y" ★★★ ✓ n/m — the pill wraps to a second line when the row is full */
+  .q-num .q-num-text { flex: 1; display: flex; flex-wrap: wrap; align-items: center; column-gap: 6px; row-gap: 4px; white-space: nowrap; }
+  .score-pill {
+    text-transform: none; letter-spacing: 0;
+    background: #edf8f2; color: var(--green);
+    border-radius: 999px; padding: 2px 7px;
+    font-size: 10.5px; font-weight: 800;
+  }
   .yue-toggle {
     text-transform: none; letter-spacing: 0;
     background: #f3eefa;
@@ -300,16 +287,15 @@
   }
   .yue-toggle.visible { display: inline-block; }
   .yue-toggle.on { background: var(--purple); color: #fff; }
-  /* header text keeps one line; on narrow screens the quick pair wraps below it, right-aligned */
-  .q-num.answered { flex-wrap: wrap; row-gap: 8px; }
-  .q-num.answered .q-num-text { flex: 1 0 auto; }
-  .quick-nav { display: none; gap: 6px; margin-left: auto; text-transform: none; letter-spacing: 0; }
+  .quick-nav { display: none; gap: 6px; flex-shrink: 0; text-transform: none; letter-spacing: 0; }
   .quick-nav.visible { display: inline-flex; }
   .quick-btn {
+    width: 32px; height: 32px; border-radius: 50%;
     background: var(--card); color: var(--navy);
-    border: 1.5px solid var(--border); border-radius: 999px;
-    padding: 5px 12px; font: inherit; font-size: 12px; font-weight: 700;
-    cursor: pointer; white-space: nowrap;
+    border: 1.5px solid var(--border);
+    font: inherit; font-size: 15px; font-weight: 800; line-height: 1;
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer;
   }
   .quick-btn.primary { background: var(--navy); border-color: var(--navy); color: #fff; }
   .quick-btn:disabled { opacity: 0.4; cursor: default; }
@@ -532,7 +518,6 @@
   /* ── difficulty stars ── */
   .stars { color: var(--gold); letter-spacing: 1px; font-size: 12px; white-space: nowrap; }
   .stars .off { color: var(--border); }
-  .q-num .stars { margin-left: 8px; }
   .diff-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
   .diff-btn .stars { font-size: 14px; flex: 1; }
   .diff-btn .ch-name { flex: 0; white-space: nowrap; color: var(--text-muted); font-weight: 600; font-size: 12px; }
@@ -691,10 +676,6 @@
         <div class="logo-sub">Exam Practice <span class="app-version" id="appVersion"></span></div>
       </div>
     </div>
-    <div class="header-stats" id="headerStats" style="display:none">
-      <div class="stat-chip">✅ <b id="statCorrect">0</b> correct</div>
-      <div class="stat-chip">📝 <b id="statTotal">0</b> done</div>
-    </div>
   </div>
   <div class="info-pop" id="infoPop" role="dialog" aria-label="About this app">
     <h2>Exam 1–17 Practice <span class="app-version" id="appVersionPop"></span></h2>
@@ -799,22 +780,15 @@
       </div>
     </div>
 
-    <div class="progress-wrap">
-      <div class="progress-meta">
-        <span id="progressText">Question 1 of 24</span>
-        <span id="scoreText" style="color:var(--green);font-weight:700"></span>
-      </div>
-      <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
-    </div>
-
     <div class="q-card">
+      <div class="q-progress"><div class="q-progress-fill" id="progressFill" style="width:0%"></div></div>
       <div class="q-num">
         <span class="q-num-text" id="qNum">Question 1</span>
         <button class="yue-toggle" id="yueToggle" onclick="toggleQuestionYue()">Translate</button>
         <!-- once answered: quick Prev / Next in the Translate spot (mirrors the bottom buttons) -->
         <span class="quick-nav" id="quickNav">
-          <button class="quick-btn" id="quickPrev" onclick="prevQ()">← Prev</button>
-          <button class="quick-btn primary" id="quickNext">Next →</button>
+          <button class="quick-btn" id="quickPrev" title="Previous" aria-label="Previous" onclick="prevQ()">←</button>
+          <button class="quick-btn primary" id="quickNext" title="Next" aria-label="Next">→</button>
         </span>
       </div>
       <div class="q-text" id="qText"></div>
@@ -893,7 +867,7 @@
 // ════════════════════════════════════════
 // APP VERSION — single source of truth (shown in the header, drives the SW cache name)
 // ════════════════════════════════════════
-const APP_VERSION = '0.40';
+const APP_VERSION = '0.41';
 
 // ════════════════════════════════════════
 // APP STATE
@@ -1173,24 +1147,12 @@ function renderQuestion() {
   document.getElementById('modeBadge').textContent =
     state.mode === 'practice' ? 'Practice' : 'Exam';
 
-  // progress
-  const pct = Math.round(((idx + 1) / total) * 100);
-  document.getElementById('progressText').textContent = `Question ${idx + 1} of ${total}`;
-  document.getElementById('progressFill').style.width = pct + '%';
+  // progress: the question card's top border
+  document.getElementById('progressFill').style.width = Math.round(((idx + 1) / total) * 100) + '%';
 
-  // score (practice mode only)
-  if (state.mode === 'practice') {
-    const correct = Object.values(state.revealed).filter(Boolean).length;
-    const done = Object.keys(state.revealed).length;
-    document.getElementById('scoreText').textContent =
-      done > 0 ? `${correct}/${done} correct` : '';
-  } else {
-    document.getElementById('scoreText').textContent = '';
-  }
-
-  // question
+  // question header: "Question X of Y" + stars + session score pill (practice, once answered)
   document.getElementById('qNum').innerHTML =
-    `Question ${idx + 1}${isMulti ? ' (select ' + q.a.length + ')' : ''}${starsHtml(q.d)}`;
+    `<span>Question ${idx + 1} of ${total}${isMulti ? ' (select ' + q.a.length + ')' : ''}</span>${starsHtml(q.d)}${scorePillHtml()}`;
   document.getElementById('qText').textContent = q.q;
 
   // Cantonese translation of question + options:
@@ -1273,20 +1235,16 @@ function renderQuestion() {
   // nav buttons: bottom row, plus the quick pair in the question header once answered
   const next = nextAction(idx, total);
   ['prevBtn', 'quickPrev'].forEach(id => { document.getElementById(id).disabled = idx === 0; });
-  ['nextBtn', 'quickNext'].forEach(id => {
-    const btn = document.getElementById(id);
-    btn.textContent = next.label;
-    btn.onclick = next.run;
-  });
+  const nextBtn = document.getElementById('nextBtn');
+  nextBtn.textContent = next.label;
+  nextBtn.onclick = next.run;
+  const quickNext = document.getElementById('quickNext');
+  quickNext.textContent = next.symbol;
+  quickNext.title = next.title;
+  quickNext.setAttribute('aria-label', next.title);
+  quickNext.onclick = next.run;
   document.getElementById('quickNav').classList.toggle('visible', revealed);
-  document.querySelector('#screenQuiz .q-num').classList.toggle('answered', revealed);
 
-  // header stats
-  document.getElementById('headerStats').style.display = 'flex';
-  const allRevealed = Object.values(state.revealed).filter(Boolean).length;
-  const allDone = Object.keys(state.answers).length;
-  document.getElementById('statCorrect').textContent = allRevealed;
-  document.getElementById('statTotal').textContent = allDone;
 }
 
 // ── Similar questions section (practice only, once answered; hidden inside a similar session) ──
@@ -1364,10 +1322,19 @@ function returnFromSimilar() {
 }
 
 // what "Next" does on this question: next question, finish the set, or leave the similar session
+// label = bottom button, symbol + title = quick button in the question header
 function nextAction(idx, total) {
-  if (idx < total - 1) return { label: 'Next →', run: nextQ };
-  if (isSimilarSession()) return { label: '↩ Back', run: returnFromSimilar };
-  return { label: state.mode === 'exam' ? 'See Results →' : 'Finish ✓', run: finishExam };
+  if (idx < total - 1) return { label: 'Next →', symbol: '→', title: 'Next', run: nextQ };
+  if (isSimilarSession()) return { label: '↩ Back', symbol: '↩', title: 'Back', run: returnFromSimilar };
+  if (state.mode === 'exam') return { label: 'See Results →', symbol: '✓', title: 'See Results', run: finishExam };
+  return { label: 'Finish ✓', symbol: '✓', title: 'Finish', run: finishExam };
+}
+// practice: "✓ correct/answered" for this session, shown once something is answered
+function scorePillHtml() {
+  const done = Object.keys(state.revealed).length;
+  if (state.mode !== 'practice' || !done) return '';
+  const correct = Object.values(state.revealed).filter(Boolean).length;
+  return `<span class="score-pill">✓ ${correct}/${done}</span>`;
 }
 
 function selectOption(oi) {
@@ -1581,7 +1548,6 @@ function retryExam() {
 function goHome() {
   similarReturn = null;
   showScreen('screenHome');
-  document.getElementById('headerStats').style.display = 'none';
   buildExamGrid();
   renderModeSelection(); // keeps the last chosen mode and practice tab
 }
@@ -1654,7 +1620,6 @@ function studySavePrefs() {
 
 function openStudy() {
   studyLoad();
-  document.getElementById('headerStats').style.display = 'none';
   document.getElementById('studySearch').value = study.search;
   showScreen('screenStudy');
   renderStudy();
