@@ -21,6 +21,8 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   // home grid
   const counts = await pg.$$eval('#diffGrid .ch-count', els => els.map(e => parseInt(e.textContent.split('/')[1])));
   assert(counts.length === 6 && counts.slice(0, 5).reduce((a, b) => a + b, 0) === 408 && counts[5] === counts[3] + counts[4], 'difficulty grid counts: ' + counts.join('/'));
+  const names = await pg.$$eval('#diffGrid .ch-name', els => els.map(e => e.textContent));
+  assert(JSON.stringify(names) === JSON.stringify(['Easy', 'Basic', 'Medium', 'Hard', 'Expert', 'Hard & Expert']), 'English-only difficulty labels: ' + names);
   await pg.screenshot({ path: 'shot-diff-home.png', fullPage: true });
 
   // practice by difficulty
