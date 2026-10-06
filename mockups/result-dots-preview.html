@@ -52,6 +52,14 @@
   .rmeta i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 3px; vertical-align: -1px; }
   .rhint { font-size: 10.5px; color: var(--text-muted); text-align: left; margin-top: 4px; }
 
+  .chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .chip { background: var(--card); border: 1.5px solid var(--border); border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 700; color: var(--text-muted); cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+  .chip b { font-weight: 800; }
+  .chip.active { background: var(--navy); border-color: var(--navy); color: #fff; }
+  .chip:disabled { opacity: 0.45; cursor: default; }
+  .chip .chip-flag { width: 13px; height: 13px; }
+  .chip .chip-flag path { fill: currentColor; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; }
+  .empty { font-size: 13px; color: var(--text-muted); text-align: center; padding: 18px; }
   .section-title { font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin: 4px 0 12px; }
   .review-item { background: var(--card); border-radius: 10px; padding: 14px 16px; border-left: 4px solid var(--border); font-size: 13px; margin-bottom: 10px; scroll-margin-top: 90px; transition: box-shadow 0.3s; }
   .review-item.ok { border-color: var(--green-light); } .review-item.bad { border-color: var(--red-light); }
@@ -65,7 +73,7 @@
 </head>
 <body>
 <div class="mock-bar">
-  <b>PREVIEW v3</b> · Exam result page — 唔合格分數紅色、合格黑色。撳圓點會跳去下面嗰題。<br>
+  <b>PREVIEW v4</b> · Exam result page — Review Answers filter：All / Wrong / Flagged。撳圓點會跳去下面嗰題。<br>
   <button class="mock-tab" onclick="demo(false)">唔合格 17/24</button><button class="mock-tab" onclick="demo(true)">合格 19/24</button>
 </div>
 
@@ -82,6 +90,7 @@
   </div>
 
   <div class="section-title">Review Answers</div>
+  <div class="chip-row" id="filters"></div>
   <div id="review"></div>
 </div>
 
@@ -94,6 +103,8 @@
   const mode = 'A';
   const PASS_MARK = 18;
   let wrongSet = [2, 6, 9, 14, 19, 21];
+  let filter = 'all';
+  function setFilter(f) { filter = f; render(); }
   function demo(pass) { wrongSet = pass ? [2, 9, 14, 21] : [2, 6, 9, 14, 19, 21]; render(); }
   const FLAG_ICON = '<svg class="rv-flag" viewBox="0 0 24 24" aria-label="Flagged"><path d="M7.5 3.5h9A2.5 2.5 0 0 1 19 6v14.5l-7-5.1-7 5.1V6a2.5 2.5 0 0 1 2.5-2.5z"/></svg>';
   const status = i => SKIPPED.includes(i) ? 'skip' : wrongSet.includes(i) ? 'bad' : 'ok';
@@ -115,7 +126,15 @@
       `<span><i style="border:2px solid var(--red-light)"></i>Unanswered <b>${skip}</b></span>`,
       `<span><i style="${mode === 'A' ? 'box-shadow:0 0 0 2px var(--orange)' : 'background:var(--orange)'}"></i>Flagged <b>${FLAGGED.length}</b></span>`,
     ].join(' <span class="sep">|</span> ');
-    document.getElementById('review').innerHTML = QS.map((q, i) => {
+    const wrongN = QS.filter((_, i) => status(i) !== 'ok').length;
+    const chip = (key, label, n) => `<button class="chip${filter === key ? ' active' : ''}" onclick="setFilter('${key}')"${n ? '' : ' disabled'}>${label} <b>${n}</b></button>`;
+    document.getElementById('filters').innerHTML =
+      chip('all', 'All', QS.length) + chip('wrong', 'Wrong', wrongN) +
+      chip('flagged', FLAG_ICON.replace('rv-flag', 'chip-flag') + 'Flagged', FLAGGED.length);
+    const keep = i => filter === 'all' || (filter === 'wrong' ? status(i) !== 'ok' : FLAGGED.includes(i));
+    const shown = QS.map((q, i) => i).filter(keep);
+    document.getElementById('review').innerHTML = !shown.length ? '<div class="empty">Nothing here.</div>' : QS.map((q, i) => {
+      if (!keep(i)) return '';
       const st = status(i);
       const your = st === 'ok' ? '' : `<div class="rv-your">Your answer: ${st === 'skip' ? 'No answer' : q.o.find((_, k) => !q.a.includes(k))}</div>`;
       return `<div class="review-item ${st === 'ok' ? 'ok' : 'bad'}" id="rv${i}">
@@ -124,6 +143,7 @@
     }).join('');
   }
   function jump(i) {
+    if (filter !== 'all' && !document.getElementById('rv' + i)) { filter = 'all'; render(); }
     const el = document.getElementById('rv' + i);
     el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     el.classList.add('hl'); setTimeout(() => el.classList.remove('hl'), 1500);
