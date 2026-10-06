@@ -12,7 +12,7 @@ function toggleInfo() {
 }
 // counts in the popover text come from the data
 function fillInfoCounts() {
-  byId('infoTitle').firstChild.textContent = `Exam 1–${EXAM_COUNT} Practice `;
+  byId('infoTitle').textContent = `Exam 1–${EXAM_COUNT} Practice`;
   byId('infoIntro').textContent =
     `${TOTAL_QUESTIONS} official-style questions from lifeintheuktestweb.co.uk, with Cantonese translations and notes.`;
   byId('infoExamCount').textContent = `📋 ${EXAM_COUNT} Exams`;

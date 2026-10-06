@@ -7,6 +7,7 @@ const EXAM_COUNT = EXAM_NUMBERS.length;
 const CHAPTER_NUMBERS = Object.keys(CHAPTERS).map(Number);
 const DIFF_LABELS = { 1: 'Easy', 2: 'Basic', 3: 'Medium', 4: 'Hard', 5: 'Expert' };
 const DIFF_LEVELS = Object.keys(DIFF_LABELS).map(Number);
+const MAX_DIFFICULTY = Math.max(...DIFF_LEVELS); // stars shown out of this many
 const CHAPTER_SHORT = {
   1: 'Values & principles',
   2: 'What is the UK?',

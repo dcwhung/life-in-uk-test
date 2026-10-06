@@ -30,7 +30,6 @@ const MS_PER_SECOND = 1000;
 
 // ── display ──
 const PERCENT = 100;
-const MAX_DIFFICULTY = 5;
 const DIFF_BAR_LOW_PCT = 60;   // results "By Difficulty" bar: red below this
 const DIFF_BAR_MID_PCT = 80;   // gold below this, green from here
 const REVIEW_HIGHLIGHT_MS = 1500;
