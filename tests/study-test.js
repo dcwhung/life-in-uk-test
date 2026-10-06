@@ -109,6 +109,9 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(offPath.fill === 'none' && offPath.stroke === await tokenRgb('--text-muted'), 'bookmark off: outline in text-muted: ' + JSON.stringify(offPath));
   const bmChip = pg.locator('#studyChips .chip[data-arg="bookmarksOnly"]');
   assert(await bmChip.locator('svg.chip-flag path').count() === 1 && (await bmChip.textContent()).trim() === 'Bookmarked only', 'Bookmarked only chip has the flag SVG and no ★');
+  // chip icon follows the fact button: outline while the filter is off (mockup #study-chapters)
+  const chipPath = await bmChip.locator('svg.chip-flag path').evaluate(e => ({ fill: getComputedStyle(e).fill, stroke: getComputedStyle(e).stroke }));
+  assert(chipPath.fill === 'none' && chipPath.stroke === await tokenRgb('--text-muted'), 'Bookmarked only chip icon is an outline when off: ' + JSON.stringify(chipPath));
   // v0.62 (P3 T-105, O1 / O2): labelled toggle buttons with aria-pressed; 32px box, 44px hit area
   const tickBtn = pg.locator('.fact').first().locator('.fact-btn.tick');
   const aria = loc => loc.evaluate(e => [e.getAttribute('aria-label'), e.getAttribute('aria-pressed')].join('|'));

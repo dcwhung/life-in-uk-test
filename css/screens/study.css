@@ -63,6 +63,8 @@
 .fact-btn.star path { fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; }
 .fact-btn.star.on { background: var(--flag-bg); border-color: var(--orange); color: var(--orange); }
 .fact-btn.star.on path { fill: currentColor; }
+/* "Bookmarked only" chip icon: outline while off, like the fact button (result filter chips keep the orange icon) */
+#studyChips .chip:not(.active) .chip-flag path { fill: none; stroke: currentColor; }
 .fact-btn.on.tick { background: var(--success-bg); border-color: var(--green); color: var(--green); }
 .fact-name { font-size: var(--fs-md); font-weight: 800; color: var(--navy); margin-bottom: 4px; }
 .fact-en { font-size: var(--fs-md); font-weight: 500; color: var(--text); line-height: 1.5; }
