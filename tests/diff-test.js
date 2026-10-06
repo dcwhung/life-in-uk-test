@@ -46,7 +46,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   const total = await pg.$$eval('.diff-pct', els => els.reduce((a, e) => a + parseInt(e.textContent.split('/')[1]), 0));
   assert(total === 24, 'breakdown totals 24');
   await pg.screenshot({ path: 'shot-diff-result.png' });
-  await pg.click('text=Choose Another');
+  await pg.click('#screenResult .another-btn >> nth=0');
 
   // study fact stars
   await pg.click('#modeStudy');

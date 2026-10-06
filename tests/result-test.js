@@ -45,13 +45,17 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
     return rows.length === 2 && !!(rows[0].compareDocumentPosition(review) & Node.DOCUMENT_POSITION_FOLLOWING)
       && !!(review.compareDocumentPosition(rows[1]) & Node.DOCUMENT_POSITION_FOLLOWING);
   }), 'button rows above and below Review Answers');
-  assert((await retryText()) === 'Retry Exam', 'Exam mode: Retry Exam');
+  const anotherText = async () => {
+    const t = await pg.$$eval('#screenResult .another-btn', els => els.map(e => e.textContent));
+    return t.length === 2 && t[0] === t[1] ? t[0] : 'mismatch: ' + t.join(' / ');
+  };
+  assert((await retryText()) === 'Retry' && (await anotherText()) === 'Another Exam', 'Exam mode: Retry / Another Exam');
   for (const set of [2, 'ch1', 'd1', 'all']) {
     await finish('practice', set);
-    assert((await retryText()) === 'Practise Again', `${set} practice: Practise Again`);
+    assert((await retryText()) === 'Retry' && (await anotherText()) === 'Another Practice', `${set} practice: Retry / Another Practice`);
   }
   await finish('exam', 1);
-  assert((await retryText()) === 'Retry Exam', 'Retry Exam again after a practice set');
+  assert((await retryText()) === 'Retry' && (await anotherText()) === 'Another Exam', 'Retry / Another Exam again after a practice set');
   // review order: wrong answers first (original question numbers kept), choice remembered
   const finishWithWrong = (wrongIdx) => pg.evaluate((wrongIdx) => {
     pendingMode = 'practice'; startExam('ch1');

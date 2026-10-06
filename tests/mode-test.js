@@ -39,10 +39,9 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.screenshot({ path: 'shot-home-exam.png' });
   await pg.click('#examGrid .exam-btn:nth-child(3)');
   assert((await pg.$eval('#modeBadge', e => e.textContent)) === 'Exam', 'exam mode starts');
-  let leaveMsg = '';
-  pg.once('dialog', d => { leaveMsg = d.message(); d.accept(); });
   await pg.click('#screenQuiz .back-btn');
-  assert(leaveMsg.startsWith('Leave the exam?'), 'leaving a running exam asks first');
+  assert((await pg.$eval('#confirmTitle', e => e.textContent)) === 'Leave the exam?', 'leaving a running exam asks first (modal)');
+  await pg.click('#confirmOk');
   // study
   await pg.click('#modeStudy');
   assert(await pg.$eval('#screenStudy', e => e.classList.contains('active')), 'Study opens directly');

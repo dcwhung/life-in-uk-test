@@ -28,7 +28,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.evaluate(() => { state.current = state.questions.length - 1; renderQuestion(); finishExam(); });
   assert(await pg.$eval('#resultLabel', e => e.textContent) === 'Chapter 3', 'result label chapter');
   assert(await pg.evaluate(() => !localStorage.getItem('completedExams')), 'chapter practice does not mark exams complete');
-  await pg.click('text=Choose Another');
+  await pg.click('#screenResult .another-btn >> nth=0');
 
   // study screen
   await pg.click('#modeStudy');
