@@ -63,3 +63,16 @@
   font-size: var(--fs-base); font-weight: 800;
   cursor: pointer; white-space: nowrap;
 }
+/* ✕: small round ghost button after Install (v0.60) */
+.install-close {
+  flex-shrink: 0;
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent;
+  color: var(--text-inverse-65);
+  border: none; border-radius: var(--radius-circle);
+  font-size: var(--fs-md); line-height: 1;
+  cursor: pointer;
+}
+.install-close:hover { color: var(--text-inverse); }
+.install-close:focus-visible { outline: 2px solid var(--text-inverse); outline-offset: 1px; }

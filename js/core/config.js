@@ -37,6 +37,10 @@ const OPTION_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 const LIST_SEP = ' · ';    // between parts of one line ("✓ Correct! · 🔥 1/3")
 const ANSWER_SEP = ' | ';  // between the options of a multi-answer question
 
+// ── install banner (js/pwa/pwa.js) ──
+// touch-first devices only: PC Chrome / Edge fire beforeinstallprompt too, but desktop install is not the target
+const INSTALL_TOUCH_QUERY = '(pointer: coarse)';
+
 // ── i18n (js/core/i18n.js; strings in locales/*.js) ──
 const DEFAULT_LANG = 'en';   // also the fallback for keys a language lacks
 
@@ -49,6 +53,7 @@ const WRONG_LS = LS_PREFIX + 'wrongList';
 const COMPLETED_LS = LS_PREFIX + 'completedExams';
 const HOME_PREFS_LS = LS_PREFIX + 'homePrefs';
 const UI_LANG_LS = LS_PREFIX + 'uiLang';   // v0.59: UI language (no switch shown yet)
+const INSTALL_DISMISSED_KEY = LS_PREFIX + 'installDismissed';   // v0.60: install banner closed with ✕ (never shown again)
 const STUDY_LS = {
   prefs: LS_PREFIX + 'studyPrefs',
   mastered: LS_PREFIX + 'studyMastered',

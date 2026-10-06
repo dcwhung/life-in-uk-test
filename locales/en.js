@@ -25,6 +25,7 @@ LOCALES.en = {
     installTitle: 'Install for offline use',
     installText: 'Add to home screen to study without internet',
     installButton: 'Install',
+    installDismiss: 'Dismiss',
   },
 
   home: {
