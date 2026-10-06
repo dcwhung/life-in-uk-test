@@ -113,7 +113,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   // leaving to Home drops the stashed session
   await pg.click('#similarBox .sqm-cta button');
   await pg.evaluate(() => goHome());
-  assert(await pg.evaluate(() => similarReturn === null), 'home clears the temporary session');
+  assert(await pg.evaluate(() => sessionReturn === null), 'home clears the temporary session');
 
   assert(errs.length === 0, 'no page errors: ' + errs.join('; '));
   console.log('SIMILAR PASS');

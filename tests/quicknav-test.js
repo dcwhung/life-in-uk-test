@@ -63,7 +63,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   });
   assert((await text('#quickNext')) === '↩' && (await text('#nextBtn')) === '↩ Back', 'similar session: ↩ / ↩ Back');
   await pg.click('#quickNext');
-  assert(await pg.evaluate(() => state.examNum === 12 && similarReturn === null), 'quick Back returns to the original session');
+  assert(await pg.evaluate(() => state.examNum === 12 && sessionReturn === null), 'quick Back returns to the original session');
 
   // card header: "Question X of Y"; practice uses question dots instead of the progress bar and score pill (practicedots-test)
   await pg.evaluate(() => { localStorage.clear(); streaks = {}; pendingMode = 'practice'; startExam('ch1'); });

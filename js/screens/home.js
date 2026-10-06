@@ -158,7 +158,7 @@ function goHome() {
 }
 function leaveToHome() {
   stopExamTimer();
-  similarReturn = null;
+  clearSideSession();
   showScreen('screenHome');
   buildExamGrid();
   renderModeSelection(); // keeps the last chosen mode and practice tab

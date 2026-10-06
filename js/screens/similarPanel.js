@@ -2,9 +2,6 @@
 // SIMILAR PANEL — practice only, once answered: other questions of the same STUDY fact,
 // plus a one-off "Practise these N" session (hidden inside that session)
 // ════════════════════════════════════════
-let similarReturn = null; // the stashed session while practising similar questions
-function isSimilarSession() { return similarReturn !== null; }
-
 function similarNodeClass(k) {
   const st = streakOf(questionByKey(k));
   return st >= MASTERY_STREAK ? ' mastered' : st > 0 ? ' weak' : '';
@@ -57,33 +54,17 @@ function similarPanelHtml(q, keys) {
 }
 function renderSimilar(q, revealed) {
   const box = byId('similarBox');
-  const show = state.mode === PRACTICE_MODE && revealed && !isSimilarSession();
+  const show = state.mode === PRACTICE_MODE && revealed && !isSideSession();
   const keys = show ? similarKeys(q) : [];
   box.classList.toggle('show', keys.length > 0);
   box.innerHTML = keys.length ? similarPanelHtml(q, keys) : '';
 }
 
-// one-off session over the similar questions (each once, listed order); the original session
+// one-off side session over the similar questions (js/screens/sideSession.js); the original session
 // is stashed and restored at the same question when the last one is done
 function startSimilarPractice() {
   const keys = similarKeys(state.questions[state.current]);
   if (!keys.length) return;
-  similarReturn = state;
-  state = {
-    ...state,
-    examNum: SIMILAR_EXAM,
-    questions: keys.map(questionByKey).map(toQuestionItem),
-    current: 0,
-    answers: {},
-    revealed: {},
-    yueShown: {},
-  };
-  renderQuestion();
-  window.scrollTo(0, 0);
-}
-function returnFromSimilar() {
-  state = similarReturn;
-  similarReturn = null;
-  renderQuestion();
-  window.scrollTo(0, 0);
+  startSideSession(SIMILAR_EXAM, keys.map(questionByKey).map(toQuestionItem),
+    { kind: SESSION_RETURN_KIND.quiz, state });
 }
