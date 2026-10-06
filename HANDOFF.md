@@ -205,6 +205,7 @@ v0.58 起全部 key 都有 `lifeuk.` prefix（`LS_PREFIX`，`js/core/config.js`�
 - 舊 key 名好普通（`wrongList`、`homePrefs`…）：同 origin 任何 app 如果有冇 prefix 而同名嘅 key，都會俾當係我哋嘅資料搬走（目前已知其他 app 全部有自己 prefix）
 - 已知風險（用戶接受）：如果同一個瀏覽器仲開住 v0.57 嘅 tab，v0.58 搬完之後嗰個 tab 照寫舊 key，下次載入會因「新 key 優先」被刪；iOS 主畫面 app / 單一 tab 用法唔受影響；升級前關晒其他 tab
 - 唔喺對照表嘅 key（其他 app）完全唔掂；`tests/migrate-test.js` 驗證
+- **v0.58 之後唔好 rollback 去 v0.57**（CUI-0005）：v0.57 只讀冇 prefix 嘅 key，搬完之後會顯示空進度；喺 v0.57 寫入嘅舊 key，再升返 v0.58 時（有 marker →「新 key 優先」）會被刪走。出事要 roll forward，或者 revert 去某個 v0.58.x commit（新 file 仍然讀 `lifeuk.*`）
 
 ## 測試
 
