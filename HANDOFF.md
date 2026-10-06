@@ -15,7 +15,7 @@
 
 | File | 大小 | 內容 |
 |---|---|---|
-| `index.html` | 81 KB | CSS、HTML、app 邏輯（state / home / quiz / similar questions / results / study / SW） |
+| `index.html` | 86 KB | CSS、HTML、app 邏輯（state / home / quiz / exam tools / similar questions / results / study / SW） |
 | `data/exams.js` | 181 KB | `EXAMS`：408 題，Exam 1–17 各 24 題 |
 | `data/study.js` | 65 KB | `CHAPTERS` + `STUDY`：236 條 dedupe 後嘅 facts |
 | `js/utils.js` | 2 KB | `shuffle`、`shuffleOptions`、`getLS`、`setLS`、`starsHtml`、`escapeHtml` |
@@ -185,7 +185,12 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | v0.42 | dcwhung/life-in-uk-test#14 | 修正 Practice › By Exam 進度條爆出圓角格仔：`.exam-btn:not(.done)` 加 `overflow: hidden`（`.done` 嘅 ✓ badge 只喺 Exam mode，要凸出所以唔 clip） |
 | — | dcwhung/life-in-uk-test#15 | HANDOFF.md：PR #14 版本記錄、mastery bar 備註 |
 | v0.43 | dcwhung/life-in-uk-test#16 | Exam mode 改做真考試流程：揀選項即暫存、Next / Prev 返去可以改答案、全程唔對答案；最後一題 Next 變「Submit」，有未答題先 confirm，撳咗去結果頁 |
-| v0.44 | — | Exam 1–17 考試工具：45 分鐘倒數（到 0 自動交卷）、書籤 flag、24 個數字圓點（狀態 + 跳題）、Answered / Unanswered / Flagged 計數；考試中返 Home 先問（先做 preview 確認） |
+| v0.44 | dcwhung/life-in-uk-test#17 | Exam 1–17 考試工具：45 分鐘倒數（到 0 自動交卷）、書籤 flag、24 個數字圓點（狀態 + 跳題）、Answered / Unanswered / Flagged 計數；考試中返 Home 先問（先做 preview 確認） |
+
+**Exam 流程設計決定（v0.43，同用戶逐步確認）**
+- 試過「Submit 之後跳下一題、唔對答案、鎖住」（89e5f7c），用戶要求改成真考試：揀咗即暫存、可以返去改、唔逐題 Submit
+- Submit 只喺最後一題，放喺 Next 嘅位置，文字只寫「Submit」；問題卡頭嘅快捷 → 喺最後一題收埋，避免誤撳交卷
+- 有未答題先 confirm（Claude 提議，用戶接受）
 
 **考試工具設計決定（v0.44，先做 preview 同用戶確認）**
 - 只用喺 Exam 1–17（24 題、同真考試一樣）；All Exams（408 題）45 分鐘唔合理，所以唔加
@@ -235,6 +240,14 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 ## 主要 commit（新→舊）
 
 ```
+beb13ed feat: exam tools — 45-min countdown, bookmark flags, 24-dot question navigator (v0.44)
+a7d7c38 chore: exam preview — legend counts right-aligned with separators（preview 已 delete）
+11f77f7 chore: update temporary exam mode preview — bookmark flag, orange flagged dots, legend counts（preview 已 delete）
+34f5c3d chore: add temporary exam mode preview — timer, flags, 24-dot navigator（preview 已 delete）
+4641b06 feat: exam Submit takes the Next button's place on the last question (v0.43)
+e7a3de5 feat: real-test exam flow — editable saved picks, single Submit on the last question (v0.43)
+89e5f7c fix: exam mode submit moves on without revealing the answer (v0.43；中途版本，已被 e7a3de5 取代)
+3af2f06 docs: HANDOFF.md v0.42 — PR #14 in version log, mastery bar note
 f35f922 fix: keep By Exam mastery bars inside the rounded boxes (v0.42)
 5cfcdf6 docs: HANDOFF.md v0.41 — PR #11/#12 in version log, workflow notes, stale header-stats note
 f905348 feat: merge progress into the question card; symbol-only quick nav (v0.41)
