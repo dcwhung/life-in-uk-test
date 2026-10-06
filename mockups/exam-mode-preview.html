@@ -44,11 +44,9 @@
   .dot { position: relative; aspect-ratio: 1; width: 100%; max-width: 30px; justify-self: center; border-radius: 50%; border: 1.5px solid var(--border); background: var(--card); color: var(--text-muted); font-size: 10.5px; font-weight: 800; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
   .dot.done { background: var(--navy-light); border-color: var(--navy-light); color: #fff; }
   .dot.current { box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--gold); }
-  .dot.flag::after { content: ''; position: absolute; top: -3px; right: -3px; width: 9px; height: 9px; border-radius: 50%; background: var(--orange); border: 1.5px solid var(--card); }
+  .dot.flag { background: var(--orange); border-color: var(--orange); color: #fff; }
   .dots-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 10.5px; color: var(--text-muted); margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
   .dots-meta i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 4px; vertical-align: -1px; }
-  .flag-filter { margin-left: auto; background: #fdf3e8; color: var(--orange); border: 1.5px solid #f3d3b0; border-radius: 999px; padding: 3px 9px; font-size: 11px; font-weight: 800; cursor: pointer; }
-  .flag-filter:disabled { opacity: 0.45; cursor: default; }
 
   /* question header */
   .q-num { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; min-height: 30px; }
@@ -58,8 +56,11 @@
   .icon-btn { width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--card); color: var(--navy); font-size: 15px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
   .icon-btn.primary { background: var(--navy); border-color: var(--navy); color: #fff; }
   .icon-btn:disabled { opacity: 0.4; cursor: default; }
-  .flag-btn { font-size: 14px; filter: grayscale(1); opacity: 0.55; }
-  .flag-btn.on { filter: none; opacity: 1; background: #fdf3e8; border-color: var(--orange); }
+  .flag-btn { width: 32px; height: 32px; border: none; background: none; padding: 0; cursor: pointer; color: var(--text-muted); display: inline-flex; align-items: center; justify-content: center; }
+  .flag-btn svg { width: 24px; height: 24px; }
+  .flag-btn path { fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; }
+  .flag-btn.on { color: var(--orange); }
+  .flag-btn.on path { fill: currentColor; }
   .q-text { font-size: 17px; font-weight: 700; line-height: 1.5; color: var(--navy); }
 
   /* options (unchanged) */
@@ -84,7 +85,7 @@
 <body>
 
 <div class="mock-bar">
-  <b>PREVIEW</b> · Exam mode: 45-min timer · flag · 24-dot navigator. 撳選項、🚩、圓點都試得。<br>
+  <b>PREVIEW</b> · Exam mode v2: 45-min timer · bookmark flag · 24-dot navigator. 撳選項、書籤、圓點都試得。<br>
   <button onclick="setTime(5 * 60 + 3)">⏩ 跳去剩 5 分鐘（變紅）</button>
   <button onclick="setTime(5)">⏩ 跳去剩 5 秒（自動 submit）</button>
   <button onclick="demoFill()">填啲示範答案 / flag</button>
@@ -101,14 +102,13 @@
     <div class="nav-dots" id="dots"></div>
     <div class="dots-meta">
       <span><i style="background:var(--navy-light)"></i>Answered <b id="cDone">0</b></span>
-      <span><i style="border:1.5px solid var(--border)"></i>Unanswered</span>
-      <span><i style="background:var(--orange)"></i>Flagged</span>
-      <button class="flag-filter" id="flagJump" onclick="nextFlagged()">🚩 0 flagged ›</button>
+      <span><i style="border:1.5px solid var(--border)"></i>Unanswered <b id="cTodo">0</b></span>
+      <span><i style="background:var(--orange)"></i>Flagged <b id="cFlag">0</b></span>
     </div>
     <div class="q-num">
       <span class="q-num-text" id="qNum"></span>
       <span class="q-tools">
-        <button class="icon-btn flag-btn" id="flagBtn" onclick="toggleFlag()" title="Flag for review">🚩</button>
+        <button class="flag-btn" id="flagBtn" onclick="toggleFlag()" title="Flag for review" aria-label="Flag for review"><svg viewBox="0 0 24 24"><path d="M7.5 3.5h9A2.5 2.5 0 0 1 19 6v14.5l-7-5.1-7 5.1V6a2.5 2.5 0 0 1 2.5-2.5z"/></svg></button>
         <button class="icon-btn" id="qPrev" onclick="go(cur - 1)" title="Previous">←</button>
         <button class="icon-btn primary" id="qNext" onclick="go(cur + 1)" title="Next">→</button>
       </span>
@@ -155,16 +155,17 @@
   function renderDots() {
     document.getElementById('dots').innerHTML = QS.map((_, i) =>
       `<button class="dot${isDone(i) ? ' done' : ''}${flags[i] ? ' flag' : ''}${i === cur ? ' current' : ''}" onclick="go(${i})" title="Question ${i + 1}">${i + 1}</button>`).join('');
-    document.getElementById('cDone').textContent = QS.filter((_, i) => isDone(i)).length;
-    const n = flaggedList().length, fj = document.getElementById('flagJump');
-    fj.textContent = `🚩 ${n} flagged ›`; fj.disabled = !n;
+    const done = QS.filter((_, i) => isDone(i)).length;
+    document.getElementById('cDone').textContent = done;
+    document.getElementById('cTodo').textContent = QS.length - done;
+    document.getElementById('cFlag').textContent = flaggedList().length;
   }
   function render() {
     const q = QS[cur], last = cur === QS.length - 1;
     document.getElementById('qNum').innerHTML = `<span>Question ${cur + 1} of ${QS.length}${q.m > 1 ? ` (select ${q.m})` : ''}</span><span class="stars">${stars(q.d)}</span>`;
     document.getElementById('qText').textContent = q.q;
     const fb = document.getElementById('flagBtn');
-    fb.classList.toggle('on', !!flags[cur]); fb.title = flags[cur] ? 'Unflag' : 'Flag for review';
+    fb.classList.toggle('on', !!flags[cur]); fb.title = flags[cur] ? 'Unflag' : 'Flag for review'; fb.setAttribute('aria-label', fb.title);
     document.getElementById('opts').innerHTML = q.o.map((o, i) =>
       `<button class="opt${(answers[cur] || []).includes(i) ? ' selected' : ''}" onclick="pick(${i})"><span class="opt-letter">${LETTERS[i]}</span><span>${o}</span></button>`).join('');
     document.getElementById('qPrev').disabled = document.getElementById('prevBtn').disabled = cur === 0;
@@ -182,10 +183,6 @@
     render();
   }
   function toggleFlag() { flags[cur] = !flags[cur]; render(); }
-  function nextFlagged() {
-    const list = flaggedList(); if (!list.length) return;
-    go(list.find((i) => i > cur) ?? list[0]);
-  }
   function finish(timeUp) {
     const unanswered = QS.length - QS.filter((_, i) => isDone(i)).length, flagged = flaggedList().length;
     if (!timeUp) {
