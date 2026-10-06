@@ -21,7 +21,7 @@ v0.57（P1 refactor）起 `index.html` 只剩 `<head>`、各 screen 嘅 markup �
 | `sw.js` | Service Worker（**一定要喺 root**，SW 只可以控制自己 path 或以下嘅 page）；`importScripts('js/core/config.js')` 攞 `APP_VERSION` 做 cache 名；`SHELL` 列齊所有 file |
 | `data/exams.js` | `EXAMS`：408 題，Exam 1–17 各 24 題 |
 | `data/study.js` | `CHAPTERS` + `STUDY`：236 條 dedupe 後嘅 facts |
-| `css/base/tokens.css` | `:root` 色 / radius / shadow tokens |
+| `css/base/tokens.css` | `:root` design tokens：所有顏色、shadow / overlay、radius 同 font-size scale（見「Design tokens」） |
 | `css/base/layout.css` | reset、body、sticky header、main、`.screen` 切換、`[hidden]`、`.quiz-header` / `.section-title`、`@keyframes slideIn` |
 | `css/components/*.css` | `buttons`（back / nav / quick ← → / flag 掣 + 書籤 icon 顏色）、`chips`（practice / study tab 共用 base、`.chip`、`.stars`）、`dots`（`.dot` / `.rdot` 共用形狀、`.dots-meta` / `.rmeta` 計數）、`modal`、`popover`（ⓘ popover + install banner） |
 | `css/screens/*.css` | `home`、`quiz`（問題卡、選項、答案框、計時器、Similar `.sqm`）、`results`、`flagged`、`study`（含 timeline）；`@media (max-width: 480px)` 跟返各自 file 尾 |
@@ -52,6 +52,26 @@ v0.57（P1 refactor）起 `index.html` 只剩 `<head>`、各 screen 嘅 markup �
 - 同一個 click listener 之後會關 ⓘ popover（click 喺 popover 入面或者 ⓘ 本身除外）；Esc：有 modal 就取消 modal，同時關 popover
 - 新加 action：markup 加 `data-action` + `ACTIONS` 加一行；`tests/structure-test.js` 會 fail 任何 `on*=` inline handler
 - 顯示 / 收埋用 `hidden` attribute（`layout.css` 有 `[hidden] { display: none !important; }`）；唯一例外 `#studySubChips` 仍然用 `style.display`，因為 `subfilter-test` 讀 `style.display`
+
+## Design tokens
+
+`css/base/tokens.css` 係唯一定義顏色嘅地方，其他 CSS 一律用 `var(--…)`。
+
+| 組 | Token |
+|---|---|
+| Brand palette | `--orange`、`--navy` / `-mid` / `-light`、`--gold` / `-light`、`--green` / `-light`、`--red` / `-light`、`--purple` / `-light` |
+| Surface / text | `--bg`、`--card`、`--text`、`--text-muted`、`--border`、`--divider` |
+| 深色底上嘅字 | `--text-inverse`（白）+ `--text-inverse-75` / `-70` / `-65` / `-60` / `-55` / `-45`（白色 alpha） |
+| 狀態淺底 | `--success-bg`、`--danger-bg`、`--selected-bg`、`--flag-bg` |
+| Gold accent | `--gold-bg`、`--gold-text`、`--star-on`、`--note-label`、`--fact-bg`、`--fact-label`、`--gold-border`、`--gold-tint` |
+| 翻譯 / Study tag | `--yue-bg`、`--yue-bg-soft`、`--year-bg`、`--person-bg` |
+| Radius | `--radius`（14px 卡）、`--radius-md`（10px）、`--radius-sm`（8px）、`--radius-pill`（999px）、`--radius-circle`（50%） |
+| Font size | `--fs-2xs` 10、`--fs-xs` 11、`--fs-sm` 12、`--fs-base` 13、`--fs-md` 14、`--fs-lg` 15（px）；10.5 / 12.5 / 13.5 半級同大標題字號照寫 px |
+| Shadow / overlay | `--shadow`、`--shadow-sm`、`--shadow-header`、`--shadow-pop`、`--overlay` |
+
+- **新顏色一定要加喺 `tokens.css`**（按意思命名，同值同意思就重用現有 token）；`tests/structure-test.js` 會 fail 任何喺其他 css file 出現嘅 hex 或者 `rgb(` / `rgba(`
+- Spacing（padding / margin / gap）冇統一 scale，仍然寫 px；只有重複又共用嘅 radius / font-size 先做 token
+- `tests/tools/visual-diff.js` 會將新 custom property 當 computed style 差異（每個 element 都繼承 `:root` token），所以加 token 嘅 refactor 會報 diff；要 filter 走 `--*` property 先睇到真正差異
 
 ## 數據結構
 
@@ -252,7 +272,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | `examtools-test.js` | Submit / Leave 用 app 內 modal（掣名、Esc 取消、冇瀏覽器 dialog）；Random Exam（30 次抽題全部 24 題、24 個唔同 fact、每次唔同；工具、PASSED、Retry 抽新題、首頁掣名）；Exam 1–17 計時器（45:00、最後 5 分鐘變紅、到 0 自動交卷 + 結果頁提示）、24 圓點狀態同跳題、書籤 flag、計數、Submit / Home 提示；Practice 冇計時，圓點係啱／錯版（見 practicedots-test） |
 | `quicknav-test.js` | 快捷 ← / →（符號、title、最後一題 ✓ / ↩；Exam 最後一題 ✓ = Submit）；問題卡 header：Question X of Y、Practice 用圓圈唔用 progress bar、冇 score pill、header 冇 stats |
 | `sw-test.js` | v0.57：將 app copy 去 temp dir，用 python static server（加 GitHub Pages 一樣嘅 `Cache-Control: max-age=600`）serve（或者 http 嘅 `APP_URL`）；index.html 每個 `<script src>` / `<link href>` 都喺 `sw.js` SHELL、SHELL 每個 file 存在；`sw.js` 註冊成功、cache 名跟 `APP_VERSION`、SHELL 全部 cache 咗；`setOffline(true)` reload 仍然出首頁、css 生效、開到 Practice；同 origin 其他 app 嘅 cache（`other-app`）唔會俾 activate 刪；淨係改 temp copy 嘅 `config.js` 版本號就會裝新 cache、刪舊 `lifeuk-v*` cache；冇 page / console / SW error（瀏覽器自己 probe `/favicon.ico` 嘅 404 除外） |
-| `structure-test.js` | v0.57：index.html / js 冇 inline `on*=`、index.html 冇 inline `<style>` / `<script>` / `style=`（progress bar 闊度除外）、每個 function ≤ 30 行、markup / template 每個 `data-action` 都有 `ACTIONS` handler 而每個 handler 都有人用、`file://` 載入冇 page error / console error / failed request |
+| `structure-test.js` | v0.57：index.html / js 冇 inline `on*=`、index.html 冇 inline `<style>` / `<script>` / `style=`（progress bar 闊度除外）、每個 function ≤ 30 行、`tokens.css` 以外嘅 css 冇 hex / `rgb(a)(` 顏色（P2）、markup / template 每個 `data-action` 都有 `ACTIONS` handler 而每個 handler 都有人用、`file://` 載入冇 page error / console error / failed request |
 | `migrate-test.js` | v0.58：用似真用戶嘅舊資料（completedExams、homePrefs、practiceFlags、practiceStreak、reviewOrder、wrongList、studyPrefs / studyMastered / studyBookmarks，全部非空）+ 其他 app 嘅 key（`run365.prefs`、`tripspend.*.v1`）reload：`lifeuk.*` 係原始字串、舊 key 同 `reviewOrder` 刪咗、其他 app 嘅 key 一字不改、UI 跟資料（Practice › By Chapter、Flagged 5、mastery 數、Exam 1–5 ✓、Study geo tab）；全部搬完寫 `lifeuk.migrated`；有 marker 新舊都有 → 新嘅贏（UI 讀新 key）；冇 marker 新舊都有 → streak / flags 逐條 merge（同一題新嘅贏）、homePrefs 新嘅贏、舊 key 刪、寫 marker、UI 顯示 merge 後進度（3/408、Flagged 3）；一邊唔係 object（壞 JSON、array）→ 留新 value；再 reload 兩次唔變、app 寫入只落 `lifeuk.*`；壞 JSON 照搬唔 crash；空 storage 只生 marker；fail-safe：stub `setItem` 令 `lifeuk.practiceStreak` throw QuotaExceededError、`lifeuk.studyPrefs` 寫唔落（verify 唔對），今次載入 UI 照顯示舊進度（3/408、Study geo）、答題寫返舊 key、冇空新 key，fallback 期間冇 marker；拎走 stub reload 後舊 streak + 新答案全部喺 `lifeuk.practiceStreak`、舊 key 冇咗、寫 marker；冇 marker 新舊都有而 merge 寫入 throw → 兩個 key 原封不動、冇 marker、UI 讀舊 key，拎走 stub 後 merge 完成；g2（W-004）：merge 寫唔到、fallback 期間答題（1.2 → 3）落舊 key、新 key 記入 `lifeuk.migrateFallback`，下次載入舊嘅贏（1.2 = 3 唔係 stale 嘅 0）、兩邊 entry 都保留、舊 key 刪、寫 marker、清記錄；g3（S-010）：merge 寫入同記錄寫入都 throw → 冇記錄冇 marker，fallback 期間答題下次載入照保留（1.2 = 3）、舊 / 混合頁面 entry 都喺、寫 marker |
 | `upgrade-test.js` | v0.58（CUI-0004）：v0.57 檔案由 git 攞（pinned `dc84cab`，v0.57 嘅 main）。① 混合 shell（`file://`）：temp dir 放 v0.57 `index.html`（冇 migrate tag）+ 而家嘅 js / css / data，seed 舊 key → UI 即刻顯示舊進度（3/408、Flagged 5）；答一題，再開而家嘅 `index.html` → 舊 streak 全部 + 新答案都喺 `lifeuk.practiceStreak`、其他 value 原始字串、舊 key 冇咗、有 marker、其他 app key 唔郁。② 反方向混合：v0.57 全套 + 而家嘅 `utils.js` → 冇 error、照讀 v0.57 key、storage 唔郁。③ QA `upgrade-sim` 核心：python server（`max-age=600`）serve v0.57，SW 裝好、seed 舊資料、記低 UI；原地換做而家嘅 file，reload 等新 SW activate + 刪 `lifeuk-v0.57` cache，再 reload → v0.58、8 個 value 原始字串、舊 key + reviewOrder 冇咗、其他 app key 一樣、新 key 只多 marker、UI（mode / view、Flagged、Wrong、mastery grid、完成 ✓、Study tab / 掌握 / 書籤）同升級前一樣、再 reload 唔變（呢個 case 唔保證撞到 SW 換版嘅 race，race 由 ① deterministic 咁覆蓋）。④ 第三種混合：而家嘅 file + v0.57 `utils.js`，seed 舊 key、答一題 → 舊 key 原封不動、冇 marker；換返而家嘅 `utils.js` reload → 舊 streak 全部 + 新答案、5 個舊 map 每條 entry 都喺、舊 key 冇咗、有 marker。約 6 秒 |
 | `practicedots-test.js` | v0.55：Practice 圓圈（24 / 9 / review 題數、冇 progress bar 同計時、啱綠錯紅、flag 橙邊、計數一行、撳跳題前後都得）；冇 score pill；Exam 最後一題快捷 ✓ 交卷（有未答彈 modal、全答直接去結果）；Flagged 列表「Practise flagged」書籤 icon 係橙色；首頁 Flagged 格 icon 橙色、Home 冇可見嘅黑色 SVG（v0.56） |
@@ -375,7 +395,6 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 - 測試依賴 Playwright + Chromium，repo 冇 `package.json`
 - 備注嘅 `\n` 係直接寫喺 `exams.js` 字串入面，冇 markdown 解析；縮排靠空格 + `pre-wrap`
 - `bookmarkSvg(cls)`（`js/components/icons.js`）輸出嘅 SVG path 冇 fill，新 class 一定要喺 CSS 設顏色（`css/components/buttons.css`），否則會係黑色（v0.55 / v0.56 踩過兩次）
-- CSS 仲有好多 hardcoded 顏色 / px（v0.57 照搬，冇改做 token，避免改到外觀）
 - `#reviewOrder` 係 Review filter chip 嘅容器，名係 v0.39 排序 chip 留低；測試用緊呢個 id，所以未改名
 - 1.19、14.3 兩條備注係單句列舉（曼島／五位演員），未改成分行
 - 124 條題目（408 − 284）冇類似題，因為佢哋嘅 fact 只有一個來源
@@ -485,4 +504,3 @@ c10115b feat: randomise answer option order in Practice and Exam mode
 - [x] 拆 `index.html`、data-action、真 `sw.js`（v0.57，P1）
 - [x] localStorage key 加 `lifeuk.` prefix + 舊資料遷移（v0.58）
 - [ ] P2（v0.59）：locale（`js/core/i18n.js` + `locales/en.js`）+ 字眼統一 + 清 hidden `#rbCorrect` 等；P3：Study mode 統一
-- [ ] CSS hardcoded 顏色 / 尺寸改用 `tokens.css` token
