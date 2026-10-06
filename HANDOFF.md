@@ -1,4 +1,4 @@
-# Life in the UK Test PWA — Handoff (v0.42)
+# Life in the UK Test PWA — Handoff (v0.43)
 
 - **Repo:** https://github.com/dcwhung/life-in-uk-test （main branch，GitHub Pages root `/`）
 - **Live:** https://dcwhung.github.io/life-in-uk-test/
@@ -108,7 +108,8 @@
 - 結果頁 PASSED / NEEDS IMPROVEMENT 同 remark 只喺 Exam 1–17（Exam mode 或 Practice > By Exam）顯示；Chapter / Difficulty / All Exams 只顯示分數
 
 **Exam mode**
-- 全部 24 題 Submit 後先睇結果；提交後顯示翻譯；唔影響掌握記錄
+- 全部 24 題做完先睇結果；**Submit 之後唔會對答案**（v0.43 起）：唔顯示啱／錯、答案框、翻譯，直接跳去下一題；最後一題 Submit 直接去結果頁；用 Prev 返去已 submit 嘅題只見到自己揀咗嘅選項（藍色、鎖住）；唔影響掌握記錄
+- 實作：`renderQuestion()` 用 `showAnswer = revealed && state.mode === 'practice'` 控制顏色、答案框同翻譯；`examSubmitAnswer()` 記錄後 `nextQ()`／`finishExam()`
 - Results：分數、pass/fail（18/24）、按難度統計表、逐題 review
 
 **Study（溫習）**
@@ -142,11 +143,11 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 
 | Suite | 覆蓋 |
 |---|---|
-| `test.js` | Exam/Practice 基本流程、多選、submit 掣 |
+| `test.js` | Exam/Practice 基本流程、多選、submit 掣；Exam submit 後跳下一題、返去只見自己揀嘅選項、最後一題去結果頁 |
 | `shuffle-test.js` | 408 題選項打亂後答案對應 |
 | `study-test.js`、`subfilter-test.js` | Study 四個 tab、搜尋、書籤、sub-filter |
 | `diff-test.js` | 難度數據完整、按難度練習、結果統計、難度掣只顯示英文 |
-| `yue-test.js`、`oy-test.js`、`yue2-test.js` | Translate 掣、選項翻譯、答案框格式（`yue2-test` 跳去、`oy-test` 搬第一條有選項翻譯嘅題目去最前，避免抽到年份／True-False 題隨機失敗） |
+| `yue-test.js`、`oy-test.js`、`yue2-test.js` | Translate 掣、選項翻譯、答案框格式、Exam mode 冇翻譯（`yue2-test` 跳去、`oy-test` 搬第一條有選項翻譯嘅題目去最前，避免抽到年份／True-False 題隨機失敗） |
 | `mode-test.js`、`info-test.js` | 首頁 mode/tab、持久化、ⓘ popover |
 | `mastery-test.js` | By Exam 進度條喺格仔入面、貼底（v0.42）；掌握機制（每輪每題一次、Y 固定、Ch1 要 3 輪先全掌握）、進度顯示、兩個 reset |
 | `result-test.js` | 結果頁 PASSED / remark 只喺 Exam 1–17 顯示；重做掣按 mode 改字、上下兩組掣、Wrong first 排序同記住選擇 |
@@ -154,7 +155,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | `similar-test.js` | Similar Questions section、Practise these N 臨時 session 同返回 |
 | `quicknav-test.js` | 快捷 ← / →（符號、title、最後一題 ✓ / ↩）；問題卡 header：Question X of Y、progress bar 喺卡頂、score pill、header 冇 stats |
 
-## 版本記錄（v0.32–v0.42）
+## 版本記錄（v0.32–v0.43）
 
 | 版本 | PR | 改動 |
 |---|---|---|
@@ -172,6 +173,8 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | v0.41 | dcwhung/life-in-uk-test#12 | 問題卡同 progress 合併：bar 變卡頂邊、題號行「Question X of Y ★ ✓ n/m」、快捷掣只有符號；拎走 header 嘅 correct / done |
 | — | dcwhung/life-in-uk-test#13 | HANDOFF.md：PR #11 / #12 版本記錄、開發流程備註 |
 | v0.42 | dcwhung/life-in-uk-test#14 | 修正 Practice › By Exam 進度條爆出圓角格仔：`.exam-btn:not(.done)` 加 `overflow: hidden`（`.done` 嘅 ✓ badge 只喺 Exam mode，要凸出所以唔 clip） |
+| — | dcwhung/life-in-uk-test#15 | HANDOFF.md：PR #14 版本記錄、mastery bar 備註 |
+| v0.43 | — | Exam mode Submit 唔再對答案：唔顯示啱／錯、答案框、翻譯，直接跳下一題；最後一題 Submit 去結果頁 |
 
 **問題卡 header 設計決定（v0.41，先做 preview 同用戶確認）**
 - 目的：慳位，拎走問題卡上面獨立嘅一行同 progress bar

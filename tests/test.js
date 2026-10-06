@@ -33,10 +33,14 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert((await cls(rightOpt)).includes('selected') && !(await cls(wrongOpt)).includes('selected'), 'Bug1: can change selection before submit');
   await pg.click('#opt' + wrongOpt); // pick wrong, then submit -> revealed=false case
   await pg.click('#examSubmitBtn');
+  // exam: submit never shows right / wrong — it moves straight on to the next question
+  assert(await pg.evaluate(i => state.current === i + 1 && state.revealed[i] === false, singleIdx), 'submit records the answer and jumps to the next question');
+  await pg.evaluate(() => prevQ());
   c = await cls(wrongOpt);
-  assert(c.includes('disabled') && c.includes('wrong'), 'reveal after submit: wrong option red+disabled');
-  assert((await cls(rightOpt)).includes('correct'), 'reveal after submit: correct option green');
-  assert((await box()).includes('show') && (await box()).includes('wrong-ans'), 'Bug3: answer box shown in exam mode after WRONG submit');
+  assert(c.includes('disabled') && c.includes('selected') && !c.includes('wrong') && !c.includes('correct'), 'revisit: own pick shown neutral + locked, no red');
+  assert(!(await cls(rightOpt)).includes('correct'), 'revisit: correct option not revealed');
+  assert((await box()) === 'answer-box', 'revisit: no answer box in exam mode');
+  assert(!(await pg.$eval('#qYue', e => e.classList.contains('show'))) && (await pg.$$('.opt-yue')).length === 0, 'revisit: no translation in exam mode');
   s = await submit(); assert(s.d && s.t === '✓ Submitted', 'Bug4: submitted label');
   await pg.click('#opt' + rightOpt);
   assert(JSON.stringify(await pg.evaluate(() => state.answers[state.current])) === JSON.stringify([wrongOpt]), 'locked after submit');
@@ -57,8 +61,13 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   s = await submit(); assert(s.d && s.t === `Submit Answer (0/${need} selected)`, 'Bug4: deselect to 0 disables submit');
   await pg.click('#opt' + ans[0]); await pg.click('#opt' + ans[1]);
   await pg.click('#examSubmitBtn');
-  assert(await pg.evaluate(() => state.revealed[state.current] === true), 'multi submit correct');
-  assert((await box()).includes('show') && !(await box()).includes('wrong-ans'), 'Bug3: box shown after correct submit');
+  assert(await pg.evaluate(i => state.revealed[i] === true && state.current === i + 1, multiIdx), 'multi submit recorded as correct, moved on');
+  assert((await box()) === 'answer-box', 'no answer box after submit');
+  // submitting the last question opens the results
+  await pg.evaluate(() => { state.current = state.questions.length - 1; renderQuestion(); });
+  await pg.evaluate(() => { const q = state.questions[state.current]; state.answers[state.current] = [...q.a]; renderQuestion(); });
+  await pg.click('#examSubmitBtn');
+  assert(await pg.$eval('#screenResult', e => e.classList.contains('active') || getComputedStyle(e).display !== 'none'), 'last submit opens the results');
 
   // ── Practice mode: wrong answer must still reveal + lock ──
   await pg.evaluate(() => { pendingMode = 'practice'; startExam(1); });

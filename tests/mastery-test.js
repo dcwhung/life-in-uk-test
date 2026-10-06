@@ -84,7 +84,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(!(await vis('#practiceReset')) && await vis('#examReset'), 'exam reset row shown in exam mode');
   assert((await pg.$$('#examGrid .exam-mastery')).length === 0, 'no mastery text in exam mode');
   await pg.evaluate(() => { startExam(1); state.answers[0] = [...state.questions[0].a]; examSubmitAnswer(); });
-  assert(!(await pg.$eval('#ansLabel', e => e.textContent)).includes('🔥'), 'exam mode has no streak indicator');
+  assert(!(await pg.$eval('#answerBox', e => e.classList.contains('show'))), 'exam mode shows no answer box (and no streak indicator)');
   const before = await pg.evaluate(() => JSON.stringify(JSON.parse(localStorage.getItem('practiceStreak'))));
   await pg.evaluate(() => { state.current = state.questions.length - 1; finishExam(); });
   assert(await pg.evaluate((b) => JSON.stringify(JSON.parse(localStorage.getItem('practiceStreak'))) === b, before), 'exam mode leaves streaks untouched');

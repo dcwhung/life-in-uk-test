@@ -41,11 +41,12 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.evaluate(() => { state.current = 2; renderQuestion(); });
   const isYears = await pg.evaluate(() => state.questions[2].o.every(o => /^\d{4}$/.test(o)));
   if (isYears) { await pg.click('#opt0'); assert((await pg.$eval('#ansYue', e => e.innerText)).match(/A\)\s*\d{4}/), 'A) falls back to year when no translation'); }
-  // exam mode: no toggle before submit; translations after submit
+  // exam mode: no translation at all until the results page (submit moves on; revisit stays plain)
   await pg.evaluate(() => { pendingMode = 'exam'; startExam(1); });
   assert(!(await vis('#yueToggle')) && !(await vis('#qYue')), 'exam: no toggle, no translation before submit');
   await pg.click('#opt0'); await pg.click('#examSubmitBtn');
-  assert(await vis('#qYue') && (await pg.$$('.opt-yue')).length > 0 && (await pg.$eval('#ansYue', e => e.innerText)).includes('【廣東話翻譯】'), 'exam: after submit, question/options/answer translations shown');
+  await pg.click('#prevBtn');
+  assert(!(await vis('#qYue')) && (await pg.$$('.opt-yue')).length === 0 && !(await vis('#answerBox')), 'exam: submitted question shows no translation or answer box');
   assert(errs.length === 0, 'no page errors: ' + errs.join(';'));
   await b.close(); console.log('YUE2 PASS');
 })().catch(e => { console.error(e.message); process.exit(1); });

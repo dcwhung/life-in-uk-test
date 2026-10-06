@@ -41,14 +41,15 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.click('#quickNext');
   assert(await vis('#screenResult'), 'quick Finish opens the results');
 
-  // exam: hidden until submitted, then See Results on the last question
+  // exam: submit jumps to the next question; quick nav shows when going back to a submitted one
   await pg.evaluate(() => { pendingMode = 'exam'; startExam(1); });
   assert(!(await vis('#quickNav')), 'exam: hidden before submit');
   await answer();
-  assert(await vis('#quickNav'), 'exam: shown after submit');
+  assert(await pg.evaluate(() => state.current === 1) && !(await vis('#quickNav')), 'exam: submit moves on to an unanswered question');
+  await pg.click('#prevBtn');
+  assert(await vis('#quickNav') && (await text('#quickNext')) === '→', 'exam: submitted question shows quick nav');
   await pg.evaluate(() => { state.current = state.questions.length - 1; renderQuestion(); });
-  await answer();
-  assert((await text('#quickNext')) === '✓' && (await text('#nextBtn')) === 'See Results →', 'exam last question: ✓ / See Results →');
+  assert((await text('#nextBtn')) === 'See Results →', 'exam last question: bottom button See Results →');
 
   // similar session: last question goes back
   await pg.evaluate(() => {
@@ -78,7 +79,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(await pg.$eval('#progressFill', e => e.style.width === '22%'), 'bar advances');
   await pg.evaluate(() => { pendingMode = 'exam'; startExam(1); });
   await answer();
-  assert((await pg.$$('#qNum .score-pill')).length === 0 && (await text('#qNum')).startsWith('Question 1 of 24'), 'exam mode: no score pill');
+  assert((await pg.$$('#qNum .score-pill')).length === 0 && (await text('#qNum')).startsWith('Question 2 of 24'), 'exam mode: no score pill');
 
   assert(errs.length === 0, 'no page errors: ' + errs.join('; '));
   console.log('QUICKNAV PASS');

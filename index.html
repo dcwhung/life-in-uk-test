@@ -869,7 +869,7 @@
 // ════════════════════════════════════════
 // APP VERSION — single source of truth (shown in the header, drives the SW cache name)
 // ════════════════════════════════════════
-const APP_VERSION = '0.42';
+const APP_VERSION = '0.43';
 
 // ════════════════════════════════════════
 // APP STATE
@@ -1142,6 +1142,8 @@ function renderQuestion() {
   const answered = state.answers[idx] !== undefined;
   // state.revealed[idx] stores true/false (correct or not); presence = revealed
   const revealed = idx in state.revealed;
+  // exam mode never shows right / wrong, the answer or translations until the results page
+  const showAnswer = revealed && state.mode === 'practice';
 
   // header
   document.getElementById('quizLabel').textContent =
@@ -1157,12 +1159,11 @@ function renderQuestion() {
     `<span>Question ${idx + 1} of ${total}${isMulti ? ' (select ' + q.a.length + ')' : ''}</span>${starsHtml(q.d)}${scorePillHtml()}`;
   document.getElementById('qText').textContent = q.q;
 
-  // Cantonese translation of question + options:
-  //   - Practice: click "Translate" to show before answering
-  //   - Both modes: always shown once the answer is revealed
+  // Cantonese translation of question + options (practice only):
+  //   click "Translate" to show before answering; always shown once the answer is revealed
   const yueToggle = document.getElementById('yueToggle');
   const qYue = document.getElementById('qYue');
-  const yueOn = revealed || (state.mode === 'practice' && !!state.yueShown[idx]);
+  const yueOn = showAnswer || (state.mode === 'practice' && !!state.yueShown[idx]);
   yueToggle.classList.toggle('visible', state.mode === 'practice' && !revealed);
   yueToggle.classList.toggle('on', yueOn);
   yueToggle.textContent = yueOn ? 'Hide translation' : 'Translate';
@@ -1177,10 +1178,12 @@ function renderQuestion() {
     const userPicked = answered && (state.answers[idx] || []).includes(oi);
     const isCorrect = q.a.includes(oi);
 
-    if (revealed) {
+    if (showAnswer) {
       cls += ' disabled';
       if (isCorrect) cls += ' correct';
       else if (userPicked) cls += ' wrong';
+    } else if (revealed) {
+      cls += ' disabled' + (userPicked ? ' selected' : ''); // exam: submitted, locked, no right / wrong
     } else if (userPicked) {
       cls += ' selected'; // provisional blue highlight before reveal
     }
@@ -1193,9 +1196,9 @@ function renderQuestion() {
   });
   document.getElementById('optionsContainer').innerHTML = optHtml;
 
-  // answer box (shown in BOTH modes once revealed)
+  // answer box (practice only, once revealed)
   const box = document.getElementById('answerBox');
-  if (revealed) {
+  if (showAnswer) {
     const userAns = state.answers[idx] || [];
     const correct = q.a.every(a => userAns.includes(a)) && userAns.length === q.a.length;
     box.className = 'answer-box show' + (correct ? '' : ' wrong-ans');
@@ -1413,9 +1416,9 @@ function examSubmitAnswer() {
   const correct = q.a.every(a => userAns.includes(a)) && userAns.length === q.a.length;
   state.revealed[idx] = correct;
 
-  // in exam mode reveal is done differently — just mark as done
-  // show the correct answers highlighted
-  renderQuestion();
+  // no right / wrong feedback in exam mode: go straight on; the last submit opens the results
+  if (idx < state.questions.length - 1) nextQ();
+  else finishExam();
 }
 
 function nextQ() {
