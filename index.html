@@ -1057,7 +1057,7 @@
 // ════════════════════════════════════════
 // APP VERSION — single source of truth (shown in the header, drives the SW cache name)
 // ════════════════════════════════════════
-const APP_VERSION = '0.53';
+const APP_VERSION = '0.54';
 
 // ════════════════════════════════════════
 // APP STATE
@@ -1172,10 +1172,15 @@ function practicePool(list) {
   return remaining.length ? remaining : list;
 }
 function resetPracticeProgress() {
-  if (!confirm('Reset all practice progress? 所有掌握進度會歸零。')) return;
+  if (!confirm('Reset all practice progress? 掌握進度、錯題同 flag 會全部清除。')) return;
   streaks = {};
   setLS(STREAK_LS, streaks);
+  wrongList = {};
+  setLS(WRONG_LS, wrongList);
+  practiceFlags = {};
+  setLS(FLAGS_LS, practiceFlags);
   buildExamGrid();
+  renderMyReview();
 }
 function resetCompletedExams() {
   if (!confirm('Reset all completed exams? 所有 ✓ 完成記錄會清除。')) return;

@@ -1,4 +1,4 @@
-# Life in the UK Test PWA — Handoff (v0.53)
+# Life in the UK Test PWA — Handoff (v0.54)
 
 - **Repo:** https://github.com/dcwhung/life-in-uk-test （main branch，GitHub Pages root `/`）
 - **Live:** https://dcwhung.github.io/life-in-uk-test/
@@ -92,7 +92,7 @@
 - My Review 下面標題「Practice by」，三個 tab 文字改做 Difficulty / Chapter / Exam（id 不變）：Difficulty（預設；v0.39 起難度只顯示英文；v0.53 起只有 Easy / Basic / Medium / Hard / Expert 五行，拎走「Hard & Expert」）/ Chapter / Exam，每粒掣顯示「已掌握/總數 · %」+ 進度條（`.mastery-bar`，absolute 貼格仔底；格仔要 `overflow: hidden` 先唔會爆出圓角，By Exam 喺 v0.42 補返）；下面嘅提示寫明「連續答啱 3 次 = 掌握、每輪最多 24 題、每題一輪一次」
 - Exam 下只有 Select Exam（完成過有 ✓）
 - Mode 同 tab 記住喺 localStorage `homePrefs`
-- 兩個 reset 掣：Practice「Reset progress」、Exam「Reset completed exams」（都要 confirm）
+- 兩個 reset 掣：Practice「Reset progress」、Exam「Reset completed exams」（都要 confirm）；v0.54 起「Reset progress」會一齊清 `practiceStreak`、`wrongList`、`practiceFlags`，My Review 隨即收埋
 
 **Practice mode**
 - 題目同選項次序隨機；揀完即刻 reveal
@@ -176,7 +176,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | `diff-test.js` | 難度數據完整、按難度練習、結果統計、難度掣只顯示英文、只有 Easy–Expert 五行（冇 Hard & Expert） |
 | `yue-test.js`、`oy-test.js`、`yue2-test.js` | Translate 掣、選項翻譯、答案框格式、Exam mode 冇翻譯（`yue2-test` 跳去、`oy-test` 搬第一條有選項翻譯嘅題目去最前，避免抽到年份／True-False 題隨機失敗） |
 | `mode-test.js`、`info-test.js` | 首頁 mode/tab、持久化、ⓘ popover；考試中返 Home 會問 |
-| `mastery-test.js` | By Exam 進度條喺格仔入面、貼底（v0.42）；掌握機制（每輪每題一次、Y 固定、Ch1 要 3 輪先全掌握）、進度顯示、兩個 reset |
+| `mastery-test.js` | By Exam 進度條喺格仔入面、貼底（v0.42）；掌握機制（每輪每題一次、Y 固定、Ch1 要 3 輪先全掌握）、進度顯示、兩個 reset（Reset progress 一併清錯題同 flag，My Review 收埋） |
 | `result-test.js` | 結果頁 PASSED / remark 只喺 Exam 1–17 顯示；重做掣按 mode 改字、上下兩組掣、Practice 結果 All / Wrong / Flagged filter |
 | `batch-test.js` | Exam mode Random Exam 24 題；Practice 每輪最多 24 題、下一輪由未掌握題抽、最後幾題每輪再出直至掌握 |
 | `similar-test.js` | Similar Questions section、Practise these N 臨時 session 同返回 |
@@ -216,7 +216,8 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | — | dcwhung/life-in-uk-test#21 | HANDOFF.md：PR #20 版本記錄、modal 設計決定、follow-up |
 | v0.51 | dcwhung/life-in-uk-test#22 | 結果判定前面加返 icon：「🎉 PASSED」/「📚 NEEDS IMPROVEMENT」；結果頁「By Difficulty · 按難度」拎走中文；Review Answers 加大行距同間隔 |
 | v0.52 | dcwhung/life-in-uk-test#22 | Practice 每輪題數由 25 改做 24（`PRACTICE_ROUND_MAX`），同真考試一致 |
-| v0.53 | — | Practice：flag 長期保存、錯題庫（兩個 mode 都計）、My Review（Wrong answers / Flagged 兩格，冇記錄唔出）、Flagged 列表畫面、review 每輪最多 24 題 + round note、Practice 結果頁跟 Exam 排版；Difficulty 拎走「Hard & Expert」一行 |
+| v0.53 | dcwhung/life-in-uk-test#24 | Practice：flag 長期保存、錯題庫（兩個 mode 都計）、My Review（Wrong answers / Flagged 兩格，冇記錄唔出）、Flagged 列表畫面、review 每輪最多 24 題 + round note、Practice 結果頁跟 Exam 排版；Difficulty 拎走「Hard & Expert」一行 |
+| v0.54 | — | 首頁「Reset progress」一併清錯題記錄（`wrongList`）同 Practice flag（`practiceFlags`），confirm 文字改做「掌握進度、錯題同 flag 會全部清除。」 |
 
 **Practice My Review 設計決定（v0.53，preview v1–v3 同用戶確認）**
 - Review / Flagged 同 Difficulty / Chapter / Exam 唔係同類，所以獨立做「My Review」section，分類 tab 加「Practice by」標題
@@ -379,5 +380,5 @@ c10115b feat: randomise answer option order in Practice and Exam mode
 - [ ] 記憶法備注同步落 `study.js` 對應 fact（目前只喺 `exams.js`）
 - [x] Practice 加 flag 功能，再執 Practice 結果頁（v0.53 完成）
 - [ ] 錯題 / Flagged review 中途離開可以續做（用戶話暫時唔做）
-- [ ] 首頁「Reset progress」要唔要一併清 `wrongList` / `practiceFlags`（未決定）
+- [x] 首頁「Reset progress」一併清 `wrongList` / `practiceFlags`（v0.54）
 - [ ] 首頁 Reset 掣改用 app 內 modal（同 Exam 一致）

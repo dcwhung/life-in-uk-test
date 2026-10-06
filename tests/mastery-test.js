@@ -93,9 +93,13 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.click('#examReset .reset-btn');
   assert(!(await pg.$eval('#examGrid .exam-btn:nth-child(2)', e => e.classList.contains('done'))), 'reset completed exams clears ✓');
   // reset practice progress
+  await pg.evaluate(() => { wrongList = { '1.0': true }; setLS('wrongList', wrongList); practiceFlags = { '2.3': true }; setLS('practiceFlags', practiceFlags); });
   await pg.click('#modePractice');
+  assert(await pg.$eval('#myReview', e => e.offsetParent !== null), 'My Review shown before reset');
   await pg.click('#practiceReset .reset-btn');
   assert((await pg.$eval('#diffGrid .diff-btn:first-child .ch-count', e => e.textContent)) === '0/84 · 0%' && await pg.evaluate(() => localStorage.getItem('practiceStreak') === '{}'), 'reset progress clears streaks');
+  assert(await pg.evaluate(() => localStorage.getItem('wrongList') === '{}' && localStorage.getItem('practiceFlags') === '{}' && !Object.keys(wrongList).length && !Object.keys(practiceFlags).length), 'reset progress clears the wrong list and flags');
+  assert(!(await pg.$eval('#myReview', e => e.offsetParent !== null)), 'My Review hidden after reset');
   assert(errs.length === 0, 'no page errors: ' + errs.join(';'));
   await b.close(); console.log('MASTERY PASS');
 })().catch(e => { console.error(e.message); process.exit(1); });
