@@ -11,6 +11,7 @@
 <title>Life in the UK · Exam Practice</title>
 <style>
   :root {
+    --orange: #d9822b;
     --navy: #1a2744;
     --navy-mid: #243460;
     --navy-light: #2e4080;
@@ -236,6 +237,49 @@
   .quiz-label {
     font-size: 13px; font-weight: 700; color: var(--text-muted);
     text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  /* exam tools (Exam 1–17 in exam mode): 45-min timer, question navigator dots, bookmark flag */
+  .exam-timer {
+    display: none; align-items: center;
+    background: var(--navy); color: #fff;
+    border-radius: 999px; padding: 5px 11px;
+    font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums;
+  }
+  .exam-timer.warn { background: var(--red-light); animation: timerPulse 1s ease-in-out infinite; }
+  @keyframes timerPulse { 50% { opacity: 0.7; } }
+  .nav-dots { display: none; grid-template-columns: repeat(12, 1fr); gap: 6px; margin-bottom: 8px; }
+  .dot {
+    aspect-ratio: 1; width: 100%; max-width: 30px; justify-self: center; padding: 0;
+    border-radius: 50%; border: 1.5px solid var(--border); background: var(--card);
+    color: var(--text-muted); font-size: 10.5px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+  }
+  .dot.done { background: var(--navy-light); border-color: var(--navy-light); color: #fff; }
+  .dot.flag { border: 2px solid var(--orange); color: var(--orange); }          /* unanswered + flagged: outline */
+  .dot.done.flag { background: var(--orange); color: #fff; }                    /* answered + flagged: solid */
+  .dot.current { box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--gold); }
+  .dots-meta {
+    display: none; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 8px;
+    font-size: 10.5px; color: var(--text-muted);
+    margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
+  }
+  .dots-meta .sep { color: var(--border); }
+  .dots-meta i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 4px; vertical-align: -1px; }
+  .dots-meta .lg-done { background: var(--navy-light); }
+  .dots-meta .lg-todo { border: 1.5px solid var(--border); }
+  .dots-meta .lg-flag { background: var(--orange); }
+  .flag-btn {
+    display: none; width: 32px; height: 32px; padding: 0; border: none; background: none;
+    color: var(--text-muted); cursor: pointer; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .flag-btn svg { width: 24px; height: 24px; }
+  .flag-btn path { fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; }
+  .flag-btn.on { color: var(--orange); }
+  .flag-btn.on path { fill: currentColor; }
+  .result-timeup {
+    display: none; background: #fdf0ef; color: var(--red);
+    border: 1.5px solid var(--red-light); border-radius: 10px;
+    padding: 10px 14px; margin-bottom: 14px; font-size: 13px; font-weight: 700; text-align: center;
   }
   .quiz-mode-badge {
     background: var(--navy);
@@ -777,14 +821,19 @@
       <div style="display:flex;align-items:center;gap:8px">
         <span class="quiz-label" id="quizLabel">Exam 1</span>
         <span class="quiz-mode-badge" id="modeBadge">Practice</span>
+        <span class="exam-timer" id="examTimer" role="timer" aria-live="off">⏱ 45:00</span>
       </div>
     </div>
 
     <div class="q-card">
       <div class="q-progress"><div class="q-progress-fill" id="progressFill" style="width:0%"></div></div>
+      <!-- exam: question navigator (tap a number to jump) + answered / unanswered / flagged counts -->
+      <div class="nav-dots" id="navDots"></div>
+      <div class="dots-meta" id="dotsMeta"></div>
       <div class="q-num">
         <span class="q-num-text" id="qNum">Question 1</span>
         <button class="yue-toggle" id="yueToggle" onclick="toggleQuestionYue()">Translate</button>
+        <button class="flag-btn" id="flagBtn" onclick="toggleFlag()" title="Flag for review" aria-label="Flag for review"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 3.5h9A2.5 2.5 0 0 1 19 6v14.5l-7-5.1-7 5.1V6a2.5 2.5 0 0 1 2.5-2.5z"/></svg></button>
         <!-- once answered: quick Prev / Next in the Translate spot (mirrors the bottom buttons) -->
         <span class="quick-nav" id="quickNav">
           <button class="quick-btn" id="quickPrev" title="Previous" aria-label="Previous" onclick="prevQ()">←</button>
@@ -823,6 +872,7 @@
       <span class="quiz-label" id="resultLabel">Results</span>
     </div>
 
+    <div class="result-timeup" id="resultTimeUp">⏱ Time's up — your exam was submitted automatically.</div>
     <div class="result-card">
       <div class="result-emoji" id="resultEmoji">🎉</div>
       <div class="result-score" id="resultScore">18 <span>/ 24</span></div>
@@ -863,7 +913,7 @@
 // ════════════════════════════════════════
 // APP VERSION — single source of truth (shown in the header, drives the SW cache name)
 // ════════════════════════════════════════
-const APP_VERSION = '0.43';
+const APP_VERSION = '0.44';
 
 // ════════════════════════════════════════
 // APP STATE
@@ -1120,7 +1170,10 @@ function startExam(examNum) {
   state.answers = {};
   state.revealed = {};
   state.yueShown = {};
+  state.flags = {};
 
+  examTimeUp = false;
+  if (hasExamTools()) startExamTimer(); else stopExamTimer();
   showScreen('screenQuiz');
   renderQuestion();
 }
@@ -1216,6 +1269,8 @@ function renderQuestion() {
   }
   renderSimilar(q, revealed);
 
+
+  renderExamTools(idx);
 
   // nav buttons: bottom row, plus the quick pair in the question header once answered
   const next = nextAction(idx, total);
@@ -1391,11 +1446,86 @@ function revealAnswer() {
   renderQuestion();
 }
 
+// ── Exam tools (Exam 1–17 in exam mode): 45-min countdown, flags, numbered question navigator ──
+const EXAM_MINUTES = 45;
+const EXAM_WARN_SECONDS = 5 * 60;
+const EXAM_TICK_MS = 1000;
+const SECONDS_PER_MINUTE = 60;
+const MS_PER_SECOND = 1000;
+let examTimerId = null;
+let examDeadline = 0;
+let examTimeUp = false;
+function hasExamTools() { return state.mode === 'exam' && isNumberedExam(state.examNum); }
+function isExamRunning() {
+  return state.mode === 'exam' && document.getElementById('screenQuiz').classList.contains('active');
+}
+function isAnswered(i) { return (state.answers[i] || []).length > 0; }
+function flaggedCount() { return Object.values(state.flags || {}).filter(Boolean).length; }
+function startExamTimer() {
+  stopExamTimer();
+  examDeadline = Date.now() + EXAM_MINUTES * SECONDS_PER_MINUTE * MS_PER_SECOND;
+  examTimerId = setInterval(examTick, EXAM_TICK_MS);
+  examTick();
+}
+function stopExamTimer() {
+  if (examTimerId !== null) clearInterval(examTimerId);
+  examTimerId = null;
+}
+const pad2 = n => String(n).padStart(2, '0');
+// time up: submit as is, straight to the results (no prompt)
+function examTick() {
+  const left = Math.max(0, Math.ceil((examDeadline - Date.now()) / MS_PER_SECOND));
+  const el = document.getElementById('examTimer');
+  el.textContent = `⏱ ${pad2(Math.floor(left / SECONDS_PER_MINUTE))}:${pad2(left % SECONDS_PER_MINUTE)}`;
+  el.classList.toggle('warn', left <= EXAM_WARN_SECONDS);
+  if (left === 0) { examTimeUp = true; finishExam(); }
+}
+function toggleFlag() {
+  state.flags[state.current] = !state.flags[state.current];
+  renderQuestion();
+}
+function goToQuestion(i) {
+  state.current = i;
+  renderQuestion();
+}
+function navDotsHtml() {
+  return state.questions.map((_, i) => {
+    const cls = ['dot', isAnswered(i) && 'done', state.flags[i] && 'flag', i === state.current && 'current'].filter(Boolean).join(' ');
+    return `<button class="${cls}" onclick="goToQuestion(${i})" aria-label="Question ${i + 1}">${i + 1}</button>`;
+  }).join('');
+}
+function dotsMetaHtml() {
+  const done = state.questions.filter((_, i) => isAnswered(i)).length;
+  return [`<span><i class="lg-done"></i>Answered <b>${done}</b></span>`,
+    `<span><i class="lg-todo"></i>Unanswered <b>${state.questions.length - done}</b></span>`,
+    `<span><i class="lg-flag"></i>Flagged <b>${flaggedCount()}</b></span>`].join(' <span class="sep">|</span> ');
+}
+function renderExamTools(idx) {
+  const on = hasExamTools();
+  const show = (id, display) => { document.getElementById(id).style.display = on ? display : 'none'; };
+  show('examTimer', 'inline-flex');
+  show('navDots', 'grid');
+  show('dotsMeta', 'flex');
+  show('flagBtn', 'inline-flex');
+  document.getElementById('modeBadge').style.display = on ? 'none' : '';
+  document.querySelector('#screenQuiz .q-progress').style.display = on ? 'none' : '';
+  if (!on) return;
+  document.getElementById('navDots').innerHTML = navDotsHtml();
+  document.getElementById('dotsMeta').innerHTML = dotsMetaHtml();
+  const flagBtn = document.getElementById('flagBtn');
+  const flagged = !!state.flags[idx];
+  flagBtn.classList.toggle('on', flagged);
+  flagBtn.title = flagged ? 'Unflag' : 'Flag for review';
+  flagBtn.setAttribute('aria-label', flagBtn.title);
+}
+
 // exam: picks are saved as you go (and can be changed); Submit on the last question marks the
 // whole exam and opens the results — no right / wrong is shown before that
 function submitExam() {
-  const unanswered = state.questions.filter((_, i) => !(state.answers[i] || []).length).length;
-  if (unanswered && !confirm(`${unanswered} questions unanswered. Submit anyway?`)) return;
+  const unanswered = state.questions.filter((_, i) => !isAnswered(i)).length;
+  const flagged = flaggedCount();
+  const notes = [unanswered && `${unanswered} questions unanswered`, flagged && `${flagged} flagged`].filter(Boolean);
+  if (notes.length && !confirm(`${notes.join(', ')}. Submit anyway?`)) return;
   finishExam();
 }
 
@@ -1419,6 +1549,9 @@ function prevQ() {
 // RESULTS
 // ════════════════════════════════════════
 function finishExam() {
+  stopExamTimer();
+  document.getElementById('resultTimeUp').style.display = examTimeUp ? 'block' : 'none';
+  examTimeUp = false;
   const total = state.questions.length;
   let correct = 0;
   const wrongItems = [];
@@ -1529,6 +1662,8 @@ function retryExam() {
 }
 
 function goHome() {
+  if (isExamRunning() && !confirm('Leave the exam? Your answers will be lost.')) return;
+  stopExamTimer();
   similarReturn = null;
   showScreen('screenHome');
   buildExamGrid();
