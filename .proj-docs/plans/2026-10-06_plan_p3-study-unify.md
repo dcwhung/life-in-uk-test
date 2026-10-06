@@ -233,3 +233,17 @@ Step 6 → 刪 / 保留 mockup（HANDOFF 慣例：臨時 preview 確認後 delet
 | Q6 | 卡上額外資訊：`#id` 細字 / 來源 node 列 / Study 頂部「🏆 n / 236 mastered」逐項要唔要 | 逐項有 / 冇（`#card-extras`） | 三樣都要（node 列已係預設；`#id` 對應 Similar「Core Fact #21」；🏆 進度同首頁 mastery 一致） | T-205、T-206 | 用戶 | 開 Lane C 前 |
 | Q7 | 推算 🏆 嘅卡要唔要同手動剔一樣半透明（mockup 係一樣） | 一樣 / 推算唔透明只換 🏆 | 一樣（Hide mastered 都會收埋兩種，一致） | T-205 | 用戶 | 開 Lane C 前 |
 | Q8 | ↩ Back 返 Study 後，fact 卡要唔要 1.5s 金色 highlight（`#fact-session` 最後一格） | 要 / 唔要 | 要（scroll 位置可能因 Hide mastered 變，highlight 幫用戶搵返） | T-207 | 用戶 | 開 Lane C 前 |
+
+## 11. 用戶決定（2026-10-06，plan 已確認）
+
+用戶睇完 `mockups/study-unify.html` 之後覆「全部跟推薦」，§10 全部開放問題已決定：
+
+| # | 決定 |
+|---|---|
+| Q2 | (a) 全 navy 系：選中狀態 `--navy`；fact 左邊框、`.tag.year`、timeline 年份 / 圓點、`.study-sub-title`、Home `.ch-num` 改 navy 系（`--study-accent*` 指去 navy / navy-light）；紫色只留廣東話 |
+| Q3 | Study 白卡做 base，Similar panel 保留金色 Core Fact（core variant），形狀統一 |
+| Q6 | 三樣都要：`#id` 細字、來源 node 列（取代「Appears ×n」）、Study 頂部 `🏆 n / 236` |
+| Q7 | 推算出嚟嘅 🏆 卡同手動剔一樣半透明 |
+| Q8 | ↩ Back 返 Study 之後，fact 卡金色 highlight 1.5s |
+
+PR-2（v0.62）Lane V ∥ C2 即時開始；PR-1（v0.61）merge 後先合併 PR-2 lane。
