@@ -68,7 +68,7 @@
 @media (max-width: 480px) {
   .result-score { font-size: 42px; }
 }
-/* M4: one size down on narrow screens so the zh-HK pass line does not leave its last word alone (320px) */
+/* M4: one size down on narrow screens (en and zh-HK alike) so the zh-HK pass line does not leave its last word alone (320px) */
 @media (max-width: 360px) {
   .result-sub { font-size: var(--fs-sm); }
 }
