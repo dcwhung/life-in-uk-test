@@ -172,6 +172,18 @@ async function checkModal(pg) {
   assert(!(await pg.evaluate(() => isConfirmOpen())), 'confirm modal Keep works right after a screen change');
 }
 
+// S-035: the guard compares the two taps' event timeStamps; a negative gap (an unreliable timeStamp) fails open
+// instead of blocking that spot until the view changes
+async function checkNegativeGapFailsOpen(pg) {
+  const p = await setupFact(pg);
+  await sleep((await guardMs(pg)) + SETTLE_EXTRA_MS);
+  await pg.mouse.click(p.x, p.y);
+  await pg.evaluate(() => { clickGuard.at = performance.now() + 60000; }); // next tap reads as 60s "earlier"
+  await pg.mouse.click(p.x, p.y);
+  const w = await practiceWrites(pg);
+  assert(w.answered === 1, `negative time gap: the tap is not treated as stray (${JSON.stringify(w)})`);
+}
+
 (async () => {
   const b = await chromium.launch(launchOpts);
   const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
@@ -187,6 +199,7 @@ async function checkModal(pg) {
   await checkSameScreenRepeat(pg);
   await checkKeyboard(pg);
   await checkModal(pg);
+  await checkNegativeGapFailsOpen(pg);
 
   assert(errs.length === 0, 'no page errors: ' + errs.join(' | '));
   console.log('PASS');

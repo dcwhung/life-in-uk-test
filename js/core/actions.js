@@ -78,15 +78,17 @@ const isPointerClick = e => e.detail > 0;
 function isStrayClick(e, el) {
   if (!clickGuard || !isPointerClick(e) || el.closest('#confirmModal') || !isSameClickView(clickGuard.view, clickGuardView())) return false;
   const near = Math.hypot(e.clientX - clickGuard.x, e.clientY - clickGuard.y) <= DOUBLE_TAP_SLOP_PX;
-  // a tap queued while the first click's handler ran has an earlier timeStamp: negative, also stray
-  return near && e.timeStamp - clickGuard.at < SCREEN_CHANGE_CLICK_GUARD_MS;
+  // S-035: the time between the two taps' own event timeStamps (a tap queued while the first handler ran
+  // still has a later timeStamp); a negative gap means an unreliable clock, so the guard fails open
+  const dt = e.timeStamp - clickGuard.at;
+  return near && dt >= 0 && dt < SCREEN_CHANGE_CLICK_GUARD_MS;
 }
 function runClickAction(el, e) {
   if (isStrayClick(e, el)) return;
   const before = clickGuardView();
   runAction(el.dataset.action, el, e);
   const view = clickGuardView();
-  if (isPointerClick(e) && !isSameClickView(before, view)) clickGuard = { view, x: e.clientX, y: e.clientY, at: performance.now() };
+  if (isPointerClick(e) && !isSameClickView(before, view)) clickGuard = { view, x: e.clientX, y: e.clientY, at: e.timeStamp };
 }
 
 document.addEventListener('click', e => {
