@@ -35,6 +35,7 @@
 | M3 | Fact 年份 `yl` 係 data，zh-HK 照舊英文；`study.yearBC` key 照留（parity） |
 | M4 | Result `.result-sub` 喺 320px 尾字跌行 → **縮細字型**（窄屏 `.result-sub` 用細一級 font-size token），文案唔改 |
 | M5 | `.quiz-label` / `.q-num` letter-spacing 唔改 |
+| M6 | Practice 全部題目嗰組改名：`home.allExams` 🎯 All Questions (408) / 🎯 全部試題（408 題）、`common.allExams` All Questions / 全部試題、`quiz.allShuffled` All Questions (shuffled) / 全部試題（隨機排序）；`common.questions` 冇再用，刪走 |
 
 ## 0c. Track 2 batch 1 決定（用戶 2026-10-07）
 
@@ -272,7 +273,7 @@ Step 5 → Track 2 T-104 起逐批（每批用戶確認）→ Review → QA → 
 | practiceBy | Practice By | 練習分類 |
 | tabDifficulty / tabChapter / tabExam | Difficulty / Chapter / Exam | 難度 / 章節 / 試卷 |
 | selectExam | Select Exam | 選擇試卷 |
-| allExams | 🎯 All Exams ({count}) | 🎯 全部試卷（{count}） |
+| allExams | 🎯 All Questions ({n})（M6，原 All Exams） | 🎯 全部試題（{n} 題） |
 | randomExam | 🎲 Random Exam | 🎲 隨機試卷 |
 | randomExamSub | {n} questions from {total} | 從 {total} 題中抽取 {n} 題 |
 | practiceHintHtml | Answer a question correctly **{streak} times in a row**… | 同一題**連續答對 {streak} 次**即算掌握。每輪最多抽取 **{max}** 條未掌握的題目，每題出現一次；未掌握的題目會於下一輪再出現。已掌握的題目會略過，直至整組全部掌握。 |
@@ -293,7 +294,7 @@ Step 5 → Track 2 T-104 起逐批（每批用戶確認）→ Review → QA → 
 |---|---|---|
 | questionOf | Question {n} of {total} | 第 {n} 題（共 {total} 題） |
 | selectN | (select {n}) | （選擇 {n} 項） |
-| allShuffled | All Exams (shuffled) | 全部試卷（隨機排序） |
+| allShuffled | All Questions (shuffled) | 全部試題（隨機排序） |
 | translate / hideTranslation | Translate / Hide translation | 翻譯 / 隱藏翻譯 |
 | previous / next / back / finish | Previous / Next / Back / Finish | 上一題 / 下一題 / 返回 / 完成 |
 | prevButton / nextButton / backButton / finishButton | ← Prev / Next → / ↩ Back / Finish ✓ | ← 上一題 / 下一題 → / ↩ 返回 / 完成 ✓ |
@@ -389,12 +390,11 @@ Step 5 → Track 2 T-104 起逐批（每批用戶確認）→ Review → QA → 
 | home | ← Home | ← 主頁 |
 | practice / exam | Practice / Exam | 練習 / 模擬考試 |
 | examN | Exam {n} | 同 en |
-| allExams / randomExam | All Exams / Random Exam | 全部試卷 / 隨機試卷 |
+| allExams / randomExam | All Questions / Random Exam | 全部試題 / 隨機試卷 |
 | chapterN / chapterShort | Chapter {n} / Ch {n} | 同 en |
 | similarSet | Similar Questions | 相似題目 |
 | factSet | Fact #{id} | 知識點 #{id} |
 | wrongSet / flaggedSet | Wrong answers / Flagged | 錯題 / 已標記 |
-| questions | {n} questions | {n} 題 |
 | questionN | Question {n} | 第 {n} 題 |
 | questionRef | Exam {exam} · Q{n} | 同 en |
 | correct / wrong / answered / unanswered / flagged | Correct / Wrong / Answered / Unanswered / Flagged | 正確 / 錯誤 / 已作答 / 未作答 / 已標記 |
