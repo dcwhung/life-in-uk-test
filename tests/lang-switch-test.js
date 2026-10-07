@@ -93,7 +93,7 @@ async function main() {
 
   // Home with a non-default mode and practice tab
   await pg.evaluate(() => { startMode('practice'); setPracticeView('chapter'); });
-  await switchTwice('home practice › chapter', '#chapterGrid');
+  await switchTwice('home practice › chapter', '#practiceTabs');
 
   // Quiz practice: translation shown before answering, flagged, answered (Similar panel open)
   await pg.evaluate(() => {
