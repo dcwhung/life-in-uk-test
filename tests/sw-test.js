@@ -10,6 +10,8 @@ const ROOT = path.resolve(__dirname, '..');
 const launchOpts = { args: ['--no-sandbox'] };
 if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_PATH;
 const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('ok:', m); };
+const SW_SETTLE_TRIES = 40;
+const SW_SETTLE_INTERVAL_MS = 250;
 
 // SHELL list from sw.js and every <script src> / <link href> from index.html
 const swSource = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
@@ -23,21 +25,26 @@ async function checkVersionBump(pg, serveDir, oldCache) {
   const configPath = path.join(serveDir, 'js/core/config.js');
   const bumped = 'bump-test';
   fs.writeFileSync(configPath, fs.readFileSync(configPath, 'utf8').replace(/const APP_VERSION = '[^']*';/, `const APP_VERSION = '${bumped}';`));
-  const names = await pg.evaluate(async newCache => {
+  const poll = await pg.evaluate(async ([newCache, tries, intervalMs]) => {
     const reg = await navigator.serviceWorker.getRegistration();
     const settled = keys => keys.includes(newCache) && !keys.some(k => k.startsWith('lifeuk-v') && k !== newCache);
+    const workerStates = () => Object.fromEntries(['installing', 'waiting', 'active'].map(k => [k, reg[k] ? reg[k].state : null]));
     // re-check for updates until the new worker has installed and activated (an update check can race the file write)
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < tries; i++) {
       if (!reg.installing && !reg.waiting) await reg.update().catch(() => {});
-      await new Promise(r => setTimeout(r, 250));
+      await new Promise(r => setTimeout(r, intervalMs));
       const keys = await caches.keys();
-      if (settled(keys) && !reg.installing && !reg.waiting) return keys;
+      if (settled(keys) && !reg.installing && !reg.waiting) return { settled: true, keys };
     }
-    return caches.keys();
-  }, 'lifeuk-v' + bumped);
+    return { settled: false, keys: await caches.keys(), workers: workerStates() };
+  }, ['lifeuk-v' + bumped, SW_SETTLE_TRIES, SW_SETTLE_INTERVAL_MS]);
+  // S-063: the bump check has failed intermittently; log worker + cache state so the next failure carries evidence
+  if (!poll.settled) console.log('diag: version bump did not settle —', JSON.stringify({ workers: poll.workers, caches: poll.keys }));
+  const names = poll.keys;
   assert(names.includes('lifeuk-v' + bumped), 'version bump in config.js alone installs a new cache');
   assert(!names.includes(oldCache), `version bump removes the old cache (${oldCache})`);
   assert(names.includes('other-app'), "version bump leaves another app's cache alone");
+  assert(poll.settled, `version bump: new worker activates within ${SW_SETTLE_TRIES} × ${SW_SETTLE_INTERVAL_MS}ms`);
 }
 
 (async () => {
