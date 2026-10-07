@@ -90,6 +90,22 @@ function actionNames() {
   const factCardCode = fs.readFileSync(FACT_CARD_JS, 'utf8')
     .replace(/\/\/.*$/gm, '').replace(/'[^'\n]*'|`[^`]*`|"[^"\n]*"/g, "''"); // code only: no comments / strings ('study.x' keys)
   assert(!/\bstudy\b/.test(factCardCode), 'js/components/factCard.js does not read the study global');
+  // v0.64 (S-031): layering — components load before screens, so a component must not call anything a screen
+  // defines (it only worked because the global existed by render time). Comments are stripped; template
+  // literals are kept, since `${fn(...)}` inside a template is a real call; plain quoted strings (i18n keys such as
+  // 'study.x', data-action="name" attributes) are blanked unless they hold a `${…}`.
+  const topLevelNames = f => [...fs.readFileSync(f, 'utf8')
+    .matchAll(/^(?:async\s+)?(?:function\s+([A-Za-z_$][\w$]*)|(?:const|let|var)\s+([A-Za-z_$][\w$]*))/gm)]
+    .map(m => m[1] || m[2]);
+  const screenNames = new Set(jsFiles(path.join(ROOT, 'js/screens')).flatMap(topLevelNames));
+  const layerHits = jsFiles(path.join(ROOT, 'js/components')).flatMap(f => {
+    const code = fs.readFileSync(f, 'utf8').replace(/\/\/.*$/gm, '')
+      .replace(/'[^'\n]*'|"[^"\n]*"/g, s => (s.includes('${') ? s : "''"));
+    return [...screenNames].filter(n => new RegExp(`(?<![\\w$.])${n.replace(/\$/g, '\\$')}(?![\\w$])`).test(code))
+      .map(n => `${rel(f)} → ${n}`);
+  });
+  assert(layerHits.length === 0, 'js/components/*.js use nothing defined in js/screens/*.js'
+    + (layerHits.length ? ': ' + layerHits.join(', ') : ''));
   const factRules = f => {
     const file = path.join(ROOT, f);
     return fs.existsSync(file) ? fs.readFileSync(file, 'utf8').split('\n').filter(l => /^\.(fact|sqm-fact)\b/.test(l)).length : 0;

@@ -2,10 +2,6 @@
 // SIMILAR PANEL — practice only, once answered: other questions of the same STUDY fact,
 // plus a one-off "Practise these N" session (hidden inside that session)
 // ════════════════════════════════════════
-function similarNodeClass(k) {
-  const st = streakOf(questionByKey(k));
-  return st >= MASTERY_STREAK ? ' mastered' : st > 0 ? ' weak' : '';
-}
 function similarItemHtml(k) {
   const item = questionByKey(k);
   return `<div class="sqm-item">
@@ -17,12 +13,8 @@ function similarItemHtml(k) {
       <div class="sqm-qy">${escapeHtml(item.q.yue)}</div>
     </div>`;
 }
-// map node "E9·Q15" (1-based, like the "Exam 9 · Q15" refs)
-function similarNodeText({ examNum, origIdx }) { return t('similar.node', { exam: examNum, n: origIdx + 1 }); }
-// one display-only node coloured by its mastery (also the Study fact card's source row)
-function similarNodeHtml(k) { return `<span class="sqm-node${similarNodeClass(k)}">${similarNodeText(questionByKey(k))}</span>`; }
 function similarMapHtml(q, keys) {
-  const nodes = [`<span class="sqm-node current">${similarNodeText(q)}</span>`].concat(keys.map(similarNodeHtml));
+  const nodes = [`<span class="sqm-node current">${questionNodeText(q)}</span>`].concat(keys.map(questionNodeHtml));
   return `<div class="sqm-map"><span class="sqm-map-label">${t('similar.appearsIn')}</span>${nodes.join('')}</div>`;
 }
 function similarLegendHtml() {
