@@ -49,8 +49,8 @@ function getLang() {
   }
   return uiLang;
 }
-// Language switch hook: no button yet (only en ships). A future switch calls setLang(code) once locales/<code>.js
-// is loaded after locales/en.js and listed in index.html + sw.js SHELL.
+// v0.65: the header pill (toggleLang in js/core/actions.js) calls this with en / zh-HK. Another language needs
+// locales/<code>.js loaded after locales/en.js and listed in index.html + sw.js SHELL.
 function setLang(lang) {
   if (!hasLocale(lang)) { console.warn('[i18n] no locale for', lang); return; }
   uiLang = lang;
@@ -60,8 +60,16 @@ function setLang(lang) {
 }
 function applyLanguage() {
   document.documentElement.lang = getLang();
+  syncLangPill();
   applyStaticI18n();
   applyDocumentI18n();
+}
+
+// W-013: a shell whose locales/zh-HK.js failed has nothing to switch to, so hide the pill instead of a dead button;
+// a pre-v0.65 shell has no pill at all
+function syncLangPill() {
+  const pill = byId('langBtn');
+  if (pill) pill.hidden = !hasLocale(ZH_HK_LANG);
 }
 
 // ── static markup: data-i18n fills textContent; data-i18n-attr="placeholder:key;title:key" fills attributes ──
@@ -88,7 +96,8 @@ function applyDocumentI18n() {
 // screens re-render in the new language; arrows defer the lookup because the screens load after this file
 const SCREEN_RERENDER = {
   screenHome: () => { buildExamGrid(); renderModeSelection(); },
-  screenQuiz: () => renderQuestion(),
+  // the exam countdown text is rewritten at once instead of on the next tick
+  screenQuiz: () => { renderQuestion(); refreshExamTimer(); },
   screenResult: () => renderResults(),
   screenFlagged: () => openFlagged(),
   screenStudy: () => renderStudy(),

@@ -25,13 +25,21 @@ function stopExamTimer() {
   if (examTimerId !== null) clearInterval(examTimerId);
   examTimerId = null;
 }
-function examTick() {
-  const left = Math.max(0, Math.ceil((examDeadline - Date.now()) / MS_PER_SECOND));
+function examSecondsLeft() { return Math.max(0, Math.ceil((examDeadline - Date.now()) / MS_PER_SECOND)); }
+function renderExamTimer(left) {
   const el = byId('examTimer');
   el.textContent = t('exam.timer', { time: `${pad2(Math.floor(left / SECONDS_PER_MINUTE))}:${pad2(left % SECONDS_PER_MINUTE)}` });
   el.classList.toggle('warn', left <= EXAM_WARN_SECONDS);
+}
+function examTick() {
+  const left = examSecondsLeft();
+  renderExamTimer(left);
   // time up: submit as is, straight to the results (no prompt)
   if (left === 0) { examTimeUp = true; finishExam(); }
+}
+// a language switch redraws the countdown text only: examTick at 0 would submit the exam from a re-render
+function refreshExamTimer() {
+  if (examTimerId !== null) renderExamTimer(examSecondsLeft());
 }
 
 // ── flags: exam flags live for the session; practice flags are saved (My Review › Flagged) ──

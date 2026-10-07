@@ -143,7 +143,7 @@ function noteHtml(note) {
   return note.split('\n').map(line => {
     if (!line.trim()) return '<div class="rv-note-gap"></div>';
     const cls = /^\s{2,}/.test(line) ? ' sub' : /^\s*[•◦→]/.test(line) ? ' bullet' : '';
-    return `<div class="rv-note-line${cls}">${escapeHtml(line.trim())}</div>`;
+    return `<div class="rv-note-line${cls}" lang="zh-HK">${escapeHtml(line.trim())}</div>`;
   }).join('');
 }
 function reviewItemHtml({ q, idx, userAns, isCorrect, flagged }) {
@@ -151,10 +151,10 @@ function reviewItemHtml({ q, idx, userAns, isCorrect, flagged }) {
   const userText = userAns.length ? userAns.map(ai => q.o[ai]).join(ANSWER_SEP) : t('review.noAnswer');
   const note = q.note ? `<div class="rv-note"><div class="rv-note-label">${t('common.noteLabel')}</div>${noteHtml(q.note)}</div>` : '';
   return `<div class="review-item ${isCorrect ? 'rv-correct' : 'rv-wrong'}" id="rv${idx}">
-      <div class="rv-q">${reviewIsPractice ? streakTagHtml(q) : ''}${idx + 1}. ${escapeHtml(q.q)}${flagged ? bookmarkSvg('rv-flag') : ''}</div>
+      <div class="rv-q">${reviewIsPractice ? streakTagHtml(q) : ''}${idx + 1}. <span class="rv-q-text" lang="en">${escapeHtml(q.q)}</span>${flagged ? bookmarkSvg('rv-flag') : ''}</div>
       ${!isCorrect ? `<div class="rv-your">${escapeHtml(t('review.yourAnswer', { answer: userText }))}</div>` : ''}
-      <div class="rv-correct-ans">✅ ${escapeHtml(correctText)}</div>
-      <div class="rv-tr"><div class="rv-yue">${t('common.yueTitle')}${escapeHtml(q.yue)}</div>${note}</div>
+      <div class="rv-correct-ans" lang="en">✅ ${escapeHtml(correctText)}</div>
+      <div class="rv-tr"><div class="rv-yue" lang="zh-HK">${t('common.yueTitle')}${escapeHtml(q.yue)}</div>${note}</div>
     </div>`;
 }
 function reviewChipsHtml() {

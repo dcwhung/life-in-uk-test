@@ -36,7 +36,7 @@ function examMasteryHtml(list) {
 }
 function allExamsButtonHtml(isPractice) {
   const inner = isPractice
-    ? t('home.allExams', { count: t('common.questions', { n: TOTAL_QUESTIONS }) }) + examMasteryHtml(allQuestions())
+    ? t('home.allExams', { n: TOTAL_QUESTIONS }) + examMasteryHtml(allQuestions())
     : `${t('home.randomExam')}<span class="exam-sub">${t('home.randomExamSub', { n: RANDOM_EXAM_SIZE, total: TOTAL_QUESTIONS })}</span>`;
   return `<button class="exam-btn all" data-action="startExam" data-arg="${escapeHtml(ALL_EXAM)}">${inner}</button>`;
 }

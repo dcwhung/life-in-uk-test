@@ -2,7 +2,7 @@
 // CONFIG — app-wide constants. sw.js loads this file with importScripts() to name its cache,
 // so it must stay worker-safe: plain constants only, no DOM and no question data.
 // ════════════════════════════════════════
-const APP_VERSION = '0.64';
+const APP_VERSION = '0.65';
 
 // ── modes and special set ids (state.examNum is 1..EXAM_COUNT or one of these) ──
 const PRACTICE_MODE = 'practice';
@@ -50,6 +50,7 @@ const INSTALL_TOUCH_QUERY = '(pointer: coarse)';
 
 // ── i18n (js/core/i18n.js; strings in locales/*.js) ──
 const DEFAULT_LANG = 'en';   // also the fallback for keys a language lacks
+const ZH_HK_LANG = 'zh-HK';  // v0.65: the other UI language (header pill toggles between the two)
 
 // ── localStorage keys ──
 // the origin (dcwhung.github.io) is shared with other apps, so every key carries our own prefix
@@ -59,7 +60,7 @@ const FLAGS_LS = LS_PREFIX + 'practiceFlags';
 const WRONG_LS = LS_PREFIX + 'wrongList';
 const COMPLETED_LS = LS_PREFIX + 'completedExams';
 const HOME_PREFS_LS = LS_PREFIX + 'homePrefs';
-const UI_LANG_LS = LS_PREFIX + 'uiLang';   // v0.59: UI language (no switch shown yet)
+const UI_LANG_LS = LS_PREFIX + 'uiLang';   // v0.59: UI language (v0.65: header pill)
 const INSTALL_DISMISSED_LS = LS_PREFIX + 'installDismissed';   // v0.60: install banner closed with ✕ (never shown again)
 const STUDY_LS = {
   prefs: LS_PREFIX + 'studyPrefs',

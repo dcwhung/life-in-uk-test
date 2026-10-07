@@ -65,9 +65,9 @@ function factFullHtml(f, { marks = {}, opts = {} }) {
         ${factMarkButtonsHtml(f, marks)}
       </div>
     </div>
-    ${opts.title ? `<div class="fact-name">${escapeHtml(opts.title)}</div>` : ''}
-    <div class="fact-en">${escapeHtml(f.en)}</div>
-    <div class="fact-yue">${escapeHtml(f.yue)}</div>
+    ${opts.title ? `<div class="fact-name" lang="en">${escapeHtml(opts.title)}</div>` : ''}
+    <div class="fact-en" lang="en">${escapeHtml(f.en)}</div>
+    <div class="fact-yue" lang="zh-HK">${escapeHtml(f.yue)}</div>
     ${factSourceRowHtml(f)}
   </div>`;
 }
@@ -76,8 +76,8 @@ function factFullHtml(f, { marks = {}, opts = {} }) {
 function factCoreHtml(f) {
   return `<div class="sqm-fact core">
       <div class="sqm-fact-label">${t('similar.coreFact', { id: f.id })}</div>
-      <div class="sqm-fact-en">${escapeHtml(f.en)}</div>
-      <div class="sqm-fact-yue">${escapeHtml(f.yue)}</div>
+      <div class="sqm-fact-en" lang="en">${escapeHtml(f.en)}</div>
+      <div class="sqm-fact-yue" lang="zh-HK">${escapeHtml(f.yue)}</div>
     </div>`;
 }
 
