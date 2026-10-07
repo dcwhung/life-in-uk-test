@@ -146,7 +146,7 @@ LOCALES['zh-HK'] = {
     mastered: '已掌握',
     masteredDerived: '🏆 已掌握 — 所有來源題目均已掌握',
     progress: '🏆 已掌握 {n} / {total}',
-    // the fact's number within its chapter (chapterFactNumber); the global fact id is never shown
+    // the fact's number within its chapter (chapterFactNumber); no UI text shows the global fact id (W-016)
     factId: '#{n}',
     // S-057: English in every language, like common.chapterShort
     chapterFactId: 'Ch {ch} #{n}',
@@ -180,7 +180,7 @@ LOCALES['zh-HK'] = {
     chapterN: 'Chapter {n}',
     chapterShort: 'Ch {n}',
     similarSet: '相似題目',
-    factSet: '知識點 #{id}',
+    factSet: '知識點 Ch {ch} #{n}', // W-016: "Ch {ch} #{n}" stays English (S-057), lang="en" in the quiz header
     wrongSet: '錯題',
     flaggedSet: '已標記',
     questionN: '第 {n} 題',

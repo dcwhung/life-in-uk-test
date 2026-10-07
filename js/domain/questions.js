@@ -34,6 +34,12 @@ function isFactExam(examNum) {
   return typeof examNum === 'string' && examNum.startsWith(FACT_PREFIX) && /^\d+$/.test(examNum.slice(FACT_PREFIX.length));
 }
 function factIdOf(examNum) { return Number(examNum.slice(FACT_PREFIX.length)); }
+// W-016: a fact set is named by its Study card's chapter number (chapterFactNumber), never the global id
+function factSetParams(examNum) {
+  const id = factIdOf(examNum);
+  const fact = STUDY.find(f => f.id === id);
+  return { ch: fact.ch, n: chapterFactNumber(id) };
+}
 // Exam 1–17 (Exam mode or Practice > By Exam) — the only sets shaped like the real test
 function isNumberedExam(examNum) { return typeof examNum === 'number'; }
 // exam mode › All Exams = Random Exam: RANDOM_EXAM_SIZE questions drawn from all, at most one per study fact
@@ -71,7 +77,7 @@ function examLabel(examNum) {
   if (isRandomExam(examNum)) return t('common.randomExam');
   if (examNum === ALL_EXAM) return t('common.allExams');
   if (isChapterExam(examNum)) return t('common.chapterN', { n: chapterOf(examNum) });
-  if (isFactExam(examNum)) return t('common.factSet', { id: factIdOf(examNum) });
+  if (isFactExam(examNum)) return t('common.factSet', factSetParams(examNum));
   if (isDifficultyExam(examNum)) {
     const lv = difficultyOf(examNum);
     return '★'.repeat(lv) + ' ' + difficultyLabel(lv);

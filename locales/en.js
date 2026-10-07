@@ -149,7 +149,7 @@ LOCALES.en = {
     mastered: 'Mastered',
     masteredDerived: '🏆 Mastered — every source question mastered',
     progress: '🏆 {n} / {total} mastered',
-    // the fact's number within its chapter (chapterFactNumber); the global fact id is never shown
+    // the fact's number within its chapter (chapterFactNumber); no UI text shows the global fact id (W-016)
     factId: '#{n}',
     // S-057: English in every language, like common.chapterShort
     chapterFactId: 'Ch {ch} #{n}',
@@ -183,7 +183,7 @@ LOCALES.en = {
     chapterN: 'Chapter {n}',
     chapterShort: 'Ch {n}',
     similarSet: 'Similar Questions',
-    factSet: 'Fact #{id}',
+    factSet: 'Fact Ch {ch} #{n}', // W-016: "Ch {ch} #{n}" as study.chapterFactId; the quiz header gives it lang="en"
     wrongSet: 'Wrong answers',
     flaggedSet: 'Flagged',
     questionN: 'Question {n}',

@@ -47,6 +47,11 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   const enLabel = await coreLabel();
   assert(enLabel.text === `📌 Core Fact ${coreNum}` && enLabel.num.includes(coreNum) && !enLabel.text.includes('#203'),
     `core fact label "📌 Core Fact ${coreNum}", number in lang="en": ` + JSON.stringify(enLabel));
+  // S-072: the label stays uppercase ("📌 CORE FACT"), the number reads "Ch 5 #38" like the card pill, not "CH 5 #38"
+  const coreCase = await pg.$eval('#similarBox .sqm-fact-label', e => ({
+    label: getComputedStyle(e).textTransform, num: getComputedStyle(e.querySelector('[lang="en"]')).textTransform,
+  }));
+  assert(coreCase.label === 'uppercase' && coreCase.num === 'none', 'S-072: label uppercase, number text-transform none: ' + JSON.stringify(coreCase));
   await pg.evaluate(() => setLang('zh-HK'));
   const zhLabel = await coreLabel();
   assert(zhLabel.text === `📌 核心知識 ${coreNum}` && zhLabel.num.includes(coreNum), `zh-HK core fact label "📌 核心知識 ${coreNum}": ` + JSON.stringify(zhLabel));

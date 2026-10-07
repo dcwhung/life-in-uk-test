@@ -7,7 +7,7 @@
 const CHAPTER_ICONS = { 1: '⚖️', 2: '🇬🇧', 3: '📜', 4: '🎭', 5: '🏛️' };
 const FACT_VARIANT = { full: 'full', core: 'core' };
 const FACT_SRC_INLINE_MAX = 3; // more source nodes than this: on a phone the Practise button gets its own line
-// the element showing the card's chapter number ("#n" or the "Ch c #n" pill); it also describes the Practise button
+// the element showing the card's chapter number ("#n", or "Ch c #n" inside the pill); it also describes the Practise button
 const factIdElId = f => `factId${f.id}`;
 
 function yearLabel(f) {
@@ -22,14 +22,25 @@ const yearLangAttr = f => (f.yl || f.y >= 0 ? ' lang="en"' : '');
 // S-057: "Ch {ch} #{n}" (study.chapterFactId) stays English in zh-HK too
 const chapterFactText = f => t('study.chapterFactId', { ch: f.ch, n: chapterFactNumber(f.id) });
 
+// the Chapters view has no chapter pill, so the number stands alone; elsewhere the pill carries it
+function factNumberHtml(f) {
+  const n = chapterFactNumber(f.id);
+  return `<span class="fact-id" id="${factIdElId(f)}">${t('study.factId', { n })}</span>`;
+}
+// S-073: Practise is described by the inner number span only, so a screen reader skips the emoji
+function chapterPillHtml(f) {
+  const icon = `<span aria-hidden="true">${CHAPTER_ICONS[f.ch]}</span>`;
+  const num = `<span id="${factIdElId(f)}">${escapeHtml(chapterFactText(f))}</span>`;
+  return `<span class="tag" lang="en">${icon} ${num}</span>`;
+}
+
 // opts: noYear / noPerson / noChapter hide a tag the surrounding list already shows
 function factTagsHtml(f, opts) {
-  // the Chapters view has no chapter pill, so the number stands alone; elsewhere the pill carries it
-  const tags = opts.noChapter ? [`<span class="fact-id" id="${factIdElId(f)}">${t('study.factId', { n: chapterFactNumber(f.id) })}</span>`] : [];
+  const tags = opts.noChapter ? [factNumberHtml(f)] : [];
   if (f.y !== undefined && !opts.noYear) tags.push(`<span class="tag year"${yearLangAttr(f)}>📅 ${escapeHtml(yearLabel(f))}</span>`);
   if (f.w) tags.push(`<span class="tag war">${t('study.war')}</span>`);
   if (f.p && !opts.noPerson) tags.push(`<span class="tag person" lang="en">👤 ${escapeHtml(f.p[0])}</span>`);
-  if (!opts.noChapter) tags.push(`<span class="tag" lang="en" id="${factIdElId(f)}">${CHAPTER_ICONS[f.ch]} ${escapeHtml(chapterFactText(f))}</span>`);
+  if (!opts.noChapter) tags.push(chapterPillHtml(f));
   tags.push(starsHtml(f.d)); // same stars as the question card (v0.62)
   return tags.join('');
 }
