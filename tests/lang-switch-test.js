@@ -91,18 +91,21 @@ async function main() {
   }
   const switchTwice = async (tag, sel) => { await switchOn(tag, sel); await switchOn(tag, sel); };
   // W-014: under <html lang="zh-HK"> the English question content keeps lang="en" (screen readers pick the voice
-  // by lang) and the Cantonese translation says lang="zh-HK"; specs are [selector, lang, optional]
-  async function checkContentLang(tag, specs) {
+  // by lang) and the Cantonese translation says lang="zh-HK"; specs are [selector, lang, optional].
+  // CUI-0014: html = EN checks the other way round (Chinese labels say lang="zh-HK" on an English page)
+  async function checkContentLang(tag, specs, html = ZH_HK) {
     const res = await pg.evaluate(specs => specs.map(([sel, want, optional]) => {
       const els = [...document.querySelectorAll(sel)];
       const wrong = els.filter(e => { const l = e.closest('[lang]'); return l === document.documentElement || l.getAttribute('lang') !== want; });
       return { sel, want, n: els.length, wrong: wrong.length, ok: (els.length > 0 || optional) && wrong.length === 0 };
     }), specs);
-    assert((await langOf(pg)).html === ZH_HK, `${tag}: checked under <html lang="zh-HK">`);
+    assert((await langOf(pg)).html === html, `${tag}: checked under <html lang="${html}">`);
     const bad = res.filter(r => !r.ok);
     assert(bad.length === 0, `${tag}: English content lang="en", Cantonese lang="zh-HK": ` + JSON.stringify(bad));
   }
   const switchCheckBack = async (tag, sel, specs) => { await switchOn(tag, sel); await checkContentLang(tag, specs); await switchOn(tag, sel); };
+  // CUI-0014: same, then the en-page specs once back in en
+  const switchCheckBoth = async (tag, sel, specs, enSpecs) => { await switchCheckBack(tag, sel, specs); await checkContentLang(`${tag} (en)`, enSpecs, EN); };
 
   // pill label, <html lang>, storage, reload
   await switchOn('home', '#modeDesc');
@@ -117,7 +120,7 @@ async function main() {
 
   // Home with a non-default mode and practice tab
   await pg.evaluate(() => { startMode('practice'); setPracticeView('chapter'); });
-  await switchTwice('home practice › chapter', '#practiceTabs');
+  await switchCheckBack('home practice › chapter', '#practiceTabs', [['#chapterGrid .ch-name', EN]]);
   // practice › exam: the all-questions button reads 全部試題 in zh-HK, All Questions in en
   await pg.evaluate(() => setPracticeView('exam'));
   await switchOn('home practice › exam', '#examGrid');
@@ -133,11 +136,30 @@ async function main() {
     const q = state.questions[state.current]; state.answers[state.current] = [...q.a]; revealAnswer();
   });
   assert(await pg.$eval('#similarBox', e => !e.hidden && getComputedStyle(e).display !== 'none'), 'practice: Similar panel open after the answer');
-  await switchCheckBack('quiz practice (revealed, Similar, translation, flag)', '#similarBox .sqm-title b', [
+  await switchCheckBoth('quiz practice (revealed, Similar, translation, flag)', '#similarBox .sqm-title b', [
     ['#qText', EN], ['#qYue', ZH_HK], ['#optionsContainer .opt-body > span:not(.opt-yue)', EN], ['#optionsContainer .opt-yue', ZH_HK, true],
-    ['#ansEn', EN], ['#ansYue .ans-yue-row span', ZH_HK], ['#ansNote .ans-note-text', ZH_HK, true],
+    ['#ansEn', EN], ['#ansYue .ans-yue-row > span', ZH_HK], ['#ansNote .ans-note-text', ZH_HK, true],
     ['#similarBox .sqm-q', EN], ['#similarBox .sqm-qy', ZH_HK], ['#similarBox .sqm-fact-en', EN], ['#similarBox .sqm-fact-yue', ZH_HK],
-  ]);
+    ['#ansNote > strong', ZH_HK], // S-048: the 💡 label reads with the note
+  ], [['#ansNote > strong', ZH_HK], ['#ansNote .ans-note-text', ZH_HK]]);
+
+  // S-048: an answer with no Cantonese option text (True / False / years) falls back to English, marked lang="en"
+  const ansFallback = await pg.evaluate(() => {
+    const all = Object.values(EXAMS).flat();
+    // the lang each piece of answer text is read in (its text nodes' nearest lang)
+    const langOfAnswer = q => {
+      renderAnswerTranslation(q);
+      const row = byId('ansYue').querySelectorAll('.ans-yue-row')[1];
+      const walker = document.createTreeWalker(row.lastElementChild, NodeFilter.SHOW_TEXT);
+      const langs = new Set();
+      while (walker.nextNode()) if (walker.currentNode.textContent.trim()) langs.add(walker.currentNode.parentElement.closest('[lang]').getAttribute('lang'));
+      return [...langs].join();
+    };
+    const res = { noOy: langOfAnswer(all.find(q => q.a.every(ai => !(q.oy && q.oy[ai])))), withOy: langOfAnswer(all.find(q => q.oy && q.a.every(ai => q.oy[ai]))) };
+    renderAnswerTranslation(state.questions[state.current]);
+    return res;
+  });
+  assert(ansFallback.noOy === EN && ansFallback.withOy === ZH_HK, 'S-048: answer translation fallback is lang="en", a real translation lang="zh-HK": ' + JSON.stringify(ansFallback));
 
   // this question has no option translations: probe an option that has one inside #optionsContainer
   const optYueLang = await pg.evaluate(() => {
@@ -162,6 +184,8 @@ async function main() {
   await pg.evaluate(() => {
     pendingMode = 'exam'; startExam(3);
     [0, 1, 2].forEach(i => { state.answers[i] = [...state.questions[i].a]; });
+    // CUI-0014: question 4 answered wrong, so Result has a "Your answer: <option>" line
+    state.answers[3] = [state.questions[3].o.findIndex((o, oi) => !state.questions[3].a.includes(oi))];
     state.flags[1] = true; state.flags[4] = true; state.current = 4; renderQuestion();
   });
   await switchTwice('quiz exam (timer, answers, flags)', '#dotsMeta');
@@ -200,9 +224,13 @@ async function main() {
     recordExamResults = () => { window.recordCount++; realRecord(); };
     finishExam(); setReviewFilter('wrong');
   });
-  await switchCheckBack('result (filter Wrong)', '#resultLabel2', [
+  await switchCheckBoth('result (filter Wrong)', '#resultLabel2', [
     ['#reviewList .rv-q-text', EN], ['#reviewList .rv-correct-ans', EN], ['#reviewList .rv-yue', ZH_HK], ['#reviewList .rv-note-line', ZH_HK, true],
-  ]);
+    ['#reviewList .rv-your > span', EN], // S-047: the chosen option, not the 你的答案： label
+  ], [['#reviewList .rv-note-label', ZH_HK]]);
+  // S-047: the label and 未作答 stay in the page language (no lang="en" around them)
+  const yourLines = await pg.evaluate(() => [...document.querySelectorAll('#reviewList .rv-your')].map(e => ({ n: e.querySelectorAll('[lang]').length, label: e.firstChild.nodeType === Node.TEXT_NODE })));
+  assert(yourLines.filter(l => l.n === 1).length === 1 && yourLines.every(l => l.n <= 1 && l.label), 'S-047: one answered wrong line with a lang="en" answer, labels unmarked: ' + JSON.stringify(yourLines));
   assert(await pg.evaluate(() => window.recordCount) === 1, 'result: recorded once (the switch only re-renders)');
   await checkResultSub(pg);
 
@@ -215,6 +243,11 @@ async function main() {
   await pg.fill('#studySearch', 'sha');
   await switchCheckBack('study people › writers + search', '#studyChips', [['.fact-name', EN], ['.fact-en', EN], ['.fact-yue', ZH_HK]]);
   await pg.fill('#studySearch', '');
+  // S-049 + CUI-0014: chapter titles, year / person tags and timeline years are English data
+  await pg.evaluate(() => { studySetTab('chapters'); studySetChapter(3); });
+  await switchCheckBack('study chapters › 3', '#studyTabs', [['#studyContent .study-group-title', EN], ['#studyContent .tag.year', EN], ['#studyContent .tag.person', EN]]);
+  await pg.evaluate(() => studySetTab('timeline'));
+  await switchCheckBack('study timeline', '#studyTabs', [['#studyContent .tl-year', EN], ['#studyContent .tag.person', EN]]);
   await pg.evaluate(() => { studySetTab('geo'); studySetNation('all'); });
   await switchOn('study geography', '#studySubChips');
   const chips = await pg.$$eval('#studySubChips .chip', els => els.map(e => e.textContent.trim()));

@@ -3,6 +3,9 @@
 //     node .proj-docs/qa/scripts/2026-10-07_qa-v066.js <repo-root> <screenshot-dir> [v065-ref=f78e34c]
 // QA_ONLY=section,section limits the run. W-015 scan rows are written to <screenshot-dir>/../w015-scan.json only when
 // QA_W015_OUT is set (default: printed).
+// 2026-10-07 rerun (S-056 / CUI-0015): w015 expectations inverted after batch 7 (anti-leak); oracle skips batch 7
+// `keep` records and applies the S-055 post-batch fix. versionCheck still asserts the pre-batch-7 state (6 files / 713
+// records / old E11·Q4 yue in the SW cache) and is stale — not part of the rerun.
 //
 // Oracle (independent of HEAD data): the v0.65 data files (git show <v065-ref>) with the six user-approved batch JSON
 // files (.proj-docs/plans/2026-10-07_yue-batch-*.json) replayed in order; every record's `before` must match.
@@ -43,11 +46,22 @@ const EXP_EXAMS = JSON.parse(JSON.stringify(OLD_EXAMS));
 const EXP_STUDY = JSON.parse(JSON.stringify(OLD_STUDY));
 const PLAN_DIR = path.join(ROOT, '.proj-docs/plans');
 const BATCH_FILES = fs.readdirSync(PLAN_DIR).filter(f => /^2026-10-07_yue-batch-\d.*\.json$/.test(f)).sort();
-const replay = { records: 0, beforeMismatch: [] };
+const replay = { records: 0, beforeMismatch: [], kept: [] };
 const changed = { yue: new Set(), note: new Set(), oy: new Set(), fact: new Set() }; // qKey "exam.idx" / fact id
+// S-056 (2026-10-07 rerun): batch 7 (anti-leak, R2) records carry userDecision apply / keep; `keep` (A6, A9, A10) was
+// NOT applied, so it is checked (before must match) but not replayed. PRE_BATCH7 = expected data just before batch 7,
+// the baseline for the W-015 "no new pair" check.
+const ANTILEAK_FILE = BATCH_FILES.find(f => /antileak/.test(f));
+const ANTILEAK = ANTILEAK_FILE ? JSON.parse(fs.readFileSync(path.join(PLAN_DIR, ANTILEAK_FILE), 'utf8')) : [];
+let PRE_BATCH7 = null;
 for (const f of BATCH_FILES) {
+  if (f === ANTILEAK_FILE) PRE_BATCH7 = JSON.parse(JSON.stringify(EXP_EXAMS));
   for (const r of JSON.parse(fs.readFileSync(path.join(PLAN_DIR, f), 'utf8'))) {
     replay.records++;
+    if (r.userDecision === 'keep') {
+      if (EXP_EXAMS[r.exam][r.qIndex][r.field] !== r.before) replay.beforeMismatch.push(`${f} ${r.exam}.${r.qIndex} ${r.field} (keep)`);
+      replay.kept.push(r); continue;
+    }
     if (r.factId !== undefined) {
       const fact = EXP_STUDY.find(x => x.id === r.factId);
       if (fact.yue !== r.before) replay.beforeMismatch.push(`${f} fact #${r.factId}`);
@@ -59,6 +73,14 @@ for (const f of BATCH_FILES) {
     else { if (q[r.field] !== r.before) replay.beforeMismatch.push(`${f} ${k} ${r.field}`); q[r.field] = r.after; }
     changed[r.field].add(k);
   }
+}
+// fixes applied after the batch files, outside any batch JSON (commit + rule documented in yue-terms.md)
+// S-055 (091b6bf, R3): E7·Q12 has the same English question as E12·Q16 (A16) → identical yue
+const POST_BATCH_FIXES = [{ exam: 7, qIndex: 11, field: 'yue', before: '財政大臣嘅職責係乜嘢？', after: EXP_EXAMS[12][15].yue, id: 'S-055' }];
+for (const r of POST_BATCH_FIXES) {
+  const q = EXP_EXAMS[r.exam][r.qIndex];
+  if (q[r.field] !== r.before) replay.beforeMismatch.push(`${r.id} ${r.exam}.${r.qIndex} ${r.field}`);
+  q[r.field] = r.after; changed[r.field].add(`${r.exam}.${r.qIndex}`);
 }
 const expQ = k => { const [e, i] = k.split('.').map(Number); return EXP_EXAMS[e][i]; };
 const oldQ = k => { const [e, i] = k.split('.').map(Number); return OLD_EXAMS[e][i]; };
@@ -475,19 +497,53 @@ function w015Scan(EX) {
   });
   return rows;
 }
+// S-056 (rerun after batch 7, CUI-0015): expectations inverted. Batch 7 `apply` records must no longer leak before
+// answering; `keep` records (A6 E3·Q3, A9 E12·Q17, A10 E17·Q11) are a user-accepted trade-off → note only, never fail.
+const W015_BASELINE = { v065: 45, preBatch7: 48, now: 34 };
 async function w015(b) {
-  const now = w015Scan(EXP_EXAMS), before = w015Scan(OLD_EXAMS);
+  const now = w015Scan(EXP_EXAMS), before = w015Scan(OLD_EXAMS), pre7 = w015Scan(PRE_BATCH7 || EXP_EXAMS);
+  const head = w015Scan(loadData(fs.readFileSync(path.join(ROOT, 'data/exams.js'), 'utf8'), 'EXAMS')); // repo data, cross-check of the oracle
   const byK = r => r.k + '/' + r.a;
+  const sig = r => byK(r) + '=' + r.terms.join('+');
   const oldMap = Object.fromEntries(before.map(r => [byK(r), r]));
-  const rows = now.map(r => ({ ...r, v065: oldMap[byK(r)] ? oldMap[byK(r)].terms : [] }));
-  const gone = before.filter(r => !now.some(x => byK(x) === byK(r)));
-  note(`W-015 scan: ${rows.length} question/answer pairs share a distinctive term (v0.65: ${before.length}); new or changed term in v0.66: ${rows.filter(r => r.terms.join() !== r.v065.join()).length}; resolved since v0.65: ${gone.length}`);
-  const out = { rows: rows.map(r => ({ ref: ref(r.k), opt: r.a, terms: r.terms, v065: r.v065, yue: r.yue, oy: r.oy, q: r.q, o: r.o })), resolved: gone.map(r => ({ ref: ref(r.k), terms: r.terms, yue: r.yue, oy: r.oy })) };
+  const preMap = Object.fromEntries(pre7.map(r => [byK(r), r]));
+  const rows = now.map(r => ({ ...r, v065: oldMap[byK(r)] ? oldMap[byK(r)].terms : [], pre7: preMap[byK(r)] ? preMap[byK(r)].terms : [] }));
+  const gone = pre7.filter(r => !now.some(x => byK(x) === byK(r)));
+  const added = now.filter(r => !preMap[byK(r)]);
+  const termChanged = now.filter(r => preMap[byK(r)] && preMap[byK(r)].terms.join() !== r.terms.join());
+  note(`W-015 scan: now ${now.length} pairs (repo data ${head.length}); before batch 7 ${pre7.length}; v0.65 ${before.length}; resolved by batch 7 ${gone.length}; new ${added.length}; term changed ${termChanged.length}`);
+  ok(pre7.length === W015_BASELINE.preBatch7 && before.length === W015_BASELINE.v065, `W-015 scan baseline: before batch 7 = ${pre7.length} (want ${W015_BASELINE.preBatch7}), v0.65 = ${before.length} (want ${W015_BASELINE.v065})`);
+  ok(now.length === W015_BASELINE.now, `W-015 scan after batch 7 = ${now.length} pairs (want ${W015_BASELINE.now})`);
+  ok(JSON.stringify(head.map(sig)) === JSON.stringify(now.map(sig)), `W-015 scan of repo data/exams.js = oracle scan (${head.length} vs ${now.length})`);
+  ok(added.length === 0 && termChanged.length === 0, `W-015 scan: no new pair / no changed term vs before batch 7 ${added.concat(termChanged).map(r => ref(r.k) + ':' + r.terms.join('+')).join(' ')}`);
+  const out = { rows: rows.map(r => ({ ref: ref(r.k), opt: r.a, terms: r.terms, preBatch7: r.pre7, v065: r.v065, yue: r.yue, oy: r.oy, q: r.q, o: r.o })),
+    resolvedByBatch7: gone.map(r => ({ ref: ref(r.k), terms: r.terms, yue: r.yue, oy: r.oy })) };
   if (process.env.QA_W015_OUT) fs.writeFileSync(process.env.QA_W015_OUT, JSON.stringify(out, null, 1)); else console.log(JSON.stringify(out));
-  // the three listed cases, in the real app before answering
-  const CASES = { '11.3': '排燈節', '4.11': '排燈節', '12.11': '倫敦塔' };
-  for (const lang of LANGS) for (const [k, term] of Object.entries(CASES)) {
-    const { ctx, pg } = await fresh(b, 390, lang);
+
+  const applied = ANTILEAK.filter(r => r.userDecision === 'apply' && r.field === 'yue');
+  const kept = ANTILEAK.filter(r => r.userDecision === 'keep');
+  ok(applied.length === 16 && kept.length === 3, `batch 7: 16 apply + 3 keep records (${applied.length} + ${kept.length})`);
+  const keyOf = r => `${r.exam}.${r.qIndex}`;
+  // static: every applied question is out of the scan, its yue = batch `after`; every kept one is still `before` and still listed
+  for (const r of applied) {
+    const k = keyOf(r), pre = pre7.filter(x => x.k === k);
+    ok(expQ(k).yue === r.after && !now.some(x => x.k === k), `${r.decision} ${ref(k)}: yue = batch after "${r.after}", no longer in the scan (before batch 7: ${pre.map(x => x.terms.join('+')).join(' ') || 'not listed'})`);
+  }
+  for (const r of kept) {
+    const k = keyOf(r), hit = now.filter(x => x.k === k);
+    ok(expQ(k).yue === r.before, `${r.decision} ${ref(k)}: user keep → yue unchanged "${r.before}"`);
+    note(`user-accepted trade-off ${r.decision} ${ref(k)}: shared term ${hit.map(x => x.terms.join('+')).join(' ') || '(none)'} — "${r.before}" vs oy "${hit.map(x => x.oy).join(' / ')}"`);
+  }
+  // UI, before answering (Practice Translate): applied → no distinctive term shared by question yue and only the correct option
+  const CASES = { '11.3': '排燈節', '4.11': '排燈節', '12.11': '倫敦塔' }; // the three cases confirmed leaking in the first QA run
+  const allYue = Object.values(EXP_EXAMS).flat().map(q => q.yue);
+  const uiTerms = (qy, oy, order, a) => {
+    const right = oy.filter((s, i) => a.includes(order[i]) && s), wrong = oy.filter((s, i) => !a.includes(order[i]) && s);
+    return [...new Set(right.flatMap(c => sharedTerms(qy, c, wrong)))].filter(s => !GENERIC.has(s) && (s.length >= 3 || allYue.filter(y => y.includes(s)).length <= 12));
+  };
+  for (const lang of LANGS) for (const r of [...applied, ...kept]) {
+    const k = keyOf(r), isKeep = r.userDecision === 'keep';
+    const { ctx, pg, errs } = await fresh(b, 390, lang);
     await openPractice(pg, k.split('.')[0]);
     const pos = (await sessionMap(pg)).indexOf(k);
     await tap(pg, `#navDots .dot:nth-child(${pos + 1})`);
@@ -495,12 +551,21 @@ async function w015(b) {
     const order = await optionOrder(pg, k);
     const v = await pg.evaluate(() => ({ qy: byId('qYue').textContent, revealed: state.current in state.revealed,
       oy: [...document.querySelectorAll('#optionsContainer .opt')].map(o => (o.querySelector('.opt-yue') || {}).textContent || '') }));
-    const hits = v.oy.map((s, i) => s.includes(term) ? order[i] : null).filter(x => x !== null);
-    const leaks = !v.revealed && v.qy.includes(term) && hits.length === 1 && expQ(k).a.includes(hits[0]);
-    ok(leaks, `${lang} W-015 ${ref(k)}: before answering, Translate shows "${term}" in the question and only in the correct option (leak confirmed) qy="${v.qy}"`);
-    if (lang === ZH || k === '11.3') await pg.screenshot({ path: shot(`${lang}_w015-${ref(k).replace('·', '-')}_390`) });
-    // exam mode: no Translate before submitting
+    const terms = uiTerms(v.qy, v.oy, order, expQ(k).a);
+    const tag = `${lang} W-015 ${r.decision} ${ref(k)}`;
+    if (isKeep) {
+      ok(!v.revealed && v.qy === r.before, `${tag}: Translate before answering shows the kept yue "${v.qy}"`);
+      note(`${tag}: user-accepted leak on screen — shared ${terms.join('+') || '(none)'}`);
+    } else {
+      const term = CASES[k];
+      ok(!v.revealed && v.qy === r.after && terms.length === 0 && (!term || !v.qy.includes(term)),
+        `${tag}: before answering, Translate question "${v.qy}" shares no distinctive term with only the correct option${term ? ` ("${term}" gone)` : ''} ${terms.join('+')}`);
+    }
+    ok(errs.length === 0, `${tag}: no page errors ${errs.join('|')}`);
+    if (CASES[k] && (lang === ZH || k === '11.3')) await pg.screenshot({ path: shot(`${lang}_w015-${ref(k).replace('·', '-')}_390`) });
     await ctx.close();
+    if (!CASES[k]) continue;
+    // exam mode: no Translate before submitting (unchanged expectation)
     const ex = await fresh(b, 390, lang);
     await nav(ex.pg, '#modeExam'); await nav(ex.pg, `#examGrid [data-arg="${k.split('.')[0]}"]`);
     await tap(ex.pg, `#navDots .dot:nth-child(${Number(k.split('.')[1]) + 1})`);

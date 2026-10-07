@@ -72,8 +72,8 @@ function renderQuizHeader(q, idx, total) {
   byId('modeBadge').textContent = state.mode === PRACTICE_MODE ? t('common.practice') : t('common.exam');
   // progress: the question card's top border
   byId('progressFill').style.width = percent(idx + 1, total) + '%';
-  const multi = q.a.length > 1 ? t('quiz.selectN', { n: q.a.length }) : '';
-  byId('qNum').innerHTML = `<span>${t('quiz.questionOf', { n: idx + 1, total })}${multi}</span>${starsHtml(q.d)}`;
+  // no "(select N)" hint: every multi-answer question already states its count (content-guard-test)
+  byId('qNum').innerHTML = `<span>${t('quiz.questionOf', { n: idx + 1, total })}</span>${starsHtml(q.d)}`;
   byId('qText').textContent = q.q;
 }
 function renderTranslation(q, revealed, yueOn) {
@@ -112,12 +112,14 @@ function renderAnswerBox(q, idx, showAnswer) {
   // .ans-note is pre-wrap: the note's own line breaks and indents show as written
   byId('ansNote').innerHTML = q.note ? `<strong>${t('common.noteLabel')}</strong>\n<span class="ans-note-text" lang="zh-HK">${escapeHtml(q.note)}</span>` : '';
 }
+// S-048: an answer with no Cantonese text (True / False / years) falls back to the English option, marked lang="en"
+const answerYueHtml = (q, ai) => (q.oy && q.oy[ai] ? escapeHtml(q.oy[ai]) : `<span lang="en">${escapeHtml(q.o[ai])}</span>`);
 function renderAnswerTranslation(q) {
-  const ansYueText = q.a.map(ai => (q.oy && q.oy[ai]) || q.o[ai]).join(ANSWER_SEP);
+  const ansYueHtml = q.a.map(ai => answerYueHtml(q, ai)).join(escapeHtml(ANSWER_SEP));
   byId('ansYue').innerHTML =
     `<div class="ans-yue-title">${t('common.yueTitle')}</div>
        <div class="ans-yue-row"><b>${t('quiz.yueQ')}</b><span>${escapeHtml(q.yue)}</span></div>
-       <div class="ans-yue-row"><b>${t('quiz.yueA')}</b><span>${escapeHtml(ansYueText)}</span></div>`;
+       <div class="ans-yue-row"><b>${t('quiz.yueA')}</b><span>${ansYueHtml}</span></div>`;
 }
 // bottom Prev / Next row, plus the quick pair in the question header
 function renderNavButtons(idx, total, revealed) {

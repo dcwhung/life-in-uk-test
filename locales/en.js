@@ -63,7 +63,6 @@ LOCALES.en = {
 
   quiz: {
     questionOf: 'Question {n} of {total}',
-    selectN: ' (select {n})',
     allShuffled: 'All Questions (shuffled)',
     translate: 'Translate',
     hideTranslation: 'Hide translation',
