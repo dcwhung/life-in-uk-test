@@ -10,6 +10,9 @@ const examArg = el => (/^\d+$/.test(el.dataset.arg) ? Number(el.dataset.arg) : e
 const ACTIONS = {
   // header + home
   toggleInfo: () => toggleInfo(),
+  // R-002: the confirm modal has no focus trap, so Tab reaches the pill; switching then would leave the modal's
+  // text in the old language, so the pill does nothing until the modal closes
+  toggleLang: () => { if (!isConfirmOpen()) setLang(getLang() === DEFAULT_LANG ? ZH_HK_LANG : DEFAULT_LANG); },
   install: () => promptInstall(),
   dismissInstall: () => dismissInstallBanner(),
   openStudy: () => openStudy(),

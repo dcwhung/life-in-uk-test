@@ -26,6 +26,9 @@ LOCALES.en = {
     installText: 'Add to home screen to study without internet',
     installButton: 'Install',
     installDismiss: 'Dismiss',
+    // header pill: names the language it switches to (the CJK 中 is whitelisted in tests/i18n-test.js)
+    langSwitch: '中',
+    langSwitchLabel: 'Switch to Chinese',
   },
 
   home: {
@@ -41,7 +44,7 @@ LOCALES.en = {
     tabChapter: 'Chapter',
     tabExam: 'Exam',
     selectExam: 'Select Exam',
-    allExams: '🎯 All Exams ({count})',
+    allExams: '🎯 All Questions ({n})',
     randomExam: '🎲 Random Exam',
     randomExamSub: { one: '{n} question from {total}', other: '{n} questions from {total}' },
     practiceHintHtml: 'Answer a question correctly <b>{streak} times in a row</b> to master it. Each round draws up to <b>{max}</b> unmastered questions, each asked once; unmastered ones come back in the next round. Mastered ones are skipped until the whole set is mastered.',
@@ -61,7 +64,7 @@ LOCALES.en = {
   quiz: {
     questionOf: 'Question {n} of {total}',
     selectN: ' (select {n})',
-    allShuffled: 'All Exams (shuffled)',
+    allShuffled: 'All Questions (shuffled)',
     translate: 'Translate',
     hideTranslation: 'Hide translation',
     previous: 'Previous',
@@ -173,7 +176,7 @@ LOCALES.en = {
     practice: 'Practice',
     exam: 'Exam',
     examN: 'Exam {n}',
-    allExams: 'All Exams',
+    allExams: 'All Questions',
     randomExam: 'Random Exam',
     chapterN: 'Chapter {n}',
     chapterShort: 'Ch {n}',
@@ -181,7 +184,6 @@ LOCALES.en = {
     factSet: 'Fact #{id}',
     wrongSet: 'Wrong answers',
     flaggedSet: 'Flagged',
-    questions: { one: '{n} question', other: '{n} questions' },
     questionN: 'Question {n}',
     questionRef: 'Exam {exam} · Q{n}',
     correct: 'Correct',

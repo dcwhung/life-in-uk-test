@@ -36,6 +36,7 @@ const SHELL = [
   'js/core/config.js',
   'js/core/utils.js',
   'locales/en.js',
+  'locales/zh-HK.js',
   'js/core/i18n.js',
   'js/core/store.js',
   'js/domain/questions.js',

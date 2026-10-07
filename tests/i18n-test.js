@@ -15,8 +15,12 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
 
 // CJK ideographs, CJK punctuation (【】) and full-width forms (：); emoji are outside these ranges
 const CJK = /[　-〿㐀-鿿豈-﫿＀-￯]/;
-// en keeps the Cantonese section labels in Chinese (user decision, see HANDOFF.md › i18n)
-const CJK_WHITELIST = ['common.yueTitle', 'common.noteLabel'];
+// en keeps the Cantonese section labels in Chinese (user decision, see HANDOFF.md › i18n); the language pill
+// shows the target language, so in en it reads 中
+const CJK_WHITELIST = ['common.yueTitle', 'common.noteLabel', 'app.langSwitch'];
+// zh-HK copies these from en: <title>, meta description and the manifest stay English (plan R-001)
+const SAME_AS_EN_KEYS = ['app.title', 'app.description', 'app.shortName', 'app.installName', 'app.installShortName'];
+const ZH_HK = 'zh-HK';
 // t(`prefix.${enumKey}…`) calls: the data enums (source keeps only the key, the label lives in data.*)
 const DYNAMIC_PREFIXES = [
   'data.chapters.', 'data.chapterShort.', 'data.difficulty.', 'data.eras.',
@@ -37,6 +41,12 @@ function loadEn() {
   const file = path.join(ROOT, 'locales/en.js');
   assert(fs.existsSync(file), 'locales/en.js exists');
   return vm.runInNewContext(read(file) + '\n;LOCALES.en', {});
+}
+// every locale file in one context, in index.html order (en first: the others add to its LOCALES)
+function loadLocales() {
+  const files = ['locales/en.js', `locales/${ZH_HK}.js`].map(f => path.join(ROOT, f));
+  files.forEach(f => assert(fs.existsSync(f), rel(f) + ' exists'));
+  return vm.runInNewContext(files.map(read).join('\n;\n') + '\n;LOCALES', {});
 }
 const isPlural = v => v && typeof v === 'object' && 'other' in v && Object.keys(v).every(k => PLURAL_FORMS.includes(k));
 // leaf keys: strings, and plural objects counted as one key
@@ -96,11 +106,43 @@ function staticChecks() {
   const MARKUP = /<|&[a-z#]/i;
   const markupValues = enLeaves.filter(([k, v]) => !/Html$/.test(k) && strings([k, v]).some(s => MARKUP.test(s)));
   assert(markupValues.length === 0, 'en values outside …Html keys have no tags or entities' + (markupValues.length ? ': ' + markupValues.map(([k]) => k).join(', ') : ''));
-  assert(CJK_WHITELIST.every(k => CJK.test(enLeaves.find(([key]) => key === k)[1])), 'whitelisted Cantonese labels are in en');
+  assert(CJK_WHITELIST.every(k => CJK.test((enLeaves.find(([key]) => key === k) || [])[1] || '')), 'whitelisted CJK labels are in en: ' + CJK_WHITELIST.join(', '));
   const sources = [path.join(ROOT, 'index.html'), path.join(ROOT, 'sw.js'), ...jsFiles(path.join(ROOT, 'js'))];
   const cjkLines = sources.flatMap(f => read(f).split('\n').map((l, i) => (CJK.test(l) ? `${rel(f)}:${i + 1}` : null)).filter(Boolean));
   assert(cjkLines.length === 0, 'no CJK left in js/ or index.html (data/ and locales/ excluded)' + (cjkLines.length ? ': ' + cjkLines.join(', ') : ''));
   return en;
+}
+
+// zh-HK: same leaf keys as en, the same {params} per plural form, the same tags in …Html values, and the
+// document / manifest keys copied from en. A plural may be a plain string or { other } (zh has one form).
+const paramsOf = s => [...s.matchAll(/\{(\w+)\}/g)].map(m => m[1]).sort().join(',');
+const tagsOf = s => [...s.matchAll(/<\/?([a-z]+)/gi)].map(m => m[0]).join('');
+const formsOf = v => (typeof v === 'string' ? { other: v } : v);
+function paramProblems(key, enValue, zhValue) {
+  const en = formsOf(enValue);
+  return Object.entries(formsOf(zhValue)).flatMap(([form, text]) => {
+    const want = en[form] ?? en.other;
+    if (want === undefined || typeof text !== 'string') return [`${key}.${form}: no such form in en`];
+    return paramsOf(text) === paramsOf(want) ? [] : [`${key}.${form}: {${paramsOf(text)}} vs en {${paramsOf(want)}}`];
+  });
+}
+function zhHkChecks() {
+  const locales = loadLocales();
+  const zh = locales[ZH_HK];
+  assert(zh && typeof zh === 'object', `LOCALES['${ZH_HK}'] is defined`);
+  const enMap = new Map(leaves(locales.en)), zhMap = new Map(leaves(zh));
+  const missing = [...enMap.keys()].filter(k => !zhMap.has(k)), extra = [...zhMap.keys()].filter(k => !enMap.has(k));
+  assert(missing.length === 0, `${ZH_HK} has every en key` + (missing.length ? ': ' + missing.join(', ') : ''));
+  assert(extra.length === 0, `${ZH_HK} has no key en lacks` + (extra.length ? ': ' + extra.join(', ') : ''));
+  const badParams = [...zhMap].flatMap(([k, v]) => paramProblems(k, enMap.get(k), v));
+  assert(badParams.length === 0, `${ZH_HK} uses the same {params} as en per form` + (badParams.length ? ': ' + badParams.join(' / ') : ''));
+  const badTags = [...zhMap].filter(([k, v]) => /Html$/.test(k) && tagsOf(v) !== tagsOf(enMap.get(k))).map(([k]) => k);
+  assert(badTags.length === 0, `${ZH_HK} …Html values have en's tag sequence` + (badTags.length ? ': ' + badTags.join(', ') : ''));
+  const markup = [...zhMap].filter(([k, v]) => !/Html$/.test(k) && Object.values(formsOf(v)).some(s => /<|&[a-z#]/i.test(s))).map(([k]) => k);
+  assert(markup.length === 0, `${ZH_HK} values outside …Html keys have no tags or entities` + (markup.length ? ': ' + markup.join(', ') : ''));
+  const changed = SAME_AS_EN_KEYS.filter(k => zhMap.get(k) !== enMap.get(k));
+  assert(changed.length === 0, `${ZH_HK} copies en for ${SAME_AS_EN_KEYS.join(', ')}` + (changed.length ? ': ' + changed.join(', ') : ''));
+  assert(enMap.get('app.langSwitch') === '中' && zhMap.get('app.langSwitch') === 'EN', 'language pill shows the target language: en 中, zh-HK EN');
 }
 
 async function runtimeChecks(en) {
@@ -130,8 +172,8 @@ async function runtimeChecks(en) {
 
   // interpolation + plurals
   assert(await pg.evaluate(() => t('common.questionRef', { exam: 9, n: 15 })) === 'Exam 9 · Q15', 'interpolation: Exam 9 · Q15');
-  assert(await pg.evaluate(() => t('common.questions', { n: 1 })) === '1 question', 'plural one: 1 question');
-  assert(await pg.evaluate(() => t('common.questions', { n: 408 })) === '408 questions', 'plural other: 408 questions');
+  assert(await pg.evaluate(() => t('modal.submitUnanswered', { n: 1 })) === '1 question unanswered', 'plural one: 1 question unanswered');
+  assert(await pg.evaluate(() => t('modal.submitUnanswered', { n: 408 })) === '408 questions unanswered', 'plural other: 408 questions unanswered');
   await pg.evaluate(() => {
     pendingMode = 'exam'; startExam(1);
     state.questions.forEach((q, i) => { if (i) state.answers[i] = [...q.a]; });
@@ -206,6 +248,7 @@ async function runtimeChecks(en) {
 
 (async () => {
   const en = staticChecks();
+  zhHkChecks();
   await runtimeChecks(en);
   console.log('I18N PASS');
 })().catch(e => { console.error(e.message); process.exit(1); });

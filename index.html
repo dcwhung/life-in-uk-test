@@ -38,6 +38,7 @@
         <div class="logo-sub"><span data-i18n="app.sub"></span> <span class="app-version" id="appVersion"></span></div>
       </div>
     </div>
+    <button class="lang-btn" id="langBtn" type="button" data-action="toggleLang" data-i18n="app.langSwitch" data-i18n-attr="aria-label:app.langSwitchLabel;title:app.langSwitchLabel"></button>
   </div>
   <div class="info-pop" id="infoPop" role="dialog" data-i18n-attr="aria-label:app.about">
     <h2><span id="infoTitle"></span> <span class="app-version" id="appVersionPop"></span></h2>
@@ -184,18 +185,19 @@
           <button class="quick-btn primary" id="quickNext" data-action="next">→</button>
         </span>
       </div>
-      <div class="q-text" id="qText"></div>
-      <div class="q-yue" id="qYue"></div>
+      <!-- W-014: question content stays English (Q1) whatever <html lang> says; the translation is Cantonese -->
+      <div class="q-text" id="qText" lang="en"></div>
+      <div class="q-yue" id="qYue" lang="zh-HK"></div>
     </div>
 
-    <div class="options" id="optionsContainer"></div>
+    <div class="options" id="optionsContainer" lang="en"></div>
 
     <!-- practice: show after selection -->
     <div class="answer-box" id="answerBox">
       <div class="ans-label" id="ansLabel"></div>
-      <div class="ans-en" id="ansEn"></div>
+      <div class="ans-en" id="ansEn" lang="en"></div>
       <div class="divider"></div>
-      <div class="ans-yue" id="ansYue"></div>
+      <div class="ans-yue" id="ansYue" lang="zh-HK"></div>
       <div class="ans-note" id="ansNote"></div>
     </div>
 
@@ -268,6 +270,7 @@
 <script src="js/core/config.js"></script>
 <script src="js/core/utils.js"></script>
 <script src="locales/en.js"></script>
+<script src="locales/zh-HK.js"></script>
 <script src="js/core/i18n.js"></script>
 <script src="js/core/store.js"></script>
 <script src="js/domain/questions.js"></script>
