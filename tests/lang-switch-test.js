@@ -455,6 +455,22 @@ async function checkPracticeHint(pg) {
   await pg.click(PILL);
 }
 
+// 2026-10-07: the "Leave the exam?" modal cancel reads Cancel / 取消 (was Stay / 留下)
+const LEAVE_CANCEL = { [EN]: 'Cancel', [ZH_HK]: '取消' };
+async function checkLeaveCancelIn(pg, lang) {
+  await pg.evaluate(l => { setLang(l); leaveToHome(); pendingMode = 'exam'; startExam(1); goHome(); }, lang);
+  assert(await pg.evaluate(() => isConfirmOpen()), `leave modal ${lang}: open`);
+  const cancel = await textOf(pg, '#confirmCancel');
+  assert(cancel === LEAVE_CANCEL[lang], `leave modal ${lang}: cancel reads ${LEAVE_CANCEL[lang]}: ${cancel}`);
+  await pg.click('#confirmCancel');
+  await pg.evaluate(() => leaveToHome());
+}
+async function checkLeaveCancel(pg) {
+  await checkLeaveCancelIn(pg, EN);
+  await checkLeaveCancelIn(pg, ZH_HK);
+  await pg.evaluate(lang => setLang(lang), EN);
+}
+
 // S-045: draw two hanzi in the page font; identical pixels mean the fallback drew the same tofu box for both
 const hasCjkFont = pg => pg.evaluate(({ px, chars, baseline }) => {
   const canvas = document.createElement('canvas');
@@ -469,7 +485,7 @@ const hasCjkFont = pg => pg.evaluate(({ px, chars, baseline }) => {
 const CHECKS = [
   checkPill, checkHomeSwitch, checkHomePractice, checkQuizPractice, checkAnswerFallback, checkOptionYueLang,
   checkSideSession, checkQuizExam, checkExamTimer, checkModal, checkResult, checkFlagged, checkStudy, checkDoubleTap,
-  checkMyReviewTiles, checkExamDesc, checkPracticeHint,
+  checkMyReviewTiles, checkExamDesc, checkPracticeHint, checkLeaveCancel,
 ];
 
 async function main() {

@@ -67,11 +67,11 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   // Home asks before leaving a running exam
   await pg.click('#screenQuiz .back-btn');
   assert(await modalOpen() && /Leave the exam\?/.test(await modalText()) && /Your answers will be lost\./.test(await modalText()), 'Home opens the leave modal');
-  assert((await text('#confirmOk')) === 'Leave' && (await text('#confirmCancel')) === 'Stay', 'leave modal buttons: Stay / Leave');
-  // destructive: default focus on Stay (v0.60)
-  assert((await focusedId()) === 'confirmCancel', 'leave modal focuses Stay');
+  assert((await text('#confirmOk')) === 'Leave' && (await text('#confirmCancel')) === 'Cancel', 'leave modal buttons: Cancel / Leave');
+  // destructive: default focus on Cancel (v0.60)
+  assert((await focusedId()) === 'confirmCancel', 'leave modal focuses Cancel');
   await pg.click('#confirmCancel');
-  assert(await active('screenQuiz'), 'Stay keeps the exam');
+  assert(await active('screenQuiz'), 'Cancel keeps the exam');
   await pg.click('#screenQuiz .back-btn'); await pg.click('#confirmOk');
   assert(!(await modalOpen()) && await active('screenHome') && await pg.evaluate(() => examTimerId === null), 'Leave goes home and stops the timer');
 
