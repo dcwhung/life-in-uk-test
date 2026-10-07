@@ -17,8 +17,11 @@ const WIDE = { width: 390, height: 844 };
 const NARROW = { width: 320, height: 640 };
 const TITLE = 'Life in the UK · Exam Practice';
 const CJK = /[\u3000-\u303f\u3400-\u9fff\uff00-\uffef]/;
-// the double tap guard window (config.js SCREEN_CHANGE_CLICK_GUARD_MS) plus a margin
-const GUARD_WAIT_MS = 400;
+// S-043: the wait clears the double tap guard window, read from config.js SCREEN_CHANGE_CLICK_GUARD_MS on the page
+const GUARD_MARGIN_MS = 50;
+// S-044: the ::before ring must make the hit area >= 44px; probe this far outside the visible pill
+const HIT_MIN_PX = 44;
+const HIT_PROBE_INSET_PX = 1;
 
 // everything the plan's state list says a language switch must keep (Result highlight / Study flash and
 // scroll position are accepted losses); localStorage minus the language key itself
@@ -52,6 +55,14 @@ async function main() {
   assert(p.parent === 'header-inner' && p.last && p.type === 'button', 'pill is the last child of .header-inner, type=button');
   const size = await pg.$eval(PILL, e => { const r = e.getBoundingClientRect(); return { w: r.width, h: r.height }; });
   assert(size.w >= 36 && size.h >= 24, 'pill is about 36 × 26px: ' + JSON.stringify(size));
+  // points up to (44 − visible size) / 2 outside the pill on each side still land on it
+  const hit = await pg.$eval(PILL, (e, { min, inset }) => {
+    const r = e.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    const dx = Math.max(0, (min - r.width) / 2) - inset, dy = Math.max(0, (min - r.height) / 2) - inset;
+    const pts = [[r.left - dx, cy], [r.right + dx, cy], [cx, r.top - dy], [cx, r.bottom + dy]];
+    return pts.map(([x, y]) => document.elementFromPoint(x, y) === e);
+  }, { min: HIT_MIN_PX, inset: HIT_PROBE_INSET_PX });
+  assert(hit.every(Boolean), `pill hit area is >= ${HIT_MIN_PX}px each way (left, right, top, bottom): ` + JSON.stringify(hit));
 
   // ── one switch on the current screen: same state, no missing key, language flipped, 320px fits ──
   async function switchOn(tag, expectCjkSel) {
@@ -208,7 +219,7 @@ async function main() {
   await pg.evaluate(() => showScreen('screenHome'));
   const guard = await pg.evaluate(() => JSON.stringify(clickGuard));
   await pg.click(PILL);
-  await pg.waitForTimeout(GUARD_WAIT_MS);
+  await pg.waitForTimeout(await pg.evaluate(() => SCREEN_CHANGE_CLICK_GUARD_MS) + GUARD_MARGIN_MS);
   await pg.dblclick(PILL);
   assert((await langOf(pg)).lang === ZH_HK && await pg.evaluate(() => JSON.stringify(clickGuard)) === guard, 'pill: never arms the double tap guard; a double tap switches twice');
   await pg.click(PILL);
