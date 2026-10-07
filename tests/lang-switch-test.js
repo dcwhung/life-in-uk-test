@@ -391,6 +391,19 @@ const effectiveOpacities = (pg, root, sels) => pg.$eval(root, (r, list) => Objec
   for (let n = r.querySelector(sel); n; n = n.parentElement) o *= Number(getComputedStyle(n).opacity);
   return [sel, o];
 })), sels);
+// S-084: the zh-HK note must not wrap "24" away from its "題。" (text-wrap: pretty keeps the last line from being that short)
+const NOTE_TAIL = { [ZH_HK]: { count: '24', end: '題。' } };
+async function checkNoteTailIn(pg, lang, tag) {
+  const { count, end } = NOTE_TAIL[lang];
+  const tops = await pg.$eval('#tileWrong .t-note', (e, [c, z]) => {
+    const node = [...e.childNodes].find(n => n.nodeType === Node.TEXT_NODE && n.data.includes(c + ' ' + z));
+    if (!node) return null;
+    const at = i => { const r = document.createRange(); r.setStart(node, i); r.setEnd(node, i + 1); return Math.round(r.getBoundingClientRect().top); };
+    const i = node.data.lastIndexOf(c), j = node.data.lastIndexOf(z);
+    return { count: at(i), end: at(j + z.length - 1), wrap: getComputedStyle(e).textWrap || getComputedStyle(e).textWrapStyle };
+  }, [count, end]);
+  assert(tops && tops.count === tops.end, `${tag}: "${count}" and "${end}" stay on one line: ` + JSON.stringify(tops));
+}
 // S-082: the same tile checks at 320px, plus no horizontal overflow on the page or inside either tile
 async function checkMyReviewNarrow(pg, check, lang, tag) {
   await pg.setViewportSize(NARROW);
@@ -418,6 +431,10 @@ async function checkMyReviewTiles(pg) {
   await seedMyReview(pg, 0, MY_REVIEW_FLAG_N);
   await checkMyReviewEmptyIn(pg, ZH_HK, 'My Review zh-HK');
   await checkMyReviewNarrow(pg, checkMyReviewEmptyIn, ZH_HK, 'My Review zh-HK 0 wrong 320px');
+  await checkNoteTailIn(pg, ZH_HK, 'My Review zh-HK 390px note');
+  await pg.setViewportSize(NARROW);
+  await checkNoteTailIn(pg, ZH_HK, 'My Review zh-HK 320px note');
+  await pg.setViewportSize(WIDE);
   await pg.click(PILL);
   await checkMyReviewEmptyIn(pg, EN, 'My Review pill → en');
   await checkMyReviewNarrow(pg, checkMyReviewEmptyIn, EN, 'My Review en 0 wrong 320px');
