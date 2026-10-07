@@ -1,7 +1,7 @@
 const { chromium } = require('playwright-core');
 const path = require('path');
 // v0.62 (P3 Lane C2): fact → source questions session engine (no entry button yet; PR-3 adds it).
-// Set id FACT_PREFIX + id ('f21', header "Fact #21"); startFactPractice(id) runs f.src once each in Practice,
+// Set id FACT_PREFIX + id ('f21', header "Fact Ch 3 #15", W-016: the chapter number, never the global id); startFactPractice(id) runs f.src once each in Practice,
 // whatever the Home mode; last question "↩ Back" returns to Study with tab / chip / search / scroll restored.
 // R-001: every state field is reset (no leak from the session before); R-002: never pendingMode = exam.
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
@@ -10,7 +10,11 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
 const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('ok:', m); };
 
 const FACT_ID = 21; // Magna Carta, chapter 3, 8 source questions
+const FACT_CHAPTER = 3;
 const FACT_CHAPTER_NUM = 15; // its number within chapter 3 (ids 7–97), shown on the Chapters card as "#15"
+// W-016: the session header uses the card's chapter number; "Ch 3 #15" stays English (lang="en") in zh-HK too
+const FACT_NUM_TEXT = `Ch ${FACT_CHAPTER} #${FACT_CHAPTER_NUM}`;
+const FACT_LABEL = { en: `Fact ${FACT_NUM_TEXT}`, 'zh-HK': `知識點 ${FACT_NUM_TEXT}` };
 const FACT_SRC = '4.16,6.6,7.14,8.13,12.23,15.6,16.16,17.21';
 // Study is scrolled so fact #21 sits this far below the viewport top, as when its "▶ Practise" is tapped
 // (v0.63: ↩ Back brings the card into view if the restored scroll no longer shows it, R-010)
@@ -34,10 +38,14 @@ async function checkSetIds(pg) {
   const ids = await pg.evaluate(() => ({
     fact: isFactExam('f21'), flagged: isFactExam(FLAGGED_EXAM), num: isFactExam(21), id: factIdOf('f21'),
     label: examLabel(FACT_PREFIX + 21), flaggedLabel: examLabel(FLAGGED_EXAM),
+    zhLabel: (setLang('zh-HK'), examLabel(FACT_PREFIX + 21)),
   }));
+  await pg.evaluate(() => setLang('en'));
   assert(ids.fact && !ids.flagged && !ids.num, `isFactExam: 'f21' yes, 'flagged' / 21 no (${JSON.stringify(ids)})`);
   assert(ids.id === 21, `factIdOf('f21') === 21 (${ids.id})`);
-  assert(ids.label === 'Fact #21' && ids.flaggedLabel === 'Flagged', `examLabel: Fact #21 / Flagged (${ids.label} / ${ids.flaggedLabel})`);
+  assert(ids.label === FACT_LABEL.en && ids.flaggedLabel === 'Flagged', `examLabel: ${FACT_LABEL.en} / Flagged (${ids.label} / ${ids.flaggedLabel})`);
+  assert(ids.zhLabel === FACT_LABEL['zh-HK'], `zh-HK examLabel: ${FACT_LABEL['zh-HK']} (${ids.zhLabel})`);
+  assert(!ids.label.includes('#21') && !ids.zhLabel.includes('#21'), 'W-016: the global fact id #21 is not shown');
 }
 
 // Home on Exam, a timed Exam 1 running with exam flags / review counters, then Study › Chapters › Ch 3, Hide mastered, scrolled
@@ -83,10 +91,22 @@ async function checkStart(pg) {
   return savedY;
 }
 
+// the "Ch 3 #15" part of the header is one lang="en" span holding plain text (no markup from the locale string)
+async function checkHeaderNumberLang(pg, lang) {
+  const nums = await pg.$$eval('#quizLabel [lang="en"]', els => els.map(e => [e.textContent, e.children.length]));
+  assert(nums.length === 1 && nums[0][0] === FACT_NUM_TEXT && nums[0][1] === 0,
+    `${lang} header: "${FACT_NUM_TEXT}" in one lang="en" text span (${JSON.stringify(nums)})`);
+}
+
 // header, no round note even with review counters, no Similar panel; answers count like any Practice answer
 async function checkInSession(pg) {
   assert(await activeScreen(pg) === 'screenQuiz', 'quiz screen shown');
-  assert(await text(pg, '#quizLabel') === 'Fact #21' && await text(pg, '#modeBadge') === 'Practice', 'header: Fact #21 · Practice');
+  assert(await text(pg, '#quizLabel') === FACT_LABEL.en && await text(pg, '#modeBadge') === 'Practice', `header: ${FACT_LABEL.en} · Practice`);
+  await checkHeaderNumberLang(pg, 'en');
+  await pg.evaluate(() => setLang('zh-HK'));
+  assert(await text(pg, '#quizLabel') === FACT_LABEL['zh-HK'], `zh-HK header: ${FACT_LABEL['zh-HK']} (${await text(pg, '#quizLabel')})`);
+  await checkHeaderNumberLang(pg, 'zh-HK');
+  await pg.evaluate(() => setLang('en'));
   assert((await text(pg, '#qNum')).startsWith('Question 1 of 8'), 'Question 1 of 8');
   await pg.evaluate(() => { state.reviewTotal = 50; renderQuestion(); renderRoundNote(); });
   assert(!(await shown(pg, '#roundRow')), 'no round note inside a side session (even with a review total)');
@@ -221,7 +241,7 @@ async function checkTwoSourceRowsOneLine(pg) {
 }
 async function checkEntryAndFlash(pg) {
   await pg.click(`${factCard(FACT_ID)} .fact-practise`);
-  assert(await activeScreen(pg) === 'screenQuiz' && await text(pg, '#quizLabel') === 'Fact #21', 'Practise button opens the Fact #21 session');
+  assert(await activeScreen(pg) === 'screenQuiz' && await text(pg, '#quizLabel') === FACT_LABEL.en, `Practise button opens the ${FACT_LABEL.en} session`);
   await goLast(pg);
   await answer(pg, true);
   await pg.click('#nextBtn');

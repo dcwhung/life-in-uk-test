@@ -33,7 +33,7 @@ function finishExam() {
 function renderResults() {
   renderScore(reviewItems.filter(r => r.isCorrect).length, reviewItems.length);
   renderResultActions();
-  byId('resultLabel').textContent = examLabel(state.examNum);
+  setExamLabel(byId('resultLabel'), state.examNum);
   byId('diffTable').innerHTML = diffTableHtml();
   renderResultDots();
   renderReview();
