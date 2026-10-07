@@ -51,6 +51,32 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(await pg.$eval('#modeExam', e => e.classList.contains('selected')), 'mode persists across reload');
   await pg.click('#modePractice'); await pg.click('#ptabChapter'); await pg.reload();
   assert(await pg.$eval('#ptabChapter', e => e.classList.contains('active')) && (await shown()) === 'chapter', 'practice tab persists across reload');
+  // Exam grid hover: a completed exam turns green with white text (its own .done green used to beat the hover
+  // white); the ✓ badge flips to a card circle with a green tick so it does not vanish into the green button
+  const tokenRgb = name => pg.evaluate(n => {
+    const el = document.createElement('i');
+    el.style.color = `var(${n})`;
+    document.body.appendChild(el);
+    const c = getComputedStyle(el).color;
+    el.remove();
+    return c;
+  }, name);
+  await pg.evaluate(() => { markExamCompleted(1); startMode('exam'); });
+  await pg.addStyleTag({ content: '*, *::after { transition: none !important; }' }); // read the end state, not a frame mid-fade
+  const hoverStyle = async sel => {
+    await pg.hover(sel);
+    return pg.$eval(sel, e => {
+      const c = getComputedStyle(e), a = getComputedStyle(e, '::after');
+      return { color: c.color, bg: c.backgroundColor, border: c.borderTopColor, badgeBg: a.backgroundColor, badgeColor: a.color };
+    });
+  };
+  const done = await hoverStyle('#examGrid .exam-btn.done');
+  const [inverse, green, navy, card] = await Promise.all(['--text-inverse', '--green', '--navy', '--card'].map(tokenRgb));
+  assert(done.color === inverse && done.bg === green && done.border === green, 'completed exam hover: green background, white text: ' + JSON.stringify(done));
+  assert(done.badgeBg === card && done.badgeColor === green, 'completed exam hover: ✓ badge flips to card with a green tick: ' + JSON.stringify(done));
+  const open = await hoverStyle('#examGrid .exam-btn:not(.done):not(.all)');
+  assert(open.color === inverse && open.bg === navy, 'not completed exam hover: still navy background, white text: ' + JSON.stringify(open));
+  await pg.mouse.move(0, 0);
   await pg.evaluate(() => localStorage.clear()); await pg.reload();
   assert(await pg.$eval('#modePractice', e => e.classList.contains('selected')) && (await shown()) === 'diff', 'fresh start: Practice / By Difficulty');
   assert(errs.length === 0, 'no page errors: ' + errs.join(';'));
