@@ -319,6 +319,158 @@ async function checkDoubleTap(pg) {
   await pg.click(PILL);
 }
 
+// 2026-10-07: My Review tiles. The wrong answers note lives inside #tileWrong (also at 0), the wrong tile
+// shows only "{n} to clear" (no per round part), the flagged tile drops its count line; the pill re-renders it
+const MY_REVIEW_NOTE = {
+  [EN]: 'From Practice and Exam; cleared once you get them right here. Up to 24 per round.',
+  [ZH_HK]: '來自練習及模擬考試，於此答對後便會清除。每輪最多 24 題。',
+};
+const WRONG_TO_CLEAR_30 = { [EN]: '30 to clear', [ZH_HK]: '尚餘 30 題' };
+const PER_ROUND = { [EN]: 'per round', [ZH_HK]: '每輪' };
+const FLAGGED_8 = { [EN]: '8 flagged', [ZH_HK]: '已標記 8 題' };
+// flaggedEmptyHtml with its inline bookmark svg (no text) collapsed out
+const FLAGGED_EMPTY = { [EN]: 'Tap on a question to flag it', [ZH_HK]: '於題目按 即可標記' };
+const MY_REVIEW_WRONG_N = 30;
+const MY_REVIEW_FLAG_N = 8;
+const EXAM_SIZE = 24; // keys are "exam.q"; only the count matters to the tiles
+const seedMyReview = (pg, wrongN, flagN) => pg.evaluate(([w, f, size]) => {
+  const keys = n => Object.fromEntries(Array.from({ length: n }, (_, i) => [`${1 + Math.floor(i / size)}.${(i % size) + 1}`, true]));
+  wrongList = keys(w); practiceFlags = keys(f);
+  localStorage.setItem('lifeuk.wrongList', JSON.stringify(wrongList));
+  localStorage.setItem('lifeuk.practiceFlags', JSON.stringify(practiceFlags));
+  leaveToHome(); startMode('practice');
+}, [wrongN, flagN, EXAM_SIZE]);
+const myReviewView = pg => pg.evaluate(() => {
+  const squash = e => (e ? e.textContent.replace(/\s+/g, ' ').trim() : null);
+  const tile = id => {
+    const el = byId(id), sub = el.querySelector('.sub'), note = el.querySelector('.t-note');
+    return {
+      text: squash(el), sub: squash(sub), note: squash(note),
+      subVisible: !!sub && sub.getBoundingClientRect().height > 0,
+      noteAfterSub: !!note && !!sub && !!(sub.compareDocumentPosition(note) & Node.DOCUMENT_POSITION_FOLLOWING),
+      height: Math.round(el.getBoundingClientRect().height),
+    };
+  };
+  const outside = [...byId('myReview').querySelectorAll('.t-note, .my-note, #myReviewNote')].filter(e => !e.closest('.my-tile'));
+  return { wrong: tile('tileWrong'), flagged: tile('tileFlagged'), outside: outside.map(squash) };
+});
+async function checkMyReviewIn(pg, lang, tag) {
+  assert((await langOf(pg)).lang === lang, `${tag}: page in ${lang}`);
+  const v = await myReviewView(pg);
+  assert(v.wrong.note === MY_REVIEW_NOTE[lang], `${tag}: note inside #tileWrong reads the ${lang} text: ${v.wrong.note}`);
+  assert(v.wrong.noteAfterSub, `${tag}: note sits below the wrong tile .sub`);
+  assert(v.outside.length === 0, `${tag}: no note outside the tiles: ` + JSON.stringify(v.outside));
+  // the note itself says "per round", so only the count line is checked for it
+  assert(v.wrong.sub === WRONG_TO_CLEAR_30[lang] && !v.wrong.sub.includes(PER_ROUND[lang]),`${tag}: 30 wrong → sub "${WRONG_TO_CLEAR_30[lang]}", no "${PER_ROUND[lang]}": ${v.wrong.sub}`);
+  assert(!v.flagged.text.includes(FLAGGED_8[lang]) && !v.flagged.subVisible, `${tag}: 8 flagged → no "${FLAGGED_8[lang]}", no visible .sub: ${v.flagged.text}`);
+  assert(v.wrong.height === v.flagged.height, `${tag}: tiles are the same height (${v.wrong.height} / ${v.flagged.height})`);
+}
+async function checkMyReviewEmptyIn(pg, lang, tag) {
+  assert((await langOf(pg)).lang === lang, `${tag}: page in ${lang}`);
+  const v = await myReviewView(pg);
+  assert(v.wrong.note === MY_REVIEW_NOTE[lang], `${tag}: 0 wrong → note still inside #tileWrong: ${v.wrong.note}`);
+  assert(v.outside.length === 0, `${tag}: 0 wrong → no note outside the tiles: ` + JSON.stringify(v.outside));
+  assert(v.wrong.height === v.flagged.height, `${tag}: 0 wrong → tiles the same height (${v.wrong.height} / ${v.flagged.height})`);
+}
+async function checkMyReviewTiles(pg) {
+  await pg.evaluate(lang => setLang(lang), EN);
+  await seedMyReview(pg, MY_REVIEW_WRONG_N, MY_REVIEW_FLAG_N);
+  await checkMyReviewIn(pg, EN, 'My Review en');
+  await pg.click(PILL);
+  await checkMyReviewIn(pg, ZH_HK, 'My Review pill → zh-HK');
+  await seedMyReview(pg, MY_REVIEW_WRONG_N, 0);
+  assert((await textOf(pg, '#tileFlagged .sub')) === FLAGGED_EMPTY[ZH_HK], 'My Review zh-HK: 0 flagged keeps flaggedEmptyHtml');
+  await seedMyReview(pg, 0, MY_REVIEW_FLAG_N);
+  await checkMyReviewEmptyIn(pg, ZH_HK, 'My Review zh-HK');
+  await pg.click(PILL);
+  await checkMyReviewEmptyIn(pg, EN, 'My Review pill → en');
+  await seedMyReview(pg, MY_REVIEW_WRONG_N, 0);
+  assert((await textOf(pg, '#tileFlagged .sub')) === FLAGGED_EMPTY[EN], 'My Review en: 0 flagged keeps flaggedEmptyHtml');
+  await pg.evaluate(() => {
+    localStorage.removeItem('lifeuk.wrongList'); localStorage.removeItem('lifeuk.practiceFlags');
+    wrongList = {}; practiceFlags = {}; leaveToHome();
+  });
+}
+
+// 2026-10-07: the Exam mode description no longer ends with "pick an exam below" (the grid sits right under it)
+const EXAM_DESC_DROPPED = { [EN]: 'Pick an exam below', [ZH_HK]: '請於下方選擇試卷' };
+const EXAM_DESC_END = { [EN]: 'score and answers.', [ZH_HK]: '分數及答案。' };
+async function checkExamDescIn(pg, lang, tag) {
+  assert((await langOf(pg)).lang === lang, `${tag}: page in ${lang}`);
+  const desc = await textOf(pg, '#modeDesc');
+  assert(!desc.includes(EXAM_DESC_DROPPED[lang]), `${tag}: no "${EXAM_DESC_DROPPED[lang]}": ${desc}`);
+  assert(desc.endsWith(EXAM_DESC_END[lang]), `${tag}: ends with "${EXAM_DESC_END[lang]}"`);
+}
+async function checkExamDesc(pg) {
+  await pg.evaluate(lang => { setLang(lang); leaveToHome(); startMode('exam'); }, EN);
+  await checkExamDescIn(pg, EN, 'Exam desc en');
+  await pg.click(PILL);
+  await checkExamDescIn(pg, ZH_HK, 'Exam desc pill → zh-HK');
+  await pg.click(PILL);
+}
+
+// 2026-10-07: the Practice hint beside "Reset progress" is a 4-point list, no full stop at the end of a point,
+// {max} = PRACTICE_ROUND_MAX (24) and {streak} = MASTERY_STREAK (3) filled in, both bold parts kept
+const PRACTICE_HINT_ITEMS = {
+  [EN]: [
+    'Each round draws up to 24 unmastered questions, each asked once',
+    'Answer a question correctly 3 times in a row to master it',
+    'Unmastered questions come back in the next round',
+    'Mastered questions are skipped until the whole set is mastered',
+  ],
+  [ZH_HK]: [
+    '每輪最多抽取 24 條未掌握的題目，每題出現一次',
+    '同一題連續答對 3 次即算掌握',
+    '未掌握的題目會於下一輪再出現',
+    '已掌握的題目會略過，直至整組全部掌握',
+  ],
+};
+const PRACTICE_HINT_BOLD = { [EN]: ['24', '3 times in a row'], [ZH_HK]: ['24', '連續答對 3 次'] };
+const POINT_END_STOP = /[。.]$/;
+async function checkPracticeHintIn(pg, lang, tag) {
+  assert((await langOf(pg)).lang === lang, `${tag}: page in ${lang}`);
+  const hint = await pg.$eval('#practiceHint', e => ({
+    items: [...e.querySelectorAll('ul > li')].map(li => li.textContent.replace(/\s+/g, ' ').trim()),
+    bold: [...e.querySelectorAll('li b')].map(b => b.textContent.trim()),
+  }));
+  assert(JSON.stringify(hint.items) === JSON.stringify(PRACTICE_HINT_ITEMS[lang]), `${tag}: 4 points, text and order exact: ` + JSON.stringify(hint.items));
+  assert(hint.items.length === 4 && hint.items.every(s => !POINT_END_STOP.test(s)), `${tag}: no point ends with 。 or .`);
+  assert(JSON.stringify(hint.bold) === JSON.stringify(PRACTICE_HINT_BOLD[lang]), `${tag}: both bold parts, numbers filled in: ` + JSON.stringify(hint.bold));
+  const btn = await pg.evaluate(() => {
+    const row = byId('practiceReset').getBoundingClientRect(), b = byId('practiceReset').querySelector('.reset-btn').getBoundingClientRect();
+    const h = byId('practiceHint').getBoundingClientRect();
+    return { rightGap: Math.round(row.right - b.right), rightOfHint: b.left >= h.right - 1 };
+  });
+  assert(btn.rightOfHint, `${tag}: reset button sits right of the list: ` + JSON.stringify(btn));
+}
+async function checkPracticeHint(pg) {
+  await pg.evaluate(lang => { setLang(lang); leaveToHome(); startMode('practice'); }, EN);
+  await checkPracticeHintIn(pg, EN, 'Practice hint en');
+  await pg.click(PILL);
+  await checkPracticeHintIn(pg, ZH_HK, 'Practice hint pill → zh-HK');
+  await checkNarrow(pg, 'Practice hint');
+  await pg.setViewportSize(NARROW);
+  await checkPracticeHintIn(pg, ZH_HK, 'Practice hint zh-HK 320px');
+  await pg.setViewportSize(WIDE);
+  await pg.click(PILL);
+}
+
+// 2026-10-07: the "Leave the exam?" modal cancel reads Cancel / 取消 (was Stay / 留下)
+const LEAVE_CANCEL = { [EN]: 'Cancel', [ZH_HK]: '取消' };
+async function checkLeaveCancelIn(pg, lang) {
+  await pg.evaluate(l => { setLang(l); leaveToHome(); pendingMode = 'exam'; startExam(1); goHome(); }, lang);
+  assert(await pg.evaluate(() => isConfirmOpen()), `leave modal ${lang}: open`);
+  const cancel = await textOf(pg, '#confirmCancel');
+  assert(cancel === LEAVE_CANCEL[lang], `leave modal ${lang}: cancel reads ${LEAVE_CANCEL[lang]}: ${cancel}`);
+  await pg.click('#confirmCancel');
+  await pg.evaluate(() => leaveToHome());
+}
+async function checkLeaveCancel(pg) {
+  await checkLeaveCancelIn(pg, EN);
+  await checkLeaveCancelIn(pg, ZH_HK);
+  await pg.evaluate(lang => setLang(lang), EN);
+}
+
 // S-045: draw two hanzi in the page font; identical pixels mean the fallback drew the same tofu box for both
 const hasCjkFont = pg => pg.evaluate(({ px, chars, baseline }) => {
   const canvas = document.createElement('canvas');
@@ -333,6 +485,7 @@ const hasCjkFont = pg => pg.evaluate(({ px, chars, baseline }) => {
 const CHECKS = [
   checkPill, checkHomeSwitch, checkHomePractice, checkQuizPractice, checkAnswerFallback, checkOptionYueLang,
   checkSideSession, checkQuizExam, checkExamTimer, checkModal, checkResult, checkFlagged, checkStudy, checkDoubleTap,
+  checkMyReviewTiles, checkExamDesc, checkPracticeHint, checkLeaveCancel,
 ];
 
 async function main() {

@@ -28,6 +28,10 @@
 .reset-row.show { display: flex; }
 .reset-hint { flex: 1; min-width: 180px; }
 .reset-hint b { color: var(--navy); }
+/* the Practice hint is a short bullet list (home.practiceHintHtml): it may shrink below the 180px wrap
+   point so the reset button stays on its right even at 320px; the list sits tight inside the dashed row */
+.reset-hint-list { min-width: 0; }
+.reset-hint-list ul { margin: 0; padding-left: 1.2em; }
 .reset-btn {
   background: var(--card);
   border: 1.5px solid var(--red-light);
@@ -52,6 +56,10 @@
 .exam-btn.all .exam-mastery { color: var(--gold-light); }
 .exam-btn .exam-sub { display: block; font-size: var(--fs-2xs); font-weight: 600; color: var(--text-inverse-muted); margin-top: 2px; }
 .exam-btn.all .exam-mastery.zero { color: var(--text-inverse-muted); }
+/* Practice: the navy hover would bury the green mastery line, so it turns gold like All Exams (option A).
+   Exam mode's .done:hover (green fill) never meets this: .done buttons carry no mastery line */
+.exam-btn:hover .exam-mastery { color: var(--gold-light); }
+.exam-btn:hover .exam-mastery.zero { color: var(--text-inverse-muted); }
 .mode-icon { font-size: 26px; margin-bottom: 6px; }
 .mode-title { font-size: var(--fs-md); font-weight: 700; color: var(--navy); }
 .mode-desc-panel {
@@ -88,6 +96,10 @@
   font-size: var(--fs-2xs); display: flex; align-items: center; justify-content: center;
   font-weight: 700;
 }
+/* .done outranks .exam-btn:hover, so the completed hover is set here: green fill, white text;
+   the badge flips to a card circle with a green tick and ring so it stays visible on the green button */
+.exam-btn.done:hover { background: var(--green); border-color: var(--green); color: var(--text-inverse); }
+.exam-btn.done:hover::after { background: var(--card); color: var(--green); box-shadow: 0 0 0 1.5px var(--green); }
 .exam-btn.all {
   background: linear-gradient(135deg, var(--navy), var(--navy-mid));
   color: var(--text-inverse); border-color: transparent;
@@ -98,8 +110,11 @@
 /* practice "My Review": sets built from what the user has done (wrong answers, flagged) */
 .my-review { display: none; margin-bottom: 4px; }
 .my-review.show { display: block; }
-.my-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px; }
+.my-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+/* grid stretches both tiles to one height; flex column keeps a short tile's content at the top
+   (a <button> centres its content vertically by default) */
 .my-tile {
+  display: flex; flex-direction: column; justify-content: flex-start;
   background: var(--card); border: 2px solid var(--border); border-radius: 12px;
   padding: 12px 12px 11px; text-align: left; cursor: pointer; box-shadow: var(--shadow-sm); font: inherit;
 }
@@ -112,9 +127,10 @@
 .my-tile .t-icon svg { width: 17px; height: 17px; }
 .my-tile .t-num { font-size: 24px; font-weight: 900; color: var(--navy); line-height: 1; }
 .my-tile b { display: block; font-size: 13.5px; color: var(--navy); }
-.my-tile .sub { display: block; font-size: var(--fs-xs); color: var(--text-muted); margin-top: 2px; line-height: 1.4; }
+.my-tile .sub, .my-tile .t-note { display: block; font-size: var(--fs-xs); color: var(--text-muted); margin-top: 2px; line-height: 1.4; }
+/* the wrong tile's note: same small text as .sub, set apart from the count line above it */
+.my-tile .t-note { margin-top: 6px; }
 .my-tile.empty { cursor: default; opacity: 0.6; border-left-color: var(--border); box-shadow: none; }
-.my-note { font-size: var(--fs-xs); color: var(--text-muted); margin-bottom: 20px; }
 .bm-inline { width: 12px; height: 12px; vertical-align: -2px; }
 .bm-inline path { fill: none; stroke: var(--text-muted); stroke-width: 2; stroke-linejoin: round; }
 .practice-by-title { display: none; }
