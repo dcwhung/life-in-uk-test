@@ -118,6 +118,12 @@ async function main() {
   // Home with a non-default mode and practice tab
   await pg.evaluate(() => { startMode('practice'); setPracticeView('chapter'); });
   await switchTwice('home practice › chapter', '#practiceTabs');
+  // practice › exam: the all-questions button reads 全部試題 in zh-HK, All Questions in en
+  await pg.evaluate(() => setPracticeView('exam'));
+  await switchOn('home practice › exam', '#examGrid');
+  assert((await text('#examGrid .exam-btn.all')).startsWith('🎯 全部試題（408 題）'), 'zh-HK: practice grid shows 全部試題（408 題）');
+  await switchOn('home practice › exam', '#examGrid');
+  assert((await text('#examGrid .exam-btn.all')).startsWith('🎯 All Questions (408)'), 'en: practice grid shows All Questions (408)');
 
   // Quiz practice: translation shown before answering, flagged, answered (Similar panel open)
   await pg.evaluate(() => {

@@ -172,8 +172,8 @@ async function runtimeChecks(en) {
 
   // interpolation + plurals
   assert(await pg.evaluate(() => t('common.questionRef', { exam: 9, n: 15 })) === 'Exam 9 · Q15', 'interpolation: Exam 9 · Q15');
-  assert(await pg.evaluate(() => t('common.questions', { n: 1 })) === '1 question', 'plural one: 1 question');
-  assert(await pg.evaluate(() => t('common.questions', { n: 408 })) === '408 questions', 'plural other: 408 questions');
+  assert(await pg.evaluate(() => t('modal.submitUnanswered', { n: 1 })) === '1 question unanswered', 'plural one: 1 question unanswered');
+  assert(await pg.evaluate(() => t('modal.submitUnanswered', { n: 408 })) === '408 questions unanswered', 'plural other: 408 questions unanswered');
   await pg.evaluate(() => {
     pendingMode = 'exam'; startExam(1);
     state.questions.forEach((q, i) => { if (i) state.answers[i] = [...q.a]; });
