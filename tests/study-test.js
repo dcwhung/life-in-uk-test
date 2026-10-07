@@ -56,6 +56,21 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert((await count()) === '91 / 91 facts', 'Ch3 91 facts: ' + await count());
   await pg.screenshot({ path: 'shot-chapters.png' });
   assert(await css('.tag.year', 'color') === await tokenRgb('--study-accent-strong') && await css('.tag.year', 'backgroundColor') === await tokenRgb('--study-accent-bg'), 'year tag uses study accent tokens');
+  // v0.63 (P3 T-201 / T-202): the Study card is factCardHtml's full variant — O5 card shadow, Q6 "#id" small text first
+  const shadowSm = await pg.evaluate(() => {
+    const el = document.createElement('i');
+    el.style.boxShadow = 'var(--shadow-sm)';
+    document.body.appendChild(el);
+    const s = getComputedStyle(el).boxShadow;
+    el.remove();
+    return s;
+  });
+  assert(await css('#studyContent .fact', 'boxShadow') === shadowSm, 'fact card has the --shadow-sm card shadow (O5)');
+  const firstCard = await pg.$eval('#studyContent .fact', e => ({
+    id: e.dataset.factId, first: e.querySelector('.fact-meta').firstElementChild.className, text: e.querySelector('.fact-id')?.textContent,
+  }));
+  assert(firstCard.first === 'fact-id' && firstCard.text === '#' + firstCard.id, 'fact card starts with its "#id" (Q6): ' + JSON.stringify(firstCard));
+  assert(await pg.evaluate(() => typeof factCardHtml === 'function'), 'factCardHtml component loaded');
 
   await pg.click('.study-tab[data-tab="timeline"]');
   assert((await count()) === '82 / 82 facts', 'timeline 82: ' + await count());
@@ -123,6 +138,21 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
     return { w: r.width, h: r.height, top: at(r.left + r.width / 2, r.top - HIT_OFFSET), left: at(r.left - HIT_OFFSET, r.top + r.height / 2) };
   });
   assert(hit.w === 32 && hit.h === 32 && hit.top && hit.left, 'fact button 32x32 with a hit area beyond the box: ' + JSON.stringify(hit));
+  // CUI-0009: the ring is measured from the border box, so the tappable height is the full 44px (it was 42px:
+  // `inset` counts from the padding box, inside the 1.5px border). Scan whole px outward from each visible edge.
+  const MIN_TARGET = 44;
+  const SCAN_MAX = 12;
+  const reach = await pg.locator('.fact .fact-btn').evaluateAll((btns, max) => btns.slice(0, 2).map(e => {
+    const r = e.getBoundingClientRect();
+    const at = (x, y) => document.elementFromPoint(x, y)?.closest('.fact-btn') === e;
+    const out = probe => { let d = 0; while (d < max && probe(d + 1)) d++; return d; };
+    const midX = r.left + r.width / 2, midY = r.top + r.height / 2;
+    return {
+      h: r.height + out(d => at(midX, r.top - d)) + out(d => at(midX, r.bottom - 1 + d)),
+      outer: e.classList.contains('star') ? out(d => at(r.left - d, midY)) : out(d => at(r.right - 1 + d, midY)),
+    };
+  }), SCAN_MAX);
+  assert(reach.every(r => r.h >= MIN_TARGET && r.outer >= 6), `fact buttons: tappable height >= ${MIN_TARGET}px, outer side reaches 6px: ` + JSON.stringify(reach));
   // W-009: the buttons sit 4px apart, so their rings must meet in the gap, not overlap a visible box —
   // a tap just inside the bookmark's right edge must not toggle Mastered (and vice versa); outer rings stay enlarged
   const EDGE_INSET = 1; // 1px inside the visible 32px box
@@ -131,7 +161,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
     const [b, k] = [bm.getBoundingClientRect(), tick.getBoundingClientRect()];
     const at = (x, y) => document.elementFromPoint(x, y)?.closest('.fact-btn');
     const midY = b.top + b.height / 2;
-    const OUTER_RING = 4; // inside the ring: it is 6px off the padding box = 4.5px beyond the 1.5px border
+    const OUTER_RING = 4; // well inside the ring (6px past the visible edge since CUI-0009)
     return {
       bmRightEdge: at(b.right - inset, midY) === bm,
       tickLeftEdge: at(k.left + inset, midY) === tick,
@@ -142,8 +172,17 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(Object.values(seam).every(Boolean), 'fact button hit areas do not overlap a neighbour\'s visible box: ' + JSON.stringify(seam));
   // O8: tag and fact button corners come from the --radius-xs token (were literal 5px / 7px)
   const xs = await pg.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--radius-xs').trim());
+  // v0.63: Ch 1 cards have no tag left in the chapter view ("Appears ×n" became the source row) — probe one
+  const tagRadius = await pg.$eval('.fact .fact-meta', m => {
+    const tag = document.createElement('span');
+    tag.className = 'tag';
+    m.append(tag);
+    const r = getComputedStyle(tag).borderTopLeftRadius;
+    tag.remove();
+    return r;
+  });
   assert(xs !== '' && await bmBtn.evaluate(e => getComputedStyle(e).borderTopLeftRadius) === xs
-    && await css('.fact .tag', 'borderTopLeftRadius') === xs, 'fact button + tag radius = --radius-xs: ' + xs);
+    && tagRadius === xs, 'fact button + tag radius = --radius-xs: ' + xs);
   await bmBtn.click();
   assert(await aria(bmBtn) === 'Bookmark|true', 'bookmark aria-pressed=true after toggle');
   const onPath = await bmPath();

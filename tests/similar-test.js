@@ -44,6 +44,18 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
     return { border: cs.borderLeftWidth, radius: [cs.borderTopLeftRadius, cs.borderBottomLeftRadius, cs.borderTopRightRadius].every(r => r === md), padding: cs.padding };
   });
   assert(coreShape.border === '4px' && coreShape.radius && coreShape.padding === '12px 14px', 'core fact shape matches Study fact card: ' + JSON.stringify(coreShape));
+  // v0.63 (P3 T-203, Q3-1): the Core Fact is factCardHtml's core variant (gold card, no buttons / node row)
+  const core = await pg.evaluate(() => {
+    const fn = typeof factCardHtml === 'function';
+    const flat = s => s.replace(/\s+/g, ' ');
+    const expected = fn ? new DOMParser().parseFromString(factCardHtml(STUDY.find(f => f.id === 203), { variant: 'core' }), 'text/html').body.firstChild.outerHTML : '';
+    return {
+      fn,
+      same: fn && flat(document.querySelector('#similarBox .sqm-fact').outerHTML) === flat(expected),
+      extras: document.querySelectorAll('#similarBox .sqm-fact button, #similarBox .sqm-fact .fact-src').length,
+    };
+  });
+  assert(core.fn && core.same && core.extras === 0, 'Core Fact = factCardHtml(f, { variant: core }), no buttons / source row: ' + JSON.stringify(core));
   const nodes = await pg.$$eval('#similarBox .sqm-node', els => els.map(e => e.textContent + ':' + e.className));
   assert(JSON.stringify(nodes) === JSON.stringify(['E12·Q6:sqm-node current', 'E9·Q15:sqm-node mastered', 'E12·Q19:sqm-node weak']), 'appears-in chips (E9·Q15, 1-based) with state: ' + nodes);
   const ids = await pg.$$eval('#similarBox .sqm-id', els => els.map(e => e.textContent));

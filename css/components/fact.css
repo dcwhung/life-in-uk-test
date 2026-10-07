@@ -1,0 +1,98 @@
+/* ── FACT CARD (js/components/factCard.js) ──
+   full = Study card (white, tags, bookmark / mastered buttons); core = Similar panel "📌 Core Fact" (gold, Q3-1).
+   Both share the card shape: 4px left border, --radius-md, 12px 14px. */
+.fact {
+  background: var(--card);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  border-left: 4px solid var(--study-accent);
+  margin-bottom: 10px;
+  box-shadow: var(--shadow-sm); /* O5: same card shadow as the other white cards */
+  transition: opacity 0.15s;
+}
+.fact.war { border-left-color: var(--red-light); }
+.fact.mastered { opacity: 0.55; border-left-color: var(--green-light); }
+/* Q8: back from the fact's session — gold outline for FACT_HIGHLIGHT_MS (static, no animation) */
+.fact.flash { outline: 2px solid var(--gold); outline-offset: 2px; }
+.fact-top { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 6px; }
+.fact-meta { flex: 1; display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+/* Q6: "#21" small text, matches "📌 Core Fact #21" in the Similar panel */
+.fact-id { font-size: var(--fs-2xs); font-weight: 800; color: var(--text-muted); letter-spacing: 0.04em; }
+.tag {
+  font-size: 10.5px; font-weight: 700;
+  border-radius: var(--radius-xs); padding: 2px 7px;
+  background: var(--bg); color: var(--text-muted);
+}
+.tag.year { background: var(--study-accent-bg); color: var(--study-accent-strong); }
+.tag.war { background: var(--danger-bg); color: var(--red); }
+.tag.person { background: var(--person-bg); color: var(--navy-light); }
+/* --fact-actions-gap is shared with the hit rings below so they meet in the gap instead of overlapping (W-009);
+   --fact-btn-border / --fact-btn-ring size the buttons' invisible touch ring (O2, CUI-0009) */
+.fact-actions {
+  --fact-actions-gap: 4px; --fact-btn-border: 1.5px; --fact-btn-ring: 6px;
+  display: flex; gap: var(--fact-actions-gap); flex-shrink: 0;
+}
+.fact-btn {
+  background: var(--bg);
+  border: var(--fact-btn-border) solid var(--border);
+  border-radius: var(--radius-xs);
+  width: 32px; height: 32px;
+  font-size: var(--fs-md); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-muted);
+  transition: all 0.15s;
+  position: relative;
+}
+/* O2: 32px box + 6px invisible ring = 44px touch target (WCAG 2.5.5). CUI-0009: an absolute box's inset counts
+   from the padding box, inside the border, so the ring adds the border width to reach 6px past the visible edge */
+.fact-btn::before { content: ''; position: absolute; inset: calc(-1 * (var(--fact-btn-ring) + var(--fact-btn-border))); }
+/* W-009: on the facing sides the ring only reaches half the gap — a full 6px ring on the ✓ (later in the DOM,
+   so painted on top) covered the bookmark's right edge and a tap there toggled Mastered. No visual change. */
+.fact-btn.star::before { right: calc(var(--fact-actions-gap) / -2 - var(--fact-btn-border)); }
+.fact-btn.tick::before { left: calc(var(--fact-actions-gap) / -2 - var(--fact-btn-border)); }
+/* bookmark: same SVG + colours as the Practice .flag-btn (outline muted, on = orange fill); the path has no fill of its own */
+.fact-btn svg { width: 18px; height: 18px; }
+.fact-btn.star path { fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; }
+.fact-btn.star.on { background: var(--flag-bg); border-color: var(--orange); color: var(--orange); }
+.fact-btn.star.on path { fill: currentColor; }
+/* derived 🏆 (every source question mastered in Practice): not a toggle, so no pointer (Q7) */
+.fact-btn.trophy { background: var(--success-bg); border-color: var(--green-light); cursor: default; }
+.fact-btn.on.tick { background: var(--success-bg); border-color: var(--green); color: var(--green); }
+.fact-name { font-size: var(--fs-md); font-weight: 800; color: var(--navy); margin-bottom: 4px; }
+.fact-en { font-size: var(--fs-md); font-weight: 500; color: var(--text); line-height: 1.5; }
+.fact-yue { font-size: var(--fs-base); color: var(--purple); line-height: 1.6; margin-top: 5px; }
+
+/* T-206 source row: "Appears in:" + display-only nodes (Similar panel .sqm-node colours) + "▶ Practise" */
+.fact-src {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+  margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--divider);
+}
+.fact-src-nodes { display: flex; flex-wrap: wrap; gap: 5px; flex: 1; align-items: center; min-width: 0; }
+.fact-src .sqm-node { padding: 3px 8px; white-space: nowrap; }
+.fact-practise {
+  background: var(--card); color: var(--navy);
+  border: var(--fact-practise-border) solid var(--navy); border-radius: var(--radius-pill);
+  padding: 6px 12px; font-size: var(--fs-sm); font-weight: 700;
+  white-space: nowrap; margin-left: auto; cursor: pointer;
+  /* S-030: --fact-practise-ring = (44px target - 29px pill (6px padding × 2 + ~14px line + 1.5px border × 2)) / 2,
+     rounded up; ::before inset counts from the padding box, so the border is added back (as .fact-btn, CUI-0009) */
+  --fact-practise-border: 1.5px; --fact-practise-ring: 8px;
+  position: relative;
+}
+/* invisible tap ring, top and bottom only: above sits the row's 10px padding-top (single line) or the display-only
+   source nodes (wrapped line, 6px gap — overlap is harmless, nodes take no taps); below, the card's 12px padding */
+.fact-practise::before {
+  content: ''; position: absolute;
+  inset: calc(-1 * (var(--fact-practise-ring) + var(--fact-practise-border))) 0;
+}
+
+/* core variant: gold Core Fact inside the white Similar panel; same shape as .fact (v0.62 O8) */
+.sqm-fact { background: var(--fact-bg); border-left: 4px solid var(--gold); border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 14px; }
+.sqm-fact-label { font-size: var(--fs-2xs); font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: var(--fact-label); margin-bottom: 4px; }
+.sqm-fact-en { font-size: var(--fs-base); line-height: 1.55; color: var(--navy); font-weight: 600; }
+.sqm-fact-yue { font-size: 12.5px; line-height: 1.6; color: var(--purple); margin-top: 4px; }
+
+@media (max-width: 480px) {
+  /* many nodes: the button takes a full-width line of its own under them */
+  .fact-src.wrap-btn .fact-practise { width: 100%; margin-left: 0; border-radius: var(--radius-sm); padding: 8px 12px; }
+}

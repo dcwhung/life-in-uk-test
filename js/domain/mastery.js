@@ -21,3 +21,10 @@ function practicePool(list) {
   const remaining = list.filter(item => !isMastered(item));
   return remaining.length ? remaining : list;
 }
+// a Study fact's Practice mastery: its source questions (f.src); `derived` = every one of them is 🏆.
+// Computed on each render, never stored — "Reset practice progress" clears it together with the streaks.
+function factMastery(f) {
+  const m = masteryOf(f.src.map(questionByKey));
+  // W-011: 0 / 0 is "no sources", not "all mastered" — guard the zero case instead of relying on the data
+  return { ...m, derived: m.total > 0 && m.mastered === m.total };
+}
