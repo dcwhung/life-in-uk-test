@@ -1,6 +1,6 @@
 # Implementation Plan：zh-HK UI locale + 語言切換掣（Track 1）＋ data 廣東話口語化（Track 2）
 
-**版本**：v1.0
+**版本**：v1.1（開放問題已決定）
 **日期**：2026-10-07
 **關聯 Spec**：冇獨立 spec；需求來源 = `.claude/session-logs/2026-10-07_12-57.md`「下次 Session 建議任務 1」+ 2026-10-07 grill 決定 Q1–Q11 + Architect 可行性評估（2026-10-07）
 **Base**：branch `claude/gallant-noether-fbnmml` = `main` `b247d2c`（v0.64）
@@ -208,9 +208,9 @@ Step 5 → Track 2 T-104 起逐批（每批用戶確認）→ Review → QA → 
 
 | # | 問題 | 影響任務 | 需要誰決定 | 建議 |
 |---|------|----------|-----------|------|
-| 1 | `similar.practise` 1 題時 zh-HK 顯示「▶ 練習這 1 題」得唔得？定要「▶ 練習此題」 | T-002 | 用戶 | 建議接受「▶ 練習這 1 題」（中文冇單複數問題，唔使改 `pluralForm`）；如要「此題」，`t()` 加支援 `=1` form，影響範圍大啲 |
-| 2 | 附錄 A glossary 文案 | T-002 | 用戶 | 逐條睇，有改直接講 key |
-| 3 | Track 2 先定 Track 1 先 merge？ | T-109 | 用戶 | Track 1 先（細、獨立）；Track 2 跟住 |
+| 1 | `similar.practise` 1 題時 zh-HK 顯示「▶ 練習這 1 題」得唔得？ | T-002 | 用戶 | ✅ 2026-10-07 用戶接受；zh-HK 只提供 `other` |
+| 2 | 附錄 A glossary 文案 | T-002 | 用戶 | ✅ 2026-10-07 用戶確認 OK |
+| 3 | Track 2 先定 Track 1 先 merge？ | T-109 | 用戶 | ✅ 2026-10-07：Track 1 先 merge |
 
 ---
 
