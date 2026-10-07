@@ -64,6 +64,19 @@ function clearI18nBootRetry() {
   try { sessionStorage.removeItem(I18N_RELOAD_SS); } catch {}
 }
 
+// Same cutover for styles: v0.63 moved the .fact* / .sqm-fact* rules out of study.css / quiz.css into fact.css,
+// which an older cached index.html never links — add the <link> so Study and the Similar Core Fact keep their look
+const LATE_BOOT_STYLES = ['css/components/fact.css'];
+function addMissingBootStyles() {
+  LATE_BOOT_STYLES.filter(href => !document.querySelector(`link[rel="stylesheet"][href="${href}"]`)).forEach(href => {
+    const el = document.createElement('link');
+    el.rel = 'stylesheet';
+    el.href = href;
+    document.head.appendChild(el);
+  });
+}
+
+addMissingBootStyles();
 const bootMissing = missingBootScripts();
 if (!bootMissing.length) startApp();
 else loadBootScripts(bootMissing).then(() => { clearI18nBootRetry(); startApp(); }).catch(onI18nBootFailure);
