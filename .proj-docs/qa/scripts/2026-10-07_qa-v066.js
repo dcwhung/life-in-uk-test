@@ -36,6 +36,20 @@ const ok = (c, m) => { if (c) { pass++; if (!process.env.QA_QUIET) console.log('
 const note = (...a) => console.log('  note:', ...a);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const GUARD_WAIT = 420; // > SCREEN_CHANGE_CLICK_GUARD_MS (350)
+// S-068: SW cache polling inside the page (waitForFunction with an async predicate resolves at once on the Promise)
+const CACHE_POLL_MS = 200;
+const CACHE_POLL_TRIES = 75; // × CACHE_POLL_MS = 15 s for a fresh install to create its cache
+const UPGRADE_POLL_TRIES = 100; // × CACHE_POLL_MS = 20 s for update + activate + old cache removal
+// poll caches.keys() until `name` exists (true) or the tries run out (false)
+const waitCache = (pg, name) => pg.evaluate(async ([n, tries, ms]) => { for (let i = 0; i < tries; i++) {
+  if ((await caches.keys()).includes(n)) return true; await new Promise(r => setTimeout(r, ms)); } return false; },
+[name, CACHE_POLL_TRIES, CACHE_POLL_MS]);
+// update() until the new worker controls the page and `cur` is the only cache (like tests/upgrade-test.js waitForCache)
+const waitUpgrade = (pg, cur) => pg.evaluate(async ([c, tries, ms]) => { const reg = await navigator.serviceWorker.getRegistration();
+  for (let i = 0; i < tries; i++) { const k = await caches.keys();
+    if (k.length === 1 && k[0] === c && !reg.installing && !reg.waiting && navigator.serviceWorker.controller) return true;
+    if (!reg.installing && !reg.waiting) await reg.update().catch(() => {}); await new Promise(r => setTimeout(r, ms)); }
+  return false; }, [cur, UPGRADE_POLL_TRIES, CACHE_POLL_MS]);
 const shot = n => path.join(SHOT_DIR, `${n}.png`);
 const ZH = 'zh-HK';
 const LANGS = ['en', ZH];
@@ -202,10 +216,7 @@ async function versionCheck(b) {
   try {
     const ctx = await b.newContext({ viewport: { width: 390, height: 844 } }); const pg = await ctx.newPage(); const { errs } = watch(pg);
     await pg.goto(base); await pg.evaluate(() => navigator.serviceWorker.ready);
-    // poll inside the page (waitForFunction with an async predicate resolves immediately on the returned Promise)
-    const cacheReady = await pg.evaluate(async name => { for (let i = 0; i < 75; i++) { if ((await caches.keys()).includes(name)) return true;
-      await new Promise(r => setTimeout(r, 200)); } return false; }, CUR_CACHE);
-    ok(cacheReady, `SW cache ${CUR_CACHE} created`);
+    ok(await waitCache(pg, CUR_CACHE), `SW cache ${CUR_CACHE} created`);
     ok(await pg.evaluate(() => APP_VERSION) === CUR_VERSION && (await pg.textContent('#appVersion')) === 'v' + CUR_VERSION, `APP_VERSION ${CUR_VERSION}, header v${CUR_VERSION}`);
     const cached = await pg.evaluate(async name => { const c = await caches.open(name); const get = async p => { const r = await c.match(p) || await c.match('./' + p); return r ? r.text() : null; };
       return { e: await get('data/exams.js'), s: await get('data/study.js') }; }, CUR_CACHE);
@@ -448,8 +459,7 @@ async function offlineAndUpgrade(b) {
   try {
     const ctx = await b.newContext({ viewport: { width: 390, height: 844 } }); const pg = await ctx.newPage(); const { errs } = watch(pg);
     await pg.goto(base); await pg.evaluate(() => navigator.serviceWorker.ready);
-    ok(await pg.evaluate(async () => { for (let i = 0; i < 75; i++) { if ((await caches.keys()).includes('lifeuk-v0.65')) return true;
-      await new Promise(r => setTimeout(r, 200)); } return false; }), 'upgrade: SW cache lifeuk-v0.65 created');
+    ok(await waitCache(pg, 'lifeuk-v0.65'), 'upgrade: SW cache lifeuk-v0.65 created');
     await pg.evaluate(() => { localStorage.clear();
       localStorage.setItem('lifeuk.uiLang', '"zh-HK"');
       localStorage.setItem('lifeuk.practiceStreak', '{"1.0":3,"2.1":1,"11.5":2}'); localStorage.setItem('lifeuk.practiceFlags', '{"3.4":true}');
@@ -468,11 +478,7 @@ async function offlineAndUpgrade(b) {
     fs.readdirSync(dir).forEach(f => fs.rmSync(path.join(dir, f), { recursive: true, force: true }));
     appFiles(ROOT).forEach(f => fs.cpSync(path.join(ROOT, f), path.join(dir, f), { recursive: true }));
     await pg.reload();
-    await pg.evaluate(async cur => { const reg = await navigator.serviceWorker.getRegistration();
-      for (let i = 0; i < 100; i++) { const k = await caches.keys();
-        if (k.length === 1 && k[0] === cur && !reg.installing && !reg.waiting && navigator.serviceWorker.controller) return true;
-        if (!reg.installing && !reg.waiting) await reg.update().catch(() => {}); await new Promise(r => setTimeout(r, 200)); }
-      return false; }, CUR_CACHE);
+    await waitUpgrade(pg, CUR_CACHE);
     const keys = await pg.evaluate(() => caches.keys());
     ok(keys.length === 1 && keys[0] === CUR_CACHE, `upgrade: new SW active, cache ${CUR_CACHE} only (${keys})`);
     await pg.reload();

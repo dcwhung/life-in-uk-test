@@ -49,6 +49,14 @@ STUDY_DATA.reduce((seen, f) => { seen[f.ch] = (seen[f.ch] || 0) + 1; FACT_NO[f.i
 const factIdTag = id => `#${FACT_NO[id].n}`;
 const factSetLabel = id => `Fact Ch ${FACT_NO[id].ch} #${FACT_NO[id].n}`;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+// S-068: SW cache polling inside the page (waitForFunction with an async predicate resolves at once on the Promise)
+const CACHE_POLL_MS = 200;
+const CACHE_POLL_TRIES = 75; // × CACHE_POLL_MS = 15 s for a fresh install to create its cache
+const UPGRADE_POLL_TRIES = 100; // × CACHE_POLL_MS = 20 s for update + activate + old cache removal
+// poll caches.keys() until `name` exists (true) or the tries run out (false)
+const waitCache = (pg, name) => pg.evaluate(async ([n, tries, ms]) => { for (let i = 0; i < tries; i++) {
+  if ((await caches.keys()).includes(n)) return true; await new Promise(r => setTimeout(r, ms)); } return false; },
+[name, CACHE_POLL_TRIES, CACHE_POLL_MS]);
 const settle = () => sleep(SCREEN_CHANGE_CLICK_GUARD_MS + 50);
 // a pointer click that changes the screen, then wait out the double tap guard before the next click
 const nav = async (pg, sel) => { await pg.click(sel); await settle(); };
@@ -85,8 +93,7 @@ async function versionCheck(b) {
     ok(await pg.evaluate(() => APP_VERSION) === CUR_VERSION, `APP_VERSION === ${CUR_VERSION} (js/core/config.js)`);
     ok((await pg.textContent('#appVersion')) === 'v' + CUR_VERSION, `header shows v${CUR_VERSION}`);
     await pg.evaluate(() => navigator.serviceWorker.ready);
-    // poll inside the page (waitForFunction with an async predicate resolves immediately on the returned Promise)
-    await pg.evaluate(async n => { for (let i = 0; i < 75; i++) { if ((await caches.keys()).includes(n)) return; await new Promise(r => setTimeout(r, 200)); } }, CUR_CACHE);
+    await waitCache(pg, CUR_CACHE);
     const keys = await pg.evaluate(() => caches.keys());
     ok(keys.length === 1 && keys[0] === CUR_CACHE, `SW cache = ${CUR_CACHE} only (${keys})`);
     const cached = await pg.evaluate(async n => { const c = await caches.open(n);

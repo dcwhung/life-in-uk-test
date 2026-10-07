@@ -44,9 +44,20 @@ const ZH = 'zh-HK';
 const ZH_SEED = JSON.stringify(ZH); // getLS reads JSON
 const CUR_VERSION = (fs.readFileSync(path.join(ROOT, 'js/core/config.js'), 'utf8').match(/const APP_VERSION = '([^']+)'/) || [])[1];
 const CUR_CACHE = 'lifeuk-v' + CUR_VERSION;
-// poll caches.keys() inside the page until `name` exists (true) or ~15 s pass (false)
-const waitCache = (pg, name) => pg.evaluate(async n => { for (let i = 0; i < 75; i++) { if ((await caches.keys()).includes(n)) return true;
-  await new Promise(r => setTimeout(r, 200)); } return false; }, name);
+// S-068: SW cache polling inside the page (waitForFunction with an async predicate resolves at once on the Promise)
+const CACHE_POLL_MS = 200;
+const CACHE_POLL_TRIES = 75; // × CACHE_POLL_MS = 15 s for a fresh install to create its cache
+const UPGRADE_POLL_TRIES = 100; // × CACHE_POLL_MS = 20 s for update + activate + old cache removal
+// poll caches.keys() until `name` exists (true) or the tries run out (false)
+const waitCache = (pg, name) => pg.evaluate(async ([n, tries, ms]) => { for (let i = 0; i < tries; i++) {
+  if ((await caches.keys()).includes(n)) return true; await new Promise(r => setTimeout(r, ms)); } return false; },
+[name, CACHE_POLL_TRIES, CACHE_POLL_MS]);
+// update() until the new worker controls the page and `cur` is the only cache (like tests/upgrade-test.js waitForCache)
+const waitUpgrade = (pg, cur) => pg.evaluate(async ([c, tries, ms]) => { const reg = await navigator.serviceWorker.getRegistration();
+  for (let i = 0; i < tries; i++) { const k = await caches.keys();
+    if (k.length === 1 && k[0] === c && !reg.installing && !reg.waiting && navigator.serviceWorker.controller) return true;
+    if (!reg.installing && !reg.waiting) await reg.update().catch(() => {}); await new Promise(r => setTimeout(r, ms)); }
+  return false; }, [cur, UPGRADE_POLL_TRIES, CACHE_POLL_MS]);
 
 // words of English allowed in zh-HK UI text = the ASCII words the zh-HK locale itself keeps (Exam {n}, Chapter {n},
 // chapter names, era / nation English in brackets, app name …)
@@ -805,12 +816,7 @@ async function offlineAndUpgrade(b) {
       appFiles(ROOT).forEach(f => fs.cpSync(path.join(ROOT, f), path.join(dir, f), { recursive: true }));
       await pg.reload(); // still v0.64 from the old cache; registration update check fetches the new sw.js
       const mixed = await pg.evaluate(() => APP_VERSION);
-      // poll like tests/upgrade-test.js waitForCache: update() until the new worker controls and the old cache is gone
-      await pg.evaluate(async cur => { const reg = await navigator.serviceWorker.getRegistration();
-        for (let i = 0; i < 100; i++) { const k = await caches.keys();
-          if (k.length === 1 && k[0] === cur && !reg.installing && !reg.waiting && navigator.serviceWorker.controller) return true;
-          if (!reg.installing && !reg.waiting) await reg.update().catch(() => {}); await new Promise(r => setTimeout(r, 200)); }
-        return false; }, CUR_CACHE);
+      await waitUpgrade(pg, CUR_CACHE);
       const keys = await pg.evaluate(() => caches.keys());
       ok(keys.length === 1 && keys[0] === CUR_CACHE, `upgrade: new SW activated, cache ${CUR_CACHE} only, v0.64 cache deleted (${keys}; page before reload v${mixed})`);
       await pg.reload();
