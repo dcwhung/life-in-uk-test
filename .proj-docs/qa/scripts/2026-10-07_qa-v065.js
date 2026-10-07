@@ -14,6 +14,8 @@
 // resolved immediately); the multi-select question number no longer carries a "(select N)" hint (CUI-0013 round 2,
 // v0.67); langAttrs prints only real gaps (untagged > 0) and measures the answer span `.rv-your > span` (S-047 plan A:
 // the "Your answer:" label follows the UI language by design).
+// 2026-10-07 refresh (v0.68 per-chapter fact numbers): the Core Fact label reads 📌 核心知識 Ch {ch} #{n} and the fact
+// session label 知識點 Ch {ch} #{n}; n is computed here from data/study.js (independent of the app).
 const { chromium } = require('playwright-core');
 const { execSync } = require('child_process');
 const fs = require('fs');
@@ -48,6 +50,11 @@ const waitCache = (pg, name) => pg.evaluate(async n => { for (let i = 0; i < 75;
 
 // words of English allowed in zh-HK UI text = the ASCII words the zh-HK locale itself keeps (Exam {n}, Chapter {n},
 // chapter names, era / nation English in brackets, app name …)
+// v0.68: n = 1-based position among the chapter's facts in data order
+const STUDY_DATA = (() => { const c = {}; vm.runInNewContext(fs.readFileSync(path.join(ROOT, 'data/study.js'), 'utf8') + ';this.STUDY=STUDY;', c); return c.STUDY; })();
+const FACT_NO = {};
+STUDY_DATA.reduce((seen, f) => { seen[f.ch] = (seen[f.ch] || 0) + 1; FACT_NO[f.id] = { ch: f.ch, n: seen[f.ch] }; return seen; }, {});
+const zhFactSetLabel = id => `知識點 Ch ${FACT_NO[id].ch} #${FACT_NO[id].n}`;
 const zhLocale = (() => { const ctx = { LOCALES: {} }; vm.runInNewContext(fs.readFileSync(path.join(ROOT, 'locales/zh-HK.js'), 'utf8'), ctx); return ctx.LOCALES[ZH]; })();
 const flat = (o, out = []) => { for (const v of Object.values(o)) typeof v === 'string' ? out.push(v) : flat(v, out); return out; };
 const ZH_ASCII_WORDS = new Set(flat(zhLocale).join(' ').match(/[A-Za-z]{3,}/g));
@@ -339,7 +346,7 @@ async function glossary(b) {
     note('Exam 4 practice: similar idx', idx.sim, 'multi idx', idx.multi);
     await tap(pg, `#navDots .dot:nth-child(${idx.sim + 1})`);
     await answer(pg, false); await sleep(50);
-    await expectTexts('Quiz practice revealed (wrong)', pg, ['✗ 錯誤', '【廣東話翻譯】', '相似題目', '同一知識點，不同問法', '📌 核心知識 #', '本題', '進行中', '▶ 練習這', '下一題 →']);
+    await expectTexts('Quiz practice revealed (wrong)', pg, ['✗ 錯誤', '【廣東話翻譯】', '相似題目', '同一知識點，不同問法', '📌 核心知識 Ch ', '本題', '進行中', '▶ 練習這', '下一題 →']);
     const stars = await pg.$eval('#qNum .stars', e => e.title);
     ok(/^難度 [1-5]\/5$/.test(stars), `difficulty stars title 難度 d/5 (${stars})`);
     const hasNote = await pg.$eval('#ansNote', e => !!e.textContent);
@@ -471,7 +478,7 @@ async function glossary(b) {
     ok((await pg.textContent('#quizLabel')) === 'Chapter 3', 'chapter set label Chapter 3 (Q9)');
     await nav(pg, '#screenQuiz .back-btn'); await nav(pg, '#modeStudy'); await tap(pg, '#studyTabs [data-tab="chapters"]'); await tap(pg, '#studySubChips [data-arg="3"]');
     await nav(pg, '#studyContent .fact[data-fact-id="21"] .fact-practise');
-    ok((await pg.textContent('#quizLabel')) === '知識點 #21', `fact session label 知識點 #21 (${await pg.textContent('#quizLabel')})`);
+    ok((await pg.textContent('#quizLabel')) === zhFactSetLabel(21), `fact session label ${zhFactSetLabel(21)} (fact 21) (${await pg.textContent('#quizLabel')})`);
     await ctx.close();
   }
 }
