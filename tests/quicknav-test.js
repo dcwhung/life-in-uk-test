@@ -94,7 +94,8 @@ const VIEWPORT_H = 844;
     const contentRight = card.getBoundingClientRect().right - parseFloat(cs.borderRightWidth) - parseFloat(cs.paddingRight);
     const range = document.createRange(); range.selectNodeContents(byId('qNum').firstElementChild);
     const lines = new Set([...range.getClientRects()].map(r => Math.round(r.top))).size;
-    return { over: byId('quickNext').getBoundingClientRect().right - contentRight, lines, text: byId('qNum').textContent };
+    // i and multi let the caller prove findIndex picked the intended kind of question (S-060)
+    return { i, multi: i >= 0 && state.questions[i].a.length > 1, over: byId('quickNext').getBoundingClientRect().right - contentRight, lines, text: byId('qNum').textContent };
   }, [mode, multi]);
   for (const lang of ['en', 'zh-HK']) {
     await pg.evaluate(l => { localStorage.clear(); setLang(l); }, lang);
@@ -102,10 +103,12 @@ const VIEWPORT_H = 844;
       await pg.setViewportSize({ width, height: VIEWPORT_H });
       for (const mode of ['exam', 'practice']) {
         const m = await headerFit(mode, true);
+        assert(m.i >= 0 && m.multi === true, `${lang} ${width}px ${mode} multi-answer: a multi-answer question is on screen (#${m.i})`);
         assert(m.over <= SUBPIXEL_TOLERANCE_PX, `${lang} ${width}px ${mode} multi-answer: → inside the card content box (over by ${m.over.toFixed(1)}px)`);
         assert(!/select|選擇|項）/i.test(m.text), `${lang} ${width}px ${mode} multi-answer: no "(select N)" hint in the header (${m.text})`);
         assert(m.lines === 1, `${lang} ${width}px ${mode} multi-answer: header text stays on one line (${m.lines})`);
         const s = await headerFit(mode, false);
+        assert(s.i >= 0 && s.multi === false, `${lang} ${width}px ${mode} single-answer: a single-answer question is on screen (#${s.i})`);
         assert(s.lines === 1 && s.over <= SUBPIXEL_TOLERANCE_PX, `${lang} ${width}px ${mode} single-answer: header text stays on one line (${s.lines})`);
       }
     }
