@@ -93,6 +93,8 @@
 /* core variant: gold Core Fact inside the white Similar panel; same shape as .fact (v0.62 O8) */
 .sqm-fact { background: var(--fact-bg); border-left: 4px solid var(--gold); border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 14px; }
 .sqm-fact-label { font-size: var(--fs-2xs); font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: var(--fact-label); margin-bottom: 4px; }
+/* S-072: the "Ch 5 #38" number keeps its case, as on the card pill */
+.sqm-fact-label [lang="en"] { text-transform: none; }
 .sqm-fact-en { font-size: var(--fs-base); line-height: 1.55; color: var(--navy); font-weight: 600; }
 .sqm-fact-yue { font-size: 12.5px; line-height: 1.6; color: var(--purple); margin-top: 4px; }
 
