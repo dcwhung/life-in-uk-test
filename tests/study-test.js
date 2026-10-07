@@ -35,9 +35,12 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   }
   // every card: the element its Practise button's aria-describedby points at exists and shows the chapter number;
   // Chapters view (noChapter) = ".fact-id" "#n"; every other view = no ".fact-id", pill "<icon> Ch c #n" (lang="en")
+  // S-073: the description is the number text only — no chapter emoji read out; the pill's icon is aria-hidden
+  const DESCRIBED_BY_TEXT = /^(Ch \d+ )?#\d+$/;
   async function checkChapterNumbers(tag) {
-    const bad = await pg.$$eval('#studyContent .fact', (cards, src) => {
+    const bad = await pg.$$eval('#studyContent .fact', (cards, [src, describedRe]) => {
       const expected = new Function('id', src);
+      const described = new RegExp(describedRe);
       const chapters = study.tab === 'chapters';
       return cards.map(c => {
         const id = Number(c.dataset.factId), f = STUDY.find(x => x.id === id), n = expected(id);
@@ -45,12 +48,14 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
         const target = btn && document.getElementById(btn.getAttribute('aria-describedby'));
         const ids = c.querySelectorAll('.fact-id');
         const pill = [...c.querySelectorAll('.fact-meta .tag')].find(e => /^\S+ Ch \d+ #\d+$/.test(e.textContent));
-        const ok = chapters
+        const icon = pill && pill.querySelector('[aria-hidden="true"]');
+        const ok = !!target && described.test(target.textContent) && (chapters
           ? ids.length === 1 && ids[0].textContent === '#' + n && target === ids[0]
-          : ids.length === 0 && !!pill && pill.textContent.endsWith(`Ch ${f.ch} #${n}`) && pill.getAttribute('lang') === 'en' && target === pill;
-        return ok ? null : { id, n, ids: ids.length, pill: pill && pill.textContent, target: target && target.textContent };
+          : ids.length === 0 && !!pill && pill.textContent.endsWith(`Ch ${f.ch} #${n}`) && pill.getAttribute('lang') === 'en'
+            && target.parentElement === pill && target.textContent === `Ch ${f.ch} #${n}` && !!icon && !icon.contains(target));
+        return ok ? null : { id, n, ids: ids.length, pill: pill && pill.textContent, target: target && target.textContent, icon: !!icon };
       }).filter(Boolean);
-    }, EXPECTED_NUM_JS);
+    }, [EXPECTED_NUM_JS, DESCRIBED_BY_TEXT.source]);
     const n = await pg.$$eval('#studyContent .fact', els => els.length);
     assert(n > 0 && bad.length === 0, `${tag}: every card shows its chapter number and Practise is described by it (${n} cards): ` + JSON.stringify(bad.slice(0, 3)));
   }
