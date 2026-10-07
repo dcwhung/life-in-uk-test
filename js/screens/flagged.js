@@ -7,7 +7,7 @@ function flaggedStartHtml(n) {
 function flaggedItemHtml(k) {
   const item = questionByKey(k);
   const unflag = escapeHtml(t('common.unflag'));
-  return `<div class="flag-item"><div class="fi-text"><small>${questionRefText(item)}${LIST_SEP}${starsHtml(item.q.d)}</small>${escapeHtml(item.q.q)}<div class="fi-yue">${escapeHtml(item.q.yue)}</div></div>
+  return `<div class="flag-item"><div class="fi-text"><small>${questionRefText(item)}${LIST_SEP}${starsHtml(item.q.d)}</small><span class="fi-q" lang="en">${escapeHtml(item.q.q)}</span><div class="fi-yue" lang="zh-HK">${escapeHtml(item.q.yue)}</div></div>
         <button data-action="unflagFromList" data-arg="${escapeHtml(k)}" title="${unflag}" aria-label="${unflag}">${bookmarkSvg('rv-flag')}</button></div>`;
 }
 function openFlagged() {

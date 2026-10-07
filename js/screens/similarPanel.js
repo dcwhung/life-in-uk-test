@@ -9,8 +9,8 @@ function similarItemHtml(k) {
         <span class="sqm-id">${questionRefText(item)}</span>
         <span class="sqm-streak${isMastered(item) ? ' done' : ''}">${streakLabel(item)}</span>
       </div>
-      <div class="sqm-q">${escapeHtml(item.q.q)}</div>
-      <div class="sqm-qy">${escapeHtml(item.q.yue)}</div>
+      <div class="sqm-q" lang="en">${escapeHtml(item.q.q)}</div>
+      <div class="sqm-qy" lang="zh-HK">${escapeHtml(item.q.yue)}</div>
     </div>`;
 }
 function similarMapHtml(q, keys) {

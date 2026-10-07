@@ -185,18 +185,19 @@
           <button class="quick-btn primary" id="quickNext" data-action="next">→</button>
         </span>
       </div>
-      <div class="q-text" id="qText"></div>
-      <div class="q-yue" id="qYue"></div>
+      <!-- W-014: question content stays English (Q1) whatever <html lang> says; the translation is Cantonese -->
+      <div class="q-text" id="qText" lang="en"></div>
+      <div class="q-yue" id="qYue" lang="zh-HK"></div>
     </div>
 
-    <div class="options" id="optionsContainer"></div>
+    <div class="options" id="optionsContainer" lang="en"></div>
 
     <!-- practice: show after selection -->
     <div class="answer-box" id="answerBox">
       <div class="ans-label" id="ansLabel"></div>
-      <div class="ans-en" id="ansEn"></div>
+      <div class="ans-en" id="ansEn" lang="en"></div>
       <div class="divider"></div>
-      <div class="ans-yue" id="ansYue"></div>
+      <div class="ans-yue" id="ansYue" lang="zh-HK"></div>
       <div class="ans-note" id="ansNote"></div>
     </div>
 

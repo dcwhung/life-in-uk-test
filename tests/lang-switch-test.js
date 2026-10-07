@@ -79,6 +79,19 @@ async function main() {
     assert(fit.sw <= fit.cw, `${tag}: zh-HK at 320px has no horizontal overflow (${fit.sw} <= ${fit.cw})`);
   }
   const switchTwice = async (tag, sel) => { await switchOn(tag, sel); await switchOn(tag, sel); };
+  // W-014: under <html lang="zh-HK"> the English question content keeps lang="en" (screen readers pick the voice
+  // by lang) and the Cantonese translation says lang="zh-HK"; specs are [selector, lang, optional]
+  async function checkContentLang(tag, specs) {
+    const res = await pg.evaluate(specs => specs.map(([sel, want, optional]) => {
+      const els = [...document.querySelectorAll(sel)];
+      const wrong = els.filter(e => { const l = e.closest('[lang]'); return l === document.documentElement || l.getAttribute('lang') !== want; });
+      return { sel, want, n: els.length, wrong: wrong.length, ok: (els.length > 0 || optional) && wrong.length === 0 };
+    }), specs);
+    assert((await langOf(pg)).html === ZH_HK, `${tag}: checked under <html lang="zh-HK">`);
+    const bad = res.filter(r => !r.ok);
+    assert(bad.length === 0, `${tag}: English content lang="en", Cantonese lang="zh-HK": ` + JSON.stringify(bad));
+  }
+  const switchCheckBack = async (tag, sel, specs) => { await switchOn(tag, sel); await checkContentLang(tag, specs); await switchOn(tag, sel); };
 
   // pill label, <html lang>, storage, reload
   await switchOn('home', '#modeDesc');
@@ -103,7 +116,23 @@ async function main() {
     const q = state.questions[state.current]; state.answers[state.current] = [...q.a]; revealAnswer();
   });
   assert(await pg.$eval('#similarBox', e => !e.hidden && getComputedStyle(e).display !== 'none'), 'practice: Similar panel open after the answer');
-  await switchTwice('quiz practice (revealed, Similar, translation, flag)', '#similarBox .sqm-title b');
+  await switchCheckBack('quiz practice (revealed, Similar, translation, flag)', '#similarBox .sqm-title b', [
+    ['#qText', EN], ['#qYue', ZH_HK], ['#optionsContainer .opt-body > span:not(.opt-yue)', EN], ['#optionsContainer .opt-yue', ZH_HK, true],
+    ['#ansEn', EN], ['#ansYue .ans-yue-row span', ZH_HK], ['#ansNote .ans-note-text', ZH_HK, true],
+    ['#similarBox .sqm-q', EN], ['#similarBox .sqm-qy', ZH_HK], ['#similarBox .sqm-fact-en', EN], ['#similarBox .sqm-fact-yue', ZH_HK],
+  ]);
+
+  // this question has no option translations: probe an option that has one inside #optionsContainer
+  const optYueLang = await pg.evaluate(() => {
+    const q = Object.values(EXAMS).flat().find(x => x.oy && x.oy[0]);
+    const probe = document.createElement('div');
+    probe.innerHTML = optionHtml(q, 0, { showAnswer: true, revealed: true, yueOn: true });
+    byId('optionsContainer').append(probe);
+    const l = probe.querySelector('.opt-yue').closest('[lang]').getAttribute('lang');
+    probe.remove();
+    return l;
+  });
+  assert(optYueLang === ZH_HK, 'W-014: option translation .opt-yue is lang="zh-HK": ' + optYueLang);
 
   // side session from Similar ▶ Practise
   await pg.evaluate(() => startSimilarPractice());
@@ -154,18 +183,20 @@ async function main() {
     recordExamResults = () => { window.recordCount++; realRecord(); };
     finishExam(); setReviewFilter('wrong');
   });
-  await switchTwice('result (filter Wrong)', '#resultLabel2');
+  await switchCheckBack('result (filter Wrong)', '#resultLabel2', [
+    ['#reviewList .rv-q-text', EN], ['#reviewList .rv-correct-ans', EN], ['#reviewList .rv-yue', ZH_HK], ['#reviewList .rv-note-line', ZH_HK, true],
+  ]);
   assert(await pg.evaluate(() => window.recordCount) === 1, 'result: recorded once (the switch only re-renders)');
   await checkResultSub(pg);
 
   // Flagged list
   await pg.evaluate(() => openFlagged());
-  await switchTwice('flagged', '#flaggedStart');
+  await switchCheckBack('flagged', '#flaggedStart', [['.fi-q', EN], ['.fi-yue', ZH_HK]]);
 
   // Study: tab + chip + typed search
   await pg.evaluate(() => { openStudy(); studySetTab('people'); studySetGroup('writer'); });
   await pg.fill('#studySearch', 'sha');
-  await switchTwice('study people › writers + search', '#studyChips');
+  await switchCheckBack('study people › writers + search', '#studyChips', [['.fact-name', EN], ['.fact-en', EN], ['.fact-yue', ZH_HK]]);
   await pg.fill('#studySearch', '');
   await pg.evaluate(() => { studySetTab('geo'); studySetNation('all'); });
   await switchOn('study geography', '#studySubChips');

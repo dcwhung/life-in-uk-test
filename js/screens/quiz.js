@@ -92,7 +92,7 @@ function optionClass(q, oi, { showAnswer, revealed }) {
   return 'opt' + (userPicked ? ' selected' : ''); // provisional blue highlight before reveal
 }
 function optionHtml(q, oi, view) {
-  const optYue = view.yueOn && q.oy && q.oy[oi] ? `<span class="opt-yue">${escapeHtml(q.oy[oi])}</span>` : '';
+  const optYue = view.yueOn && q.oy && q.oy[oi] ? `<span class="opt-yue" lang="zh-HK">${escapeHtml(q.oy[oi])}</span>` : '';
   return `<button class="${optionClass(q, oi, view)}" data-action="selectOption" data-arg="${escapeHtml(oi)}" id="opt${oi}">
       <span class="opt-letter">${OPTION_LETTERS[oi]}</span>
       <span class="opt-body"><span>${escapeHtml(q.o[oi])}</span>${optYue}</span>
@@ -110,7 +110,7 @@ function renderAnswerBox(q, idx, showAnswer) {
   byId('ansEn').textContent = q.a.map(ai => q.o[ai]).join(ANSWER_SEP);
   renderAnswerTranslation(q);
   // .ans-note is pre-wrap: the note's own line breaks and indents show as written
-  byId('ansNote').innerHTML = q.note ? `<strong>${t('common.noteLabel')}</strong>\n${escapeHtml(q.note)}` : '';
+  byId('ansNote').innerHTML = q.note ? `<strong>${t('common.noteLabel')}</strong>\n<span class="ans-note-text" lang="zh-HK">${escapeHtml(q.note)}</span>` : '';
 }
 function renderAnswerTranslation(q) {
   const ansYueText = q.a.map(ai => (q.oy && q.oy[ai]) || q.o[ai]).join(ANSWER_SEP);
