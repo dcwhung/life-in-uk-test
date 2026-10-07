@@ -72,8 +72,8 @@ function renderQuizHeader(q, idx, total) {
   byId('modeBadge').textContent = state.mode === PRACTICE_MODE ? t('common.practice') : t('common.exam');
   // progress: the question card's top border
   byId('progressFill').style.width = percent(idx + 1, total) + '%';
-  const multi = q.a.length > 1 ? t('quiz.selectN', { n: q.a.length }) : '';
-  byId('qNum').innerHTML = `<span>${t('quiz.questionOf', { n: idx + 1, total })}${multi}</span>${starsHtml(q.d)}`;
+  // no "(select N)" hint: every multi-answer question already states its count (content-guard-test)
+  byId('qNum').innerHTML = `<span>${t('quiz.questionOf', { n: idx + 1, total })}</span>${starsHtml(q.d)}`;
   byId('qText').textContent = q.q;
 }
 function renderTranslation(q, revealed, yueOn) {

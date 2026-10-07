@@ -60,7 +60,6 @@ LOCALES['zh-HK'] = {
 
   quiz: {
     questionOf: '第 {n} 題（共 {total} 題）',
-    selectN: '（選擇 {n} 項）',
     allShuffled: '全部試題（隨機排序）',
     translate: '翻譯',
     hideTranslation: '隱藏翻譯',
