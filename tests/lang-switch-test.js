@@ -138,7 +138,7 @@ async function main() {
   assert(await pg.$eval('#similarBox', e => !e.hidden && getComputedStyle(e).display !== 'none'), 'practice: Similar panel open after the answer');
   await switchCheckBoth('quiz practice (revealed, Similar, translation, flag)', '#similarBox .sqm-title b', [
     ['#qText', EN], ['#qYue', ZH_HK], ['#optionsContainer .opt-body > span:not(.opt-yue)', EN], ['#optionsContainer .opt-yue', ZH_HK, true],
-    ['#ansEn', EN], ['#ansYue .ans-yue-row span', ZH_HK], ['#ansNote .ans-note-text', ZH_HK, true],
+    ['#ansEn', EN], ['#ansYue .ans-yue-row > span', ZH_HK], ['#ansNote .ans-note-text', ZH_HK, true],
     ['#similarBox .sqm-q', EN], ['#similarBox .sqm-qy', ZH_HK], ['#similarBox .sqm-fact-en', EN], ['#similarBox .sqm-fact-yue', ZH_HK],
     ['#ansNote > strong', ZH_HK], // S-048: the 💡 label reads with the note
   ], [['#ansNote > strong', ZH_HK], ['#ansNote .ans-note-text', ZH_HK]]);

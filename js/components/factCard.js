@@ -15,12 +15,15 @@ function yearLabel(f) {
   return String(f.y);
 }
 
+// CUI-0014: yl and AD numbers are English data (M3), lang="en"; the BC fallback is UI text in the page language
+const yearLangAttr = f => (f.yl || f.y >= 0 ? ' lang="en"' : '');
+
 // opts: noYear / noPerson / noChapter hide a tag the surrounding list already shows
 function factTagsHtml(f, opts) {
   const tags = [`<span class="fact-id" id="${factIdElId(f)}">${t('study.factId', { id: f.id })}</span>`];
-  if (f.y !== undefined && !opts.noYear) tags.push(`<span class="tag year">📅 ${escapeHtml(yearLabel(f))}</span>`);
+  if (f.y !== undefined && !opts.noYear) tags.push(`<span class="tag year"${yearLangAttr(f)}>📅 ${escapeHtml(yearLabel(f))}</span>`);
   if (f.w) tags.push(`<span class="tag war">${t('study.war')}</span>`);
-  if (f.p && !opts.noPerson) tags.push(`<span class="tag person">👤 ${escapeHtml(f.p[0])}</span>`);
+  if (f.p && !opts.noPerson) tags.push(`<span class="tag person" lang="en">👤 ${escapeHtml(f.p[0])}</span>`);
   if (!opts.noChapter) tags.push(`<span class="tag">${CHAPTER_ICONS[f.ch]} ${t('common.chapterShort', { n: f.ch })}</span>`);
   tags.push(starsHtml(f.d)); // same stars as the question card (v0.62)
   return tags.join('');

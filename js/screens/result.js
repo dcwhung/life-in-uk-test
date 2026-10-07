@@ -4,6 +4,7 @@
 const MODE_ICONS = { [PRACTICE_MODE]: '🎯', [EXAM_MODE]: '📝' };
 const PASS_PCT = PASS_RATIO * PERCENT;
 const PASS_MARK = REAL_TEST_SIZE * PASS_RATIO;
+const ANSWER_SLOT = '{answer}'; // review.yourAnswer's parameter, as t() leaves it when not passed
 const REVIEW_FILTERS = [
   { key: 'all', labelKey: 'review.filterAll', keep: () => true },
   { key: 'wrong', labelKey: 'review.filterWrong', keep: r => !r.isCorrect },   // includes unanswered
@@ -146,13 +147,19 @@ function noteHtml(note) {
     return `<div class="rv-note-line${cls}" lang="zh-HK">${escapeHtml(line.trim())}</div>`;
   }).join('');
 }
+// S-047: the label follows the UI language, the chosen English option is lang="en"; "{answer}" is left in by t()
+// (no param) and swapped for the span after escaping, so no locale key changes. review.noAnswer is UI text: no span.
+function yourAnswerHtml(q, userAns) {
+  if (!userAns.length) return escapeHtml(t('review.yourAnswer', { answer: t('review.noAnswer') }));
+  const answer = `<span lang="en">${escapeHtml(userAns.map(ai => q.o[ai]).join(ANSWER_SEP))}</span>`;
+  return escapeHtml(t('review.yourAnswer')).replace(ANSWER_SLOT, () => answer); // a function: no $-patterns in option text
+}
 function reviewItemHtml({ q, idx, userAns, isCorrect, flagged }) {
   const correctText = q.a.map(ai => q.o[ai]).join(ANSWER_SEP);
-  const userText = userAns.length ? userAns.map(ai => q.o[ai]).join(ANSWER_SEP) : t('review.noAnswer');
-  const note = q.note ? `<div class="rv-note"><div class="rv-note-label">${t('common.noteLabel')}</div>${noteHtml(q.note)}</div>` : '';
+  const note = q.note ? `<div class="rv-note" lang="zh-HK"><div class="rv-note-label">${t('common.noteLabel')}</div>${noteHtml(q.note)}</div>` : '';
   return `<div class="review-item ${isCorrect ? 'rv-correct' : 'rv-wrong'}" id="rv${idx}">
       <div class="rv-q">${reviewIsPractice ? streakTagHtml(q) : ''}${idx + 1}. <span class="rv-q-text" lang="en">${escapeHtml(q.q)}</span>${flagged ? bookmarkSvg('rv-flag') : ''}</div>
-      ${!isCorrect ? `<div class="rv-your">${escapeHtml(t('review.yourAnswer', { answer: userText }))}</div>` : ''}
+      ${!isCorrect ? `<div class="rv-your">${yourAnswerHtml(q, userAns)}</div>` : ''}
       <div class="rv-correct-ans" lang="en">✅ ${escapeHtml(correctText)}</div>
       <div class="rv-tr"><div class="rv-yue" lang="zh-HK">${t('common.yueTitle')}${escapeHtml(q.yue)}</div>${note}</div>
     </div>`;
