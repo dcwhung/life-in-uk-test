@@ -101,7 +101,7 @@ const STUDY = [
 {id:93,ch:3,d:4,src:["2.20"],y:1984,p:["Torvill & Dean","sport"],en:"Jayne Torvill and Christopher Dean won Olympic gold in ice dancing (1984).",yue:"Jayne Torvill（珍·托維爾）同 Christopher Dean（基斯杜化·迪恩）贏咗 1984 年奧運冰上舞蹈金牌。"},
 {id:94,ch:3,d:3,src:["13.10"],y:1989,en:"The Berlin Wall fell in 1989, marking the end of the Cold War.",yue:"柏林圍牆喺 1989 年倒塌，象徵冷戰結束。"},
 {id:95,ch:3,d:3,src:["14.7"],y:1989,p:["Tim Berners-Lee","scientist"],en:"Tim Berners-Lee, a British computer scientist, invented the World Wide Web (1989).",yue:"英國電腦科學家 Tim Berners-Lee（添·柏納斯-李）喺 1989 年發明 World Wide Web（萬維網）。"},
-{id:96,ch:3,d:3,src:["13.21","15.13","16.19"],y:1998,en:"The Good Friday Agreement (1998) brought peace to Northern Ireland after decades of conflict.",yue:"《耶穌受難日協議》（Good Friday Agreement）（1998 年）為北愛爾蘭帶嚟和平，結束咗幾十年嘅衝突。"},
+{id:96,ch:3,d:3,src:["13.21","15.13","16.19"],y:1998,en:"The Good Friday Agreement (1998) brought peace to Northern Ireland after decades of conflict.",yue:"1998 年嘅《耶穌受難日協議》（Good Friday Agreement）為北愛爾蘭帶嚟和平，結束咗幾十年嘅衝突。"},
 {id:97,ch:3,d:2,src:["6.9"],p:["Alexander Graham Bell","scientist"],en:"Alexander Graham Bell, born in Scotland, invented the telephone.",yue:"蘇格蘭出生嘅 Alexander Graham Bell（亞歷山大·貝爾）發明電話。"},
 {id:98,ch:4,d:2,src:["10.0","7.15","13.0"],en:"St George is the patron saint of England; St George's Day is 23rd April.",yue:"St George 係英格蘭守護聖人，St George's Day（聖佐治日）係 4 月 23 日。"},
 {id:99,ch:4,d:3,src:["1.4","5.21"],en:"St Andrew is the patron saint of Scotland; St Andrew's Day is 30th November.",yue:"St Andrew 係蘇格蘭守護聖人，St Andrew's Day（聖安德魯日）係 11 月 30 日。"},
