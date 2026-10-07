@@ -168,7 +168,8 @@ function renderStudyProgress() {
 // ── tab renderers: each returns { html, shown, total } ──
 function chapterGroupHtml(ch, list) {
   const title = t('study.chapterTitle', { n: ch, title: t(`data.chapters.${ch}`) });
-  return `<div class="study-group-title">${CHAPTER_ICONS[ch]} ${escapeHtml(title)} <span class="cnt">${list.length}</span></div>`
+  // S-049: study.chapterTitle and the chapter name are English in every language (plan Q10)
+  return `<div class="study-group-title" lang="en">${CHAPTER_ICONS[ch]} ${escapeHtml(title)} <span class="cnt">${list.length}</span></div>`
     + list.map(f => renderFact(f, { noChapter: true })).join('');
 }
 function renderStudyChapters() {
@@ -195,7 +196,7 @@ function renderStudyTimeline() {
       lastEra = era;
     }
     html += `<div class="tl-item${f.w ? ' war' : ''}">
-      <div class="tl-year">${escapeHtml(yearLabel(f))}</div>
+      <div class="tl-year"${yearLangAttr(f)}>${escapeHtml(yearLabel(f))}</div>
       <div class="tl-body">${renderFact(f, { noYear: true })}</div>
     </div>`;
   });
