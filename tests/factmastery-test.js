@@ -25,6 +25,9 @@ async function checkDomain(pg) {
   }, [DERIVED_FACT, PARTIAL_FACT]);
   assert(JSON.stringify(m.d) === '{"mastered":3,"total":3,"derived":true}', 'factMastery: every source 🏆 → derived (' + JSON.stringify(m.d) + ')');
   assert(JSON.stringify(m.p) === '{"mastered":1,"total":8,"derived":false}', 'factMastery: 1 / 8 sources → not derived (' + JSON.stringify(m.p) + ')');
+  // W-011: zero sources is 0 / 0, not "every source mastered" — a fact with no source questions is never derived
+  const empty = await pg.evaluate(() => factMastery({ src: [] }));
+  assert(empty.derived === false && empty.total === 0, 'factMastery: no sources → not derived (' + JSON.stringify(empty) + ')');
 }
 
 async function checkDerivedCard(pg) {

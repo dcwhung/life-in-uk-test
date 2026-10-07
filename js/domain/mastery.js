@@ -25,5 +25,6 @@ function practicePool(list) {
 // Computed on each render, never stored — "Reset practice progress" clears it together with the streaks.
 function factMastery(f) {
   const m = masteryOf(f.src.map(questionByKey));
-  return { ...m, derived: m.mastered === m.total };
+  // W-011: 0 / 0 is "no sources", not "all mastered" — guard the zero case instead of relying on the data
+  return { ...m, derived: m.total > 0 && m.mastered === m.total };
 }
