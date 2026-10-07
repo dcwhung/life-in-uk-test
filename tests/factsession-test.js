@@ -10,6 +10,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
 const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('ok:', m); };
 
 const FACT_ID = 21; // Magna Carta, chapter 3, 8 source questions
+const FACT_CHAPTER_NUM = 15; // its number within chapter 3 (ids 7–97), shown on the Chapters card as "#15"
 const FACT_SRC = '4.16,6.6,7.14,8.13,12.23,15.6,16.16,17.21';
 // Study is scrolled so fact #21 sits this far below the viewport top, as when its "▶ Practise" is tapped
 // (v0.63: ↩ Back brings the card into view if the restored scroll no longer shows it, R-010)
@@ -177,7 +178,7 @@ async function checkSourceRow(pg) {
   assert(row.nodes === FACT_NODES, 'source node row: E·Q nodes in f.src order with mastery colours: ' + row.nodes);
   assert(row.clickable === 0 && row.appears === 0 && row.label === 'Appears in:', `nodes are display only; "Appears ×n" tag gone (${JSON.stringify(row)})`);
   assert(row.btn === `▶ Practise these 8|startFactPractice|${FACT_ID}`, 'Practise button: plural label + startFactPractice action: ' + row.btn);
-  assert(row.describedBy === `#${FACT_ID}`, 'Practise button is described by the card "#id": ' + row.describedBy);
+  assert(row.describedBy === `#${FACT_CHAPTER_NUM}`, 'Practise button is described by the card\'s chapter number "#n": ' + row.describedBy);
   // S-030: the ~29px "▶ Practise" pill keeps its look but takes taps over >= 44px (invisible ::before ring);
   // scan the button's vertical centre line with elementFromPoint
   const hit = await pg.$eval(`${factCard(FACT_ID)} .fact-practise`, e => {
