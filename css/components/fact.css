@@ -72,11 +72,15 @@
 .fact-practise {
   background: var(--card); color: var(--navy);
   border: var(--fact-practise-border) solid var(--navy); border-radius: var(--radius-pill);
-  padding: 6px 12px; font-size: var(--fs-sm); font-weight: 700;
+  padding: 6px var(--fact-practise-pad-x); font-size: var(--fs-sm); font-weight: 700;
   white-space: nowrap; margin-left: auto; cursor: pointer;
   /* S-030: --fact-practise-ring = (44px target - 29px pill (6px padding × 2 + ~14px line + 1.5px border × 2)) / 2,
      rounded up; ::before inset counts from the padding box, so the border is added back (as .fact-btn, CUI-0009) */
   --fact-practise-border: 1.5px; --fact-practise-ring: 8px;
+  /* W-012: 10px, not 12px — since S-034 the label uses the body font (~2.8px wider than the UA button font), which
+     at 390px pushed the 2nd source node of 13 two-source cards onto a 2nd line (+27px); 2px less each side keeps
+     them on one line. Sides only, so the S-030 ring (top / bottom) is unchanged */
+  --fact-practise-pad-x: 10px;
   position: relative;
 }
 /* invisible tap ring, top and bottom only: above sits the row's 10px padding-top (single line) or the display-only
