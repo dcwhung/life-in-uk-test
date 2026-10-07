@@ -96,6 +96,11 @@ async function checkHeaderNumberLang(pg, lang) {
   const nums = await pg.$$eval('#quizLabel [lang="en"]', els => els.map(e => [e.textContent, e.children.length]));
   assert(nums.length === 1 && nums[0][0] === FACT_NUM_TEXT && nums[0][1] === 0,
     `${lang} header: "${FACT_NUM_TEXT}" in one lang="en" text span (${JSON.stringify(nums)})`);
+  // S-072 / W-016: the number reads "Ch 3 #15" like the card pill; the label itself stays uppercase ("EXAM 1")
+  const tt = await pg.$eval('#quizLabel', e => ({
+    label: getComputedStyle(e).textTransform, num: getComputedStyle(e.querySelector('[lang="en"]')).textTransform,
+  }));
+  assert(tt.label === 'uppercase' && tt.num === 'none', `${lang} header: label uppercase, number text-transform none (${JSON.stringify(tt)})`);
 }
 
 // header, no round note even with review counters, no Similar panel; answers count like any Practice answer
