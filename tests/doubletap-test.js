@@ -103,18 +103,18 @@ async function checkDoubleTap(pg, touchPg, name, setup) {
 
 // a normal single tap and a later tap on an option still answer
 async function checkNormalFlow(pg) {
-  const guard = await guardMs(pg);
+  const guardWindowMs = await guardMs(pg);
   const p = await setupFact(pg);
-  await sleep(guard + SETTLE_EXTRA_MS); // the checks before ended with a click that opened the quiz
+  await sleep(guardWindowMs + SETTLE_EXTRA_MS); // the checks before ended with a click that opened the quiz
   await pg.mouse.click(p.x, p.y);
-  await sleep(guard + SETTLE_EXTRA_MS);
+  await sleep(guardWindowMs + SETTLE_EXTRA_MS);
   await pg.click('#opt0');
   const w = await practiceWrites(pg);
   assert(w.answered === 1 && w.revealed === 1 && w.streak !== null, `single tap, then an option after the guard: answered (${JSON.stringify(w)})`);
 
   // the guard only covers the first tap's point: a quick tap elsewhere on the new screen still counts
   const q = await setupFact(pg);
-  await sleep(guard + SETTLE_EXTRA_MS);
+  await sleep(guardWindowMs + SETTLE_EXTRA_MS);
   await pg.mouse.click(q.x, q.y);
   const far = await pg.$eval('#opt3', e => { const r = e.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
   assert(Math.abs(far.y - q.y) > await pg.evaluate(() => DOUBLE_TAP_SLOP_PX), 'option D is outside the double-tap slop');

@@ -68,24 +68,25 @@ function runAction(name, el, e) {
 // the active .screen plus the question list: Similar "Practise these N" and ↩ Back swap the session
 // while staying on the quiz screen. Same-view repeats (quick Next, ← →) never arm the guard, a tap
 // elsewhere (e.g. ← Home) is not stray, and once the view moves on without a click it lapses.
-let guard = null; // { view, x, y, at } of the last click that changed the view
-const currentView = () => [document.querySelector('.screen.active'), state.questions];
-const sameView = (a, b) => a[0] === b[0] && a[1] === b[1];
+// S-036: classic scripts share one global scope, so these names carry a clickGuard prefix.
+let clickGuard = null; // { view, x, y, at } of the last click that changed the view
+const clickGuardView = () => [document.querySelector('.screen.active'), state.questions];
+const isSameClickView = (a, b) => a[0] === b[0] && a[1] === b[1];
 // keyboard Enter / Space (and el.click()) fire click with detail 0: they neither arm nor hit the guard
 const isPointerClick = e => e.detail > 0;
 // the confirm modal opens on top of the screen it was asked from, so its buttons always work
 function isStrayClick(e, el) {
-  if (!guard || !isPointerClick(e) || el.closest('#confirmModal') || !sameView(guard.view, currentView())) return false;
-  const near = Math.hypot(e.clientX - guard.x, e.clientY - guard.y) <= DOUBLE_TAP_SLOP_PX;
+  if (!clickGuard || !isPointerClick(e) || el.closest('#confirmModal') || !isSameClickView(clickGuard.view, clickGuardView())) return false;
+  const near = Math.hypot(e.clientX - clickGuard.x, e.clientY - clickGuard.y) <= DOUBLE_TAP_SLOP_PX;
   // a tap queued while the first click's handler ran has an earlier timeStamp: negative, also stray
-  return near && e.timeStamp - guard.at < SCREEN_CHANGE_CLICK_GUARD_MS;
+  return near && e.timeStamp - clickGuard.at < SCREEN_CHANGE_CLICK_GUARD_MS;
 }
 function runClickAction(el, e) {
   if (isStrayClick(e, el)) return;
-  const before = currentView();
+  const before = clickGuardView();
   runAction(el.dataset.action, el, e);
-  const view = currentView();
-  if (isPointerClick(e) && !sameView(before, view)) guard = { view, x: e.clientX, y: e.clientY, at: performance.now() };
+  const view = clickGuardView();
+  if (isPointerClick(e) && !isSameClickView(before, view)) clickGuard = { view, x: e.clientX, y: e.clientY, at: performance.now() };
 }
 
 document.addEventListener('click', e => {
