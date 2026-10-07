@@ -4,11 +4,14 @@
 // QA_ONLY=section,section limits the run. W-015 scan rows are written to <screenshot-dir>/../w015-scan.json only when
 // QA_W015_OUT is set (default: printed).
 // 2026-10-07 rerun (S-056 / CUI-0015): w015 expectations inverted after batch 7 (anti-leak); oracle skips batch 7
-// `keep` records and applies the S-055 post-batch fix. versionCheck still asserts the pre-batch-7 state (6 files / 713
-// records / old E11·Q4 yue in the SW cache) and is stale — not part of the rerun.
+// `keep` records and applies the S-055 post-batch fix.
+// 2026-10-07 refresh (Lane D): the oracle counts exactly batches 1..7 (explicit filename pattern — later batches such as
+// batch-8 belong to their own QA script): 7 files / 732 records, 3 `keep` not replayed. versionCheck and
+// offlineAndUpgrade compare against the current APP_VERSION (js/core/config.js) and the current data files instead of
+// hard-coding v0.66 / the pre-batch-7 E11·Q4 yue. overflow no longer exempts the quick nav (CUI-0013 fixed in v0.67).
 //
-// Oracle (independent of HEAD data): the v0.65 data files (git show <v065-ref>) with the six user-approved batch JSON
-// files (.proj-docs/plans/2026-10-07_yue-batch-*.json) replayed in order; every record's `before` must match.
+// Oracle (independent of HEAD data): the v0.65 data files (git show <v065-ref>) with the seven user-approved batch JSON
+// files (.proj-docs/plans/2026-10-07_yue-batch-{1..7}*.json) replayed in order; every record's `before` must match.
 // The app is driven black-box with real clicks / typing; page.evaluate only seeds localStorage and reads state
 // (which question sits behind which dot, the option order after shuffle) to locate things on screen.
 // Double tap guard (CUI-0011): a click within 40px / 350ms of a click that changed the view is swallowed, so every
@@ -45,7 +48,14 @@ const OLD_STUDY = loadData(gitShow('data/study.js'), 'STUDY');
 const EXP_EXAMS = JSON.parse(JSON.stringify(OLD_EXAMS));
 const EXP_STUDY = JSON.parse(JSON.stringify(OLD_STUDY));
 const PLAN_DIR = path.join(ROOT, '.proj-docs/plans');
-const BATCH_FILES = fs.readdirSync(PLAN_DIR).filter(f => /^2026-10-07_yue-batch-\d.*\.json$/.test(f)).sort();
+// explicit: batches 1..7 only (batch-N or batch-N-<tag>); anything later (e.g. batch-8-s054) is out of v0.66 scope
+const BATCH_NUMS = [1, 2, 3, 4, 5, 6, 7];
+const BATCH_RE = ext => new RegExp(`^2026-10-07_yue-batch-(${BATCH_NUMS.join('|')})(?:-[a-z0-9]+)?\\.${ext}$`);
+const BATCH_FILES = fs.readdirSync(PLAN_DIR).filter(f => BATCH_RE('json').test(f))
+  .sort((a, b) => Number(a.match(BATCH_RE('json'))[1]) - Number(b.match(BATCH_RE('json'))[1]));
+const EXPECTED_ORACLE = { files: 7, records: 732, kept: 3 };
+const CUR_VERSION = (fs.readFileSync(path.join(ROOT, 'js/core/config.js'), 'utf8').match(/const APP_VERSION = '([^']+)'/) || [])[1];
+const CUR_CACHE = 'lifeuk-v' + CUR_VERSION;
 const replay = { records: 0, beforeMismatch: [], kept: [] };
 const changed = { yue: new Set(), note: new Set(), oy: new Set(), fact: new Set() }; // qKey "exam.idx" / fact id
 // S-056 (2026-10-07 rerun): batch 7 (anti-leak, R2) records carry userDecision apply / keep; `keep` (A6, A9, A10) was
@@ -91,7 +101,7 @@ const ref = k => { const [e, i] = k.split('.').map(Number); return `E${e}·Q${i 
 // questions named in the batch md decision tables (用戶決定 + batch 6 cross-file table), 1-based → qKey
 function decisionRefs() {
   const out = new Set();
-  for (const f of fs.readdirSync(PLAN_DIR).filter(f => /^2026-10-07_yue-batch-\d.*\.md$/.test(f))) {
+  for (const f of fs.readdirSync(PLAN_DIR).filter(f => BATCH_RE('md').test(f))) {
     let on = false;
     for (const line of fs.readFileSync(path.join(PLAN_DIR, f), 'utf8').split('\n')) {
       if (line.startsWith('## ')) on = /用戶決定|Exam 跨檔譯名修正/.test(line);
@@ -170,18 +180,32 @@ async function noOverflow(pg) {
 
 // ══════════ 0. oracle sanity + version ══════════
 async function versionCheck(b) {
-  ok(BATCH_FILES.length === 6 && replay.records === 713, `oracle: 6 batch JSON files, 713 records replayed (${BATCH_FILES.length}, ${replay.records})`);
+  ok(BATCH_FILES.length === EXPECTED_ORACLE.files && replay.records === EXPECTED_ORACLE.records && replay.kept.length === EXPECTED_ORACLE.kept,
+    `oracle: ${EXPECTED_ORACLE.files} batch JSON files (1..7), ${EXPECTED_ORACLE.records} records, ${EXPECTED_ORACLE.kept} keep not replayed (${BATCH_FILES.length}, ${replay.records}, ${replay.kept.length}) [${BATCH_FILES.join(' ')}]`);
   ok(replay.beforeMismatch.length === 0, `oracle: every record's before matches v0.65 ${V065_REF} data in order ${replay.beforeMismatch.slice(0, 5).join(' ')}`);
   note(`changed fields: yue ${changed.yue.size}, note ${changed.note.size}, oy questions ${changed.oy.size}, fact yue ${changed.fact.size}`);
+  ok(!!CUR_VERSION, `current APP_VERSION read from js/core/config.js: ${CUR_VERSION}`);
+  // dynamic: the SW cache for the current version must hold byte-identical copies of the repo data files, and those
+  // must carry the oracle text (E11·Q4 yue after batch 7 + a changed Study fact), not the v0.65 text
+  const repoExams = fs.readFileSync(path.join(ROOT, 'data/exams.js'), 'utf8');
+  const repoStudy = fs.readFileSync(path.join(ROOT, 'data/study.js'), 'utf8');
+  const probeQ = '11.3', probeFact = EXP_STUDY.find(f => changed.fact.has(f.id));
   const { base, server } = await startPagesServer(ROOT);
   try {
     const ctx = await b.newContext({ viewport: { width: 390, height: 844 } }); const pg = await ctx.newPage(); const { errs } = watch(pg);
     await pg.goto(base); await pg.evaluate(() => navigator.serviceWorker.ready);
-    await pg.waitForFunction(async () => (await caches.keys()).includes('lifeuk-v0.66'), null, { timeout: 15000 });
-    ok(await pg.evaluate(() => APP_VERSION) === '0.66' && (await pg.textContent('#appVersion')) === 'v0.66', 'APP_VERSION 0.66, header v0.66');
-    const cached = await pg.evaluate(async () => { const c = await caches.open('lifeuk-v0.66'); const r = await c.match('data/exams.js') || await c.match('./data/exams.js');
-      const s = await c.match('data/study.js') || await c.match('./data/study.js'); return { e: r && (await r.text()).includes('排燈節（Diwali）有咩別稱？'), s: s && (await s.text()).includes('Snowdonia（雪墩）') }; });
-    ok(cached.e && cached.s, `SW cache lifeuk-v0.66 holds the new data/exams.js + data/study.js ${JSON.stringify(cached)}`);
+    // poll inside the page (waitForFunction with an async predicate resolves immediately on the returned Promise)
+    const cacheReady = await pg.evaluate(async name => { for (let i = 0; i < 75; i++) { if ((await caches.keys()).includes(name)) return true;
+      await new Promise(r => setTimeout(r, 200)); } return false; }, CUR_CACHE);
+    ok(cacheReady, `SW cache ${CUR_CACHE} created`);
+    ok(await pg.evaluate(() => APP_VERSION) === CUR_VERSION && (await pg.textContent('#appVersion')) === 'v' + CUR_VERSION, `APP_VERSION ${CUR_VERSION}, header v${CUR_VERSION}`);
+    const cached = await pg.evaluate(async name => { const c = await caches.open(name); const get = async p => { const r = await c.match(p) || await c.match('./' + p); return r ? r.text() : null; };
+      return { e: await get('data/exams.js'), s: await get('data/study.js') }; }, CUR_CACHE);
+    ok(cached.e === repoExams && cached.s === repoStudy, `SW cache ${CUR_CACHE} holds data/exams.js + data/study.js byte-identical to the repo (exams ${cached.e === repoExams}, study ${cached.s === repoStudy})`);
+    const qNew = expQ(probeQ).yue, qOld = oldQ(probeQ).yue;
+    ok(cached.e && cached.e.includes(qNew) && (qNew === qOld || !cached.e.includes(qOld)), `SW cache data/exams.js: ${ref(probeQ)} yue = oracle "${qNew}" (v0.65 "${qOld}" gone)`);
+    const fOld = OLD_STUDY.find(f => f.id === probeFact.id).yue;
+    ok(cached.s && cached.s.includes(probeFact.yue) && !cached.s.includes(fOld), `SW cache data/study.js: fact #${probeFact.id} yue = oracle (v0.65 text gone)`);
     ok(errs.length === 0, 'version — no page errors ' + errs.join('|'));
     await ctx.close();
   } finally { server.kill(); }
@@ -378,9 +402,8 @@ async function overflow(b) {
       for (const a of expQ(k).a) await tap(pg, `#opt${order.indexOf(a)}`);
       await pg.$eval('#answerBox', e => e.scrollIntoView());
       r = await noOverflow(pg);
-      // CUI-0013 (pre-existing, multi-select quick nav at <= 375px) is reported separately
-      const spill = r.spill.filter(s => !/^quick|q-num/.test(s));
-      ok(r.sw <= r.iw && spill.length === 0, `${lang} ${w}px ${ref(k)} answer box + note + Similar: no horizontal overflow ${spill.slice(0, 3).join(' ')}${r.spill.length > spill.length ? ' [CUI-0013 quick nav only]' : ''}`);
+      // CUI-0013 (multi-select quick nav at <= 375px) is fixed since v0.67 → no exemption any more
+      ok(r.sw <= r.iw && r.spill.length === 0, `${lang} ${w}px ${ref(k)} answer box + note + Similar: no horizontal overflow ${r.spill.slice(0, 3).join(' ')}`);
       const box = await pg.$eval('#ansNote', e => ({ sw: e.scrollWidth, cw: e.clientWidth }));
       ok(box.sw <= box.cw + 1, `${lang} ${w}px ${ref(k)} note wraps inside the answer box (${box.sw} <= ${box.cw})`);
       if (k === longNote[0] && w === 320) await pg.screenshot({ path: shot(`${lang}_answer-long-note_${w}`), fullPage: true });
@@ -405,9 +428,9 @@ async function overflow(b) {
   }
 }
 
-// ══════════ 5. offline + v0.65 → v0.66 upgrade ══════════
+// ══════════ 5. offline + v0.65 → current version upgrade ══════════
 async function offlineAndUpgrade(b) {
-  const K = '11.3'; // E11·Q4: yue changed in v0.66
+  const K = '11.3'; // E11·Q4: yue changed since v0.65 (batches 1..7)
   const translateYue = async pg => { await openPractice(pg, 11); const pos = (await sessionMap(pg)).indexOf(K); await tap(pg, `#navDots .dot:nth-child(${pos + 1})`);
     await tap(pg, '#yueToggle'); return pg.textContent('#qYue'); };
   const storage = pg => pg.evaluate(() => Object.fromEntries(Object.keys(localStorage).sort().map(k => [k, localStorage.getItem(k)])));
@@ -417,7 +440,8 @@ async function offlineAndUpgrade(b) {
   try {
     const ctx = await b.newContext({ viewport: { width: 390, height: 844 } }); const pg = await ctx.newPage(); const { errs } = watch(pg);
     await pg.goto(base); await pg.evaluate(() => navigator.serviceWorker.ready);
-    await pg.waitForFunction(async () => (await caches.keys()).includes('lifeuk-v0.65'), null, { timeout: 15000 });
+    ok(await pg.evaluate(async () => { for (let i = 0; i < 75; i++) { if ((await caches.keys()).includes('lifeuk-v0.65')) return true;
+      await new Promise(r => setTimeout(r, 200)); } return false; }), 'upgrade: SW cache lifeuk-v0.65 created');
     await pg.evaluate(() => { localStorage.clear();
       localStorage.setItem('lifeuk.uiLang', '"zh-HK"');
       localStorage.setItem('lifeuk.practiceStreak', '{"1.0":3,"2.1":1,"11.5":2}'); localStorage.setItem('lifeuk.practiceFlags', '{"3.4":true}');
@@ -432,19 +456,19 @@ async function offlineAndUpgrade(b) {
     ok(oldYue === oldQ(K).yue, `upgrade: v0.65 Practice Translate shows the old yue "${oldYue}"`);
     await p1.close();
     const afterOldFlow = await storage(pg);
-    // deploy v0.66 over the same folder
+    // deploy the current version over the same folder
     fs.readdirSync(dir).forEach(f => fs.rmSync(path.join(dir, f), { recursive: true, force: true }));
     appFiles(ROOT).forEach(f => fs.cpSync(path.join(ROOT, f), path.join(dir, f), { recursive: true }));
     await pg.reload();
-    await pg.evaluate(async () => { const reg = await navigator.serviceWorker.getRegistration();
+    await pg.evaluate(async cur => { const reg = await navigator.serviceWorker.getRegistration();
       for (let i = 0; i < 100; i++) { const k = await caches.keys();
-        if (k.length === 1 && k[0] === 'lifeuk-v0.66' && !reg.installing && !reg.waiting && navigator.serviceWorker.controller) return true;
+        if (k.length === 1 && k[0] === cur && !reg.installing && !reg.waiting && navigator.serviceWorker.controller) return true;
         if (!reg.installing && !reg.waiting) await reg.update().catch(() => {}); await new Promise(r => setTimeout(r, 200)); }
-      return false; });
+      return false; }, CUR_CACHE);
     const keys = await pg.evaluate(() => caches.keys());
-    ok(keys.length === 1 && keys[0] === 'lifeuk-v0.66', `upgrade: new SW active, cache lifeuk-v0.66 only (${keys})`);
+    ok(keys.length === 1 && keys[0] === CUR_CACHE, `upgrade: new SW active, cache ${CUR_CACHE} only (${keys})`);
     await pg.reload();
-    ok(await pg.evaluate(() => APP_VERSION) === '0.66', 'upgrade: after reload v0.66');
+    ok(await pg.evaluate(() => APP_VERSION) === CUR_VERSION, `upgrade: after reload v${CUR_VERSION}`);
     const after = await storage(pg);
     const keep = ['lifeuk.practiceStreak', 'lifeuk.practiceFlags', 'lifeuk.wrongList', 'lifeuk.completedExams', 'lifeuk.studyBookmarks', 'lifeuk.studyMastered', 'lifeuk.uiLang'];
     ok(keep.every(k => after[k] === afterOldFlow[k] && after[k] === before[k]), `upgrade: progress / streaks / flags / wrong list / Study marks byte-identical ${keep.map(k => k.slice(7) + '=' + after[k]).join(' ')}`);
@@ -453,12 +477,12 @@ async function offlineAndUpgrade(b) {
     ok(home.includes('已標記 1 題') && /錯題[\s\S]{0,20}2/.test(home), 'upgrade: My Review shows flagged 1 + 2 wrong in zh-HK');
     await pg.goto(base); await sleep(200);
     const newYue = await translateYue(pg);
-    ok(newYue === expQ(K).yue && newYue !== oldYue, `upgrade: v0.66 Practice Translate shows the new yue "${newYue}"`);
+    ok(newYue === expQ(K).yue && newYue !== oldYue, `upgrade: v${CUR_VERSION} Practice Translate shows the new yue "${newYue}"`);
     // offline after the upgrade: data from the SW, new text
     await pg.goto(base); await sleep(200);
     await ctx.setOffline(true);
     await pg.reload();
-    ok(await pg.evaluate(() => !navigator.onLine && !!navigator.serviceWorker.controller && APP_VERSION === '0.66'), 'offline: page from the v0.66 SW');
+    ok(await pg.evaluate(cur => !navigator.onLine && !!navigator.serviceWorker.controller && APP_VERSION === cur, CUR_VERSION), `offline: page from the v${CUR_VERSION} SW`);
     await nav(pg, '#modeStudy');
     await pg.type('#studySearch', '雪墩'); await sleep(80);
     const offIds = await pg.$$eval('#studyContent .fact[data-fact-id]', els => els.map(e => e.querySelector('.fact-yue').textContent));
