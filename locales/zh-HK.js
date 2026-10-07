@@ -110,7 +110,7 @@ LOCALES['zh-HK'] = {
   similar: {
     title: '相似題目',
     subtitle: '同一知識點，不同問法',
-    coreFact: '📌 核心知識 #{id}',
+    coreFact: '📌 核心知識', // followed by study.chapterFactId
     appearsIn: '出現於：',
     node: 'E{exam}·Q{n}',
     legendCurrent: '本題',
@@ -146,7 +146,10 @@ LOCALES['zh-HK'] = {
     mastered: '已掌握',
     masteredDerived: '🏆 已掌握 — 所有來源題目均已掌握',
     progress: '🏆 已掌握 {n} / {total}',
-    factId: '#{id}',
+    // the fact's number within its chapter (chapterFactNumber); the global fact id is never shown
+    factId: '#{n}',
+    // S-057: English in every language, like common.chapterShort
+    chapterFactId: 'Ch {ch} #{n}',
   },
 
   modal: {

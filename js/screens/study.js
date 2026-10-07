@@ -170,7 +170,7 @@ function renderStudyProgress() {
 function chapterGroupHtml(ch, list) {
   const title = t('study.chapterTitle', { n: ch, title: t(`data.chapters.${ch}`) });
   // S-049: study.chapterTitle and the chapter name are English in every language (plan Q10)
-  return `<div class="study-group-title" lang="en">${CHAPTER_ICONS[ch]} ${escapeHtml(title)} <span class="cnt">${list.length}</span></div>`
+  return `<div class="study-group-title" lang="en">${CHAPTER_ICONS[ch]} ${escapeHtml(title)}</div>`
     + list.map(f => renderFact(f, { noChapter: true })).join('');
 }
 function renderStudyChapters() {
@@ -211,7 +211,7 @@ function renderStudyGeo() {
   NATIONS.forEach(nation => {
     const list = facts.filter(f => f.geo[0] === nation);
     if (!list.length) return;
-    html += `<div class="study-group-title">${nationText(nation, LABEL_FIELD)} <span class="cnt">${list.length}</span></div>`;
+    html += `<div class="study-group-title">${nationText(nation, LABEL_FIELD)}</div>`;
     GEO_TYPES.forEach(type => {
       const sub = list.filter(f => f.geo[1] === type);
       if (!sub.length) return;
@@ -235,7 +235,7 @@ function renderStudyPeople() {
     const list = facts.filter(f => f.p[1] === group);
     if (!list.length) return;
     sortPeople(group, list);
-    html += `<div class="study-group-title">${peopleText(group, LABEL_FIELD)} <span class="cnt">${list.length}</span></div>`;
+    html += `<div class="study-group-title">${peopleText(group, LABEL_FIELD)}</div>`;
     html += list.map(f => renderFact(f, { noPerson: true, title: f.p[0] })).join('');
   });
   return { html, shown: facts.length, total: pool.length };

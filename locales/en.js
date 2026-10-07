@@ -113,7 +113,7 @@ LOCALES.en = {
   similar: {
     title: 'Similar Questions',
     subtitle: 'Same fact, asked differently',
-    coreFact: '📌 Core Fact #{id}',
+    coreFact: '📌 Core Fact', // followed by study.chapterFactId
     appearsIn: 'Appears in:',
     node: 'E{exam}·Q{n}',
     legendCurrent: 'This question',
@@ -149,7 +149,10 @@ LOCALES.en = {
     mastered: 'Mastered',
     masteredDerived: '🏆 Mastered — every source question mastered',
     progress: '🏆 {n} / {total} mastered',
-    factId: '#{id}',
+    // the fact's number within its chapter (chapterFactNumber); the global fact id is never shown
+    factId: '#{n}',
+    // S-057: English in every language, like common.chapterShort
+    chapterFactId: 'Ch {ch} #{n}',
   },
 
   modal: {

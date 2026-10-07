@@ -35,7 +35,22 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert((await text('#similarBox .sqm-title b')) === 'Similar Questions', 'English section title');
   assert((await text('#similarBox .sqm-title span')) === 'Same fact, asked differently', 'subtitle has no mastery count');
   assert((await text('#similarBox .sqm-count')) === '+2', 'count badge +2');
-  assert((await text('#similarBox .sqm-fact-label')).includes('Core Fact #203'), 'core fact label');
+  // 2026-10-07: the Core Fact shows the per-chapter "Ch n #k" (counted here from STUDY), not the global "#203"
+  const coreNum = await pg.evaluate(() => {
+    const f = STUDY.find(x => x.id === 203);
+    return `Ch ${f.ch} #${STUDY.filter(x => x.ch === f.ch).indexOf(f) + 1}`;
+  });
+  const coreLabel = () => pg.$eval('#similarBox .sqm-fact-label', e => {
+    const num = [...e.querySelectorAll('[lang="en"]')].map(s => s.textContent);
+    return { text: e.textContent.replace(/\s+/g, ' ').trim(), num };
+  });
+  const enLabel = await coreLabel();
+  assert(enLabel.text === `📌 Core Fact ${coreNum}` && enLabel.num.includes(coreNum) && !enLabel.text.includes('#203'),
+    `core fact label "📌 Core Fact ${coreNum}", number in lang="en": ` + JSON.stringify(enLabel));
+  await pg.evaluate(() => setLang('zh-HK'));
+  const zhLabel = await coreLabel();
+  assert(zhLabel.text === `📌 核心知識 ${coreNum}` && zhLabel.num.includes(coreNum), `zh-HK core fact label "📌 核心知識 ${coreNum}": ` + JSON.stringify(zhLabel));
+  await pg.evaluate(() => setLang('en'));
   assert((await text('#similarBox .sqm-fact-en')).startsWith('Towns, cities and rural areas'), 'core fact English');
   // v0.62 (P3 T-106, O8): Core Fact keeps its gold fill but shares the Study fact card shape (4px border, --radius-md, 12px 14px)
   const coreShape = await pg.$eval('#similarBox .sqm-fact', e => {
