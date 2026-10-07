@@ -37,7 +37,7 @@ LOCALES.en = {
     modePractice: 'Practice',
     modeExam: 'Exam',
     practiceDescHtml: '<strong>Practice</strong> — See the answer and Cantonese translation immediately after each question. Pick a set by difficulty, chapter or exam; each shows how much you have mastered.',
-    examDescHtml: '<strong>Exam</strong> — Answer all {n} questions like the real test; you can go back and change answers. Submit on the last question to see your score and answers. Pick an exam below.',
+    examDescHtml: '<strong>Exam</strong> — Answer all {n} questions like the real test; you can go back and change answers. Submit on the last question to see your score and answers.',
     myReview: 'My Review',
     practiceBy: 'Practice By',
     tabDifficulty: 'Difficulty',
