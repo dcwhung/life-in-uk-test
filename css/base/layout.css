@@ -7,6 +7,10 @@ body {
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
 }
+/* form controls use the body font, not the UA default (Linux Chromium: Arial). Family only, not the `font`
+   shorthand: that would also reset size / weight, and unsized controls (ⓘ, flag, unflag) would pick up their
+   parent's size and weight instead of the UA 13.33px / 400 they render with today. */
+button, input, select, textarea { font-family: inherit; }
 
 /* ── HEADER ── */
 header {
