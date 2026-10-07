@@ -56,6 +56,19 @@ function shapeProblems(EXAMS, STUDY) {
   return out;
 }
 
+// R3 (yue-terms.md): the same English question reads the same in Cantonese wherever it appears
+function sameQuestionProblems(EXAMS) {
+  const byQuestion = new Map();
+  Object.entries(EXAMS).forEach(([exam, qs]) => qs.forEach((q, i) => {
+    const key = q.q.trim().toLowerCase();
+    if (!byQuestion.has(key)) byQuestion.set(key, []);
+    byQuestion.get(key).push({ at: questionLabel(exam, i), yue: q.yue });
+  }));
+  return [...byQuestion.values()]
+    .filter(group => new Set(group.map(g => g.yue)).size > 1)
+    .map(group => group.map(g => `${g.at}: ${show(g.yue)}`).join(' / '));
+}
+
 function report(title, problems) {
   if (!problems.length) return;
   console.log(`\n${title}: ${problems.length} difference(s)`);
@@ -87,5 +100,8 @@ assert(now.facts.length === base.facts.length, `same fact count: ${now.facts.len
 assert(problems['exams (protected fields)'].length === 0, 'exams: every field except yue / oy / note unchanged, same order; oy slots keep their empty / filled shape');
 assert(problems['study facts (protected fields)'].length === 0, 'study: every fact field except yue unchanged, same order; yue still non-empty');
 assert(problems['other data (CHAPTERS, ...)'].length === 0, 'other data unchanged: ' + Object.keys(now.other).join(', '));
+const sameQuestion = sameQuestionProblems(EXAMS);
+report('same English question, different yue (R3)', sameQuestion);
+assert(sameQuestion.length === 0, 'R3: identical English questions have identical yue');
 assert(problems['translation shape'].length === 0, 'oy.length === o.length, oy / note / fact yue are strings');
 console.log('CONTENT-GUARD PASS');
