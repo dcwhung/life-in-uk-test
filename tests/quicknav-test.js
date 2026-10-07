@@ -80,8 +80,8 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await answer();
   assert((await pg.$$('#qNum .score-pill')).length === 0 && (await text('#qNum')).startsWith('Question 1 of 24'), 'exam mode: no score pill');
 
-  // CUI-0013: on a 320–360px screen the multi-answer header ("(select 2)" / "（選擇 2 項）") is long; the header text
-  // must wrap so ← → stay inside the card (.q-card clips with overflow: hidden). Single-answer headers keep one line.
+  // CUI-0013: the English question already states how many to pick (content-guard-test), so the header carries no
+  // "(select N)" hint and stays on one line even at 320px; ← → must stay inside the card (.q-card clips with overflow: hidden).
   const headerFit = (mode, multi) => pg.evaluate(([m, wantMulti]) => {
     pendingMode = m; startExam(1); // Exam 1 Q1 is a multi-answer question in exam order
     const i = state.questions.findIndex(q => (q.a.length > 1) === wantMulti);
@@ -99,7 +99,9 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
       await pg.setViewportSize({ width, height: 844 });
       for (const mode of ['exam', 'practice']) {
         const m = await headerFit(mode, true);
-        assert(/select 2|選擇 2 項/.test(m.text) && m.over <= 0.5, `${lang} ${width}px ${mode} multi-answer: → inside the card content box (over by ${m.over.toFixed(1)}px)`);
+        assert(m.over <= 0.5, `${lang} ${width}px ${mode} multi-answer: → inside the card content box (over by ${m.over.toFixed(1)}px)`);
+        assert(!/select|選擇|項）/i.test(m.text), `${lang} ${width}px ${mode} multi-answer: no "(select N)" hint in the header (${m.text})`);
+        assert(m.lines === 1, `${lang} ${width}px ${mode} multi-answer: header text stays on one line (${m.lines})`);
         const s = await headerFit(mode, false);
         assert(s.lines === 1 && s.over <= 0.5, `${lang} ${width}px ${mode} single-answer: header text stays on one line (${s.lines})`);
       }

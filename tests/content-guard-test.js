@@ -69,6 +69,19 @@ function sameQuestionProblems(EXAMS) {
     .map(group => group.map(g => `${g.at}: ${show(g.yue)}`).join(' / '));
 }
 
+// CUI-0013: the app shows no "(select N)" hint, so a multi-answer question must state its count in the English text
+const COUNT_WORDS = { 2: 'two', 3: 'three', 4: 'four' };
+function answerCountProblems(EXAMS) {
+  const out = [];
+  Object.entries(EXAMS).forEach(([exam, qs]) => qs.forEach((q, i) => {
+    if (q.a.length < 2) return;
+    const word = COUNT_WORDS[q.a.length];
+    if (!word) out.push(`${questionLabel(exam, i)}: ${q.a.length} answers, no count word mapped`);
+    else if (!new RegExp(`\\b${word}\\b`, 'i').test(q.q)) out.push(`${questionLabel(exam, i)}: ${q.a.length} answers but the question never says "${word}": ${show(q.q)}`);
+  }));
+  return out;
+}
+
 function report(title, problems) {
   if (!problems.length) return;
   console.log(`\n${title}: ${problems.length} difference(s)`);
@@ -104,4 +117,7 @@ const sameQuestion = sameQuestionProblems(EXAMS);
 report('same English question, different yue (R3)', sameQuestion);
 assert(sameQuestion.length === 0, 'R3: identical English questions have identical yue');
 assert(problems['translation shape'].length === 0, 'oy.length === o.length, oy / note / fact yue are strings');
+const answerCount = answerCountProblems(EXAMS);
+report('multi-answer question without a count word', answerCount);
+assert(answerCount.length === 0, 'every multi-answer question states how many to pick (two / three / four)');
 console.log('CONTENT-GUARD PASS');
