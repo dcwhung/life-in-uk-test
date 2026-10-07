@@ -76,12 +76,26 @@ function actionNames() {
     + (oldInverse.length ? ': ' + oldInverse.join(', ') : ''));
 
   // v0.62 (P3 Q2-a): purple means Cantonese only — Study / Home chrome uses the navy --study-accent* tokens;
-  // the only purple rule left in these files is the Cantonese line .fact-yue
-  const STUDY_CHROME_CSS = ['css/screens/study.css', 'css/components/chips.css', 'css/screens/home.css'];
+  // the only purple rules left in these files are the Cantonese lines .fact-yue / .sqm-fact-yue (v0.63: fact.css)
+  const STUDY_CHROME_CSS = ['css/screens/study.css', 'css/components/chips.css', 'css/screens/home.css', 'css/components/fact.css'];
   const purpleChrome = STUDY_CHROME_CSS.flatMap(f => fs.readFileSync(path.join(ROOT, f), 'utf8').split('\n')
-    .map((line, i) => (/--purple|--year-bg/.test(line) && !/^\.fact-yue\b/.test(line) ? `${f}:${i + 1}` : null)).filter(Boolean));
-  assert(purpleChrome.length === 0, 'Study / Home chrome css has no --purple* / --year-bg (only .fact-yue)'
+    .map((line, i) => (/--purple|--year-bg/.test(line) && !/^\.(sqm-)?fact-yue\b/.test(line) ? `${f}:${i + 1}` : null)).filter(Boolean));
+  assert(purpleChrome.length === 0, 'Study / Home chrome css has no --purple* / --year-bg (only the Cantonese lines)'
     + (purpleChrome.length ? ': ' + purpleChrome.join(', ') : ''));
+
+  // v0.63 (P3 T-201): the fact card component gets every mark / mastery value as a parameter — it never reads the
+  // Study screen's `study` object (upgrade-test pins that object's shape); `.fact*` rules live in fact.css only
+  const FACT_CARD_JS = path.join(ROOT, 'js/components/factCard.js');
+  assert(fs.existsSync(FACT_CARD_JS), 'js/components/factCard.js exists');
+  const factCardCode = fs.readFileSync(FACT_CARD_JS, 'utf8')
+    .replace(/\/\/.*$/gm, '').replace(/'[^'\n]*'|`[^`]*`|"[^"\n]*"/g, "''"); // code only: no comments / strings ('study.x' keys)
+  assert(!/\bstudy\b/.test(factCardCode), 'js/components/factCard.js does not read the study global');
+  const factRules = f => {
+    const file = path.join(ROOT, f);
+    return fs.existsSync(file) ? fs.readFileSync(file, 'utf8').split('\n').filter(l => /^\.(fact|sqm-fact)\b/.test(l)).length : 0;
+  };
+  assert(factRules('css/screens/study.css') === 0 && factRules('css/screens/quiz.css') === 0 && factRules('css/components/fact.css') > 0,
+    '.fact* / .sqm-fact* rules live in css/components/fact.css only');
 
   const b = await chromium.launch(launchOpts);
   const pg = await b.newPage();

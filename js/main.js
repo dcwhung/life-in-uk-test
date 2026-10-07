@@ -3,7 +3,8 @@
 // ════════════════════════════════════════
 // During a service-worker update a cached older index.html can load these scripts without the tags it never had
 // (same cutover as CUI-0004): fetch the missing ones first, in this order, then start.
-// locale + i18n: pre-v0.59 shells; sideSession: pre-v0.62 shells (startExam / leaveToHome call it)
+// locale + i18n: pre-v0.59 shells; sideSession: pre-v0.62 shells (startExam / leaveToHome call it);
+// factCard: pre-v0.63 shells (every Practice answer renders the Similar Core Fact, Study renders every card)
 // W-010: "loaded" = the file's global exists, not that its <script> tag does — a current shell whose i18n.js failed
 // still has the tag, and must get the same retry → reload → fallback (S-014). Ready files are never re-run
 // (re-running en.js would throw "LOCALES has already been declared").
@@ -11,6 +12,7 @@ const LATE_BOOT_SCRIPTS = [
   { src: 'locales/en.js', ready: () => typeof LOCALES !== 'undefined' },
   { src: 'js/core/i18n.js', ready: () => typeof t === 'function' },
   { src: 'js/screens/sideSession.js', ready: () => typeof isSideSession === 'function' },
+  { src: 'js/components/factCard.js', ready: () => typeof factCardHtml === 'function' },
 ];
 // shown when the scripts still fail after one reload; t() is not available then, so it cannot be a locale key
 const I18N_BOOT_FALLBACK_MSG = 'The app could not finish loading. Please check your connection and reload the page.';
@@ -62,6 +64,19 @@ function clearI18nBootRetry() {
   try { sessionStorage.removeItem(I18N_RELOAD_SS); } catch {}
 }
 
+// Same cutover for styles: v0.63 moved the .fact* / .sqm-fact* rules out of study.css / quiz.css into fact.css,
+// which an older cached index.html never links — add the <link> so Study and the Similar Core Fact keep their look
+const LATE_BOOT_STYLES = ['css/components/fact.css'];
+function addMissingBootStyles() {
+  LATE_BOOT_STYLES.filter(href => !document.querySelector(`link[rel="stylesheet"][href="${href}"]`)).forEach(href => {
+    const el = document.createElement('link');
+    el.rel = 'stylesheet';
+    el.href = href;
+    document.head.appendChild(el);
+  });
+}
+
+addMissingBootStyles();
 const bootMissing = missingBootScripts();
 if (!bootMissing.length) startApp();
 else loadBootScripts(bootMissing).then(() => { clearI18nBootRetry(); startApp(); }).catch(onI18nBootFailure);

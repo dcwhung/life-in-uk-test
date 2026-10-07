@@ -17,18 +17,12 @@ function similarItemHtml(k) {
       <div class="sqm-qy">${escapeHtml(item.q.yue)}</div>
     </div>`;
 }
-function similarFactHtml(f) {
-  return `<div class="sqm-fact">
-      <div class="sqm-fact-label">${t('similar.coreFact', { id: f.id })}</div>
-      <div class="sqm-fact-en">${escapeHtml(f.en)}</div>
-      <div class="sqm-fact-yue">${escapeHtml(f.yue)}</div>
-    </div>`;
-}
 // map node "E9·Q15" (1-based, like the "Exam 9 · Q15" refs)
 function similarNodeText({ examNum, origIdx }) { return t('similar.node', { exam: examNum, n: origIdx + 1 }); }
+// one display-only node coloured by its mastery (also the Study fact card's source row)
+function similarNodeHtml(k) { return `<span class="sqm-node${similarNodeClass(k)}">${similarNodeText(questionByKey(k))}</span>`; }
 function similarMapHtml(q, keys) {
-  const nodes = [`<span class="sqm-node current">${similarNodeText(q)}</span>`]
-    .concat(keys.map(k => `<span class="sqm-node${similarNodeClass(k)}">${similarNodeText(questionByKey(k))}</span>`));
+  const nodes = [`<span class="sqm-node current">${similarNodeText(q)}</span>`].concat(keys.map(similarNodeHtml));
   return `<div class="sqm-map"><span class="sqm-map-label">${t('similar.appearsIn')}</span>${nodes.join('')}</div>`;
 }
 function similarLegendHtml() {
@@ -46,7 +40,7 @@ function similarPanelHtml(q, keys) {
       <span class="sqm-title"><b>${t('similar.title')}</b><span>${t('similar.subtitle')}</span></span>
       <span class="sqm-count">+${keys.length}</span>
     </div>
-    ${similarFactHtml(factOf(q))}
+    ${factCardHtml(factOf(q), { variant: FACT_VARIANT.core })}
     ${similarMapHtml(q, keys)}
     ${similarLegendHtml()}
     <div class="sqm-list">${keys.map(similarItemHtml).join('')}</div>

@@ -23,7 +23,6 @@ const nationText = (key, field) => t(`data.nations.${key}.${field}`);
 const peopleText = (key, field) => t(`data.people.${key}.${field}`);
 const LABEL_FIELD = 'label';
 const CHIP_FIELD = 'chip';
-const CHAPTER_ICONS = { 1: '⚖️', 2: '🇬🇧', 3: '📜', 4: '🎭', 5: '🏛️' };
 const ALL_FILTER = 'all';
 const STUDY_PREF_KEYS = ['tab', 'chapter', 'hideMastered', 'bookmarksOnly', 'warsOnly', 'nation', 'group'];
 const STUDY_MARK_LS = { mastered: STUDY_LS.mastered, bookmarks: STUDY_LS.bookmarks };
@@ -90,53 +89,22 @@ function studyToggleMark(kind, id) {
   renderStudy();
 }
 
+// mastered = ticked by hand OR every source question 🏆 in Practice (derived on each render, never stored)
+function isFactMastered(f) { return !!study.mastered[f.id] || factMastery(f).derived; }
 function factMatches(f) {
-  if (study.hideMastered && study.mastered[f.id]) return false;
+  if (study.hideMastered && isFactMastered(f)) return false;
   if (study.bookmarksOnly && !study.bookmarks[f.id]) return false;
   if (!study.search) return true;
   const hay = (f.en + ' ' + f.yue + ' ' + (f.p ? f.p[0] : '') + ' ' + (f.yl || '')).toLowerCase();
   return hay.includes(study.search);
 }
-function yearLabel(f) {
-  if (f.yl) return f.yl;
-  if (f.y < 0) return t('study.yearBC', { n: -f.y });
-  return String(f.y);
-}
 
-// ── fact card ──
-function factTagsHtml(f, opts) {
-  const tags = [];
-  if (f.y !== undefined && !opts.noYear) tags.push(`<span class="tag year">📅 ${escapeHtml(yearLabel(f))}</span>`);
-  if (f.w) tags.push(`<span class="tag war">${t('study.war')}</span>`);
-  if (f.p && !opts.noPerson) tags.push(`<span class="tag person">👤 ${escapeHtml(f.p[0])}</span>`);
-  if (!opts.noChapter) tags.push(`<span class="tag">${CHAPTER_ICONS[f.ch]} ${t('common.chapterShort', { n: f.ch })}</span>`);
-  tags.push(starsHtml(f.d)); // same stars as the question card (v0.62)
-  if (f.src.length > 1) tags.push(`<span class="tag freq">${t('study.appears', { n: f.src.length })}</span>`);
-  return tags.join('');
-}
-// one per-fact toggle (kind = study mark key); the visible content is an icon, so the label lives in aria-label (O1)
-function factMarkButtonHtml(f, { kind, cls, labelKey, content }) {
-  const on = !!study[kind][f.id];
-  const label = escapeHtml(t(labelKey));
-  return `<button class="fact-btn ${cls}${on ? ' on' : ''}" title="${label}" aria-label="${label}" aria-pressed="${on}" data-action="studyToggleMark" data-mark="${kind}" data-arg="${escapeHtml(f.id)}">${content}</button>`;
-}
-function factMarkButtonsHtml(f) {
-  return factMarkButtonHtml(f, { kind: 'bookmarks', cls: 'star', labelKey: 'study.bookmark', content: bookmarkSvg('', { decorative: true }) })
-    + factMarkButtonHtml(f, { kind: 'mastered', cls: 'tick', labelKey: 'study.mastered', content: '✓' });
+// ── fact card (js/components/factCard.js, full variant): this screen hands it the fact's marks ──
+function factMarks(f) {
+  return { bookmarks: !!study.bookmarks[f.id], mastered: !!study.mastered[f.id], derived: factMastery(f).derived };
 }
 function renderFact(f, opts = {}) {
-  const mastered = !!study.mastered[f.id];
-  return `<div class="fact${f.w ? ' war' : ''}${mastered ? ' mastered' : ''}">
-    <div class="fact-top">
-      <div class="fact-meta">${factTagsHtml(f, opts)}</div>
-      <div class="fact-actions">
-        ${factMarkButtonsHtml(f)}
-      </div>
-    </div>
-    ${opts.title ? `<div class="fact-name">${escapeHtml(opts.title)}</div>` : ''}
-    <div class="fact-en">${escapeHtml(f.en)}</div>
-    <div class="fact-yue">${escapeHtml(f.yue)}</div>
-  </div>`;
+  return factCardHtml(f, { variant: FACT_VARIANT.full, marks: factMarks(f), opts });
 }
 
 // ── chip rows ──
@@ -176,8 +144,25 @@ function renderStudy() {
   subRow.hidden = !sub;
   const { html, shown, total } = STUDY_RENDERERS[study.tab]();
   byId('studyCount').textContent = t('study.count', { shown, total, n: total });
+  renderStudyProgress();
   byId('studyContent').innerHTML =
     shown ? html : `<div class="study-empty">${t('study.empty')}</div>`;
+}
+
+// Q8: after ↩ Back from a fact session its card flashes gold; R-010: when the restored scroll no longer shows it
+// (the list changed while practising) bring it into view. Gone (e.g. Hide mastered): nothing to do.
+function flashStudyFact(id) {
+  const el = document.querySelector(`#studyContent .fact[data-fact-id="${id}"]`);
+  if (!el) return;
+  el.scrollIntoView({ block: 'nearest' });
+  el.classList.add('flash');
+  setTimeout(() => el.classList.remove('flash'), FACT_HIGHLIGHT_MS);
+}
+
+// O7: "🏆 n / 236 mastered" over every fact. A cached pre-v0.63 index.html has no #studyProgress (SW cutover)
+function renderStudyProgress() {
+  const el = byId('studyProgress');
+  if (el) el.textContent = t('study.progress', { n: STUDY.filter(isFactMastered).length, total: STUDY.length });
 }
 
 // ── tab renderers: each returns { html, shown, total } ──

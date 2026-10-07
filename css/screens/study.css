@@ -10,6 +10,12 @@
   outline: none;
 }
 .study-search:focus { border-color: var(--navy-light); }
+/* O7: overall "🏆 n / 236 mastered" pill in the Study header (green = mastered, like the Practice 🏆) */
+.study-progress {
+  font-size: var(--fs-sm); font-weight: 800; color: var(--green);
+  background: var(--success-bg); border: 1.5px solid var(--green-light);
+  border-radius: var(--radius-pill); padding: 3px 10px; white-space: nowrap;
+}
 .study-count { font-size: var(--fs-sm); color: var(--text-muted); margin-bottom: 10px; }
 .study-group-title {
   font-size: var(--fs-md); font-weight: 800; color: var(--navy);
@@ -23,57 +29,8 @@
   text-transform: uppercase; letter-spacing: 0.05em;
   margin: 14px 0 8px;
 }
-.fact {
-  background: var(--card);
-  border-radius: var(--radius-md);
-  padding: 12px 14px;
-  border-left: 4px solid var(--study-accent);
-  margin-bottom: 10px;
-  transition: opacity 0.15s;
-}
-.fact.war { border-left-color: var(--red-light); }
-.fact.mastered { opacity: 0.55; border-left-color: var(--green-light); }
-.fact-top { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 6px; }
-.fact-meta { flex: 1; display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
-.tag {
-  font-size: 10.5px; font-weight: 700;
-  border-radius: var(--radius-xs); padding: 2px 7px;
-  background: var(--bg); color: var(--text-muted);
-}
-.tag.year { background: var(--study-accent-bg); color: var(--study-accent-strong); }
-.tag.war { background: var(--danger-bg); color: var(--red); }
-.tag.freq { background: var(--gold-bg); color: var(--gold-text); }
-.tag.person { background: var(--person-bg); color: var(--navy-light); }
-/* --fact-actions-gap is shared with the hit rings below so they meet in the gap instead of overlapping (W-009) */
-.fact-actions { --fact-actions-gap: 4px; display: flex; gap: var(--fact-actions-gap); flex-shrink: 0; }
-.fact-btn {
-  background: var(--bg);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-xs);
-  width: 32px; height: 32px;
-  font-size: var(--fs-md); cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  color: var(--text-muted);
-  transition: all 0.15s;
-  position: relative;
-}
-/* O2: 32px box + 6px invisible ring = 44px touch target (WCAG 2.5.5) */
-.fact-btn::before { content: ''; position: absolute; inset: -6px; }
-/* W-009: on the facing sides the ring only reaches half the gap — a full 6px ring on the ✓ (later in the DOM,
-   so painted on top) covered the bookmark's right edge and a tap there toggled Mastered. No visual change. */
-.fact-btn.star::before { right: calc(var(--fact-actions-gap) / -2); }
-.fact-btn.tick::before { left: calc(var(--fact-actions-gap) / -2); }
-/* bookmark: same SVG + colours as the Practice .flag-btn (outline muted, on = orange fill); the path has no fill of its own */
-.fact-btn svg { width: 18px; height: 18px; }
-.fact-btn.star path { fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; }
-.fact-btn.star.on { background: var(--flag-bg); border-color: var(--orange); color: var(--orange); }
-.fact-btn.star.on path { fill: currentColor; }
 /* "Bookmarked only" chip icon: outline while off, like the fact button (result filter chips keep the orange icon) */
 #studyChips .chip:not(.active) .chip-flag path { fill: none; stroke: currentColor; }
-.fact-btn.on.tick { background: var(--success-bg); border-color: var(--green); color: var(--green); }
-.fact-name { font-size: var(--fs-md); font-weight: 800; color: var(--navy); margin-bottom: 4px; }
-.fact-en { font-size: var(--fs-md); font-weight: 500; color: var(--text); line-height: 1.5; }
-.fact-yue { font-size: var(--fs-base); color: var(--purple); line-height: 1.6; margin-top: 5px; }
 .study-empty { text-align: center; color: var(--text-muted); font-size: var(--fs-base); padding: 30px 0; }
 
 /* timeline */

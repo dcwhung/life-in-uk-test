@@ -83,6 +83,8 @@ async function mixedShell(b) {
   await pg.waitForSelector('#examGrid .exam-btn', { state: 'attached' });
   assert(await pg.evaluate(() => typeof t === 'function' && !!document.querySelector('script[src="locales/en.js"]') && document.title === t('app.title')), 'mixed shell: missing locale + i18n scripts loaded at start-up');
   assert(await pg.evaluate(() => typeof isSideSession === 'function' && !!document.querySelector('script[src="js/screens/sideSession.js"]')), 'mixed shell: missing sideSession.js loaded at start-up (v0.62)');
+  assert(await pg.evaluate(() => typeof factCardHtml === 'function' && !!document.querySelector('script[src="js/components/factCard.js"]')), 'mixed shell: missing factCard.js loaded at start-up (v0.63)');
+  assert(await pg.evaluate(() => !!document.querySelector('link[rel="stylesheet"][href="css/components/fact.css"]')), 'mixed shell: missing fact.css stylesheet added at start-up (v0.63: .fact* / .sqm-fact* rules moved there)');
   assert((await text(pg, '#examGrid .exam-btn.all .exam-mastery')).startsWith('3/408'), 'mixed shell: legacy mastery shown (3/408)');
   assert((await text(pg, '#tileFlagged .t-num')) === '5', 'mixed shell: legacy Flagged 5 shown');
   const newKey = await pg.evaluate(() => {
