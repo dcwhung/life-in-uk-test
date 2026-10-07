@@ -71,9 +71,19 @@
 .fact-src .sqm-node { padding: 3px 8px; white-space: nowrap; }
 .fact-practise {
   background: var(--card); color: var(--navy);
-  border: 1.5px solid var(--navy); border-radius: var(--radius-pill);
+  border: var(--fact-practise-border) solid var(--navy); border-radius: var(--radius-pill);
   padding: 6px 12px; font-size: var(--fs-sm); font-weight: 700;
   white-space: nowrap; margin-left: auto; cursor: pointer;
+  /* S-030: --fact-practise-ring = (44px target - 29px pill (6px padding × 2 + ~14px line + 1.5px border × 2)) / 2,
+     rounded up; ::before inset counts from the padding box, so the border is added back (as .fact-btn, CUI-0009) */
+  --fact-practise-border: 1.5px; --fact-practise-ring: 8px;
+  position: relative;
+}
+/* invisible tap ring, top and bottom only: above sits the row's 10px padding-top (single line) or the display-only
+   source nodes (wrapped line, 6px gap — overlap is harmless, nodes take no taps); below, the card's 12px padding */
+.fact-practise::before {
+  content: ''; position: absolute;
+  inset: calc(-1 * (var(--fact-practise-ring) + var(--fact-practise-border))) 0;
 }
 
 /* core variant: gold Core Fact inside the white Similar panel; same shape as .fact (v0.62 O8) */

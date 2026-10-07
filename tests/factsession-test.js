@@ -156,6 +156,7 @@ async function checkHomeAndAfter(pg) {
 // session for real; ↩ Back flashes the card gold for FACT_HIGHLIGHT_MS (Q8)
 const FACT_NODES = 'E4·Q17:sqm-node mastered,E6·Q7:sqm-node weak,E7·Q15:sqm-node,E8·Q14:sqm-node,E12·Q24:sqm-node,E15·Q7:sqm-node,E16·Q17:sqm-node,E17·Q22:sqm-node';
 const ONE_SOURCE_FACT = 10;
+const MIN_TOUCH_PX = 44; // project touch-target standard (O2, CUI-0009)
 const factCard = id => `#studyContent .fact[data-fact-id="${id}"]`;
 async function openStudyChapter3(pg) {
   await pg.evaluate(() => { streaks = { '4.16': 3, '6.6': 1 }; openStudy(); studySetTab('chapters'); studySetChapter(3); });
@@ -177,6 +178,16 @@ async function checkSourceRow(pg) {
   assert(row.clickable === 0 && row.appears === 0 && row.label === 'Appears in:', `nodes are display only; "Appears ×n" tag gone (${JSON.stringify(row)})`);
   assert(row.btn === `▶ Practise these 8|startFactPractice|${FACT_ID}`, 'Practise button: plural label + startFactPractice action: ' + row.btn);
   assert(row.describedBy === `#${FACT_ID}`, 'Practise button is described by the card "#id": ' + row.describedBy);
+  // S-030: the ~29px "▶ Practise" pill keeps its look but takes taps over >= 44px (invisible ::before ring);
+  // scan the button's vertical centre line with elementFromPoint
+  const hit = await pg.$eval(`${factCard(FACT_ID)} .fact-practise`, e => {
+    e.scrollIntoView({ block: 'center' });
+    const r = e.getBoundingClientRect(), x = r.left + r.width / 2;
+    let rows = 0;
+    for (let y = Math.floor(r.top) - 40; y <= Math.ceil(r.bottom) + 40; y++) if (document.elementFromPoint(x, y)?.closest('.fact-practise') === e) rows++;
+    return { visible: r.height, rows };
+  });
+  assert(hit.rows >= MIN_TOUCH_PX, `Practise button tap height >= ${MIN_TOUCH_PX}px (visible ${hit.visible}px, tappable ${hit.rows}px)`);
   const one = await pg.$eval(`${factCard(ONE_SOURCE_FACT)} .fact-practise`, e => e.textContent);
   assert(one === '▶ Practise this one', 'one source question: ▶ Practise this one');
 }
