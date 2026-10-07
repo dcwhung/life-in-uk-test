@@ -4,6 +4,12 @@
 //   NODE_PATH=/opt/node-tools/node_modules CHROMIUM_PATH=/opt/pw-browsers/chromium \
 //     node .proj-docs/qa/scripts/2026-10-07_qa-v063.js <repo-root> <screenshot-dir> [v062-ref=5e1816f] [v057-ref=dc84cab]
 // QA_ONLY=section,section limits the run.
+// 2026-10-07 refresh (Lane D, S-039 plan A): the double tap guard (CUI-0011, v0.64) swallows a pointer click within
+// DOUBLE_TAP_SLOP_PX / SCREEN_CHANGE_CLICK_GUARD_MS of a click that changed the view, so every click that changes the
+// screen is followed by settle() = sleep(SCREEN_CHANGE_CLICK_GUARD_MS + 50) (value read from js/core/config.js) before
+// the next click. boot's Similar Core Fact check opens a fixed key that always has Similar questions (fact #21's first
+// source) instead of the first fact-linked question of a shuffled Exam 4. versionCheck compares against the current
+// APP_VERSION instead of v0.63.
 const { chromium } = require('playwright-core');
 const { execSync } = require('child_process');
 const fs = require('fs');
@@ -29,6 +35,14 @@ const MOBILE = { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, is
   userAgent: 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Mobile Safari/537.36' };
 const shot = n => path.join(SHOT_DIR, `2026-10-07_v063_${n}.png`);
 const card = id => `#studyContent .fact[data-fact-id="${id}"]`;
+const CONFIG_JS = fs.readFileSync(path.join(ROOT, 'js/core/config.js'), 'utf8');
+const SCREEN_CHANGE_CLICK_GUARD_MS = Number(CONFIG_JS.match(/const SCREEN_CHANGE_CLICK_GUARD_MS = (\d+)/)[1]);
+const CUR_VERSION = CONFIG_JS.match(/const APP_VERSION = '([^']+)'/)[1];
+const CUR_CACHE = 'lifeuk-v' + CUR_VERSION;
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const settle = () => sleep(SCREEN_CHANGE_CLICK_GUARD_MS + 50);
+// a pointer click that changes the screen, then wait out the double tap guard before the next click
+const nav = async (pg, sel) => { await pg.click(sel); await settle(); };
 
 function watchErrors(pg) {
   const errs = [];
@@ -59,14 +73,15 @@ async function versionCheck(b) {
   try {
     const ctx = await b.newContext(); const pg = await ctx.newPage();
     await pg.goto(base);
-    ok(await pg.evaluate(() => APP_VERSION) === '0.63', 'APP_VERSION === 0.63');
-    ok((await pg.textContent('#appVersion')) === 'v0.63', 'header shows v0.63');
+    ok(await pg.evaluate(() => APP_VERSION) === CUR_VERSION, `APP_VERSION === ${CUR_VERSION} (js/core/config.js)`);
+    ok((await pg.textContent('#appVersion')) === 'v' + CUR_VERSION, `header shows v${CUR_VERSION}`);
     await pg.evaluate(() => navigator.serviceWorker.ready);
-    await pg.waitForFunction(async () => (await caches.keys()).includes('lifeuk-v0.63'), null, { timeout: 15000 }).catch(() => {});
+    // poll inside the page (waitForFunction with an async predicate resolves immediately on the returned Promise)
+    await pg.evaluate(async n => { for (let i = 0; i < 75; i++) { if ((await caches.keys()).includes(n)) return; await new Promise(r => setTimeout(r, 200)); } }, CUR_CACHE);
     const keys = await pg.evaluate(() => caches.keys());
-    ok(keys.length === 1 && keys[0] === 'lifeuk-v0.63', `SW cache = lifeuk-v0.63 only (${keys})`);
-    const cached = await pg.evaluate(async () => { const c = await caches.open('lifeuk-v0.63');
-      return [!!(await c.match('js/components/factCard.js')), !!(await c.match('css/components/fact.css'))]; });
+    ok(keys.length === 1 && keys[0] === CUR_CACHE, `SW cache = ${CUR_CACHE} only (${keys})`);
+    const cached = await pg.evaluate(async n => { const c = await caches.open(n);
+      return [!!(await c.match('js/components/factCard.js')), !!(await c.match('css/components/fact.css'))]; }, CUR_CACHE);
     ok(cached[0] && cached[1], `factCard.js / fact.css are in the installed SW cache (${cached})`);
     await ctx.close();
   } finally { server.kill(); }
@@ -179,7 +194,7 @@ async function mastery(b) {
       return STUDY.filter(f => man[f.id] || f.src.every(k => (st[k] || 0) >= 3)).length;
     });
     // via the real Home → Study button
-    await pg.click('#modeStudy');
+    await nav(pg, '#modeStudy');
     await pg.click('.study-tab[data-tab="chapters"]');
     await pg.click('#studySubChips .chip[data-arg="2"]');
     const progress = await pg.textContent('#studyProgress');
@@ -225,12 +240,12 @@ async function mastery(b) {
     ok(![3, 4, 6].some(id => hidden.ids.includes(id)) && hidden.ids.includes(5) && hidden.ids.length === total - 3, `${w}: Hide mastered hides #3 (derived), #4, #6 (ticked) — ${hidden.count}`);
     await pg.click('#studyChips .chip[data-arg="hideMastered"]');
     // Home "Reset practice progress" via the UI
-    await pg.click('#screenStudy .back-btn');
+    await nav(pg, '#screenStudy .back-btn');
     await pg.click('[data-action="resetPracticeProgress"]');
     await pg.click('#confirmOk');
     const ls = await pg.evaluate(() => [localStorage.getItem('lifeuk.practiceStreak'), localStorage.getItem('lifeuk.studyMastered'), localStorage.getItem('lifeuk.studyBookmarks')]);
     ok(ls[0] === '{}' && ls[1] === before[0] && ls[2] === before[1], `${w}: Reset practice progress clears streaks, keeps Study ticks + bookmarks (${ls})`);
-    await pg.click('#modeStudy');
+    await nav(pg, '#modeStudy');
     const r3 = await look(3), r4 = await look(4), r6 = await look(6);
     const prog2 = await pg.textContent('#studyProgress');
     ok(!r3.mastered && !r3.trophy && r3.text === '✓' && r3.pressed === 'false', `${w}: after reset derived 🏆 on #3 gone, back to ✓`);
@@ -312,9 +327,9 @@ async function practiseFlow(b) {
     const { ctx, pg, errs } = await fresh(b, w);
     const T = { gold: await tok(pg, '--gold') };
     // Home left in Exam mode; Study › Chapters › Ch 3, search for a word in fact #21
-    await pg.click('#modeExam');
+    await pg.click('#modeExam'); await settle();
     const word = 'the'; // matches #21 and most facts, so the list stays long enough to scroll
-    await pg.click('#modeStudy');
+    await nav(pg, '#modeStudy');
     await pg.click('.study-tab[data-tab="chapters"]');
     await pg.click('#studySubChips .chip[data-arg="3"]');
     const preAll = await pg.textContent('#studyCount');
@@ -323,7 +338,7 @@ async function practiseFlow(b) {
     note(`${w}: search "${word}" → ${pre.count} (was ${preAll})`);
     const preY = await scrollCardTo(pg, 21, 300);
     const preNodes = await pg.$$eval(`${card(21)} .sqm-node`, ns => ns.map(n => n.className));
-    await pg.click(`${card(21)} .fact-practise`);
+    await nav(pg, `${card(21)} .fact-practise`);
     const s = await pg.evaluate(() => ({ screen: document.querySelector('.screen.active').id, mode: state.mode, pending: pendingMode, timer: examTimerId,
       timerHidden: byId('examTimer').hidden || getComputedStyle(byId('examTimer')).display === 'none', label: byId('quizLabel').textContent, badge: byId('modeBadge').textContent,
       n: state.questions.length, qnum: byId('qNum').textContent, keys: state.questions.map(qKey).join(), src: STUDY.find(f => f.id === 21).src.join(), ret: sessionReturn }));
@@ -381,11 +396,12 @@ async function practiseFlow(b) {
     ok(offBefore && r10.top >= 0 && r10.bottom <= r10.vh + 1 && r10.flash, `${w}: R-010 off-screen card scrolled into view + flash (${JSON.stringify(r10)})`);
     // Hide mastered + the card leaves the list while practising: no flash, no error
     await pg.evaluate(() => { const s = JSON.parse(localStorage.getItem('lifeuk.practiceStreak') || '{}'); STUDY.find(f => f.id === 8).src.forEach(k => { s[k] = 2; }); localStorage.setItem('lifeuk.practiceStreak', JSON.stringify(s)); streaks = s; studySetChapter(STUDY.find(f => f.id === 8).ch); });
+    await settle(); // ↩ Back (pointer) above returned to Study
     await pg.click('#studyChips .chip[data-arg="hideMastered"]');
     await scrollCardTo(pg, 8, 300);
-    await pg.click(`${card(8)} .fact-practise`);
+    await nav(pg, `${card(8)} .fact-practise`);
     for (let i = 0; ; i++) { await answerByClick(pg, true); if (await pg.textContent('#nextBtn') === '↩ Back') break; await pg.click('#nextBtn'); }
-    await pg.click('#nextBtn');
+    await nav(pg, '#nextBtn');
     const gone8 = await pg.evaluate(() => ({ screen: document.querySelector('.screen.active').id, card: !!document.querySelector('#studyContent .fact[data-fact-id="8"]'), flashes: document.querySelectorAll('.fact.flash').length }));
     ok(gone8.screen === 'screenStudy' && !gone8.card && gone8.flashes === 0, `${w}: fact mastered during its session + Hide mastered → card gone, no flash, no error (${JSON.stringify(gone8)})`);
     await pg.click('#studyChips .chip[data-arg="hideMastered"]');
@@ -394,10 +410,10 @@ async function practiseFlow(b) {
       await pg.click(`.study-tab[data-tab="${tab}"]`);
       const id = await pg.evaluate(() => +document.querySelector('#studyContent .fact').dataset.factId);
       await scrollCardTo(pg, id, 300);
-      await pg.click(`${card(id)} .fact-practise`);
+      await nav(pg, `${card(id)} .fact-practise`);
       const lbl = await pg.textContent('#quizLabel');
       await pg.evaluate(() => { state.current = state.questions.length - 1; renderQuestion(); });
-      await answerByClick(pg, true); await pg.click('#nextBtn');
+      await answerByClick(pg, true); await nav(pg, '#nextBtn');
       const back = await pg.evaluate(() => ({ screen: document.querySelector('.screen.active').id, tab: study.tab }));
       ok(lbl === `Fact #${id}` && back.screen === 'screenStudy' && back.tab === tab, `${w}: ${tab} tab: Practise #${id} → "${lbl}" → back to ${back.tab}`);
     }
@@ -409,8 +425,9 @@ async function practiseFlow(b) {
 // ══════════ 4. CUI-0010 ══════════
 async function cui0010(b) {
   const { ctx, pg, errs } = await fresh(b, 390);
-  await pg.click('#modeStudy'); await pg.click('.study-tab[data-tab="chapters"]'); await pg.click('#studySubChips .chip[data-arg="3"]');
-  const back = async () => { await pg.evaluate(() => { state.current = state.questions.length - 1; renderQuestion(); }); await answerByClick(pg, true); await pg.click('#nextBtn');
+  await nav(pg, '#modeStudy'); await pg.click('.study-tab[data-tab="chapters"]'); await pg.click('#studySubChips .chip[data-arg="3"]');
+  // settle first: the session may have been opened by a pointer click / double click a moment ago
+  const back = async () => { await settle(); await pg.evaluate(() => { state.current = state.questions.length - 1; renderQuestion(); }); await answerByClick(pg, true); await nav(pg, '#nextBtn');
     return pg.evaluate(() => ({ y: scrollY, screen: document.querySelector('.screen.active').id, ret: sessionReturn })); };
   // a) programmatic double call
   let y = await scrollCardTo(pg, 21, 300);
@@ -452,9 +469,9 @@ async function cui0010(b) {
   await pg.click(`${card(30)} .fact-practise`); const r2 = await back();
   ok(Math.abs(r1.y - y1) <= 1 && Math.abs(r2.y - y2) <= 1 && y1 !== y2, `CUI-0010 e) consecutive sessions: ${r1.y}/${y1}, ${r2.y}/${y2} — no stale return point`);
   // f) ← Home mid-session then a new session elsewhere
-  await pg.click(`${card(30)} .fact-practise`);
-  await pg.click('#screenQuiz .back-btn');
-  await pg.click('#modeStudy');
+  await nav(pg, `${card(30)} .fact-practise`);
+  await nav(pg, '#screenQuiz .back-btn');
+  await nav(pg, '#modeStudy');
   const y3 = await scrollCardTo(pg, 21, 200);
   await pg.click(`${card(21)} .fact-practise`); const r3 = await back();
   ok(r3.screen === 'screenStudy' && Math.abs(r3.y - y3) <= 1, `CUI-0010 f) ← Home mid-session, new session later returns to ${r3.y} (was ${y3})`);
@@ -639,10 +656,14 @@ async function bootCase(b, tag, prep, expect) {
       const ses = await pg.evaluate(() => { startFactPractice(21); const l = byId('quizLabel').textContent; state.current = state.questions.length - 1; renderQuestion();
         const q = state.questions[state.current]; q.a.forEach(selectOption); byId('nextBtn').click(); return { l, screen: document.querySelector('.screen.active').id }; });
       ok(ses.l === 'Fact #21' && ses.screen === 'screenStudy', `${tag}: fact session + ↩ Back work (${JSON.stringify(ses)})`);
-      const core = await pg.evaluate(() => { leaveToHome(); pendingMode = PRACTICE_MODE; startExam(4);
-        const i = state.questions.findIndex(q => FACT_BY_QKEY[qKey(q)]); state.current = i; renderQuestion(); state.questions[i].a.forEach(selectOption);
-        const e = document.querySelector('#similarBox .sqm-fact'); return e ? getComputedStyle(e).borderLeftWidth + ' ' + getComputedStyle(e).backgroundColor : null; });
-      ok(core && core.startsWith('4px') && !core.endsWith('rgba(0, 0, 0, 0)'), `${tag}: Similar Core Fact styled (${core})`);
+      // S-039: a fixed key that always has Similar questions (fact #21 has 8 sources), not the first fact-linked
+      // question of a shuffled exam (a one-source fact has no Similar panel → random null)
+      const core = await pg.evaluate(() => { const k = STUDY.find(f => f.id === 21).src[0];
+        leaveToHome(); pendingMode = PRACTICE_MODE; startExam(+k.split('.')[0]);
+        const i = state.questions.findIndex(q => qKey(q) === k); if (i < 0) return 'key ' + k + ' not in session';
+        state.current = i; renderQuestion(); state.questions[i].a.forEach(selectOption);
+        const e = document.querySelector('#similarBox .sqm-fact'); return e ? getComputedStyle(e).borderLeftWidth + ' ' + getComputedStyle(e).backgroundColor + ' (' + k + ')' : null; });
+      ok(core && core.startsWith('4px') && !/rgba\(0, 0, 0, 0\)/.test(core), `${tag}: Similar Core Fact styled (${core})`);
       await pg.screenshot({ path: shot(`boot-${tag.replace(/[^a-z0-9.]+/gi, '_')}`) });
     }
     ok(declared.length === 0, `${tag}: no "already been declared" ${declared.join('|')}`);
