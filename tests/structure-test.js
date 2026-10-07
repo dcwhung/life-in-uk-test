@@ -87,8 +87,10 @@ function actionNames() {
   // Study screen's `study` object (upgrade-test pins that object's shape); `.fact*` rules live in fact.css only
   const FACT_CARD_JS = path.join(ROOT, 'js/components/factCard.js');
   assert(fs.existsSync(FACT_CARD_JS), 'js/components/factCard.js exists');
-  const factCardCode = fs.readFileSync(FACT_CARD_JS, 'utf8')
-    .replace(/\/\/.*$/gm, '').replace(/'[^'\n]*'|`[^`]*`|"[^"\n]*"/g, "''"); // code only: no comments / strings ('study.x' keys)
+  // S-037: blank strings before stripping comments, so a `//` inside a string ("http://…") cannot eat the code after it
+  const stripComments = code => code.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
+  const factCardCode = stripComments(fs.readFileSync(FACT_CARD_JS, 'utf8')
+    .replace(/'[^'\n]*'|`[^`]*`|"[^"\n]*"/g, "''")); // code only: no comments / strings ('study.x' keys)
   assert(!/\bstudy\b/.test(factCardCode), 'js/components/factCard.js does not read the study global');
   // v0.64 (S-031): layering — components load before screens, so a component must not call anything a screen
   // defines (it only worked because the global existed by render time). Comments are stripped; template
@@ -98,11 +100,26 @@ function actionNames() {
     .matchAll(/^(?:async\s+)?(?:function\s+([A-Za-z_$][\w$]*)|(?:const|let|var)\s+([A-Za-z_$][\w$]*))/gm)]
     .map(m => m[1] || m[2]);
   const screenNames = new Set(jsFiles(path.join(ROOT, 'js/screens')).flatMap(topLevelNames));
+  const layerCode = src => stripComments(src.replace(/'[^'\n]*'|"[^"\n]*"/g, s => (s.includes('${') ? s : "''")));
+  // a bare name or window.name is a use; any other `.name` is a property of something else
+  const usesName = (code, n) => new RegExp(`(?<![\\w$]|(?<!\\bwindow)\\.)${n.replace(/\$/g, '\\$')}(?![\\w$])`).test(code);
+  // S-037: in-memory samples pin the guard's own parsing (a URL's // must not hide later code; window.X is a use)
+  const LAYER_SAMPLES = [
+    { code: 'const u = "http://x"; return renderStudy();', hit: true, why: 'a call after a URL string' },
+    { code: "const u = 'https://x'; renderStudy();", hit: true, why: 'a call after a single-quoted URL' },
+    { code: 'window.renderStudy();', hit: true, why: 'window.renderStudy()' },
+    { code: '/* renderStudy() */ const a = 1;', hit: false, why: 'a name inside a /* */ comment' },
+    { code: '// renderStudy()', hit: false, why: 'a name inside a // comment' },
+    { code: "const k = 'renderStudy';", hit: false, why: 'a name inside a plain string' },
+    { code: 'obj.renderStudy();', hit: false, why: "another object's property" },
+  ];
+  const sampleMisses = LAYER_SAMPLES.filter(({ code, hit }) => usesName(layerCode(code), 'renderStudy') !== hit)
+    .map(({ hit, why }) => `${hit ? 'missed' : 'flagged'} ${why}`);
+  assert(sampleMisses.length === 0, `layering guard reads ${LAYER_SAMPLES.length} in-memory samples right`
+    + (sampleMisses.length ? ': ' + sampleMisses.join(', ') : ''));
   const layerHits = jsFiles(path.join(ROOT, 'js/components')).flatMap(f => {
-    const code = fs.readFileSync(f, 'utf8').replace(/\/\/.*$/gm, '')
-      .replace(/'[^'\n]*'|"[^"\n]*"/g, s => (s.includes('${') ? s : "''"));
-    return [...screenNames].filter(n => new RegExp(`(?<![\\w$.])${n.replace(/\$/g, '\\$')}(?![\\w$])`).test(code))
-      .map(n => `${rel(f)} → ${n}`);
+    const code = layerCode(fs.readFileSync(f, 'utf8'));
+    return [...screenNames].filter(n => usesName(code, n)).map(n => `${rel(f)} → ${n}`);
   });
   assert(layerHits.length === 0, 'js/components/*.js use nothing defined in js/screens/*.js'
     + (layerHits.length ? ': ' + layerHits.join(', ') : ''));
