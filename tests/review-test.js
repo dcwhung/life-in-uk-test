@@ -119,7 +119,10 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
 
   // CUI-0016: a review round that clears every wrong answer leaves nothing to retry
   const anyVisible = sel => pg.$$eval(sel, els => els.some(e => e.offsetParent !== null));
-  const pause = () => pg.waitForTimeout(400); // past SCREEN_CHANGE_CLICK_GUARD_MS
+  // S-069: wait out the app's own double tap guard, so a change to SCREEN_CHANGE_CLICK_GUARD_MS cannot outgrow the pause
+  const GUARD_MARGIN_MS = 50;
+  const guardMs = await pg.evaluate(() => SCREEN_CHANGE_CLICK_GUARD_MS);
+  const pause = () => pg.waitForTimeout(guardMs + GUARD_MARGIN_MS);
   const clickAnswer = async correct => {
     const picks = await pg.evaluate(correct => {
       const q = state.questions[state.current];
@@ -143,6 +146,18 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.click('#langBtn'); await pause();
   assert(!(await anyVisible('#screenResult .retry-btn')), 'all cleared: Retry stays hidden after a language switch');
   await pg.click('#langBtn'); await pause();
+
+  // S-069: a flagged round that unflags every question (real clicks on the bookmark) leaves nothing to retry either
+  await pg.evaluate(() => {
+    localStorage.setItem('lifeuk.practiceFlags', '{"1.0":true,"1.1":true}'); practiceFlags = { '1.0': true, '1.1': true };
+    pendingMode = 'practice'; goHome();
+  });
+  await pg.click('#tileFlagged'); await pause();
+  await pg.click('#flaggedStart'); await pause();
+  for (let i = 0; i < 2; i++) { await pg.click('#flagBtn'); await clickAnswer(true); await pg.click('#nextBtn'); await pause(); }
+  assert(await active('screenResult') && Object.values(await ls('lifeuk.practiceFlags')).every(on => !on), 'flagged round: both unflagged by click, result page shown');
+  assert(!(await anyVisible('#screenResult .retry-btn')), 'flagged all unflagged: no Retry button on the result page');
+  assert(await anyVisible('#screenResult .another-btn'), 'flagged all unflagged: back-to-home button still shown');
 
   // any entry into an empty review set goes back Home instead of a 0-question quiz
   const emptyStart = async (label, setup, examConst) => {

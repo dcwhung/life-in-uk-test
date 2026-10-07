@@ -3,7 +3,7 @@
 //
 // Manual, NOT part of tests/run-all.sh (every data edit outside Track 2 would otherwise need a batch record).
 // Run it once after any yue / oy / note / fact yue change. For each field it takes the LAST `after` across
-// .proj-docs/plans/2026-10-07_yue-batch-*.json (file order, then record order), skipping `userDecision: "keep"`
+// .proj-docs/plans/2026-10-07_yue-batch-<N>*.json (numeric batch order, then record order), skipping `userDecision: "keep"`
 // records (batch 7 A6 / A9 / A10 were not applied), adds the fixes made outside any batch file
 // (POST_BATCH_FIXES), and compares each one with the current data. Exit 1 on any mismatch.
 const fs = require('fs');
@@ -11,7 +11,7 @@ const path = require('path');
 const { loadData } = require('./make-content-baseline');
 
 const PLAN_DIR = path.resolve(__dirname, '..', '..', '.proj-docs', 'plans');
-const BATCH_FILE = /^2026-10-07_yue-batch-\d.*\.json$/;
+const BATCH_FILE = /^2026-10-07_yue-batch-(\d+)(?:-[a-z0-9]+)?\.json$/;
 const KEEP = 'keep';
 const MAX_SHOWN = 120;
 
@@ -49,10 +49,25 @@ function expectedFields(files) {
   return { expected, stats };
 }
 
+// batch JSON file names in replay order: numeric batch number, never lexical (batch-10 sorts after batch-2)
+const batchNum = f => Number(f.match(BATCH_FILE)[1]);
+const batchFiles = names => names.filter(f => BATCH_FILE.test(f)).sort((a, b) => batchNum(a) - batchNum(b));
+
+// S-064: "last after wins" needs batch-10 after batch-2; guard the ordering on an in-memory listing before every run
+const ORDER_SAMPLE = ['2026-10-07_yue-batch-10.json', '2026-10-07_yue-batch-2.json', '2026-10-07_yue-batch-1.json', 'notes.md'];
+const ORDER_EXPECTED = ['2026-10-07_yue-batch-1.json', '2026-10-07_yue-batch-2.json', '2026-10-07_yue-batch-10.json'];
+function selfCheckOrder() {
+  const got = batchFiles(ORDER_SAMPLE);
+  if (JSON.stringify(got) === JSON.stringify(ORDER_EXPECTED)) return;
+  console.log(`BATCH-REPLAY SELF-CHECK FAIL: batch file order ${JSON.stringify(got)}, want ${JSON.stringify(ORDER_EXPECTED)}`);
+  process.exit(1);
+}
+
 const show = v => (v === undefined ? '(missing)' : JSON.stringify(v));
 
 function main() {
-  const files = fs.readdirSync(PLAN_DIR).filter(f => BATCH_FILE.test(f)).sort();
+  selfCheckOrder();
+  const files = batchFiles(fs.readdirSync(PLAN_DIR));
   const missingFix = POST_BATCH_FIXES.filter(fix => !files.includes(fix.afterFile));
   const { expected, stats } = expectedFields(files);
   const data = loadData().values;
