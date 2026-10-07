@@ -88,7 +88,9 @@
 }
 .exam-btn:hover { border-color: var(--navy); background: var(--navy); color: var(--text-inverse); }
 .exam-btn.done { border-color: var(--green); color: var(--green); }
+/* --exam-badge-ring: the hover ring around the ✓ badge, the repo's usual thin border width (S-080) */
 .exam-btn.done::after {
+  --exam-badge-ring: 1.5px;
   content: '✓';
   position: absolute; top: -6px; right: -6px;
   background: var(--green); color: var(--text-inverse);
@@ -99,7 +101,7 @@
 /* .done outranks .exam-btn:hover, so the completed hover is set here: green fill, white text;
    the badge flips to a card circle with a green tick and ring so it stays visible on the green button */
 .exam-btn.done:hover { background: var(--green); border-color: var(--green); color: var(--text-inverse); }
-.exam-btn.done:hover::after { background: var(--card); color: var(--green); box-shadow: 0 0 0 1.5px var(--green); }
+.exam-btn.done:hover::after { background: var(--card); color: var(--green); box-shadow: 0 0 0 var(--exam-badge-ring) var(--green); }
 .exam-btn.all {
   background: linear-gradient(135deg, var(--navy), var(--navy-mid));
   color: var(--text-inverse); border-color: transparent;
