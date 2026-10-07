@@ -409,6 +409,52 @@ async function checkExamDesc(pg) {
   await pg.click(PILL);
 }
 
+// 2026-10-07: the Practice hint beside "Reset progress" is a 4-point list, no full stop at the end of a point,
+// {max} = PRACTICE_ROUND_MAX (24) and {streak} = MASTERY_STREAK (3) filled in, both bold parts kept
+const PRACTICE_HINT_ITEMS = {
+  [EN]: [
+    'Each round draws up to 24 unmastered questions, each asked once',
+    'Answer a question correctly 3 times in a row to master it',
+    'Unmastered questions come back in the next round',
+    'Mastered questions are skipped until the whole set is mastered',
+  ],
+  [ZH_HK]: [
+    '每輪最多抽取 24 條未掌握的題目，每題出現一次',
+    '同一題連續答對 3 次即算掌握',
+    '未掌握的題目會於下一輪再出現',
+    '已掌握的題目會略過，直至整組全部掌握',
+  ],
+};
+const PRACTICE_HINT_BOLD = { [EN]: ['24', '3 times in a row'], [ZH_HK]: ['24', '連續答對 3 次'] };
+const POINT_END_STOP = /[。.]$/;
+async function checkPracticeHintIn(pg, lang, tag) {
+  assert((await langOf(pg)).lang === lang, `${tag}: page in ${lang}`);
+  const hint = await pg.$eval('#practiceHint', e => ({
+    items: [...e.querySelectorAll('ul > li')].map(li => li.textContent.replace(/\s+/g, ' ').trim()),
+    bold: [...e.querySelectorAll('li b')].map(b => b.textContent.trim()),
+  }));
+  assert(JSON.stringify(hint.items) === JSON.stringify(PRACTICE_HINT_ITEMS[lang]), `${tag}: 4 points, text and order exact: ` + JSON.stringify(hint.items));
+  assert(hint.items.length === 4 && hint.items.every(s => !POINT_END_STOP.test(s)), `${tag}: no point ends with 。 or .`);
+  assert(JSON.stringify(hint.bold) === JSON.stringify(PRACTICE_HINT_BOLD[lang]), `${tag}: both bold parts, numbers filled in: ` + JSON.stringify(hint.bold));
+  const btn = await pg.evaluate(() => {
+    const row = byId('practiceReset').getBoundingClientRect(), b = byId('practiceReset').querySelector('.reset-btn').getBoundingClientRect();
+    const h = byId('practiceHint').getBoundingClientRect();
+    return { rightGap: Math.round(row.right - b.right), rightOfHint: b.left >= h.right - 1 };
+  });
+  assert(btn.rightOfHint, `${tag}: reset button sits right of the list: ` + JSON.stringify(btn));
+}
+async function checkPracticeHint(pg) {
+  await pg.evaluate(lang => { setLang(lang); leaveToHome(); startMode('practice'); }, EN);
+  await checkPracticeHintIn(pg, EN, 'Practice hint en');
+  await pg.click(PILL);
+  await checkPracticeHintIn(pg, ZH_HK, 'Practice hint pill → zh-HK');
+  await checkNarrow(pg, 'Practice hint');
+  await pg.setViewportSize(NARROW);
+  await checkPracticeHintIn(pg, ZH_HK, 'Practice hint zh-HK 320px');
+  await pg.setViewportSize(WIDE);
+  await pg.click(PILL);
+}
+
 // S-045: draw two hanzi in the page font; identical pixels mean the fallback drew the same tofu box for both
 const hasCjkFont = pg => pg.evaluate(({ px, chars, baseline }) => {
   const canvas = document.createElement('canvas');
@@ -423,7 +469,7 @@ const hasCjkFont = pg => pg.evaluate(({ px, chars, baseline }) => {
 const CHECKS = [
   checkPill, checkHomeSwitch, checkHomePractice, checkQuizPractice, checkAnswerFallback, checkOptionYueLang,
   checkSideSession, checkQuizExam, checkExamTimer, checkModal, checkResult, checkFlagged, checkStudy, checkDoubleTap,
-  checkMyReviewTiles, checkExamDesc,
+  checkMyReviewTiles, checkExamDesc, checkPracticeHint,
 ];
 
 async function main() {
