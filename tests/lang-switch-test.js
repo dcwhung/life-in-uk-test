@@ -28,6 +28,8 @@ const GLYPH_PROBE_CHARS = ['中', '國'];
 const GLYPH_BASELINE = 0.75; // font size and baseline as a share of the canvas, so descenders stay inside
 // S-057: the text common.chapterShort renders ("Ch {n}" in en and zh-HK)
 const CHAPTER_SHORT_TEXT = /\bCh \d+\b/;
+// S-058: the "A)" row is the last .ans-yue-row renderAnswerTranslation writes (after the title and "Q)")
+const ANSWER_YUE_ROW = '#ansYue .ans-yue-row:last-child';
 
 // everything the plan's state list says a language switch must keep (Result highlight / Study flash and
 // scroll position are accepted losses); localStorage minus the language key itself
@@ -175,12 +177,12 @@ async function checkQuizPractice(pg, ctx) {
 
 // S-048: an answer with no Cantonese option text (True / False / years) falls back to English, marked lang="en"
 async function checkAnswerFallback(pg) {
-  const ansFallback = await pg.evaluate(() => {
+  const ansFallback = await pg.evaluate(rowSel => {
     const all = Object.values(EXAMS).flat();
     // the lang each piece of answer text is read in (its text nodes' nearest lang)
     const langOfAnswer = q => {
       renderAnswerTranslation(q);
-      const row = byId('ansYue').querySelectorAll('.ans-yue-row')[1];
+      const row = document.querySelector(rowSel);
       const walker = document.createTreeWalker(row.lastElementChild, NodeFilter.SHOW_TEXT);
       const langs = new Set();
       while (walker.nextNode()) if (walker.currentNode.textContent.trim()) langs.add(walker.currentNode.parentElement.closest('[lang]').getAttribute('lang'));
@@ -189,7 +191,7 @@ async function checkAnswerFallback(pg) {
     const res = { noOy: langOfAnswer(all.find(q => q.a.every(ai => !(q.oy && q.oy[ai])))), withOy: langOfAnswer(all.find(q => q.oy && q.a.every(ai => q.oy[ai]))) };
     renderAnswerTranslation(state.questions[state.current]);
     return res;
-  });
+  }, ANSWER_YUE_ROW);
   assert(ansFallback.noOy === EN && ansFallback.withOy === ZH_HK, 'S-048: answer translation fallback is lang="en", a real translation lang="zh-HK": ' + JSON.stringify(ansFallback));
 }
 
