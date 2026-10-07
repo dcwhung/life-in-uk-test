@@ -138,6 +138,21 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
     return { w: r.width, h: r.height, top: at(r.left + r.width / 2, r.top - HIT_OFFSET), left: at(r.left - HIT_OFFSET, r.top + r.height / 2) };
   });
   assert(hit.w === 32 && hit.h === 32 && hit.top && hit.left, 'fact button 32x32 with a hit area beyond the box: ' + JSON.stringify(hit));
+  // CUI-0009: the ring is measured from the border box, so the tappable height is the full 44px (it was 42px:
+  // `inset` counts from the padding box, inside the 1.5px border). Scan whole px outward from each visible edge.
+  const MIN_TARGET = 44;
+  const SCAN_MAX = 12;
+  const reach = await pg.locator('.fact .fact-btn').evaluateAll((btns, max) => btns.slice(0, 2).map(e => {
+    const r = e.getBoundingClientRect();
+    const at = (x, y) => document.elementFromPoint(x, y)?.closest('.fact-btn') === e;
+    const out = probe => { let d = 0; while (d < max && probe(d + 1)) d++; return d; };
+    const midX = r.left + r.width / 2, midY = r.top + r.height / 2;
+    return {
+      h: r.height + out(d => at(midX, r.top - d)) + out(d => at(midX, r.bottom - 1 + d)),
+      outer: e.classList.contains('star') ? out(d => at(r.left - d, midY)) : out(d => at(r.right - 1 + d, midY)),
+    };
+  }), SCAN_MAX);
+  assert(reach.every(r => r.h >= MIN_TARGET && r.outer >= 6), `fact buttons: tappable height >= ${MIN_TARGET}px, outer side reaches 6px: ` + JSON.stringify(reach));
   // W-009: the buttons sit 4px apart, so their rings must meet in the gap, not overlap a visible box —
   // a tap just inside the bookmark's right edge must not toggle Mastered (and vice versa); outer rings stay enlarged
   const EDGE_INSET = 1; // 1px inside the visible 32px box
@@ -146,7 +161,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
     const [b, k] = [bm.getBoundingClientRect(), tick.getBoundingClientRect()];
     const at = (x, y) => document.elementFromPoint(x, y)?.closest('.fact-btn');
     const midY = b.top + b.height / 2;
-    const OUTER_RING = 4; // inside the ring: it is 6px off the padding box = 4.5px beyond the 1.5px border
+    const OUTER_RING = 4; // well inside the ring (6px past the visible edge since CUI-0009)
     return {
       bmRightEdge: at(b.right - inset, midY) === bm,
       tickLeftEdge: at(k.left + inset, midY) === tick,
