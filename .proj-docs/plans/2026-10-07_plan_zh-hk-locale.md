@@ -155,6 +155,25 @@
 
 > Track 2 改 `data/*.js`，冇 UI layout 改動，所以 `none-required`。
 
+### 狀態（Track 1，2026-10-07）
+
+| 任務 | 狀態 | Commit / 證據 |
+|---|---|---|
+| T-001 | ✅ done | `a02aefa`（mockup，用戶確認 M1） |
+| T-002 | ✅ done | `8cf2d38`；M6 改名 `54596fd` |
+| T-003 | ✅ done | `a7cf810`（Red） |
+| T-004 | ✅ done | `1fdb840`；W-013 `3ef54d9` |
+| T-005 | ✅ done | `1fdb840`；M4 `1c6bc37` |
+| T-006 | ✅ done | `92f6db9`（`APP_VERSION` 0.65） |
+| T-007 | ✅ done | `a7cf810`、`583a9ca`；W-014 `3ad4d6e`、S-043 / S-044 `65303be`、M6 `c3da68b` |
+| T-008 | ✅ done | `a7cf810`（`upgrade-test` ⑥）；⑦ `3ef54d9` |
+| T-009 | ✅ done | `.proj-docs/reviews/2026-10-07_review_v065-zh-hk.md`（Round 2 93 / 100 pass） |
+| T-010 | ✅ done | `.proj-docs/qa/2026-10-07_qa_v065-zh-hk.md`（pass；新 ticket CUI-0013、CUI-0014） |
+| T-011 | ✅ done | HANDOFF.md v0.65（docs commit T-011 T-012） |
+| T-012 | ✅ done | `git rm mockups/lang-switch.html`（同一 commit） |
+
+Track 2（T-101…T-109）：進行中，branch `claude/yue-colloquial`，另一個 PR。
+
 ---
 
 ## 風險登記

@@ -31,7 +31,7 @@ header {
 .logo-sub { color: var(--gold); font-size: var(--fs-xs); font-weight: 500; margin-top: 1px; }
 .app-version { color: var(--text-inverse-faint); font-weight: 600; margin-left: 4px; }
 
-/* language pill (v0.65): names the target language (en → 中, zh-HK → EN); mockups/lang-switch.html */
+/* language pill (v0.65): names the target language (en → 中, zh-HK → EN); style from the approved mockup (zh-HK plan M1) */
 .lang-btn {
   position: relative;
   flex-shrink: 0;
