@@ -319,6 +319,79 @@ async function checkDoubleTap(pg) {
   await pg.click(PILL);
 }
 
+// 2026-10-07: My Review tiles. The wrong answers note lives inside #tileWrong (also at 0), the wrong tile
+// shows only "{n} to clear" (no per round part), the flagged tile drops its count line; the pill re-renders it
+const MY_REVIEW_NOTE = {
+  [EN]: 'From Practice and Exam; cleared once you get them right here. Up to 24 per round.',
+  [ZH_HK]: '來自練習及模擬考試，於此答對後便會清除。每輪最多 24 題。',
+};
+const WRONG_TO_CLEAR_30 = { [EN]: '30 to clear', [ZH_HK]: '尚餘 30 題' };
+const PER_ROUND = { [EN]: 'per round', [ZH_HK]: '每輪' };
+const FLAGGED_8 = { [EN]: '8 flagged', [ZH_HK]: '已標記 8 題' };
+// flaggedEmptyHtml with its inline bookmark svg (no text) collapsed out
+const FLAGGED_EMPTY = { [EN]: 'Tap on a question to flag it', [ZH_HK]: '於題目按 即可標記' };
+const MY_REVIEW_WRONG_N = 30;
+const MY_REVIEW_FLAG_N = 8;
+const EXAM_SIZE = 24; // keys are "exam.q"; only the count matters to the tiles
+const seedMyReview = (pg, wrongN, flagN) => pg.evaluate(([w, f, size]) => {
+  const keys = n => Object.fromEntries(Array.from({ length: n }, (_, i) => [`${1 + Math.floor(i / size)}.${(i % size) + 1}`, true]));
+  wrongList = keys(w); practiceFlags = keys(f);
+  localStorage.setItem('lifeuk.wrongList', JSON.stringify(wrongList));
+  localStorage.setItem('lifeuk.practiceFlags', JSON.stringify(practiceFlags));
+  leaveToHome(); startMode('practice');
+}, [wrongN, flagN, EXAM_SIZE]);
+const myReviewView = pg => pg.evaluate(() => {
+  const squash = e => (e ? e.textContent.replace(/\s+/g, ' ').trim() : null);
+  const tile = id => {
+    const el = byId(id), sub = el.querySelector('.sub'), note = el.querySelector('.t-note');
+    return {
+      text: squash(el), sub: squash(sub), note: squash(note),
+      subVisible: !!sub && sub.getBoundingClientRect().height > 0,
+      noteAfterSub: !!note && !!sub && !!(sub.compareDocumentPosition(note) & Node.DOCUMENT_POSITION_FOLLOWING),
+      height: Math.round(el.getBoundingClientRect().height),
+    };
+  };
+  const outside = [...byId('myReview').querySelectorAll('.t-note, .my-note, #myReviewNote')].filter(e => !e.closest('.my-tile'));
+  return { wrong: tile('tileWrong'), flagged: tile('tileFlagged'), outside: outside.map(squash) };
+});
+async function checkMyReviewIn(pg, lang, tag) {
+  assert((await langOf(pg)).lang === lang, `${tag}: page in ${lang}`);
+  const v = await myReviewView(pg);
+  assert(v.wrong.note === MY_REVIEW_NOTE[lang], `${tag}: note inside #tileWrong reads the ${lang} text: ${v.wrong.note}`);
+  assert(v.wrong.noteAfterSub, `${tag}: note sits below the wrong tile .sub`);
+  assert(v.outside.length === 0, `${tag}: no note outside the tiles: ` + JSON.stringify(v.outside));
+  // the note itself says "per round", so only the count line is checked for it
+  assert(v.wrong.sub === WRONG_TO_CLEAR_30[lang] && !v.wrong.sub.includes(PER_ROUND[lang]),`${tag}: 30 wrong → sub "${WRONG_TO_CLEAR_30[lang]}", no "${PER_ROUND[lang]}": ${v.wrong.sub}`);
+  assert(!v.flagged.text.includes(FLAGGED_8[lang]) && !v.flagged.subVisible, `${tag}: 8 flagged → no "${FLAGGED_8[lang]}", no visible .sub: ${v.flagged.text}`);
+  assert(v.wrong.height === v.flagged.height, `${tag}: tiles are the same height (${v.wrong.height} / ${v.flagged.height})`);
+}
+async function checkMyReviewEmptyIn(pg, lang, tag) {
+  assert((await langOf(pg)).lang === lang, `${tag}: page in ${lang}`);
+  const v = await myReviewView(pg);
+  assert(v.wrong.note === MY_REVIEW_NOTE[lang], `${tag}: 0 wrong → note still inside #tileWrong: ${v.wrong.note}`);
+  assert(v.outside.length === 0, `${tag}: 0 wrong → no note outside the tiles: ` + JSON.stringify(v.outside));
+  assert(v.wrong.height === v.flagged.height, `${tag}: 0 wrong → tiles the same height (${v.wrong.height} / ${v.flagged.height})`);
+}
+async function checkMyReviewTiles(pg) {
+  await pg.evaluate(lang => setLang(lang), EN);
+  await seedMyReview(pg, MY_REVIEW_WRONG_N, MY_REVIEW_FLAG_N);
+  await checkMyReviewIn(pg, EN, 'My Review en');
+  await pg.click(PILL);
+  await checkMyReviewIn(pg, ZH_HK, 'My Review pill → zh-HK');
+  await seedMyReview(pg, MY_REVIEW_WRONG_N, 0);
+  assert((await textOf(pg, '#tileFlagged .sub')) === FLAGGED_EMPTY[ZH_HK], 'My Review zh-HK: 0 flagged keeps flaggedEmptyHtml');
+  await seedMyReview(pg, 0, MY_REVIEW_FLAG_N);
+  await checkMyReviewEmptyIn(pg, ZH_HK, 'My Review zh-HK');
+  await pg.click(PILL);
+  await checkMyReviewEmptyIn(pg, EN, 'My Review pill → en');
+  await seedMyReview(pg, MY_REVIEW_WRONG_N, 0);
+  assert((await textOf(pg, '#tileFlagged .sub')) === FLAGGED_EMPTY[EN], 'My Review en: 0 flagged keeps flaggedEmptyHtml');
+  await pg.evaluate(() => {
+    localStorage.removeItem('lifeuk.wrongList'); localStorage.removeItem('lifeuk.practiceFlags');
+    wrongList = {}; practiceFlags = {}; leaveToHome();
+  });
+}
+
 // S-045: draw two hanzi in the page font; identical pixels mean the fallback drew the same tofu box for both
 const hasCjkFont = pg => pg.evaluate(({ px, chars, baseline }) => {
   const canvas = document.createElement('canvas');
@@ -333,6 +406,7 @@ const hasCjkFont = pg => pg.evaluate(({ px, chars, baseline }) => {
 const CHECKS = [
   checkPill, checkHomeSwitch, checkHomePractice, checkQuizPractice, checkAnswerFallback, checkOptionYueLang,
   checkSideSession, checkQuizExam, checkExamTimer, checkModal, checkResult, checkFlagged, checkStudy, checkDoubleTap,
+  checkMyReviewTiles,
 ];
 
 async function main() {
