@@ -86,6 +86,19 @@ function answerCountProblems(EXAMS) {
   return out;
 }
 
+// S-061: zh-HK readers rely on the yue line for the count too, so it must carry the Chinese numeral
+const YUE_COUNT_WORDS = { 2: '兩', 3: '三', 4: '四' };
+function yueCountProblems(EXAMS) {
+  const out = [];
+  Object.entries(EXAMS).forEach(([exam, qs]) => qs.forEach((q, i) => {
+    if (q.a.length < 2) return;
+    const word = YUE_COUNT_WORDS[q.a.length];
+    if (!word) out.push(`${questionLabel(exam, i)}: ${q.a.length} answers, no yue count word mapped`);
+    else if (!q.yue.includes(word)) out.push(`${questionLabel(exam, i)}: ${q.a.length} answers but the yue never says "${word}": ${show(q.yue)}`);
+  }));
+  return out;
+}
+
 function report(title, problems) {
   if (!problems.length) return;
   console.log(`\n${title}: ${problems.length} difference(s)`);
@@ -124,6 +137,9 @@ assert(problems['translation shape'].length === 0, 'oy.length === o.length, oy /
 const answerCount = answerCountProblems(EXAMS);
 report('multi-answer question without a count word', answerCount);
 assert(answerCount.length === 0, 'every multi-answer question states how many to pick (two / three / four)');
+const yueCount = yueCountProblems(EXAMS);
+report('multi-answer question whose yue has no count word', yueCount);
+assert(yueCount.length === 0, 'every multi-answer question states how many to pick in yue too (兩 / 三 / 四)');
 
 // S-051 self-check: the guard must refuse a note that was emptied, while '' -> text stays allowed (R1)
 const mutatedExams = mutate => { const v = JSON.parse(JSON.stringify(data.values)); mutate(v.EXAMS); return project({ globals: data.globals, values: v }).exams; };
@@ -134,4 +150,9 @@ assert(emptied.some(p => p.startsWith(questionLabel(withNote.exam, withNote.i)))
 const withoutNote = firstQuestion(q => q.note === '');
 const filled = examProblems(base.exams, mutatedExams(ex => { ex[withoutNote.exam][withoutNote.i].note = 'R1'; }));
 assert(filled.length === 0, `S-051: filling the empty note of ${questionLabel(withoutNote.exam, withoutNote.i)} is allowed (R1)`);
+// S-061 self-check: a multi-answer yue that lost its count word is reported
+const multi = firstQuestion(q => q.a.length > 1);
+const countless = JSON.parse(JSON.stringify(EXAMS));
+countless[multi.exam][multi.i].yue = multi.q.yue.split(YUE_COUNT_WORDS[multi.q.a.length]).join('');
+assert(yueCountProblems(countless).some(p => p.startsWith(questionLabel(multi.exam, multi.i))), `S-061: dropping the count word from the yue of ${questionLabel(multi.exam, multi.i)} is reported`);
 console.log('CONTENT-GUARD PASS');
