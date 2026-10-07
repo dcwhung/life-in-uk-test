@@ -172,6 +172,58 @@ async function checkModal(pg) {
   assert(!(await pg.evaluate(() => isConfirmOpen())), 'confirm modal Keep works right after a screen change');
 }
 
+// S-038: Similar "Practise these N" swaps the session on the quiz screen (view = screen + state.questions):
+// a double click on it must not answer the side session's Q1. The button sits low on the page, so this page is
+// short enough (SIMILAR_VIEWPORT) to scroll it to option A's height.
+const SIMILAR_VIEWPORT = { width: 390, height: 420 };
+const SIMILAR_EXAM = 4, SIMILAR_ORIG_IDX = 15; // Exam 4 Q16 (fact #21): has similar questions
+const similarBtn = '#similarBox .sqm-cta [data-action="startSimilarPractice"]';
+const OPEN_SIMILAR_PANEL = `localStorage.clear(); streaks = {}; wrongList = {}; clearSideSession();
+  pendingMode = PRACTICE_MODE; startExam(${SIMILAR_EXAM});
+  state.current = state.questions.findIndex(q => q.origIdx === ${SIMILAR_ORIG_IDX}); renderQuestion();
+  const q = state.questions[state.current]; state.answers[state.current] = [...q.a]; revealAnswer();`;
+async function checkSimilarDoubleTap(pg) {
+  const opt = await optionCentre(pg, OPEN_SIMILAR_PANEL + ' startSimilarPractice();');
+  await pg.evaluate(fn => new Function(fn)(), OPEN_SIMILAR_PANEL);
+  const p = await alignTrigger(pg, similarBtn, opt);
+  assert(p.hitsTrigger && p.onOption, 'Similar: tap point is on "Practise these N" and where the side session\'s option A will be');
+  const before = await practiceWrites(pg);
+  await pg.mouse.dblclick(p.x, p.y);
+  const after = await pg.evaluate(() => ({ side: isSideSession(), answered: Object.keys(state.answers).length, revealed: Object.keys(state.revealed).length }));
+  const stored = await practiceWrites(pg);
+  assert(after.side && after.answered === 0 && after.revealed === 0, `Similar: double click opens the side session with Q1 unanswered (${JSON.stringify(after)})`);
+  assert(stored.streak === before.streak && stored.wrong === before.wrong, 'Similar: the second click wrote no streak / wrong list');
+  await pg.evaluate(() => clearSideSession());
+}
+
+// S-038: once code moves the view on (the exam timer ends it: finishExam()), the guard lapses — a click at the
+// same point on the results page, inside the guard window, is a real tap (here: a result dot, which highlights)
+async function checkGuardLapsesOnCodeViewChange(pg) {
+  const guardWindowMs = await guardMs(pg);
+  const target = await pg.evaluate(cell => {
+    localStorage.clear(); streaks = {}; wrongList = {}; clearSideSession();
+    pendingMode = EXAM_MODE; startExam(cell); finishExam();
+    const dots = [...document.querySelectorAll('#resultDots [data-action="jumpToReview"]')].map(e => ({ idx: e.dataset.arg, r: e.getBoundingClientRect() }));
+    goHome(); startMode(PRACTICE_MODE); setPracticeView('exam'); pendingMode = EXAM_MODE;
+    const c = document.querySelector(`#screenHome [data-action="startExam"][data-arg="${cell}"]`).getBoundingClientRect();
+    // a dot under the cell (same x range) on the second row, which the Home grid can be scrolled level with
+    const d = dots.filter(o => o.r.left >= c.left && o.r.right <= c.right).pop();
+    window.scrollTo(0, window.scrollY + c.top + c.height / 2 - (d.r.top + d.r.height / 2));
+    return { idx: d.idx, x: d.r.left + d.r.width / 2, y: d.r.top + d.r.height / 2 };
+  }, EXAM_CELL);
+  const onCell = await pg.evaluate(([s, t]) => document.elementFromPoint(t.x, t.y)?.closest(s) !== null, [examBtn, target]);
+  assert(onCell, 'timer: the result dot\'s point is on the Home By Exam cell');
+  const t0 = Date.now();
+  await pg.mouse.click(target.x, target.y);
+  assert(await pg.$eval('.screen.active', e => e.id) === 'screenQuiz', 'timer: the click opens the exam (guard armed on the quiz)');
+  await pg.evaluate(() => finishExam());
+  await pg.mouse.click(target.x, target.y);
+  const elapsed = Date.now() - t0;
+  const hl = await pg.evaluate(idx => byId('rv' + idx)?.classList.contains('hl'), target.idx);
+  assert(elapsed < guardWindowMs, `timer: second click inside the guard window (${elapsed}ms < ${guardWindowMs}ms)`);
+  assert(await pg.$eval('.screen.active', e => e.id) === 'screenResult' && hl, 'timer: after finishExam() the same point acts on the results page (not stray)');
+}
+
 // S-035: the guard compares the two taps' event timeStamps; a negative gap (an unreliable timeStamp) fails open
 // instead of blocking that spot until the view changes
 async function checkNegativeGapFailsOpen(pg) {
@@ -200,8 +252,13 @@ async function checkNegativeGapFailsOpen(pg) {
   await checkKeyboard(pg);
   await checkModal(pg);
   await checkNegativeGapFailsOpen(pg);
+  await checkGuardLapsesOnCodeViewChange(pg);
+  const shortPg = await b.newPage({ viewport: SIMILAR_VIEWPORT });
+  shortPg.on('pageerror', e => errs.push(e.message));
+  await shortPg.goto(APP_URL);
+  await checkSimilarDoubleTap(shortPg);
 
   assert(errs.length === 0, 'no page errors: ' + errs.join(' | '));
-  console.log('PASS');
+  console.log('DOUBLETAP PASS');
   await b.close();
 })().catch(e => { console.error(e.message); process.exit(1); });
