@@ -162,7 +162,7 @@ LOCALES.en = {
     leaveTitle: 'Leave the exam?',
     leaveMessage: 'Your answers will be lost.',
     leaveOk: 'Leave',
-    leaveCancel: 'Stay',
+    leaveCancel: 'Cancel',
     resetProgressTitle: 'Reset practice progress?',
     resetProgressMessage: 'Mastery streaks, wrong answers and flags will be cleared.',
     resetCompletedTitle: 'Reset completed exams?',

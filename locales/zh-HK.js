@@ -159,7 +159,7 @@ LOCALES['zh-HK'] = {
     leaveTitle: '離開考試？',
     leaveMessage: '已作答的答案將會遺失。',
     leaveOk: '離開',
-    leaveCancel: '留下',
+    leaveCancel: '取消',
     resetProgressTitle: '重設練習進度？',
     resetProgressMessage: '掌握進度、錯題及標記將會清除。',
     resetCompletedTitle: '重設已完成試卷？',
