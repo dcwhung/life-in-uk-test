@@ -392,6 +392,23 @@ async function checkMyReviewTiles(pg) {
   });
 }
 
+// 2026-10-07: the Exam mode description no longer ends with "pick an exam below" (the grid sits right under it)
+const EXAM_DESC_DROPPED = { [EN]: 'Pick an exam below', [ZH_HK]: '請於下方選擇試卷' };
+const EXAM_DESC_END = { [EN]: 'score and answers.', [ZH_HK]: '分數及答案。' };
+async function checkExamDescIn(pg, lang, tag) {
+  assert((await langOf(pg)).lang === lang, `${tag}: page in ${lang}`);
+  const desc = await textOf(pg, '#modeDesc');
+  assert(!desc.includes(EXAM_DESC_DROPPED[lang]), `${tag}: no "${EXAM_DESC_DROPPED[lang]}": ${desc}`);
+  assert(desc.endsWith(EXAM_DESC_END[lang]), `${tag}: ends with "${EXAM_DESC_END[lang]}"`);
+}
+async function checkExamDesc(pg) {
+  await pg.evaluate(lang => { setLang(lang); leaveToHome(); startMode('exam'); }, EN);
+  await checkExamDescIn(pg, EN, 'Exam desc en');
+  await pg.click(PILL);
+  await checkExamDescIn(pg, ZH_HK, 'Exam desc pill → zh-HK');
+  await pg.click(PILL);
+}
+
 // S-045: draw two hanzi in the page font; identical pixels mean the fallback drew the same tofu box for both
 const hasCjkFont = pg => pg.evaluate(({ px, chars, baseline }) => {
   const canvas = document.createElement('canvas');
@@ -406,7 +423,7 @@ const hasCjkFont = pg => pg.evaluate(({ px, chars, baseline }) => {
 const CHECKS = [
   checkPill, checkHomeSwitch, checkHomePractice, checkQuizPractice, checkAnswerFallback, checkOptionYueLang,
   checkSideSession, checkQuizExam, checkExamTimer, checkModal, checkResult, checkFlagged, checkStudy, checkDoubleTap,
-  checkMyReviewTiles,
+  checkMyReviewTiles, checkExamDesc,
 ];
 
 async function main() {
