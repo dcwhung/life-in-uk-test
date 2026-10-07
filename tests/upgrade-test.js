@@ -11,6 +11,7 @@ const { startPagesServer, appFiles } = require('./pages-server');
 //   4. third mix: v0.58 files + the v0.57 utils.js (no lazy migration) — the next full load's merge keeps everything
 //   5. S-014: mixed shell whose locale file fails to load — one reload, then an English fallback message (no half-started page)
 //      W-010: the current shell (all tags present) whose i18n.js fails to load — same reload + fallback
+//      S-041: the current shell whose locales/en.js fails to load — same fallback; zh-HK.js's ReferenceError is known
 //   6. v0.65 (T-008): an older cached shell without the zh-HK tag + a stored uiLang 'zh-HK' — en, no warning,
 //      the stored choice kept for the next full load
 //   7. W-013: the current shell whose locales/zh-HK.js failed to load — the language pill is hidden (not a dead button)
@@ -113,7 +114,7 @@ async function mixedShell(b) {
 const I18N_BOOT_FALLBACK = fs.readFileSync(path.join(ROOT, 'js/main.js'), 'utf8').match(/const I18N_BOOT_FALLBACK_MSG =\s*'([^']+)'/);
 const BOOT_SETTLE_MS = 1000;
 // W-010: same for the current shell (every tag present) when js/core/i18n.js fails — the tag alone must not count as loaded
-async function i18nBootFailure(b, { tag, shell, missing }) {
+async function i18nBootFailure(b, { tag, shell, missing, knownError = null }) {
   const dir = tmpDir('noi18n');
   copyCurrent(dir);
   if (shell === 'v057.html') fs.writeFileSync(path.join(dir, shell), showV057('index.html'));
@@ -128,9 +129,13 @@ async function i18nBootFailure(b, { tag, shell, missing }) {
   assert(I18N_BOOT_FALLBACK, 'main.js names an I18N_BOOT_FALLBACK_MSG');
   const grid = await text(pg, '#examGrid');
   assert(grid === I18N_BOOT_FALLBACK[1], `${tag}: after the reload #examGrid shows the English fallback: ` + grid);
-  assert(errs.length === 0, `${tag}: no page errors: ` + errs.join(' | '));
+  const unexpected = knownError ? errs.filter(e => !knownError.test(e)) : errs;
+  assert(unexpected.length === 0, `${tag}: no page errors${knownError ? ` (known, exempt: ${knownError})` : ''}: ` + unexpected.join(' | '));
   await pg.close();
 }
+// S-041: with the current shell and en.js missing, locales/zh-HK.js runs before LOCALES exists and throws on each of
+// the two loads; the S-014 fallback still shows. Recorded as known behaviour (review v0.65 S-041, option A).
+const ZH_HK_WITHOUT_EN_ERROR = /^LOCALES is not defined$/;
 
 // 6. T-008: a v0.64-style shell (no locales/zh-HK.js tag, no language pill) running the current js while
 // lifeuk.uiLang says zh-HK — the language has no locale on that page, so it reads as en without warnings and
@@ -292,6 +297,7 @@ function checkV057Ref() {
   await v057UtilsMix(b);
   await i18nBootFailure(b, { tag: 'old shell, locale missing', shell: 'v057.html', missing: 'locales/en.js' });
   await i18nBootFailure(b, { tag: 'current shell, i18n.js missing', shell: 'index.html', missing: 'js/core/i18n.js' });
+  await i18nBootFailure(b, { tag: 'current shell, locale missing', shell: 'index.html', missing: 'locales/en.js', knownError: ZH_HK_WITHOUT_EN_ERROR });
   await oldShellZhHk(b);
   await zhHkLocaleMissing(b);
   console.log('UPGRADE PASS');
