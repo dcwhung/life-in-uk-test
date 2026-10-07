@@ -1,6 +1,6 @@
 // ════════════════════════════════════════
-// SIMILAR — every question belongs to one STUDY fact (fact.src = "exam.idx" keys);
-// other questions of the same fact are the same point asked differently
+// SIMILAR + fact indexes — every question belongs to one STUDY fact (fact.src = "exam.idx" keys);
+// other questions of the same fact are the same point asked differently. Also numbers each fact within its chapter.
 // ════════════════════════════════════════
 const FACT_BY_QKEY = {};
 STUDY.forEach(f => f.src.forEach(k => { FACT_BY_QKEY[k] = f; }));
