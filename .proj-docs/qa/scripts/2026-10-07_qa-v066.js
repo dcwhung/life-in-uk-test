@@ -98,6 +98,12 @@ const expQ = k => { const [e, i] = k.split('.').map(Number); return EXP_EXAMS[e]
 const oldQ = k => { const [e, i] = k.split('.').map(Number); return OLD_EXAMS[e][i]; };
 const EXP_FACT_BY_QKEY = {};
 EXP_STUDY.forEach(f => f.src.forEach(k => { EXP_FACT_BY_QKEY[k] = f; }));
+// v0.68: facts are labelled "Ch {ch} #{n}", n = 1-based position among the chapter's facts in data order (computed
+// here, independent of the app's chapterFactNumber); the trailing (?!\d) keeps "#1" from matching "#15"
+const CHAPTER_FACT_NO = {};
+EXP_STUDY.reduce((seen, f) => { seen[f.ch] = (seen[f.ch] || 0) + 1; CHAPTER_FACT_NO[f.id] = seen[f.ch]; return seen; }, {});
+const chapterFactLabel = f => `Ch ${f.ch} #${CHAPTER_FACT_NO[f.id]}`;
+const hasChapterFactLabel = (text, f) => new RegExp(`${chapterFactLabel(f)}(?!\\d)`).test(text || '');
 const ref = k => { const [e, i] = k.split('.').map(Number); return `E${e}·Q${i + 1}`; };
 
 // questions named in the batch md decision tables (用戶決定 + batch 6 cross-file table), 1-based → qKey
@@ -277,7 +283,7 @@ async function practiceSample(b) {
           qy: [...document.querySelectorAll('#similarBox .sqm-qy')].map(e => e.textContent) }));
         const others = fact ? fact.src.filter(x => x !== k) : [];
         if (others.length) {
-          ok(sim.show && sim.fact === fact.yue && sim.factLabel.includes('#' + fact.id), `${tag} Core Fact #${fact.id} shows the new Study yue${changed.fact.has(fact.id) ? ' (changed)' : ''} ${sim.fact === fact.yue ? '' : JSON.stringify(sim.fact)}`);
+          ok(sim.show && sim.fact === fact.yue && hasChapterFactLabel(sim.factLabel, fact), `${tag} Core Fact ${chapterFactLabel(fact)} (#${fact.id}) shows the new Study yue${changed.fact.has(fact.id) ? ' (changed)' : ''} ${sim.fact === fact.yue ? '' : JSON.stringify(sim.fact)} ${hasChapterFactLabel(sim.factLabel, fact) ? '' : JSON.stringify(sim.factLabel)}`);
           ok(JSON.stringify(sim.qy) === JSON.stringify(others.map(x => expQ(x).yue)), `${tag} Similar list yue (${others.length}) = oracle`);
           stats.similar++; if (changed.fact.has(fact.id)) stats.coreFact++;
         } else ok(!sim.show, `${tag} no similar → panel hidden`);
