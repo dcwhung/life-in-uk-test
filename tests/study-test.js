@@ -108,9 +108,25 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.click('.study-tab[data-tab="chapters"]');
   await pg.fill('#studySearch', 'Magna');
   assert((await count()) === '1 / 236 facts', 'search Magna across chapters: ' + await count());
-  await pg.fill('#studySearch', '首相');
+  // Cantonese search: the term comes from the data (Track 2 rewrites yue wording), not a hard-coded word.
+  // First 2-character CJK run in fact yue order that only Cantonese text contains, found in >= 5 facts
+  // across >= 2 chapters; the count shown must equal the facts whose yue contains it.
+  const term = await pg.evaluate(() => {
+    const cjkPair = /[\u4e00-\u9fff]{2}/g, seen = new Set();
+    for (const f of STUDY) for (const m of f.yue.matchAll(cjkPair)) {
+      const w = m[0];
+      if (seen.has(w)) continue;
+      seen.add(w);
+      const hits = STUDY.filter(x => x.yue.includes(w));
+      const latin = STUDY.some(x => (x.en + ' ' + (x.p ? x.p[0] : '') + ' ' + (x.yl || '')).includes(w));
+      if (!latin && hits.length >= 5 && new Set(hits.map(x => x.ch)).size >= 2) return { w, n: hits.length };
+    }
+    return null;
+  });
+  assert(term, 'data has a Cantonese search term in >= 5 facts across chapters: ' + JSON.stringify(term));
+  await pg.fill('#studySearch', term.w);
   const n = parseInt(await count());
-  assert(n >= 5, 'cantonese search 首相 >=5: ' + n);
+  assert(n === term.n && n >= 5, `cantonese search ${term.w} across chapters: ${n} (expected ${term.n})`);
   await pg.fill('#studySearch', '');
 
   // bookmark + mastered
