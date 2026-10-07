@@ -97,7 +97,8 @@
     "qIndex": 9,
     "field": "yue",
     "before": "君主作為國家元首的角色係乜嘢？",
-    "after": "君主作為國家元首嘅角色係乜嘢？"
+    "after": "君主嘅憲制角色係乜嘢？",
+    "decision": "V10"
   },
   {
     "exam": 13,
@@ -134,7 +135,8 @@
     "qIndex": 11,
     "field": "note",
     "before": "安·博林和凱薩琳·霍華德被處決",
-    "after": "安·博林同凱薩琳·霍華德被處決"
+    "after": "安妮·博林同凱瑟琳·霍華德被處決",
+    "decision": "V2"
   },
   {
     "exam": 13,
@@ -202,14 +204,16 @@
     "qIndex": 17,
     "field": "yue",
     "before": "1707年《聯合法令》有何重要性？",
-    "after": "1707年《聯合法令》有咩重要性？"
+    "after": "1707年《聯合法案》有咩重要性？",
+    "decision": "V3"
   },
   {
     "exam": 13,
     "qIndex": 18,
     "field": "yue",
     "before": "君主演講（The King's Speech）的作用係乜嘢？",
-    "after": "君主演講（The King's Speech）嘅作用係乜嘢？"
+    "after": "君主演講（King's/Queen's Speech）嘅作用係乜嘢？",
+    "decision": "V7"
   },
   {
     "exam": 13,
@@ -523,7 +527,8 @@
     "qIndex": 23,
     "field": "yue",
     "before": "奴隸貿易法案係哪年通過的？",
-    "after": "奴隸貿易法案喺邊年通過？"
+    "after": "《廢除奴隸貿易法案》（Slave Trade Act）喺邊年通過？",
+    "decision": "V5"
   },
   {
     "exam": 14,
@@ -656,6 +661,15 @@
   },
   {
     "exam": 15,
+    "qIndex": 13,
+    "field": "oy",
+    "optIndex": 1,
+    "before": "簽署《受難日協議》——帶來和平",
+    "after": "簽署《耶穌受難日協議》——帶來和平",
+    "decision": "V4"
+  },
+  {
+    "exam": 15,
     "qIndex": 14,
     "field": "yue",
     "before": "2010年《平等法》的作用係乜嘢？",
@@ -689,7 +703,8 @@
     "qIndex": 17,
     "field": "yue",
     "before": "排燈節係哪個宗教的節日？",
-    "after": "排燈節（Diwali）係邊個宗教嘅節日？"
+    "after": "邊啲人會慶祝排燈節（Diwali）？",
+    "decision": "V9"
   },
   {
     "exam": 15,
@@ -712,6 +727,14 @@
     "optIndex": 1,
     "before": "內戰中國會派領袖；成為護國公（1649–1658）",
     "after": "內戰入面國會派嘅領袖；做咗護國公（1649–1658）"
+  },
+  {
+    "exam": 15,
+    "qIndex": 19,
+    "field": "note",
+    "before": "",
+    "after": "1649年查理一世被處決之後克倫威爾掌權，到1658年去世（考試以官方手冊嘅講法為準；佢1653年先正式做護國公）",
+    "decision": "V11"
   },
   {
     "exam": 15,
@@ -788,7 +811,8 @@
     "qIndex": 5,
     "field": "yue",
     "before": "哪些人可以在青少年法庭審案（選兩項）？",
-    "after": "邊啲人可以喺青少年法庭審案（選兩項）？"
+    "after": "喺英格蘭同威爾斯，邊啲人可以喺Youth Court（少年法庭）審案（選兩項）？",
+    "decision": "V8"
   },
   {
     "exam": 16,
@@ -918,7 +942,8 @@
     "qIndex": 18,
     "field": "yue",
     "before": "1807年《奴隸貿易法》的目的係乜嘢？",
-    "after": "1807年《奴隸貿易法》嘅目的係乜嘢？"
+    "after": "1807年《奴隸貿易法案》（Slave Trade Act）嘅目的係乜嘢？",
+    "decision": "V5"
   },
   {
     "exam": 16,
@@ -1001,6 +1026,14 @@
   },
   {
     "exam": 17,
+    "qIndex": 2,
+    "field": "yue",
+    "before": "「影子內閣」係乜嘢？",
+    "after": "反對黨領袖委任資深反對黨議員組成一個小組，挑戰政府。佢哋叫乜嘢？",
+    "decision": "V1"
+  },
+  {
+    "exam": 17,
     "qIndex": 3,
     "field": "yue",
     "before": "以下哪兩項係國會議員（Member of Parliament, MP）嘅職責？",
@@ -1032,7 +1065,8 @@
     "qIndex": 6,
     "field": "note",
     "before": "北愛爾蘭和蘇格蘭議會用此制度",
-    "after": "北愛爾蘭同蘇格蘭議會用呢個制度"
+    "after": "蘇格蘭議會、Senedd（威爾斯議會）同北愛爾蘭議會都用呢個制度",
+    "decision": "V12"
   },
   {
     "exam": 17,
@@ -1068,7 +1102,8 @@
     "field": "oy",
     "optIndex": 0,
     "before": "宣讀國王/女王演說並開啟新一屆國會會期",
-    "after": "宣讀國王/女王演說，開啟新一屆國會會期"
+    "after": "宣讀君主演講（King's/Queen's Speech），開啟新一屆國會會期",
+    "decision": "V7"
   },
   {
     "exam": 17,
@@ -1116,6 +1151,14 @@
     "optIndex": 3,
     "before": "選擇首相",
     "after": "揀首相"
+  },
+  {
+    "exam": 17,
+    "qIndex": 11,
+    "field": "note",
+    "before": "",
+    "after": "選舉委員會：監督選舉，管理選民登記冊（考試以呢個選項為準；實際上選民登記冊由地方議會嘅選民登記主任（Electoral Registration Officer）管理）",
+    "decision": "V14"
   },
   {
     "exam": 17,
@@ -1239,7 +1282,8 @@
     "qIndex": 22,
     "field": "yue",
     "before": "停戰紀念日有何重要性？",
-    "after": "停戰紀念日有咩重要性？"
+    "after": "停戰紀念日（Armistice Day）有咩重要性？",
+    "decision": "V6"
   },
   {
     "exam": 17,
