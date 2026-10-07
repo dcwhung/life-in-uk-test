@@ -605,7 +605,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
     ◦ **S-061**：yue 題目嘅「兩 / 三」冇 guard（而家 15 / 15 有；`selectN` 拎走咗，中文用戶靠翻譯）
     ◦ **S-062**：`css/screens/quiz.css:47–48` 註解仲講 "(select 2)"
     ◦ **S-063**：`sw-test` `checkVersionBump` polling 約 10 秒，忙機偶然 timeout（flaky，見過 1 次）
-    ◦ **Exam 多選揀唔夠數當已作答**（v0.57 起，`examTools.js:14` `isAnswered` = 有揀任何一個）：題號點變色、Submit 冇「未作答」提醒，計分照當錯；未決定要唔要改
+    ◦ **Exam 多選揀唔夠數當已作答**（v0.57 起，`examTools.js:14` `isAnswered` = 有揀任何一個）：題號點變色、Submit 冇「未作答」提醒，計分照當錯；**用戶 2026-10-07 決定唔改**（接受嘅行為，唔好再提案）
     ◦ **多選題規則（用戶 2026-10-07）**：英文原題已經講明揀幾多個，app 唔另外再講；新增多選題原題一定要有 two / three（guard 守住）
     ◦ **QA v065 script `langAttrs` oracle**：會印 0/n 行，同量 `.rv-your` 外層而唔係 `> span`，所以照印 6 條 note（唔係產品問題；QA 修正副本 0 gap）
 - **v0.66 Track 2 未處理（全部非 blocking）**：
