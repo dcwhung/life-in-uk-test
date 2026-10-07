@@ -1,6 +1,6 @@
 # Implementation Plan：zh-HK UI locale + 語言切換掣（Track 1）＋ data 廣東話口語化（Track 2）
 
-**版本**：v1.2（開放問題已決定；glossary tab / 難度修訂）
+**版本**：v1.3（mockup 已確認；國家 chip、Result 字型、Track 2 batch 1 決定）
 **日期**：2026-10-07
 **關聯 Spec**：冇獨立 spec；需求來源 = `.claude/session-logs/2026-10-07_12-57.md`「下次 Session 建議任務 1」+ 2026-10-07 grill 決定 Q1–Q11 + Architect 可行性評估（2026-10-07）
 **Base**：branch `claude/gallant-noether-fbnmml` = `main` `b247d2c`（v0.64）
@@ -25,6 +25,27 @@
 | Q11 | Mockup `mockups/lang-switch.html`：5 個 tab（Header pill、Home、Quiz、Result、Study），EN / zh-HK 並排，用真 CSS；確認後 delete |
 
 **技術預設（PM + Architect）**：locale code `zh-HK`（`locales/zh-HK.js`、`LOCALES['zh-HK']`、`<html lang="zh-HK">`）；`manifest.webmanifest`、`<title>`、meta 保持英文；zh-HK.js **唔**加入 `LATE_BOOT_SCRIPTS`。
+
+## 0b. Mockup 確認後決定（用戶 2026-10-07）
+
+| # | 決定 |
+|---|---|
+| M1 | `mockups/lang-switch.html` OK（pill 樣式 `.lang-btn`、字體 stack 照 mockup） |
+| M2 | **修訂 Q10**：Study 地理國家 **chip** 只寫中文（`data.nations.*.chip`：🇬🇧 英國、🏴 英格蘭、🏴 蘇格蘭、🏴 威爾斯、☘️ 北愛爾蘭）；`label`（標題）保留「中文（English）」 |
+| M3 | Fact 年份 `yl` 係 data，zh-HK 照舊英文；`study.yearBC` key 照留（parity） |
+| M4 | Result `.result-sub` 喺 320px 尾字跌行 → **縮細字型**（窄屏 `.result-sub` 用細一級 font-size token），文案唔改 |
+| M5 | `.quiz-label` / `.q-num` letter-spacing 唔改 |
+
+## 0c. Track 2 batch 1 決定（用戶 2026-10-07）
+
+| # | 題目 | 決定 |
+|---|---|---|
+| Y1 | Exam 1 · Q4 | `yue` 改「英國喺地圖上喺邊度？」 |
+| Y2 | Exam 1 · Q13 | 保留「總警司」（唔改） |
+| Y3 | Exam 1 · Q17 | 保留「選票」（唔改） |
+| Y4 | Exam 1 · Q19 | `yue` 補返「法例規定」 |
+| Y5 | Exam 2 · Q10 note | 「公元前55BC」→「公元前55年（55 BC）」 |
+| Y6 | Exam 2 · Q11 + 戰役 note | 統一譯名「阿佛烈大帝」；之後批次（同 Study facts）見到「阿爾弗雷德大帝」一律改 |
 
 ---
 
