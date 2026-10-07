@@ -49,6 +49,50 @@ function actionNames() {
   return [...names];
 }
 
+// index just past a '…' / "…" string starting at i (an unclosed one ends at the line break)
+function endOfQuoted(src, i) {
+  const q = src[i];
+  for (let j = i + 1; j < src.length; j++) {
+    if (src[j] === '\\') j++;
+    else if (src[j] === q || src[j] === '\n') return j + 1;
+  }
+  return src.length;
+}
+
+// template text from i up to the closing backtick or the next ${: { end, expr } (expr = a ${ opened at end)
+function scanTemplateText(src, i) {
+  for (let j = i; j < src.length; j++) {
+    if (src[j] === '\\') j++;
+    else if (src[j] === '`') return { end: j + 1, expr: false };
+    else if (src[j] === '$' && src[j + 1] === '{') return { end: j + 2, expr: true };
+  }
+  return { end: src.length, expr: false };
+}
+
+// S-067: one pass, so a quote, // or /* inside a string, template or comment never starts another token.
+// Comments go, '…' / "…" and template text become '', template ${…} expressions stay as code (a real call).
+function layerCode(src) {
+  let out = '', i = 0;
+  const exprDepth = []; // one entry per open ${…}: how many { are open inside it
+  const template = from => { const t = scanTemplateText(src, from); out += "''"; i = t.end; if (t.expr) exprDepth.push(0); };
+  const closesExpr = c => c === '}' && exprDepth.length > 0 && exprDepth[exprDepth.length - 1] === 0;
+  const lineEnd = from => { const e = src.indexOf('\n', from); return e < 0 ? src.length : e; };
+  const blockEnd = from => { const e = src.indexOf('*/', from + 2); return e < 0 ? src.length : e + 2; };
+  while (i < src.length) {
+    const c = src[i], two = src.slice(i, i + 2);
+    if (two === '//') i = lineEnd(i);
+    else if (two === '/*') { i = blockEnd(i); out += ' '; }
+    else if (c === "'" || c === '"') { out += "''"; i = endOfQuoted(src, i); }
+    else if (c === '`') template(i + 1);
+    else if (closesExpr(c)) { exprDepth.pop(); template(i + 1); }
+    else {
+      if (exprDepth.length > 0 && (c === '{' || c === '}')) exprDepth[exprDepth.length - 1] += c === '{' ? 1 : -1;
+      out += c; i++;
+    }
+  }
+  return out;
+}
+
 (async () => {
   const inline = sources.flatMap(f => fs.readFileSync(f, 'utf8').split('\n')
     .map((line, i) => (/\son[a-z]+\s*=\s*["'`]/.test(line) ? `${rel(f)}:${i + 1}` : null)).filter(Boolean));
@@ -93,14 +137,12 @@ function actionNames() {
     .replace(/'[^'\n]*'|`[^`]*`|"[^"\n]*"/g, "''")); // code only: no comments / strings ('study.x' keys)
   assert(!/\bstudy\b/.test(factCardCode), 'js/components/factCard.js does not read the study global');
   // v0.64 (S-031): layering — components load before screens, so a component must not call anything a screen
-  // defines (it only worked because the global existed by render time). Comments are stripped; template
-  // literals are kept, since `${fn(...)}` inside a template is a real call; plain quoted strings (i18n keys such as
-  // 'study.x', data-action="name" attributes) are blanked unless they hold a `${…}`.
+  // defines (it only worked because the global existed by render time). layerCode drops comments and blanks quoted
+  // strings (i18n keys such as 'study.x', data-action="name") and template text, but keeps `${fn(...)}` expressions.
   const topLevelNames = f => [...fs.readFileSync(f, 'utf8')
     .matchAll(/^(?:async\s+)?(?:function\s+([A-Za-z_$][\w$]*)|(?:const|let|var)\s+([A-Za-z_$][\w$]*))/gm)]
     .map(m => m[1] || m[2]);
   const screenNames = new Set(jsFiles(path.join(ROOT, 'js/screens')).flatMap(topLevelNames));
-  const layerCode = src => stripComments(src.replace(/'[^'\n]*'|"[^"\n]*"/g, s => (s.includes('${') ? s : "''")));
   // a bare name or window.name is a use; any other `.name` is a property of something else
   const usesName = (code, n) => new RegExp(`(?<![\\w$]|(?<!\\bwindow)\\.)${n.replace(/\$/g, '\\$')}(?![\\w$])`).test(code);
   // S-037: in-memory samples pin the guard's own parsing (a URL's // must not hide later code; window.X is a use)
@@ -112,6 +154,13 @@ function actionNames() {
     { code: '// renderStudy()', hit: false, why: 'a name inside a // comment' },
     { code: "const k = 'renderStudy';", hit: false, why: 'a name inside a plain string' },
     { code: 'obj.renderStudy();', hit: false, why: "another object's property" },
+    // S-067: template literal text is not code; only its ${…} expressions are
+    { code: 'const s = `a // b`; renderStudy();', hit: true, why: 'a call after a template holding //' },
+    { code: 'const s = `/*`; renderStudy(); const t = `*/`;', hit: true, why: 'a call between templates holding /* and */' },
+    { code: 'const s = `<b>${renderStudy()}</b>`;', hit: true, why: 'a call inside a template ${…}' },
+    { code: 'const s = `renderStudy`;', hit: false, why: 'a name in template text' },
+    { code: 'const s = `${a ? `x` : renderStudy()}`;', hit: true, why: 'a call after a nested template' },
+    { code: 'const s = `${a({ b: 1 })} renderStudy`;', hit: false, why: 'template text after a ${…} holding braces' },
   ];
   const sampleMisses = LAYER_SAMPLES.filter(({ code, hit }) => usesName(layerCode(code), 'renderStudy') !== hit)
     .map(({ hit, why }) => `${hit ? 'missed' : 'flagged'} ${why}`);
