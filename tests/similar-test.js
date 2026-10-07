@@ -63,7 +63,9 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   const streaks = await pg.$$eval('#similarBox .sqm-streak', els => els.map(e => e.textContent));
   assert(JSON.stringify(streaks) === JSON.stringify(['🏆 Mastered', '🔥 1/3']), 'per-question streak: ' + streaks);
   assert((await text('#similarBox .sqm-q')) === 'What do local councils do?', 'question text shown');
-  assert((await text('#similarBox .sqm-qy')) === '地區議會做乜嘢？', 'question translation shown');
+  // the translation is read from the data (Track 2 rewrites yue wording), not hard-coded
+  const qYue = await pg.evaluate(() => EXAMS[9][14].yue);
+  assert(qYue && (await text('#similarBox .sqm-qy')) === qYue, 'question translation shown (EXAMS[9][14].yue): ' + qYue);
   const boxText = await text('#similarBox');
   assert(!boxText.includes('Provide local services') && !boxText.includes('represent their local community'), 'no answers shown');
   assert((await pg.$$('#similarBox .sqm-angle')).length === 0, 'no question-angle tags');

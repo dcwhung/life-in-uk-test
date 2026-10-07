@@ -155,7 +155,7 @@
 
 > Track 2 改 `data/*.js`，冇 UI layout 改動，所以 `none-required`。
 
-### 狀態（Track 1，2026-10-07）
+### 狀態（Track 1 + Track 2，2026-10-07）
 
 | 任務 | 狀態 | Commit / 證據 |
 |---|---|---|
@@ -172,7 +172,17 @@
 | T-011 | ✅ done | HANDOFF.md v0.65（docs commit T-011 T-012） |
 | T-012 | ✅ done | `git rm mockups/lang-switch.html`（同一 commit） |
 
-Track 2（T-101…T-109）：進行中，branch `claude/yue-colloquial`，另一個 PR。
+| T-101 | ✅ done | `30f0e8d`（content guard + fixture + `make-content-baseline.js`）；R3 check `04883d0`（S-055） |
+| T-102 | ✅ done | `a6339db`（`similar-test` / `study-test` 由 data 讀 `yue`） |
+| T-103 | ✅ done | 提案 `7a0ba55` → 用戶確認 → 套用 `cea1589`（Exam 1–2） |
+| T-104 | ✅ done | `cafc03e` → `b4802ab`（Exam 3–4） |
+| T-105 | ✅ done | `cddf620` → `cb45d89`（Exam 5–8） |
+| T-106 | ✅ done | `bb9c557` → `6527c88`（Exam 9–12） |
+| T-107 | ✅ done | `a2507e9` → `6ae5c31`（Exam 13–17） |
+| T-108 | ✅ done | `3f346b5` → `28b9cee`（Study facts 140 條） |
+| T-109 | ✅ done | merge v0.65 `1fd1ed2`；`APP_VERSION` 0.66 `998a2c3`；review `066da69`（91）+ round 2 `c05690e`（94 / 100 pass）；QA `f5438aa`（pass，CUI-0015）；batch 7 R2 `9015cf1` → `e8185b7`（W-015）；S-055 `091b6bf`；HANDOFF v0.66（docs commit）。CUI-0015 等 QA 重跑（S-056）先關 |
+
+Track 2 data 改動總數（`origin/main..HEAD`）：exams `yue` 331 題、`note` 140、`oy` 71 題；Study fact `yue` 140；English / 結構 0。
 
 ---
 
@@ -209,7 +219,7 @@ Track 1 ⟂ Track 2（冇 file 重疊，除 config.js APP_VERSION，見 R-010）
 |--------|------|------|----------|
 | 用戶確認 mockup | 人員 | 待確認 | T-002 起 |
 | 用戶確認 glossary（附錄 A） | 人員 | 待確認 | T-002 |
-| 用戶確認每批口語化對照表 | 人員 | 待確認 | T-103–T-108 |
+| 用戶確認每批口語化對照表 | 人員 | ✅ 已確認（batch 1–7） | T-103–T-109 |
 
 ---
 

@@ -1,0 +1,1048 @@
+[
+  {
+    "factId": 1,
+    "field": "yue",
+    "before": "作為英國公民或永久居民嘅責任：遵守法律、尊重他人權利同意見、公平待人、照顧自己同家人、照顧居住環境，同埋交稅。",
+    "after": "作為英國公民或者永久居民嘅責任：遵守法律、尊重他人權利同意見、公平待人、照顧自己同家人、照顧居住環境，同埋交稅。"
+  },
+  {
+    "factId": 4,
+    "field": "yue",
+    "before": "Channel Islands（如 Jersey（澤西島））同 Isle of Man（曼島）係 Crown dependencies（皇家屬地）：同英國關係密切、有自己政府，但唔係英國一部分。",
+    "after": "Channel Islands（例如 Jersey（澤西島））同 Isle of Man（曼島）係 Crown dependencies（皇家屬地）：同英國關係密切、有自己嘅政府，但唔係英國嘅一部分。"
+  },
+  {
+    "factId": 5,
+    "field": "yue",
+    "before": "St Helena（聖赫勒拿島）同 Falkland Islands（福克蘭群島）係英國海外領土：同英國有聯繫，但唔屬於英國或 Great Britain（大不列顛）。",
+    "after": "St Helena（聖赫勒拿島）同 Falkland Islands（福克蘭群島）係英國海外領土：同英國有聯繫，但唔屬於英國或者 Great Britain（大不列顛）。"
+  },
+  {
+    "factId": 6,
+    "field": "yue",
+    "before": "英國位於歐洲西北部。",
+    "after": "英國喺歐洲西北部。"
+  },
+  {
+    "factId": 7,
+    "field": "yue",
+    "before": "第一批農民約 6,000 年前來到英國，可能來自東南歐。",
+    "after": "第一批農民大約 6,000 年前嚟到英國，可能係由東南歐嚟。"
+  },
+  {
+    "factId": 8,
+    "field": "yue",
+    "before": "Stonehenge（巨石陣）喺英格蘭 Wiltshire（威爾特郡），係約 5,000 年前嘅石器時代遺跡。",
+    "after": "Stonehenge（巨石陣）喺英格蘭 Wiltshire（威爾特郡），係大約 5,000 年前建成嘅石器時代遺跡。",
+    "basis": "N"
+  },
+  {
+    "factId": 9,
+    "field": "yue",
+    "before": "英國最早嘅硬幣喺鐵器時代鑄造，部分刻有鐵器時代國王嘅名。",
+    "after": "英國最早嘅硬幣喺鐵器時代鑄造，有啲刻有鐵器時代國王嘅名字。",
+    "basis": "N"
+  },
+  {
+    "factId": 10,
+    "field": "yue",
+    "before": "Julius Caesar（凱撒）喺公元前 55 年帶領羅馬首次入侵英國，未成功；公元 43 年 Claudius（克勞狄烏斯）皇帝先成功佔領。",
+    "after": "Julius Caesar（凱撒）喺公元前 55 年帶領羅馬第一次入侵英國，冇成功；到公元 43 年先由 Claudius（克勞狄烏斯）皇帝成功佔領。",
+    "basis": "N"
+  },
+  {
+    "factId": 11,
+    "field": "yue",
+    "before": "Boudicca（布狄卡）係 Iceni（愛西尼）部族女王，約公元 60 年率眾反抗羅馬人。",
+    "after": "Boudicca（布迪卡）係 Iceni（愛西尼）部族女王，大約公元 60 年帶領族人反抗羅馬人。",
+    "decision": "U4"
+  },
+  {
+    "factId": 12,
+    "field": "yue",
+    "before": "Hadrian's Wall（哈德良長城）由羅馬人喺公元 122 年建造，橫跨英格蘭北部，標示羅馬帝國喺英國嘅北界。",
+    "after": "Hadrian's Wall（哈德良長城）係羅馬人喺公元 122 年起嘅，橫跨英格蘭北部，標示羅馬帝國喺英國嘅北面邊界。"
+  },
+  {
+    "factId": 13,
+    "field": "yue",
+    "before": "羅馬人喺公元 410 年撤離英國，之後北歐部族 Jutes（朱特人）、Angles（盎格魯人）同 Saxons（撒克遜人）移居英國。",
+    "after": "羅馬人喺公元 410 年離開英國，之後北歐嘅部族 Jutes（朱特人）、Angles（盎格魯人）同 Saxons（撒克遜人）嚟到英國定居。",
+    "basis": "N"
+  },
+  {
+    "factId": 14,
+    "field": "yue",
+    "before": "Vikings（維京人）喺 9 至 10 世紀由丹麥同挪威而來，用 longships（長船）貿易同掠奪，並入侵及定居英格蘭。",
+    "after": "Vikings（維京人）喺 9 至 10 世紀由丹麥同挪威嚟，用 longships（長船）做貿易同搶掠，仲入侵英格蘭、喺度定居。"
+  },
+  {
+    "factId": 16,
+    "field": "yue",
+    "before": "1066 年 Normandy（諾曼第）公爵 William（Normans 係定居法國北部嘅 Viking 後裔）喺 Battle of Hastings（黑斯廷斯戰役）打敗 King Harold（哈羅德國王），史稱 Norman Conquest（諾曼征服）。",
+    "after": "1066 年 Normandy（諾曼第）公爵 William（Normans 係定居法國北部嘅 Viking 後裔）喺 Battle of Hastings（黑斯廷斯戰役）打敗 King Harold（哈羅德國王），呢件事叫做 Norman Conquest（諾曼征服）。"
+  },
+  {
+    "factId": 19,
+    "field": "yue",
+    "before": "Tower of London（倫敦塔）由 William the Conqueror（征服者威廉）喺 Norman Conquest（諾曼征服）後建造。",
+    "after": "Tower of London（倫敦塔）係 William the Conqueror（征服者威廉）喺 Norman Conquest（諾曼征服）之後起嘅。",
+    "basis": "N"
+  },
+  {
+    "factId": 20,
+    "field": "yue",
+    "before": "Domesday Book（1086 年）由 William the Conqueror（征服者威廉）下令編製，記錄英格蘭土地同財產嘅擁有者。",
+    "after": "Domesday Book（1086 年）由 William the Conqueror（征服者威廉）下令編製，記錄英格蘭嘅土地同財產由邊個擁有。"
+  },
+  {
+    "factId": 22,
+    "field": "yue",
+    "before": "1314 年 Robert the Bruce（羅伯特·布魯斯）率領蘇格蘭人喺 Battle of Bannockburn（班諾克本戰役）打敗英格蘭，蘇格蘭保持獨立。",
+    "after": "1314 年 Robert the Bruce（羅伯特·布魯斯）帶領蘇格蘭人喺 Battle of Bannockburn（班諾克本戰役）打敗英格蘭人，蘇格蘭保持獨立。"
+  },
+  {
+    "factId": 23,
+    "field": "yue",
+    "before": "Hundred Years War（百年戰爭）係英格蘭同法國之間嘅戰爭（1337–1453），實際持續 116 年。",
+    "after": "Hundred Years War（百年戰爭）係英格蘭同法國之間嘅戰爭（1337–1453），實際上打咗 116 年。",
+    "basis": "N"
+  },
+  {
+    "factId": 24,
+    "field": "yue",
+    "before": "Black Death（黑死病）1348 年傳入英格蘭，約三分之一人口死亡。",
+    "after": "Black Death（黑死病）1348 年傳入英格蘭，令大約三分之一人口死亡。",
+    "basis": "N"
+  },
+  {
+    "factId": 26,
+    "field": "yue",
+    "before": "Wars of the Roses（1455–1485）係 House of York（約克家族）同 House of Lancaster（蘭開斯特家族）之間嘅內戰，最後 Henry VII（都鐸王朝）勝出並統一兩家。",
+    "after": "Wars of the Roses（1455–1485）係 House of York（約克家族）同 House of Lancaster（蘭開斯特家族）之間嘅內戰，最後 Henry VII（都鐸王朝）贏咗，統一兩個家族。"
+  },
+  {
+    "factId": 28,
+    "field": "yue",
+    "before": "Reformation（宗教改革）係 16 世紀脫離天主教會嘅運動。Henry VIII（亨利八世）因教宗唔准佢同第一任妻子 Catherine of Aragon（阿拉貢的凱瑟琳）離婚，於 1534 年成立 Church of England（英格蘭國教會）。",
+    "after": "Reformation（宗教改革）係 16 世紀脫離天主教會嘅運動。Henry VIII（亨利八世）因為教宗唔准佢同第一任妻子 Catherine of Aragon（阿拉貢的凱瑟琳）離婚，喺 1534 年成立 Church of England（英格蘭國教會）。"
+  },
+  {
+    "factId": 29,
+    "field": "yue",
+    "before": "Reformation（宗教改革）期間 Henry VIII（亨利八世）關閉天主教修道院並沒收財產，稱為 Dissolution of the Monasteries（解散修道院）。",
+    "after": "Reformation（宗教改革）期間 Henry VIII（亨利八世）關閉天主教修道院，沒收佢哋嘅財產，叫做 Dissolution of the Monasteries（解散修道院）。"
+  },
+  {
+    "factId": 30,
+    "field": "yue",
+    "before": "Elizabeth I（1558–1603 在位）係 Henry VIII（亨利八世）嘅女兒，新教女王。1588 年英格蘭擊敗西班牙無敵艦隊（Spanish Armada）。",
+    "after": "Elizabeth I（伊利沙伯一世，1558–1603 在位）係 Henry VIII（亨利八世）嘅女兒，係新教女王。1588 年英格蘭打敗西班牙無敵艦隊（Spanish Armada）。"
+  },
+  {
+    "factId": 34,
+    "field": "yue",
+    "before": "King James I（詹姆斯一世國王）主持翻譯嘅聖經（1611 年）稱為 Authorised Version（欽定版聖經），又叫 King James Bible（詹姆斯王聖經）。",
+    "after": "King James I（詹姆斯一世國王）下令翻譯嘅聖經（1611 年）叫做 Authorised Version（欽定版聖經），又叫 King James Bible（詹姆斯王聖經）。",
+    "basis": "N"
+  },
+  {
+    "factId": 35,
+    "field": "yue",
+    "before": "Petition of Right（1628 年）確認國王未經國會同意不得徵稅。",
+    "after": "Petition of Right（1628 年）確認咗國王未經國會同意唔可以徵稅。"
+  },
+  {
+    "factId": 36,
+    "field": "yue",
+    "before": "English Civil War（1642–1651）係國會同 King Charles I（查理一世國王）爭奪權力嘅內戰，Charles I 最終被處決。",
+    "after": "English Civil War（1642–1651）係國會同 King Charles I（查理一世國王）爭奪權力嘅內戰，Charles I 最後被處決。"
+  },
+  {
+    "factId": 37,
+    "field": "yue",
+    "before": "1649 年 Charles I（查理一世）被處決後，英格蘭成為共和國（Commonwealth），係唯一冇君主統治嘅時期。",
+    "after": "1649 年 Charles I（查理一世）被處決之後，英格蘭變成共和國（Commonwealth），係唯一一段冇君主統治嘅時期。"
+  },
+  {
+    "factId": 38,
+    "field": "yue",
+    "before": "Oliver Cromwell（克倫威爾）係內戰中國會派領袖，獲封 Lord Protector（1649–1658）。",
+    "after": "Oliver Cromwell（克倫威爾）係內戰入面國會派嘅領袖，獲封 Lord Protector（護國公），年份係 1649–1658（考試以官方手冊嘅講法為準；佢 1649 年查理一世被處決之後掌權，1653 年先正式做護國公）。",
+    "basis": "R1"
+  },
+  {
+    "factId": 39,
+    "field": "yue",
+    "before": "Charles II（查理二世）內戰失敗後逃往歐洲，曾匿喺一棵橡樹入面（「Royal Oak」）。",
+    "after": "Charles II（查理二世）內戰失敗之後逃去歐洲，曾經匿埋喺一棵橡樹度，嗰棵樹後來叫做「皇家橡樹」（Royal Oak）。",
+    "basis": "N"
+  },
+  {
+    "factId": 40,
+    "field": "yue",
+    "before": "Great Fire of London（1666 年）發生喺 Charles II（查理二世）年代，燒毀大部分倫敦市區，包括 St Paul's Cathedral（聖保羅大教堂）。",
+    "after": "Great Fire of London（倫敦大火）（1666 年）喺 Charles II（查理二世）年代發生，燒毀咗倫敦大部分市區，包括 St Paul's Cathedral（聖保羅大教堂）。"
+  },
+  {
+    "factId": 42,
+    "field": "yue",
+    "before": "Sir Christopher Wren（基斯杜化·雷恩爵士）係 St Paul's Cathedral（聖保羅大教堂）嘅建築師，大火後重建。",
+    "after": "Sir Christopher Wren（基斯杜化·雷恩爵士）係 St Paul's Cathedral（聖保羅大教堂）嘅建築師，教堂喺倫敦大火之後重建。"
+  },
+  {
+    "factId": 43,
+    "field": "yue",
+    "before": "Glorious Revolution（1688 年）James II（詹姆斯二世）被 William of Orange（奧蘭治的威廉）和平取代，奠定君主立憲制。",
+    "after": "Glorious Revolution（1688 年）：James II（詹姆斯二世）被 William of Orange（奧蘭治的威廉）和平取代，奠定君主立憲制。"
+  },
+  {
+    "factId": 44,
+    "field": "yue",
+    "before": "Bill of Rights（1689 年）限制國王權力、確認國會權利，並冇賦予任何人投票權。",
+    "after": "Bill of Rights（1689 年）限制國王權力、確認國會嘅權利，冇俾任何人投票權。",
+    "basis": "N"
+  },
+  {
+    "factId": 45,
+    "field": "yue",
+    "before": "Act of Union（聯合法案） 1707 合併英格蘭同蘇格蘭國會，成立 Kingdom of Great Britain（大不列顛王國）。",
+    "after": "1707 年《聯合法案》（Act of Union）合併咗英格蘭同蘇格蘭國會，成立 Kingdom of Great Britain（大不列顛王國）。",
+    "basis": "T"
+  },
+  {
+    "factId": 47,
+    "field": "yue",
+    "before": "1745 年 Bonnie Prince Charlie（Charles Edward Stuart）召集蘇格蘭高地氏族起兵，企圖為 Stuart（斯圖亞特）王朝奪回王位，1746 年喺 Culloden（卡洛登）戰敗。",
+    "after": "1745 年 Bonnie Prince Charlie（Charles Edward Stuart）召集蘇格蘭高地氏族起兵，想幫 Stuart（斯圖亞特）王朝攞返王位，1746 年喺 Culloden（卡洛登）戰敗。",
+    "basis": "N"
+  },
+  {
+    "factId": 48,
+    "field": "yue",
+    "before": "Enlightenment（啟蒙時代）係 18 世紀政治、哲學同科學新思想蓬勃嘅時期；Adam Smith（亞當·斯密）提出經濟學理論。",
+    "after": "Enlightenment（啟蒙運動）係 18 世紀政治、哲學同科學新思想蓬勃發展嘅時期；Adam Smith（亞當·斯密）發展咗經濟學嘅思想。",
+    "basis": "N",
+    "decision": "U14"
+  },
+  {
+    "factId": 49,
+    "field": "yue",
+    "before": "Isaac Newton（牛頓）喺 Lincolnshire（林肯郡）嘅 Woolsthorpe（伍爾索普）出生，發現萬有引力同運動定律，後來出任 Royal Mint（皇家鑄幣廠）嘅 Warden（監督）同 Master（總監）。",
+    "after": "Isaac Newton（牛頓）喺 Lincolnshire（林肯郡）嘅 Woolsthorpe（烏爾斯索普）出世，發現萬有引力同運動定律，後來做過 Royal Mint（皇家鑄幣廠）嘅 Warden（監督）同 Master（總監）。",
+    "decision": "U5"
+  },
+  {
+    "factId": 51,
+    "field": "yue",
+    "before": "Industrial Revolution（18–19 世紀）令英國由農業經濟轉為工業經濟，城市急速發展；18 世紀製造業成為最大就業來源。",
+    "after": "Industrial Revolution（18–19 世紀）令英國由農業經濟變成工業經濟，城市急速發展；18 世紀製造業變成最大嘅就業來源。"
+  },
+  {
+    "factId": 53,
+    "field": "yue",
+    "before": "Act of Union（聯合法案） 1800 合併 Great Britain 同 Ireland，成立 United Kingdom of Great Britain and Ireland（大不列顛及愛爾蘭聯合王國）。",
+    "after": "1800 年《聯合法案》（Act of Union）合併咗 Great Britain 同 Ireland，成立 United Kingdom of Great Britain and Ireland（大不列顛及愛爾蘭聯合王國）。",
+    "basis": "T"
+  },
+  {
+    "factId": 54,
+    "field": "yue",
+    "before": "Battle of Trafalgar（1805 年）Admiral Nelson（納爾遜上將）指揮英國艦隊擊敗法國同西班牙艦隊，本人陣亡。",
+    "after": "1805 年 Battle of Trafalgar（特拉法加海戰）入面，Admiral Nelson（納爾遜上將）指揮英國艦隊打敗法國同西班牙艦隊，佢自己就陣亡。"
+  },
+  {
+    "factId": 55,
+    "field": "yue",
+    "before": "Slave Trade Act（奴隸貿易法案） 1807 廢除大英帝國嘅奴隸貿易，由國會議員 William Wilberforce（威廉·威伯福斯）推動。",
+    "after": "1807 年《廢除奴隸貿易法案》（Slave Trade Act）廢除咗大英帝國嘅奴隸貿易，由國會議員 William Wilberforce（威廉·威伯福斯）推動。",
+    "basis": "T"
+  },
+  {
+    "factId": 56,
+    "field": "yue",
+    "before": "Sake Dean Mahomet（薩克·迪恩·馬霍梅特）約 1810 年喺倫敦開設英國第一間咖喱屋，並引入 shampooing（洗頭按摩）。",
+    "after": "Sake Dean Mahomet（薩克·迪恩·馬霍梅特）大約 1810 年喺倫敦開咗英國第一間咖喱屋，仲將 shampooing（洗頭按摩）引入英國。",
+    "decision": "U9"
+  },
+  {
+    "factId": 57,
+    "field": "yue",
+    "before": "Battle of Waterloo（1815 年）Duke of Wellington（「Iron Duke（鐵公爵）」）打敗拿破崙，係英法之間最後一場戰役；Wellington（威靈頓）後來出任首相。",
+    "after": "1815 年 Battle of Waterloo（滑鐵盧戰役）入面，Duke of Wellington（威靈頓公爵，「Iron Duke（鐵公爵）」）打敗拿破崙，係英法之間最後一場戰役；威靈頓後來做咗首相。"
+  },
+  {
+    "factId": 58,
+    "field": "yue",
+    "before": "Isambard Kingdom Brunel（布魯內爾）係維多利亞時代著名工程師，建造橋樑、隧道、鐵路同船隻。",
+    "after": "Isambard Kingdom Brunel（布魯內爾）係維多利亞時代著名工程師，起咗好多橋樑、隧道、鐵路同船隻。"
+  },
+  {
+    "factId": 59,
+    "field": "yue",
+    "before": "Great Reform Act（大改革法案） 1832 擴大投票權（惠及中產階級）。",
+    "after": "1832 年《大改革法案》（Great Reform Act）擴大咗投票權（令更多中產階級有票）。",
+    "basis": "N"
+  },
+  {
+    "factId": 60,
+    "field": "yue",
+    "before": "Chartists（19 世紀中）爭取政治改革，包括所有男性都有投票權。",
+    "after": "Chartists（19 世紀中葉）爭取政治改革，包括所有男性都有投票權。"
+  },
+  {
+    "factId": 61,
+    "field": "yue",
+    "before": "Irish famine（1840 年代）因薯仔失收造成，約 100 萬人死亡，另有約 100 萬人移民。",
+    "after": "Irish famine（愛爾蘭大饑荒）（1840 年代）係因為薯仔失收造成，大約 100 萬人死亡，另外有大約 100 萬人移民。",
+    "basis": "T"
+  },
+  {
+    "factId": 62,
+    "field": "yue",
+    "before": "Florence Nightingale（南丁格爾）係現代護理先驅，喺 Crimean War（1853–1856）期間改善醫院環境。",
+    "after": "Florence Nightingale（南丁格爾）係現代護理先驅，喺 Crimean War（1853–1856）期間改善咗醫院環境。"
+  },
+  {
+    "factId": 63,
+    "field": "yue",
+    "before": "Boer War（1899–1902）喺南非爆發，英國對抗布爾人（Boer）移民。",
+    "after": "Boer War（1899–1902）喺南非發生，係英國同布爾人（Boer）移民之間嘅戰爭。"
+  },
+  {
+    "factId": 65,
+    "field": "yue",
+    "before": "第一次世界大戰（1914–1918）因 Archduke Franz Ferdinand（斐迪南大公）被刺殺同複雜嘅同盟關係而爆發。",
+    "after": "第一次世界大戰（1914–1918）因為 Archduke Franz Ferdinand（斐迪南大公）被刺殺，加上複雜嘅同盟關係而爆發。"
+  },
+  {
+    "factId": 66,
+    "field": "yue",
+    "before": "Battle of the Somme（1916 年）係一戰最血腥嘅戰役之一，第一日就有約 20,000 名英軍陣亡。",
+    "after": "Battle of the Somme（1916 年）係一戰最血腥嘅戰役之一，第一日就有大約 20,000 名英軍陣亡。"
+  },
+  {
+    "factId": 68,
+    "field": "yue",
+    "before": "1918 年 30 歲以上女性獲得投票權，以表揚佢哋喺一戰嘅貢獻。",
+    "after": "1918 年 30 歲以上嘅女性有咗投票權，係表揚佢哋喺一戰嘅貢獻。"
+  },
+  {
+    "factId": 69,
+    "field": "yue",
+    "before": "1928 年女性投票年齡降至 21 歲，同男性一樣。",
+    "after": "1928 年女性投票年齡降到 21 歲，同男性一樣。"
+  },
+  {
+    "factId": 70,
+    "field": "yue",
+    "before": "1969 年男女投票年齡一同降至 18 歲。",
+    "after": "1969 年男女投票年齡一齊降到 18 歲。"
+  },
+  {
+    "factId": 73,
+    "field": "yue",
+    "before": "第二次世界大戰 1939 年因德國入侵波蘭而爆發，英法隨即向德國宣戰。",
+    "after": "第二次世界大戰喺 1939 年因為德國入侵波蘭而爆發，英法跟住向德國宣戰。"
+  },
+  {
+    "factId": 74,
+    "field": "yue",
+    "before": "Winston Churchill（邱吉爾）係二戰時期首相（1940–1945，1951–1955 再任），以鼓舞人心嘅演說聞名。",
+    "after": "Winston Churchill（邱吉爾）係二戰時期嘅首相（1940–1945，1951–1955 再做），以鼓舞人心嘅演說聞名。"
+  },
+  {
+    "factId": 76,
+    "field": "yue",
+    "before": "Battle of Britain（1940 年）係關鍵空戰，英國成功抵禦德國空襲，阻止入侵。",
+    "after": "Battle of Britain（不列顛戰役）（1940 年）係關鍵嘅空戰，英國成功抵禦德國空襲，阻止咗德國入侵。",
+    "basis": "T"
+  },
+  {
+    "factId": 77,
+    "field": "yue",
+    "before": "Blitz（1940–1941）期間德國轟炸英國城市，尤其倫敦。",
+    "after": "Blitz（1940–1941）期間，德國轟炸英國城市，尤其係倫敦。"
+  },
+  {
+    "factId": 78,
+    "field": "yue",
+    "before": "第二次世界大戰 1945 年結束：歐洲 5 月 8 日（歐洲勝利日 VE Day），日本 8 月 15 日（對日勝利日 VJ Day）。",
+    "after": "第二次世界大戰喺 1945 年結束：歐洲係 5 月 8 日（歐洲勝利日 VE Day），日本係 8 月 15 日（對日勝利日 VJ Day）。"
+  },
+  {
+    "factId": 79,
+    "field": "yue",
+    "before": "1945 年大選由 Clement Attlee（艾德禮）領導嘅工黨勝出，儘管 Churchill（邱吉爾）戰時聲望極高。",
+    "after": "雖然 Churchill（邱吉爾）喺戰時聲望好高，但係 1945 年大選由 Clement Attlee（艾德禮）帶領嘅工黨贏咗。",
+    "basis": "N"
+  },
+  {
+    "factId": 80,
+    "field": "yue",
+    "before": "國民保健服務（National Health Service, NHS）喺 1948 年由工黨政府（Aneurin Bevan 推動）成立，為所有英國居民提供免費醫療。",
+    "after": "國民保健服務（National Health Service, NHS）喺 1948 年由工黨政府成立（Aneurin Bevan（安奈林·貝文）推動），所有英國居民使用嗰陣都係免費。",
+    "basis": "N"
+  },
+  {
+    "factId": 81,
+    "field": "yue",
+    "before": "二戰後工黨政府建立 Welfare State（福利國家），提供社會保障、醫療同教育。",
+    "after": "二戰之後工黨政府建立咗 Welfare State（福利國家），提供社會保障、醫療同教育。"
+  },
+  {
+    "factId": 82,
+    "field": "yue",
+    "before": "Windrush Generation（疾風世代）係二戰後（1948 年起）由加勒比海移居英國嘅移民。",
+    "after": "Windrush Generation（疾風世代）係二戰之後（1948 年起）由加勒比海移居英國嘅移民。"
+  },
+  {
+    "factId": 83,
+    "field": "yue",
+    "before": "愛爾蘭喺 1949 年成為共和國。",
+    "after": "愛爾蘭喺 1949 年變成共和國。"
+  },
+  {
+    "factId": 85,
+    "field": "yue",
+    "before": "Edmund Hillary（艾德蒙·希拉里）同 Tenzing Norgay（丹增·諾蓋）喺 1953 年隨英國探險隊首次登上珠穆朗瑪峰。",
+    "after": "Edmund Hillary（艾德蒙·希拉里）同 Tenzing Norgay（丹增·諾蓋）喺 1953 年跟英國探險隊第一次登上珠穆朗瑪峰。"
+  },
+  {
+    "factId": 86,
+    "field": "yue",
+    "before": "Roger Bannister（羅傑·班尼斯特）喺 1954 年成為首位 4 分鐘內跑完 1 英里嘅人。",
+    "after": "Roger Bannister（羅傑·班尼斯特）喺 1954 年做咗第一個喺 4 分鐘內跑完 1 英里嘅人。"
+  },
+  {
+    "factId": 88,
+    "field": "yue",
+    "before": "Bobby Moore（波比·摩亞）係 1966 年奪得世界盃嘅英格蘭足球隊隊長。",
+    "after": "Bobby Moore（波比·摩亞）係 1966 年贏世界盃嘅英格蘭足球隊隊長。"
+  },
+  {
+    "factId": 89,
+    "field": "yue",
+    "before": "Neil Armstrong（岩士唐）喺 1969 年（Apollo 11）成為首位登月嘅人。",
+    "after": "Neil Armstrong（岩士唐）喺 1969 年（Apollo 11）做咗第一個踏上月球嘅人。"
+  },
+  {
+    "factId": 90,
+    "field": "yue",
+    "before": "Concorde（和諧式客機）超音速客機由英國同法國共同研發。",
+    "after": "Concorde（和諧式客機）係英國同法國一齊研發嘅超音速客機。",
+    "decision": "U6"
+  },
+  {
+    "factId": 91,
+    "field": "yue",
+    "before": "英國 1973 年加入歐洲共同體（現歐盟），2020 年脫歐。",
+    "after": "英國喺 1973 年加入歐洲共同體（即係而家嘅歐盟），2020 年脫歐。"
+  },
+  {
+    "factId": 92,
+    "field": "yue",
+    "before": "Margaret Thatcher（戴卓爾夫人）係首位女首相（1979–1990），亦係 20 世紀任期最長嘅首相。",
+    "after": "Margaret Thatcher（戴卓爾夫人）係第一位女首相（1979–1990），都係 20 世紀任期最長嘅首相。"
+  },
+  {
+    "factId": 93,
+    "field": "yue",
+    "before": "Jayne Torvill（珍·托維爾）同 Christopher Dean（基斯杜化·迪恩）喺 1984 年奧運冰上舞蹈奪金。",
+    "after": "Jayne Torvill（珍·托維爾）同 Christopher Dean（基斯杜化·迪恩）贏咗 1984 年奧運冰上舞蹈金牌。"
+  },
+  {
+    "factId": 94,
+    "field": "yue",
+    "before": "柏林圍牆 1989 年倒下，象徵冷戰結束。",
+    "after": "柏林圍牆喺 1989 年倒塌，象徵冷戰結束。",
+    "basis": "N"
+  },
+  {
+    "factId": 96,
+    "field": "yue",
+    "before": "Good Friday Agreement（1998 年）為北愛爾蘭帶來和平，結束數十年衝突。",
+    "after": "《耶穌受難日協議》（Good Friday Agreement）（1998 年）為北愛爾蘭帶嚟和平，結束咗幾十年嘅衝突。",
+    "basis": "T"
+  },
+  {
+    "factId": 103,
+    "field": "yue",
+    "before": "Church of England（英格蘭國教會）係英格蘭嘅國教（新教），由 Henry VIII（亨利八世）創立。君主係其元首，Archbishop of Canterbury（坎特伯雷大主教）係精神領袖。",
+    "after": "Church of England（英格蘭國教會）係英格蘭嘅國教（新教），由 Henry VIII（亨利八世）創立。君主係佢嘅最高領袖，Archbishop of Canterbury（坎特伯雷大主教）係精神領袖。"
+  },
+  {
+    "factId": 105,
+    "field": "yue",
+    "before": "威爾斯同北愛爾蘭冇國教，只有英格蘭同蘇格蘭有。",
+    "after": "威爾斯同北愛爾蘭冇國教；只有英格蘭有國教（Church of England），蘇格蘭嘅 Church of Scotland 係國家教會，唔係國教。",
+    "basis": "N",
+    "decision": "U1"
+  },
+  {
+    "factId": 106,
+    "field": "yue",
+    "before": "Easter（復活節）喺 3 月或 4 月；Lent（大齋期）係 Easter 前嘅 40 日。",
+    "after": "Easter（復活節）喺 3 月或者 4 月；Lent（大齋期）係 Easter 之前嘅 40 日。"
+  },
+  {
+    "factId": 107,
+    "field": "yue",
+    "before": "Boxing Day（節禮日）係 12 月 26 日（聖誕翌日），係公眾假期。",
+    "after": "Boxing Day（節禮日）係 12 月 26 日（聖誕節後一日），係公眾假期。"
+  },
+  {
+    "factId": 110,
+    "field": "yue",
+    "before": "Diwali（光明節）由印度教徒同錫克教徒慶祝。",
+    "after": "排燈節（Diwali），又叫 Festival of Lights，係印度教徒同錫克教徒慶祝嘅節日。",
+    "basis": "T"
+  },
+  {
+    "factId": 112,
+    "field": "yue",
+    "before": "Halloween（萬聖節）係 10 月 31 日。",
+    "after": "Halloween（萬聖節前夕）係 10 月 31 日。",
+    "basis": "T",
+    "decision": "U13"
+  },
+  {
+    "factId": 113,
+    "field": "yue",
+    "before": "Bonfire Night（Guy Fawkes Night（蓋伊·福克斯之夜））11 月 5 日，紀念 1605 年 Gunpowder Plot（火藥陰謀）失敗。",
+    "after": "Bonfire Night，又叫 Guy Fawkes Night（蓋伊·福克斯之夜），喺 11 月 5 日，紀念 1605 年 Gunpowder Plot（火藥陰謀）失敗。"
+  },
+  {
+    "factId": 114,
+    "field": "yue",
+    "before": "Hogmanay（霍格莫尼）係蘇格蘭對除夕（12 月 31 日）嘅稱呼。",
+    "after": "Hogmanay（霍格莫尼）係蘇格蘭人對除夕（12 月 31 日）嘅叫法。"
+  },
+  {
+    "factId": 115,
+    "field": "yue",
+    "before": "Remembrance Day（Armistice Day（停戰紀念日））11 月 11 日，紀念 1918 年一戰結束同戰爭死難者，人們佩戴紅色罌粟花。",
+    "after": "Remembrance Day（國殤紀念日），又叫停戰紀念日（Armistice Day），喺 11 月 11 日，紀念 1918 年一戰結束同埋喺戰爭入面死去嘅人；大家會戴紅色罌粟花。",
+    "basis": "T"
+  },
+  {
+    "factId": 116,
+    "field": "yue",
+    "before": "Cenotaph（戰爭紀念碑）係倫敦 Whitehall（白廳）嘅戰爭紀念碑，Remembrance Day（國殤紀念日）儀式喺呢度舉行。",
+    "after": "和平紀念碑（Cenotaph）係倫敦 Whitehall（白廳）嘅戰爭紀念碑，Remembrance Day（國殤紀念日）嘅紀念儀式喺呢度舉行。",
+    "basis": "T"
+  },
+  {
+    "factId": 123,
+    "field": "yue",
+    "before": "威爾斯除英文外亦講威爾斯語（Welsh）。",
+    "after": "威爾斯除咗英文，仲講威爾斯語（Welsh）。"
+  },
+  {
+    "factId": 126,
+    "field": "yue",
+    "before": "英格蘭最高面值紙幣係 £50（蘇格蘭銀行有 £100）。蘇格蘭同北愛爾蘭有自己嘅紙幣，全英國通用。",
+    "after": "英格蘭最高面值嘅紙幣係 £50（蘇格蘭同北愛爾蘭有啲銀行另外發行 £100）。蘇格蘭同北愛爾蘭有自己嘅紙幣，全英國通用。",
+    "basis": "N",
+    "decision": "U3"
+  },
+  {
+    "factId": 133,
+    "field": "yue",
+    "before": "Tower of London（倫敦塔）由 Yeoman Warders（俗稱 Beefeaters）守衛及導賞；加冕用嘅 Crown Jewels（王室珠寶）亦存放喺度。",
+    "after": "Tower of London（倫敦塔）由 Yeoman Warders（皇家衛士，俗稱 Beefeaters（倫敦塔衛兵））守衛同埋做導賞；加冕用嘅 Crown Jewels（皇冠珠寶）都存放喺度。",
+    "basis": "T",
+    "decision": "U11"
+  },
+  {
+    "factId": 135,
+    "field": "yue",
+    "before": "Giant's Causeway（巨人堤道）喺北愛爾蘭，係約 5,000 萬年前火山熔岩形成嘅玄武岩柱。",
+    "after": "Giant's Causeway（巨人堤道）喺北愛爾蘭，係大約 5,000 萬年前火山熔岩形成嘅玄武岩柱。"
+  },
+  {
+    "factId": 137,
+    "field": "yue",
+    "before": "Snowdonia National Park（斯諾登尼亞國家公園）喺威爾斯；Snowdon 係威爾斯最高山。",
+    "after": "Snowdonia（雪墩）國家公園喺威爾斯；Snowdon（雪墩山）係威爾斯最高嘅山。",
+    "basis": "T"
+  },
+  {
+    "factId": 140,
+    "field": "yue",
+    "before": "Loch Lomond and the Trossachs National Park（羅蒙湖與特羅薩克斯國家公園）喺蘇格蘭。",
+    "after": "Loch Lomond and the Trossachs National Park（洛蒙德湖及特羅薩克斯國家公園）喺蘇格蘭。",
+    "basis": "T"
+  },
+  {
+    "factId": 141,
+    "field": "yue",
+    "before": "National Parks（國家公園）係受保護嘅鄉郊地區，英格蘭、威爾斯同蘇格蘭共有 15 個。",
+    "after": "National Parks（國家公園）係受保護嘅鄉郊地區，英格蘭、威爾斯同蘇格蘭一共有 15 個。",
+    "basis": "N"
+  },
+  {
+    "factId": 145,
+    "field": "yue",
+    "before": "英國廣播公司（BBC）逍遙音樂節（BBC Proms）係每年為期 8 週嘅古典音樂節，喺倫敦 Royal Albert Hall（皇家阿爾伯特音樂廳）舉行。",
+    "after": "英國廣播公司（BBC）逍遙音樂節（BBC Proms）係每年為期 8 個星期嘅古典音樂節，喺倫敦 Royal Albert Hall（皇家阿爾伯特音樂廳）舉行。"
+  },
+  {
+    "factId": 148,
+    "field": "yue",
+    "before": "倫敦 West End（西區）被稱為 Theatreland（劇院區）。",
+    "after": "倫敦 West End（西區）叫做 Theatreland（劇院區）。",
+    "decision": "U10"
+  },
+  {
+    "factId": 152,
+    "field": "yue",
+    "before": "英國著名風景畫家 J.M.W. Turner（透納）畫咗 The Fighting Temeraire（戰鬥的泰梅萊爾號）。",
+    "after": "英國著名風景畫家 J.M.W. Turner（透納）畫咗 The Fighting Temeraire（戰艦無畏號）。",
+    "basis": "T",
+    "decision": "U8"
+  },
+  {
+    "factId": 154,
+    "field": "yue",
+    "before": "Richard Rogers（理查德·羅傑斯）係 Millennium Dome（千禧巨蛋）嘅建築師。",
+    "after": "Richard Rogers（理查德·羅傑斯）係 Millennium Dome（千禧穹頂）嘅建築師。",
+    "basis": "T",
+    "decision": "U7"
+  },
+  {
+    "factId": 155,
+    "field": "yue",
+    "before": "Harry Potter（哈利波特）同 James Bond（占士邦）係英國製作、最高票房嘅電影系列。",
+    "after": "Harry Potter（哈利波特）同 James Bond（占士邦）都係英國製作、最高票房嘅電影系列之一。",
+    "basis": "N"
+  },
+  {
+    "factId": 156,
+    "field": "yue",
+    "before": "曾獲奧斯卡嘅英國演員包括 Colin Firth（哥連·費夫）、Anthony Hopkins（安東尼·鶴健士）、Judi Dench（茱迪·丹芝）、Kate Winslet（琦·溫絲莉）、Tilda Swinton（Emily Watson（艾美莉·屈臣）未獲獎）。",
+    "after": "贏過奧斯卡嘅英國演員包括 Colin Firth（哥連·費夫）、Anthony Hopkins（安東尼·鶴健士）、Judi Dench（茱迪·丹芝）、Kate Winslet（琦·溫絲莉）同 Tilda Swinton（蒂達·史雲頓）；Emily Watson（艾美莉·屈臣）就冇贏過。",
+    "basis": "N"
+  },
+  {
+    "factId": 158,
+    "field": "yue",
+    "before": "National Lottery（1994 年推出）為藝術、體育同文化遺產等公益事業籌款。",
+    "after": "National Lottery（1994 年推出）幫藝術、體育同文化遺產等公益事業籌款。"
+  },
+  {
+    "factId": 166,
+    "field": "yue",
+    "before": "君主係禮儀性國家元首，簽署法例但按首相建議行事，必須保持政治中立。",
+    "after": "君主係禮儀性國家元首，簽署法例但按首相建議行事，一定要保持政治中立。"
+  },
+  {
+    "factId": 167,
+    "field": "yue",
+    "before": "君主任命首相，慣例上係下議院議席最多政黨嘅領袖。",
+    "after": "君主任命首相：按慣例係下議院議席最多嘅政黨嘅領袖。"
+  },
+  {
+    "factId": 168,
+    "field": "yue",
+    "before": "國會開幕大典上君主宣布新會期開始並宣讀 King's/Queen's Speech（國王/女王演說），內容係政府立法計劃（由首相撰寫）。",
+    "after": "國會開幕大典上，君主宣布新會期開始，同埋宣讀君主演講（King's/Queen's Speech），內容係政府嘅立法計劃（由首相撰寫）。",
+    "basis": "T"
+  },
+  {
+    "factId": 171,
+    "field": "yue",
+    "before": "英國有 650 個選區，每區選出一名國會議員（Member of Parliament, MP），所以下議院有 650 名議員。",
+    "after": "英國有 650 個選區，每個選區選出一位國會議員（Member of Parliament, MP），所以下議院有 650 名議員。"
+  },
+  {
+    "factId": 173,
+    "field": "yue",
+    "before": "上議院審議、修訂同辯論下議院提出嘅法案（不能否決財政法案）。",
+    "after": "上議院審議、修訂同辯論下議院提出嘅法案（唔可以否決財政法案）。",
+    "basis": "N"
+  },
+  {
+    "factId": 174,
+    "field": "yue",
+    "before": "Life peers（終身貴族）係終身制上議院議員，頭銜唔可以世襲；現時大部分上議院議員係 life peers（終身貴族）。",
+    "after": "Life peers（終身貴族）係終身制上議院議員，頭銜唔可以世襲；而家大部分上議院議員都係終身貴族。",
+    "basis": "N"
+  },
+  {
+    "factId": 175,
+    "field": "yue",
+    "before": "Hereditary peers（世襲貴族）係世襲貴族，上議院只剩 92 位。",
+    "after": "Hereditary peers（世襲貴族）係承襲頭銜嘅貴族，上議院只剩 92 位。"
+  },
+  {
+    "factId": 176,
+    "field": "yue",
+    "before": "多位 Church of England（英格蘭國教會）主教（Lords Spiritual，共 26 位）係上議院成員。",
+    "after": "有幾位 Church of England（英格蘭國教會）主教喺上議院有議席，叫做 Lords Spiritual（神職上議院議員），一共 26 位。",
+    "basis": "N"
+  },
+  {
+    "factId": 178,
+    "field": "yue",
+    "before": "補選（by-election）喺國會議員（Member of Parliament, MP）去世或辭職時舉行。",
+    "after": "國會議員（Member of Parliament, MP）去世或者辭職嗰陣，會舉行補選（by-election）。"
+  },
+  {
+    "factId": 179,
+    "field": "yue",
+    "before": "首相答問（Prime Minister's Questions, PMQs）係每週一次（通常星期三）國會議員質詢首相嘅環節。",
+    "after": "首相質詢時間（Prime Minister's Questions, PMQs）係每個星期一次（通常喺星期三）、國會議員向首相提問嘅環節。",
+    "decision": "U12"
+  },
+  {
+    "factId": 180,
+    "field": "yue",
+    "before": "Hung parliament（懸浮議會）係冇單一政黨取得過半議席嘅情況。",
+    "after": "Hung parliament（懸浮議會）係冇任何一個政黨贏到過半數議席嘅情況。"
+  },
+  {
+    "factId": 181,
+    "field": "yue",
+    "before": "首相係政府首長，領導內閣並向君主提供建議；官邸係 10 Downing Street（唐寧街）。",
+    "after": "首相係政府首長，帶領內閣，同埋向君主提供意見；官邸係 10 Downing Street（唐寧街）。"
+  },
+  {
+    "factId": 182,
+    "field": "yue",
+    "before": "內閣由首相主持、約 20 位資深部長組成，負責重大政策決定。",
+    "after": "內閣由首相主持、大約 20 位資深部長組成，負責重大政策決定。",
+    "basis": "N"
+  },
+  {
+    "factId": 183,
+    "field": "yue",
+    "before": "Shadow Cabinet（影子內閣）由反對黨領袖委任嘅資深反對黨議員組成，對應各內閣部長並挑戰政府。",
+    "after": "Shadow Cabinet（影子內閣）由反對黨領袖委任嘅資深反對黨議員組成，對應各個內閣部長，挑戰政府。"
+  },
+  {
+    "factId": 184,
+    "field": "yue",
+    "before": "Home Secretary（內政大臣）負責犯罪、警政同移民。",
+    "after": "Home Secretary（內政大臣）負責罪案、警政同移民。",
+    "basis": "N"
+  },
+  {
+    "factId": 188,
+    "field": "yue",
+    "before": "Civil Service（公務員）執行政府政策，必須保持政治中立。",
+    "after": "Civil Service（公務員）執行政府政策，一定要保持政治中立。"
+  },
+  {
+    "factId": 191,
+    "field": "yue",
+    "before": "英國大選採用 first past the post（領先者當選制）制度：選區內得票最多嘅候選人勝出。",
+    "after": "英國大選用 first past the post（領先者當選制）：選區入面得票最多嘅候選人勝出。"
+  },
+  {
+    "factId": 192,
+    "field": "yue",
+    "before": "比例代表制（proportional representation）按得票比例分配議席，北愛爾蘭議會（以及蘇格蘭議會同 Senedd）採用此制度。",
+    "after": "比例代表制（proportional representation）按得票比例分配議席，北愛爾蘭議會（仲有蘇格蘭議會同 Senedd（威爾斯議會））都用呢個制度。",
+    "basis": "N"
+  },
+  {
+    "factId": 194,
+    "field": "yue",
+    "before": "大選投票資格：年滿 18 歲、英國/愛爾蘭/英聯邦公民、已登記選民冊。",
+    "after": "大選投票資格：要年滿 18 歲、係英國/愛爾蘭/英聯邦公民，而且已經登記喺選民登記冊（electoral register）。",
+    "basis": "N"
+  },
+  {
+    "factId": 195,
+    "field": "yue",
+    "before": "選舉前會收到 poll card（投票通知卡），列明投票地點同時間；投票時用 ballot paper（選票）。",
+    "after": "選舉之前你會收到 poll card（投票通知卡），講明喺邊度同幾時投票；投票嗰陣用 ballot paper（選票）。",
+    "basis": "N"
+  },
+  {
+    "factId": 196,
+    "field": "yue",
+    "before": "法律規定電視同電台喺選舉前必須平衡報道政治新聞，報章不受此限。",
+    "after": "法律規定電視同電台喺選舉之前一定要提供均衡嘅政治報道，報章唔受呢條規定限制。",
+    "basis": "N"
+  },
+  {
+    "factId": 197,
+    "field": "yue",
+    "before": "Electoral Commission（選舉委員會）監督選舉並管理選民登記冊。",
+    "after": "Electoral Commission（選舉委員會）監督選舉，管理選民登記冊（考試以呢個講法為準；實際上選民登記冊由地方議會嘅選民登記主任（Electoral Registration Officer）管理）。",
+    "basis": "R1"
+  },
+  {
+    "factId": 199,
+    "field": "yue",
+    "before": "蘇格蘭議會（Scottish Parliament）位於 Edinburgh（愛丁堡），有 129 名議員（MSP, Member of the Scottish Parliament）。",
+    "after": "蘇格蘭議會（Scottish Parliament）喺 Edinburgh（愛丁堡），有 129 名議員（MSP, Member of the Scottish Parliament）。"
+  },
+  {
+    "factId": 200,
+    "field": "yue",
+    "before": "威爾斯議會（Senedd Cymru，前稱 National Assembly for Wales）位於 Cardiff（加的夫），有 60 名議員（MS, Member of the Senedd）。",
+    "after": "威爾斯議會（Senedd Cymru，前身叫 National Assembly for Wales）喺 Cardiff（加的夫），有 60 名議員（MS, Member of the Senedd）（考試以官方手冊嘅60名為準；2026年選舉起增至96名）。",
+    "basis": "R1"
+  },
+  {
+    "factId": 203,
+    "field": "yue",
+    "before": "城鎮同鄉郊由民選地方議會管理，提供教育、廢物處理、房屋等服務；議員代表社區並決定地方服務。",
+    "after": "城鎮、城市同鄉郊由民選地方議會管理，提供教育、廢物處理、房屋等服務；議員代表社區，同埋決定地方服務。",
+    "decision": "U2"
+  },
+  {
+    "factId": 204,
+    "field": "yue",
+    "before": "Habeas corpus（人身保護令）係防止未經審訊而被囚禁嘅法律原則。",
+    "after": "Habeas corpus（人身保護令）係防止人未經審訊就被囚禁嘅法律原則。"
+  },
+  {
+    "factId": 205,
+    "field": "yue",
+    "before": "Common law（普通法）係基於法院判決同先例而非成文法例嘅法律。",
+    "after": "Common law（普通法）係根據法院判決同先例，而唔係成文法例嘅法律。"
+  },
+  {
+    "factId": 206,
+    "field": "yue",
+    "before": "無罪推定（presumption of innocence）：未被證明有罪之前視為無罪。",
+    "after": "無罪推定（presumption of innocence）：未證明有罪之前，一個人都當係無罪。"
+  },
+  {
+    "factId": 207,
+    "field": "yue",
+    "before": "陪審團審訊（trial by jury）：由一組公民裁定被告有罪與否。",
+    "after": "陪審團審訊（trial by jury）：由一組公民裁定被告有冇罪。"
+  },
+  {
+    "factId": 210,
+    "field": "yue",
+    "before": "小額錢債法庭（small claims court）處理小型民事糾紛。",
+    "after": "小額錢債審裁處（small claims court）處理小型民事糾紛。",
+    "basis": "T"
+  },
+  {
+    "factId": 212,
+    "field": "yue",
+    "before": "英格蘭同威爾斯嘅少年法庭（10–17 歲）由受過特別訓練嘅裁判官或地區法官審理，嚴重案件轉介 Crown Court（刑事法院）。",
+    "after": "英格蘭同威爾斯嘅 Youth Court（少年法庭）（10–17 歲）由受過特別訓練嘅裁判官或者地區法官審理，嚴重案件會轉去 Crown Court（刑事法院）。",
+    "basis": "T"
+  },
+  {
+    "factId": 213,
+    "field": "yue",
+    "before": "律師（solicitor）提供法律意見並代表客戶，收費通常按處理案件所花時間計算。",
+    "after": "律師（solicitor）提供法律意見同代表客戶，收費通常按佢哋處理案件用咗幾多時間計。"
+  },
+  {
+    "factId": 217,
+    "field": "yue",
+    "before": "投訴警察可以寫信俾警察總長（Chief Constable）、親身去警署，或向獨立警察投訴機構（Independent Office for Police Conduct, IOPC）投訴。",
+    "after": "投訴警察可以寫信俾總警司（Chief Constable）、親身去警署，或者向獨立警察投訴機構（Independent Office for Police Conduct, IOPC）投訴。",
+    "basis": "T"
+  },
+  {
+    "factId": 218,
+    "field": "yue",
+    "before": "如懷疑有人游說你加入極端或恐怖組織，應聯絡當地警方。",
+    "after": "如果懷疑有人游說你加入極端或者恐怖組織，應該聯絡當地警方。"
+  },
+  {
+    "factId": 220,
+    "field": "yue",
+    "before": "National Minimum Wage（1998 年推行）係僱主必須支付嘅最低時薪。",
+    "after": "National Minimum Wage（1998 年推行）係僱主一定要俾嘅最低時薪。"
+  },
+  {
+    "factId": 221,
+    "field": "yue",
+    "before": "Human Rights Act（人權法） 1998 將歐洲人權公約納入英國法律。",
+    "after": "1998 年《人權法》（Human Rights Act）將《歐洲人權公約》納入英國法律。",
+    "basis": "N"
+  },
+  {
+    "factId": 222,
+    "field": "yue",
+    "before": "Equality Act（平等法） 2010 保障人們免受基於年齡、性別、種族、宗教等受保護特徵嘅歧視。",
+    "after": "2010 年《平等法》（Equality Act）保障人唔會因為年齡、性別、種族、宗教等受保護特徵而受到歧視。",
+    "basis": "N"
+  },
+  {
+    "factId": 224,
+    "field": "yue",
+    "before": "喺公眾地方遛狗，狗隻必須戴上寫有主人姓名同地址嘅頸圈。",
+    "after": "喺公眾地方遛狗，狗隻一定要戴寫有主人姓名同地址嘅頸圈。"
+  },
+  {
+    "factId": 225,
+    "field": "yue",
+    "before": "National Citizen Service（國民公民服務）係俾 16–17 歲青年參加嘅自願（非強制）計劃，培養技能同服務社區。",
+    "after": "National Citizen Service（國民公民服務）係俾 16–17 歲青年參加嘅自願（唔係強制）計劃，培養技能同服務社區。"
+  },
+  {
+    "factId": 230,
+    "field": "yue",
+    "before": "Commonwealth（英聯邦）係約 54 個國家組成嘅組織，大多來自前大英帝國。",
+    "after": "Commonwealth（英聯邦）係大約 54 個國家組成嘅組織（考試以官方手冊嘅54個為準；2022年起56個），大部分係前大英帝國嘅地方。",
+    "basis": "R1"
+  },
+  {
+    "factId": 231,
+    "field": "yue",
+    "before": "Council of Europe（47 個成員國，同歐盟係唔同機構）保障人權、推廣民主。",
+    "after": "Council of Europe（歐洲委員會）唔係歐盟機構，有 47 個成員國（考試以官方手冊嘅47個為準；2022年起46個），負責保障人權、喺歐洲推廣民主。",
+    "basis": "R1"
+  },
+  {
+    "factId": 232,
+    "field": "yue",
+    "before": "歐洲人權公約保障基本權利同自由，由位於 Strasbourg（史特拉斯堡）嘅歐洲人權法院執行。",
+    "after": "《歐洲人權公約》保障基本權利同自由，由喺 Strasbourg（史特拉斯堡）嘅歐洲人權法院執行。"
+  },
+  {
+    "factId": 233,
+    "field": "yue",
+    "before": "聯合國喺二戰後（1945 年）成立，旨在防止戰爭、促進國際和平。",
+    "after": "聯合國喺二戰之後（1945 年）成立，目的係防止戰爭、促進國際和平。"
+  },
+  {
+    "exam": 2,
+    "qIndex": 11,
+    "field": "note",
+    "before": "仲引入咗shampooing（香波洗頭）服務",
+    "after": "仲引入咗shampooing（洗頭按摩）服務",
+    "decision": "U9",
+    "crossBatch": true
+  },
+  {
+    "exam": 3,
+    "qIndex": 9,
+    "field": "yue",
+    "before": "邊兩個國家一齊研發協和飛機？",
+    "after": "邊兩個國家一齊研發和諧式客機（Concorde）？",
+    "decision": "U6",
+    "crossBatch": true
+  },
+  {
+    "exam": 11,
+    "qIndex": 1,
+    "field": "yue",
+    "before": "戲院區（Theatreland）喺邊度？",
+    "after": "劇院區（Theatreland）喺邊度？",
+    "decision": "U10",
+    "crossBatch": true
+  },
+  {
+    "exam": 2,
+    "qIndex": 14,
+    "field": "note",
+    "before": "記憶法（按月份）：\n25/1 Burns Night（彭斯之夜）→ 紀念蘇格蘭詩人 Robert Burns；\n31/10 Halloween（萬聖節）；\n5/11 Bonfire Night（篝火之夜）→ 紀念 1605 年火藥陰謀（Gunpowder Plot）失敗；\n11/11 Remembrance Day（國殤紀念日）→ 戴紅罌粟花；\n26/12 Boxing Day（節禮日）→ 聖誕節翌日；\n31/12 Hogmanay（霍格莫尼）→ 蘇格蘭除夕。",
+    "after": "記憶法（按月份）：\n25/1 Burns Night（彭斯之夜）→ 紀念蘇格蘭詩人 Robert Burns；\n31/10 Halloween（萬聖節前夕）；\n5/11 Bonfire Night（篝火之夜）→ 紀念 1605 年火藥陰謀（Gunpowder Plot）失敗；\n11/11 Remembrance Day（國殤紀念日）→ 戴紅罌粟花；\n26/12 Boxing Day（節禮日）→ 聖誕節翌日；\n31/12 Hogmanay（霍格莫尼）→ 蘇格蘭除夕。",
+    "decision": "U13",
+    "crossBatch": true
+  },
+  {
+    "exam": 2,
+    "qIndex": 17,
+    "field": "note",
+    "before": "記憶法（按月份）：\n25/1 Burns Night（彭斯之夜）→ 紀念蘇格蘭詩人 Robert Burns；\n31/10 Halloween（萬聖節）；\n5/11 Bonfire Night（篝火之夜）→ 紀念 1605 年火藥陰謀（Gunpowder Plot）失敗；\n11/11 Remembrance Day（國殤紀念日）→ 戴紅罌粟花；\n26/12 Boxing Day（節禮日）→ 聖誕節翌日；\n31/12 Hogmanay（霍格莫尼）→ 蘇格蘭除夕。",
+    "after": "記憶法（按月份）：\n25/1 Burns Night（彭斯之夜）→ 紀念蘇格蘭詩人 Robert Burns；\n31/10 Halloween（萬聖節前夕）；\n5/11 Bonfire Night（篝火之夜）→ 紀念 1605 年火藥陰謀（Gunpowder Plot）失敗；\n11/11 Remembrance Day（國殤紀念日）→ 戴紅罌粟花；\n26/12 Boxing Day（節禮日）→ 聖誕節翌日；\n31/12 Hogmanay（霍格莫尼）→ 蘇格蘭除夕。",
+    "decision": "U13",
+    "crossBatch": true
+  },
+  {
+    "exam": 6,
+    "qIndex": 16,
+    "field": "note",
+    "before": "記憶法（按月份）：\n25/1 Burns Night（彭斯之夜）→ 紀念蘇格蘭詩人 Robert Burns；\n31/10 Halloween（萬聖節）；\n5/11 Bonfire Night（篝火之夜）→ 紀念 1605 年火藥陰謀（Gunpowder Plot）失敗；\n11/11 Remembrance Day（國殤紀念日）→ 戴紅罌粟花；\n26/12 Boxing Day（節禮日）→ 聖誕節翌日；\n31/12 Hogmanay（霍格莫尼）→ 蘇格蘭除夕。",
+    "after": "記憶法（按月份）：\n25/1 Burns Night（彭斯之夜）→ 紀念蘇格蘭詩人 Robert Burns；\n31/10 Halloween（萬聖節前夕）；\n5/11 Bonfire Night（篝火之夜）→ 紀念 1605 年火藥陰謀（Gunpowder Plot）失敗；\n11/11 Remembrance Day（國殤紀念日）→ 戴紅罌粟花；\n26/12 Boxing Day（節禮日）→ 聖誕節翌日；\n31/12 Hogmanay（霍格莫尼）→ 蘇格蘭除夕。",
+    "decision": "U13",
+    "crossBatch": true
+  },
+  {
+    "exam": 7,
+    "qIndex": 1,
+    "field": "note",
+    "before": "記憶法（按月份）：\n25/1 Burns Night（彭斯之夜）→ 紀念蘇格蘭詩人 Robert Burns；\n31/10 Halloween（萬聖節）；\n5/11 Bonfire Night（篝火之夜）→ 紀念 1605 年火藥陰謀（Gunpowder Plot）失敗；\n11/11 Remembrance Day（國殤紀念日）→ 戴紅罌粟花；\n26/12 Boxing Day（節禮日）→ 聖誕節翌日；\n31/12 Hogmanay（霍格莫尼）→ 蘇格蘭除夕。",
+    "after": "記憶法（按月份）：\n25/1 Burns Night（彭斯之夜）→ 紀念蘇格蘭詩人 Robert Burns；\n31/10 Halloween（萬聖節前夕）；\n5/11 Bonfire Night（篝火之夜）→ 紀念 1605 年火藥陰謀（Gunpowder Plot）失敗；\n11/11 Remembrance Day（國殤紀念日）→ 戴紅罌粟花；\n26/12 Boxing Day（節禮日）→ 聖誕節翌日；\n31/12 Hogmanay（霍格莫尼）→ 蘇格蘭除夕。",
+    "decision": "U13",
+    "crossBatch": true
+  },
+  {
+    "exam": 9,
+    "qIndex": 7,
+    "field": "note",
+    "before": "記憶法（按月份）：\n25/1 Burns Night（彭斯之夜）→ 紀念蘇格蘭詩人 Robert Burns；\n31/10 Halloween（萬聖節）；\n5/11 Bonfire Night（篝火之夜）→ 紀念 1605 年火藥陰謀（Gunpowder Plot）失敗；\n11/11 Remembrance Day（國殤紀念日）→ 戴紅罌粟花；\n26/12 Boxing Day（節禮日）→ 聖誕節翌日；\n31/12 Hogmanay（霍格莫尼）→ 蘇格蘭除夕。",
+    "after": "記憶法（按月份）：\n25/1 Burns Night（彭斯之夜）→ 紀念蘇格蘭詩人 Robert Burns；\n31/10 Halloween（萬聖節前夕）；\n5/11 Bonfire Night（篝火之夜）→ 紀念 1605 年火藥陰謀（Gunpowder Plot）失敗；\n11/11 Remembrance Day（國殤紀念日）→ 戴紅罌粟花；\n26/12 Boxing Day（節禮日）→ 聖誕節翌日；\n31/12 Hogmanay（霍格莫尼）→ 蘇格蘭除夕。",
+    "decision": "U13",
+    "crossBatch": true
+  },
+  {
+    "exam": 9,
+    "qIndex": 11,
+    "field": "note",
+    "before": "記憶法（按月份）：\n25/1 Burns Night（彭斯之夜）→ 紀念蘇格蘭詩人 Robert Burns；\n31/10 Halloween（萬聖節）；\n5/11 Bonfire Night（篝火之夜）→ 紀念 1605 年火藥陰謀（Gunpowder Plot）失敗；\n11/11 Remembrance Day（國殤紀念日）→ 戴紅罌粟花；\n26/12 Boxing Day（節禮日）→ 聖誕節翌日；\n31/12 Hogmanay（霍格莫尼）→ 蘇格蘭除夕。",
+    "after": "記憶法（按月份）：\n25/1 Burns Night（彭斯之夜）→ 紀念蘇格蘭詩人 Robert Burns；\n31/10 Halloween（萬聖節前夕）；\n5/11 Bonfire Night（篝火之夜）→ 紀念 1605 年火藥陰謀（Gunpowder Plot）失敗；\n11/11 Remembrance Day（國殤紀念日）→ 戴紅罌粟花；\n26/12 Boxing Day（節禮日）→ 聖誕節翌日；\n31/12 Hogmanay（霍格莫尼）→ 蘇格蘭除夕。",
+    "decision": "U13",
+    "crossBatch": true
+  },
+  {
+    "exam": 10,
+    "qIndex": 4,
+    "field": "note",
+    "before": "記憶法（按月份）：\n25/1 Burns Night（彭斯之夜）→ 紀念蘇格蘭詩人 Robert Burns；\n31/10 Halloween（萬聖節）；\n5/11 Bonfire Night（篝火之夜）→ 紀念 1605 年火藥陰謀（Gunpowder Plot）失敗；\n11/11 Remembrance Day（國殤紀念日）→ 戴紅罌粟花；\n26/12 Boxing Day（節禮日）→ 聖誕節翌日；\n31/12 Hogmanay（霍格莫尼）→ 蘇格蘭除夕。",
+    "after": "記憶法（按月份）：\n25/1 Burns Night（彭斯之夜）→ 紀念蘇格蘭詩人 Robert Burns；\n31/10 Halloween（萬聖節前夕）；\n5/11 Bonfire Night（篝火之夜）→ 紀念 1605 年火藥陰謀（Gunpowder Plot）失敗；\n11/11 Remembrance Day（國殤紀念日）→ 戴紅罌粟花；\n26/12 Boxing Day（節禮日）→ 聖誕節翌日；\n31/12 Hogmanay（霍格莫尼）→ 蘇格蘭除夕。",
+    "decision": "U13",
+    "crossBatch": true
+  },
+  {
+    "exam": 11,
+    "qIndex": 22,
+    "field": "note",
+    "before": "記憶法（按月份）：\n25/1 Burns Night（彭斯之夜）→ 紀念蘇格蘭詩人 Robert Burns；\n31/10 Halloween（萬聖節）；\n5/11 Bonfire Night（篝火之夜）→ 紀念 1605 年火藥陰謀（Gunpowder Plot）失敗；\n11/11 Remembrance Day（國殤紀念日）→ 戴紅罌粟花；\n26/12 Boxing Day（節禮日）→ 聖誕節翌日；\n31/12 Hogmanay（霍格莫尼）→ 蘇格蘭除夕。",
+    "after": "記憶法（按月份）：\n25/1 Burns Night（彭斯之夜）→ 紀念蘇格蘭詩人 Robert Burns；\n31/10 Halloween（萬聖節前夕）；\n5/11 Bonfire Night（篝火之夜）→ 紀念 1605 年火藥陰謀（Gunpowder Plot）失敗；\n11/11 Remembrance Day（國殤紀念日）→ 戴紅罌粟花；\n26/12 Boxing Day（節禮日）→ 聖誕節翌日；\n31/12 Hogmanay（霍格莫尼）→ 蘇格蘭除夕。",
+    "decision": "U13",
+    "crossBatch": true
+  },
+  {
+    "exam": 12,
+    "qIndex": 19,
+    "field": "note",
+    "before": "記憶法（按月份）：\n25/1 Burns Night（彭斯之夜）→ 紀念蘇格蘭詩人 Robert Burns；\n31/10 Halloween（萬聖節）；\n5/11 Bonfire Night（篝火之夜）→ 紀念 1605 年火藥陰謀（Gunpowder Plot）失敗；\n11/11 Remembrance Day（國殤紀念日）→ 戴紅罌粟花；\n26/12 Boxing Day（節禮日）→ 聖誕節翌日；\n31/12 Hogmanay（霍格莫尼）→ 蘇格蘭除夕。",
+    "after": "記憶法（按月份）：\n25/1 Burns Night（彭斯之夜）→ 紀念蘇格蘭詩人 Robert Burns；\n31/10 Halloween（萬聖節前夕）；\n5/11 Bonfire Night（篝火之夜）→ 紀念 1605 年火藥陰謀（Gunpowder Plot）失敗；\n11/11 Remembrance Day（國殤紀念日）→ 戴紅罌粟花；\n26/12 Boxing Day（節禮日）→ 聖誕節翌日；\n31/12 Hogmanay（霍格莫尼）→ 蘇格蘭除夕。",
+    "decision": "U13",
+    "crossBatch": true
+  },
+  {
+    "exam": 14,
+    "qIndex": 20,
+    "field": "note",
+    "before": "記憶法（按月份）：\n25/1 Burns Night（彭斯之夜）→ 紀念蘇格蘭詩人 Robert Burns；\n31/10 Halloween（萬聖節）；\n5/11 Bonfire Night（篝火之夜）→ 紀念 1605 年火藥陰謀（Gunpowder Plot）失敗；\n11/11 Remembrance Day（國殤紀念日）→ 戴紅罌粟花；\n26/12 Boxing Day（節禮日）→ 聖誕節翌日；\n31/12 Hogmanay（霍格莫尼）→ 蘇格蘭除夕。",
+    "after": "記憶法（按月份）：\n25/1 Burns Night（彭斯之夜）→ 紀念蘇格蘭詩人 Robert Burns；\n31/10 Halloween（萬聖節前夕）；\n5/11 Bonfire Night（篝火之夜）→ 紀念 1605 年火藥陰謀（Gunpowder Plot）失敗；\n11/11 Remembrance Day（國殤紀念日）→ 戴紅罌粟花；\n26/12 Boxing Day（節禮日）→ 聖誕節翌日；\n31/12 Hogmanay（霍格莫尼）→ 蘇格蘭除夕。",
+    "decision": "U13",
+    "crossBatch": true
+  },
+  {
+    "exam": 16,
+    "qIndex": 17,
+    "field": "note",
+    "before": "記憶法（按月份）：\n25/1 Burns Night（彭斯之夜）→ 紀念蘇格蘭詩人 Robert Burns；\n31/10 Halloween（萬聖節）；\n5/11 Bonfire Night（篝火之夜）→ 紀念 1605 年火藥陰謀（Gunpowder Plot）失敗；\n11/11 Remembrance Day（國殤紀念日）→ 戴紅罌粟花；\n26/12 Boxing Day（節禮日）→ 聖誕節翌日；\n31/12 Hogmanay（霍格莫尼）→ 蘇格蘭除夕。",
+    "after": "記憶法（按月份）：\n25/1 Burns Night（彭斯之夜）→ 紀念蘇格蘭詩人 Robert Burns；\n31/10 Halloween（萬聖節前夕）；\n5/11 Bonfire Night（篝火之夜）→ 紀念 1605 年火藥陰謀（Gunpowder Plot）失敗；\n11/11 Remembrance Day（國殤紀念日）→ 戴紅罌粟花；\n26/12 Boxing Day（節禮日）→ 聖誕節翌日；\n31/12 Hogmanay（霍格莫尼）→ 蘇格蘭除夕。",
+    "decision": "U13",
+    "crossBatch": true
+  },
+  {
+    "exam": 11,
+    "qIndex": 22,
+    "field": "oy",
+    "optIndex": 3,
+    "before": "蘇格蘭嘅萬聖節",
+    "after": "蘇格蘭嘅萬聖節前夕",
+    "decision": "U13",
+    "crossBatch": true
+  }
+]
