@@ -1,0 +1,425 @@
+[
+  {
+    "exam": 1,
+    "qIndex": 0,
+    "field": "yue",
+    "before": "作為英國公民或永久居民，你有哪兩項責任？",
+    "after": "作為英國公民或者永久居民，你有邊兩項責任？"
+  },
+  {
+    "exam": 1,
+    "qIndex": 2,
+    "field": "yue",
+    "before": "男女同樣係21歲有投票權係哪年？",
+    "after": "邊年開始，男女都係21歲就可以投票？"
+  },
+  {
+    "exam": 1,
+    "qIndex": 2,
+    "field": "note",
+    "before": "投票權時間線：\n→ 1689《權利法案》（Bill of Rights）冇擴大投票權\n→ 1832《大改革法案》（Great Reform Act）中產階級男性有票\n→ 1918 男性21歲、女性30歲以上有票（表揚第一次世界大戰貢獻）\n→ 1928 男女同樣21歲\n→ 1969 降至18歲",
+    "after": "投票權時間線：\n→ 1689《權利法案》（Bill of Rights）冇擴大投票權\n→ 1832《大改革法案》（Great Reform Act）中產階級男性有票\n→ 1918 男性21歲、女性30歲以上有票（表揚第一次世界大戰貢獻）\n→ 1928 男女同樣21歲\n→ 1969 降到18歲"
+  },
+  {
+    "exam": 1,
+    "qIndex": 3,
+    "field": "yue",
+    "before": "英國喺地理上係哪個位置？",
+    "after": "英國喺地理上喺邊個位置？"
+  },
+  {
+    "exam": 1,
+    "qIndex": 4,
+    "field": "yue",
+    "before": "蘇格蘭的守護聖人係誰？",
+    "after": "蘇格蘭嘅守護聖人係邊個？"
+  },
+  {
+    "exam": 1,
+    "qIndex": 5,
+    "field": "yue",
+    "before": "玫瑰戰爭係兩個哪些家族之爭？",
+    "after": "玫瑰戰爭係邊兩個家族之間嘅戰爭？"
+  },
+  {
+    "exam": 1,
+    "qIndex": 5,
+    "field": "note",
+    "before": "1455–1485年，最終亨利七世（都鐸王朝）統一",
+    "after": "1455–1485年，最後由亨利七世（都鐸王朝）統一"
+  },
+  {
+    "exam": 1,
+    "qIndex": 6,
+    "field": "yue",
+    "before": "1689年《權利法案》確認所有成年男性投票權。對定錯？",
+    "after": "1689年《權利法案》確認咗所有成年男性都有投票權。對定錯？"
+  },
+  {
+    "exam": 1,
+    "qIndex": 6,
+    "field": "note",
+    "before": "《權利法案》係限制國王權力、確認國會權利，並非賦予投票權。\n投票權時間線：\n→ 1689《權利法案》（Bill of Rights）冇擴大投票權\n→ 1832《大改革法案》（Great Reform Act）中產階級男性有票\n→ 1918 男性21歲、女性30歲以上有票（表揚第一次世界大戰貢獻）\n→ 1928 男女同樣21歲\n→ 1969 降至18歲",
+    "after": "《權利法案》係限制國王權力、確認國會嘅權利，唔係賦予投票權。\n投票權時間線：\n→ 1689《權利法案》（Bill of Rights）冇擴大投票權\n→ 1832《大改革法案》（Great Reform Act）中產階級男性有票\n→ 1918 男性21歲、女性30歲以上有票（表揚第一次世界大戰貢獻）\n→ 1928 男女同樣21歲\n→ 1969 降到18歲"
+  },
+  {
+    "exam": 1,
+    "qIndex": 7,
+    "field": "note",
+    "before": "位於倫敦，每年11月11日Remembrance Day（國殤紀念日）舉行紀念儀式",
+    "after": "喺倫敦，每年11月11日Remembrance Day（國殤紀念日）會喺度舉行紀念儀式"
+  },
+  {
+    "exam": 1,
+    "qIndex": 8,
+    "field": "yue",
+    "before": "英國第一位女首相係誰？",
+    "after": "英國第一位女首相係邊個？"
+  },
+  {
+    "exam": 1,
+    "qIndex": 8,
+    "field": "note",
+    "before": "記憶法（Margaret Thatcher，戴卓爾夫人）：\n任期 → 1979 至 1990 年，共 11 年；\n首位 → 英國第一位女首相；\n最長 → 20 世紀任期最長首相。",
+    "after": "記憶法（Margaret Thatcher，戴卓爾夫人）：\n任期 → 1979 至 1990 年，共 11 年；\n首位 → 英國第一位女首相；\n最長 → 20 世紀任期最長嘅首相。"
+  },
+  {
+    "exam": 1,
+    "qIndex": 9,
+    "field": "yue",
+    "before": "誰主持下議院辯論？",
+    "after": "邊個主持下議院嘅辯論？"
+  },
+  {
+    "exam": 1,
+    "qIndex": 10,
+    "field": "yue",
+    "before": "1966年英格蘭贏世界盃，隊長係誰？",
+    "after": "1966年英格蘭贏世界盃，隊長係邊個？"
+  },
+  {
+    "exam": 1,
+    "qIndex": 11,
+    "field": "yue",
+    "before": "英格蘭係哪年擊敗西班牙無敵艦隊？",
+    "after": "英格蘭喺邊年打敗西班牙無敵艦隊？"
+  },
+  {
+    "exam": 1,
+    "qIndex": 11,
+    "field": "note",
+    "before": "記憶法（英國重要戰役，按年份）：\n• 9 世紀 → vs Vikings（維京人）→ Alfred the Great（阿爾弗雷德大帝）統一盎格魯-撒克遜王國 → 打敗維京人；\n• 1066 → vs Normandy（諾曼第）→ Battle of Hastings（黑斯廷斯戰役）→ William of Normandy（諾曼第公爵威廉）打敗 Harold → 英格蘭戰敗，諾曼征服；\n• 1314 → vs Scotland（蘇格蘭）→ Battle of Bannockburn（班諾克本戰役）→ Robert the Bruce 打敗英格蘭 → 蘇格蘭保持獨立；\n• 1588 → vs Spain（西班牙）→ Spanish Armada（西班牙無敵艦隊）→ Elizabeth I 年代英格蘭擊敗西班牙；\n• 1805 → vs France（法國）+ Spain（西班牙）→ Battle of Trafalgar（特拉法加海戰）→ Admiral Nelson（納爾遜）打敗法西聯合艦隊 → Nelson 陣亡；\n• 1815 → vs France（法國）→ Battle of Waterloo（滑鐵盧戰役）→ Duke of Wellington（威靈頓公爵）打敗 Napoleon → 英法最後一戰；\n• 1940 → vs Germany（德國）→ Battle of Britain（不列顛戰役）→ 皇家空軍擊退德國空襲 → 阻止德國入侵。",
+    "after": "記憶法（英國重要戰役，按年份）：\n• 9 世紀 → vs Vikings（維京人）→ Alfred the Great（阿爾弗雷德大帝）統一盎格魯-撒克遜王國 → 打敗維京人；\n• 1066 → vs Normandy（諾曼第）→ Battle of Hastings（黑斯廷斯戰役）→ William of Normandy（諾曼第公爵威廉）打敗 Harold → 英格蘭戰敗，諾曼征服；\n• 1314 → vs Scotland（蘇格蘭）→ Battle of Bannockburn（班諾克本戰役）→ Robert the Bruce 打敗英格蘭 → 蘇格蘭保持獨立；\n• 1588 → vs Spain（西班牙）→ Spanish Armada（西班牙無敵艦隊）→ Elizabeth I 年代英格蘭打敗西班牙；\n• 1805 → vs France（法國）+ Spain（西班牙）→ Battle of Trafalgar（特拉法加海戰）→ Admiral Nelson（納爾遜）打敗法西聯合艦隊 → Nelson 陣亡；\n• 1815 → vs France（法國）→ Battle of Waterloo（滑鐵盧戰役）→ Duke of Wellington（威靈頓公爵）打敗 Napoleon → 英法最後一戰；\n• 1940 → vs Germany（德國）→ Battle of Britain（不列顛戰役）→ 皇家空軍擊退德國空襲 → 阻止德國入侵。"
+  },
+  {
+    "exam": 1,
+    "qIndex": 12,
+    "field": "yue",
+    "before": "任何人可以寫信給總警司投訴警察。對定錯？",
+    "after": "任何人都可以寫信俾總警司投訴警察。對定錯？"
+  },
+  {
+    "exam": 1,
+    "qIndex": 12,
+    "field": "note",
+    "before": "亦可去警署或向獨立警察投訴機構（Independent Office for Police Conduct, IOPC）投訴",
+    "after": "亦可以去警署，或者向獨立警察投訴機構（Independent Office for Police Conduct, IOPC）投訴"
+  },
+  {
+    "exam": 1,
+    "qIndex": 13,
+    "field": "yue",
+    "before": "陪審員的最低年齡係幾歲？",
+    "after": "做陪審員最少要幾歲？"
+  },
+  {
+    "exam": 1,
+    "qIndex": 14,
+    "field": "yue",
+    "before": "陪審員係如何選出？",
+    "after": "陪審員係點樣揀出嚟？"
+  },
+  {
+    "exam": 1,
+    "qIndex": 16,
+    "field": "note",
+    "before": "投票時才用ballot paper（選票）",
+    "after": "投票嗰陣先會用ballot paper（選票）"
+  },
+  {
+    "exam": 1,
+    "qIndex": 17,
+    "field": "yue",
+    "before": "關於律師收費，哪個說法正確？",
+    "after": "關於律師收費，邊個講法正確？"
+  },
+  {
+    "exam": 1,
+    "qIndex": 17,
+    "field": "oy",
+    "optIndex": 0,
+    "before": "律師收費通常按處理案件所花時間計算",
+    "after": "律師收費通常按處理案件用咗幾多時間計算"
+  },
+  {
+    "exam": 1,
+    "qIndex": 18,
+    "field": "yue",
+    "before": "哪兩種媒體須在選舉前提供均衡政治報道？",
+    "after": "邊兩種媒體喺選舉前一定要提供均衡嘅政治報道？"
+  },
+  {
+    "exam": 1,
+    "qIndex": 18,
+    "field": "note",
+    "before": "報章不受此法律限制",
+    "after": "報章唔受呢條法律限制"
+  },
+  {
+    "exam": 1,
+    "qIndex": 19,
+    "field": "yue",
+    "before": "哪個領土係Crown dependency（皇家屬地）但不屬英國？",
+    "after": "邊個領土係Crown dependency（皇家屬地），但唔屬於英國？"
+  },
+  {
+    "exam": 1,
+    "qIndex": 20,
+    "field": "yue",
+    "before": "Frank Whittle（法蘭克·惠特爾）爵士在1930年代發明乜嘢？",
+    "after": "Frank Whittle（法蘭克·惠特爾）爵士喺1930年代發明咗乜嘢？"
+  },
+  {
+    "exam": 1,
+    "qIndex": 20,
+    "field": "note",
+    "before": "記憶法（人 → 發明／發現 → 年份）：\nIsaac Newton（牛頓）→ 萬有引力同運動定律 → 17 世紀；\nAlexander Graham Bell（貝爾）→ 電話 → 1876 年（蘇格蘭裔）；\nAlexander Fleming（弗萊明）→ 盤尼西林（penicillin）→ 1928 年（蘇格蘭人）；\nFrank Whittle（惠特爾）→ 噴射引擎（jet engine）→ 1930 年代；\nFrancis Crick（克里克）→ DNA 結構（與 James Watson 共同發現）→ 1953 年；\nTim Berners-Lee（柏納斯-李）→ 萬維網（World Wide Web）→ 1989 年。",
+    "after": "記憶法（人 → 發明／發現 → 年份）：\nIsaac Newton（牛頓）→ 萬有引力同運動定律 → 17 世紀；\nAlexander Graham Bell（貝爾）→ 電話 → 1876 年（蘇格蘭裔）；\nAlexander Fleming（弗萊明）→ 盤尼西林（penicillin）→ 1928 年（蘇格蘭人）；\nFrank Whittle（惠特爾）→ 噴射引擎（jet engine）→ 1930 年代；\nFrancis Crick（克里克）→ DNA 結構（同 James Watson 一齊發現）→ 1953 年；\nTim Berners-Lee（柏納斯-李）→ 萬維網（World Wide Web）→ 1989 年。"
+  },
+  {
+    "exam": 1,
+    "qIndex": 21,
+    "field": "yue",
+    "before": "《水仙花》係誰人寫嘅？",
+    "after": "《水仙花》係邊個寫嘅？"
+  },
+  {
+    "exam": 1,
+    "qIndex": 22,
+    "field": "yue",
+    "before": "誰獲封「護國公」？",
+    "after": "邊個被封為「護國公」？"
+  },
+  {
+    "exam": 1,
+    "qIndex": 22,
+    "field": "note",
+    "before": "查理一世被處決後，英國成共和國，克倫威爾執政至1658年",
+    "after": "查理一世被處決之後，英國變成共和國，克倫威爾執政到1658年"
+  },
+  {
+    "exam": 2,
+    "qIndex": 0,
+    "field": "note",
+    "before": "負責犯罪、警政及移民",
+    "after": "負責罪案、警政同移民"
+  },
+  {
+    "exam": 2,
+    "qIndex": 1,
+    "field": "yue",
+    "before": "聖赫勒拿島係英國海外領土並屬英國一部分。對定錯？",
+    "after": "聖赫勒拿島係英國海外領土，而且係英國嘅一部分。對定錯？"
+  },
+  {
+    "exam": 2,
+    "qIndex": 2,
+    "field": "yue",
+    "before": "英格蘭教會多名主教在上議院就座。對定錯？",
+    "after": "英格蘭教會有幾位主教喺上議院有議席。對定錯？"
+  },
+  {
+    "exam": 2,
+    "qIndex": 2,
+    "field": "note",
+    "before": "稱為「Lords Spiritual（神職上議院議員）」，共26位",
+    "after": "叫做「Lords Spiritual（神職上議院議員）」，一共26位"
+  },
+  {
+    "exam": 2,
+    "qIndex": 3,
+    "field": "yue",
+    "before": "在公眾地方帶狗時，你必須確保甚麼？",
+    "after": "喺公眾地方帶狗嗰陣，你一定要確保乜嘢？"
+  },
+  {
+    "exam": 2,
+    "qIndex": 4,
+    "field": "yue",
+    "before": "30歲以上女性獲投票權，係因為貢獻於哪場戰爭？",
+    "after": "30歲以上嘅女性有投票權，係因為佢哋喺邊場戰爭有貢獻？"
+  },
+  {
+    "exam": 2,
+    "qIndex": 4,
+    "field": "note",
+    "before": "投票權時間線：\n→ 1689《權利法案》（Bill of Rights）冇擴大投票權\n→ 1832《大改革法案》（Great Reform Act）中產階級男性有票\n→ 1918 男性21歲、女性30歲以上有票（表揚第一次世界大戰貢獻）\n→ 1928 男女同樣21歲\n→ 1969 降至18歲",
+    "after": "投票權時間線：\n→ 1689《權利法案》（Bill of Rights）冇擴大投票權\n→ 1832《大改革法案》（Great Reform Act）中產階級男性有票\n→ 1918 男性21歲、女性30歲以上有票（表揚第一次世界大戰貢獻）\n→ 1928 男女同樣21歲\n→ 1969 降到18歲"
+  },
+  {
+    "exam": 2,
+    "qIndex": 5,
+    "field": "yue",
+    "before": "愛爾蘭係哪年成為共和國？",
+    "after": "愛爾蘭喺邊年變成共和國？"
+  },
+  {
+    "exam": 2,
+    "qIndex": 6,
+    "field": "yue",
+    "before": "最初的農耕者從哪裏來？",
+    "after": "最早嘅農夫係由邊度嚟？"
+  },
+  {
+    "exam": 2,
+    "qIndex": 6,
+    "field": "note",
+    "before": "約6,000年前抵達英國",
+    "after": "大約6,000年前嚟到英國"
+  },
+  {
+    "exam": 2,
+    "qIndex": 7,
+    "field": "yue",
+    "before": "誰係1960年代普普藝術的重要人物？",
+    "after": "邊個係1960年代普普藝術嘅重要人物？"
+  },
+  {
+    "exam": 2,
+    "qIndex": 8,
+    "field": "yue",
+    "before": "誰在二戰期間成為首相並激勵英國人？",
+    "after": "邊個喺二戰期間做咗首相，仲激勵咗英國人？"
+  },
+  {
+    "exam": 2,
+    "qIndex": 9,
+    "field": "yue",
+    "before": "誰領導了第一次入侵英國？",
+    "after": "邊個帶領第一次入侵英國？"
+  },
+  {
+    "exam": 2,
+    "qIndex": 9,
+    "field": "note",
+    "before": "公元前55BC，未成功；公元43年才由克勞狄烏斯成功佔領",
+    "after": "公元前55BC，冇成功；到公元43年先由克勞狄烏斯成功佔領"
+  },
+  {
+    "exam": 2,
+    "qIndex": 10,
+    "field": "yue",
+    "before": "在哪位國王領導下，盎格魯-撒克遜王國聯合打敗維京人？",
+    "after": "喺邊位國王帶領下，盎格魯-撒克遜王國聯合埋一齊打敗維京人？"
+  },
+  {
+    "exam": 2,
+    "qIndex": 10,
+    "field": "note",
+    "before": "記憶法（英國重要戰役，按年份）：\n• 9 世紀 → vs Vikings（維京人）→ Alfred the Great（阿爾弗雷德大帝）統一盎格魯-撒克遜王國 → 打敗維京人；\n• 1066 → vs Normandy（諾曼第）→ Battle of Hastings（黑斯廷斯戰役）→ William of Normandy（諾曼第公爵威廉）打敗 Harold → 英格蘭戰敗，諾曼征服；\n• 1314 → vs Scotland（蘇格蘭）→ Battle of Bannockburn（班諾克本戰役）→ Robert the Bruce 打敗英格蘭 → 蘇格蘭保持獨立；\n• 1588 → vs Spain（西班牙）→ Spanish Armada（西班牙無敵艦隊）→ Elizabeth I 年代英格蘭擊敗西班牙；\n• 1805 → vs France（法國）+ Spain（西班牙）→ Battle of Trafalgar（特拉法加海戰）→ Admiral Nelson（納爾遜）打敗法西聯合艦隊 → Nelson 陣亡；\n• 1815 → vs France（法國）→ Battle of Waterloo（滑鐵盧戰役）→ Duke of Wellington（威靈頓公爵）打敗 Napoleon → 英法最後一戰；\n• 1940 → vs Germany（德國）→ Battle of Britain（不列顛戰役）→ 皇家空軍擊退德國空襲 → 阻止德國入侵。",
+    "after": "記憶法（英國重要戰役，按年份）：\n• 9 世紀 → vs Vikings（維京人）→ Alfred the Great（阿爾弗雷德大帝）統一盎格魯-撒克遜王國 → 打敗維京人；\n• 1066 → vs Normandy（諾曼第）→ Battle of Hastings（黑斯廷斯戰役）→ William of Normandy（諾曼第公爵威廉）打敗 Harold → 英格蘭戰敗，諾曼征服；\n• 1314 → vs Scotland（蘇格蘭）→ Battle of Bannockburn（班諾克本戰役）→ Robert the Bruce 打敗英格蘭 → 蘇格蘭保持獨立；\n• 1588 → vs Spain（西班牙）→ Spanish Armada（西班牙無敵艦隊）→ Elizabeth I 年代英格蘭打敗西班牙；\n• 1805 → vs France（法國）+ Spain（西班牙）→ Battle of Trafalgar（特拉法加海戰）→ Admiral Nelson（納爾遜）打敗法西聯合艦隊 → Nelson 陣亡；\n• 1815 → vs France（法國）→ Battle of Waterloo（滑鐵盧戰役）→ Duke of Wellington（威靈頓公爵）打敗 Napoleon → 英法最後一戰；\n• 1940 → vs Germany（德國）→ Battle of Britain（不列顛戰役）→ 皇家空軍擊退德國空襲 → 阻止德國入侵。"
+  },
+  {
+    "exam": 2,
+    "qIndex": 11,
+    "field": "note",
+    "before": "亦引入了shampooing（香波洗頭）服務",
+    "after": "仲引入咗shampooing（香波洗頭）服務"
+  },
+  {
+    "exam": 2,
+    "qIndex": 12,
+    "field": "yue",
+    "before": "君主立憲制下，誰有權任命首相？",
+    "after": "喺君主立憲制下，邊個有權任命首相？"
+  },
+  {
+    "exam": 2,
+    "qIndex": 12,
+    "field": "note",
+    "before": "慣例上任命下議院多數黨領袖",
+    "after": "按慣例會任命下議院多數黨嘅領袖"
+  },
+  {
+    "exam": 2,
+    "qIndex": 13,
+    "field": "yue",
+    "before": "宗教改革期間，修道院發生了甚麼事？",
+    "after": "宗教改革期間，修道院發生咗咩事？"
+  },
+  {
+    "exam": 2,
+    "qIndex": 13,
+    "field": "oy",
+    "optIndex": 1,
+    "before": "被關閉並沒收財產",
+    "after": "被關閉，財產被沒收"
+  },
+  {
+    "exam": 2,
+    "qIndex": 15,
+    "field": "yue",
+    "before": "威爾斯的守護聖人係誰？",
+    "after": "威爾斯嘅守護聖人係邊個？"
+  },
+  {
+    "exam": 2,
+    "qIndex": 16,
+    "field": "yue",
+    "before": "蘇格蘭首都係哪裏？",
+    "after": "蘇格蘭嘅首都係邊度？"
+  },
+  {
+    "exam": 2,
+    "qIndex": 18,
+    "field": "yue",
+    "before": "哈德良長城係誰建的？",
+    "after": "哈德良長城係邊個起嘅？"
+  },
+  {
+    "exam": 2,
+    "qIndex": 19,
+    "field": "oy",
+    "optIndex": 1,
+    "before": "大多來自前大英帝國嘅國家組成嘅組織",
+    "after": "大多數係前大英帝國國家組成嘅組織"
+  },
+  {
+    "exam": 2,
+    "qIndex": 19,
+    "field": "note",
+    "before": "約54個成員國",
+    "after": "大約54個成員國"
+  },
+  {
+    "exam": 2,
+    "qIndex": 20,
+    "field": "yue",
+    "before": "Jayne Torvill（珍·托維爾）和Christopher Dean（基斯杜化·迪恩）係哪項運動贏奧運金牌？",
+    "after": "Jayne Torvill（珍·托維爾）同Christopher Dean（基斯杜化·迪恩）喺邊項運動贏到奧運金牌？"
+  },
+  {
+    "exam": 2,
+    "qIndex": 21,
+    "field": "yue",
+    "before": "威爾斯首都係哪裏？",
+    "after": "威爾斯嘅首都係邊度？"
+  },
+  {
+    "exam": 2,
+    "qIndex": 23,
+    "field": "yue",
+    "before": "二戰係哪年結束？",
+    "after": "二戰喺邊年結束？"
+  }
+]
