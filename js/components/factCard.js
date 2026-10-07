@@ -24,7 +24,8 @@ function factTagsHtml(f, opts) {
   if (f.y !== undefined && !opts.noYear) tags.push(`<span class="tag year"${yearLangAttr(f)}>📅 ${escapeHtml(yearLabel(f))}</span>`);
   if (f.w) tags.push(`<span class="tag war">${t('study.war')}</span>`);
   if (f.p && !opts.noPerson) tags.push(`<span class="tag person" lang="en">👤 ${escapeHtml(f.p[0])}</span>`);
-  if (!opts.noChapter) tags.push(`<span class="tag">${CHAPTER_ICONS[f.ch]} ${t('common.chapterShort', { n: f.ch })}</span>`);
+  // S-057: "Ch {n}" (common.chapterShort) stays English in zh-HK too
+  if (!opts.noChapter) tags.push(`<span class="tag" lang="en">${CHAPTER_ICONS[f.ch]} ${escapeHtml(t('common.chapterShort', { n: f.ch }))}</span>`);
   tags.push(starsHtml(f.d)); // same stars as the question card (v0.62)
   return tags.join('');
 }
