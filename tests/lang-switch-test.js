@@ -363,7 +363,7 @@ async function checkMyReviewIn(pg, lang, tag) {
   assert(v.wrong.noteAfterSub, `${tag}: note sits below the wrong tile .sub`);
   assert(v.outside.length === 0, `${tag}: no note outside the tiles: ` + JSON.stringify(v.outside));
   // the note itself says "per round", so only the count line is checked for it
-  assert(v.wrong.sub === WRONG_TO_CLEAR_30[lang] && !v.wrong.sub.includes(PER_ROUND[lang]),`${tag}: 30 wrong → sub "${WRONG_TO_CLEAR_30[lang]}", no "${PER_ROUND[lang]}": ${v.wrong.sub}`);
+  assert(v.wrong.sub === WRONG_TO_CLEAR_30[lang] && !v.wrong.sub.includes(PER_ROUND[lang]), `${tag}: 30 wrong → sub "${WRONG_TO_CLEAR_30[lang]}", no "${PER_ROUND[lang]}": ${v.wrong.sub}`);
   assert(!v.flagged.text.includes(FLAGGED_8[lang]) && !v.flagged.subVisible, `${tag}: 8 flagged → no "${FLAGGED_8[lang]}", no visible .sub: ${v.flagged.text}`);
   assert(v.wrong.height === v.flagged.height, `${tag}: tiles are the same height (${v.wrong.height} / ${v.flagged.height})`);
 }
@@ -373,19 +373,71 @@ async function checkMyReviewEmptyIn(pg, lang, tag) {
   assert(v.wrong.note === MY_REVIEW_NOTE[lang], `${tag}: 0 wrong → note still inside #tileWrong: ${v.wrong.note}`);
   assert(v.outside.length === 0, `${tag}: 0 wrong → no note outside the tiles: ` + JSON.stringify(v.outside));
   assert(v.wrong.height === v.flagged.height, `${tag}: 0 wrong → tiles the same height (${v.wrong.height} / ${v.flagged.height})`);
+  // W-022: the empty tile fades its own parts, but the note must stay at full contrast (opacity multiplies down the tree)
+  const fade = await effectiveOpacities(pg, '#tileWrong', ['.t-note', '.t-icon', '.t-num', 'b', '.sub']);
+  assert(fade['.t-note'] === 1, `${tag}: 0 wrong → note keeps full opacity: ${fade['.t-note']}`);
+  assert(['.t-icon', '.t-num', 'b', '.sub'].every(s => fade[s] < 1), `${tag}: 0 wrong → icon, count, title, sub still fade: ` + JSON.stringify(fade));
+  const noteColor = await pg.$eval('#tileWrong .t-note', e => {
+    const probe = document.createElement('span');
+    probe.style.color = 'var(--text-muted)'; document.body.appendChild(probe);
+    const want = getComputedStyle(probe).color; probe.remove();
+    return { got: getComputedStyle(e).color, want };
+  });
+  assert(noteColor.got === noteColor.want, `${tag}: 0 wrong → note colour stays --text-muted: ` + JSON.stringify(noteColor));
+}
+// product of an element's own opacity and every ancestor's, i.e. how faded it actually renders
+const effectiveOpacities = (pg, root, sels) => pg.$eval(root, (r, list) => Object.fromEntries(list.map(sel => {
+  let o = 1;
+  for (let n = r.querySelector(sel); n; n = n.parentElement) o *= Number(getComputedStyle(n).opacity);
+  return [sel, o];
+})), sels);
+// S-084: the zh-HK note must not wrap "24" away from its "題。" (text-wrap: pretty keeps the last line from being that short)
+const NOTE_TAIL = { [ZH_HK]: { count: '24', end: '題。' } };
+async function checkNoteTailIn(pg, lang, tag) {
+  const { count, end } = NOTE_TAIL[lang];
+  const tops = await pg.$eval('#tileWrong .t-note', (e, [c, z]) => {
+    const node = [...e.childNodes].find(n => n.nodeType === Node.TEXT_NODE && n.data.includes(c + ' ' + z));
+    if (!node) return null;
+    const at = i => { const r = document.createRange(); r.setStart(node, i); r.setEnd(node, i + 1); return Math.round(r.getBoundingClientRect().top); };
+    const i = node.data.lastIndexOf(c), j = node.data.lastIndexOf(z);
+    return { count: at(i), end: at(j + z.length - 1), wrap: getComputedStyle(e).textWrap || getComputedStyle(e).textWrapStyle };
+  }, [count, end]);
+  assert(tops && tops.count === tops.end, `${tag}: "${count}" and "${end}" stay on one line: ` + JSON.stringify(tops));
+}
+// S-082: the same tile checks at 320px, plus no horizontal overflow on the page or inside either tile
+async function checkMyReviewNarrow(pg, check, lang, tag) {
+  await pg.setViewportSize(NARROW);
+  try {
+    await check(pg, lang, tag);
+    const fit = await pg.evaluate(() => {
+      const box = e => ({ sw: e.scrollWidth, cw: e.clientWidth });
+      return { page: box(document.documentElement), wrong: box(byId('tileWrong')), flagged: box(byId('tileFlagged')) };
+    });
+    assert(Object.values(fit).every(b => b.sw <= b.cw), `${tag}: no horizontal overflow at 320px: ` + JSON.stringify(fit));
+  } finally {
+    await pg.setViewportSize(WIDE);
+  }
 }
 async function checkMyReviewTiles(pg) {
   await pg.evaluate(lang => setLang(lang), EN);
   await seedMyReview(pg, MY_REVIEW_WRONG_N, MY_REVIEW_FLAG_N);
   await checkMyReviewIn(pg, EN, 'My Review en');
+  await checkMyReviewNarrow(pg, checkMyReviewIn, EN, 'My Review en 320px');
   await pg.click(PILL);
   await checkMyReviewIn(pg, ZH_HK, 'My Review pill → zh-HK');
+  await checkMyReviewNarrow(pg, checkMyReviewIn, ZH_HK, 'My Review zh-HK 320px');
   await seedMyReview(pg, MY_REVIEW_WRONG_N, 0);
   assert((await textOf(pg, '#tileFlagged .sub')) === FLAGGED_EMPTY[ZH_HK], 'My Review zh-HK: 0 flagged keeps flaggedEmptyHtml');
   await seedMyReview(pg, 0, MY_REVIEW_FLAG_N);
   await checkMyReviewEmptyIn(pg, ZH_HK, 'My Review zh-HK');
+  await checkMyReviewNarrow(pg, checkMyReviewEmptyIn, ZH_HK, 'My Review zh-HK 0 wrong 320px');
+  await checkNoteTailIn(pg, ZH_HK, 'My Review zh-HK 390px note');
+  await pg.setViewportSize(NARROW);
+  await checkNoteTailIn(pg, ZH_HK, 'My Review zh-HK 320px note');
+  await pg.setViewportSize(WIDE);
   await pg.click(PILL);
   await checkMyReviewEmptyIn(pg, EN, 'My Review pill → en');
+  await checkMyReviewNarrow(pg, checkMyReviewEmptyIn, EN, 'My Review en 0 wrong 320px');
   await seedMyReview(pg, MY_REVIEW_WRONG_N, 0);
   assert((await textOf(pg, '#tileFlagged .sub')) === FLAGGED_EMPTY[EN], 'My Review en: 0 flagged keeps flaggedEmptyHtml');
   await pg.evaluate(() => {

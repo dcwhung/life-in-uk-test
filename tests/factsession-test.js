@@ -92,15 +92,15 @@ async function checkStart(pg) {
 }
 
 // the "Ch 3 #15" part of the header is one lang="en" span holding plain text (no markup from the locale string)
-async function checkHeaderNumberLang(pg, lang) {
-  const nums = await pg.$$eval('#quizLabel [lang="en"]', els => els.map(e => [e.textContent, e.children.length]));
+async function checkHeaderNumberLang(pg, lang, sel = '#quizLabel') {
+  const nums = await pg.$$eval(`${sel} [lang="en"]`, els => els.map(e => [e.textContent, e.children.length]));
   assert(nums.length === 1 && nums[0][0] === FACT_NUM_TEXT && nums[0][1] === 0,
-    `${lang} header: "${FACT_NUM_TEXT}" in one lang="en" text span (${JSON.stringify(nums)})`);
+    `${lang} ${sel}: "${FACT_NUM_TEXT}" in one lang="en" text span (${JSON.stringify(nums)})`);
   // S-072 / W-016: the number reads "Ch 3 #15" like the card pill; the label itself stays uppercase ("EXAM 1")
-  const tt = await pg.$eval('#quizLabel', e => ({
+  const tt = await pg.$eval(sel, e => ({
     label: getComputedStyle(e).textTransform, num: getComputedStyle(e.querySelector('[lang="en"]')).textTransform,
   }));
-  assert(tt.label === 'uppercase' && tt.num === 'none', `${lang} header: label uppercase, number text-transform none (${JSON.stringify(tt)})`);
+  assert(tt.label === 'uppercase' && tt.num === 'none', `${lang} ${sel}: label uppercase, number text-transform none (${JSON.stringify(tt)})`);
 }
 
 // header, no round note even with review counters, no Similar panel; answers count like any Practice answer
@@ -268,6 +268,18 @@ async function checkEntryAndFlash(pg) {
   assert(seen, 'R-010: card out of the restored view is scrolled into view');
 }
 
+// S-077: the Result header (#resultLabel, also .quiz-label) is setExamLabel's other caller. A fact session ends on
+// ↩ Back, never on results, so its results are drawn directly to guard the same lang="en" span there
+async function checkResultLabelLang(pg) {
+  await pg.evaluate(id => { setLang('en'); startFactPractice(id); finishExam(); renderResults(); showScreen('screenResult'); }, FACT_ID);
+  assert(await text(pg, '#resultLabel') === FACT_LABEL.en, `#resultLabel: ${FACT_LABEL.en} (${await text(pg, '#resultLabel')})`);
+  await checkHeaderNumberLang(pg, 'en', '#resultLabel');
+  await pg.evaluate(() => setLang('zh-HK'));
+  assert(await text(pg, '#resultLabel') === FACT_LABEL['zh-HK'], `zh-HK #resultLabel: ${FACT_LABEL['zh-HK']} (${await text(pg, '#resultLabel')})`);
+  await checkHeaderNumberLang(pg, 'zh-HK', '#resultLabel');
+  await pg.evaluate(() => { setLang('en'); leaveToHome(); });
+}
+
 async function checkUnknownFact(pg) {
   const r = await pg.evaluate(() => { const before = state; startFactPractice(-1); return { same: state === before, ret: sessionReturn }; });
   assert(r.same && r.ret === null, 'unknown fact id: no session, nothing stashed');
@@ -291,6 +303,7 @@ async function checkUnknownFact(pg) {
   await checkTwoSourceRowsOneLine(pg);
   await checkEntryAndFlash(pg);
   await checkUnknownFact(pg);
+  await checkResultLabelLang(pg);
   assert(errs.length === 0, 'no page errors' + (errs.length ? ': ' + errs.join('; ') : ''));
   await b.close();
   console.log('FACTSESSION PASS');

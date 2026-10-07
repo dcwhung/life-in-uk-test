@@ -67,13 +67,15 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
     await pg.hover(sel);
     return pg.$eval(sel, e => {
       const c = getComputedStyle(e), a = getComputedStyle(e, '::after');
-      return { color: c.color, bg: c.backgroundColor, border: c.borderTopColor, badgeBg: a.backgroundColor, badgeColor: a.color };
+      return { color: c.color, bg: c.backgroundColor, border: c.borderTopColor, badgeBg: a.backgroundColor, badgeColor: a.color, badgeRing: a.boxShadow };
     });
   };
   const done = await hoverStyle('#examGrid .exam-btn.done');
   const [inverse, green, navy, card] = await Promise.all(['--text-inverse', '--green', '--navy', '--card'].map(tokenRgb));
   assert(done.color === inverse && done.bg === green && done.border === green, 'completed exam hover: green background, white text: ' + JSON.stringify(done));
   assert(done.badgeBg === card && done.badgeColor === green, 'completed exam hover: ✓ badge flips to card with a green tick: ' + JSON.stringify(done));
+  // S-080: the ring width moved to --exam-badge-ring; the rendered ring must stay a 1.5px green outline
+  assert(done.badgeRing === `${green} 0px 0px 0px 1.5px`, 'completed exam hover: ✓ badge keeps its 1.5px green ring: ' + done.badgeRing);
   const open = await hoverStyle('#examGrid .exam-btn:not(.done):not(.all)');
   assert(open.color === inverse && open.bg === navy, 'not completed exam hover: still navy background, white text: ' + JSON.stringify(open));
   // Practice › Exam grid hover (navy): the mastery line turns gold (0%: inverse muted), like the All Exams button
@@ -96,7 +98,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   const noneHover = await masteryColor(NONE, true);
   assert(noneHover.color === inverseMuted, 'practice exam hover at 0%: mastery line inverse muted: ' + JSON.stringify(noneHover));
   const allHover = await masteryColor('#examGrid .exam-btn.all', true);
-  assert(allHover.color === (allHover.zero ? inverseMuted : goldLight),'All Exams hover: mastery line stays gold / inverse muted: ' + JSON.stringify(allHover));
+  assert(allHover.color === (allHover.zero ? inverseMuted : goldLight), 'All Exams hover: mastery line stays gold / inverse muted: ' + JSON.stringify(allHover));
   await pg.mouse.move(0, 0);
   await pg.evaluate(() => localStorage.clear()); await pg.reload();
   assert(await pg.$eval('#modePractice', e => e.classList.contains('selected')) && (await shown()) === 'diff', 'fresh start: Practice / By Difficulty');

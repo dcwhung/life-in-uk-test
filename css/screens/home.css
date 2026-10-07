@@ -88,7 +88,9 @@
 }
 .exam-btn:hover { border-color: var(--navy); background: var(--navy); color: var(--text-inverse); }
 .exam-btn.done { border-color: var(--green); color: var(--green); }
+/* --exam-badge-ring: the hover ring around the ✓ badge, the repo's usual thin border width (S-080) */
 .exam-btn.done::after {
+  --exam-badge-ring: 1.5px;
   content: '✓';
   position: absolute; top: -6px; right: -6px;
   background: var(--green); color: var(--text-inverse);
@@ -99,7 +101,7 @@
 /* .done outranks .exam-btn:hover, so the completed hover is set here: green fill, white text;
    the badge flips to a card circle with a green tick and ring so it stays visible on the green button */
 .exam-btn.done:hover { background: var(--green); border-color: var(--green); color: var(--text-inverse); }
-.exam-btn.done:hover::after { background: var(--card); color: var(--green); box-shadow: 0 0 0 1.5px var(--green); }
+.exam-btn.done:hover::after { background: var(--card); color: var(--green); box-shadow: 0 0 0 var(--exam-badge-ring) var(--green); }
 .exam-btn.all {
   background: linear-gradient(135deg, var(--navy), var(--navy-mid));
   color: var(--text-inverse); border-color: transparent;
@@ -128,9 +130,13 @@
 .my-tile .t-num { font-size: 24px; font-weight: 900; color: var(--navy); line-height: 1; }
 .my-tile b { display: block; font-size: 13.5px; color: var(--navy); }
 .my-tile .sub, .my-tile .t-note { display: block; font-size: var(--fs-xs); color: var(--text-muted); margin-top: 2px; line-height: 1.4; }
-/* the wrong tile's note: same small text as .sub, set apart from the count line above it */
-.my-tile .t-note { margin-top: 6px; }
-.my-tile.empty { cursor: default; opacity: 0.6; border-left-color: var(--border); box-shadow: none; }
+/* the wrong tile's note: same small text as .sub, set apart from the count line above it;
+   text-wrap: pretty stops a lone "題。" on the last line (S-084), browsers without it wrap as before */
+.my-tile .t-note { margin-top: 6px; text-wrap: pretty; }
+/* W-022: fade the empty tile's own parts, not the wrong answers note (it explains the tile, so it keeps full contrast at 0);
+   the grey left border and dropped shadow still mark the tile as empty */
+.my-tile.empty { cursor: default; border-left-color: var(--border); box-shadow: none; }
+.my-tile.empty > :not(.t-note) { opacity: 0.6; }
 .bm-inline { width: 12px; height: 12px; vertical-align: -2px; }
 .bm-inline path { fill: none; stroke: var(--text-muted); stroke-width: 2; stroke-linejoin: round; }
 .practice-by-title { display: none; }
