@@ -12,6 +12,8 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
 const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('ok:', m); };
 const SW_SETTLE_TRIES = 40;
 const SW_SETTLE_INTERVAL_MS = 250;
+// W-017: python http.server answers If-Modified-Since to the second, so a bump written in the copy's second gets a 304
+const BUMP_MTIME_AHEAD_S = 2;
 
 // SHELL list from sw.js and every <script src> / <link href> from index.html
 const swSource = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
@@ -25,6 +27,8 @@ async function checkVersionBump(pg, serveDir, oldCache) {
   const configPath = path.join(serveDir, 'js/core/config.js');
   const bumped = 'bump-test';
   fs.writeFileSync(configPath, fs.readFileSync(configPath, 'utf8').replace(/const APP_VERSION = '[^']*';/, `const APP_VERSION = '${bumped}';`));
+  const bumpMtime = Date.now() / 1000 + BUMP_MTIME_AHEAD_S;
+  fs.utimesSync(configPath, bumpMtime, bumpMtime);
   const poll = await pg.evaluate(async ([newCache, tries, intervalMs]) => {
     const reg = await navigator.serviceWorker.getRegistration();
     const settled = keys => keys.includes(newCache) && !keys.some(k => k.startsWith('lifeuk-v') && k !== newCache);
