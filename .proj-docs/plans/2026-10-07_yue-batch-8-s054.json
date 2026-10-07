@@ -1,0 +1,7 @@
+[
+  {"exam":3,"qIndex":3,"field":"oy","optIndex":2,"before":"因為教宗想英格蘭成為天主教國家","after":"因為教宗想英格蘭變成天主教國家","decision":"S054-1","rule":"語感","userDecision":"apply"},
+  {"exam":1,"qIndex":12,"field":"note","before":"亦可以去警署，或者向獨立警察投訴機構（Independent Office for Police Conduct, IOPC）投訴","after":"都可以去警署，或者向獨立警察投訴機構（Independent Office for Police Conduct, IOPC）投訴","decision":"S054-2","rule":"語感","sharedNote":true,"userDecision":"apply"},
+  {"exam":8,"qIndex":2,"field":"note","before":"亦可以去警署，或者向獨立警察投訴機構（Independent Office for Police Conduct, IOPC）投訴","after":"都可以去警署，或者向獨立警察投訴機構（Independent Office for Police Conduct, IOPC）投訴","decision":"S054-2","rule":"語感","sharedNote":true,"userDecision":"apply"},
+  {"exam":11,"qIndex":7,"field":"oy","optIndex":1,"before":"佢係第一位女首相，亦係20世紀任期最長嘅首相","after":"佢係第一位女首相，仲係20世紀任期最長嘅首相","decision":"S054-3","rule":"語感","userDecision":"apply"},
+  {"factId":96,"field":"yue","before":"《耶穌受難日協議》（Good Friday Agreement）（1998 年）為北愛爾蘭帶嚟和平，結束咗幾十年嘅衝突。","after":"1998 年嘅《耶穌受難日協議》（Good Friday Agreement）為北愛爾蘭帶嚟和平，結束咗幾十年嘅衝突。","decision":"S054-4","rule":"格式","userDecision":"apply"}
+]

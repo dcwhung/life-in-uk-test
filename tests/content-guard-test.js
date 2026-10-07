@@ -2,6 +2,7 @@
 // Compares every protected field of data/exams.js + data/study.js against the committed fixture
 // tests/fixtures/content-baseline.json (not git history: origin/main moves and shallow clones lack old commits).
 // Regenerate the fixture ONLY for an intentional English / structural change: node tests/tools/make-content-baseline.js
+// A note may be filled where it was '' (R1) but never emptied (S-051, `_noteNonEmpty` checked one-way).
 const fs = require('fs');
 const { loadData, project, BASELINE } = require('./tools/make-content-baseline');
 
@@ -26,13 +27,16 @@ function diff(expected, actual, at, out) {
 const questionLabel = (exam, i) => `Exam ${exam} · Q${i + 1} (index ${i})`;
 const factLabel = (f, i) => `fact #${f && f.id} (index ${i})`;
 
+// S-051: a note may be filled where it was '' (R1 adds current-state notes) but never emptied
+const noteFilled = (q, cur) => q._noteNonEmpty === false && cur && cur._noteNonEmpty === true;
+
 function examProblems(base, now) {
   const out = [];
   diff(Object.keys(base), Object.keys(now), 'exam numbers', out);
   for (const [exam, qs] of Object.entries(base)) {
     const cur = now[exam] || [];
     if (cur.length !== qs.length) out.push(`Exam ${exam}: expected ${qs.length} questions, got ${cur.length}`);
-    qs.forEach((q, i) => diff(q, cur[i], questionLabel(exam, i), out));
+    qs.forEach((q, i) => diff(noteFilled(q, cur[i]) ? { ...q, _noteNonEmpty: true } : q, cur[i], questionLabel(exam, i), out));
   }
   return out;
 }
@@ -82,13 +86,26 @@ function answerCountProblems(EXAMS) {
   return out;
 }
 
+// S-061: zh-HK readers rely on the yue line for the count too, so it must carry the Chinese numeral
+const YUE_COUNT_WORDS = { 2: '兩', 3: '三', 4: '四' };
+function yueCountProblems(EXAMS) {
+  const out = [];
+  Object.entries(EXAMS).forEach(([exam, qs]) => qs.forEach((q, i) => {
+    if (q.a.length < 2) return;
+    const word = YUE_COUNT_WORDS[q.a.length];
+    if (!word) out.push(`${questionLabel(exam, i)}: ${q.a.length} answers, no yue count word mapped`);
+    else if (!q.yue.includes(word)) out.push(`${questionLabel(exam, i)}: ${q.a.length} answers but the yue never says "${word}": ${show(q.yue)}`);
+  }));
+  return out;
+}
+
 function report(title, problems) {
   if (!problems.length) return;
   console.log(`\n${title}: ${problems.length} difference(s)`);
   problems.slice(0, MAX_REPORTED).forEach(p => console.log('  - ' + p));
   if (problems.length > MAX_REPORTED) console.log(`  ... and ${problems.length - MAX_REPORTED} more`);
-  console.log('  (only exams yue / oy / note and study fact yue may change; an _oyShape / _yueNonEmpty / _has* line means a');
-  console.log('   translation slot was emptied, filled where it was "", or a key was added / removed)');
+  console.log('  (only exams yue / oy / note and study fact yue may change; an _oyShape / _yueNonEmpty / _noteNonEmpty / _has*');
+  console.log('   line means a translation slot or note was emptied, an oy slot filled where it was "", or a key added / removed)');
 }
 
 const base = JSON.parse(fs.readFileSync(BASELINE, 'utf8'));
@@ -120,4 +137,22 @@ assert(problems['translation shape'].length === 0, 'oy.length === o.length, oy /
 const answerCount = answerCountProblems(EXAMS);
 report('multi-answer question without a count word', answerCount);
 assert(answerCount.length === 0, 'every multi-answer question states how many to pick (two / three / four)');
+const yueCount = yueCountProblems(EXAMS);
+report('multi-answer question whose yue has no count word', yueCount);
+assert(yueCount.length === 0, 'every multi-answer question states how many to pick in yue too (兩 / 三 / 四)');
+
+// S-051 self-check: the guard must refuse a note that was emptied, while '' -> text stays allowed (R1)
+const mutatedExams = mutate => { const v = JSON.parse(JSON.stringify(data.values)); mutate(v.EXAMS); return project({ globals: data.globals, values: v }).exams; };
+const firstQuestion = test => Object.entries(EXAMS).flatMap(([exam, qs]) => qs.map((q, i) => ({ exam, i, q }))).find(x => test(x.q));
+const withNote = firstQuestion(q => q.note.length > 0);
+const emptied = examProblems(base.exams, mutatedExams(ex => { ex[withNote.exam][withNote.i].note = ''; }));
+assert(emptied.some(p => p.startsWith(questionLabel(withNote.exam, withNote.i))), `S-051: emptying the note of ${questionLabel(withNote.exam, withNote.i)} is reported`);
+const withoutNote = firstQuestion(q => q.note === '');
+const filled = examProblems(base.exams, mutatedExams(ex => { ex[withoutNote.exam][withoutNote.i].note = 'R1'; }));
+assert(filled.length === 0, `S-051: filling the empty note of ${questionLabel(withoutNote.exam, withoutNote.i)} is allowed (R1)`);
+// S-061 self-check: a multi-answer yue that lost its count word is reported
+const multi = firstQuestion(q => q.a.length > 1);
+const countless = JSON.parse(JSON.stringify(EXAMS));
+countless[multi.exam][multi.i].yue = multi.q.yue.split(YUE_COUNT_WORDS[multi.q.a.length]).join('');
+assert(yueCountProblems(countless).some(p => p.startsWith(questionLabel(multi.exam, multi.i))), `S-061: dropping the count word from the yue of ${questionLabel(multi.exam, multi.i)} is reported`);
 console.log('CONTENT-GUARD PASS');
