@@ -80,6 +80,32 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await answer();
   assert((await pg.$$('#qNum .score-pill')).length === 0 && (await text('#qNum')).startsWith('Question 1 of 24'), 'exam mode: no score pill');
 
+  // CUI-0013: on a 320–360px screen the multi-answer header ("(select 2)" / "（選擇 2 項）") is long; the header text
+  // must wrap so ← → stay inside the card (.q-card clips with overflow: hidden). Single-answer headers keep one line.
+  const headerFit = (mode, multi) => pg.evaluate(([m, wantMulti]) => {
+    pendingMode = m; startExam(1); // Exam 1 Q1 is a multi-answer question in exam order
+    const i = state.questions.findIndex(q => (q.a.length > 1) === wantMulti);
+    state.current = i; renderQuestion();
+    if (m === 'practice') { state.answers[i] = [...state.questions[i].a]; revealAnswer(); } // practice shows ← → once answered
+    const card = document.querySelector('.q-card'), cs = getComputedStyle(card);
+    const contentRight = card.getBoundingClientRect().right - parseFloat(cs.borderRightWidth) - parseFloat(cs.paddingRight);
+    const range = document.createRange(); range.selectNodeContents(byId('qNum').firstElementChild);
+    const lines = new Set([...range.getClientRects()].map(r => Math.round(r.top))).size;
+    return { over: byId('quickNext').getBoundingClientRect().right - contentRight, lines, text: byId('qNum').textContent };
+  }, [mode, multi]);
+  for (const lang of ['en', 'zh-HK']) {
+    await pg.evaluate(l => { localStorage.clear(); setLang(l); }, lang);
+    for (const width of [320, 360]) {
+      await pg.setViewportSize({ width, height: 844 });
+      for (const mode of ['exam', 'practice']) {
+        const m = await headerFit(mode, true);
+        assert(/select 2|選擇 2 項/.test(m.text) && m.over <= 0.5, `${lang} ${width}px ${mode} multi-answer: → inside the card content box (over by ${m.over.toFixed(1)}px)`);
+        const s = await headerFit(mode, false);
+        assert(s.lines === 1 && s.over <= 0.5, `${lang} ${width}px ${mode} single-answer: header text stays on one line (${s.lines})`);
+      }
+    }
+  }
+
   assert(errs.length === 0, 'no page errors: ' + errs.join('; '));
   console.log('QUICKNAV PASS');
   await b.close();
