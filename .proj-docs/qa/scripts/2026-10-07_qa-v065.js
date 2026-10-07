@@ -59,13 +59,14 @@ const waitUpgrade = (pg, cur) => pg.evaluate(async ([c, tries, ms]) => { const r
     if (!reg.installing && !reg.waiting) await reg.update().catch(() => {}); await new Promise(r => setTimeout(r, ms)); }
   return false; }, [cur, UPGRADE_POLL_TRIES, CACHE_POLL_MS]);
 
-// words of English allowed in zh-HK UI text = the ASCII words the zh-HK locale itself keeps (Exam {n}, Chapter {n},
-// chapter names, era / nation English in brackets, app name …)
 // v0.68: n = 1-based position among the chapter's facts in data order
 const STUDY_DATA = (() => { const c = {}; vm.runInNewContext(fs.readFileSync(path.join(ROOT, 'data/study.js'), 'utf8') + ';this.STUDY=STUDY;', c); return c.STUDY; })();
 const FACT_NO = {};
 STUDY_DATA.reduce((seen, f) => { seen[f.ch] = (seen[f.ch] || 0) + 1; FACT_NO[f.id] = { ch: f.ch, n: seen[f.ch] }; return seen; }, {});
 const zhFactSetLabel = id => `知識點 Ch ${FACT_NO[id].ch} #${FACT_NO[id].n}`;
+
+// words of English allowed in zh-HK UI text = the ASCII words the zh-HK locale itself keeps (Exam {n}, Chapter {n},
+// chapter names, era / nation English in brackets, app name …)
 const zhLocale = (() => { const ctx = { LOCALES: {} }; vm.runInNewContext(fs.readFileSync(path.join(ROOT, 'locales/zh-HK.js'), 'utf8'), ctx); return ctx.LOCALES[ZH]; })();
 const flat = (o, out = []) => { for (const v of Object.values(o)) typeof v === 'string' ? out.push(v) : flat(v, out); return out; };
 const ZH_ASCII_WORDS = new Set(flat(zhLocale).join(' ').match(/[A-Za-z]{3,}/g));
