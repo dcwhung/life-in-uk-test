@@ -10,6 +10,12 @@
   outline: none;
 }
 .study-search:focus { border-color: var(--navy-light); }
+/* O7: overall "🏆 n / 236 mastered" pill in the Study header (green = mastered, like the Practice 🏆) */
+.study-progress {
+  font-size: var(--fs-sm); font-weight: 800; color: var(--green);
+  background: var(--success-bg); border: 1.5px solid var(--green-light);
+  border-radius: var(--radius-pill); padding: 3px 10px; white-space: nowrap;
+}
 .study-count { font-size: var(--fs-sm); color: var(--text-muted); margin-bottom: 10px; }
 .study-group-title {
   font-size: var(--fs-md); font-weight: 800; color: var(--navy);

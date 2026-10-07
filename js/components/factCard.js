@@ -31,14 +31,23 @@ function factMarkButtonHtml(f, { kind, on, cls, labelKey, content }) {
   const label = escapeHtml(t(labelKey));
   return `<button class="fact-btn ${cls}${on ? ' on' : ''}" title="${label}" aria-label="${label}" aria-pressed="${on}" data-action="studyToggleMark" data-mark="${kind}" data-arg="${escapeHtml(f.id)}">${content}</button>`;
 }
+// mastered from Practice (every source question 🏆): a 🏆 in the ✓ slot that cannot be pressed — the tick would
+// change nothing, the value is derived on each render (Q7). Keeps .tick for the W-009 hit ring.
+function factTrophyHtml() {
+  const label = escapeHtml(t('study.masteredDerived'));
+  return `<button class="fact-btn tick trophy" title="${label}" aria-label="${label}" aria-disabled="true">🏆</button>`;
+}
 function factMarkButtonsHtml(f, marks) {
   return factMarkButtonHtml(f, { kind: 'bookmarks', on: !!marks.bookmarks, cls: 'star', labelKey: 'study.bookmark', content: bookmarkSvg('', { decorative: true }) })
-    + factMarkButtonHtml(f, { kind: 'mastered', on: !!marks.mastered, cls: 'tick', labelKey: 'study.mastered', content: '✓' });
+    + (marks.derived ? factTrophyHtml()
+      : factMarkButtonHtml(f, { kind: 'mastered', on: !!marks.mastered, cls: 'tick', labelKey: 'study.mastered', content: '✓' }));
 }
 
-// marks: { bookmarks, mastered } booleans for this fact; opts: tag switches + title (People tab name line)
+// marks: { bookmarks, mastered (ticked by hand), derived (factMastery) } booleans for this fact;
+// opts: tag switches + title (People tab name line)
 function factFullHtml(f, { marks = {}, opts = {} }) {
-  return `<div class="fact${f.w ? ' war' : ''}${marks.mastered ? ' mastered' : ''}" data-fact-id="${escapeHtml(f.id)}">
+  const mastered = marks.mastered || marks.derived;
+  return `<div class="fact${f.w ? ' war' : ''}${mastered ? ' mastered' : ''}" data-fact-id="${escapeHtml(f.id)}">
     <div class="fact-top">
       <div class="fact-meta">${factTagsHtml(f, opts)}</div>
       <div class="fact-actions">

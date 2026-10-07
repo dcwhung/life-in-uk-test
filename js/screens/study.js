@@ -89,8 +89,10 @@ function studyToggleMark(kind, id) {
   renderStudy();
 }
 
+// mastered = ticked by hand OR every source question 🏆 in Practice (derived on each render, never stored)
+function isFactMastered(f) { return !!study.mastered[f.id] || factMastery(f).derived; }
 function factMatches(f) {
-  if (study.hideMastered && study.mastered[f.id]) return false;
+  if (study.hideMastered && isFactMastered(f)) return false;
   if (study.bookmarksOnly && !study.bookmarks[f.id]) return false;
   if (!study.search) return true;
   const hay = (f.en + ' ' + f.yue + ' ' + (f.p ? f.p[0] : '') + ' ' + (f.yl || '')).toLowerCase();
@@ -99,7 +101,7 @@ function factMatches(f) {
 
 // ── fact card (js/components/factCard.js, full variant): this screen hands it the fact's marks ──
 function factMarks(f) {
-  return { bookmarks: !!study.bookmarks[f.id], mastered: !!study.mastered[f.id] };
+  return { bookmarks: !!study.bookmarks[f.id], mastered: !!study.mastered[f.id], derived: factMastery(f).derived };
 }
 function renderFact(f, opts = {}) {
   return factCardHtml(f, { variant: FACT_VARIANT.full, marks: factMarks(f), opts });
@@ -142,8 +144,15 @@ function renderStudy() {
   subRow.hidden = !sub;
   const { html, shown, total } = STUDY_RENDERERS[study.tab]();
   byId('studyCount').textContent = t('study.count', { shown, total, n: total });
+  renderStudyProgress();
   byId('studyContent').innerHTML =
     shown ? html : `<div class="study-empty">${t('study.empty')}</div>`;
+}
+
+// O7: "🏆 n / 236 mastered" over every fact. A cached pre-v0.63 index.html has no #studyProgress (SW cutover)
+function renderStudyProgress() {
+  const el = byId('studyProgress');
+  if (el) el.textContent = t('study.progress', { n: STUDY.filter(isFactMastered).length, total: STUDY.length });
 }
 
 // ── tab renderers: each returns { html, shown, total } ──

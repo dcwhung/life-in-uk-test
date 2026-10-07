@@ -146,6 +146,8 @@ LOCALES.en = {
     appears: 'Appears ×{n}',
     bookmark: 'Bookmark',
     mastered: 'Mastered',
+    masteredDerived: '🏆 Mastered — every source question mastered',
+    progress: '🏆 {n} / {total} mastered',
     factId: '#{id}',
   },
 

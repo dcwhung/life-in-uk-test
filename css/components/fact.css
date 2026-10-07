@@ -49,6 +49,8 @@
 .fact-btn.star path { fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; }
 .fact-btn.star.on { background: var(--flag-bg); border-color: var(--orange); color: var(--orange); }
 .fact-btn.star.on path { fill: currentColor; }
+/* derived 🏆 (every source question mastered in Practice): not a toggle, so no pointer (Q7) */
+.fact-btn.trophy { background: var(--success-bg); border-color: var(--green-light); cursor: default; }
 .fact-btn.on.tick { background: var(--success-bg); border-color: var(--green); color: var(--green); }
 .fact-name { font-size: var(--fs-md); font-weight: 800; color: var(--navy); margin-bottom: 4px; }
 .fact-en { font-size: var(--fs-md); font-weight: 500; color: var(--text); line-height: 1.5; }
