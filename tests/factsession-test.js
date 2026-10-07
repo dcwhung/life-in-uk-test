@@ -69,6 +69,11 @@ async function checkStart(pg) {
     `setPool null, masteredBefore / reviewTotal / cleared 0 (${JSON.stringify([s.setPool, s.masteredBefore, s.reviewTotal, s.cleared])})`);
   assert(s.examTimeUp === false && s.timer === null, `exam timer stopped, examTimeUp false (${s.timer} / ${s.examTimeUp})`);
   assert(s.side && s.ret && s.ret.kind === 'study' && s.ret.scrollY === savedY, `sessionReturn = { kind: 'study', scrollY: ${savedY} } (${JSON.stringify(s.ret)})`);
+  // CUI-0010: a second call from inside the session (double tap / key repeat on "▶ Practise") must keep the way
+  // back to Study — the quiz screen is scrolled to 0 by then, and ↩ Back below checks the restored scroll
+  await pg.evaluate(id => startFactPractice(id), FACT_ID);
+  const again = await pg.evaluate(() => sessionReturn);
+  assert(again && again.kind === 'study' && again.scrollY === savedY, `second startFactPractice keeps scrollY ${savedY} (${JSON.stringify(again)})`);
   return savedY;
 }
 
