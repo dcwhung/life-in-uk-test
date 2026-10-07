@@ -61,9 +61,36 @@ function runAction(name, el, e) {
   handler(el, e);
 }
 
+// CUI-0011: a double tap on a button that opens a new screen ("▶ Practise", a Home exam cell) lands
+// its second tap on that screen; on an option it answered Q1 and wrote practiceStreak / wrongList.
+// So after a pointer click changes the view, a pointer click on that same view, within
+// DOUBLE_TAP_SLOP_PX of the first and SCREEN_CHANGE_CLICK_GUARD_MS after it, is ignored. The view is
+// the active .screen plus the question list: Similar "Practise these N" and ↩ Back swap the session
+// while staying on the quiz screen. Same-view repeats (quick Next, ← →) never arm the guard, a tap
+// elsewhere (e.g. ← Home) is not stray, and once the view moves on without a click it lapses.
+let guard = null; // { view, x, y, at } of the last click that changed the view
+const currentView = () => [document.querySelector('.screen.active'), state.questions];
+const sameView = (a, b) => a[0] === b[0] && a[1] === b[1];
+// keyboard Enter / Space (and el.click()) fire click with detail 0: they neither arm nor hit the guard
+const isPointerClick = e => e.detail > 0;
+// the confirm modal opens on top of the screen it was asked from, so its buttons always work
+function isStrayClick(e, el) {
+  if (!guard || !isPointerClick(e) || el.closest('#confirmModal') || !sameView(guard.view, currentView())) return false;
+  const near = Math.hypot(e.clientX - guard.x, e.clientY - guard.y) <= DOUBLE_TAP_SLOP_PX;
+  // a tap queued while the first click's handler ran has an earlier timeStamp: negative, also stray
+  return near && e.timeStamp - guard.at < SCREEN_CHANGE_CLICK_GUARD_MS;
+}
+function runClickAction(el, e) {
+  if (isStrayClick(e, el)) return;
+  const before = currentView();
+  runAction(el.dataset.action, el, e);
+  const view = currentView();
+  if (isPointerClick(e) && !sameView(before, view)) guard = { view, x: e.clientX, y: e.clientY, at: performance.now() };
+}
+
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-action]');
-  if (el && !el.disabled) runAction(el.dataset.action, el, e);
+  if (el && !el.disabled) runClickAction(el, e);
   // the ⓘ button toggles the popover itself; any other click outside the popover closes it
   if (el && el.dataset.action === 'toggleInfo') return;
   if (!e.target.closest('#infoPop')) setInfoOpen(false);

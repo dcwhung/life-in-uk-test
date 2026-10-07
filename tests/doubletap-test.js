@@ -3,9 +3,9 @@ const path = require('path');
 // v0.64 (CUI-0011): a double tap / double click on a button that opens a new screen must not let the
 // second tap act on that screen. "▶ Practise" on a Study fact card and the Home Practice › By Exam
 // cells open the quiz; the second tap used to land on an option and answer Question 1 (practiceStreak
-// + wrongList written). actions.js ignores pointer clicks for SCREEN_CHANGE_CLICK_GUARD_MS after a
-// click changed the screen (or started a new session); keyboard, same-screen repeats and the
-// confirm modal are not affected.
+// + wrongList written). actions.js ignores a pointer click within DOUBLE_TAP_SLOP_PX and
+// SCREEN_CHANGE_CLICK_GUARD_MS of a click that changed the screen (or started a new session);
+// taps elsewhere, keyboard, same-screen repeats and the confirm modal are not affected.
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
 const launchOpts = { args: ['--no-sandbox'] };
 if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_PATH;
@@ -105,11 +105,22 @@ async function checkDoubleTap(pg, touchPg, name, setup) {
 async function checkNormalFlow(pg) {
   const guard = await guardMs(pg);
   const p = await setupFact(pg);
+  await sleep(guard + SETTLE_EXTRA_MS); // the checks before ended with a click that opened the quiz
   await pg.mouse.click(p.x, p.y);
   await sleep(guard + SETTLE_EXTRA_MS);
   await pg.click('#opt0');
   const w = await practiceWrites(pg);
   assert(w.answered === 1 && w.revealed === 1 && w.streak !== null, `single tap, then an option after the guard: answered (${JSON.stringify(w)})`);
+
+  // the guard only covers the first tap's point: a quick tap elsewhere on the new screen still counts
+  const q = await setupFact(pg);
+  await sleep(guard + SETTLE_EXTRA_MS);
+  await pg.mouse.click(q.x, q.y);
+  const far = await pg.$eval('#opt3', e => { const r = e.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+  assert(Math.abs(far.y - q.y) > await pg.evaluate(() => DOUBLE_TAP_SLOP_PX), 'option D is outside the double-tap slop');
+  await pg.mouse.click(far.x, far.y);
+  const w2 = await practiceWrites(pg);
+  assert(w2.answered === 1 && w2.revealed === 1, `a quick tap on another option still answers (${JSON.stringify(w2)})`);
 }
 
 // same screen: two quick Next clicks both count (the guard only follows a screen change, and a real
