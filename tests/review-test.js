@@ -117,6 +117,57 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(/^Mastered \d+ more this round · \d+\/24 in Exam 1$/.test(await text('#resultNote')), 'mastery note: ' + await text('#resultNote'));
   assert((await pg.$$('#reviewList .rv-streak')).length === 24, 'review shows each question streak');
 
+  // CUI-0016: a review round that clears every wrong answer leaves nothing to retry
+  const anyVisible = sel => pg.$$eval(sel, els => els.some(e => e.offsetParent !== null));
+  const pause = () => pg.waitForTimeout(400); // past SCREEN_CHANGE_CLICK_GUARD_MS
+  const clickAnswer = async correct => {
+    const picks = await pg.evaluate(correct => {
+      const q = state.questions[state.current];
+      return correct ? [...q.a] : [q.o.findIndex((_, k) => !q.a.includes(k))];
+    }, correct);
+    for (const oi of picks) await pg.click('#opt' + oi);
+  };
+  const playWrongRound = async pattern => {
+    await pg.click('#tileWrong'); await pause();
+    for (const correct of pattern) { await clickAnswer(correct); await pg.click('#nextBtn'); await pause(); }
+  };
+  const setWrongList = keys => pg.evaluate(keys => {
+    const w = {}; keys.forEach(k => { w[k] = true; });
+    localStorage.setItem('lifeuk.wrongList', JSON.stringify(w)); wrongList = w; pendingMode = 'practice'; goHome();
+  }, keys);
+  await setWrongList(['1.0', '1.1', '1.2']);
+  await playWrongRound([true, true, true]);
+  assert(await active('screenResult') && (await text('#resultNote')) === 'Cleared 3 from your wrong answers · 0 left', 'all cleared: result note 3 cleared / 0 left');
+  assert(!(await anyVisible('#screenResult .retry-btn')), 'all cleared: no Retry button on the result page');
+  assert(await anyVisible('#screenResult .another-btn'), 'all cleared: back-to-home button still shown');
+  await pg.click('#langBtn'); await pause();
+  assert(!(await anyVisible('#screenResult .retry-btn')), 'all cleared: Retry stays hidden after a language switch');
+  await pg.click('#langBtn'); await pause();
+
+  // any entry into an empty review set goes back Home instead of a 0-question quiz
+  const emptyStart = async (label, setup, examConst) => {
+    const before = await pg.evaluate(() => state.examNum);
+    await pg.evaluate(setup);
+    const thrown = await pg.evaluate(c => { pendingMode = 'practice'; startExam({ WRONG_EXAM, FLAGGED_EXAM }[c]); }, examConst)
+      .then(() => '', e => e.message.split('\n')[0]);
+    assert(!thrown, label + ': startExam on an empty set throws nothing ' + thrown);
+    assert(await active('screenHome') && !(await active('screenQuiz')), label + ': empty set lands on Home');
+    assert(await pg.evaluate(() => state.examNum) === before, label + ': quiz state left untouched');
+  };
+  await emptyStart('wrong', () => { localStorage.setItem('lifeuk.wrongList', '{}'); wrongList = {}; }, 'WRONG_EXAM');
+  await emptyStart('flagged', () => { localStorage.setItem('lifeuk.practiceFlags', '{}'); practiceFlags = {}; }, 'FLAGGED_EXAM');
+
+  // regression: wrong answers left → Retry shown and starts a clean round
+  await setWrongList(['1.0', '1.1']);
+  await playWrongRound([true, false]);
+  assert(await anyVisible('#screenResult .retry-btn'), 'one left: Retry still shown');
+  await pg.click('#screenResult .retry-btn'); await pause();
+  assert(await active('screenQuiz') && await pg.evaluate(() => Object.keys(state.answers).length === 0), 'Retry: fresh round, no answers');
+  assert((await pg.$$('#optionsContainer .opt.selected, #optionsContainer .opt.correct, #optionsContainer .opt.wrong')).length === 0, 'Retry: no option pre-selected / marked');
+  // regression: exam results keep Retry
+  await pg.evaluate(() => { pendingMode = 'exam'; startExam(1); finishExam(); });
+  assert(await anyVisible('#screenResult .retry-btn'), 'exam result: Retry shown');
+
   assert(errs.length === 0, 'no page errors: ' + errs.join('; '));
   console.log('REVIEW PASS');
   await b.close();
