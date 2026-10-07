@@ -32,10 +32,12 @@ function resetAnswers() {
   state.flags = {};
 }
 function startExam(examNum) {
+  const pool = poolFor(examNum);
+  // CUI-0016: an emptied review set has no question to render; go Home before any session state changes
+  if (!pool.length) { leaveToHome(); return; }
   state.mode = pendingMode;
   state.examNum = examNum;
   clearSideSession();
-  const pool = poolFor(examNum);
   state.setPool = pool;
   state.masteredBefore = masteryOf(pool).mastered;
   state.reviewTotal = isReviewSet(examNum) ? pool.length : 0;
