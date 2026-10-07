@@ -110,15 +110,19 @@ function factTagsHtml(f, opts) {
   if (f.w) tags.push(`<span class="tag war">${t('study.war')}</span>`);
   if (f.p && !opts.noPerson) tags.push(`<span class="tag person">👤 ${escapeHtml(f.p[0])}</span>`);
   if (!opts.noChapter) tags.push(`<span class="tag">${CHAPTER_ICONS[f.ch]} ${t('common.chapterShort', { n: f.ch })}</span>`);
-  tags.push(`<span class="tag diff" title="${difficultyTitle(f.d)}">${'★'.repeat(f.d)}</span>`);
+  tags.push(starsHtml(f.d)); // same stars as the question card (v0.62)
   if (f.src.length > 1) tags.push(`<span class="tag freq">${t('study.appears', { n: f.src.length })}</span>`);
   return tags.join('');
 }
+// one per-fact toggle (kind = study mark key); the visible content is an icon, so the label lives in aria-label (O1)
+function factMarkButtonHtml(f, { kind, cls, labelKey, content }) {
+  const on = !!study[kind][f.id];
+  const label = escapeHtml(t(labelKey));
+  return `<button class="fact-btn ${cls}${on ? ' on' : ''}" title="${label}" aria-label="${label}" aria-pressed="${on}" data-action="studyToggleMark" data-mark="${kind}" data-arg="${escapeHtml(f.id)}">${content}</button>`;
+}
 function factMarkButtonsHtml(f) {
-  const mastered = !!study.mastered[f.id];
-  const marked = !!study.bookmarks[f.id];
-  return `<button class="fact-btn star${marked ? ' on' : ''}" title="${escapeHtml(t('study.bookmark'))}" data-action="studyToggleMark" data-mark="bookmarks" data-arg="${escapeHtml(f.id)}">${marked ? '★' : '☆'}</button>
-        <button class="fact-btn tick${mastered ? ' on' : ''}" title="${escapeHtml(t('study.mastered'))}" data-action="studyToggleMark" data-mark="mastered" data-arg="${escapeHtml(f.id)}">✓</button>`;
+  return factMarkButtonHtml(f, { kind: 'bookmarks', cls: 'star', labelKey: 'study.bookmark', content: bookmarkSvg('', { decorative: true }) })
+    + factMarkButtonHtml(f, { kind: 'mastered', cls: 'tick', labelKey: 'study.mastered', content: '✓' });
 }
 function renderFact(f, opts = {}) {
   const mastered = !!study.mastered[f.id];
@@ -137,8 +141,10 @@ function renderFact(f, opts = {}) {
 
 // ── chip rows ──
 function studyChipsHtml() {
+  // decorative icon: the chip text already says "Bookmarked" (a labelled SVG would read "Flagged")
+  const bookmarkLabel = bookmarkSvg('chip-flag', { decorative: true }) + t('study.bookmarkedOnly');
   let chips = chipHtml({ active: study.hideMastered, action: 'studyToggle', arg: 'hideMastered', label: t('study.hideMastered') })
-    + chipHtml({ active: study.bookmarksOnly, action: 'studyToggle', arg: 'bookmarksOnly', label: t('study.bookmarkedOnly') });
+    + chipHtml({ active: study.bookmarksOnly, action: 'studyToggle', arg: 'bookmarksOnly', label: bookmarkLabel });
   if (study.tab === 'timeline') {
     chips += chipHtml({ extraCls: ' war', active: study.warsOnly, action: 'studyToggle', arg: 'warsOnly', label: t('study.warsOnly') });
   }

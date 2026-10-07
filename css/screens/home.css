@@ -132,10 +132,10 @@
   font-size: var(--fs-base); color: var(--navy);
   transition: all 0.15s;
 }
-.chapter-btn:hover { border-color: var(--purple); }
+.chapter-btn:hover { border-color: var(--study-accent-strong); }
 .chapter-btn .ch-num {
-  background: var(--purple); color: var(--text-inverse);
-  border-radius: 6px; padding: 3px 8px;
+  background: var(--study-accent-strong); color: var(--text-inverse);
+  border-radius: var(--radius-xs); padding: 3px 8px;
   font-size: var(--fs-xs); font-weight: 800; flex-shrink: 0;
 }
 .chapter-btn .ch-name { font-weight: 700; flex: 1; }

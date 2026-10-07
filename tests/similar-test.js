@@ -37,6 +37,13 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert((await text('#similarBox .sqm-count')) === '+2', 'count badge +2');
   assert((await text('#similarBox .sqm-fact-label')).includes('Core Fact #203'), 'core fact label');
   assert((await text('#similarBox .sqm-fact-en')).startsWith('Towns, cities and rural areas'), 'core fact English');
+  // v0.62 (P3 T-106, O8): Core Fact keeps its gold fill but shares the Study fact card shape (4px border, --radius-md, 12px 14px)
+  const coreShape = await pg.$eval('#similarBox .sqm-fact', e => {
+    const cs = getComputedStyle(e);
+    const md = getComputedStyle(document.documentElement).getPropertyValue('--radius-md').trim();
+    return { border: cs.borderLeftWidth, radius: [cs.borderTopLeftRadius, cs.borderBottomLeftRadius, cs.borderTopRightRadius].every(r => r === md), padding: cs.padding };
+  });
+  assert(coreShape.border === '4px' && coreShape.radius && coreShape.padding === '12px 14px', 'core fact shape matches Study fact card: ' + JSON.stringify(coreShape));
   const nodes = await pg.$$eval('#similarBox .sqm-node', els => els.map(e => e.textContent + ':' + e.className));
   assert(JSON.stringify(nodes) === JSON.stringify(['E12·Q6:sqm-node current', 'E9·Q15:sqm-node mastered', 'E12·Q19:sqm-node weak']), 'appears-in chips (E9·Q15, 1-based) with state: ' + nodes);
   const ids = await pg.$$eval('#similarBox .sqm-id', els => els.map(e => e.textContent));
@@ -113,7 +120,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   // leaving to Home drops the stashed session
   await pg.click('#similarBox .sqm-cta button');
   await pg.evaluate(() => goHome());
-  assert(await pg.evaluate(() => similarReturn === null), 'home clears the temporary session');
+  assert(await pg.evaluate(() => sessionReturn === null), 'home clears the temporary session');
 
   assert(errs.length === 0, 'no page errors: ' + errs.join('; '));
   console.log('SIMILAR PASS');

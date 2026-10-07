@@ -2,7 +2,7 @@
 // CONFIG — app-wide constants. sw.js loads this file with importScripts() to name its cache,
 // so it must stay worker-safe: plain constants only, no DOM and no question data.
 // ════════════════════════════════════════
-const APP_VERSION = '0.61';
+const APP_VERSION = '0.62';
 
 // ── modes and special set ids (state.examNum is 1..EXAM_COUNT or one of these) ──
 const PRACTICE_MODE = 'practice';
@@ -13,6 +13,7 @@ const WRONG_EXAM = 'wrong';
 const FLAGGED_EXAM = 'flagged';
 const CHAPTER_PREFIX = 'ch';
 const DIFFICULTY_PREFIX = 'd';
+const FACT_PREFIX = 'f'; // + study fact id: that fact's source questions ('f21', a one-off session from Study)
 
 // ── practice ──
 const MASTERY_STREAK = 3;

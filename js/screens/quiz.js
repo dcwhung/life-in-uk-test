@@ -34,7 +34,7 @@ function resetAnswers() {
 function startExam(examNum) {
   state.mode = pendingMode;
   state.examNum = examNum;
-  similarReturn = null;
+  clearSideSession();
   const pool = poolFor(examNum);
   state.setPool = pool;
   state.masteredBefore = masteryOf(pool).mastered;
@@ -134,7 +134,7 @@ function renderNavButtons(idx, total, revealed) {
 // review sets bigger than one round: "Round 1 of N · 24 of your T wrong answers" above the question card
 function renderRoundNote() {
   const total = state.reviewTotal || 0;
-  const show = state.mode === PRACTICE_MODE && total > PRACTICE_ROUND_MAX && !isSimilarSession();
+  const show = state.mode === PRACTICE_MODE && total > PRACTICE_ROUND_MAX && !isSideSession();
   setShown('roundRow', show);
   if (!show) return;
   const noteKey = state.examNum === WRONG_EXAM ? 'quiz.roundNoteWrong' : 'quiz.roundNoteFlagged';
@@ -143,11 +143,11 @@ function renderRoundNote() {
 }
 
 // ── answering ──
-// what "Next" does on this question: next question, finish the set, or leave the similar session
+// what "Next" does on this question: next question, finish the set, or leave the side session (similar / fact)
 // label = bottom button, symbol + title = quick button in the question header
 function nextAction(idx, total) {
   if (idx < total - 1) return { label: t('quiz.nextButton'), symbol: '→', title: t('quiz.next'), run: nextQ };
-  if (isSimilarSession()) return { label: t('quiz.backButton'), symbol: '↩', title: t('quiz.back'), run: returnFromSimilar };
+  if (isSideSession()) return { label: t('quiz.backButton'), symbol: '↩', title: t('quiz.back'), run: returnFromSideSession };
   if (state.mode === EXAM_MODE) return { label: t('exam.submit'), symbol: '✓', title: t('exam.submit'), run: submitExam };
   return { label: t('quiz.finishButton'), symbol: '✓', title: t('quiz.finish'), run: finishExam };
 }

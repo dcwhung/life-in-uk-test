@@ -29,6 +29,11 @@ function isChapterExam(examNum) { return typeof examNum === 'string' && examNum.
 function chapterOf(examNum) { return Number(examNum.slice(CHAPTER_PREFIX.length)); }
 function isDifficultyExam(examNum) { return typeof examNum === 'string' && examNum.startsWith(DIFFICULTY_PREFIX); }
 function difficultyOf(examNum) { return Number(examNum.slice(DIFFICULTY_PREFIX.length)); }
+// 'f' + digits only: FLAGGED_EXAM ('flagged') starts with the same letter
+function isFactExam(examNum) {
+  return typeof examNum === 'string' && examNum.startsWith(FACT_PREFIX) && /^\d+$/.test(examNum.slice(FACT_PREFIX.length));
+}
+function factIdOf(examNum) { return Number(examNum.slice(FACT_PREFIX.length)); }
 // Exam 1–17 (Exam mode or Practice > By Exam) — the only sets shaped like the real test
 function isNumberedExam(examNum) { return typeof examNum === 'number'; }
 // exam mode › All Exams = Random Exam: RANDOM_EXAM_SIZE questions drawn from all, at most one per study fact
@@ -66,6 +71,7 @@ function examLabel(examNum) {
   if (isRandomExam(examNum)) return t('common.randomExam');
   if (examNum === ALL_EXAM) return t('common.allExams');
   if (isChapterExam(examNum)) return t('common.chapterN', { n: chapterOf(examNum) });
+  if (isFactExam(examNum)) return t('common.factSet', { id: factIdOf(examNum) });
   if (isDifficultyExam(examNum)) {
     const lv = difficultyOf(examNum);
     return '★'.repeat(lv) + ' ' + difficultyLabel(lv);

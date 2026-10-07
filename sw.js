@@ -48,6 +48,7 @@ const SHELL = [
   'js/screens/home.js',
   'js/screens/quiz.js',
   'js/screens/examTools.js',
+  'js/screens/sideSession.js',
   'js/screens/similarPanel.js',
   'js/screens/result.js',
   'js/screens/flagged.js',

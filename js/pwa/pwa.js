@@ -28,8 +28,13 @@ function dismissInstallBanner() {
   hideInstallBanner();
   setLS(INSTALL_DISMISSED_LS, true);
 }
-// installed from the browser menu (or via our prompt): the banner has nothing left to offer
-window.addEventListener('appinstalled', hideInstallBanner);
+// installed from the browser menu (or via our prompt): the banner has nothing left to offer, and the saved
+// event is spent (S-027: drop it so a stray promptInstall() cannot prompt() an installed app again)
+function onAppInstalled() {
+  deferredPrompt = null;
+  hideInstallBanner();
+}
+window.addEventListener('appinstalled', onAppInstalled);
 async function promptInstall() {
   // claim the event before awaiting: a second tap finds nothing, so prompt() runs at most once per event
   // (Chromium rejects a second prompt() on the same event)
