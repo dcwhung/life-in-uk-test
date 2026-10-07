@@ -26,6 +26,9 @@ LOCALES.en = {
     installText: 'Add to home screen to study without internet',
     installButton: 'Install',
     installDismiss: 'Dismiss',
+    // header pill: names the language it switches to (the CJK 中 is whitelisted in tests/i18n-test.js)
+    langSwitch: '中',
+    langSwitchLabel: 'Switch to Chinese',
   },
 
   home: {
