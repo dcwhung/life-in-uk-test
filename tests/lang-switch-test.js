@@ -391,18 +391,36 @@ const effectiveOpacities = (pg, root, sels) => pg.$eval(root, (r, list) => Objec
   for (let n = r.querySelector(sel); n; n = n.parentElement) o *= Number(getComputedStyle(n).opacity);
   return [sel, o];
 })), sels);
+// S-082: the same tile checks at 320px, plus no horizontal overflow on the page or inside either tile
+async function checkMyReviewNarrow(pg, check, lang, tag) {
+  await pg.setViewportSize(NARROW);
+  try {
+    await check(pg, lang, tag);
+    const fit = await pg.evaluate(() => {
+      const box = e => ({ sw: e.scrollWidth, cw: e.clientWidth });
+      return { page: box(document.documentElement), wrong: box(byId('tileWrong')), flagged: box(byId('tileFlagged')) };
+    });
+    assert(Object.values(fit).every(b => b.sw <= b.cw), `${tag}: no horizontal overflow at 320px: ` + JSON.stringify(fit));
+  } finally {
+    await pg.setViewportSize(WIDE);
+  }
+}
 async function checkMyReviewTiles(pg) {
   await pg.evaluate(lang => setLang(lang), EN);
   await seedMyReview(pg, MY_REVIEW_WRONG_N, MY_REVIEW_FLAG_N);
   await checkMyReviewIn(pg, EN, 'My Review en');
+  await checkMyReviewNarrow(pg, checkMyReviewIn, EN, 'My Review en 320px');
   await pg.click(PILL);
   await checkMyReviewIn(pg, ZH_HK, 'My Review pill → zh-HK');
+  await checkMyReviewNarrow(pg, checkMyReviewIn, ZH_HK, 'My Review zh-HK 320px');
   await seedMyReview(pg, MY_REVIEW_WRONG_N, 0);
   assert((await textOf(pg, '#tileFlagged .sub')) === FLAGGED_EMPTY[ZH_HK], 'My Review zh-HK: 0 flagged keeps flaggedEmptyHtml');
   await seedMyReview(pg, 0, MY_REVIEW_FLAG_N);
   await checkMyReviewEmptyIn(pg, ZH_HK, 'My Review zh-HK');
+  await checkMyReviewNarrow(pg, checkMyReviewEmptyIn, ZH_HK, 'My Review zh-HK 0 wrong 320px');
   await pg.click(PILL);
   await checkMyReviewEmptyIn(pg, EN, 'My Review pill → en');
+  await checkMyReviewNarrow(pg, checkMyReviewEmptyIn, EN, 'My Review en 0 wrong 320px');
   await seedMyReview(pg, MY_REVIEW_WRONG_N, 0);
   assert((await textOf(pg, '#tileFlagged .sub')) === FLAGGED_EMPTY[EN], 'My Review en: 0 flagged keeps flaggedEmptyHtml');
   await pg.evaluate(() => {
