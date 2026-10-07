@@ -43,8 +43,10 @@
   margin-bottom: 10px;
   display: flex; align-items: center; gap: 8px; min-height: 30px;
 }
-/* "Question X of Y" ★★★ ✓ n/m — the pill wraps to a second line when the row is full */
-.q-num .q-num-text { flex: 1; display: flex; flex-wrap: wrap; align-items: center; column-gap: 6px; row-gap: 4px; white-space: nowrap; }
+/* "Question X of Y" ★★★ ✓ n/m — the pill wraps to a second line when the row is full.
+   CUI-0013: white-space normal + min-width 0 let a long multi-answer header ("(select 2)") wrap on a narrow
+   screen instead of pushing the quick nav out of the card (.q-card clips it); short headers still fit one line */
+.q-num .q-num-text { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; column-gap: 6px; row-gap: 4px; white-space: normal; }
 .yue-toggle {
   text-transform: none; letter-spacing: 0;
   background: var(--yue-bg);
