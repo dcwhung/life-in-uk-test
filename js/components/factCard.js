@@ -49,7 +49,7 @@ function factMarkButtonsHtml(f, marks) {
 function factSourceRowHtml(f) {
   const wrap = f.src.length > FACT_SRC_INLINE_MAX ? ' wrap-btn' : '';
   return `<div class="fact-src${wrap}">
-      <div class="fact-src-nodes"><span class="sqm-map-label">${t('similar.appearsIn')}</span>${f.src.map(similarNodeHtml).join('')}</div>
+      <div class="fact-src-nodes"><span class="sqm-map-label">${t('similar.appearsIn')}</span>${f.src.map(questionNodeHtml).join('')}</div>
       <button class="fact-practise" aria-describedby="${factIdElId(f)}" data-action="startFactPractice" data-arg="${escapeHtml(f.id)}">${t('similar.practise', { n: f.src.length })}</button>
     </div>`;
 }

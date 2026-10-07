@@ -90,6 +90,22 @@ function actionNames() {
   const factCardCode = fs.readFileSync(FACT_CARD_JS, 'utf8')
     .replace(/\/\/.*$/gm, '').replace(/'[^'\n]*'|`[^`]*`|"[^"\n]*"/g, "''"); // code only: no comments / strings ('study.x' keys)
   assert(!/\bstudy\b/.test(factCardCode), 'js/components/factCard.js does not read the study global');
+  // v0.64 (S-031): layering — components load before screens, so a component must not call anything a screen
+  // defines (it only worked because the global existed by render time). Comments are stripped; template
+  // literals are kept, since `${fn(...)}` inside a template is a real call; plain quoted strings (i18n keys such as
+  // 'study.x', data-action="name" attributes) are blanked unless they hold a `${…}`.
+  const topLevelNames = f => [...fs.readFileSync(f, 'utf8')
+    .matchAll(/^(?:async\s+)?(?:function\s+([A-Za-z_$][\w$]*)|(?:const|let|var)\s+([A-Za-z_$][\w$]*))/gm)]
+    .map(m => m[1] || m[2]);
+  const screenNames = new Set(jsFiles(path.join(ROOT, 'js/screens')).flatMap(topLevelNames));
+  const layerHits = jsFiles(path.join(ROOT, 'js/components')).flatMap(f => {
+    const code = fs.readFileSync(f, 'utf8').replace(/\/\/.*$/gm, '')
+      .replace(/'[^'\n]*'|"[^"\n]*"/g, s => (s.includes('${') ? s : "''"));
+    return [...screenNames].filter(n => new RegExp(`(?<![\\w$.])${n.replace(/\$/g, '\\$')}(?![\\w$])`).test(code))
+      .map(n => `${rel(f)} → ${n}`);
+  });
+  assert(layerHits.length === 0, 'js/components/*.js use nothing defined in js/screens/*.js'
+    + (layerHits.length ? ': ' + layerHits.join(', ') : ''));
   const factRules = f => {
     const file = path.join(ROOT, f);
     return fs.existsSync(file) ? fs.readFileSync(file, 'utf8').split('\n').filter(l => /^\.(fact|sqm-fact)\b/.test(l)).length : 0;
@@ -112,6 +128,26 @@ function actionNames() {
   const unused = await pg.evaluate(list => Object.keys(ACTIONS).filter(k => !list.includes(k)), names);
   assert(unused.length === 0, 'every ACTIONS handler is used by some markup' + (unused.length ? ': unused ' + unused.join(', ') : ''));
   assert(errs.length === 0, 'page loads with no page errors, console errors or failed requests' + (errs.length ? ': ' + errs.join(' / ') : ''));
+
+  // v0.64 (S-034): form controls use the body font, not the UA default (Linux Chromium: Arial). Checked on home
+  // (#installBtn, mode cards, exam grid, quick nav), a Practice question (options, dots) and Study (search, chips, fact
+  // buttons, .fact-practise), so every rendered <button> / <input> is covered, not only the ones with a class rule.
+  const offFont = () => pg.evaluate(() => {
+    const body = getComputedStyle(document.body).fontFamily;
+    return [...document.querySelectorAll('button, input, select, textarea')]
+      .filter(e => getComputedStyle(e).fontFamily !== body)
+      .map(e => `${e.tagName.toLowerCase()}${e.id ? '#' + e.id : ''}.${[...e.classList].join('.')} (${getComputedStyle(e).fontFamily})`);
+  });
+  const fontScreens = [
+    ['home', async () => {}],
+    ['practice question', async () => { await pg.evaluate(() => { pendingMode = 'practice'; startExam(1); }); await pg.waitForSelector('#opt0'); }],
+    ['study', async () => { await pg.evaluate(() => openStudy()); await pg.waitForSelector('.fact-practise'); }],
+  ];
+  for (const [screen, open] of fontScreens) {
+    await open();
+    const off = await offFont();
+    assert(off.length === 0, `${screen}: every button / input uses the body font-family` + (off.length ? ': ' + off.slice(0, 6).join(', ') : ''));
+  }
   await b.close();
   console.log('STRUCTURE PASS');
 })().catch(e => { console.error(e.message); process.exit(1); });

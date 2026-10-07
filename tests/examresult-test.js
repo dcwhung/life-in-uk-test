@@ -11,6 +11,17 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   const vis = sel => pg.$eval(sel, e => e.offsetParent !== null);
   const text = sel => pg.$eval(sel, e => e.textContent.replace(/\s+/g, ' ').trim());
   const texts = sel => pg.$$eval(sel, els => els.map(e => e.textContent.replace(/\s+/g, ' ').trim()));
+  // CUI-0012: dot grid geometry against the card's content box (dots right edge, round, number inside the border)
+  const dotsFit = (sel, cardSel) => pg.$eval(sel, (el, cardSel) => {
+    const card = el.closest(cardSel), cs = getComputedStyle(card), cr = card.getBoundingClientRect();
+    const dots = [...el.children].map(d => { const r = d.getBoundingClientRect(), rg = document.createRange(); rg.selectNodeContents(d); return { r, cw: d.clientWidth, tw: rg.getBoundingClientRect().width }; });
+    return {
+      doc: document.documentElement.scrollWidth, vw: innerWidth,
+      over: Math.max(...dots.map(d => d.r.right)) - (cr.right - parseFloat(cs.paddingRight) - parseFloat(cs.borderRightWidth)),
+      round: dots.every(d => Math.abs(d.r.width - d.r.height) < 0.5), textIn: dots.every(d => d.tw <= d.cw + 0.5),
+      minW: Math.min(...dots.map(d => d.r.width)),
+    };
+  }, cardSel);
   await pg.goto(APP_URL);
   await pg.evaluate(() => localStorage.clear()); await pg.reload();
 
@@ -40,6 +51,16 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(dots.length === 24, '24 result dots');
   assert(dots[0] === 'ok' && dots[1] === 'ok flag' && dots[2] === 'bad flag' && dots[6] === 'bad' && dots[17] === 'skip', 'dot states: ' + dots.slice(0, 3) + ' / ' + dots[6] + ' / ' + dots[17]);
   assert((await text('#resultDotsMeta')) === 'Correct 17 | Wrong 6 | Unanswered 1 | Flagged 5', 'counts line');
+
+  // CUI-0012: 320px — the 12-column grid stays inside the result card, no page side-scroll, dots still round with the number inside
+  await pg.setViewportSize({ width: 320, height: 844 });
+  const fit320 = await dotsFit('#resultDots', '.result-card');
+  assert(fit320.doc <= fit320.vw, '320px: no horizontal page scroll: ' + fit320.doc + ' / ' + fit320.vw);
+  assert(fit320.over <= 0.5, '320px: result dots inside the card content box: ' + fit320.over.toFixed(2));
+  assert(fit320.round && fit320.textIn && fit320.minW >= 16, '320px: dots round, number inside the border, ≥ 16px: ' + JSON.stringify(fit320));
+  await pg.setViewportSize({ width: 390, height: 844 });
+  const fit390 = await dotsFit('#resultDots', '.result-card');
+  assert(fit390.over <= 0.5 && fit390.round && fit390.textIn && fit390.minW >= 20, '390px: result dots fit, round, ≥ 20px: ' + JSON.stringify(fit390));
 
   // review filters: All / Wrong / Flagged, with counts and the bookmark icon
   assert(JSON.stringify(await texts('#reviewOrder .chip')) === JSON.stringify(['All 24', 'Wrong 7', 'Flagged 5']), 'filter chips with counts');

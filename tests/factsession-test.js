@@ -191,6 +191,33 @@ async function checkSourceRow(pg) {
   const one = await pg.$eval(`${factCard(ONE_SOURCE_FACT)} .fact-practise`, e => e.textContent);
   assert(one === '▶ Practise this one', 'one source question: ▶ Practise this one');
 }
+// W-012: at 390px the 2-source cards whose row fitted on one line before S-034 (form controls inherit the
+// body font, "▶ Practise these 2" ~2.8px wider) must still fit: the 2nd node must not wrap under the 1st
+const TWO_SOURCE_ONE_LINE_FACTS = [25, 30, 62, 67, 74, 76, 78, 128, 155, 159, 181, 225, 231];
+const LINE_TOLERANCE_PX = 1;
+async function checkTwoSourceRowsOneLine(pg) {
+  const wrapped = await pg.evaluate(([ids, tol]) => {
+    openStudy(); studySetTab('chapters');
+    const bad = [];
+    for (const ch of CHAPTER_NUMBERS) {
+      studySetChapter(ch);
+      for (const id of ids) {
+        const card = document.querySelector(`#studyContent .fact[data-fact-id="${id}"]`);
+        if (!card) continue;
+        const nodes = [...card.querySelectorAll('.fact-src .sqm-node')].map(n => n.getBoundingClientRect());
+        const btn = card.querySelector('.fact-src .fact-practise').getBoundingClientRect();
+        const row = card.querySelector('.fact-src-nodes').getBoundingClientRect();
+        // one line: every node on the first node's line, and the button beside them (not on a line below)
+        const oneLine = nodes.length === 2 && nodes.every(n => Math.abs(n.top - nodes[0].top) <= tol)
+          && row.height <= nodes[0].height + tol && btn.top < row.bottom;
+        if (!oneLine) bad.push(`${id} (nodes row ${row.height}px)`);
+      }
+    }
+    return bad;
+  }, [TWO_SOURCE_ONE_LINE_FACTS, LINE_TOLERANCE_PX]);
+  await openStudyChapter3(pg); // checkEntryAndFlash taps fact #21 next
+  assert(wrapped.length === 0, `W-012: 390px 2-source rows stay on one line (wrapped: ${wrapped.join(', ') || 'none'})`);
+}
 async function checkEntryAndFlash(pg) {
   await pg.click(`${factCard(FACT_ID)} .fact-practise`);
   assert(await activeScreen(pg) === 'screenQuiz' && await text(pg, '#quizLabel') === 'Fact #21', 'Practise button opens the Fact #21 session');
@@ -235,6 +262,7 @@ async function checkUnknownFact(pg) {
   await checkSearchRestored(pg);
   await checkHomeAndAfter(pg);
   await checkSourceRow(pg);
+  await checkTwoSourceRowsOneLine(pg);
   await checkEntryAndFlash(pg);
   await checkUnknownFact(pg);
   assert(errs.length === 0, 'no page errors' + (errs.length ? ': ' + errs.join('; ') : ''));

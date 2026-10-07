@@ -1,9 +1,13 @@
+/* dot grids (quiz navigator + result dots): 12 columns; minmax(0, 1fr) so a column never grows to the
+   number's width (1fr = minmax(auto, 1fr) pushed the grid past the card at 320–360px once buttons used the
+   body font, CUI-0012). Gap and number size are custom properties so the narrow query below can shrink both. */
+.nav-dots, .rdots { --dots-gap: 6px; --dot-fs: 10.5px; }
 /* question navigator dots (quiz) */
-.nav-dots { display: grid; grid-template-columns: repeat(12, 1fr); gap: 6px; margin-bottom: 8px; }
+.nav-dots { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--dots-gap); margin-bottom: 8px; }
 /* numbered dot: quiz navigator (.dot) and result dots (.rdot) share the shape */
 .dot, .rdot {
   aspect-ratio: 1; width: 100%; max-width: 30px; justify-self: center; padding: 0;
-  border-radius: var(--radius-circle); font-size: 10.5px; font-weight: 800;
+  border-radius: var(--radius-circle); font-size: var(--dot-fs); font-weight: 800;
   display: flex; align-items: center; justify-content: center; cursor: pointer;
 }
 .dot { border: 1.5px solid var(--border); background: var(--card); color: var(--text-muted); }
@@ -34,7 +38,7 @@
 
 /* exam: per-question result dots (tap to jump to the review) */
 .rdots-wrap { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); }
-.rdots { display: grid; grid-template-columns: repeat(12, 1fr); gap: 6px; }
+.rdots { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--dots-gap); }
 .rdot { border: 2px solid transparent; color: var(--text-inverse); }
 .rdot.ok { background: var(--green-light); border-color: var(--green-light); }
 .rdot.bad { background: var(--red-light); border-color: var(--red-light); }
@@ -49,3 +53,10 @@
 .rmeta .lg-bad { background: var(--red-light); }
 .rmeta .lg-skip { border: 2px solid var(--red-light); }
 .rmeta .lg-flag { box-shadow: 0 0 0 2px var(--orange); }
+
+/* ≤ 360px (CUI-0012): with 6px gaps a 320px result dot is 14.5px and "24" spills over its 2px border.
+   4px gaps give the dots back ~2px (16.3px result / 16.7px quiz at 320, about v0.63's size) and still clear
+   the 4px flag / current ring; 9px numbers fit inside the border. 390px and up keep 6px / 10.5px. */
+@media (max-width: 360px) {
+  .nav-dots, .rdots { --dots-gap: 4px; --dot-fs: 9px; }
+}

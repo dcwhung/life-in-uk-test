@@ -11,6 +11,17 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('ok:', m); };
   const vis = sel => pg.$eval(sel, e => e.offsetParent !== null);
   const text = sel => pg.$eval(sel, e => e.textContent.replace(/\s+/g, ' ').trim());
+  // CUI-0012: dot grid geometry against the card's content box (dots right edge, round, number inside the border)
+  const dotsFit = (sel, cardSel) => pg.$eval(sel, (el, cardSel) => {
+    const card = el.closest(cardSel), cs = getComputedStyle(card), cr = card.getBoundingClientRect();
+    const dots = [...el.children].map(d => { const r = d.getBoundingClientRect(), rg = document.createRange(); rg.selectNodeContents(d); return { r, cw: d.clientWidth, tw: rg.getBoundingClientRect().width }; });
+    return {
+      doc: document.documentElement.scrollWidth, vw: innerWidth,
+      over: Math.max(...dots.map(d => d.r.right)) - (cr.right - parseFloat(cs.paddingRight) - parseFloat(cs.borderRightWidth)),
+      round: dots.every(d => Math.abs(d.r.width - d.r.height) < 0.5), textIn: dots.every(d => d.tw <= d.cw + 0.5),
+      minW: Math.min(...dots.map(d => d.r.width)),
+    };
+  }, cardSel);
   const dotCls = () => pg.$$eval('#navDots .dot', els => els.map(e => e.className.replace('dot', '').trim()));
   const answer = (i, right) => pg.evaluate(({ i, right }) => {
     const q = state.questions[i]; state.current = i;
@@ -57,6 +68,15 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.evaluate(() => { pendingMode = 'exam'; startExam(4); state.current = 23; renderQuestion(); });
   assert(await vis('#quickNext') && (await text('#quickNext')) === '✓' && await pg.$eval('#quickNext', e => e.title === 'Submit'), 'exam last question: quick ✓ (Submit)');
   assert((await text('#nextBtn')) === 'Submit', 'bottom button still Submit');
+  // CUI-0012: 320px — 24 exam dots stay inside the question card's content box, no page side-scroll
+  await pg.setViewportSize({ width: 320, height: 844 });
+  const fit320 = await dotsFit('#navDots', '.q-card');
+  assert(fit320.doc <= fit320.vw, '320px exam: no horizontal page scroll: ' + fit320.doc + ' / ' + fit320.vw);
+  assert(fit320.over <= 0.5, '320px exam: nav dots inside the card content box: ' + fit320.over.toFixed(2));
+  assert(fit320.round && fit320.textIn && fit320.minW >= 16, '320px exam: dots round, number inside the border, ≥ 16px: ' + JSON.stringify(fit320));
+  await pg.setViewportSize({ width: 390, height: 844 });
+  const fit390 = await dotsFit('#navDots', '.q-card');
+  assert(fit390.over <= 0.5 && fit390.round && fit390.textIn && fit390.minW >= 20, '390px exam: nav dots fit, round, ≥ 20px: ' + JSON.stringify(fit390));
   await pg.click('#quickNext');
   assert(await pg.$eval('#confirmModal', e => e.classList.contains('show')) && /Submit exam\?/.test(await text('#confirmTitle')), 'quick ✓ with unanswered questions opens the Submit modal');
   await pg.click('#confirmCancel');
