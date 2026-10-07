@@ -5,13 +5,14 @@
 // QA_W015_OUT is set (default: printed).
 // 2026-10-07 rerun (S-056 / CUI-0015): w015 expectations inverted after batch 7 (anti-leak); oracle skips batch 7
 // `keep` records and applies the S-055 post-batch fix.
-// 2026-10-07 refresh (Lane D): the oracle counts exactly batches 1..7 (explicit filename pattern — later batches such as
-// batch-8 belong to their own QA script): 7 files / 732 records, 3 `keep` not replayed. versionCheck and
+// 2026-10-07 refresh (Lane D): versionCheck and
 // offlineAndUpgrade compare against the current APP_VERSION (js/core/config.js) and the current data files instead of
 // hard-coding v0.66 / the pre-batch-7 E11·Q4 yue. overflow no longer exempts the quick nav (CUI-0013 fixed in v0.67).
+// 2026-10-07 W-018: the script checks the current data, so the oracle replays every batch JSON on disk (found by
+// filename, numeric order): today 8 files / 737 records, 3 `keep` not replayed. EXPECTED_ORACLE is the sanity count.
 //
-// Oracle (independent of HEAD data): the v0.65 data files (git show <v065-ref>) with the seven user-approved batch JSON
-// files (.proj-docs/plans/2026-10-07_yue-batch-{1..7}*.json) replayed in order; every record's `before` must match.
+// Oracle (independent of HEAD data): the v0.65 data files (git show <v065-ref>) with every user-approved batch JSON
+// file (.proj-docs/plans/2026-10-07_yue-batch-<N>*.json) replayed in numeric order; every record's `before` must match.
 // The app is driven black-box with real clicks / typing; page.evaluate only seeds localStorage and reads state
 // (which question sits behind which dot, the option order after shuffle) to locate things on screen.
 // Double tap guard (CUI-0011): a click within 40px / 350ms of a click that changed the view is swallowed, so every
@@ -48,12 +49,13 @@ const OLD_STUDY = loadData(gitShow('data/study.js'), 'STUDY');
 const EXP_EXAMS = JSON.parse(JSON.stringify(OLD_EXAMS));
 const EXP_STUDY = JSON.parse(JSON.stringify(OLD_STUDY));
 const PLAN_DIR = path.join(ROOT, '.proj-docs/plans');
-// explicit: batches 1..7 only (batch-N or batch-N-<tag>); anything later (e.g. batch-8-s054) is out of v0.66 scope
-const BATCH_NUMS = [1, 2, 3, 4, 5, 6, 7];
-const BATCH_RE = ext => new RegExp(`^2026-10-07_yue-batch-(${BATCH_NUMS.join('|')})(?:-[a-z0-9]+)?\\.${ext}$`);
-const BATCH_FILES = fs.readdirSync(PLAN_DIR).filter(f => BATCH_RE('json').test(f))
-  .sort((a, b) => Number(a.match(BATCH_RE('json'))[1]) - Number(b.match(BATCH_RE('json'))[1]));
-const EXPECTED_ORACLE = { files: 7, records: 732, kept: 3 };
+// every batch on disk (batch-N or batch-N-<tag>): the current data carries all of them, so the oracle must too
+const BATCH_RE = ext => new RegExp(`^2026-10-07_yue-batch-(\\d+)(?:-[a-z0-9]+)?\\.${ext}$`);
+// numeric, not lexical: "last after wins" breaks once batch-10 would sort before batch-2 (S-064)
+const batchNum = f => Number(f.match(BATCH_RE('json'))[1]);
+const BATCH_FILES = fs.readdirSync(PLAN_DIR).filter(f => BATCH_RE('json').test(f)).sort((a, b) => batchNum(a) - batchNum(b));
+// sanity count of the approved batches (1..8); update together with the next batch JSON
+const EXPECTED_ORACLE = { files: 8, records: 737, kept: 3 };
 const CUR_VERSION = (fs.readFileSync(path.join(ROOT, 'js/core/config.js'), 'utf8').match(/const APP_VERSION = '([^']+)'/) || [])[1];
 const CUR_CACHE = 'lifeuk-v' + CUR_VERSION;
 const replay = { records: 0, beforeMismatch: [], kept: [] };
@@ -181,7 +183,7 @@ async function noOverflow(pg) {
 // ══════════ 0. oracle sanity + version ══════════
 async function versionCheck(b) {
   ok(BATCH_FILES.length === EXPECTED_ORACLE.files && replay.records === EXPECTED_ORACLE.records && replay.kept.length === EXPECTED_ORACLE.kept,
-    `oracle: ${EXPECTED_ORACLE.files} batch JSON files (1..7), ${EXPECTED_ORACLE.records} records, ${EXPECTED_ORACLE.kept} keep not replayed (${BATCH_FILES.length}, ${replay.records}, ${replay.kept.length}) [${BATCH_FILES.join(' ')}]`);
+    `oracle: ${EXPECTED_ORACLE.files} batch JSON files, ${EXPECTED_ORACLE.records} records, ${EXPECTED_ORACLE.kept} keep not replayed (${BATCH_FILES.length}, ${replay.records}, ${replay.kept.length}) [${BATCH_FILES.join(' ')}]`);
   ok(replay.beforeMismatch.length === 0, `oracle: every record's before matches v0.65 ${V065_REF} data in order ${replay.beforeMismatch.slice(0, 5).join(' ')}`);
   note(`changed fields: yue ${changed.yue.size}, note ${changed.note.size}, oy questions ${changed.oy.size}, fact yue ${changed.fact.size}`);
   ok(!!CUR_VERSION, `current APP_VERSION read from js/core/config.js: ${CUR_VERSION}`);
@@ -430,7 +432,7 @@ async function overflow(b) {
 
 // ══════════ 5. offline + v0.65 → current version upgrade ══════════
 async function offlineAndUpgrade(b) {
-  const K = '11.3'; // E11·Q4: yue changed since v0.65 (batches 1..7)
+  const K = '11.3'; // E11·Q4: yue changed since v0.65 (batches 1..8)
   const translateYue = async pg => { await openPractice(pg, 11); const pos = (await sessionMap(pg)).indexOf(K); await tap(pg, `#navDots .dot:nth-child(${pos + 1})`);
     await tap(pg, '#yueToggle'); return pg.textContent('#qYue'); };
   const storage = pg => pg.evaluate(() => Object.fromEntries(Object.keys(localStorage).sort().map(k => [k, localStorage.getItem(k)])));
