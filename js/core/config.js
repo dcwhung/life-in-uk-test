@@ -50,6 +50,7 @@ const INSTALL_TOUCH_QUERY = '(pointer: coarse)';
 
 // ── i18n (js/core/i18n.js; strings in locales/*.js) ──
 const DEFAULT_LANG = 'en';   // also the fallback for keys a language lacks
+const ZH_HK_LANG = 'zh-HK';  // v0.65: the other UI language (header pill toggles between the two)
 
 // ── localStorage keys ──
 // the origin (dcwhung.github.io) is shared with other apps, so every key carries our own prefix
@@ -59,7 +60,7 @@ const FLAGS_LS = LS_PREFIX + 'practiceFlags';
 const WRONG_LS = LS_PREFIX + 'wrongList';
 const COMPLETED_LS = LS_PREFIX + 'completedExams';
 const HOME_PREFS_LS = LS_PREFIX + 'homePrefs';
-const UI_LANG_LS = LS_PREFIX + 'uiLang';   // v0.59: UI language (no switch shown yet)
+const UI_LANG_LS = LS_PREFIX + 'uiLang';   // v0.59: UI language (v0.65: header pill)
 const INSTALL_DISMISSED_LS = LS_PREFIX + 'installDismissed';   // v0.60: install banner closed with ✕ (never shown again)
 const STUDY_LS = {
   prefs: LS_PREFIX + 'studyPrefs',

@@ -1,7 +1,8 @@
 /* Page layout: reset, body, sticky header, main column, screens, shared headings */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  /* v0.65: system CJK fonts for zh-HK after the Latin ones (no web font: offline, no dependency) */
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, 'PingFang HK', 'Noto Sans HK', 'Noto Sans CJK HK', 'Microsoft JhengHei', sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
@@ -29,6 +30,28 @@ header {
 .logo-text { display: flex; align-items: center; gap: 6px; color: var(--text-inverse); font-size: var(--fs-lg); font-weight: 700; letter-spacing: 0.01em; }
 .logo-sub { color: var(--gold); font-size: var(--fs-xs); font-weight: 500; margin-top: 1px; }
 .app-version { color: var(--text-inverse-faint); font-weight: 600; margin-left: 4px; }
+
+/* language pill (v0.65): names the target language (en → 中, zh-HK → EN); mockups/lang-switch.html */
+.lang-btn {
+  position: relative;
+  flex-shrink: 0;
+  min-width: 36px;
+  padding: 3px 10px;
+  background: transparent;
+  border: 1.5px solid var(--gold);
+  border-radius: var(--radius-pill);
+  color: var(--gold-light);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+/* visual pill about 36 × 26px; the invisible ring takes the hit area to 44px+ (as install ✕ / fact buttons) */
+.lang-btn::before { content: ''; position: absolute; inset: -10px -6px; }
+.lang-btn:hover { background: var(--gold-tint); }
+.lang-btn:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 2px; }
 
 /* ── MAIN ── */
 main { max-width: 780px; margin: 0 auto; padding: 20px 16px 100px; }
