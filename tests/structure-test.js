@@ -128,6 +128,26 @@ function actionNames() {
   const unused = await pg.evaluate(list => Object.keys(ACTIONS).filter(k => !list.includes(k)), names);
   assert(unused.length === 0, 'every ACTIONS handler is used by some markup' + (unused.length ? ': unused ' + unused.join(', ') : ''));
   assert(errs.length === 0, 'page loads with no page errors, console errors or failed requests' + (errs.length ? ': ' + errs.join(' / ') : ''));
+
+  // v0.64 (S-034): form controls use the body font, not the UA default (Linux Chromium: Arial). Checked on home
+  // (#installBtn, mode cards, exam grid, quick nav), a Practice question (options, dots) and Study (search, chips, fact
+  // buttons, .fact-practise), so every rendered <button> / <input> is covered, not only the ones with a class rule.
+  const offFont = () => pg.evaluate(() => {
+    const body = getComputedStyle(document.body).fontFamily;
+    return [...document.querySelectorAll('button, input, select, textarea')]
+      .filter(e => getComputedStyle(e).fontFamily !== body)
+      .map(e => `${e.tagName.toLowerCase()}${e.id ? '#' + e.id : ''}.${[...e.classList].join('.')} (${getComputedStyle(e).fontFamily})`);
+  });
+  const fontScreens = [
+    ['home', async () => {}],
+    ['practice question', async () => { await pg.evaluate(() => { pendingMode = 'practice'; startExam(1); }); await pg.waitForSelector('#opt0'); }],
+    ['study', async () => { await pg.evaluate(() => openStudy()); await pg.waitForSelector('.fact-practise'); }],
+  ];
+  for (const [screen, open] of fontScreens) {
+    await open();
+    const off = await offFont();
+    assert(off.length === 0, `${screen}: every button / input uses the body font-family` + (off.length ? ': ' + off.slice(0, 6).join(', ') : ''));
+  }
   await b.close();
   console.log('STRUCTURE PASS');
 })().catch(e => { console.error(e.message); process.exit(1); });
