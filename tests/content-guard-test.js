@@ -2,6 +2,7 @@
 // Compares every protected field of data/exams.js + data/study.js against the committed fixture
 // tests/fixtures/content-baseline.json (not git history: origin/main moves and shallow clones lack old commits).
 // Regenerate the fixture ONLY for an intentional English / structural change: node tests/tools/make-content-baseline.js
+// A note may be filled where it was '' (R1) but never emptied (S-051, `_noteNonEmpty` checked one-way).
 const fs = require('fs');
 const { loadData, project, BASELINE } = require('./tools/make-content-baseline');
 
@@ -26,13 +27,16 @@ function diff(expected, actual, at, out) {
 const questionLabel = (exam, i) => `Exam ${exam} · Q${i + 1} (index ${i})`;
 const factLabel = (f, i) => `fact #${f && f.id} (index ${i})`;
 
+// S-051: a note may be filled where it was '' (R1 adds current-state notes) but never emptied
+const noteFilled = (q, cur) => q._noteNonEmpty === false && cur && cur._noteNonEmpty === true;
+
 function examProblems(base, now) {
   const out = [];
   diff(Object.keys(base), Object.keys(now), 'exam numbers', out);
   for (const [exam, qs] of Object.entries(base)) {
     const cur = now[exam] || [];
     if (cur.length !== qs.length) out.push(`Exam ${exam}: expected ${qs.length} questions, got ${cur.length}`);
-    qs.forEach((q, i) => diff(q, cur[i], questionLabel(exam, i), out));
+    qs.forEach((q, i) => diff(noteFilled(q, cur[i]) ? { ...q, _noteNonEmpty: true } : q, cur[i], questionLabel(exam, i), out));
   }
   return out;
 }
@@ -87,8 +91,8 @@ function report(title, problems) {
   console.log(`\n${title}: ${problems.length} difference(s)`);
   problems.slice(0, MAX_REPORTED).forEach(p => console.log('  - ' + p));
   if (problems.length > MAX_REPORTED) console.log(`  ... and ${problems.length - MAX_REPORTED} more`);
-  console.log('  (only exams yue / oy / note and study fact yue may change; an _oyShape / _yueNonEmpty / _has* line means a');
-  console.log('   translation slot was emptied, filled where it was "", or a key was added / removed)');
+  console.log('  (only exams yue / oy / note and study fact yue may change; an _oyShape / _yueNonEmpty / _noteNonEmpty / _has*');
+  console.log('   line means a translation slot or note was emptied, an oy slot filled where it was "", or a key added / removed)');
 }
 
 const base = JSON.parse(fs.readFileSync(BASELINE, 'utf8'));
@@ -120,4 +124,14 @@ assert(problems['translation shape'].length === 0, 'oy.length === o.length, oy /
 const answerCount = answerCountProblems(EXAMS);
 report('multi-answer question without a count word', answerCount);
 assert(answerCount.length === 0, 'every multi-answer question states how many to pick (two / three / four)');
+
+// S-051 self-check: the guard must refuse a note that was emptied, while '' -> text stays allowed (R1)
+const mutatedExams = mutate => { const v = JSON.parse(JSON.stringify(data.values)); mutate(v.EXAMS); return project({ globals: data.globals, values: v }).exams; };
+const firstQuestion = test => Object.entries(EXAMS).flatMap(([exam, qs]) => qs.map((q, i) => ({ exam, i, q }))).find(x => test(x.q));
+const withNote = firstQuestion(q => q.note.length > 0);
+const emptied = examProblems(base.exams, mutatedExams(ex => { ex[withNote.exam][withNote.i].note = ''; }));
+assert(emptied.some(p => p.startsWith(questionLabel(withNote.exam, withNote.i))), `S-051: emptying the note of ${questionLabel(withNote.exam, withNote.i)} is reported`);
+const withoutNote = firstQuestion(q => q.note === '');
+const filled = examProblems(base.exams, mutatedExams(ex => { ex[withoutNote.exam][withoutNote.i].note = 'R1'; }));
+assert(filled.length === 0, `S-051: filling the empty note of ${questionLabel(withoutNote.exam, withoutNote.i)} is allowed (R1)`);
 console.log('CONTENT-GUARD PASS');

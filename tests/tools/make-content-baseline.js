@@ -7,7 +7,8 @@
 // so that a yue / oy / note rewrite (Track 2) cannot silently touch anything else.
 //
 // What is free to change (not stored verbatim):
-//   exams: yue, oy, note        -> stored only as shape (yue non-empty, oy slot non-empty per option, note key present)
+//   exams: yue, oy, note        -> stored only as shape (yue non-empty, oy slot non-empty per option, note key present,
+//                                  note non-empty: the guard checks that one one-way, false -> true is allowed)
 //   study: fact yue             -> stored only as "was non-empty"
 // Everything else is stored verbatim, plus the list of top-level names each data file declares.
 const fs = require('fs');
@@ -47,6 +48,8 @@ function projectQuestion(q) {
     _hasOy: 'oy' in q,
     _oyShape: Array.isArray(q.oy) ? q.oy.map(nonEmpty) : null, // length + which slots hold a translation
     _hasNote: 'note' in q,
+    // S-051: lets the guard refuse an emptied note; '' -> text stays allowed (R1), see content-guard-test.js
+    _noteNonEmpty: nonEmpty(q.note),
   };
 }
 
