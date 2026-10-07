@@ -1,5 +1,68 @@
 [
   {
+    "exam": 1,
+    "qIndex": 7,
+    "field": "yue",
+    "before": "Cenotaph（戰爭紀念碑）係乜嘢？",
+    "after": "和平紀念碑（Cenotaph）係乜嘢？",
+    "decision": "W3",
+    "crossBatch": true
+  },
+  {
+    "exam": 1,
+    "qIndex": 7,
+    "field": "note",
+    "before": "喺倫敦，每年11月11日Remembrance Day（國殤紀念日）會喺度舉行紀念儀式",
+    "after": "喺倫敦白廳，每年11月11日Remembrance Day（國殤紀念日）會喺度獻花圈（考試以官方手冊嘅11月11日為準；實際全國紀念儀式喺11月第二個星期日Remembrance Sunday（國殤紀念星期日）舉行）",
+    "decision": "W3",
+    "crossBatch": true
+  },
+  {
+    "exam": 2,
+    "qIndex": 19,
+    "field": "note",
+    "before": "大約54個成員國",
+    "after": "大約54個成員國（考試以官方手冊嘅54個為準；2022年起56個）",
+    "decision": "W6",
+    "crossBatch": true
+  },
+  {
+    "exam": 6,
+    "qIndex": 8,
+    "field": "note",
+    "before": "記憶法：\n蘇格蘭議會 → Scottish Parliament → Edinburgh（愛丁堡）→ 129 名議員；\n威爾斯議會 → Senedd → Cardiff（加的夫）→ 60 名議員（2026年選舉起增至96名；考試以官方手冊嘅60名為準）；\n北愛爾蘭議會 → Northern Ireland Assembly → Belfast（貝爾法斯特）→ 90 名議員。\n\n三個議會都用比例代表制（proportional representation）選出，同英國國會嘅領先者當選制唔同。",
+    "after": "記憶法：\n蘇格蘭議會 → Scottish Parliament → Edinburgh（愛丁堡）→ 129 名議員；\n威爾斯議會 → Senedd → Cardiff（加的夫）→ 60 名議員（考試以官方手冊嘅60名為準；2026年選舉起增至96名）；\n北愛爾蘭議會 → Northern Ireland Assembly → Belfast（貝爾法斯特）→ 90 名議員。\n\n三個議會都用比例代表制（proportional representation）選出，同英國國會嘅領先者當選制唔同。",
+    "decision": "X6r",
+    "crossBatch": true
+  },
+  {
+    "exam": 7,
+    "qIndex": 17,
+    "field": "note",
+    "before": "記憶法：\n蘇格蘭議會 → Scottish Parliament → Edinburgh（愛丁堡）→ 129 名議員；\n威爾斯議會 → Senedd → Cardiff（加的夫）→ 60 名議員（2026年選舉起增至96名；考試以官方手冊嘅60名為準）；\n北愛爾蘭議會 → Northern Ireland Assembly → Belfast（貝爾法斯特）→ 90 名議員。\n\n三個議會都用比例代表制（proportional representation）選出，同英國國會嘅領先者當選制唔同。",
+    "after": "記憶法：\n蘇格蘭議會 → Scottish Parliament → Edinburgh（愛丁堡）→ 129 名議員；\n威爾斯議會 → Senedd → Cardiff（加的夫）→ 60 名議員（考試以官方手冊嘅60名為準；2026年選舉起增至96名）；\n北愛爾蘭議會 → Northern Ireland Assembly → Belfast（貝爾法斯特）→ 90 名議員。\n\n三個議會都用比例代表制（proportional representation）選出，同英國國會嘅領先者當選制唔同。",
+    "decision": "X6r",
+    "crossBatch": true
+  },
+  {
+    "exam": 8,
+    "qIndex": 19,
+    "field": "note",
+    "before": "記憶法：\n蘇格蘭議會 → Scottish Parliament → Edinburgh（愛丁堡）→ 129 名議員；\n威爾斯議會 → Senedd → Cardiff（加的夫）→ 60 名議員（2026年選舉起增至96名；考試以官方手冊嘅60名為準）；\n北愛爾蘭議會 → Northern Ireland Assembly → Belfast（貝爾法斯特）→ 90 名議員。\n\n三個議會都用比例代表制（proportional representation）選出，同英國國會嘅領先者當選制唔同。",
+    "after": "記憶法：\n蘇格蘭議會 → Scottish Parliament → Edinburgh（愛丁堡）→ 129 名議員；\n威爾斯議會 → Senedd → Cardiff（加的夫）→ 60 名議員（考試以官方手冊嘅60名為準；2026年選舉起增至96名）；\n北愛爾蘭議會 → Northern Ireland Assembly → Belfast（貝爾法斯特）→ 90 名議員。\n\n三個議會都用比例代表制（proportional representation）選出，同英國國會嘅領先者當選制唔同。",
+    "decision": "X6r",
+    "crossBatch": true
+  },
+  {
+    "exam": 8,
+    "qIndex": 22,
+    "field": "yue",
+    "before": "聖柏特理日係邊日？",
+    "after": "聖柏德烈日係邊日？",
+    "decision": "W2",
+    "crossBatch": true
+  },
+  {
     "exam": 9,
     "qIndex": 0,
     "field": "yue",
@@ -26,6 +89,14 @@
     "field": "yue",
     "before": "£100係英國流通面值最大的鈔票。對定錯？",
     "after": "£100係英國流通面值最大嘅鈔票。對定錯？"
+  },
+  {
+    "exam": 9,
+    "qIndex": 2,
+    "field": "note",
+    "before": "英格蘭最高面值係£50；蘇格蘭銀行發行£100",
+    "after": "英倫銀行（Bank of England）最大面值係£50（考試以官方手冊嘅£50為準；蘇格蘭同北愛爾蘭有啲銀行另外發行£100）",
+    "decision": "W4"
   },
   {
     "exam": 9,
@@ -121,7 +192,8 @@
     "qIndex": 10,
     "field": "yue",
     "before": "哪位英國科學家發現青黴素？",
-    "after": "邊位英國科學家發現咗青黴素？"
+    "after": "邊位英國科學家發現咗盤尼西林（penicillin）？",
+    "decision": "W10"
   },
   {
     "exam": 9,
@@ -135,7 +207,16 @@
     "qIndex": 11,
     "field": "yue",
     "before": "紀念日的目的係乜嘢？",
-    "after": "紀念日嘅目的係乜嘢？"
+    "after": "Remembrance Day（國殤紀念日）嘅目的係乜嘢？",
+    "decision": "W11"
+  },
+  {
+    "exam": 9,
+    "qIndex": 13,
+    "field": "yue",
+    "before": "全國防止虐待兒童協會（NSPCC）係乜嘢？",
+    "after": "NSPCC 係乜嘢？",
+    "decision": "W1"
   },
   {
     "exam": 9,
@@ -163,7 +244,8 @@
     "qIndex": 16,
     "field": "note",
     "before": "非歐盟機構",
-    "after": "唔係歐盟機構"
+    "after": "唔係歐盟機構；47個成員國（考試以官方手冊嘅47個為準；2022年起46個）",
+    "decision": "W5"
   },
   {
     "exam": 9,
@@ -184,7 +266,8 @@
     "qIndex": 18,
     "field": "note",
     "before": "記憶法：\n蘇格蘭議會 → Scottish Parliament → Edinburgh（愛丁堡）→ 129 名議員；\n威爾斯議會 → Senedd → Cardiff（加的夫）→ 60 名議員；\n北愛爾蘭議會 → Northern Ireland Assembly → Belfast（貝爾法斯特）→ 90 名議員。\n\n三個議會都用比例代表制（proportional representation）選出，同英國國會嘅領先者當選制唔同。",
-    "after": "記憶法：\n蘇格蘭議會 → Scottish Parliament → Edinburgh（愛丁堡）→ 129 名議員；\n威爾斯議會 → Senedd → Cardiff（加的夫）→ 60 名議員（2026年選舉起增至96名；考試以官方手冊嘅60名為準）；\n北愛爾蘭議會 → Northern Ireland Assembly → Belfast（貝爾法斯特）→ 90 名議員。\n\n三個議會都用比例代表制（proportional representation）選出，同英國國會嘅領先者當選制唔同。"
+    "after": "記憶法：\n蘇格蘭議會 → Scottish Parliament → Edinburgh（愛丁堡）→ 129 名議員；\n威爾斯議會 → Senedd → Cardiff（加的夫）→ 60 名議員（考試以官方手冊嘅60名為準；2026年選舉起增至96名）；\n北愛爾蘭議會 → Northern Ireland Assembly → Belfast（貝爾法斯特）→ 90 名議員。\n\n三個議會都用比例代表制（proportional representation）選出，同英國國會嘅領先者當選制唔同。",
+    "decision": "X6r"
   },
   {
     "exam": 9,
@@ -379,6 +462,14 @@
   {
     "exam": 10,
     "qIndex": 20,
+    "field": "yue",
+    "before": "愛爾蘭大飢荒係乜嘢？",
+    "after": "愛爾蘭大饑荒係乜嘢？",
+    "decision": "W13"
+  },
+  {
+    "exam": 10,
+    "qIndex": 20,
     "field": "note",
     "before": "約100萬人死亡，另有約100萬人移民",
     "after": "大約100萬人死亡，另外有大約100萬人移民"
@@ -411,7 +502,8 @@
     "qIndex": 22,
     "field": "note",
     "before": "約54個成員國",
-    "after": "大約54個成員國"
+    "after": "大約54個成員國（考試以官方手冊嘅54個為準；2022年起56個）",
+    "decision": "W6"
   },
   {
     "exam": 10,
@@ -503,6 +595,22 @@
   },
   {
     "exam": 11,
+    "qIndex": 8,
+    "field": "yue",
+    "before": "衣諾達夫紀念碑係乜嘢？",
+    "after": "和平紀念碑（Cenotaph）係乜嘢？",
+    "decision": "W3"
+  },
+  {
+    "exam": 11,
+    "qIndex": 8,
+    "field": "note",
+    "before": "每年11月11日舉行Remembrance Day（國殤紀念日）儀式",
+    "after": "喺倫敦白廳，每年11月11日Remembrance Day（國殤紀念日）會喺度獻花圈（考試以官方手冊嘅11月11日為準；實際全國紀念儀式喺11月第二個星期日Remembrance Sunday（國殤紀念星期日）舉行）",
+    "decision": "W3"
+  },
+  {
+    "exam": 11,
     "qIndex": 9,
     "field": "yue",
     "before": "北愛爾蘭守護聖人係誰？",
@@ -560,6 +668,14 @@
     "field": "yue",
     "before": "誰寫了《如果》（'If'）這首詩？",
     "after": "邊個寫咗《如果》（'If'）呢首詩？"
+  },
+  {
+    "exam": 11,
+    "qIndex": 13,
+    "field": "yue",
+    "before": "北約（North Atlantic Treaty Organisation, NATO）代表乜嘢？",
+    "after": "NATO 係乜嘢嘅縮寫？",
+    "decision": "W1"
   },
   {
     "exam": 11,
@@ -652,7 +768,8 @@
     "qIndex": 2,
     "field": "note",
     "before": "記憶法：\n蘇格蘭議會 → Scottish Parliament → Edinburgh（愛丁堡）→ 129 名議員；\n威爾斯議會 → Senedd → Cardiff（加的夫）→ 60 名議員；\n北愛爾蘭議會 → Northern Ireland Assembly → Belfast（貝爾法斯特）→ 90 名議員。\n\n三個議會都用比例代表制（proportional representation）選出，同英國國會嘅領先者當選制唔同。",
-    "after": "記憶法：\n蘇格蘭議會 → Scottish Parliament → Edinburgh（愛丁堡）→ 129 名議員；\n威爾斯議會 → Senedd → Cardiff（加的夫）→ 60 名議員（2026年選舉起增至96名；考試以官方手冊嘅60名為準）；\n北愛爾蘭議會 → Northern Ireland Assembly → Belfast（貝爾法斯特）→ 90 名議員。\n\n三個議會都用比例代表制（proportional representation）選出，同英國國會嘅領先者當選制唔同。"
+    "after": "記憶法：\n蘇格蘭議會 → Scottish Parliament → Edinburgh（愛丁堡）→ 129 名議員；\n威爾斯議會 → Senedd → Cardiff（加的夫）→ 60 名議員（考試以官方手冊嘅60名為準；2026年選舉起增至96名）；\n北愛爾蘭議會 → Northern Ireland Assembly → Belfast（貝爾法斯特）→ 90 名議員。\n\n三個議會都用比例代表制（proportional representation）選出，同英國國會嘅領先者當選制唔同。",
+    "decision": "X6r"
   },
   {
     "exam": 12,
@@ -673,7 +790,8 @@
     "qIndex": 4,
     "field": "yue",
     "before": "英國第一批硬幣上刻有甚麼？",
-    "after": "英國第一批硬幣上面刻咗咩？"
+    "after": "鐵器時代英國鑄造嘅第一批硬幣上面刻咗咩？",
+    "decision": "W12"
   },
   {
     "exam": 12,
@@ -701,7 +819,8 @@
     "qIndex": 7,
     "field": "yue",
     "before": "詹姆士一世下令翻譯的聖經版本叫乜嘢？",
-    "after": "詹姆士一世下令翻譯嘅聖經版本叫乜嘢？"
+    "after": "詹姆斯一世下令翻譯嘅聖經版本叫乜嘢？",
+    "decision": "W8"
   },
   {
     "exam": 12,
@@ -714,9 +833,27 @@
     "exam": 12,
     "qIndex": 8,
     "field": "oy",
+    "optIndex": 0,
+    "before": "克倫威爾關閉國會之後",
+    "after": "克倫威爾關閉國會",
+    "decision": "W7"
+  },
+  {
+    "exam": 12,
+    "qIndex": 8,
+    "field": "oy",
     "optIndex": 1,
     "before": "亨利八世關閉天主教修道院並沒收財產",
     "after": "亨利八世關閉天主教修道院，沒收佢哋嘅財產"
+  },
+  {
+    "exam": 12,
+    "qIndex": 8,
+    "field": "oy",
+    "optIndex": 2,
+    "before": "愛德華六世關閉教會之後",
+    "after": "愛德華六世關閉教會",
+    "decision": "W7"
   },
   {
     "exam": 12,
@@ -730,7 +867,8 @@
     "qIndex": 11,
     "field": "yue",
     "before": "Beefeaters（皇家衛士）有何重要性？",
-    "after": "Beefeaters（皇家衛士）有咩重要性？"
+    "after": "Beefeaters（倫敦塔衛兵）有咩重要性？",
+    "decision": "W9"
   },
   {
     "exam": 12,
