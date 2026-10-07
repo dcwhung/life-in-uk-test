@@ -14,7 +14,6 @@ function similarKeys(q) {
 // Counted over the whole data set, never a filtered list, so a search or filter cannot renumber a card.
 // Display only: bookmarks, mastery, data-fact-id and localStorage keep the global fact id.
 // Lives here, not in a new file: a cached older index.html has no <script> tag for a new domain file (SW cutover).
-let chapterFactNumbers = null; // fact id → number, built on first use
 function buildChapterFactNumbers() {
   const seen = {}, numbers = {};
   STUDY.forEach(f => {
@@ -23,7 +22,5 @@ function buildChapterFactNumbers() {
   });
   return numbers;
 }
-function chapterFactNumber(id) {
-  if (!chapterFactNumbers) chapterFactNumbers = buildChapterFactNumbers();
-  return chapterFactNumbers[id];
-}
+const CHAPTER_FACT_NUMBER = buildChapterFactNumbers(); // fact id → number; STUDY is loaded before this file
+function chapterFactNumber(id) { return CHAPTER_FACT_NUMBER[id]; }
