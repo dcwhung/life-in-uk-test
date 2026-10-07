@@ -1,6 +1,6 @@
 # Implementation Plan：zh-HK UI locale + 語言切換掣（Track 1）＋ data 廣東話口語化（Track 2）
 
-**版本**：v1.1（開放問題已決定）
+**版本**：v1.2（開放問題已決定；glossary tab / 難度修訂）
 **日期**：2026-10-07
 **關聯 Spec**：冇獨立 spec；需求來源 = `.claude/session-logs/2026-10-07_12-57.md`「下次 Session 建議任務 1」+ 2026-10-07 grill 決定 Q1–Q11 + Architect 可行性評估（2026-10-07）
 **Base**：branch `claude/gallant-noether-fbnmml` = `main` `b247d2c`（v0.64）
@@ -217,6 +217,7 @@ Step 5 → Track 2 T-104 起逐批（每批用戶確認）→ Review → QA → 
 ## 附錄 A：zh-HK Glossary 草稿（全部 key，書面語）
 
 > 規則：Q5 書面語；Q9 `Exam {n}`、`Exam 9 · Q15`、`E9·Q15`、`Chapter {n}`、`Ch {n}` 保留英文格式；Q10 章節名英文、國家／時代中文 +（英文）、其餘純中文。
+> **例外（用戶 2026-10-07 修訂）**：tab 標籤（`home.tabDifficulty` / `tabChapter` / `tabExam`、`study.tab*`）全中文（難度 / 章節 / 試卷、📚 章節…）；`Chapter {n}` / `Ch {n}` / `Exam {n}` 呢類**帶號碼**嘅標籤先保留英文格式。
 > 數字、emoji、箭咀位置、分隔符 ` · ` / ` | ` 同 en 一致。中英之間唔加空格，數字前後留空格（例如「共 408 題」）。
 > `{param}` 同 en 一樣；plural 只需 `other`（`Intl.PluralRules('zh-HK')` 只會返 `other`）。
 
@@ -248,7 +249,7 @@ Step 5 → Track 2 T-104 起逐批（每批用戶確認）→ Review → QA → 
 | examDescHtml | **Exam** — Answer all {n} questions… | **模擬考試** — 仿照真實考試作答全部 {n} 題，可返回修改答案。於最後一題提交後，即可查看分數及答案。請於下方選擇試卷。 |
 | myReview | My Review | 我的複習 |
 | practiceBy | Practice By | 練習分類 |
-| tabDifficulty / tabChapter / tabExam | Difficulty / Chapter / Exam | 難度 / Chapter / Exam |
+| tabDifficulty / tabChapter / tabExam | Difficulty / Chapter / Exam | 難度 / 章節 / 試卷 |
 | selectExam | Select Exam | 選擇試卷 |
 | allExams | 🎯 All Exams ({count}) | 🎯 全部試卷（{count}） |
 | randomExam | 🎲 Random Exam | 🎲 隨機試卷 |
@@ -330,7 +331,7 @@ Step 5 → Track 2 T-104 起逐批（每批用戶確認）→ Review → QA → 
 |---|---|---|
 | title | 📖 Study | 📖 溫習 |
 | search | Search facts (English / Cantonese) | 搜尋知識點（英文／廣東話） |
-| tabChapters / tabTimeline / tabGeo / tabPeople | 📚 Chapters / 📅 Timeline / 🗺️ Geography / 👤 People | 📚 Chapter / 📅 時間線 / 🗺️ 地理 / 👤 人物 |
+| tabChapters / tabTimeline / tabGeo / tabPeople | 📚 Chapters / 📅 Timeline / 🗺️ Geography / 👤 People | 📚 章節 / 📅 時間線 / 🗺️ 地理 / 👤 人物 |
 | hideMastered | ✓ Hide mastered | ✓ 隱藏已掌握 |
 | bookmarkedOnly | Bookmarked only | 只顯示書籤 |
 | warsOnly | ⚔️ Wars only | ⚔️ 只顯示戰爭 |
@@ -386,7 +387,7 @@ Step 5 → Track 2 T-104 起逐批（每批用戶確認）→ Review → QA → 
 | Key | zh-HK |
 |---|---|
 | chapters.1–5 / chapterShort.1–5 | 同 en（Q10） |
-| difficulty | 1 容易 / 2 基礎 / 3 中等 / 4 困難 / 5 專家 |
+| difficulty | 1 容易 / 2 基礎 / 3 中等 / 4 困難 / 5 極難 |
 | eras | 石器及鐵器時代（Stone Age & Iron Age）、羅馬時期（Romans）、盎格魯-撒克遜及維京時期（Anglo-Saxons & Vikings）、諾曼及中世紀（Normans & Middle Ages）、都鐸王朝（Tudors）、斯圖亞特王朝（Stuarts）、喬治時代（Georgian）、維多利亞時代（Victorian）、20 世紀（20th century）、21 世紀（21st century） |
 | nations.label / chip | 🇬🇧 英國（United Kingdom）/ 🇬🇧 英國（UK）；🏴 英格蘭（England）；🏴 蘇格蘭（Scotland）；🏴 威爾斯（Wales）；☘️ 北愛爾蘭（Northern Ireland）/ ☘️ 北愛爾蘭（N. Ireland） |
 | geoTypes | 🏙️ 城市及首府、⛰️ 山脈、公園及自然景觀、🏛️ 地標及建築、🗺️ 地區及領土 |
