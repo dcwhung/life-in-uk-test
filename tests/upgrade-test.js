@@ -13,6 +13,7 @@ const { startPagesServer, appFiles } = require('./pages-server');
 //      W-010: the current shell (all tags present) whose i18n.js fails to load — same reload + fallback
 //   6. v0.65 (T-008): an older cached shell without the zh-HK tag + a stored uiLang 'zh-HK' — en, no warning,
 //      the stored choice kept for the next full load
+//   7. W-013: the current shell whose locales/zh-HK.js failed to load — the language pill is hidden (not a dead button)
 // The v0.57 files come from git: V057_REF is the last v0.57 commit on main (merge of PR #29), pinned so a later
 // main does not silently turn this into a same-version test.
 const ROOT = path.resolve(__dirname, '..');
@@ -160,6 +161,22 @@ async function oldShellZhHk(b) {
   await pg.close();
 }
 
+// 7. W-013: current shell, locales/zh-HK.js missing — nothing to switch to, so the pill is hidden; en runs cleanly
+async function zhHkLocaleMissing(b) {
+  const dir = tmpDir('nozh');
+  copyCurrent(dir);
+  fs.rmSync(path.join(dir, 'locales/zh-HK.js'));
+  const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
+  const errs = []; pg.on('pageerror', e => errs.push(e.message));
+  await pg.goto('file://' + path.join(dir, 'index.html'));
+  await pg.evaluate(() => localStorage.clear()); await pg.reload();
+  await pg.waitForSelector('#examGrid .exam-btn', { state: 'attached' });
+  const pill = await pg.evaluate(() => { const e = byId('langBtn'); return { hidden: e.hidden, shown: e.getClientRects().length > 0, lang: getLang() }; });
+  assert(pill.hidden && !pill.shown && pill.lang === 'en', 'current shell, zh-HK.js missing: language pill hidden, en: ' + JSON.stringify(pill));
+  assert(errs.length === 0, 'current shell, zh-HK.js missing: no page errors: ' + errs.join(' | '));
+  await pg.close();
+}
+
 // 2. v0.57 config.js (no LEGACY_LS_MIGRATION) + v0.58 utils.js: must not throw, keeps using the v0.57 keys
 async function oppositeMix(b) {
   const dir = tmpDir('opposite');
@@ -276,6 +293,7 @@ function checkV057Ref() {
   await i18nBootFailure(b, { tag: 'old shell, locale missing', shell: 'v057.html', missing: 'locales/en.js' });
   await i18nBootFailure(b, { tag: 'current shell, i18n.js missing', shell: 'index.html', missing: 'js/core/i18n.js' });
   await oldShellZhHk(b);
+  await zhHkLocaleMissing(b);
   console.log('UPGRADE PASS');
   await b.close();
   cleanUp();

@@ -60,8 +60,16 @@ function setLang(lang) {
 }
 function applyLanguage() {
   document.documentElement.lang = getLang();
+  syncLangPill();
   applyStaticI18n();
   applyDocumentI18n();
+}
+
+// W-013: a shell whose locales/zh-HK.js failed has nothing to switch to, so hide the pill instead of a dead button;
+// a pre-v0.65 shell has no pill at all
+function syncLangPill() {
+  const pill = byId('langBtn');
+  if (pill) pill.hidden = !hasLocale(ZH_HK_LANG);
 }
 
 // ── static markup: data-i18n fills textContent; data-i18n-attr="placeholder:key;title:key" fills attributes ──
