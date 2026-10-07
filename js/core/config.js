@@ -35,6 +35,11 @@ const DIFF_BAR_LOW_PCT = 60;   // results "By Difficulty" bar: red below this
 const DIFF_BAR_MID_PCT = 80;   // gold below this, green from here
 const REVIEW_HIGHLIGHT_MS = 1500;
 const FACT_HIGHLIGHT_MS = REVIEW_HIGHLIGHT_MS; // Q8: Study fact card flash after ↩ Back from its session
+// CUI-0011: a pointer click this soon after a click opened a new screen, near the same point, is the
+// second tap of a double tap (actions.js ignores it); longer than a double tap, shorter than a
+// deliberate next tap
+const SCREEN_CHANGE_CLICK_GUARD_MS = 350;
+const DOUBLE_TAP_SLOP_PX = 40; // ...and only near the point of that click (the second tap of a double tap)
 const OPTION_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 const LIST_SEP = ' · ';    // between parts of one line ("✓ Correct! · 🔥 1/3")
 const ANSWER_SEP = ' | ';  // between the options of a multi-answer question
