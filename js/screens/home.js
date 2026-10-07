@@ -58,11 +58,12 @@ function buildDiffGrid() {
     labelHtml: `${starsHtml(d)}<span class="ch-name">${difficultyLabel(d)}</span>`,
   })).join('');
 }
-// CUI-0014: chapter names stay English in every language (plan Q10), so screen readers read them as en
+// CUI-0014: chapter names stay English in every language (plan Q10), so screen readers read them as en;
+// S-057: so does the "Ch {n}" label (common.chapterShort is untranslated by choice)
 function buildChapterGrid() {
   byId('chapterGrid').innerHTML = CHAPTER_NUMBERS.map(ch => setButtonHtml({
     action: 'startChapter', arg: ch, list: chapterQuestions(ch),
-    labelHtml: `<span class="ch-num">${t('common.chapterShort', { n: ch })}</span>
+    labelHtml: `<span class="ch-num" lang="en">${escapeHtml(t('common.chapterShort', { n: ch }))}</span>
       <span class="ch-name" lang="en">${t(`data.chapterShort.${ch}`)}</span>`,
   })).join('');
 }

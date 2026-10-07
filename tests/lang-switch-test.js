@@ -22,6 +22,14 @@ const GUARD_MARGIN_MS = 50;
 // S-044: the ::before ring must make the hit area >= 44px; probe this far outside the visible pill
 const HIT_MIN_PX = 44;
 const HIT_PROBE_INSET_PX = 1;
+// S-045: glyph probe canvas; two different hanzi drawn the same means both are tofu (no CJK font installed)
+const GLYPH_PROBE_PX = 32;
+const GLYPH_PROBE_CHARS = ['中', '國'];
+const GLYPH_BASELINE = 0.75; // font size and baseline as a share of the canvas, so descenders stay inside
+// S-057: the text common.chapterShort renders ("Ch {n}" in en and zh-HK)
+const CHAPTER_SHORT_TEXT = /\bCh \d+\b/;
+// S-058: the "A)" row is the last .ans-yue-row renderAnswerTranslation writes (after the title and "Q)")
+const ANSWER_YUE_ROW = '#ansYue .ans-yue-row:last-child';
 
 // everything the plan's state list says a language switch must keep (Result highlight / Study flash and
 // scroll position are accepted losses); localStorage minus the language key itself
@@ -37,20 +45,79 @@ const snapState = pg => pg.evaluate(() => JSON.stringify({
   storage: Object.fromEntries(Object.keys(localStorage).filter(k => k !== 'lifeuk.uiLang').sort().map(k => [k, localStorage.getItem(k)])),
 }));
 const langOf = pg => pg.evaluate(() => ({ lang: getLang(), html: document.documentElement.lang }));
+const textOf = (pg, sel) => pg.$eval(sel, e => e.textContent.replace(/\s+/g, ' ').trim());
+const pillOf = pg => pg.$eval(PILL, e => ({ text: e.textContent, label: e.getAttribute('aria-label'), title: e.title, parent: e.parentElement.className, last: e === e.parentElement.lastElementChild, type: e.type }));
 
-async function main() {
-  const b = await chromium.launch(launchOpts);
-  const pg = await b.newPage({ viewport: WIDE });
-  const errs = []; pg.on('pageerror', e => errs.push(e.message));
-  const warns = []; pg.on('console', m => { if (m.type() === 'warning') warns.push(m.text()); });
-  const text = sel => pg.$eval(sel, e => e.textContent.replace(/\s+/g, ' ').trim());
-  await pg.goto(APP_URL);
-  await pg.evaluate(() => localStorage.clear()); await pg.reload();
+// ── one switch on the current screen: same state, no missing key, language flipped, 320px fits ──
+async function switchOn(pg, ctx, tag, expectCjkSel) {
+  const before = await snapState(pg);
+  const from = (await langOf(pg)).lang;
+  const to = from === EN ? ZH_HK : EN;
+  ctx.warns.length = 0;
+  await pg.click(PILL);
+  const lang = await langOf(pg);
+  assert(lang.lang === to && lang.html === to, `${tag}: switched ${from} → ${to} (<html lang="${lang.html}">)`);
+  assert(ctx.warns.filter(w => w.includes('[i18n]')).length === 0, `${tag}: no [i18n] warnings: ` + ctx.warns.join(' | '));
+  const after = await snapState(pg);
+  assert(after === before, `${tag}: state unchanged` + (after === before ? '' : `\n  before ${before}\n  after  ${after}`));
+  assert((await pg.title()) === TITLE, `${tag}: <title> stays English`);
+  if (expectCjkSel) {
+    const shown = await textOf(pg, expectCjkSel);
+    assert(CJK.test(shown) === (to === ZH_HK), `${tag}: ${expectCjkSel} re-rendered in ${to}: ${shown.slice(0, 60)}`);
+  }
+  if (to === ZH_HK) await checkNarrow(pg, tag);
+}
+async function checkNarrow(pg, tag) {
+  await pg.setViewportSize(NARROW);
+  const fit = await pg.evaluate(() => ({ sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth }));
+  await pg.setViewportSize(WIDE);
+  assert(fit.sw <= fit.cw, `${tag}: zh-HK at 320px has no horizontal overflow (${fit.sw} <= ${fit.cw})`);
+}
+const switchTwice = async (pg, ctx, tag, sel) => { await switchOn(pg, ctx, tag, sel); await switchOn(pg, ctx, tag, sel); };
+// W-014: under <html lang="zh-HK"> the English question content keeps lang="en" (screen readers pick the voice
+// by lang) and the Cantonese translation says lang="zh-HK"; specs are [selector, lang, optional].
+// CUI-0014: html = EN checks the other way round (Chinese labels say lang="zh-HK" on an English page)
+async function checkContentLang(pg, tag, specs, html = ZH_HK) {
+  const res = await pg.evaluate(specs => specs.map(([sel, want, optional]) => {
+    const els = [...document.querySelectorAll(sel)];
+    const wrong = els.filter(e => { const l = e.closest('[lang]'); return l === document.documentElement || l.getAttribute('lang') !== want; });
+    return { sel, want, n: els.length, wrong: wrong.length, ok: (els.length > 0 || optional) && wrong.length === 0 };
+  }), specs);
+  assert((await langOf(pg)).html === html, `${tag}: checked under <html lang="${html}">`);
+  const bad = res.filter(r => !r.ok);
+  assert(bad.length === 0, `${tag}: English content lang="en", Cantonese lang="zh-HK": ` + JSON.stringify(bad));
+}
+const switchCheckBack = async (pg, ctx, tag, sel, specs) => { await switchOn(pg, ctx, tag, sel); await checkContentLang(pg, tag, specs); await switchOn(pg, ctx, tag, sel); };
+// CUI-0014: same, then the en-page specs once back in en
+const switchCheckBoth = async (pg, ctx, tag, sel, specs, enSpecs) => { await switchCheckBack(pg, ctx, tag, sel, specs); await checkContentLang(pg, `${tag} (en)`, enSpecs, EN); };
 
-  // ── the pill itself ──
+// S-057: common.chapterShort reads "Ch {n}" in both locales (kept English on purpose), so every such text node
+// under sel must sit in a lang="en" element, never only inherit <html lang>
+async function checkChapterShortLang(pg, tag, sel, html) {
+  const langs = await pg.evaluate(({ sel, src }) => [...document.querySelectorAll(sel)].flatMap(root => {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), out = [];
+    while (walker.nextNode()) {
+      if (!new RegExp(src).test(walker.currentNode.textContent)) continue;
+      const l = walker.currentNode.parentElement.closest('[lang]');
+      out.push(l === document.documentElement ? 'html' : l.getAttribute('lang'));
+    }
+    return out;
+  }), { sel, src: CHAPTER_SHORT_TEXT.source });
+  assert((await langOf(pg)).html === html, `${tag}: checked under <html lang="${html}">`);
+  assert(langs.length > 0 && langs.every(l => l === EN), `S-057 ${tag}: "Ch {n}" in ${sel} is lang="en": ` + JSON.stringify(langs));
+}
+// S-057: en → zh-HK → en, checking "Ch {n}" on both pages
+async function switchCheckChapterShort(pg, ctx, tag, sel) {
+  await switchOn(pg, ctx, tag, null);
+  await checkChapterShortLang(pg, tag, sel, ZH_HK);
+  await switchOn(pg, ctx, tag, null);
+  await checkChapterShortLang(pg, `${tag} (en)`, sel, EN);
+}
+
+// ── the pill itself ──
+async function checkPill(pg) {
   assert(await pg.$(PILL) !== null, 'header has the language pill');
-  const pill = () => pg.$eval(PILL, e => ({ text: e.textContent, label: e.getAttribute('aria-label'), title: e.title, parent: e.parentElement.className, last: e === e.parentElement.lastElementChild, type: e.type }));
-  let p = await pill();
+  const p = await pillOf(pg);
   assert(p.text === '中' && p.label === 'Switch to Chinese' && p.title === 'Switch to Chinese', 'en: pill shows 中, labelled Switch to Chinese: ' + JSON.stringify(p));
   assert(p.parent === 'header-inner' && p.last && p.type === 'button', 'pill is the last child of .header-inner, type=button');
   const size = await pg.$eval(PILL, e => { const r = e.getBoundingClientRect(); return { w: r.width, h: r.height }; });
@@ -63,72 +130,36 @@ async function main() {
     return pts.map(([x, y]) => document.elementFromPoint(x, y) === e);
   }, { min: HIT_MIN_PX, inset: HIT_PROBE_INSET_PX });
   assert(hit.every(Boolean), `pill hit area is >= ${HIT_MIN_PX}px each way (left, right, top, bottom): ` + JSON.stringify(hit));
+}
 
-  // ── one switch on the current screen: same state, no missing key, language flipped, 320px fits ──
-  async function switchOn(tag, expectCjkSel) {
-    const before = await snapState(pg);
-    const from = (await langOf(pg)).lang;
-    const to = from === EN ? ZH_HK : EN;
-    warns.length = 0;
-    await pg.click(PILL);
-    const lang = await langOf(pg);
-    assert(lang.lang === to && lang.html === to, `${tag}: switched ${from} → ${to} (<html lang="${lang.html}">)`);
-    assert(warns.filter(w => w.includes('[i18n]')).length === 0, `${tag}: no [i18n] warnings: ` + warns.join(' | '));
-    const after = await snapState(pg);
-    assert(after === before, `${tag}: state unchanged` + (after === before ? '' : `\n  before ${before}\n  after  ${after}`));
-    assert((await pg.title()) === TITLE, `${tag}: <title> stays English`);
-    if (expectCjkSel) {
-      const shown = await text(expectCjkSel);
-      assert(CJK.test(shown) === (to === ZH_HK), `${tag}: ${expectCjkSel} re-rendered in ${to}: ${shown.slice(0, 60)}`);
-    }
-    if (to === ZH_HK) await checkNarrow(tag);
-  }
-  async function checkNarrow(tag) {
-    await pg.setViewportSize(NARROW);
-    const fit = await pg.evaluate(() => ({ sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth }));
-    await pg.setViewportSize(WIDE);
-    assert(fit.sw <= fit.cw, `${tag}: zh-HK at 320px has no horizontal overflow (${fit.sw} <= ${fit.cw})`);
-  }
-  const switchTwice = async (tag, sel) => { await switchOn(tag, sel); await switchOn(tag, sel); };
-  // W-014: under <html lang="zh-HK"> the English question content keeps lang="en" (screen readers pick the voice
-  // by lang) and the Cantonese translation says lang="zh-HK"; specs are [selector, lang, optional].
-  // CUI-0014: html = EN checks the other way round (Chinese labels say lang="zh-HK" on an English page)
-  async function checkContentLang(tag, specs, html = ZH_HK) {
-    const res = await pg.evaluate(specs => specs.map(([sel, want, optional]) => {
-      const els = [...document.querySelectorAll(sel)];
-      const wrong = els.filter(e => { const l = e.closest('[lang]'); return l === document.documentElement || l.getAttribute('lang') !== want; });
-      return { sel, want, n: els.length, wrong: wrong.length, ok: (els.length > 0 || optional) && wrong.length === 0 };
-    }), specs);
-    assert((await langOf(pg)).html === html, `${tag}: checked under <html lang="${html}">`);
-    const bad = res.filter(r => !r.ok);
-    assert(bad.length === 0, `${tag}: English content lang="en", Cantonese lang="zh-HK": ` + JSON.stringify(bad));
-  }
-  const switchCheckBack = async (tag, sel, specs) => { await switchOn(tag, sel); await checkContentLang(tag, specs); await switchOn(tag, sel); };
-  // CUI-0014: same, then the en-page specs once back in en
-  const switchCheckBoth = async (tag, sel, specs, enSpecs) => { await switchCheckBack(tag, sel, specs); await checkContentLang(`${tag} (en)`, enSpecs, EN); };
-
-  // pill label, <html lang>, storage, reload
-  await switchOn('home', '#modeDesc');
-  p = await pill();
+// pill label, <html lang>, storage, reload
+async function checkHomeSwitch(pg, ctx) {
+  await switchOn(pg, ctx, 'home', '#modeDesc');
+  const p = await pillOf(pg);
   assert(p.text === 'EN' && p.label === '切換至英文' && p.title === '切換至英文', 'zh-HK: pill shows EN, labelled 切換至英文: ' + JSON.stringify(p));
   assert(await pg.evaluate(() => localStorage.getItem('lifeuk.uiLang')) === JSON.stringify(ZH_HK), 'lifeuk.uiLang = zh-HK');
   await pg.reload();
-  assert((await langOf(pg)).html === ZH_HK && (await pill()).text === 'EN', 'reload: zh-HK restored, pill EN');
-  assert(CJK.test(await text('#modeDesc')) && (await pg.title()) === TITLE, 'reload: zh-HK Home, English <title>');
-  await switchOn('home', '#modeDesc');
-  assert((await pill()).text === '中' && await pg.evaluate(() => localStorage.getItem('lifeuk.uiLang')) === JSON.stringify(EN), 'back to en: pill 中, uiLang en');
+  assert((await langOf(pg)).html === ZH_HK && (await pillOf(pg)).text === 'EN', 'reload: zh-HK restored, pill EN');
+  assert(CJK.test(await textOf(pg, '#modeDesc')) && (await pg.title()) === TITLE, 'reload: zh-HK Home, English <title>');
+  await switchOn(pg, ctx, 'home', '#modeDesc');
+  assert((await pillOf(pg)).text === '中' && await pg.evaluate(() => localStorage.getItem('lifeuk.uiLang')) === JSON.stringify(EN), 'back to en: pill 中, uiLang en');
+}
 
-  // Home with a non-default mode and practice tab
+// Home with a non-default mode and practice tab
+async function checkHomePractice(pg, ctx) {
   await pg.evaluate(() => { startMode('practice'); setPracticeView('chapter'); });
-  await switchCheckBack('home practice › chapter', '#practiceTabs', [['#chapterGrid .ch-name', EN]]);
+  await switchCheckBack(pg, ctx, 'home practice › chapter', '#practiceTabs', [['#chapterGrid .ch-name', EN]]);
+  await switchCheckChapterShort(pg, ctx, 'home practice › chapter', '#chapterGrid .ch-num');
   // practice › exam: the all-questions button reads 全部試題 in zh-HK, All Questions in en
   await pg.evaluate(() => setPracticeView('exam'));
-  await switchOn('home practice › exam', '#examGrid');
-  assert((await text('#examGrid .exam-btn.all')).startsWith('🎯 全部試題（408 題）'), 'zh-HK: practice grid shows 全部試題（408 題）');
-  await switchOn('home practice › exam', '#examGrid');
-  assert((await text('#examGrid .exam-btn.all')).startsWith('🎯 All Questions (408)'), 'en: practice grid shows All Questions (408)');
+  await switchOn(pg, ctx, 'home practice › exam', '#examGrid');
+  assert((await textOf(pg, '#examGrid .exam-btn.all')).startsWith('🎯 全部試題（408 題）'), 'zh-HK: practice grid shows 全部試題（408 題）');
+  await switchOn(pg, ctx, 'home practice › exam', '#examGrid');
+  assert((await textOf(pg, '#examGrid .exam-btn.all')).startsWith('🎯 All Questions (408)'), 'en: practice grid shows All Questions (408)');
+}
 
-  // Quiz practice: translation shown before answering, flagged, answered (Similar panel open)
+// Quiz practice: translation shown before answering, flagged, answered (Similar panel open)
+async function checkQuizPractice(pg, ctx) {
   await pg.evaluate(() => {
     pendingMode = 'practice'; startExam(12);
     state.current = state.questions.findIndex(q => q.origIdx === 5);
@@ -136,20 +167,22 @@ async function main() {
     const q = state.questions[state.current]; state.answers[state.current] = [...q.a]; revealAnswer();
   });
   assert(await pg.$eval('#similarBox', e => !e.hidden && getComputedStyle(e).display !== 'none'), 'practice: Similar panel open after the answer');
-  await switchCheckBoth('quiz practice (revealed, Similar, translation, flag)', '#similarBox .sqm-title b', [
+  await switchCheckBoth(pg, ctx, 'quiz practice (revealed, Similar, translation, flag)', '#similarBox .sqm-title b', [
     ['#qText', EN], ['#qYue', ZH_HK], ['#optionsContainer .opt-body > span:not(.opt-yue)', EN], ['#optionsContainer .opt-yue', ZH_HK, true],
     ['#ansEn', EN], ['#ansYue .ans-yue-row > span', ZH_HK], ['#ansNote .ans-note-text', ZH_HK, true],
     ['#similarBox .sqm-q', EN], ['#similarBox .sqm-qy', ZH_HK], ['#similarBox .sqm-fact-en', EN], ['#similarBox .sqm-fact-yue', ZH_HK],
     ['#ansNote > strong', ZH_HK], // S-048: the 💡 label reads with the note
   ], [['#ansNote > strong', ZH_HK], ['#ansNote .ans-note-text', ZH_HK]]);
+}
 
-  // S-048: an answer with no Cantonese option text (True / False / years) falls back to English, marked lang="en"
-  const ansFallback = await pg.evaluate(() => {
+// S-048: an answer with no Cantonese option text (True / False / years) falls back to English, marked lang="en"
+async function checkAnswerFallback(pg) {
+  const ansFallback = await pg.evaluate(rowSel => {
     const all = Object.values(EXAMS).flat();
     // the lang each piece of answer text is read in (its text nodes' nearest lang)
     const langOfAnswer = q => {
       renderAnswerTranslation(q);
-      const row = byId('ansYue').querySelectorAll('.ans-yue-row')[1];
+      const row = document.querySelector(rowSel);
       const walker = document.createTreeWalker(row.lastElementChild, NodeFilter.SHOW_TEXT);
       const langs = new Set();
       while (walker.nextNode()) if (walker.currentNode.textContent.trim()) langs.add(walker.currentNode.parentElement.closest('[lang]').getAttribute('lang'));
@@ -158,10 +191,12 @@ async function main() {
     const res = { noOy: langOfAnswer(all.find(q => q.a.every(ai => !(q.oy && q.oy[ai])))), withOy: langOfAnswer(all.find(q => q.oy && q.a.every(ai => q.oy[ai]))) };
     renderAnswerTranslation(state.questions[state.current]);
     return res;
-  });
+  }, ANSWER_YUE_ROW);
   assert(ansFallback.noOy === EN && ansFallback.withOy === ZH_HK, 'S-048: answer translation fallback is lang="en", a real translation lang="zh-HK": ' + JSON.stringify(ansFallback));
+}
 
-  // this question has no option translations: probe an option that has one inside #optionsContainer
+// this question has no option translations: probe an option that has one inside #optionsContainer
+async function checkOptionYueLang(pg) {
   const optYueLang = await pg.evaluate(() => {
     const q = Object.values(EXAMS).flat().find(x => x.oy && x.oy[0]);
     const probe = document.createElement('div');
@@ -172,15 +207,19 @@ async function main() {
     return l;
   });
   assert(optYueLang === ZH_HK, 'W-014: option translation .opt-yue is lang="zh-HK": ' + optYueLang);
+}
 
-  // side session from Similar ▶ Practise
+// side session from Similar ▶ Practise
+async function checkSideSession(pg, ctx) {
   await pg.evaluate(() => startSimilarPractice());
   assert(await pg.evaluate(() => isSideSession() && state.examNum === SIMILAR_EXAM), 'side session started from Similar');
   await pg.evaluate(() => { const q = state.questions[0]; state.answers[0] = [...q.a]; revealAnswer(); });
-  await switchTwice('side session (Similar ▶ Practise)', '#quizLabel');
+  await switchTwice(pg, ctx, 'side session (Similar ▶ Practise)', '#quizLabel');
   await pg.evaluate(() => leaveToHome());
+}
 
-  // Quiz exam: timer running, answers, flags, dots
+// Quiz exam: timer running, answers, flags, dots
+async function checkQuizExam(pg, ctx) {
   await pg.evaluate(() => {
     pendingMode = 'exam'; startExam(3);
     [0, 1, 2].forEach(i => { state.answers[i] = [...state.questions[i].a]; });
@@ -188,9 +227,11 @@ async function main() {
     state.answers[3] = [state.questions[3].o.findIndex((o, oi) => !state.questions[3].a.includes(oi))];
     state.flags[1] = true; state.flags[4] = true; state.current = 4; renderQuestion();
   });
-  await switchTwice('quiz exam (timer, answers, flags)', '#dotsMeta');
+  await switchTwice(pg, ctx, 'quiz exam (timer, answers, flags)', '#dotsMeta');
+}
 
-  // timer text is rewritten at once, and the switch never runs the tick that can finish the exam
+// timer text is rewritten at once, and the switch never runs the tick that can finish the exam
+async function checkExamTimer(pg) {
   const timer = await pg.evaluate(async () => {
     let ticks = 0;
     const realTick = examTick;
@@ -208,23 +249,27 @@ async function main() {
   });
   assert(/^ZZ \d\d:\d\d$/.test(timer.shown), 'exam: timer text rewritten at once in the new language: ' + timer.shown);
   assert(timer.ticks === 0 && timer.screen === 'screenQuiz', 'exam: the switch does not call examTick (time-up would submit): ' + JSON.stringify(timer));
+}
 
-  // a confirm modal on top: the pill does nothing (reached with Tab + Enter, the modal covers it for a pointer)
+// a confirm modal on top: the pill does nothing (reached with Tab + Enter, the modal covers it for a pointer)
+async function checkModal(pg) {
   await pg.evaluate(() => submitExam());
   assert(await pg.evaluate(() => isConfirmOpen()), 'submit modal open');
   await pg.focus(PILL);
   await pg.keyboard.press('Enter');
   assert((await langOf(pg)).lang === EN && await pg.evaluate(() => isConfirmOpen()), 'modal open: the pill does not switch the language');
   await pg.evaluate(() => closeConfirm());
+}
 
-  // Result with a review filter set: re-rendered, not recorded again
+// Result with a review filter set: re-rendered, not recorded again
+async function checkResult(pg, ctx) {
   await pg.evaluate(() => {
     window.recordCount = 0;
     const realRecord = recordExamResults;
     recordExamResults = () => { window.recordCount++; realRecord(); };
     finishExam(); setReviewFilter('wrong');
   });
-  await switchCheckBoth('result (filter Wrong)', '#resultLabel2', [
+  await switchCheckBoth(pg, ctx, 'result (filter Wrong)', '#resultLabel2', [
     ['#reviewList .rv-q-text', EN], ['#reviewList .rv-correct-ans', EN], ['#reviewList .rv-yue', ZH_HK], ['#reviewList .rv-note-line', ZH_HK, true],
     ['#reviewList .rv-your > span', EN], // S-047: the chosen option, not the 你的答案： label
   ], [['#reviewList .rv-note-label', ZH_HK]]);
@@ -232,29 +277,39 @@ async function main() {
   const yourLines = await pg.evaluate(() => [...document.querySelectorAll('#reviewList .rv-your')].map(e => ({ n: e.querySelectorAll('[lang]').length, label: e.firstChild.nodeType === Node.TEXT_NODE })));
   assert(yourLines.filter(l => l.n === 1).length === 1 && yourLines.every(l => l.n <= 1 && l.label), 'S-047: one answered wrong line with a lang="en" answer, labels unmarked: ' + JSON.stringify(yourLines));
   assert(await pg.evaluate(() => window.recordCount) === 1, 'result: recorded once (the switch only re-renders)');
-  await checkResultSub(pg);
+  // S-045: M4 measures hanzi line breaks; with tofu glyphs the widths say nothing about the real layout
+  if (ctx.hasCjkFont) await checkResultSub(pg);
+  else console.log('skip: no CJK font (M4 checkResultSub)');
+}
 
-  // Flagged list
+// Flagged list
+async function checkFlagged(pg, ctx) {
   await pg.evaluate(() => openFlagged());
-  await switchCheckBack('flagged', '#flaggedStart', [['.fi-q', EN], ['.fi-yue', ZH_HK]]);
+  await switchCheckBack(pg, ctx, 'flagged', '#flaggedStart', [['.fi-q', EN], ['.fi-yue', ZH_HK]]);
+}
 
-  // Study: tab + chip + typed search
+// Study: tab + chip + typed search, then chapters / timeline / geography
+async function checkStudy(pg, ctx) {
   await pg.evaluate(() => { openStudy(); studySetTab('people'); studySetGroup('writer'); });
   await pg.fill('#studySearch', 'sha');
-  await switchCheckBack('study people › writers + search', '#studyChips', [['.fact-name', EN], ['.fact-en', EN], ['.fact-yue', ZH_HK]]);
+  await switchCheckBack(pg, ctx, 'study people › writers + search', '#studyChips', [['.fact-name', EN], ['.fact-en', EN], ['.fact-yue', ZH_HK]]);
+  await switchCheckChapterShort(pg, ctx, 'study people › fact chapter tag', '#studyContent .fact-meta');
   await pg.fill('#studySearch', '');
   // S-049 + CUI-0014: chapter titles, year / person tags and timeline years are English data
   await pg.evaluate(() => { studySetTab('chapters'); studySetChapter(3); });
-  await switchCheckBack('study chapters › 3', '#studyTabs', [['#studyContent .study-group-title', EN], ['#studyContent .tag.year', EN], ['#studyContent .tag.person', EN]]);
+  await switchCheckBack(pg, ctx, 'study chapters › 3', '#studyTabs', [['#studyContent .study-group-title', EN], ['#studyContent .tag.year', EN], ['#studyContent .tag.person', EN]]);
+  await switchCheckChapterShort(pg, ctx, 'study chapters › chapter chips', '#studySubChips');
   await pg.evaluate(() => studySetTab('timeline'));
-  await switchCheckBack('study timeline', '#studyTabs', [['#studyContent .tl-year', EN], ['#studyContent .tag.person', EN]]);
+  await switchCheckBack(pg, ctx, 'study timeline', '#studyTabs', [['#studyContent .tl-year', EN], ['#studyContent .tag.person', EN]]);
   await pg.evaluate(() => { studySetTab('geo'); studySetNation('all'); });
-  await switchOn('study geography', '#studySubChips');
+  await switchOn(pg, ctx, 'study geography', '#studySubChips');
   const chips = await pg.$$eval('#studySubChips .chip', els => els.map(e => e.textContent.trim()));
   assert(chips.length > 1 && chips.slice(1).every(c => !/[A-Za-z]/.test(c)), 'zh-HK: nation chips are Chinese only (M2): ' + chips.join(' / '));
-  await switchOn('study geography', '#studySubChips');
+  await switchOn(pg, ctx, 'study geography', '#studySubChips');
+}
 
-  // double tap guard: the pill does not change the view, so it never arms the guard; a quick second tap works
+// double tap guard: the pill does not change the view, so it never arms the guard; a quick second tap works
+async function checkDoubleTap(pg) {
   await pg.evaluate(() => showScreen('screenHome'));
   const guard = await pg.evaluate(() => JSON.stringify(clickGuard));
   await pg.click(PILL);
@@ -262,8 +317,35 @@ async function main() {
   await pg.dblclick(PILL);
   assert((await langOf(pg)).lang === ZH_HK && await pg.evaluate(() => JSON.stringify(clickGuard)) === guard, 'pill: never arms the double tap guard; a double tap switches twice');
   await pg.click(PILL);
+}
 
-  assert(errs.length === 0, 'no page errors: ' + errs.join(' | '));
+// S-045: draw two hanzi in the page font; identical pixels mean the fallback drew the same tofu box for both
+const hasCjkFont = pg => pg.evaluate(({ px, chars, baseline }) => {
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = px;
+  const g = canvas.getContext('2d');
+  g.font = `${px * baseline}px ${getComputedStyle(document.body).fontFamily}`;
+  const draw = ch => { g.clearRect(0, 0, px, px); g.fillText(ch, 0, px * baseline); return g.getImageData(0, 0, px, px).data.join(); };
+  return draw(chars[0]) !== draw(chars[1]);
+}, { px: GLYPH_PROBE_PX, chars: GLYPH_PROBE_CHARS, baseline: GLYPH_BASELINE });
+
+// run in order: each check starts from the screen / language the previous one left
+const CHECKS = [
+  checkPill, checkHomeSwitch, checkHomePractice, checkQuizPractice, checkAnswerFallback, checkOptionYueLang,
+  checkSideSession, checkQuizExam, checkExamTimer, checkModal, checkResult, checkFlagged, checkStudy, checkDoubleTap,
+];
+
+async function main() {
+  const b = await chromium.launch(launchOpts);
+  const pg = await b.newPage({ viewport: WIDE });
+  const ctx = { errs: [], warns: [] };
+  pg.on('pageerror', e => ctx.errs.push(e.message));
+  pg.on('console', m => { if (m.type() === 'warning') ctx.warns.push(m.text()); });
+  await pg.goto(APP_URL);
+  await pg.evaluate(() => localStorage.clear()); await pg.reload();
+  ctx.hasCjkFont = await hasCjkFont(pg);
+  for (const check of CHECKS) await check(pg, ctx);
+  assert(ctx.errs.length === 0, 'no page errors: ' + ctx.errs.join(' | '));
   await b.close();
 }
 

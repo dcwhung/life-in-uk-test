@@ -126,8 +126,9 @@ function subChipRowHtml(action, current, keys, chipText) {
 // sub-filter row: chapter / nation / people group (timeline has none)
 function studySubChipsHtml() {
   if (study.tab === 'chapters') {
-    return CHAPTER_NUMBERS.map(ch => chipHtml({ extraCls: ' ch', active: study.chapter === ch,
-      action: 'studySetChapter', arg: ch, label: `${CHAPTER_ICONS[ch]} ${t('common.chapterShort', { n: ch })}` })).join('');
+    // S-057: "Ch {n}" stays English in zh-HK too; chipHtml takes no attributes, so a bare span carries the lang
+    return CHAPTER_NUMBERS.map(ch => chipHtml({ extraCls: ' ch', active: study.chapter === ch, action: 'studySetChapter', arg: ch,
+      label: `${CHAPTER_ICONS[ch]} <span lang="en">${escapeHtml(t('common.chapterShort', { n: ch }))}</span>` })).join('');
   }
   if (study.tab === 'geo') return subChipRowHtml('studySetNation', study.nation, NATIONS, k => nationText(k, CHIP_FIELD));
   if (study.tab === 'people') return subChipRowHtml('studySetGroup', study.group, PEOPLE_GROUPS, k => peopleText(k, CHIP_FIELD));
