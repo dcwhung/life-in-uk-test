@@ -19,9 +19,10 @@ function similarItemHtml(k) {
 }
 // map node "E9·Q15" (1-based, like the "Exam 9 · Q15" refs)
 function similarNodeText({ examNum, origIdx }) { return t('similar.node', { exam: examNum, n: origIdx + 1 }); }
+// one display-only node coloured by its mastery (also the Study fact card's source row)
+function similarNodeHtml(k) { return `<span class="sqm-node${similarNodeClass(k)}">${similarNodeText(questionByKey(k))}</span>`; }
 function similarMapHtml(q, keys) {
-  const nodes = [`<span class="sqm-node current">${similarNodeText(q)}</span>`]
-    .concat(keys.map(k => `<span class="sqm-node${similarNodeClass(k)}">${similarNodeText(questionByKey(k))}</span>`));
+  const nodes = [`<span class="sqm-node current">${similarNodeText(q)}</span>`].concat(keys.map(similarNodeHtml));
   return `<div class="sqm-map"><span class="sqm-map-label">${t('similar.appearsIn')}</span>${nodes.join('')}</div>`;
 }
 function similarLegendHtml() {

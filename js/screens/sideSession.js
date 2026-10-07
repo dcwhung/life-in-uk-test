@@ -4,7 +4,7 @@
 // Each question once, listed order; the last one offers "↩ Back" instead of results.
 // ════════════════════════════════════════
 const SESSION_RETURN_KIND = { quiz: 'quiz', study: 'study' };
-// null | { kind: 'quiz', state } | { kind: 'study', scrollY }
+// null | { kind: 'quiz', state } | { kind: 'study', scrollY, factId }
 let sessionReturn = null;
 function isSideSession() { return sessionReturn !== null; }
 function clearSideSession() { sessionReturn = null; }
@@ -51,6 +51,7 @@ const SESSION_RETURNS = {
     showScreen('screenStudy');
     renderStudy();
     window.scrollTo(0, ret.scrollY);
+    flashStudyFact(ret.factId);
   },
 };
 function returnFromSideSession() {
@@ -62,13 +63,13 @@ function returnFromSideSession() {
 function isStudyReturn(ret) { return ret !== null && ret.kind === SESSION_RETURN_KIND.study; }
 // CUI-0010: a second call while already on the way back to Study (double tap / key repeat on the fact card's
 // "▶ Practise") keeps the saved Study scroll — window.scrollY belongs to the quiz screen by then
-function studyReturnPoint() {
-  return isStudyReturn(sessionReturn) ? sessionReturn : { kind: SESSION_RETURN_KIND.study, scrollY: window.scrollY };
+function studyReturnPoint(factId) {
+  return isStudyReturn(sessionReturn) ? sessionReturn : { kind: SESSION_RETURN_KIND.study, scrollY: window.scrollY, factId };
 }
 // Study fact → its source questions (f.src order, each once), header "Fact #id"; ↩ Back returns to Study
 // at the same scroll. Entry: the fact card's "▶ Practise these N" (startFactPractice action).
 function startFactPractice(factId) {
   const fact = STUDY.find(f => f.id === factId);
   if (!fact) return;
-  startSideSession(FACT_PREFIX + factId, fact.src.map(questionByKey).map(toQuestionItem), studyReturnPoint());
+  startSideSession(FACT_PREFIX + factId, fact.src.map(questionByKey).map(toQuestionItem), studyReturnPoint(factId));
 }

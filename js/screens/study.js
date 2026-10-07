@@ -149,6 +149,16 @@ function renderStudy() {
     shown ? html : `<div class="study-empty">${t('study.empty')}</div>`;
 }
 
+// Q8: after ↩ Back from a fact session its card flashes gold; R-010: when the restored scroll no longer shows it
+// (the list changed while practising) bring it into view. Gone (e.g. Hide mastered): nothing to do.
+function flashStudyFact(id) {
+  const el = document.querySelector(`#studyContent .fact[data-fact-id="${id}"]`);
+  if (!el) return;
+  el.scrollIntoView({ block: 'nearest' });
+  el.classList.add('flash');
+  setTimeout(() => el.classList.remove('flash'), FACT_HIGHLIGHT_MS);
+}
+
 // O7: "🏆 n / 236 mastered" over every fact. A cached pre-v0.63 index.html has no #studyProgress (SW cutover)
 function renderStudyProgress() {
   const el = byId('studyProgress');

@@ -143,7 +143,6 @@ LOCALES.en = {
     chapterTitle: 'Chapter {n}: {title}',
     yearBC: '{n} BC',
     war: '⚔️ War / battle',
-    appears: 'Appears ×{n}',
     bookmark: 'Bookmark',
     mastered: 'Mastered',
     masteredDerived: '🏆 Mastered — every source question mastered',

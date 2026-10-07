@@ -172,8 +172,17 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(Object.values(seam).every(Boolean), 'fact button hit areas do not overlap a neighbour\'s visible box: ' + JSON.stringify(seam));
   // O8: tag and fact button corners come from the --radius-xs token (were literal 5px / 7px)
   const xs = await pg.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--radius-xs').trim());
+  // v0.63: Ch 1 cards have no tag left in the chapter view ("Appears ×n" became the source row) — probe one
+  const tagRadius = await pg.$eval('.fact .fact-meta', m => {
+    const tag = document.createElement('span');
+    tag.className = 'tag';
+    m.append(tag);
+    const r = getComputedStyle(tag).borderTopLeftRadius;
+    tag.remove();
+    return r;
+  });
   assert(xs !== '' && await bmBtn.evaluate(e => getComputedStyle(e).borderTopLeftRadius) === xs
-    && await css('.fact .tag', 'borderTopLeftRadius') === xs, 'fact button + tag radius = --radius-xs: ' + xs);
+    && tagRadius === xs, 'fact button + tag radius = --radius-xs: ' + xs);
   await bmBtn.click();
   assert(await aria(bmBtn) === 'Bookmark|true', 'bookmark aria-pressed=true after toggle');
   const onPath = await bmPath();

@@ -46,6 +46,7 @@ const ACTIONS = {
   studyToggle: el => studyToggle(el.dataset.arg),
   studyToggleMark: el => studyToggleMark(el.dataset.mark, numArg(el)),
   studySetSearch: el => studySetSearch(el.value),
+  startFactPractice: el => startFactPractice(numArg(el)),
   // confirm modal
   confirmAccept: () => confirmAccept(),
   closeConfirm: () => closeConfirm(),

@@ -6,6 +6,8 @@
 // ════════════════════════════════════════
 const CHAPTER_ICONS = { 1: '⚖️', 2: '🇬🇧', 3: '📜', 4: '🎭', 5: '🏛️' };
 const FACT_VARIANT = { full: 'full', core: 'core' };
+const FACT_SRC_INLINE_MAX = 3; // more source nodes than this: on a phone the Practise button gets its own line
+const factIdElId = f => `factId${f.id}`; // the "#id" text, which also describes the card's Practise button
 
 function yearLabel(f) {
   if (f.yl) return f.yl;
@@ -15,13 +17,12 @@ function yearLabel(f) {
 
 // opts: noYear / noPerson / noChapter hide a tag the surrounding list already shows
 function factTagsHtml(f, opts) {
-  const tags = [`<span class="fact-id">${t('study.factId', { id: f.id })}</span>`];
+  const tags = [`<span class="fact-id" id="${factIdElId(f)}">${t('study.factId', { id: f.id })}</span>`];
   if (f.y !== undefined && !opts.noYear) tags.push(`<span class="tag year">📅 ${escapeHtml(yearLabel(f))}</span>`);
   if (f.w) tags.push(`<span class="tag war">${t('study.war')}</span>`);
   if (f.p && !opts.noPerson) tags.push(`<span class="tag person">👤 ${escapeHtml(f.p[0])}</span>`);
   if (!opts.noChapter) tags.push(`<span class="tag">${CHAPTER_ICONS[f.ch]} ${t('common.chapterShort', { n: f.ch })}</span>`);
   tags.push(starsHtml(f.d)); // same stars as the question card (v0.62)
-  if (f.src.length > 1) tags.push(`<span class="tag freq">${t('study.appears', { n: f.src.length })}</span>`);
   return tags.join('');
 }
 
@@ -43,6 +44,16 @@ function factMarkButtonsHtml(f, marks) {
       : factMarkButtonHtml(f, { kind: 'mastered', on: !!marks.mastered, cls: 'tick', labelKey: 'study.mastered', content: '✓' }));
 }
 
+// T-206: the fact's source questions as display-only nodes (Similar panel colours) + "▶ Practise this one / these N",
+// a one-off session over them (js/screens/sideSession.js); replaces the old "Appears ×n" tag
+function factSourceRowHtml(f) {
+  const wrap = f.src.length > FACT_SRC_INLINE_MAX ? ' wrap-btn' : '';
+  return `<div class="fact-src${wrap}">
+      <div class="fact-src-nodes"><span class="sqm-map-label">${t('similar.appearsIn')}</span>${f.src.map(similarNodeHtml).join('')}</div>
+      <button class="fact-practise" aria-describedby="${factIdElId(f)}" data-action="startFactPractice" data-arg="${escapeHtml(f.id)}">${t('similar.practise', { n: f.src.length })}</button>
+    </div>`;
+}
+
 // marks: { bookmarks, mastered (ticked by hand), derived (factMastery) } booleans for this fact;
 // opts: tag switches + title (People tab name line)
 function factFullHtml(f, { marks = {}, opts = {} }) {
@@ -57,6 +68,7 @@ function factFullHtml(f, { marks = {}, opts = {} }) {
     ${opts.title ? `<div class="fact-name">${escapeHtml(opts.title)}</div>` : ''}
     <div class="fact-en">${escapeHtml(f.en)}</div>
     <div class="fact-yue">${escapeHtml(f.yue)}</div>
+    ${factSourceRowHtml(f)}
   </div>`;
 }
 

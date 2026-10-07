@@ -34,6 +34,7 @@ const PERCENT = 100;
 const DIFF_BAR_LOW_PCT = 60;   // results "By Difficulty" bar: red below this
 const DIFF_BAR_MID_PCT = 80;   // gold below this, green from here
 const REVIEW_HIGHLIGHT_MS = 1500;
+const FACT_HIGHLIGHT_MS = REVIEW_HIGHLIGHT_MS; // Q8: Study fact card flash after ↩ Back from its session
 const OPTION_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 const LIST_SEP = ' · ';    // between parts of one line ("✓ Correct! · 🔥 1/3")
 const ANSWER_SEP = ' | ';  // between the options of a multi-answer question
