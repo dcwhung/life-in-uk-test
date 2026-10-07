@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Study Unify Mockup</title>
+<style>
+  /* ── tokens copied from css/base/tokens.css (v0.60) ── */
+  :root {
+    --orange: #d9822b;
+    --navy: #1a2744; --navy-mid: #243460; --navy-light: #2e4080;
+    --gold: #c9a84c; --gold-light: #e8c97a;
+    --green: #2d6a4f; --green-light: #52b788;
+    --red: #922b21; --red-light: #e74c3c;
+    --purple: #6b3fa0; --purple-light: #9b6dca;
+    --bg: #f0f2f7; --card: #ffffff; --text: #1a2744; --text-muted: #5a6a8a; --border: #dde2f0; --divider: rgba(0,0,0,0.06);
+    --text-inverse: #fff; --text-inverse-strong: rgba(255,255,255,0.75); --text-inverse-muted: rgba(255,255,255,0.6); --text-inverse-faint: rgba(255,255,255,0.45);
+    --success-bg: #edf8f2; --danger-bg: #fdf0ef; --selected-bg: #f0f4ff; --flag-bg: #fdf3e8;
+    --gold-bg: #fdf6e3; --gold-text: #8a6d1f; --star-on: #b8860b; --note-label: #b5680a;
+    --fact-bg: #fbf5e6; --fact-label: #9a7a22; --gold-border: rgba(201,168,76,0.35); --gold-tint: rgba(201,168,76,0.18);
+    --yue-bg: #f3eefa; --yue-bg-soft: #f7f4fc; --year-bg: #ede6f7; --person-bg: #e6f0ff;
+    --radius: 14px; --radius-md: 10px; --radius-sm: 8px; --radius-pill: 999px; --radius-circle: 50%;
+    --fs-2xs: 10px; --fs-xs: 11px; --fs-sm: 12px; --fs-base: 13px; --fs-md: 14px; --fs-lg: 15px;
+    --shadow: 0 4px 24px rgba(26,39,68,0.10); --shadow-sm: 0 2px 8px rgba(26,39,68,0.07); --shadow-header: 0 2px 16px rgba(0,0,0,0.25);
+    /* mockup-only chrome */
+    --mock-note-bg: #fffbea; --mock-note-border: #e8d48a; --mock-hit: #e74c3c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: #e4e7ef; color: var(--text); -webkit-font-smoothing: antialiased; }
+
+  /* ════════ mockup chrome ════════ */
+  .mock-bar { background: var(--navy); color: var(--text-inverse); padding: 12px 16px; font-size: 12px; position: sticky; top: 0; z-index: 50; box-shadow: var(--shadow-header); }
+  .mock-bar b { color: var(--gold-light); }
+  .mock-row { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; align-items: center; }
+  .mock-row .lbl { color: var(--text-inverse-muted); margin-right: 4px; font-weight: 700; }
+  .mock-tab { background: transparent; border: 1.5px solid rgba(255,255,255,0.3); color: var(--text-inverse); border-radius: 999px; padding: 5px 12px; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+  .mock-tab.on { background: var(--gold); border-color: var(--gold); color: var(--navy); }
+  .page { padding: 16px; }
+  .brief { max-width: 1100px; background: var(--mock-note-bg); border: 1.5px solid var(--mock-note-border); border-radius: 10px; padding: 12px 14px; font-size: 13px; line-height: 1.6; margin-bottom: 16px; }
+  .brief h2 { font-size: 15px; margin-bottom: 4px; }
+  .brief ul { padding-left: 18px; }
+  .brief code { background: rgba(0,0,0,0.05); padding: 0 4px; border-radius: 4px; font-size: 12px; }
+  .width-title { font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); margin: 18px 0 8px; }
+  .frames { display: flex; gap: 18px; align-items: flex-start; overflow-x: auto; padding-bottom: 8px; }
+  .frames.w900 { flex-direction: column; }
+  .frame-wrap { flex-shrink: 0; }
+  .frame-label { display: inline-block; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 999px; margin-bottom: 6px; background: var(--text-muted); color: var(--text-inverse); }
+  .frame-label.after { background: var(--green); }
+  .frame-label.rec::after { content: ' · recommended'; color: var(--gold-light); }
+  .frame { background: var(--bg); border: 1px solid #c9cfdd; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); }
+  .frame.w390 { width: 390px; }
+  .frame.w900 { width: 900px; }
+  .ann { font-size: 11px; color: var(--text-muted); max-width: 390px; margin-top: 6px; line-height: 1.5; }
+  .frames.w900 .ann { max-width: 900px; }
+  .ann b { color: var(--navy); }
+
+  /* ════════ app shell (layout.css) ════════ */
+  .hdr { background: var(--navy); padding: 0 20px; }
+  .hdr-in { max-width: 780px; margin: 0 auto; height: 58px; display: flex; align-items: center; gap: 10px; }
+  .hdr .flag { font-size: 22px; }
+  .hdr .t1 { color: var(--text-inverse); font-size: var(--fs-lg); font-weight: 700; }
+  .hdr .t2 { color: var(--gold); font-size: var(--fs-xs); font-weight: 500; }
+  .hdr .ver { color: var(--text-inverse-faint); font-weight: 600; }
+  .main { max-width: 780px; margin: 0 auto; padding: 20px 16px 28px; }
+  .quiz-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; gap: 8px; }
+  .quiz-label { font-size: var(--fs-base); font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .quiz-meta { display: flex; align-items: center; gap: 8px; }
+  .quiz-mode-badge { background: var(--navy); color: var(--gold-light); border-radius: 20px; padding: 4px 12px; font-size: var(--fs-xs); font-weight: 700; }
+  .back-btn { background: var(--card); border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 7px 14px; font-size: var(--fs-base); font-weight: 600; color: var(--navy); font-family: inherit; }
+  .study-progress { font-size: var(--fs-sm); font-weight: 800; color: var(--green); background: var(--success-bg); border: 1.5px solid var(--green-light); border-radius: var(--radius-pill); padding: 3px 10px; white-space: nowrap; }
+
+  /* ════════ study (study.css + chips.css) ════════ */
+  .study-search { width: 100%; background: var(--card); border: 2px solid var(--border); border-radius: var(--radius-md); padding: 11px 14px; font-size: var(--fs-md); color: var(--text); margin-bottom: 12px; font-family: inherit; }
+  .old .study-search.focus { border-color: var(--purple); }
+  .new .study-search.focus { border-color: var(--navy-light); }
+  .study-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px; }
+  .study-tab { background: var(--card); border: 2px solid var(--border); border-radius: var(--radius-md); padding: 9px 4px; font-size: var(--fs-sm); font-weight: 700; color: var(--text-muted); text-align: center; font-family: inherit; }
+  .w390 .study-tab { font-size: var(--fs-xs); padding: 8px 2px; }
+  .old .study-tab.active { background: var(--purple); border-color: var(--purple); color: var(--text-inverse); }
+  .new .study-tab.active { background: var(--navy); border-color: var(--navy); color: var(--text-inverse); }
+  .chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .chip { background: var(--card); border: 1.5px solid var(--border); border-radius: var(--radius-pill); padding: 5px 12px; font-size: var(--fs-sm); font-weight: 600; color: var(--text-muted); font-family: inherit; display: inline-flex; align-items: center; }
+  .chip.active { background: var(--navy); border-color: var(--navy); color: var(--text-inverse); }
+  .old .chip.ch.active { background: var(--purple); border-color: var(--purple); }
+  .chip.war.active { background: var(--red); border-color: var(--red); }
+  .chip-flag { width: 13px; height: 13px; margin-right: 4px; }
+  .chip-flag path { fill: var(--orange); stroke: var(--orange); stroke-width: 2; stroke-linejoin: round; }
+  .chip:not(.active) .chip-flag path { fill: none; stroke: currentColor; }
+  .chip.active .chip-flag path { fill: currentColor; stroke: currentColor; }
+  .study-count { font-size: var(--fs-sm); color: var(--text-muted); margin-bottom: 10px; }
+  .study-group-title { font-size: var(--fs-md); font-weight: 800; color: var(--navy); margin: 4px 0 10px; display: flex; align-items: center; gap: 8px; }
+  .study-group-title .cnt { font-size: var(--fs-xs); color: var(--text-muted); font-weight: 600; }
+  .excerpt { font-size: var(--fs-xs); color: var(--text-muted); font-style: italic; margin: 6px 0 0; }
+
+  /* deco colour per variant (fact left border, year tag, timeline year, Practice chapter badge) */
+  .old    { --deco: var(--purple-light); --deco-strong: var(--purple); --deco-bg: var(--year-bg); }
+  .deco-a { --deco: var(--navy-light);   --deco-strong: var(--navy-light); --deco-bg: var(--selected-bg); }
+  .deco-b { --deco: var(--purple-light); --deco-strong: var(--purple); --deco-bg: var(--year-bg); }
+  .deco-c { --deco: var(--gold);         --deco-strong: var(--gold-text); --deco-bg: var(--gold-bg); }
+
+  /* fact card — old (v0.60) and new (factCard.js full variant) share these hooks */
+  .fact { background: var(--card); border-radius: var(--radius-md); padding: 12px 14px; border-left: 4px solid var(--deco); margin-bottom: 10px; transition: opacity 0.15s; }
+  .fact.war { border-left-color: var(--red-light); }
+  .fact.mastered { opacity: 0.55; border-left-color: var(--green-light); }
+  .new .fact { box-shadow: var(--shadow-sm); }
+  .fact-top { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 6px; }
+  .fact-meta { flex: 1; display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+  .tag { font-size: 10.5px; font-weight: 700; border-radius: 5px; padding: 2px 7px; background: var(--bg); color: var(--text-muted); }
+  .tag.year { background: var(--deco-bg); color: var(--deco-strong); }
+  .tag.war { background: var(--danger-bg); color: var(--red); }
+  .tag.freq { background: var(--gold-bg); color: var(--gold-text); }
+  .tag.person { background: var(--person-bg); color: var(--navy-light); }
+  .tag.diff { background: var(--gold-bg); color: var(--gold-text); letter-spacing: 1px; }
+  .fact-id { font-size: var(--fs-2xs); font-weight: 800; color: var(--text-muted); letter-spacing: 0.04em; }
+  .stars { color: var(--gold); letter-spacing: 1px; font-size: var(--fs-sm); white-space: nowrap; }
+  .stars .off { color: var(--border); }
+  .fact-actions { display: flex; gap: 4px; flex-shrink: 0; }
+  .fact-btn { background: var(--bg); border: 1.5px solid var(--border); border-radius: 7px; width: 30px; height: 28px; font-size: var(--fs-md); display: flex; align-items: center; justify-content: center; color: var(--text-muted); position: relative; font-family: inherit; }
+  .old .fact-btn.on.star { background: var(--gold-bg); border-color: var(--gold); color: var(--star-on); }
+  .fact-btn.on.tick { background: var(--success-bg); border-color: var(--green); color: var(--green); }
+  /* new: bookmark = Practice flag SVG; 44px hit area via ::before (X2) */
+  .new .fact-btn { width: 32px; height: 32px; }
+  .new .fact-btn::before { content: ''; position: absolute; inset: -6px; }
+  .new .fact-btn svg { width: 18px; height: 18px; }
+  .new .fact-btn.bm path { fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; }
+  .new .fact-btn.bm.on { background: var(--flag-bg); border-color: var(--orange); color: var(--orange); }
+  .new .fact-btn.bm.on path { fill: currentColor; }
+  .new .fact-btn.trophy { background: var(--success-bg); border-color: var(--green-light); cursor: default; font-size: var(--fs-md); }
+  .show-hit .new .fact-btn::before { outline: 1.5px dashed var(--mock-hit); border-radius: 8px; }
+  .fact-name { font-size: var(--fs-md); font-weight: 800; color: var(--navy); margin-bottom: 4px; }
+  .fact-en { font-size: var(--fs-md); font-weight: 500; color: var(--text); line-height: 1.5; }
+  .fact-yue { font-size: var(--fs-base); color: var(--purple); line-height: 1.6; margin-top: 5px; }
+  .fact.flash { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+  /* source row (replaces "Appears ×n") */
+  .fact-src { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--divider); }
+  .fact-src-nodes { display: flex; flex-wrap: wrap; gap: 5px; flex: 1; align-items: center; min-width: 0; }
+  .sqm-map-label { font-size: var(--fs-xs); color: var(--text-muted); font-weight: 700; margin-right: 2px; }
+  .sqm-node { font-size: var(--fs-xs); font-weight: 700; padding: 3px 8px; border-radius: var(--radius-pill); border: 1.5px solid var(--border); color: var(--text-muted); background: var(--card); white-space: nowrap; }
+  .sqm-node.current { background: var(--navy); border-color: var(--navy); color: var(--text-inverse); }
+  .sqm-node.mastered { border-color: var(--green-light); color: var(--green); background: var(--success-bg); }
+  .sqm-node.weak { border-color: var(--red-light); color: var(--red); background: var(--danger-bg); }
+  .fact-practise { background: var(--card); color: var(--navy); border: 1.5px solid var(--navy); border-radius: var(--radius-pill); padding: 6px 12px; font: inherit; font-size: var(--fs-sm); font-weight: 700; white-space: nowrap; margin-left: auto; }
+  .w390 .fact-src.wrap-btn .fact-practise { width: 100%; margin-left: 0; border-radius: var(--radius-sm); padding: 8px 12px; }
+
+  /* timeline */
+  .tl-era { font-size: var(--fs-base); font-weight: 800; color: var(--text-inverse); background: linear-gradient(135deg, var(--navy), var(--navy-mid)); border-radius: var(--radius-sm); padding: 8px 12px; margin: 4px 0 12px; }
+  .tl-item { display: grid; grid-template-columns: 74px 1fr; gap: 0 10px; }
+  .w390 .tl-item { grid-template-columns: 62px 1fr; }
+  .tl-year { font-size: var(--fs-sm); font-weight: 800; color: var(--deco-strong); text-align: right; padding-top: 13px; position: relative; }
+  .w390 .tl-year { font-size: var(--fs-xs); }
+  .tl-year::after { content: ''; position: absolute; right: -16px; top: 16px; width: 10px; height: 10px; border-radius: 50%; background: var(--deco); border: 2px solid var(--card); box-shadow: 0 0 0 2px var(--deco); }
+  .tl-item.war .tl-year { color: var(--red); }
+  .tl-item.war .tl-year::after { background: var(--red-light); box-shadow: 0 0 0 2px var(--red-light); }
+  .tl-body { border-left: 2px solid var(--border); padding-left: 16px; }
+  .tl-body .fact { margin-bottom: 8px; }
+
+  /* home: Practice by chapter badge */
+  .section-title { font-size: var(--fs-base); font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin: 18px 0 10px; }
+  .chapter-btn { background: var(--card); border: 2px solid var(--border); border-radius: var(--radius-md); padding: 10px 14px; display: flex; align-items: center; gap: 10px; font-size: var(--fs-base); color: var(--navy); margin-bottom: 8px; }
+  .chapter-btn.hover { border-color: var(--deco-strong); }
+  .ch-num { background: var(--deco-strong); color: var(--text-inverse); border-radius: 6px; padding: 3px 8px; font-size: var(--fs-xs); font-weight: 800; }
+  .deco-c .ch-num { background: var(--gold); color: var(--navy); }
+  .ch-name { font-weight: 700; flex: 1; }
+  .ch-count { color: var(--text-muted); font-size: var(--fs-sm); }
+
+  /* ════════ quiz (quiz.css subset) ════════ */
+  .q-card { position: relative; overflow: hidden; background: var(--card); border-radius: var(--radius); padding: 26px 22px; box-shadow: var(--shadow-sm); margin-bottom: 14px; }
+  .q-progress { position: absolute; left: 0; right: 0; top: 0; height: 5px; background: var(--border); }
+  .q-progress-fill { height: 100%; background: linear-gradient(90deg, var(--green-light), var(--gold)); }
+  .q-num { font-size: var(--fs-xs); font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; min-height: 30px; }
+  .q-num-text { flex: 1; display: flex; align-items: center; gap: 6px; }
+  .flag-btn { width: 32px; height: 32px; color: var(--text-muted); display: inline-flex; align-items: center; justify-content: center; }
+  .flag-btn svg { width: 24px; height: 24px; }
+  .flag-btn path { fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; }
+  .yue-toggle { text-transform: none; letter-spacing: 0; background: var(--yue-bg); border: 1.5px solid var(--purple-light); color: var(--purple); border-radius: var(--radius-pill); padding: 4px 10px; font-size: var(--fs-xs); font-weight: 700; }
+  .quick { display: inline-flex; gap: 6px; }
+  .quick span { width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid var(--border); display: inline-flex; align-items: center; justify-content: center; font-size: var(--fs-lg); font-weight: 800; color: var(--navy); background: var(--card); }
+  .quick span.primary { background: var(--navy); border-color: var(--navy); color: var(--text-inverse); }
+  .quick span.dis { opacity: 0.4; }
+  .q-text { font-size: 17px; font-weight: 700; line-height: 1.55; color: var(--navy); }
+  .options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+  .opt { background: var(--card); border: 2px solid var(--border); border-radius: 11px; padding: 14px 16px; font-size: var(--fs-md); font-weight: 500; display: flex; gap: 12px; align-items: flex-start; }
+  .opt-letter { min-width: 26px; height: 26px; border-radius: 50%; background: var(--bg); border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: var(--fs-sm); font-weight: 700; color: var(--text-muted); }
+  .opt.correct { border-color: var(--green-light); background: var(--success-bg); }
+  .opt.correct .opt-letter { background: var(--green); border-color: var(--green); color: var(--text-inverse); }
+  .opt-yue { display: block; font-size: var(--fs-base); color: var(--purple); margin-top: 3px; }
+  .answer-box { background: var(--success-bg); border: 1.5px solid var(--green-light); border-radius: 11px; padding: 16px 18px; margin-bottom: 14px; }
+  .ans-label { font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--green); margin-bottom: 6px; }
+  .ans-en { font-size: var(--fs-md); font-weight: 700; color: var(--green); line-height: 1.5; }
+  .nav-row { display: flex; gap: 10px; justify-content: flex-end; }
+  .nav-btn { background: var(--navy); color: var(--text-inverse); border: none; border-radius: var(--radius-md); padding: 12px 24px; font-size: var(--fs-md); font-weight: 700; font-family: inherit; }
+  .nav-btn.secondary { background: var(--card); color: var(--navy); border: 2px solid var(--border); }
+  .nav-btn:disabled { opacity: 0.4; }
+  .ghost-note { border: 1.5px dashed var(--border); border-radius: 11px; padding: 10px 12px; font-size: var(--fs-xs); color: var(--text-muted); margin: 14px 0; text-align: center; }
+
+  /* similar panel */
+  .sqm { background: var(--card); border: 1.5px solid var(--border); border-radius: 11px; padding: 14px 18px 16px; }
+  .sqm-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .sqm-icon { width: 30px; height: 30px; border-radius: var(--radius-sm); background: var(--fact-bg); display: flex; align-items: center; justify-content: center; font-size: var(--fs-lg); }
+  .sqm-title { flex: 1; }
+  .sqm-title b { display: block; font-size: var(--fs-md); color: var(--navy); }
+  .sqm-title span { font-size: var(--fs-sm); color: var(--text-muted); }
+  .sqm-count { background: var(--navy); color: var(--gold-light); border-radius: var(--radius-pill); padding: 3px 9px; font-size: var(--fs-xs); font-weight: 800; }
+  .sqm-fact { background: var(--fact-bg); border-left: 3px solid var(--gold); border-radius: 0 8px 8px 0; padding: 10px 12px; margin-bottom: 14px; }
+  .sqm-fact-label { font-size: var(--fs-2xs); font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: var(--fact-label); margin-bottom: 4px; }
+  .sqm-fact-en { font-size: var(--fs-base); line-height: 1.55; color: var(--navy); font-weight: 600; }
+  .sqm-fact-yue { font-size: 12.5px; line-height: 1.6; color: var(--purple); margin-top: 4px; }
+  /* new core variant (factCard core): same hooks, card radius / left border unified with Study (X7 / X8) */
+  .new .sqm-fact.core { border-left-width: 4px; border-radius: var(--radius-md); padding: 12px 14px; }
+  .new .sqm-fact.core.white { background: var(--card); border: 1.5px solid var(--border); border-left: 4px solid var(--deco); }
+  .new .sqm-fact.core.white .sqm-fact-label { color: var(--text-muted); }
+  .sqm-map { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 4px; }
+
+  /* install banner (popover.css) */
+  .install-banner { background: linear-gradient(135deg, var(--navy-mid), var(--navy)); border-radius: var(--radius); padding: 16px 18px; display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+  .install-text { flex: 1; }
+  .install-text strong { color: var(--text-inverse); font-size: var(--fs-md); display: block; margin-bottom: 2px; }
+  .install-text span { color: var(--text-inverse-muted); font-size: var(--fs-sm); }
+  .install-btn { background: var(--gold); color: var(--navy); border: none; border-radius: var(--radius-sm); padding: 9px 16px; font-size: var(--fs-base); font-weight: 800; font-family: inherit; }
+  .install-close { position: relative; flex-shrink: 0; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; background: transparent; color: var(--text-inverse-muted); border: none; border-radius: 50%; font-size: var(--fs-md); font-family: inherit; }
+  .install-close .hit { position: absolute; border: 1.5px dashed var(--mock-hit); border-radius: 50%; pointer-events: none; }
+  .install-close.old .hit { inset: 0; }
+  .install-close.new .hit { inset: -8px; }
+  .hit-caption { font-size: var(--fs-2xs); color: var(--gold-light); position: absolute; top: 40px; right: -4px; white-space: nowrap; }
+  .home-tile { background: var(--card); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow-sm); font-size: var(--fs-md); color: var(--text-muted); }
+  .toast-note { background: var(--success-bg); border: 1.5px solid var(--green-light); color: var(--green); border-radius: var(--radius-md); padding: 10px 12px; font-size: var(--fs-sm); margin-bottom: 14px; }
+</style>
+</head>
+<body>
+
+<div class="mock-bar">
+  <b>MOCKUP</b> · P3 Study ↔ Practice / Exam UI unify (v0.61–v0.63) · plan: <code>.proj-docs/plans/2026-10-06_plan_p3-study-unify.md</code>
+  <div class="mock-row" id="scenarioTabs"></div>
+  <div class="mock-row" id="widthTabs"></div>
+</div>
+
+<div class="page" id="page"></div>
+
+<script>
+// ═════════ real data (data/study.js + data/exams.js, v0.60) ═════════
+// src keys are "exam.idx" (0-based); node text E{exam}·Q{idx+1}; streak = mockup progress state
+const FACTS = {
+  3:  { id: 3, ch: 2, d: 4, src: ['4.6', '6.5', '17.8'], en: 'The UK is made up of England, Scotland, Wales and Northern Ireland. "Great Britain" refers only to England, Scotland and Wales (not Northern Ireland).', yue: '英國（UK）由 England（英格蘭）、Scotland（蘇格蘭）、Wales（威爾斯）同 Northern Ireland（北愛爾蘭）組成。「Great Britain（大不列顛）」只包括 England、Scotland、Wales，唔包括北愛爾蘭。' },
+  8:  { id: 8, ch: 3, d: 3, src: ['14.18'], yl: 'c. 3000 BC', en: 'Stonehenge, in Wiltshire (England), is a Stone Age monument built about 5,000 years ago.', yue: 'Stonehenge（巨石陣）喺英格蘭 Wiltshire（威爾特郡），係約 5,000 年前嘅石器時代遺跡。' },
+  10: { id: 10, ch: 3, d: 4, src: ['2.9'], yl: '55 BC', w: 1, p: 'Julius Caesar', en: 'Julius Caesar led the first Roman invasion of Britain in 55 BC, which failed. The Romans conquered Britain under Emperor Claudius in AD 43.', yue: 'Julius Caesar（凱撒）喺公元前 55 年帶領羅馬首次入侵英國，未成功；公元 43 年 Claudius（克勞狄烏斯）皇帝先成功佔領。' },
+  16: { id: 16, ch: 3, d: 1, src: ['4.17', '6.18', '9.20', '17.17'], yl: '1066', w: 1, p: 'William the Conqueror', en: 'In 1066 William, Duke of Normandy (the Normans were descendants of Vikings who had settled in northern France), defeated King Harold at the Battle of Hastings — the Norman Conquest of England.', yue: '1066 年 Normandy（諾曼第）公爵 William（Normans 係定居法國北部嘅 Viking 後裔）喺 Battle of Hastings（黑斯廷斯戰役）打敗 King Harold（哈羅德國王），史稱 Norman Conquest（諾曼征服）。' },
+  21: { id: 21, ch: 3, d: 1, src: ['4.16', '6.6', '7.14', '8.13', '12.23', '15.6', '16.16', '17.21'], yl: '1215', p: 'King John', en: 'In 1215 King John signed the Magna Carta, which limited the power of the King and established that no one — not even the King — is above the law.', yue: '1215 年 King John（約翰王）簽署 Magna Carta（大憲章），限制國王權力，確立「無人凌駕法律之上，國王都唔例外」。' },
+  22: { id: 22, ch: 3, d: 4, src: ['7.5'], yl: '1314', w: 1, p: 'Robert the Bruce', en: 'In 1314 the Scots, led by Robert the Bruce, defeated the English at the Battle of Bannockburn, and Scotland remained independent.', yue: '1314 年 Robert the Bruce（羅伯特·布魯斯）率領蘇格蘭人喺 Battle of Bannockburn（班諾克本戰役）打敗英格蘭，蘇格蘭保持獨立。' },
+};
+const Q = {
+  '4.16': { d: 1, q: 'What limited the power of the English King in 1215?', yue: '1215年哪份文件限制了英格蘭國王的權力？', o: ['The Bill of Rights', 'The Magna Carta', 'The Act of Union', 'The Petition of Right'], oy: ['《權利法案》', '《大憲章》', '《聯合法案》', '《權利請願書》'], a: 1 },
+  '17.21': { d: 1, q: 'What did the Magna Carta establish?', yue: '《大憲章》確立了甚麼？', o: ['The right for all men to vote', 'That no one, not even the King, is above the law (signed 1215 by King John)', 'The creation of Parliament', 'The Church of England'], oy: ['所有男性嘅投票權', '無人凌駕法律之上，國王都唔例外（1215年約翰王簽署）', '國會嘅創立', '英格蘭國教會'], a: 1 },
+};
+const MASTERY_STREAK = 3;
+const CH_ICON = { 1: '⚖️', 2: '🇬🇧', 3: '📜', 4: '🎭', 5: '🏛️' };
+const CH_TITLE = { 1: 'The values and principles of the UK', 2: 'What is the UK?', 3: 'A long and illustrious history', 4: 'A modern, thriving society', 5: 'The UK government, the law and your role' };
+const BOOKMARK_PATH = 'M7.5 3.5h9A2.5 2.5 0 0 1 19 6v14.5l-7-5.1-7 5.1V6a2.5 2.5 0 0 1 2.5-2.5z';
+
+// ═════════ helpers ═════════
+const svgBm = cls => `<svg ${cls ? `class="${cls}" ` : ''}viewBox="0 0 24 24" aria-hidden="true"><path d="${BOOKMARK_PATH}"/></svg>`;
+const stars = d => `<span class="stars" title="Difficulty ${d}/5">${'★'.repeat(d)}<span class="off">${'★'.repeat(5 - d)}</span></span>`;
+const nodeText = k => { const [e, i] = k.split('.'); return `E${e}·Q${+i + 1}`; };
+const nodeCls = s => (s >= MASTERY_STREAK ? ' mastered' : s > 0 ? ' weak' : '');
+const allMastered = st => st.length > 0 && st.every(s => s >= MASTERY_STREAK);
+
+function shell(inner) {
+  return `<div class="hdr"><div class="hdr-in"><span class="flag">🇬🇧</span><div><div class="t1">Life in the UK Test</div><div class="t2">Practice &amp; exam · <span class="ver">v0.6x</span></div></div></div></div><div class="main">${inner}</div>`;
+}
+function frame(w, { label, after = false, rec = false, cls = '', ann = '' }, inner) {
+  return `<div class="frame-wrap"><span class="frame-label${after ? ' after' : ''}${rec ? ' rec' : ''}">${label}</span>
+    <div class="frame w${w} ${cls}">${shell(inner)}</div>${ann ? `<div class="ann">${ann}</div>` : ''}</div>`;
+}
+
+// ── v0.60 fact card (study.js renderFact) ──
+function oldFact(f, o = {}) {
+  const tags = [];
+  if (f.yl && !o.noYear) tags.push(`<span class="tag year">📅 ${f.yl}</span>`);
+  if (f.w) tags.push('<span class="tag war">⚔️ War / battle</span>');
+  if (f.p) tags.push(`<span class="tag person">👤 ${f.p}</span>`);
+  if (o.showCh) tags.push(`<span class="tag">${CH_ICON[f.ch]} Ch ${f.ch}</span>`);
+  tags.push(`<span class="tag diff" title="Difficulty ${f.d}/5">${'★'.repeat(f.d)}</span>`);
+  if (f.src.length > 1) tags.push(`<span class="tag freq">Appears ×${f.src.length}</span>`);
+  return `<div class="fact${f.w ? ' war' : ''}${o.tick ? ' mastered' : ''}">
+    <div class="fact-top"><div class="fact-meta">${tags.join('')}</div>
+      <div class="fact-actions"><span class="fact-btn star${o.bm ? ' on' : ''}">${o.bm ? '★' : '☆'}</span><span class="fact-btn tick${o.tick ? ' on' : ''}">✓</span></div></div>
+    <div class="fact-en">${f.en}</div><div class="fact-yue">${f.yue}</div></div>`;
+}
+
+// ── new fact card (factCardHtml(f, { variant: 'full' })) ──
+// o: bm, tick (manual), streaks (per src), noYear, showCh, showId, showSrc, flash
+function newFact(f, o = {}) {
+  const st = o.streaks || f.src.map(() => 0);
+  const derived = allMastered(st);
+  const mastered = derived || o.tick;
+  const showId = o.showId !== false, showSrc = o.showSrc !== false;
+  const tags = [];
+  if (showId) tags.push(`<span class="fact-id">#${f.id}</span>`);
+  if (f.yl && !o.noYear) tags.push(`<span class="tag year">📅 ${f.yl}</span>`);
+  if (f.w) tags.push('<span class="tag war">⚔️ War / battle</span>');
+  if (f.p) tags.push(`<span class="tag person">👤 ${f.p}</span>`);
+  if (o.showCh) tags.push(`<span class="tag">${CH_ICON[f.ch]} Ch ${f.ch}</span>`);
+  tags.push(stars(f.d));
+  if (!showSrc && f.src.length > 1) tags.push(`<span class="tag freq">Appears ×${f.src.length}</span>`);
+  const bm = `<span class="fact-btn bm${o.bm ? ' on' : ''}" role="button" aria-pressed="${!!o.bm}" aria-label="Bookmark" title="Bookmark">${svgBm('')}</span>`;
+  const tick = derived
+    ? `<span class="fact-btn trophy" aria-disabled="true" title="🏆 Mastered — every source question mastered">🏆</span>`
+    : `<span class="fact-btn tick${o.tick ? ' on' : ''}" role="button" aria-pressed="${!!o.tick}" aria-label="Mastered" title="Mastered">✓</span>`;
+  const nodes = f.src.map((k, i) => `<span class="sqm-node${nodeCls(st[i])}">${nodeText(k)}</span>`).join('');
+  const btn = f.src.length === 1 ? '▶ Practise this one' : `▶ Practise these ${f.src.length}`;
+  const src = showSrc ? `<div class="fact-src${f.src.length > 3 ? ' wrap-btn' : ''}"><div class="fact-src-nodes"><span class="sqm-map-label">Appears in:</span>${nodes}</div><button class="fact-practise">${btn}</button></div>` : '';
+  return `<div class="fact${f.w ? ' war' : ''}${mastered ? ' mastered' : ''}${o.flash ? ' flash' : ''}">
+    <div class="fact-top"><div class="fact-meta">${tags.join('')}</div><div class="fact-actions">${bm}${tick}</div></div>
+    <div class="fact-en">${f.en}</div><div class="fact-yue">${f.yue}</div>${src}</div>`;
+}
+
+// ── study screen ──
+function studyScreen(isNew, body, o = {}) {
+  const tabs = [['chapters', '📚 Chapters'], ['timeline', '📅 Timeline'], ['geo', '🗺️ Geography'], ['people', '👤 People']]
+    .map(([k, l]) => `<button class="study-tab${(o.tab || 'chapters') === k ? ' active' : ''}">${l}</button>`).join('');
+  const bmChip = isNew
+    ? `<button class="chip${o.bmOnly ? ' active' : ''}">${svgBm('chip-flag')}Bookmarked only</button>`
+    : `<button class="chip${o.bmOnly ? ' active' : ''}">★ Bookmarked only</button>`;
+  const war = o.tab === 'timeline' ? '<button class="chip war">⚔️ Wars only</button>' : '';
+  const sub = (o.tab || 'chapters') === 'chapters'
+    ? `<div class="chip-row">${[1, 2, 3, 4, 5].map(c => `<button class="chip ch${c === (o.ch || 3) ? ' active' : ''}">${CH_ICON[c]} Ch ${c}</button>`).join('')}</div>` : '';
+  const progress = isNew && o.progress !== false ? '<span class="study-progress">🏆 41 / 236 mastered</span>' : '';
+  return `<div class="quiz-header"><button class="back-btn">← Home</button><span class="quiz-label">📖 Study</span>${progress}</div>
+    <input class="study-search${o.focus ? ' focus' : ''}" type="search" placeholder="Search facts (English / Cantonese)">
+    <div class="study-tabs">${tabs}</div>
+    <div class="chip-row"><button class="chip">✓ Hide mastered</button>${bmChip}${war}</div>${sub}
+    <div class="study-count">${o.count || '91 / 91 facts'}</div>${body}`;
+}
+const chapterTitle = ch => `<div class="study-group-title">${CH_ICON[ch]} Chapter ${ch}: ${CH_TITLE[ch]} <span class="cnt">91</span></div>`;
+function practiceByChapter() {
+  return `<div class="section-title">Home › Practice By · Chapter</div>
+    <div class="chapter-btn"><span class="ch-num">Ch 3</span><span class="ch-name">A long and illustrious history</span><span class="ch-count">32/138 · 23%</span></div>
+    <div class="chapter-btn hover"><span class="ch-num">Ch 4</span><span class="ch-name">A modern, thriving society (hover)</span><span class="ch-count">10/94 · 11%</span></div>`;
+}
+
+// ═════════ scenarios ═════════
+const DECOS = [
+  { cls: 'deco-a', label: 'After · A — all navy', rec: true },
+  { cls: 'deco-b', label: 'After · B — selection navy, deco stays purple' },
+  { cls: 'deco-c', label: 'After · C — deco gold' },
+];
+const SCENARIOS = [
+  {
+    id: 'study-chapters', tab: '① Chapters tab',
+    brief: `<h2>① Study › Chapters — selection colour, fact card, stars, bookmark (T-101…T-106)</h2><ul>
+      <li>Selected tab / chapter chip / search focus: purple → <b>navy</b> (purple now means Cantonese only; <code>.fact-yue</code> stays purple).</li>
+      <li>Difficulty: <code>'★'.repeat(d)</code> tag → <code>starsHtml(f.d)</code> (same as the question card). <code>.tag.diff</code> removed.</li>
+      <li>Bookmark: ☆/★ → Practice orange SVG; chip <b>Bookmarked only</b> with SVG. Buttons get <code>aria-label</code> + <code>aria-pressed</code>, 44px hit area (dashed in A).</li>
+      <li><b>Q2 open:</b> deco colour (fact left border, 📅 year tag, timeline year, Home Practice chapter badge) — A navy / B purple / C gold.</li>
+      <li>Shown here is the final v0.63 card (#id, source row). In v0.62 (Lane V) the source row is still "Appears ×n".</li></ul>`,
+    frames(w) {
+      const body = isNew => chapterTitle(3) + (isNew
+        ? newFact(FACTS[16], { bm: true, streaks: [3, 1, 0, 0] }) + newFact(FACTS[21], { streaks: [3, 3, 1, 0, 0, 2, 0, 0] }) + newFact(FACTS[22])
+        : oldFact(FACTS[16], { bm: true }) + oldFact(FACTS[21]) + oldFact(FACTS[22])) + '<div class="excerpt">(excerpt: facts #16, #21, #22)</div>' + practiceByChapter();
+      return [
+        frame(w, { label: 'Before · v0.60', cls: 'old' }, studyScreen(false, body(false), { focus: true })),
+        ...DECOS.map(d => frame(w, { label: d.label, after: true, rec: d.rec, cls: `new ${d.cls}${d.rec ? ' show-hit' : ''}` }, studyScreen(true, body(true), { focus: true, bmOnly: false }))),
+      ];
+    },
+  },
+  {
+    id: 'mastery', tab: '② Mastery states',
+    brief: `<h2>② Fact mastery — <code>factMastery(f)</code> (T-201…T-204)</h2><ul>
+      <li>Mastered = manual tick <code>study.mastered[id]</code> <b>or</b> every <code>f.src</code> question 🏆 (<code>isMastered</code>). Derived value is computed on render, never stored.</li>
+      <li>Derived: tick becomes a non-clickable 🏆 (<code>aria-disabled</code>), card dims like a manual tick. Manual tick still toggles.</li>
+      <li>"✓ Hide mastered" hides both kinds. Home "Reset practice progress" does not clear Study ticks / bookmarks (decided), but derived 🏆 disappears because streaks reset.</li></ul>`,
+    frames(w) {
+      const list = isNew => isNew ? [
+        ['Not practised (#8, 1 source)', newFact(FACTS[8], { showCh: true })],
+        ['Partial: 1 / 3 🏆 (#3)', newFact(FACTS[3], { showCh: true, streaks: [3, 1, 0] })],
+        ['Derived: 3 / 3 🏆 → 🏆 badge, dimmed (#3)', newFact(FACTS[3], { showCh: true, streaks: [3, 3, 3] })],
+        ['Manual tick, sources not mastered (#21)', newFact(FACTS[21], { showCh: true, tick: true, streaks: [3, 0, 0, 1, 0, 0, 0, 0] })],
+      ] : [
+        ['Not ticked (#8)', oldFact(FACTS[8], { showCh: true })],
+        ['Not ticked — Practice progress invisible (#3)', oldFact(FACTS[3], { showCh: true })],
+        ['All 3 sources mastered in Practice, Study does not know (#3)', oldFact(FACTS[3], { showCh: true })],
+        ['Manual tick (#21)', oldFact(FACTS[21], { showCh: true, tick: true })],
+      ];
+      const body = isNew => list(isNew).map(([l, h]) => `<div class="study-sub-title" style="font-size:11px;font-weight:800;color:var(--text-muted);margin:12px 0 6px">${l}</div>${h}`).join('');
+      return [
+        frame(w, { label: 'Before · v0.60', cls: 'old' }, body(false)),
+        frame(w, { label: 'After (deco A)', after: true, rec: true, cls: 'new deco-a' }, body(true)),
+      ];
+    },
+  },
+  {
+    id: 'source-nodes', tab: '③ Source nodes + Practise',
+    brief: `<h2>③ Source node row + "▶ Practise" (T-301, T-302)</h2><ul>
+      <li>"Appears ×n" tag → node row <code>E9·Q15</code> (reuses <code>similarNodeText</code> / <code>similarNodeClass</code> mastery colours). Nodes are <b>display only</b> (not tappable).</li>
+      <li>Button reuses <code>similar.practise</code> plural: "▶ Practise this one" / "▶ Practise these N". At 390px with &gt;3 nodes the button drops to its own full-width line.</li></ul>`,
+    frames(w) {
+      const body = isNew => chapterTitle(3) + (isNew
+        ? newFact(FACTS[10], { streaks: [1] }) + newFact(FACTS[21], { streaks: [3, 3, 1, 0, 0, 2, 0, 0] })
+        : oldFact(FACTS[10]) + oldFact(FACTS[21]));
+      return [
+        frame(w, { label: 'Before · v0.60', cls: 'old' }, body(false)),
+        frame(w, { label: 'After (deco A)', after: true, rec: true, cls: 'new deco-a' }, body(true)),
+      ];
+    },
+  },
+  {
+    id: 'timeline', tab: '④ Timeline / war',
+    brief: `<h2>④ Timeline war cards (T-102, T-301)</h2><ul>
+      <li>War cards keep red left border + red year + "⚔️ War / battle" tag in every variant (red = war, not a deco choice).</li>
+      <li>Non-war year / dot follows the Q2 deco variant. Year tag is hidden in Timeline (year is in the left column, unchanged).</li></ul>`,
+    frames(w) {
+      const tl = isNew => `<div class="tl-era">Norman · Plantagenet</div>` + [16, 21, 22].map(id => {
+        const f = FACTS[id];
+        const card = isNew ? newFact(f, { noYear: true, showCh: true, streaks: id === 16 ? [3, 1, 0, 0] : undefined }) : oldFact(f, { noYear: true, showCh: true });
+        return `<div class="tl-item${f.w ? ' war' : ''}"><div class="tl-year">${f.yl}</div><div class="tl-body">${card}</div></div>`;
+      }).join('');
+      return [
+        frame(w, { label: 'Before · v0.60', cls: 'old' }, studyScreen(false, tl(false), { tab: 'timeline', count: '82 / 82 facts' })),
+        ...DECOS.map(d => frame(w, { label: d.label, after: true, rec: d.rec, cls: `new ${d.cls}` }, studyScreen(true, tl(true), { tab: 'timeline', count: '82 / 82 facts' }))),
+      ];
+    },
+  },
+  {
+    id: 'similar-core', tab: '⑤ Similar Core Fact',
+    brief: `<h2>⑤ Similar panel Core Fact — <code>factCardHtml(f, { variant: 'core' })</code> (T-203)</h2><ul>
+      <li>One component, two variants; keeps hooks <code>.sqm-fact</code>, <code>.sqm-fact-label</code>, <code>.sqm-fact-en</code>, <code>.sqm-fact-yue</code> (similar-test reads them).</li>
+      <li><b>Q3 open:</b> 1) recommended — Study white card is the base, Similar keeps gold background (core = "hub", visually distinct inside the white panel), radius / left border unified. 2) both white.</li>
+      <li>Core variant: no buttons, no node row (the panel already has its own map).</li></ul>`,
+    frames(w) {
+      const f = FACTS[21];
+      const panel = (factHtml) => `<div class="sqm"><div class="sqm-head"><span class="sqm-icon">🗺️</span><span class="sqm-title"><b>Similar Questions</b><span>Same fact, asked differently</span></span><span class="sqm-count">+7</span></div>
+        ${factHtml}<div class="sqm-map"><span class="sqm-map-label">Appears in:</span><span class="sqm-node current">E8·Q14</span>${['4.16', '6.6', '7.14', '12.23', '15.6', '16.16', '17.21'].map((k, i) => `<span class="sqm-node${nodeCls([3, 3, 1, 2, 0, 0, 0][i])}">${nodeText(k)}</span>`).join('')}</div></div>`;
+      const core = cls => `<div class="sqm-fact ${cls}"><div class="sqm-fact-label">📌 Core Fact #21</div><div class="sqm-fact-en">${f.en}</div><div class="sqm-fact-yue">${f.yue}</div></div>`;
+      return [
+        frame(w, { label: 'Before · v0.60', cls: 'old' }, panel(core(''))),
+        frame(w, { label: 'After 1 — gold core, unified shape', after: true, rec: true, cls: 'new deco-a' }, panel(core('core'))),
+        frame(w, { label: 'After 2 — white core (same as Study)', after: true, cls: 'new deco-a' }, panel(core('core white'))),
+      ];
+    },
+  },
+  {
+    id: 'fact-session', tab: '⑥ Fact session',
+    brief: `<h2>⑥ Fact → source questions session (T-401…T-406)</h2><ul>
+      <li>"▶ Practise these 8" on #21 starts a one-off <b>Practice</b> session (<code>state.mode = PRACTICE_MODE</code> forced, even if Home is on Exam), <code>examNum = FACT_EXAM</code>, questions in <code>f.src</code> order, each once.</li>
+      <li>Header label "Fact #21". No Similar panel, no round note, no timer. Answers still count toward 🔥 streaks / wrong answers like any Practice answer.</li>
+      <li>Last question: "↩ Back" (no results page) → Study restores tab, chapter chip, filters, search and scroll; the card shows updated nodes. "← Home" still goes Home.</li>
+      <li>Note: 15 / 408 questions have <code>q.d ≠ f.d</code>, so stars can differ between the fact card and its questions (data left as is).</li></ul>`,
+    frames(w) {
+      const q1 = Q['4.16'], q8 = Q['17.21'];
+      const hdr = `<div class="quiz-header"><button class="back-btn">← Home</button><div class="quiz-meta"><span class="quiz-label">Fact #21</span><span class="quiz-mode-badge">Practice</span></div></div>`;
+      const card = (n, q, revealed) => `<div class="q-card"><div class="q-progress"><div class="q-progress-fill" style="width:${n / 8 * 100}%"></div></div>
+        <div class="q-num"><span class="q-num-text">Question ${n} of 8 ${stars(q.d)}</span><span class="flag-btn">${svgBm('')}</span>${revealed ? `<span class="quick"><span>←</span><span class="primary">↩</span></span>` : '<span class="yue-toggle">Translate</span>'}</div>
+        <div class="q-text">${q.q}</div></div>`;
+      const opts = (q, revealed) => `<div class="options">${q.o.map((o, i) => `<div class="opt${revealed && i === q.a ? ' correct' : ''}"><span class="opt-letter">${'ABCD'[i]}</span><span>${o}${revealed ? `<span class="opt-yue">${q.oy[i]}</span>` : ''}</span></div>`).join('')}</div>`;
+      const first = hdr + card(1, q1, false) + opts(q1, false) + '<div class="nav-row"><button class="nav-btn secondary" disabled>← Prev</button><button class="nav-btn">Next →</button></div>';
+      const last = hdr + card(8, q8, true) + opts(q8, true) + `<div class="answer-box"><div class="ans-label">✓ Correct! · 🔥 1/3</div><div class="ans-en">${q8.o[1]}</div></div>`
+        + '<div class="ghost-note">Similar Questions panel hidden inside a fact session</div><div class="nav-row"><button class="nav-btn secondary">← Prev</button><button class="nav-btn">↩ Back</button></div>';
+      const back = studyScreen(true, chapterTitle(3) + '<div class="excerpt">… scrolled back to #21 (same scrollY), gold outline fades after 1.5s …</div>'
+        + newFact(FACTS[21], { streaks: [3, 3, 1, 1, 1, 2, 1, 1], flash: true }), {});
+      return [
+        frame(w, { label: 'Before · v0.60 — no route', cls: 'old' }, studyScreen(false, chapterTitle(3) + oldFact(FACTS[21]))),
+        frame(w, { label: 'After · Q1 of 8', after: true, rec: true, cls: 'new deco-a' }, first),
+        frame(w, { label: 'After · Q8 of 8 (last)', after: true, rec: true, cls: 'new deco-a' }, last),
+        frame(w, { label: 'After · ↩ Back → Study restored', after: true, rec: true, cls: 'new deco-a' }, back),
+      ];
+    },
+  },
+  {
+    id: 'card-extras', tab: '⑦ Card extras (Q6)',
+    brief: `<h2>⑦ Optional card extras — Q6 (T-205, T-301)</h2><ul>
+      <li>Three independent extras, each shown alone: <b>#id</b> small text (matches "📌 Core Fact #21" in Similar), <b>source node row</b> (else "Appears ×n" stays), <b>Study header 🏆 n / 236</b> overall progress.</li>
+      <li>Recommended: all three (last frame). Node row is already the default decision; #id and 🏆 header are open.</li></ul>`,
+    frames(w) {
+      const st = [3, 3, 1, 0, 0, 2, 0, 0];
+      const one = (label, o, progress) => frame(w, { label, after: true, rec: label.startsWith('All'), cls: 'new deco-a' },
+        studyScreen(true, chapterTitle(3) + newFact(FACTS[21], { streaks: st, ...o }), { progress }));
+      return [
+        one('None of the extras', { showId: false, showSrc: false }, false),
+        one('+ #id only', { showId: true, showSrc: false }, false),
+        one('+ node row only', { showId: false, showSrc: true }, false),
+        one('+ header 🏆 n / 236 only', { showId: false, showSrc: false }, true),
+        one('All three', {}, true),
+      ];
+    },
+  },
+  {
+    id: 'install', tab: '⑧ Install ✕ (S-022)',
+    brief: `<h2>⑧ Install banner — S-022 hit area + CUI-0008 (T-001…T-003, no design change)</h2><ul>
+      <li>✕ stays 28px visually; <code>::before { inset: -8px }</code> makes the tap target 44px (red dashed ring = tappable area). <code>pwa-test</code> asserts with <code>elementFromPoint</code> 20px from centre.</li>
+      <li>CUI-0008: native dialog cancelled → banner hides (no <code>installDismissed</code> key, shows again on the next <code>beforeinstallprompt</code>); double tap calls <code>prompt()</code> once; <code>appinstalled</code> hides it.</li></ul>`,
+    frames(w) {
+      const banner = cls => `<div class="install-banner"><div class="install-text"><strong>Install this app</strong><span>Add to home screen for offline practice</span></div><button class="install-btn">Install</button><span class="install-close ${cls}">✕<span class="hit"></span><span class="hit-caption">${cls === 'old' ? '28px' : '44px'}</span></span></div>`;
+      const home = '<div class="home-tile">Choose Mode · Practice / Exam …</div>';
+      return [
+        frame(w, { label: 'Before · v0.60 (28px target)', cls: 'old' }, banner('old') + home),
+        frame(w, { label: 'After · same look, 44px target', after: true, rec: true, cls: 'new' }, banner('new') + home),
+        frame(w, { label: 'After · native dialog cancelled', after: true, rec: true, cls: 'new' }, '<div class="toast-note">(mockup note) Banner gone; v0.60 left a dead Install button here.</div>' + home),
+      ];
+    },
+  },
+];
+
+// ═════════ render ═════════
+const WIDTHS = [['both', '390 + 900'], ['390', '390 only'], ['900', '900 only']];
+let current = Math.max(0, SCENARIOS.findIndex(s => '#' + s.id === location.hash));
+let widthMode = 'both';
+
+function render() {
+  const s = SCENARIOS[current];
+  document.getElementById('scenarioTabs').innerHTML = '<span class="lbl">Scenario</span>' + SCENARIOS.map((x, i) =>
+    `<button class="mock-tab${i === current ? ' on' : ''}" data-s="${i}">${x.tab}</button>`).join('');
+  document.getElementById('widthTabs').innerHTML = '<span class="lbl">Width</span>' + WIDTHS.map(([k, l]) =>
+    `<button class="mock-tab${k === widthMode ? ' on' : ''}" data-w="${k}">${l}</button>`).join('');
+  const widths = widthMode === 'both' ? [390, 900] : [+widthMode];
+  document.getElementById('page').innerHTML = `<section id="${s.id}"><div class="brief">${s.brief}</div>` +
+    widths.map(w => `<div class="width-title">${w}px</div><div class="frames w${w}">${s.frames(w).join('')}</div>`).join('') + '</section>';
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('.mock-tab');
+  if (!b) return;
+  if (b.dataset.s !== undefined) { current = +b.dataset.s; history.replaceState(null, '', '#' + SCENARIOS[current].id); }
+  if (b.dataset.w) widthMode = b.dataset.w;
+  render();
+});
+window.addEventListener('hashchange', () => {
+  const i = SCENARIOS.findIndex(s => '#' + s.id === location.hash);
+  if (i >= 0) { current = i; render(); }
+});
+render();
+</script>
+</body>
+</html>
