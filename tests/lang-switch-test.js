@@ -26,6 +26,8 @@ const HIT_PROBE_INSET_PX = 1;
 const GLYPH_PROBE_PX = 32;
 const GLYPH_PROBE_CHARS = ['中', '國'];
 const GLYPH_BASELINE = 0.75; // font size and baseline as a share of the canvas, so descenders stay inside
+// S-066: LANG_SWITCH_NO_CJK_FONT=1 takes the no-font branch on a machine that has the font, so the skip path can be run
+const FORCE_NO_CJK_FONT = process.env.LANG_SWITCH_NO_CJK_FONT === '1';
 // S-057: the text common.chapterShort renders ("Ch {n}" in en and zh-HK)
 const CHAPTER_SHORT_TEXT = /\bCh \d+\b/;
 // S-058: the "A)" row is the last .ans-yue-row renderAnswerTranslation writes (after the title and "Q)")
@@ -343,10 +345,11 @@ async function main() {
   pg.on('console', m => { if (m.type() === 'warning') ctx.warns.push(m.text()); });
   await pg.goto(APP_URL);
   await pg.evaluate(() => localStorage.clear()); await pg.reload();
-  ctx.hasCjkFont = await hasCjkFont(pg);
+  ctx.hasCjkFont = !FORCE_NO_CJK_FONT && await hasCjkFont(pg);
   for (const check of CHECKS) await check(pg, ctx);
   assert(ctx.errs.length === 0, 'no page errors: ' + ctx.errs.join(' | '));
   await b.close();
+  return ctx;
 }
 
 // M4: at 320px the zh-HK pass line "…方為合格。" keeps its last words together (no one-word last line)
@@ -364,4 +367,5 @@ async function checkResultSub(pg) {
   await pg.click(PILL);
 }
 
-main().then(() => console.log('LANG-SWITCH PASS')).catch(e => { console.error(e.message); process.exit(1); });
+// S-066: run-all.sh prints only the last line, so a skipped M4 must show up there, not only in the log body
+main().then(ctx => console.log(ctx.hasCjkFont ? 'LANG-SWITCH PASS' : 'LANG-SWITCH PASS (M4 skipped: no CJK font)')).catch(e => { console.error(e.message); process.exit(1); });
