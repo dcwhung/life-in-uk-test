@@ -54,11 +54,9 @@ LOCALES.en = {
     wrongTitle: 'Wrong answers',
     wrongEmpty: 'Nothing to review yet',
     wrongToClear: '{n} to clear',
-    wrongToClearRounds: '{n} to clear · {max} per round',
     flaggedTitle: 'Flagged',
-    flaggedCount: '{n} flagged',
     flaggedEmptyHtml: 'Tap {icon} on a question to flag it',
-    myReviewNote: 'Wrong answers come from Practice and Exam, and clear when you get them right here. Up to {max} per round.',
+    myReviewNote: 'From Practice and Exam; cleared once you get them right here. Up to {max} per round.',
   },
 
   quiz: {
