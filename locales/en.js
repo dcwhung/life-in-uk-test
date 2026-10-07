@@ -47,7 +47,7 @@ LOCALES.en = {
     allExams: '🎯 All Questions ({n})',
     randomExam: '🎲 Random Exam',
     randomExamSub: { one: '{n} question from {total}', other: '{n} questions from {total}' },
-    practiceHintHtml: 'Answer a question correctly <b>{streak} times in a row</b> to master it. Each round draws up to <b>{max}</b> unmastered questions, each asked once; unmastered ones come back in the next round. Mastered ones are skipped until the whole set is mastered.',
+    practiceHintHtml: '<ul><li>Each round draws up to <b>{max}</b> unmastered questions, each asked once</li><li>Answer a question correctly <b>{streak} times in a row</b> to master it</li><li>Unmastered questions come back in the next round</li><li>Mastered questions are skipped until the whole set is mastered</li></ul>',
     resetProgress: '↺ Reset progress',
     examResetHint: 'Completed exams are marked with ✓.',
     resetCompleted: '↺ Reset completed exams',

@@ -28,6 +28,10 @@
 .reset-row.show { display: flex; }
 .reset-hint { flex: 1; min-width: 180px; }
 .reset-hint b { color: var(--navy); }
+/* the Practice hint is a short bullet list (home.practiceHintHtml): it may shrink below the 180px wrap
+   point so the reset button stays on its right even at 320px; the list sits tight inside the dashed row */
+.reset-hint-list { min-width: 0; }
+.reset-hint-list ul { margin: 0; padding-left: 1.2em; }
 .reset-btn {
   background: var(--card);
   border: 1.5px solid var(--red-light);
