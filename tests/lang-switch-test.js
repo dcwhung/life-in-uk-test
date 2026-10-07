@@ -26,6 +26,8 @@ const HIT_PROBE_INSET_PX = 1;
 const GLYPH_PROBE_PX = 32;
 const GLYPH_PROBE_CHARS = ['中', '國'];
 const GLYPH_BASELINE = 0.75; // font size and baseline as a share of the canvas, so descenders stay inside
+// S-057: the text common.chapterShort renders ("Ch {n}" in en and zh-HK)
+const CHAPTER_SHORT_TEXT = /\bCh \d+\b/;
 
 // everything the plan's state list says a language switch must keep (Result highlight / Study flash and
 // scroll position are accepted losses); localStorage minus the language key itself
@@ -87,6 +89,29 @@ const switchCheckBack = async (pg, ctx, tag, sel, specs) => { await switchOn(pg,
 // CUI-0014: same, then the en-page specs once back in en
 const switchCheckBoth = async (pg, ctx, tag, sel, specs, enSpecs) => { await switchCheckBack(pg, ctx, tag, sel, specs); await checkContentLang(pg, `${tag} (en)`, enSpecs, EN); };
 
+// S-057: common.chapterShort reads "Ch {n}" in both locales (kept English on purpose), so every such text node
+// under sel must sit in a lang="en" element, never only inherit <html lang>
+async function checkChapterShortLang(pg, tag, sel, html) {
+  const langs = await pg.evaluate(({ sel, src }) => [...document.querySelectorAll(sel)].flatMap(root => {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), out = [];
+    while (walker.nextNode()) {
+      if (!new RegExp(src).test(walker.currentNode.textContent)) continue;
+      const l = walker.currentNode.parentElement.closest('[lang]');
+      out.push(l === document.documentElement ? 'html' : l.getAttribute('lang'));
+    }
+    return out;
+  }), { sel, src: CHAPTER_SHORT_TEXT.source });
+  assert((await langOf(pg)).html === html, `${tag}: checked under <html lang="${html}">`);
+  assert(langs.length > 0 && langs.every(l => l === EN), `S-057 ${tag}: "Ch {n}" in ${sel} is lang="en": ` + JSON.stringify(langs));
+}
+// S-057: en → zh-HK → en, checking "Ch {n}" on both pages
+async function switchCheckChapterShort(pg, ctx, tag, sel) {
+  await switchOn(pg, ctx, tag, null);
+  await checkChapterShortLang(pg, tag, sel, ZH_HK);
+  await switchOn(pg, ctx, tag, null);
+  await checkChapterShortLang(pg, `${tag} (en)`, sel, EN);
+}
+
 // ── the pill itself ──
 async function checkPill(pg) {
   assert(await pg.$(PILL) !== null, 'header has the language pill');
@@ -122,6 +147,7 @@ async function checkHomeSwitch(pg, ctx) {
 async function checkHomePractice(pg, ctx) {
   await pg.evaluate(() => { startMode('practice'); setPracticeView('chapter'); });
   await switchCheckBack(pg, ctx, 'home practice › chapter', '#practiceTabs', [['#chapterGrid .ch-name', EN]]);
+  await switchCheckChapterShort(pg, ctx, 'home practice › chapter', '#chapterGrid .ch-num');
   // practice › exam: the all-questions button reads 全部試題 in zh-HK, All Questions in en
   await pg.evaluate(() => setPracticeView('exam'));
   await switchOn(pg, ctx, 'home practice › exam', '#examGrid');
@@ -265,10 +291,12 @@ async function checkStudy(pg, ctx) {
   await pg.evaluate(() => { openStudy(); studySetTab('people'); studySetGroup('writer'); });
   await pg.fill('#studySearch', 'sha');
   await switchCheckBack(pg, ctx, 'study people › writers + search', '#studyChips', [['.fact-name', EN], ['.fact-en', EN], ['.fact-yue', ZH_HK]]);
+  await switchCheckChapterShort(pg, ctx, 'study people › fact chapter tag', '#studyContent .fact-meta');
   await pg.fill('#studySearch', '');
   // S-049 + CUI-0014: chapter titles, year / person tags and timeline years are English data
   await pg.evaluate(() => { studySetTab('chapters'); studySetChapter(3); });
   await switchCheckBack(pg, ctx, 'study chapters › 3', '#studyTabs', [['#studyContent .study-group-title', EN], ['#studyContent .tag.year', EN], ['#studyContent .tag.person', EN]]);
+  await switchCheckChapterShort(pg, ctx, 'study chapters › chapter chips', '#studySubChips');
   await pg.evaluate(() => studySetTab('timeline'));
   await switchCheckBack(pg, ctx, 'study timeline', '#studyTabs', [['#studyContent .tl-year', EN], ['#studyContent .tag.person', EN]]);
   await pg.evaluate(() => { studySetTab('geo'); studySetNation('all'); });
