@@ -22,6 +22,10 @@ const GUARD_MARGIN_MS = 50;
 // S-044: the ::before ring must make the hit area >= 44px; probe this far outside the visible pill
 const HIT_MIN_PX = 44;
 const HIT_PROBE_INSET_PX = 1;
+// S-045: glyph probe canvas; two different hanzi drawn the same means both are tofu (no CJK font installed)
+const GLYPH_PROBE_PX = 32;
+const GLYPH_PROBE_CHARS = ['中', '國'];
+const GLYPH_BASELINE = 0.75; // font size and baseline as a share of the canvas, so descenders stay inside
 
 // everything the plan's state list says a language switch must keep (Result highlight / Study flash and
 // scroll position are accepted losses); localStorage minus the language key itself
@@ -245,7 +249,9 @@ async function checkResult(pg, ctx) {
   const yourLines = await pg.evaluate(() => [...document.querySelectorAll('#reviewList .rv-your')].map(e => ({ n: e.querySelectorAll('[lang]').length, label: e.firstChild.nodeType === Node.TEXT_NODE })));
   assert(yourLines.filter(l => l.n === 1).length === 1 && yourLines.every(l => l.n <= 1 && l.label), 'S-047: one answered wrong line with a lang="en" answer, labels unmarked: ' + JSON.stringify(yourLines));
   assert(await pg.evaluate(() => window.recordCount) === 1, 'result: recorded once (the switch only re-renders)');
-  await checkResultSub(pg);
+  // S-045: M4 measures hanzi line breaks; with tofu glyphs the widths say nothing about the real layout
+  if (ctx.hasCjkFont) await checkResultSub(pg);
+  else console.log('skip: no CJK font (M4 checkResultSub)');
 }
 
 // Flagged list
@@ -283,6 +289,16 @@ async function checkDoubleTap(pg) {
   await pg.click(PILL);
 }
 
+// S-045: draw two hanzi in the page font; identical pixels mean the fallback drew the same tofu box for both
+const hasCjkFont = pg => pg.evaluate(({ px, chars, baseline }) => {
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = px;
+  const g = canvas.getContext('2d');
+  g.font = `${px * baseline}px ${getComputedStyle(document.body).fontFamily}`;
+  const draw = ch => { g.clearRect(0, 0, px, px); g.fillText(ch, 0, px * baseline); return g.getImageData(0, 0, px, px).data.join(); };
+  return draw(chars[0]) !== draw(chars[1]);
+}, { px: GLYPH_PROBE_PX, chars: GLYPH_PROBE_CHARS, baseline: GLYPH_BASELINE });
+
 // run in order: each check starts from the screen / language the previous one left
 const CHECKS = [
   checkPill, checkHomeSwitch, checkHomePractice, checkQuizPractice, checkAnswerFallback, checkOptionYueLang,
@@ -297,6 +313,7 @@ async function main() {
   pg.on('console', m => { if (m.type() === 'warning') ctx.warns.push(m.text()); });
   await pg.goto(APP_URL);
   await pg.evaluate(() => localStorage.clear()); await pg.reload();
+  ctx.hasCjkFont = await hasCjkFont(pg);
   for (const check of CHECKS) await check(pg, ctx);
   assert(ctx.errs.length === 0, 'no page errors: ' + ctx.errs.join(' | '));
   await b.close();
