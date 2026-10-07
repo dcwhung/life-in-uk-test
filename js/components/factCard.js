@@ -1,0 +1,66 @@
+// ════════════════════════════════════════
+// FACT CARD — one STUDY fact, two variants (css/components/fact.css):
+//   full: the Study card (tags, bookmark / mastered buttons)   core: the Similar panel's gold "📌 Core Fact" (Q3-1)
+// Every per-fact state comes in as a parameter: this file never reads the Study screen's state object
+// (upgrade-test pins its shape; structure-test checks this file does not touch it).
+// ════════════════════════════════════════
+const CHAPTER_ICONS = { 1: '⚖️', 2: '🇬🇧', 3: '📜', 4: '🎭', 5: '🏛️' };
+const FACT_VARIANT = { full: 'full', core: 'core' };
+
+function yearLabel(f) {
+  if (f.yl) return f.yl;
+  if (f.y < 0) return t('study.yearBC', { n: -f.y });
+  return String(f.y);
+}
+
+// opts: noYear / noPerson / noChapter hide a tag the surrounding list already shows
+function factTagsHtml(f, opts) {
+  const tags = [`<span class="fact-id">${t('study.factId', { id: f.id })}</span>`];
+  if (f.y !== undefined && !opts.noYear) tags.push(`<span class="tag year">📅 ${escapeHtml(yearLabel(f))}</span>`);
+  if (f.w) tags.push(`<span class="tag war">${t('study.war')}</span>`);
+  if (f.p && !opts.noPerson) tags.push(`<span class="tag person">👤 ${escapeHtml(f.p[0])}</span>`);
+  if (!opts.noChapter) tags.push(`<span class="tag">${CHAPTER_ICONS[f.ch]} ${t('common.chapterShort', { n: f.ch })}</span>`);
+  tags.push(starsHtml(f.d)); // same stars as the question card (v0.62)
+  if (f.src.length > 1) tags.push(`<span class="tag freq">${t('study.appears', { n: f.src.length })}</span>`);
+  return tags.join('');
+}
+
+// one per-fact toggle (kind = Study mark key, also the data-mark value); the visible content is an icon,
+// so the label lives in aria-label (O1)
+function factMarkButtonHtml(f, { kind, on, cls, labelKey, content }) {
+  const label = escapeHtml(t(labelKey));
+  return `<button class="fact-btn ${cls}${on ? ' on' : ''}" title="${label}" aria-label="${label}" aria-pressed="${on}" data-action="studyToggleMark" data-mark="${kind}" data-arg="${escapeHtml(f.id)}">${content}</button>`;
+}
+function factMarkButtonsHtml(f, marks) {
+  return factMarkButtonHtml(f, { kind: 'bookmarks', on: !!marks.bookmarks, cls: 'star', labelKey: 'study.bookmark', content: bookmarkSvg('', { decorative: true }) })
+    + factMarkButtonHtml(f, { kind: 'mastered', on: !!marks.mastered, cls: 'tick', labelKey: 'study.mastered', content: '✓' });
+}
+
+// marks: { bookmarks, mastered } booleans for this fact; opts: tag switches + title (People tab name line)
+function factFullHtml(f, { marks = {}, opts = {} }) {
+  return `<div class="fact${f.w ? ' war' : ''}${marks.mastered ? ' mastered' : ''}" data-fact-id="${escapeHtml(f.id)}">
+    <div class="fact-top">
+      <div class="fact-meta">${factTagsHtml(f, opts)}</div>
+      <div class="fact-actions">
+        ${factMarkButtonsHtml(f, marks)}
+      </div>
+    </div>
+    ${opts.title ? `<div class="fact-name">${escapeHtml(opts.title)}</div>` : ''}
+    <div class="fact-en">${escapeHtml(f.en)}</div>
+    <div class="fact-yue">${escapeHtml(f.yue)}</div>
+  </div>`;
+}
+
+// no buttons and no source row: the Similar panel has its own node map
+function factCoreHtml(f) {
+  return `<div class="sqm-fact core">
+      <div class="sqm-fact-label">${t('similar.coreFact', { id: f.id })}</div>
+      <div class="sqm-fact-en">${escapeHtml(f.en)}</div>
+      <div class="sqm-fact-yue">${escapeHtml(f.yue)}</div>
+    </div>`;
+}
+
+const FACT_RENDERERS = { [FACT_VARIANT.full]: factFullHtml, [FACT_VARIANT.core]: factCoreHtml };
+function factCardHtml(f, { variant = FACT_VARIANT.full, ...props } = {}) {
+  return FACT_RENDERERS[variant](f, props);
+}

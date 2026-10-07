@@ -56,6 +56,21 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert((await count()) === '91 / 91 facts', 'Ch3 91 facts: ' + await count());
   await pg.screenshot({ path: 'shot-chapters.png' });
   assert(await css('.tag.year', 'color') === await tokenRgb('--study-accent-strong') && await css('.tag.year', 'backgroundColor') === await tokenRgb('--study-accent-bg'), 'year tag uses study accent tokens');
+  // v0.63 (P3 T-201 / T-202): the Study card is factCardHtml's full variant — O5 card shadow, Q6 "#id" small text first
+  const shadowSm = await pg.evaluate(() => {
+    const el = document.createElement('i');
+    el.style.boxShadow = 'var(--shadow-sm)';
+    document.body.appendChild(el);
+    const s = getComputedStyle(el).boxShadow;
+    el.remove();
+    return s;
+  });
+  assert(await css('#studyContent .fact', 'boxShadow') === shadowSm, 'fact card has the --shadow-sm card shadow (O5)');
+  const firstCard = await pg.$eval('#studyContent .fact', e => ({
+    id: e.dataset.factId, first: e.querySelector('.fact-meta').firstElementChild.className, text: e.querySelector('.fact-id')?.textContent,
+  }));
+  assert(firstCard.first === 'fact-id' && firstCard.text === '#' + firstCard.id, 'fact card starts with its "#id" (Q6): ' + JSON.stringify(firstCard));
+  assert(await pg.evaluate(() => typeof factCardHtml === 'function'), 'factCardHtml component loaded');
 
   await pg.click('.study-tab[data-tab="timeline"]');
   assert((await count()) === '82 / 82 facts', 'timeline 82: ' + await count());

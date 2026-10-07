@@ -146,6 +146,7 @@ LOCALES.en = {
     appears: 'Appears ×{n}',
     bookmark: 'Bookmark',
     mastered: 'Mastered',
+    factId: '#{id}',
   },
 
   modal: {
