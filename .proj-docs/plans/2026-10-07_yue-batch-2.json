@@ -1,5 +1,13 @@
 [
   {
+    "exam": 1,
+    "qIndex": 23,
+    "field": "oy",
+    "optIndex": 2,
+    "before": "光明節（猶太教）",
+    "after": "光明節（Hanukkah，猶太教）"
+  },
+  {
     "exam": 3,
     "qIndex": 0,
     "field": "yue",
@@ -18,7 +26,7 @@
     "qIndex": 1,
     "field": "note",
     "before": "只有英格蘭（Church of England）和蘇格蘭（Church of Scotland）有國教",
-    "after": "只有英格蘭（Church of England）同蘇格蘭（Church of Scotland）有國教"
+    "after": "只有英格蘭有國教（Church of England）；蘇格蘭嘅 Church of Scotland 係國家教會，唔係國教"
   },
   {
     "exam": 3,
@@ -26,6 +34,14 @@
     "field": "yue",
     "before": "蘇格蘭的除夕夜叫乜嘢？",
     "after": "蘇格蘭嘅除夕夜叫乜嘢？"
+  },
+  {
+    "exam": 3,
+    "qIndex": 2,
+    "field": "oy",
+    "optIndex": 1,
+    "before": "光明節（猶太教）",
+    "after": "光明節（Hanukkah，猶太教）"
   },
   {
     "exam": 3,
@@ -39,7 +55,7 @@
     "qIndex": 4,
     "field": "yue",
     "before": "英國國王與法國打的那場長期戰爭叫乜嘢？",
-    "after": "英國國王同法國打嘅嗰場長期戰爭叫乜嘢？"
+    "after": "中世紀嘅英格蘭國王同法國打嘅嗰場長期戰爭叫乜嘢？"
   },
   {
     "exam": 3,
@@ -67,7 +83,7 @@
     "qIndex": 6,
     "field": "yue",
     "before": "如果有人想說服你參與極端主義活動，你應聯絡誰？",
-    "after": "如果有人想勸你參加極端主義活動，你應該聯絡邊個？"
+    "after": "如果有人想勸你參加極端主義或者恐怖主義活動，你應該聯絡邊個？"
   },
   {
     "exam": 3,
@@ -92,6 +108,21 @@
   },
   {
     "exam": 3,
+    "qIndex": 9,
+    "field": "note",
+    "before": "全球唯一超音速商業客機",
+    "after": "英法合作嘅超音速商業客機"
+  },
+  {
+    "exam": 3,
+    "qIndex": 10,
+    "field": "oy",
+    "optIndex": 0,
+    "before": "印度教光明節",
+    "after": "印度教排燈節（Diwali）"
+  },
+  {
+    "exam": 3,
     "qIndex": 11,
     "field": "yue",
     "before": "英國有多少個選區？",
@@ -109,7 +140,7 @@
     "qIndex": 12,
     "field": "yue",
     "before": "Snowdonia（斯諾登尼亞）國家公園喺哪裏？",
-    "after": "Snowdonia（斯諾登尼亞）國家公園喺邊度？"
+    "after": "Snowdonia（雪墩）國家公園喺邊度？"
   },
   {
     "exam": 3,
@@ -248,6 +279,14 @@
   },
   {
     "exam": 4,
+    "qIndex": 5,
+    "field": "oy",
+    "optIndex": 2,
+    "before": "危機",
+    "after": "Crisis（無家者慈善機構）"
+  },
+  {
+    "exam": 4,
     "qIndex": 6,
     "field": "yue",
     "before": "「大不列顛」只包括英格蘭、威爾斯和蘇格蘭。對定錯？",
@@ -290,6 +329,21 @@
   },
   {
     "exam": 4,
+    "qIndex": 11,
+    "field": "yue",
+    "before": "排燈節係乜嘢？",
+    "after": "排燈節（Diwali）係乜嘢？"
+  },
+  {
+    "exam": 4,
+    "qIndex": 11,
+    "field": "oy",
+    "optIndex": 2,
+    "before": "印度教節日，又稱光明節",
+    "after": "印度教節日，又叫排燈節（Festival of Lights）"
+  },
+  {
+    "exam": 4,
     "qIndex": 12,
     "field": "yue",
     "before": "第一次世界大戰係哪年結束？",
@@ -300,7 +354,7 @@
     "qIndex": 14,
     "field": "yue",
     "before": "雪墩國家公園在哪裏？",
-    "after": "雪墩國家公園喺邊度？"
+    "after": "Snowdonia（雪墩）國家公園喺邊度？"
   },
   {
     "exam": 4,
@@ -314,7 +368,7 @@
     "qIndex": 16,
     "field": "note",
     "before": "金約翰簽署，奠定法治基礎",
-    "after": "由金約翰簽署，奠定咗法治嘅基礎"
+    "after": "由約翰王簽署，奠定咗法治嘅基礎"
   },
   {
     "exam": 4,
@@ -357,6 +411,14 @@
     "field": "yue",
     "before": "倫敦大轟炸（Blitz）發生了什麼事？",
     "after": "倫敦大轟炸（Blitz）發生咗咩事？"
+  },
+  {
+    "exam": 4,
+    "qIndex": 22,
+    "field": "oy",
+    "optIndex": 2,
+    "before": "不列顛空戰",
+    "after": "不列顛戰役"
   },
   {
     "exam": 4,
