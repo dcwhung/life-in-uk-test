@@ -69,8 +69,23 @@ function scanTemplateText(src, i) {
   return { end: src.length, expr: false };
 }
 
+// S-074: a / opens a regex literal where a value is expected: at the start, after an operator / opening
+// punctuation, or after a keyword such as return (after a name, a number, ) or ] it is a division)
+const REGEX_AFTER = /(?:^|[(,=:[!&|?;{}+\-*%<>~^]|\b(?:return|typeof|case|void|delete|in|of|throw|yield|await))\s*$/;
+// index just past a /…/ regex body starting at i ([…] classes and \ escapes included), or -1 if the line
+// ends first (a regex never spans lines, so that / was a division after all)
+function endOfRegex(src, i) {
+  for (let j = i + 1, inClass = false; j < src.length && src[j] !== '\n'; j++) {
+    if (src[j] === '\\') j++;
+    else if (src[j] === '[') inClass = true;
+    else if (src[j] === ']') inClass = false;
+    else if (src[j] === '/' && !inClass) return j + 1;
+  }
+  return -1;
+}
+
 // S-067: one pass, so a quote, // or /* inside a string, template or comment never starts another token.
-// Comments go, '…' / "…" and template text become '', template ${…} expressions stay as code (a real call).
+// Comments go, '…' / "…" / regex literals and template text become '', template ${…} expressions stay as code.
 function layerCode(src) {
   let out = '', i = 0;
   const exprDepth = []; // one entry per open ${…}: how many { are open inside it
@@ -83,6 +98,7 @@ function layerCode(src) {
     if (two === '//') i = lineEnd(i);
     else if (two === '/*') { i = blockEnd(i); out += ' '; }
     else if (c === "'" || c === '"') { out += "''"; i = endOfQuoted(src, i); }
+    else if (c === '/' && REGEX_AFTER.test(out) && endOfRegex(src, i) > 0) { out += "''"; i = endOfRegex(src, i); }
     else if (c === '`') template(i + 1);
     else if (closesExpr(c)) { exprDepth.pop(); template(i + 1); }
     else {
@@ -161,6 +177,13 @@ function layerCode(src) {
     { code: 'const s = `renderStudy`;', hit: false, why: 'a name in template text' },
     { code: 'const s = `${a ? `x` : renderStudy()}`;', hit: true, why: 'a call after a nested template' },
     { code: 'const s = `${a({ b: 1 })} renderStudy`;', hit: false, why: 'template text after a ${…} holding braces' },
+    // S-074: a regex literal is not code, and a backtick or quote inside one must not open a template / string
+    { code: 'const r = /`/; renderStudy();', hit: true, why: 'a call after a regex holding a backtick' },
+    { code: 'if (/[/`]/.test(s)) renderStudy();', hit: true, why: 'a call after a regex whose [class] holds / and a backtick' },
+    { code: 'const r = /\\/`/; renderStudy();', hit: true, why: 'a call after a regex holding an escaped / and a backtick' },
+    { code: 'const r = /renderStudy/;', hit: false, why: 'a name inside a regex literal' },
+    { code: 'const q = a / b; renderStudy(); const p = c / d;', hit: true, why: 'a call between two divisions' },
+    { code: 'const q = f(x) / 2; renderStudy(); const p = y / 3;', hit: true, why: 'a call between divisions after ) and a name' },
   ];
   const sampleMisses = LAYER_SAMPLES.filter(({ code, hit }) => usesName(layerCode(code), 'renderStudy') !== hit)
     .map(({ hit, why }) => `${hit ? 'missed' : 'flagged'} ${why}`);
