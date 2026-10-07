@@ -373,7 +373,24 @@ async function checkMyReviewEmptyIn(pg, lang, tag) {
   assert(v.wrong.note === MY_REVIEW_NOTE[lang], `${tag}: 0 wrong → note still inside #tileWrong: ${v.wrong.note}`);
   assert(v.outside.length === 0, `${tag}: 0 wrong → no note outside the tiles: ` + JSON.stringify(v.outside));
   assert(v.wrong.height === v.flagged.height, `${tag}: 0 wrong → tiles the same height (${v.wrong.height} / ${v.flagged.height})`);
+  // W-022: the empty tile fades its own parts, but the note must stay at full contrast (opacity multiplies down the tree)
+  const fade = await effectiveOpacities(pg, '#tileWrong', ['.t-note', '.t-icon', '.t-num', 'b', '.sub']);
+  assert(fade['.t-note'] === 1, `${tag}: 0 wrong → note keeps full opacity: ${fade['.t-note']}`);
+  assert(['.t-icon', '.t-num', 'b', '.sub'].every(s => fade[s] < 1), `${tag}: 0 wrong → icon, count, title, sub still fade: ` + JSON.stringify(fade));
+  const noteColor = await pg.$eval('#tileWrong .t-note', e => {
+    const probe = document.createElement('span');
+    probe.style.color = 'var(--text-muted)'; document.body.appendChild(probe);
+    const want = getComputedStyle(probe).color; probe.remove();
+    return { got: getComputedStyle(e).color, want };
+  });
+  assert(noteColor.got === noteColor.want, `${tag}: 0 wrong → note colour stays --text-muted: ` + JSON.stringify(noteColor));
 }
+// product of an element's own opacity and every ancestor's, i.e. how faded it actually renders
+const effectiveOpacities = (pg, root, sels) => pg.$eval(root, (r, list) => Object.fromEntries(list.map(sel => {
+  let o = 1;
+  for (let n = r.querySelector(sel); n; n = n.parentElement) o *= Number(getComputedStyle(n).opacity);
+  return [sel, o];
+})), sels);
 async function checkMyReviewTiles(pg) {
   await pg.evaluate(lang => setLang(lang), EN);
   await seedMyReview(pg, MY_REVIEW_WRONG_N, MY_REVIEW_FLAG_N);
