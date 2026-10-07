@@ -363,7 +363,7 @@ async function checkMyReviewIn(pg, lang, tag) {
   assert(v.wrong.noteAfterSub, `${tag}: note sits below the wrong tile .sub`);
   assert(v.outside.length === 0, `${tag}: no note outside the tiles: ` + JSON.stringify(v.outside));
   // the note itself says "per round", so only the count line is checked for it
-  assert(v.wrong.sub === WRONG_TO_CLEAR_30[lang] && !v.wrong.sub.includes(PER_ROUND[lang]),`${tag}: 30 wrong → sub "${WRONG_TO_CLEAR_30[lang]}", no "${PER_ROUND[lang]}": ${v.wrong.sub}`);
+  assert(v.wrong.sub === WRONG_TO_CLEAR_30[lang] && !v.wrong.sub.includes(PER_ROUND[lang]), `${tag}: 30 wrong → sub "${WRONG_TO_CLEAR_30[lang]}", no "${PER_ROUND[lang]}": ${v.wrong.sub}`);
   assert(!v.flagged.text.includes(FLAGGED_8[lang]) && !v.flagged.subVisible, `${tag}: 8 flagged → no "${FLAGGED_8[lang]}", no visible .sub: ${v.flagged.text}`);
   assert(v.wrong.height === v.flagged.height, `${tag}: tiles are the same height (${v.wrong.height} / ${v.flagged.height})`);
 }

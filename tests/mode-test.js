@@ -98,7 +98,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   const noneHover = await masteryColor(NONE, true);
   assert(noneHover.color === inverseMuted, 'practice exam hover at 0%: mastery line inverse muted: ' + JSON.stringify(noneHover));
   const allHover = await masteryColor('#examGrid .exam-btn.all', true);
-  assert(allHover.color === (allHover.zero ? inverseMuted : goldLight),'All Exams hover: mastery line stays gold / inverse muted: ' + JSON.stringify(allHover));
+  assert(allHover.color === (allHover.zero ? inverseMuted : goldLight), 'All Exams hover: mastery line stays gold / inverse muted: ' + JSON.stringify(allHover));
   await pg.mouse.move(0, 0);
   await pg.evaluate(() => localStorage.clear()); await pg.reload();
   assert(await pg.$eval('#modePractice', e => e.classList.contains('selected')) && (await shown()) === 'diff', 'fresh start: Practice / By Difficulty');
