@@ -4,10 +4,12 @@
 const qKey = q => q.examNum + '.' + q.origIdx;
 function streakOf(q) { return streaks[qKey(q)] || 0; }
 function isMastered(q) { return streakOf(q) >= MASTERY_STREAK; }
-function recordPracticeAnswer(q, correct) {
+// planDay: the study plan day the session was opened from (null outside a plan task); the plan log decides the day (G2 / G5)
+function recordPracticeAnswer(q, correct, planDay = null) {
   const k = qKey(q);
   streaks[k] = correct ? Math.min(MASTERY_STREAK, (streaks[k] || 0) + 1) : 0;
   saveStreaks();
+  recordPlanAnswer(k, correct, planDay); // no plan stored → writes nothing (R3)
 }
 function isPracticeFlagged(q) { return !!practiceFlags[qKey(q)]; }
 

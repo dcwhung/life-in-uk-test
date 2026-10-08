@@ -197,6 +197,10 @@ LOCALES['zh-HK'] = {
     noteLabel: '💡 備注：',
   },
 
+  plan: {
+    dayN: 'Day {n}', // a plan task session's header (Day n stays English, as the mockup)
+  },
+
   // chapter names stay English (plan Q10); nation labels and eras read Chinese (English), nation chips
   // Chinese only (plan M2); difficulty, geography types and people groups Chinese only
   data: {

@@ -28,7 +28,7 @@ const DYNAMIC_PREFIXES = [
 ];
 // keys no source file reads: manifest.webmanifest mirrors them (static JSON), tests/pwa-test.js compares the two
 const MANIFEST_KEYS = ['app.installName', 'app.installShortName'];
-const SECTIONS = ['app', 'home', 'quiz', 'exam', 'result', 'review', 'similar', 'flagged', 'study', 'modal', 'common', 'data'];
+const SECTIONS = ['app', 'home', 'quiz', 'exam', 'result', 'review', 'similar', 'flagged', 'study', 'modal', 'common', 'plan', 'data'];
 const KEY_LITERAL = new RegExp(`'((?:${SECTIONS.join('|')})\\.[\\w.]+)'`, 'g');
 const PLURAL_FORMS = ['zero', 'one', 'two', 'few', 'many', 'other'];
 

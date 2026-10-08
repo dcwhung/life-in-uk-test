@@ -11,6 +11,7 @@ let state = {
   yueShown: {},          // index -> bool (practice: question translation expanded)
   sessionCorrect: 0,
   sessionTotal: 0,
+  planDay: null,         // study plan day (ISO) a plan task session counts for; null otherwise (G5)
 };
 
 // Practice: skip mastered questions until the whole set is mastered, shuffle, then draw at most
@@ -31,12 +32,14 @@ function resetAnswers() {
   state.yueShown = {};
   state.flags = {};
 }
-function startExam(examNum) {
+// mode: R8 — a plan mock runs Exam mode without changing Home's pendingMode
+function startExam(examNum, mode = pendingMode) {
   const pool = poolFor(examNum);
   // CUI-0016: an emptied review set has no question to render; go Home before any session state changes
   if (!pool.length) { leaveToHome(); return; }
-  state.mode = pendingMode;
+  state.mode = mode;
   state.examNum = examNum;
+  state.planDay = null;
   clearSideSession();
   state.setPool = pool;
   state.masteredBefore = masteryOf(pool).mastered;
@@ -201,10 +204,14 @@ function revealAnswer() {
   renderQuestion();
 }
 function recordPracticeResult(q, correct) {
-  recordPracticeAnswer(q, correct); // session length stays fixed; unmastered ones return next session
-  // wrong answers join the review list; only a correct answer inside the review clears one
+  // session length stays fixed; unmastered ones return next session
+  recordPracticeAnswer(q, correct, state.planDay || null);
+  // wrong answers join the review list; only a correct answer inside the review (or a plan review task, R9) clears one
   if (!correct) addWrong(q);
-  else if (state.examNum === WRONG_EXAM && wrongList[qKey(q)]) { clearWrong(q); state.cleared++; }
+  else if (clearsWrongAnswers() && wrongList[qKey(q)]) { clearWrong(q); state.cleared++; }
+}
+function clearsWrongAnswers() {
+  return state.examNum === WRONG_EXAM || isPlanReviewSession();
 }
 
 // ── navigation ──
