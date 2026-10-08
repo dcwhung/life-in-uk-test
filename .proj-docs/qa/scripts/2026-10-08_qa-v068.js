@@ -1,7 +1,7 @@
 // QA v0.68 batch (CUI-0016, per-chapter fact numbers, S-057, S-054, Home UI, Study tab colour) — manual, not part of run-all.sh.
 //   NODE_PATH=/opt/node-tools/node_modules CHROMIUM_PATH=/opt/pw-browsers/chromium \
 //     node .proj-docs/qa/scripts/2026-10-08_qa-v068.js <repo-root> <screenshot-dir>
-// QA_ONLY=cui16,factnum,s057,s054,home,studytab limits the run.
+// QA_ONLY=cui16,factnum,s057,s054,home,studytab,qa2 limits the run.
 // Black box: real clicks / hovers / typing; page.evaluate only seeds localStorage and reads state / computed style
 // (which option is correct, which question sits on screen). Expected fact numbers come from data/study.js read in
 // Node (independent of js/domain/similar.js).
@@ -92,7 +92,7 @@ const L = (lang, en, zh) => (lang === ZH ? zh : en);
     const anotherTxt = await pg.$eval('#screenResult .another-btn', e => e.textContent.trim());
     ok(anotherTxt === L(lang, 'Another Practice', '另一組練習'), `[${tag}] cui16: home button label "${anotherTxt}"`);
     note(`[${tag}] cui16 result note: "${await text(pg, '#resultNote')}"`);
-    if (lang === ZH) await pg.screenshot({ path: shot('cui16-zh-all-cleared-result-390'), fullPage: true });
+    await pg.screenshot({ path: shot(`cui16-${tag}-all-cleared-result-390`), fullPage: true });
     // E3: language switch keeps Retry hidden
     await click(pg, '#langBtn');
     ok(!(await anyVisible(pg, '#screenResult .retry-btn')), `[${tag}] cui16 edge: Retry still hidden after language switch`);
@@ -114,7 +114,7 @@ const L = (lang, en, zh) => (lang === ZH ? zh : en);
     await playRound(pg, [true, false]);
     ok(await anyVisible(pg, '#screenResult .retry-btn'), `[${tag}] cui16: 1 left → Retry shown`);
     ok(await pg.$eval('#screenResult .retry-btn', e => e.textContent.trim()) === L(lang, 'Retry', '重做'), `[${tag}] cui16: Retry label`);
-    if (lang === ZH) await pg.screenshot({ path: shot('cui16-zh-one-left-result-390'), fullPage: true });
+    await pg.screenshot({ path: shot(`cui16-${tag}-one-left-result-390`), fullPage: true });
     // E3b: language switch keeps a visible Retry visible
     await click(pg, '#langBtn');
     ok(await anyVisible(pg, '#screenResult .retry-btn'), `[${tag}] cui16 edge: visible Retry survives language switch`);
@@ -126,7 +126,7 @@ const L = (lang, en, zh) => (lang === ZH ? zh : en);
       `[${tag}] cui16: Retry → clean round of 1 (${JSON.stringify(fresh)})`);
     ok((await pg.$$('#optionsContainer .opt.selected, #optionsContainer .opt.correct, #optionsContainer .opt.wrong')).length === 0
       && !(await pg.$eval('#answerBox', e => e.classList.contains('show'))), `[${tag}] cui16: Retry → no option picked, answer box closed`);
-    if (lang === ZH) await pg.screenshot({ path: shot('cui16-zh-retry-fresh-round-390') });
+    await pg.screenshot({ path: shot(`cui16-${tag}-retry-fresh-round-390`) });
     // E4: double click on Finish clears the last one, no error, no Retry
     await answerByClick(pg, true);
     await pg.dblclick('#nextBtn'); await pg.waitForTimeout(GUARD_WAIT);
@@ -142,7 +142,7 @@ const L = (lang, en, zh) => (lang === ZH ? zh : en);
     await playRound(pg, [true, false], async () => { await pg.click('#flagBtn'); });
     ok(await active(pg, 'screenResult') && Object.values(await ls(pg, 'practiceFlags')).every(v => !v), `[${tag}] cui16: flagged all unflagged → Result`);
     ok(!(await anyVisible(pg, '#screenResult .retry-btn')) && await anyVisible(pg, '#screenResult .another-btn'), `[${tag}] cui16: flagged emptied → no Retry, home button kept`);
-    if (lang === ZH) await pg.screenshot({ path: shot('cui16-zh-flagged-cleared-result-390'), fullPage: true });
+    await pg.screenshot({ path: shot(`cui16-${tag}-flagged-cleared-result-390`), fullPage: true });
     // E6: flagged round, unflag both, re-flag the last → Retry visible
     await pg.evaluate(() => { localStorage.setItem('lifeuk.practiceFlags', '{"1.0":true,"1.1":true}'); });
     await pg.reload(); await pg.waitForTimeout(150); await click(pg, '#modePractice');
@@ -169,7 +169,7 @@ const L = (lang, en, zh) => (lang === ZH ? zh : en);
     await pg.setViewportSize({ width: 320, height: 700 });
     const ov = await pg.evaluate(() => document.documentElement.scrollWidth);
     ok(ov <= 320, `[${tag}] cui16: 320px all-cleared Result no horizontal overflow (scrollWidth ${ov})`);
-    if (lang === ZH) await pg.screenshot({ path: shot('cui16-zh-all-cleared-result-320'), fullPage: true });
+    await pg.screenshot({ path: shot(`cui16-${tag}-all-cleared-result-320`), fullPage: true });
     // regression: exam result keeps Retry
     await pg.setViewportSize({ width: 390, height: 844 });
     await click(pg, '#screenResult .another-btn');
@@ -210,13 +210,13 @@ const L = (lang, en, zh) => (lang === ZH ? zh : en);
       ok(cards.length === perCh[ch] && JSON.stringify(seq) === JSON.stringify(expSeq) && cards.every(c => !c.pill),
         `[${tag}] factnum chapters Ch ${ch}: ${cards.length} cards numbered #1..#${cards.length}, no Ch pill`);
       if (ch === 3) await groupTitlesClean(pg, 'chapters', tag);
-      if (ch === 3 && lang === ZH) await pg.screenshot({ path: shot('factnum-zh-chapters-ch3-390') });
+      if (ch === 3) await pg.screenshot({ path: shot(`factnum-${tag}-chapters-ch3-390`) });
     }
     for (const tab of ['timeline', 'geo', 'people']) {
       await click(pg, `.study-tab[data-tab="${tab}"]`);
       checkPills(await readCards(pg), tab, tag);
       if (tab !== 'timeline') await groupTitlesClean(pg, tab, tag);
-      if (lang === ZH) await pg.screenshot({ path: shot(`factnum-zh-${tab}-390`) });
+      await pg.screenshot({ path: shot(`factnum-${tag}-${tab}-390`) });
     }
     // E: search does not renumber (chapters view, search spans chapters)
     await click(pg, '.study-tab[data-tab="chapters"]');
@@ -226,7 +226,7 @@ const L = (lang, en, zh) => (lang === ZH ? zh : en);
     await pg.fill('#studySearch', '1998'); await pg.waitForTimeout(250);
     cards = await readCards(pg);
     ok(cards.length > 0 && cards.every(c => c.num === `#${EXP_NUM[c.id]}`), `[${tag}] factnum search "1998": ${cards.map(c => c.id + '→' + c.num).join(', ')}`);
-    if (lang === ZH) await pg.screenshot({ path: shot('factnum-zh-search-1998-390') });
+    await pg.screenshot({ path: shot(`factnum-${tag}-search-1998-390`) });
     await pg.fill('#studySearch', ''); await pg.waitForTimeout(250);
     // E: timeline + search + wars only keeps pill numbers
     await click(pg, '.study-tab[data-tab="timeline"]');
@@ -259,7 +259,7 @@ const L = (lang, en, zh) => (lang === ZH ? zh : en);
     const qlabel = await innerText(pg, '#quizLabel');
     // en: .quiz-label upper-cases the word "Fact" like every quiz label; only the lang="en" number keeps its case
     ok(qlabel === L(lang, 'FACT Ch 3 #15', '知識點 Ch 3 #15'), `[${tag}] factnum quiz header innerText "${qlabel}" (number not upper-cased)`);
-    if (lang === ZH) await pg.screenshot({ path: shot('factnum-zh-fact-quiz-header-390') });
+    await pg.screenshot({ path: shot(`factnum-${tag}-fact-quiz-header-390`) });
     // edge (S-077 gap): the fact session's last step returns to Study; the Result label is not reached in a side session
     const n21 = await pg.evaluate(() => state.questions.length);
     await playRound(pg, Array(n21).fill(true));
@@ -275,7 +275,7 @@ const L = (lang, en, zh) => (lang === ZH ? zh : en);
     const core = await innerText(pg, '#similarBox .sqm-fact-label');
     ok(core === L(lang, '📌 CORE FACT Ch 5 #38', '📌 核心知識 Ch 5 #38'), `[${tag}] factnum Similar Core Fact innerText "${core}" (number keeps case)`);
     await pg.$eval('#similarBox', e => window.scrollTo(0, e.getBoundingClientRect().top + window.scrollY - 80));
-    if (lang === ZH) await pg.screenshot({ path: shot('factnum-zh-similar-core-390') });
+    await pg.screenshot({ path: shot(`factnum-${tag}-similar-core-390`) });
     ok(errs.length === 0, `[${tag}] factnum: no page errors ${errs.join('; ')}`);
     await pg.close();
   }
@@ -299,7 +299,7 @@ const L = (lang, en, zh) => (lang === ZH ? zh : en);
     const report = (r, label) => ok(r.n > 0 && r.bad.length === 0, `[zh] s057 ${label}: ${r.n} "Ch n" nodes, all lang="en" ${r.bad.slice(0, 3).join(' / ')}`);
     await click(pg, '#modePractice'); await click(pg, '#ptabChapter');
     report(await scan('home chapter grid'), 'Home › Chapter grid');
-    await pg.screenshot({ path: shot('s057-zh-home-chapter-390') });
+    await pg.screenshot({ path: shot(`s057-zh-home-chapter-390`) });
     await click(pg, '#modeStudy');
     for (const tab of ['chapters', 'timeline', 'geo', 'people']) { await click(pg, `.study-tab[data-tab="${tab}"]`); report(await scan(tab), `Study ${tab}`); }
     await click(pg, '#screenStudy .back-btn');
@@ -331,7 +331,7 @@ const L = (lang, en, zh) => (lang === ZH ? zh : en);
         opts: await pg.$$eval('#optionsContainer .opt-yue', els => els.map(e => e.textContent)),
         ansYue: await text(pg, '#ansYue'), note: await text(pg, '#ansNote'),
       };
-      if (lang === ZH && (k === '3.3' || k === '11.7' || k === '1.12')) await pg.screenshot({ path: shot(`s054-zh-${k.replace('.', 'q')}-390`), fullPage: true });
+      if ((k === '3.3' || k === '11.7' || k === '1.12')) await pg.screenshot({ path: shot(`s054-${tag}-${k.replace('.', 'q')}-390`), fullPage: true });
       await click(pg, '#nextBtn');
     }
     ok(seen['3.3'].opts.includes('因為教宗想英格蘭變成天主教國家') && !seen['3.3'].opts.some(o => o.includes('成為')), `[${tag}] s054 E3·Q4 oy "變成" shown`);
@@ -344,7 +344,7 @@ const L = (lang, en, zh) => (lang === ZH ? zh : en);
     await pg.fill('#studySearch', 'good friday'); await pg.waitForTimeout(250);
     const yue96 = await pg.$eval('#studyContent .fact[data-fact-id="96"] .fact-yue', e => e.textContent);
     ok(yue96.startsWith('1998 年嘅《耶穌受難日協議》（Good Friday Agreement）為北愛爾蘭') && !yue96.includes('（1998 年）'), `[${tag}] s054 fact #96 yue "${yue96.slice(0, 30)}…"`);
-    if (lang === ZH) await pg.screenshot({ path: shot('s054-zh-fact96-390') });
+    await pg.screenshot({ path: shot(`s054-${tag}-fact96-390`) });
     ok(errs.length === 0, `[${tag}] s054: no page errors ${errs.join('; ')}`);
     await pg.close();
   }
@@ -391,7 +391,7 @@ const L = (lang, en, zh) => (lang === ZH ? zh : en);
         }
         if (st.name.endsWith('flag2')) ok(info.fSub === null, `${pfx} flagged tile has no sub line`);
         else ok(info.fSub === L(lang, 'Tap  on a question to flag it', '於題目按  即可標記'), `${pfx} empty flagged tile shows how to flag ("${info.fSub}")`);
-        if (lang === ZH) await pg.$eval('#myReview', e => window.scrollTo(0, e.getBoundingClientRect().top + window.scrollY - 140)).then(() => pg.screenshot({ path: shot(`home-zh-myreview-${st.name}-${width}`) }));
+        await pg.$eval('#myReview', e => window.scrollTo(0, e.getBoundingClientRect().top + window.scrollY - 140)).then(() => pg.screenshot({ path: shot(`home-${tag}-myreview-${st.name}-${width}`) }));
         // practice hint list and reset button position
         const hint = await pg.evaluate(() => {
           const h = document.getElementById('practiceHint'), btn = document.querySelector('#practiceReset .reset-btn');
@@ -401,7 +401,7 @@ const L = (lang, en, zh) => (lang === ZH ? zh : en);
         if (st.name === 'wrong5-flag2') {
           ok(hint.li.length === 4 && hint.li[0].includes('24') && hint.li[1].includes('3'), `${pfx} practice hint 4 bullets (${hint.li[0]})`);
           ok(hint.right && hint.br <= width, `${pfx} reset button on the right of the hint (btn right ${hint.br})`);
-          if (lang === ZH) await pg.$eval('#practiceReset', e => window.scrollTo(0, e.getBoundingClientRect().top + window.scrollY - 140)).then(() => pg.screenshot({ path: shot(`home-zh-practice-hint-${width}`) }));
+          await pg.$eval('#practiceReset', e => window.scrollTo(0, e.getBoundingClientRect().top + window.scrollY - 140)).then(() => pg.screenshot({ path: shot(`home-${tag}-practice-hint-${width}`) }));
         }
         ok(errs.length === 0, `${pfx} no page errors ${errs.join('; ')}`);
         await pg.close();
@@ -419,7 +419,7 @@ const L = (lang, en, zh) => (lang === ZH ? zh : en);
     const green = await cssVarRgb(pg, '--green'), white = await cssVarRgb(pg, '--text-inverse'), card = await cssVarRgb(pg, '--card');
     ok(done.bg === green && done.color === white, `[${tag}] home exam .done:hover green bg / white text (${done.bg} / ${done.color})`);
     ok(done.aBg === card && done.aColor === green && done.aShadow.includes(green) && done.aBg !== done.bg, `[${tag}] home ✓ badge on hover: card circle, green tick + ring (${JSON.stringify(done)})`);
-    if (lang === ZH) await pg.screenshot({ path: shot('home-zh-exam-done-hover-390'), clip: await pg.$eval('#examGrid', e => { const r = e.getBoundingClientRect(); return { x: 0, y: r.top + window.scrollY - 10, width: 390, height: Math.min(r.height + 20, 260) }; }) });
+    await pg.screenshot({ path: shot(`home-${tag}-exam-done-hover-390`), clip: await pg.$eval('#examGrid', e => { const r = e.getBoundingClientRect(); return { x: 0, y: r.top + window.scrollY - 10, width: 390, height: Math.min(r.height + 20, 260) }; }) });
     // non-done exam hover still navy
     await pg.hover('#examGrid .exam-btn[data-arg="2"]'); await pg.waitForTimeout(350);
     const navy = await cssVarRgb(pg, '--navy');
@@ -430,7 +430,7 @@ const L = (lang, en, zh) => (lang === ZH ? zh : en);
     await click(pg, '#screenQuiz .back-btn');
     const cancel = await text(pg, '#confirmCancel');
     ok(cancel === L(lang, 'Cancel', '取消'), `[${tag}] home leave modal cancel label "${cancel}"`);
-    if (lang === ZH) await pg.screenshot({ path: shot('home-zh-leave-modal-390') });
+    await pg.screenshot({ path: shot(`home-${tag}-leave-modal-390`) });
     await click(pg, '#confirmCancel');
     ok(await active(pg, 'screenQuiz'), `[${tag}] home leave modal Cancel keeps the exam`);
     await click(pg, '#screenQuiz .back-btn'); await click(pg, '#confirmOk');
@@ -440,10 +440,10 @@ const L = (lang, en, zh) => (lang === ZH ? zh : en);
     await pg.hover('#examGrid .exam-btn[data-arg="2"]'); await pg.waitForTimeout(350);
     const m2 = await pg.$eval('#examGrid .exam-btn[data-arg="2"] .exam-mastery', e => ({ c: getComputedStyle(e).color, zero: e.classList.contains('zero'), t: e.textContent }));
     ok(!m2.zero && m2.c === gold, `[${tag}] home practice Exam 2 hover mastery gold (${m2.c} "${m2.t}")`);
-    if (lang === ZH) await pg.screenshot({ path: shot('home-zh-practice-exam-hover-390'), clip: await pg.$eval('#examGrid', e => { const r = e.getBoundingClientRect(); return { x: 0, y: r.top + window.scrollY - 10, width: 390, height: Math.min(r.height + 20, 260) }; }) });
+    await pg.screenshot({ path: shot(`home-${tag}-practice-exam-hover-390`), clip: await pg.$eval('#examGrid', e => { const r = e.getBoundingClientRect(); return { x: 0, y: r.top + window.scrollY - 10, width: 390, height: Math.min(r.height + 20, 260) }; }) });
     await pg.hover('#examGrid .exam-btn[data-arg="3"]'); await pg.waitForTimeout(350);
     const m3 = await pg.$eval('#examGrid .exam-btn[data-arg="3"] .exam-mastery', e => ({ c: getComputedStyle(e).color, zero: e.classList.contains('zero') }));
-    if (lang === ZH) await pg.screenshot({ path: shot('home-zh-practice-exam-hover-zero-390'), clip: await pg.$eval('#examGrid', e => { const r = e.getBoundingClientRect(); return { x: 0, y: r.top + window.scrollY - 10, width: 390, height: Math.min(r.height + 20, 260) }; }) });
+    await pg.screenshot({ path: shot(`home-${tag}-practice-exam-hover-zero-390`), clip: await pg.$eval('#examGrid', e => { const r = e.getBoundingClientRect(); return { x: 0, y: r.top + window.scrollY - 10, width: 390, height: Math.min(r.height + 20, 260) }; }) });
     ok(m3.zero && m3.c === muted, `[${tag}] home practice Exam 3 (0%) hover mastery pale (${m3.c})`);
     ok(errs.length === 0, `[${tag}] home: no page errors ${errs.join('; ')}`);
     await pg.close();
@@ -462,11 +462,11 @@ const L = (lang, en, zh) => (lang === ZH ? zh : en);
     await pg.click('.study-tab[data-tab="timeline"]');
     const timeline = [];
     const t0 = Date.now();
-    if (lang === ZH) await pg.screenshot({ path: shot('studytab-zh-immediate-390'), clip: { x: 0, y: 0, width: 390, height: 260 } });
+    await pg.screenshot({ path: shot(`studytab-${tag}-immediate-390`), clip: { x: 0, y: 0, width: 390, height: 260 } });
     for (let i = 0; i < 8; i++) { timeline.push({ ms: Date.now() - t0, tabs: await sample() }); await pg.waitForTimeout(40); }
     await pg.waitForTimeout(300);
     const settled = await sample();
-    if (lang === ZH) await pg.screenshot({ path: shot('studytab-zh-settled-390'), clip: { x: 0, y: 0, width: 390, height: 260 } });
+    await pg.screenshot({ path: shot(`studytab-${tag}-settled-390`), clip: { x: 0, y: 0, width: 390, height: 260 } });
     const first = timeline[0].tabs;
     note(`[${tag}] first sample @${timeline[0].ms}ms:`, first.map(t => `${t.tab}${t.active ? '*' : ''}=${t.bg}`).join(' '));
     const midSamples = timeline.filter(s => s.tabs.some(t => (t.active && t.bg !== navy) || (!t.active && t.bg !== card)));
@@ -486,6 +486,102 @@ const L = (lang, en, zh) => (lang === ZH ? zh : en);
     const tr = await pg.$eval('.study-tab', e => `${getComputedStyle(e).transitionProperty} ${getComputedStyle(e).transitionDuration}`);
     note(`[${tag}] .study-tab transition: ${tr}`);
     ok(errs.length === 0, `[${tag}] studytab: no page errors ${errs.join('; ')}`);
+    await pg.close();
+  }
+
+  // ══════════ 7. QA round 2 additions (2026-10-08, second QA after container restart) ══════════
+  if (want('qa2')) for (const lang of LANGS) {
+    const tag = lang === ZH ? 'zh' : 'en';
+    // QA2-1: wrong tile with exactly 1 left — sub copy, same height, no overflow at 390 / 320
+    for (const width of [390, 320]) {
+      const { pg, errs } = await newPage(b, lang, width, { wrongList: toMap(['4.0']), practiceFlags: toMap(['2.0']) });
+      await click(pg, '#modePractice');
+      const r = await pg.evaluate(() => { const tw = document.getElementById('tileWrong'), tf = document.getElementById('tileFlagged');
+        return { sub: tw.querySelector('.sub').textContent, hW: tw.getBoundingClientRect().height, hF: tf.getBoundingClientRect().height,
+          sw: document.documentElement.scrollWidth, num: tw.querySelector('.t-num').textContent }; });
+      ok(r.num === '1' && r.sub === L(lang, '1 to clear', '尚餘 1 題') && Math.abs(r.hW - r.hF) < 0.5 && r.sw <= width,
+        `[${tag}] qa2 home ${width}px wrong1: sub "${r.sub}", heights ${r.hW}/${r.hF}, scrollWidth ${r.sw}`);
+      if (width === 320) await pg.$eval('#myReview', e => window.scrollTo(0, e.getBoundingClientRect().top + window.scrollY - 140)).then(() => pg.screenshot({ path: shot(`qa2-${tag}-myreview-wrong1-320`) }));
+      ok(errs.length === 0, `[${tag}] qa2 home ${width}px wrong1: no page errors ${errs.join('; ')}`);
+      await pg.close();
+    }
+    // QA2-2: CUI-0016 multi-round loop — 3 wrong, miss 1 → Retry; miss again → Retry still; clear → no Retry
+    {
+      const { pg, errs } = await newPage(b, lang, 390, { wrongList: toMap(['6.0', '6.1', '6.2']) });
+      await click(pg, '#modePractice'); await click(pg, '#tileWrong');
+      await playRound(pg, [true, false, true]);
+      const r1 = await anyVisible(pg, '#screenResult .retry-btn');
+      await click(pg, '#screenResult .retry-btn');
+      const n2 = await pg.evaluate(() => state.questions.length);
+      await playRound(pg, [false]);
+      const r2 = await anyVisible(pg, '#screenResult .retry-btn');
+      await click(pg, '#screenResult .retry-btn');
+      const n3 = await pg.evaluate(() => state.questions.length);
+      await playRound(pg, [true]);
+      const r3 = await anyVisible(pg, '#screenResult .retry-btn');
+      ok(r1 && n2 === 1 && r2 && n3 === 1 && !r3 && Object.keys(await ls(pg, 'wrongList')).length === 0,
+        `[${tag}] qa2 cui16 loop: retry1=${r1} n2=${n2} retry2=${r2} n3=${n3} retry3=${r3}`);
+      await click(pg, '#screenResult .another-btn');
+      ok(await active(pg, 'screenHome'), `[${tag}] qa2 cui16 loop: home button after final clear → Home`);
+      ok(errs.length === 0, `[${tag}] qa2 cui16 loop: no page errors ${errs.join('; ')}`);
+      await pg.close();
+    }
+    // QA2-3: fact-number pills at 320px — no horizontal overflow, numbers intact
+    {
+      const { pg, errs } = await newPage(b, lang, 320);
+      await click(pg, '#modeStudy');
+      for (const tab of ['timeline', 'geo', 'people']) {
+        await click(pg, `.study-tab[data-tab="${tab}"]`);
+        const cards = await readCards(pg);
+        const sw = await pg.evaluate(() => document.documentElement.scrollWidth);
+        const pillOv = await pg.$$eval('#studyContent .fact', els => els.filter(f => { const r = f.getBoundingClientRect();
+          return [...f.querySelectorAll('.fact-meta .tag')].some(t => t.getBoundingClientRect().right > r.right + 0.5); }).length);
+        ok(sw <= 320 && pillOv === 0 && cards.every(c => c.pill && c.pill.endsWith(`Ch ${EXP_CH[c.id]} #${EXP_NUM[c.id]}`)),
+          `[${tag}] qa2 factnum 320px ${tab}: ${cards.length} cards, scrollWidth ${sw}, pills overflowing ${pillOv}`);
+        if (tab === 'timeline') await pg.screenshot({ path: shot(`qa2-${tag}-factnum-timeline-320`) });
+      }
+      ok(errs.length === 0, `[${tag}] qa2 factnum 320px: no page errors ${errs.join('; ')}`);
+      await pg.close();
+    }
+    // QA2-4: Study tab — wait for the real transitionend of background-color, then read .active colour
+    {
+      const { pg, errs } = await newPage(b, lang, 390);
+      await click(pg, '#modeStudy'); await click(pg, '.study-tab[data-tab="chapters"]');
+      await pg.mouse.move(0, 0); await pg.waitForTimeout(300);
+      const navy = await cssVarRgb(pg, '--navy'), card = await cssVarRgb(pg, '--card');
+      const ends = pg.evaluate(() => new Promise(res => {
+        const seen = new Set(); const t0 = performance.now();
+        document.querySelectorAll('.study-tab').forEach(el => el.addEventListener('transitionend', e => {
+          if (e.propertyName === 'background-color') seen.add(el.dataset.tab);
+          if (seen.has('timeline') && seen.has('chapters')) res({ ms: Math.round(performance.now() - t0), tabs: [...seen] });
+        }));
+        setTimeout(() => res({ ms: -1, tabs: [...seen] }), 1500);
+      }));
+      await pg.focus('.study-tab[data-tab="timeline"]'); await pg.keyboard.press('Enter');
+      const ev = await ends;
+      const s = await pg.$$eval('.study-tab', els => els.map(e => ({ tab: e.dataset.tab, active: e.classList.contains('active'), bg: getComputedStyle(e).backgroundColor })));
+      ok(ev.ms >= 0 && s.find(t => t.active).tab === 'timeline' && s.every(t => t.bg === (t.active ? navy : card)),
+        `[${tag}] qa2 studytab keyboard: transitionend after ${ev.ms}ms (${ev.tabs}); ${s.map(t => t.tab + (t.active ? '*' : '') + '=' + t.bg).join(' ')}`);
+      await pg.screenshot({ path: shot(`qa2-${tag}-studytab-transitionend-390`), clip: { x: 0, y: 0, width: 390, height: 260 } });
+      ok(errs.length === 0, `[${tag}] qa2 studytab keyboard: no page errors ${errs.join('; ')}`);
+      await pg.close();
+    }
+  }
+  // QA2-5: S-057 in the en UI — "Ch n" nodes resolve to lang="en" too
+  if (want('qa2')) {
+    const { pg, errs } = await newPage(b, 'en', 390);
+    await click(pg, '#modeStudy');
+    const r = await pg.evaluate(() => {
+      const out = { n: 0, bad: 0 };
+      const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      for (let node; (node = w.nextNode());) {
+        if (!/Ch \d/.test(node.textContent) || !node.parentElement || node.parentElement.offsetParent === null) continue;
+        out.n++; const l = node.parentElement.closest('[lang]'); if (!l || l.lang !== 'en') out.bad++;
+      }
+      return out;
+    });
+    ok(r.n > 0 && r.bad === 0, `[en] qa2 s057 en UI Study: ${r.n} "Ch n" nodes, ${r.bad} not lang="en"`);
+    ok(errs.length === 0, `[en] qa2 s057: no page errors ${errs.join('; ')}`);
     await pg.close();
   }
 
