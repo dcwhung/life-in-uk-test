@@ -293,3 +293,84 @@ context: |
   推薦方案 A：直接用 log 判斷 fact 完成（某一日全部 canonical 題 ok）。改目標入口要到 PR4，
   建議 PR4 前（或者 merge 前順手）修好。W-027、S-108 已確認修好。報告未 commit。
 ```
+
+---
+
+# Round 3（commit 6ec9cf5，基於 0d43cb2）
+
+- 日期：2026-10-08
+- 範圍：`git show 6ec9cf5`，只改咗 `js/domain/planProgress.js` 同 `tests/plan-test.js`。新規則：只要任何一日嘅 log 入面，一條 fact 嘅全部 canonical 題都 `ok`，就當呢條 fact 已完成；`planTodayDoneTasks` 改為由今日 log 組 group。
+- 方法：重跑 Round 2 `probe2`（連續改目標兩次）；新加 `probe3`（喺強化日改目標）；再跑 `plan-test`（2642 checks × 3 TZ）、`structure-test`、`i18n-test`、`upgrade-test`、`sw-test`，全部 PASS。跑完已還原 png，working tree clean。
+- 總評：**W-028 已修**。新規則同 G3 / G7 一致。不過「今日釘返」嘅部份有一個新副作用，開咗 W-029。**94 / 100，pass**
+
+## W-028 驗證
+
+| 情況 | Round 2 | Round 3 |
+|---|---|---|
+| 提早喺 10-13 完成 32 條，再連續改目標兩次 | 第二次重排 32 條 | **0 條**（全部 day 都冇再出現） |
+| 今日完成 32 條，第一次改目標令今日變休息日，第二次改返 | 第二次重排 32 條 | 32 條全部釘喺新今日（已完成）；**其他日子 0 條** |
+| 同日改做 30 分鐘（Round 1 原本嘅 repro） | — | 32 / 32 條釘喺今日；聽日重複 0 條；每條 fact 剛好排一次；照 parse 到 |
+
+## 新規則嘅副作用：判斷
+
+**問題：喺強化日或清錯題日答啱，會唔會令一條未學嘅 fact 當成完成，跳過 learn？會，而我認為可以接受。**
+- **G3**：「溫咗一條 fact」嘅定義係**答啱對應題目**；淨係睇、唔做題就唔計。
+- **G4**：要全部題目都答啱。新規則要求同一日全部 canonical 題 `ok`，同 read task 嘅完成條件完全一樣，冇放寬。
+- **G7**：改目標只重排「未完成」嘅內容。一條 fact 嘅題目已經全部答啱過，按 G3 就係「已溫」，再排入 learn 反而違反 G7。
+- **log 嘅來源**：log 只會記錄計劃任務入面出現過嘅題目（attribution ①–③），隨意喺 Practice 答嘅題目唔會入 log，所以唔會有雜訊令 fact「意外」完成。
+- **影響範圍**：只影響 `replanFrom`；`buildPlan` 同 `planKpis.factsDone` 本身已經用 log 判斷（`factsDone` 由 Round 1 起就係咁），而家兩邊口徑一致，係改善。
+- **剩低一個邊界**：如果 PR3「建立新計劃」冇清走舊 log，舊計劃嘅 log 會令新計劃改目標時跳過 fact。Round 1 已經提示 PR3 建立前要 `clearStudyPlan()`，呢度再強調一次。
+
+## 新問題
+
+### 🟡 W-029：喺非 learn 日改目標，會將早已學完嘅 fact 重複釘入今日，令今日 % 失真
+
+- **位置**：`js/domain/planProgress.js` `planTodayDoneTasks`
+- **描述**：`planFactsDoneOn(log, today)` 會揀出今日 log 入面全部題目都 `ok` 嘅 fact，但冇排除喺**之前日子**已經完成嘅 fact。強化日 / 清錯題日答嘅題目大部份屬於已經學完嘅 fact，所以改目標之後，呢啲 fact 會變成今日嘅 read + practice 任務再出現一次。
+- **重現**（probe3）：21 日計劃，learn 日全部完成，今日係第一個強化日，而且已經 100% 完成（24/24）。改目標做 90 分鐘之後：
+  - 今日任務變成 `read, practice, read, practice, drill ×3, wrongFacts`，其中 **10 條係早已學完嘅 fact**；
+  - 成個計劃有 246 個 read fact，但只有 236 條 unique，違反 PR1 驗收「每條 fact 剛好出現一次」；
+  - 今日 % 由 100 變 48（28/58）。
+- **影響**：顯示錯誤：強化日出現「讀知識點」任務，KPI / 連續紀錄計算都會受影響。冇資料損失。
+- **方案 A（推薦）**：`planTodayDoneTasks` 只釘**今日先第一次完成**嘅 fact，即係排除喺今日之前任何一日已經完成嘅 fact（可以由 `planFactsDoneSet` 減去今日嗰日計出嚟）。改動大約 3 行，加一個 test。
+- **方案 B**：只釘喺今日舊 read task 入面嘅 fact，再加上今日之前未完成嘅 fact。比較複雜，冇明顯好處。
+- **相關觀察（冇開 ID）**：喺強化日改目標，今日已經 materialise 嘅 drill 會被重新生成，下次打開今日頁先再揀題目。今日已答啱嘅題目可能唔喺新嘅 drill 入面。G7 寫明「由今日起用新目標重排」，所以呢個係按規格嘅行為；如果想保留今日已做嘅強化，可以喺 PR4 考慮：今日唔係 learn 日時保留已經 materialise 嘅 task。
+
+## 評分結果（Round 3）
+
+| 維度 | 得分 | 滿分 | 備注 |
+|------|------|------|------|
+| 正確性 | 20 | 25 | W-029 |
+| 安全性 | 20 | 20 | — |
+| 可維護性 | 20 | 20 | 完成度只有一個來源（log），`planFactsDoneOn` 好簡潔 |
+| 測試覆蓋 | 14 | 15 | 有雙重改目標 case；冇非 learn 日改目標嘅 case |
+| 性能 | 10 | 10 | 183 日 log 全掃一次，可以接受 |
+| 代碼風格 | 10 | 10 | — |
+| **總分** | **94** | **100** | |
+
+**結果：✅ pass**（≥ 90、冇 Critical）。W-029 建議喺 PR4 加改目標 UI 之前修好。
+
+## HANDOFF_RECEIPT（Round 3）
+
+```
+HANDOFF_RECEIPT
+from: code-reviewer
+task: review PR #57 round 3 (commit 6ec9cf5: W-028 fix)
+status: pass
+score: 94
+hard_gates:
+  lint: n/a
+  type_check: n/a
+  tests: pass (plan-test 2642 checks × 3 TZ; structure / i18n / upgrade / sw re-run PASS; run-all 32/32 self-reported)
+  coverage: n/a
+  no_critical: pass
+  security_scan: n/a
+findings: C=0 W=1 (W-029 new) S=0; W-028 verified fixed
+report: .proj-docs/reviews/2026-10-08_review_plan-pr1.md (Round 3 section)
+next_action: invoke_qa
+context: |
+  W-028 已修：連續改目標兩次 0 條重排。新規則（任何一日 log 全部題 ok = fact 完成）符合 G3/G4/G7，
+  強化日答啱令未學 fact 跳過 learn 屬可接受。新 W-029：planTodayDoneTasks 冇排除之前已完成嘅 fact，
+  非 learn 日改目標會重複釘 read 任務（246 read / 236 unique），今日 % 100 → 48；修法約 3 行，建議 PR4 前修。
+  PR3 建立新計劃前要 clearStudyPlan()（舊 log 會影響新計劃）。報告未 commit。
+```
