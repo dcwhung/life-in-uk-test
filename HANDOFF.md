@@ -286,6 +286,10 @@ v0.66（Track 2，plan `2026-10-07_plan_zh-hk-locale.md` Q5 / Q7 / Q8、T-101…
 | Margaret Thatcher | 3 | 1.8、11.7、17.4 | 任期 1979–1990 共 11 年；首位女首相；20 世紀最長 |
 | Crown dependency（三層） | 7 | 1.19、5.19、12.0、17.5、2.1、5.3、11.0 | UK 四地 → Crown dependency（曼島、海峽群島）→ 海外領土（St Helena、Falklands、Gibraltar、Bermuda）；陷阱 Shetland／Isle of Wight／Anglesey |
 | 戰役時間線 | 15 | 2.10、4.17、9.20、6.18、7.5、1.11、16.20、6.11、12.3、14.5、4.0、9.1、16.12、11.6、17.12 | 9 世紀 Vikings → 1066 Hastings → 1314 Bannockburn → 1588 Armada → 1805 Trafalgar → 1815 Waterloo → 1940 Battle of Britain |
+| Magna Carta（v0.71） | 8 | 4.16、6.6、7.14、8.13、12.23、15.6、16.16、17.21 | 1215 King John 簽署 → 限制國王權力、國王都要守法 → 法治基礎 |
+| 國王 vs 國會（v0.71） | 8 | 16.10、11.18、15.12、15.2、1.22、15.19、13.5、15.16 | 1628 Petition of Right → 1642–1651 Civil War → 1649 處決 Charles I、Cromwell 護國公至 1658 → 1660 Restoration → 1688 Glorious Revolution |
+| 二戰（v0.71） | 9 | 6.22、15.22、8.0、3.18、4.22、2.23、16.6、14.12、2.8 | 1939 入侵波蘭 → 1940 Churchill / Dunkirk / Battle of Britain → 1940–41 Blitz → 1944 D-Day → 1945 VE / VJ Day（11.6、17.12 留喺戰役時間線） |
+| 都鐸王朝（v0.71） | 9 | 1.5、3.3、4.15、13.22、8.23、12.8、13.11、17.13、16.2 | 玫瑰戰爭 → Henry VII → Henry VIII 脫離天主教會、解散修道院、六任妻子 → Elizabeth I 處決 Mary, Queen of Scots（16.20 留喺戰役時間線） |
 
 **加新題組嘅做法：** 用 Python regex 按 `q:"…"` 匹配整行再替換 `note:"…"`，跟住用 node 載入 `EXAMS` 驗證題組內所有 note 相同，最後升 `APP_VERSION`、跑 `tests/run-all.sh`。
 
@@ -780,11 +784,11 @@ c10115b feat: randomise answer option order in Practice and Exam mode
 ## Follow-up 候選（未做）
 
 - [x] 1.19、14.3 備注改成分行列點（v0.70 B1，batch 9；Crown dependency 記憶法同組 7 題一齊改）
-- [ ] 其他可整合記憶法嘅題組：君主／王朝時序、Civil War（1642–1651）相關、WWII 事件（Dunkirk、Blitz、D-Day）、Magna Carta 1215 三條重複題
+- [x] 其他可整合記憶法嘅題組（v0.71 B2，batch 10）：Magna Carta、國王 vs 國會、二戰、都鐸王朝；諾曼征服（M5）用戶決定唔做
 - [x] Study fact 卡片加「跳去來源題目」（v0.63，P3 PR-3：來源列 +「▶ Practise these N」）
 - [ ] 記憶法備注同步落 `study.js` 對應 fact（目前只喺 `exams.js`）
 - [x] Practice 加 flag 功能，再執 Practice 結果頁（v0.53 完成）
-- [ ] 錯題 / Flagged review 中途離開可以續做（用戶話暫時唔做）
+- [x] ~~錯題 / Flagged review 中途離開可以續做~~ —— **用戶決定唔做**（2026-10-08 B4：中途離開唔可以續做）
 - [x] 首頁「Reset progress」一併清 `wrongList` / `practiceFlags`（v0.54）
 - [x] 首頁 Reset 掣改用 app 內 modal（同 Exam 一致）（v0.59）
 - [x] 拆 `index.html`、data-action、真 `sw.js`（v0.57，P1）
