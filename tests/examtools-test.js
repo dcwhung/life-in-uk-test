@@ -103,14 +103,17 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(await pg.evaluate(() => examTimerId === null), 'timer stopped');
   // W-024: time up while the submit modal is open closes it — results are not covered and cannot be submitted twice
   await pg.evaluate(() => { pendingMode = 'exam'; startExam(4); state.current = state.questions.length - 1; renderQuestion(); });
-  await pg.click('#nextBtn');
+  await pg.focus('#nextBtn'); await pg.keyboard.press('Enter'); // S-099: keyboard-opened, so focus returns to Submit
   assert(await modalOpen(), 'W-024: submit modal open before time up');
+  // S-099: press Enter straight after time up (no layout read in between, which would let Chromium drop the focus
+  // itself) — it must not reopen Submit, so the exam cannot be finished twice
   await pg.evaluate(() => { examDeadline = Date.now() - 1; examTick(); });
+  await pg.keyboard.press('Enter');
   assert(await active('screenResult') && !(await modalOpen()), 'W-024: time up closes the open modal on the way to results');
-  assert(await vis('#resultTimeUp'), "W-024: results keep the time-up note");
+  assert(await vis('#resultTimeUp'), "W-024 / S-099: results keep the time-up note after a stray Enter");
   // S-098: same with the Leave prompt open — time up still submits, and a stray Enter does not go home
   await pg.evaluate(() => { pendingMode = 'exam'; startExam(4); });
-  await pg.click('#screenQuiz .back-btn');
+  await pg.focus('#screenQuiz .back-btn'); await pg.keyboard.press('Enter'); // S-099: keyboard-opened, so focus returns there
   assert(await modalOpen() && /Leave the exam\?/.test(await modalText()), 'S-098: leave modal open before time up');
   await pg.evaluate(() => { examDeadline = Date.now() - 1; examTick(); });
   await pg.keyboard.press('Enter');
