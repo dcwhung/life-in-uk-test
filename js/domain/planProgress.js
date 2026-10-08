@@ -279,27 +279,27 @@ function planMonthGrid(plan, log, year, month, todayIso) {
 }
 
 // ── re-plan (G7): past days frozen word for word, unfinished facts re-planned from today, Day 1 unchanged ──
-// W-026: a fact counts as done on the day of the read task that holds it, past, today or early on a later day alike
-function planFactsDoneSet(plan, log) {
-  const done = new Set();
-  plan.days.forEach(d => d.tasks
-    .filter(t => t.type === PLAN_TASK.read)
-    .forEach(t => t.facts.filter(id => planFactDone(id, planDayLog(log, d.date))).forEach(id => done.add(id))));
-  return done;
+// W-026 / W-028: a fact is done once one day's log has all its canonical questions right (G3 / G4), whichever task
+// that day held them: the log only keeps answers credited to plan tasks, and it outlives every re-plan, so a fact
+// finished early or on a day a later re-plan turned into a rest day stays finished however often the goal changes
+function planFactsDoneOn(log, iso) {
+  const dayLog = planDayLog(log, iso);
+  const facts = planUnique(Object.keys(dayLog.ok).map(k => FACT_BY_QKEY[k]).filter(Boolean).map(f => f.id));
+  return facts.filter(id => planFactDone(id, dayLog));
 }
-function planFactsLeft(plan, log) {
-  const done = planFactsDoneSet(plan, log);
+function planFactsDoneSet(log) {
+  return new Set(Object.keys(log.days).flatMap(iso => planFactsDoneOn(log, iso)));
+}
+function planFactsLeft(log) {
+  const done = planFactsDoneSet(log);
   return PLAN_LEARN_ORDER.filter(id => !done.has(id));
 }
-// today's finished facts as read + practice groups, so the new today still shows (and counts) the work done
-function planTodayDoneTasks(plan, todayIso, log) {
-  const day = planDayAt(plan, todayIso);
-  const dayLog = planDayLog(log, todayIso);
-  if (!day) return [];
-  return day.tasks.filter(t => t.type === PLAN_TASK.read).flatMap(t => {
-    const facts = t.facts.filter(id => planFactDone(id, dayLog));
-    return facts.length ? planLearnTasks([{ ch: t.ch, ids: facts }]).slice(0, -1) : [];
-  });
+// facts finished today as read + practice groups (learn order, one group per chapter run), so the new today still
+// shows and counts them
+function planTodayDoneTasks(todayIso, log) {
+  const done = new Set(planFactsDoneOn(log, todayIso));
+  const items = PLAN_LEARN_ORDER.filter(id => done.has(id)).map(id => ({ ch: planFactById(id).ch, id, w: 1 }));
+  return items.length ? planLearnTasks(planChunkWeighted(items, 1)[0]).slice(0, -1) : [];
 }
 // pinned groups go first on the new today (not on a rest day); the day's own pair indexes shift past them
 function planPinToday(days, pinned) {
@@ -321,7 +321,7 @@ function replanFrom(plan, goal, todayIso, log) {
   // clock moved before Day 1: nothing is frozen, the plan restarts today
   if (todayIso < plan.start) return { ...buildPlan(goal, todayIso), createdAt: plan.createdAt, goalHistory: history };
   const own = planCopyGoal(goal);
-  const fresh = planPinToday(buildPlanDays(todayIso, own, planFactsLeft(plan, log)), planTodayDoneTasks(plan, todayIso, log));
+  const fresh = planPinToday(buildPlanDays(todayIso, own, planFactsLeft(log)), planTodayDoneTasks(todayIso, log));
   const days = [...planFrozenDays(plan, todayIso), ...fresh];
   return { ...plan, goal: own, goalHistory: history, carryFrom: todayIso, days };
 }

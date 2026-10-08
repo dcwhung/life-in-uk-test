@@ -426,6 +426,31 @@ function checkReplanKeepsDoneFacts() {
   assert(same(planned, g('PLAN_LEARN_ORDER').filter(id => !earlyFacts.includes(id))), 'W-026: every other fact (Day 1 ones included, unfinished) is planned once, in learn order');
 }
 
+// W-028: finished facts stay finished through any number of re-plans, even once no read task holds them any more
+function checkReplanTwice() {
+  const readFacts = days => days.flatMap(d => d.tasks.filter(t => t.type === 'read').flatMap(t => t.facts));
+  const dayQids = d => d.tasks.filter(t => t.type === 'practice').flatMap(t => t.qids);
+  const plan = g('buildPlan')(goalFor(21, 60), TODAY);
+  const early = plan.days.find(d => d.date === '2026-10-13');
+  const earlyLog = logWith('2026-10-13', dayQids(early));
+  const earlyFacts = readFacts([early]);
+  const once = g('replanFrom')(clone(plan), goalFor(28, 60, [0]), '2026-10-09', earlyLog);
+  const twice = g('replanFrom')(clone(once), goalFor(35, 90, [0, 6]), '2026-10-09', earlyLog);
+  const again = readFacts(twice.days.slice(1)).filter(id => earlyFacts.includes(id));
+  assert(earlyFacts.length > 0 && again.length === 0, `W-028: ${earlyFacts.length} facts finished early, re-planned twice → ${again.length} planned again`);
+  assert(same(readFacts(twice.days.slice(1)), g('PLAN_LEARN_ORDER').filter(id => !earlyFacts.includes(id))), 'W-028: the rest are still planned once each');
+  const full = g('buildPlan')(goalFor(21, 120), TODAY);
+  const todayLog = logWith(TODAY, dayQids(full.days[0]));
+  const doneToday = readFacts([full.days[0]]);
+  const restToday = g('replanFrom')(clone(full), goalFor(21, 120, [4]), TODAY, todayLog);
+  assert(restToday.days[0].phase === 'rest' && !readFacts(restToday.days).some(id => doneToday.includes(id)), 'W-028 setup: today turned into a rest day holds none of the facts done today');
+  const back = g('replanFrom')(clone(restToday), goalFor(21, 120, [0]), TODAY, todayLog);
+  const moved = readFacts(back.days.slice(1)).filter(id => doneToday.includes(id));
+  assert(moved.length === 0, `W-028: ${doneToday.length} facts done today, today made a rest day and back → ${moved.length} planned again`);
+  const all = readFacts(back.days);
+  assert(doneToday.every(id => readFacts([back.days[0]]).includes(id)) && all.length === FACT_COUNT && new Set(all).size === FACT_COUNT, 'W-028: they are back on today, every fact once');
+}
+
 // W-027: a past drill / wrong-facts task gets its contents when opened; carry and next step never point at an empty task
 function checkPastDayContents() {
   const plan = g('buildPlan')(goalFor(42, 60, [0]), TODAY);
@@ -668,6 +693,7 @@ function runSuite() {
   checkMaterialize();
   checkReplan();
   checkReplanKeepsDoneFacts();
+  checkReplanTwice();
   checkPastDayContents();
   checkEnsurePlanDay();
   checkParseTaskFields();
