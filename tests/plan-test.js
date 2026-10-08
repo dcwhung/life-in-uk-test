@@ -697,7 +697,8 @@ function checkNamesAndLoading() {
   assert(lb.indexOf("'js/domain/plan.js'") > 0 && lb.indexOf("'js/domain/plan.js'") < lb.indexOf("'js/domain/planProgress.js'"), 'R1: LATE_BOOT_SCRIPTS loads plan.js then planProgress.js for old shells');
   const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
   assert(PLAN_FILES.every(f => sw.includes(`'${f}'`)), 'sw.js SHELL caches both plan files');
-  assert(g('APP_VERSION') === '1.0.0', 'APP_VERSION stays 1.0.0 in a middle PR (G19)');
+  // G19 (no version bump in a middle PR) is a review rule: unrelated PRs may bump APP_VERSION (CUI-0018)
+  assert(/^\d+\.\d+\.\d+$/.test(g('APP_VERSION')), 'APP_VERSION is MAJOR.MINOR.PATCH (SemVer)');
 }
 
 function runSuite() {
