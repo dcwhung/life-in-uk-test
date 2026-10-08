@@ -164,6 +164,8 @@
   .sp-exam-pat, .sp-cell.sp-exam-pat { background-color: var(--sp-exam-bg); background-image: linear-gradient(45deg, var(--sp-exam-line) 1px, transparent 1px), linear-gradient(-45deg, var(--sp-exam-line) 1px, transparent 1px); background-size: 8px 8px; }
 
   .sp-click { cursor: pointer; }
+  .sp-day-switch { display: flex; align-items: center; justify-content: space-between; gap: 8px; background: var(--card); border: 1.5px solid var(--border); border-radius: var(--radius-md); padding: 6px; }
+  .sp-day-switch .quiz-label { text-align: center; }
   .sp-day.sp-click:hover { background: var(--selected-bg); margin: 0 -8px; padding-inline: 8px; border-radius: var(--radius-sm); }
   .sp-cell.sp-click:hover { box-shadow: 0 0 0 2px var(--navy-light); }
   .sp-cell.viewing { outline: 2.5px dashed var(--navy); outline-offset: 1px; }
@@ -172,7 +174,7 @@
   .sp-ring { width: 112px; height: 112px; }
   .sp-ring circle { fill: none; stroke-width: 10; }
   .sp-ring .track { stroke: var(--border); }
-  .sp-ring .prog { stroke: var(--green-light); stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset 0.4s; }
+  .sp-ring .prog { stroke: var(--sp-heat-4); stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset 0.4s; }
   .sp-ring text { fill: var(--text); font-weight: 800; font-size: 22px; }
   .sp-ring .sub { fill: var(--text-muted); font-size: 10px; font-weight: 700; }
   .sp-task { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px; border-radius: var(--radius-md); border: 1.5px solid var(--border); background: var(--card); color: var(--text); cursor: pointer; text-align: left; width: 100%; }
@@ -193,6 +195,9 @@
   .sp-tag { display: inline-block; font-size: var(--fs-2xs); font-weight: 800; border-radius: var(--radius-pill); padding: 1px 7px; margin-left: 6px; vertical-align: 1px; }
   .sp-tag.carry { background: var(--flag-bg); color: var(--orange); }
   .sp-tag.auto { background: var(--success-bg); color: var(--green); }
+  .sp-tag.wrong { background: var(--danger-bg); color: var(--red); }
+  .sp-ok { color: var(--green); font-weight: 800; }
+  .sp-bad { color: var(--red); font-weight: 800; }
   .sp-done-banner { background: var(--success-bg); color: var(--green); border-radius: var(--radius-md); padding: 12px 14px; font-size: var(--fs-md); line-height: 1.5; }
   .sp-alert { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px; background: var(--flag-bg); border-radius: var(--radius-md); padding: 10px 12px; font-size: var(--fs-sm); line-height: 1.55; }
   .sp-note { font-size: var(--fs-xs); color: var(--green); background: var(--success-bg); border-radius: var(--radius-sm); padding: 8px 10px; line-height: 1.5; }
@@ -407,8 +412,12 @@
       <div class="screen" id="step3"><div class="sp-stack">
         <div class="quiz-header">
           <button class="back-btn" data-goto="0">← 主頁</button>
-          <span class="quiz-label num" id="todayLabel"></span>
           <button class="nav-btn secondary sp-small" data-goto="2">進度表</button>
+        </div>
+        <div class="sp-day-switch">
+          <button class="quick-btn" id="dayPrev" data-dayshift="-1" aria-label="前一日">‹</button>
+          <span class="quiz-label num" id="todayLabel"></span>
+          <button class="quick-btn" id="dayNext" data-dayshift="1" aria-label="後一日">›</button>
         </div>
 
         <h2 class="sp-h2" id="dayTitle">今日任務</h2>
@@ -734,6 +743,21 @@ function doneRaw(t) {
   return p && t.id in p ? p[t.id] : t.seed;
 }
 
+function results(t) { const p = readLS()[sig()]; return (p && p[`r:${t.id}`]) || {}; }
+
+function saveResult(t, pos, ok) {
+  const all = readLS();
+  all[sig()] = all[sig()] || {};
+  const key = `r:${t.id}`;
+  all[sig()][key] = { ...(all[sig()][key] || {}), [pos]: ok };
+  writeLS(all);
+}
+
+function tally(t) {
+  const r = Object.values(results(t));
+  return { ok: r.filter(Boolean).length, bad: r.filter(x => !x).length };
+}
+
 function setDone(t, n) {
   const all = readLS();
   all[sig()] = all[sig()] || {};
@@ -760,6 +784,17 @@ function dayPct(d) {
 }
 
 function nextTask(tasks) { return tasks.find(t => effectiveDone(t) < t.total); }
+// red → green for a %, through the calendar's heat stops
+const PCT_STOPS = [[0, [232, 115, 95]], [50, [240, 165, 74]], [75, [201, 207, 79]], [100, [82, 183, 136]]];
+function pctColor(p) {
+  const v = Math.max(0, Math.min(PERCENT, p));
+  const k = PCT_STOPS.findIndex(([at]) => at >= v);
+  if (k <= 0) return `rgb(${PCT_STOPS[0][1].join(',')})`;
+  const [a0, c0] = PCT_STOPS[k - 1]; const [a1, c1] = PCT_STOPS[k];
+  const f = (v - a0) / (a1 - a0);
+  return `rgb(${c0.map((c, j) => Math.round(c + (c1[j] - c) * f)).join(',')})`;
+}
+
 function heatClass(p) { return p >= PERCENT ? 'h4' : p >= HEAT_STEPS[0] ? 'h3' : p >= HEAT_STEPS[1] ? 'h2' : p > 0 ? 'h1' : ''; }
 
 // ════════ step 0 ════════
@@ -896,10 +931,19 @@ function renderPlan() {
 }
 
 // ════════ step 3 ════════
+// question tasks also say how many were right / wrong; a wrong answer still counts as done, the question goes to 錯題
+function tallyHtml(t) {
+  if (t.type === 'read') return '';
+  const { ok, bad } = tally(t);
+  if (!ok && !bad) return '';
+  const where = t.type === 'review' ? '仍喺錯題 set' : '已加入錯題 set';
+  return ` · <span class="sp-ok">✓ ${ok}</span> <span class="sp-bad">✗ ${bad}</span>${bad ? `<span class="sp-tag wrong">${bad} 題${where}</span>` : ''}`;
+}
+
 function taskStatus(t) {
   const own = doneRaw(t); const eff = effectiveDone(t);
-  if (eff >= t.total) return { go: '✓ 重溫 ›', st: eff > own ? '<b>✓ 練咗對應題目，自動當溫咗</b>' : `<b>✓ 已完成 ${t.total} ${t.unit}</b>` };
-  if (eff > 0) return { go: '繼續 ›', st: `已做 ${eff} / ${t.total} ${t.unit} · 由 #${t.from + eff} 繼續${eff > own ? '<span class="sp-tag auto">部份由練習自動計</span>' : ''}` };
+  if (eff >= t.total) return { go: '✓ 重溫 ›', st: eff > own ? '<b>✓ 練咗對應題目，自動當溫咗</b>' : `<b>✓ 已完成 ${t.total} ${t.unit}</b>${tallyHtml(t)}` };
+  if (eff > 0) return { go: '繼續 ›', st: `已做 ${eff} / ${t.total} ${t.unit}${tallyHtml(t)} · 由 #${t.from + eff} 繼續${eff > own ? '<span class="sp-tag auto">部份由練習自動計</span>' : ''}` };
   return { go: '開始 ›', st: `${t.total} ${t.unit} · ${TASK_MODES[t.type]}` };
 }
 
@@ -911,7 +955,7 @@ function renderTaskList(tasks) {
       <span class="ic">${TASK_ICONS[t.type]}</span>
       <span style="min-width: 0;"><span class="ttl">${t.t}${t.carry ? `<span class="sp-tag carry">Day ${DEMO_CARRY_DAY}</span>` : ''}</span>
         <span class="st">${s.st}</span>
-        <span class="mini"><i style="width:${eff / t.total * PERCENT}%"></i></span></span>
+        <span class="mini"><i style="width:${eff / t.total * PERCENT}%; background:${pctColor(eff / t.total * PERCENT)}"></i></span></span>
       <span class="go">${s.go}</span></button>`;
   }).join('');
 }
@@ -921,6 +965,7 @@ function renderRing(tasks, d) {
   const c = 2 * Math.PI * RING_R;
   $('ringProg').style.strokeDasharray = c;
   $('ringProg').style.strokeDashoffset = c * (1 - pct / PERCENT);
+  $('ringProg').style.stroke = pctColor(pct);
   $('ringPct').textContent = `${pct}%`;
   $('ringSub').textContent = d.i === TODAY_INDEX ? '今日完成度' : '當日完成度';
   $('todayCount').textContent = d.rest ? '休息日，冇任務' : `${tasks.filter(t => effectiveDone(t) >= t.total).length} / ${tasks.length} 項完成`;
@@ -1000,7 +1045,7 @@ function renderKpis(plan) {
   ];
   $('progRows').innerHTML = rows.map(r => {
     const pct = Math.round(r.v / r.of * PERCENT);
-    return `<div class="sp-pr"><div class="top"><span>${r.k}</span><span class="num">${r.v} / ${r.of} · <b>${pct}%</b></span></div><div class="sp-meter"><i style="width:${pct}%;background:var(--green-light)"></i></div></div>`;
+    return `<div class="sp-pr"><div class="top"><span>${r.k}</span><span class="num">${r.v} / ${r.of} · <b>${pct}%</b></span></div><div class="sp-meter"><i style="width:${pct}%;background:${pctColor(pct)}"></i></div></div>`;
   }).join('');
 }
 
@@ -1020,6 +1065,8 @@ function renderToday() {
   const tasks = dayTasks(d.i);
   const isToday = d.i === TODAY_INDEX;
   $('todayLabel').textContent = `Day ${d.i + 1} / ${state.days} · ${fmtDate(d.date)}（${WEEKDAYS[d.date.getDay()]}）`;
+  $('dayPrev').disabled = d.i === 0;
+  $('dayNext').disabled = d.i === state.days - 1;
   $('dayTitle').textContent = isToday ? '今日任務' : `Day ${d.i + 1} 任務`;
   $('backToday').hidden = isToday;
   $('dayHint').textContent = isToday ? '完成度由 system 自動計：喺溫習／練習模式做咗嘅都計。練完一段題目，嗰段知識點當溫咗。'
@@ -1062,7 +1109,7 @@ function renderRunner() {
   const r = state.runner; const t = r.task;
   const done = effectiveDone(t);
   let body;
-  if (r.review) body = `<p class="sp-note">✓ 呢項已完成 · 而家係重溫，唔會改變完成度。</p><div class="sp-run-gap"></div>` + contentHtml(t, r.pos, true);
+  if (r.review) body = `<p class="sp-note">✅ 呢項已完成 · 而家係重溫，唔會改變完成度。</p><div class="sp-run-gap"></div>` + contentHtml(t, r.pos, true);
   else if (done >= t.total) body = taskDoneHtml(t);
   else body = contentHtml(t, done, false);
   $('runner').innerHTML = runHeader(t) + body;
@@ -1125,7 +1172,7 @@ function factRunHtml(t, pos, review) {
   const shown = review ? pos + 1 : pos;
   const card = t.wrongFacts ? sqmHtml(f, 3) : factCardHtml(f, t.from + pos);
   return `<div class="sp-run-meta num"><span>${t.t}</span><span>${review ? `${pos + 1} / ${t.total}` : `${pos} / ${t.total}`} 條</span></div>
-    <div class="sp-meter" style="height: 5px; margin-bottom: 14px;"><i style="width:${shown / t.total * PERCENT}%; background: var(--green-light);"></i></div>
+    <div class="sp-meter" style="height: 5px; margin-bottom: 14px;"><i style="width:${shown / t.total * PERCENT}%; background: ${pctColor(shown / t.total * PERCENT)};"></i></div>
     ${card}
     <div class="sp-run-gap"></div>
     ${runNavHtml(t, pos, review, '條')}`;
@@ -1142,10 +1189,10 @@ function optionHtml(q, oi, revealed, picked) {
 
 function noteRows(note) { return note.split('\n').map(line => `<div class="rv-note-line">${line}</div>`).join(''); }
 
-function answerBoxHtml(q, revealed, picked, review) {
+function answerBoxHtml(q, revealed, picked, review, wasWrong) {
   if (!revealed) return '<div class="answer-box"></div>';
-  const correct = picked === q.a;
-  const label = review ? '✓ 正確答案' : `${correct ? '✓ 正確！' : '✗ 錯誤'} · 🔥 ${correct ? 1 : 0}/${MASTERY_STREAK}`;
+  const correct = review ? !wasWrong : picked === q.a;
+  const label = review ? (wasWrong ? '✗ 你上次答錯 · 正確答案' : '✓ 正確答案') : `${correct ? '✓ 正確！' : '✗ 錯誤'} · 🔥 ${correct ? 1 : 0}/${MASTERY_STREAK}`;
   return `<div class="answer-box show${correct ? '' : ' wrong-ans'}">
       <div class="ans-label${correct ? '' : ' wrong'}">${label}</div>
       <div class="ans-en${correct ? '' : ' wrong'}" lang="en">${q.o[q.a]}</div>
@@ -1168,9 +1215,9 @@ function roundOf(t, pos) {
 // same classes as navDotsHtml() / dotStateCls() in js/screens/examTools.js; earlier sessions count as answered
 function dotState(p) {
   const r = state.runner;
-  if (r.review) return 'ok';
-  if (r.results[p] !== undefined) return r.results[p] ? 'ok' : 'bad';
-  return p < r.startDone ? 'ok' : '';
+  const saved = results(r.task)[p];
+  if (saved !== undefined) return saved ? 'ok' : 'bad';
+  return r.review || p < r.startDone ? 'ok' : '';
 }
 
 function navDotsHtml(pos, round) {
@@ -1221,7 +1268,7 @@ function questionRunHtml(t, pos, review) {
       <div class="q-yue ${yueOn ? 'show' : ''}" lang="zh-HK">${q.yue}</div>
     </div>
     <div class="options" lang="en">${q.o.map((_, oi) => optionHtml(q, oi, revealed, picked)).join('')}</div>
-    ${answerBoxHtml(q, revealed, picked, review)}
+    ${answerBoxHtml(q, revealed, picked, review, review && results(t)[pos] === false)}
     ${pairNote}
     ${runNavHtml(t, pos, review, '題')}`;
 }
@@ -1263,7 +1310,7 @@ function pickOption(k) {
   r.picked = k;
   const done = effectiveDone(r.task);
   const q = SAMPLE_QS[done % SAMPLE_QS.length];
-  r.results[done] = k === q.a;
+  saveResult(r.task, done, k === q.a);
   if (k === q.a) r.right++; else r.wrong++;
   renderRunner();
 }
@@ -1311,6 +1358,7 @@ document.addEventListener('click', e => {
   if (ds.step) return goto(+ds.step);
   if (ds.goto) return goto(+ds.goto, true);
   if (ds.viewday) return viewDay(TODAY_INDEX);
+  if (ds.dayshift) return viewDay(Math.min(state.days - 1, Math.max(0, state.viewDay + +ds.dayshift)));
   if (ds.days) { state.days = +ds.days; return renderGoal(); }
   if (ds.rest) { const r = +ds.rest; state.rest.has(r) ? state.rest.delete(r) : state.rest.add(r); return renderGoal(); }
   if (ds.level) { state.level = ds.level; return renderGoal(); }
