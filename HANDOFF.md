@@ -463,7 +463,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | `lang-switch-test.js` | v0.65（T-007）：pill 顯示目標語言（`中` / `EN`）、`aria-label` / `title`、44px hit area（四邊 `elementFromPoint`，S-044）；撳 pill → `<html lang>`、`lifeuk.uiLang`、reload 保持；Home / Quiz（Practice reveal + Similar、side session ↩、Exam 中途 + flag）/ Result（filter）/ Flagged / Study（tab / chip / 搜尋）每個畫面 en → zh-HK → en，`snapState` 比對 `state`、timer、`sessionReturn`、review、`study`、搜尋框、成個 localStorage（除 `uiLang`）不變、冇 `[i18n] missing key`、成績唔重複記錄；exam timer 即刻換字而唔 call `examTick`；confirm modal 開住（focus pill + Enter）唔切換；`<title>` 保持英文；M2 國家 chip 冇拉丁字母；M6 `🎯 全部試題（408 題）` ↔ `🎯 All Questions (408)`；W-014 `checkContentLang`（`closest('[lang]')`，唔准落到 `<html>`）；M4 `.result-sub` 320px 唔跌單字（要有 CJK 字體，S-045）；320px 冇橫向 overflow；pill dblclick 唔被 double tap guard 食（wait 由 `SCREEN_CHANGE_CLICK_GUARD_MS` 計，S-043） |
 | `practicedots-test.js` | v0.55：Practice 圓圈（24 / 9 / review 題數、冇 progress bar 同計時、啱綠錯紅、flag 橙邊、計數一行、撳跳題前後都得）；冇 score pill；Exam 最後一題快捷 ✓ 交卷（有未答彈 modal、全答直接去結果）；Flagged 列表「Practise flagged」書籤 icon 係橙色；首頁 Flagged 格 icon 橙色、Home 冇可見嘅黑色 SVG（v0.56）；CUI-0012：320px 圓點喺卡 content box 入面、冇橫向 scroll、正圓、號碼喺 border 入面（390px 同樣檢查） |
 
-## 版本記錄（v0.32–v0.68）
+## 版本記錄（v0.32–v0.68 + PR #44）
 
 | 版本 | PR | 改動 |
 |---|---|---|
@@ -511,6 +511,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | v0.66 | dcwhung/life-in-uk-test#40 | **data 廣東話口語化（Track 2，plan `2026-10-07_plan_zh-hk-locale.md`，T-101…T-109）**：**①** `data/exams.js`：`yue` 331 題（batch 1–5 322 + batch 7 R2 防洩露 16 + S-055 R3 1；batch 7 有 8 題係 batch 1–5 已經改過嘅，所以淨數 331 唔係 339）、`note` 140 題、`oy` 71 題（102 個選項）；`data/study.js` fact `yue` 140 條（batch 6）；English / 結構 0 改動（content guard；review 同 QA 由 v0.65 data 重放批准咗嘅批次 JSON，結果同 data 一致）；**②** 規則：語感規則 1–15、統一譯名表、R1 手冊先現況後（Senedd / 歐洲委員會 / 英聯邦）、R2 題目翻譯唔洩露答案（W-015，batch 7；A6 / A9 / A10 用戶例外）、R3 同一條 English 題目同一個 `yue`（S-055），見「廣東話翻譯（yue）規則（v0.66）」；**③** 測試：新 `content-guard-test`（31 套）+ `tests/fixtures/content-baseline.json` + `tests/tools/make-content-baseline.js`，R3 check（`04883d0`）；T-102 `similar-test` / `study-test` 改由 data 讀 `yue`；**④** `APP_VERSION` 0.66（SW cache `lifeuk-v0.66`；batch 7 / S-055 冇再升）；**⑤** Review round 1 91 → round 2 94 / 100；QA（@ `066da69`，batch 7 之前）31 / 31、QA script 1671 / 1671，開 CUI-0015；**W-015 QA 重跑已驗證**（@ `f91abe4`，`.proj-docs/qa/2026-10-07_qa_v066-w015-rerun.md`：S-056 反轉 assert，`QA_ONLY=w015,practiceSample` 1601 / 1601、run-all 31 / 31，掃描 48 → 34、新增 0，CUI-0015 completed）。未處理：S-051…S-054（見「已知限制 / 未做」）；CUI-0013 / CUI-0014 喺 v0.67 修 |
 | v0.67 | dcwhung/life-in-uk-test#42 | **CUI-0013 + CUI-0014（parallel dispatch，Lane A / B）**：**①** CUI-0013：`css/screens/quiz.css` `.q-num .q-num-text` `white-space: normal` + `min-width: 0`，≤ 375px 多選題「(select 2)」/「（選擇 2 項）」換第二行，`#quickPrev` / `#quickNext` 唔再被 `.q-card` 截走（320px 由 +61px 變 0）；單選題唔換行；`quicknav-test` +16 assert（en / zh-HK × 320 / 360 × exam / practice）；**Round 2（用戶決定）**：英文原題已經寫明揀幾多個（15 / 15 多選題有 two / three），所以拎走 `quiz.selectN`「(select N)」/「（選擇 N 項）」提示（`quiz.js`、兩個 locale），題號行永遠一行；`content-guard-test` 加 `COUNT_WORDS` guard（多選題 `q.q` 一定要有數量字），`quicknav-test` assert 冇提示 + 320 / 360px 一行；**②** CUI-0014（W-014 收尾，S-047 / S-048 / S-049）：Result `.rv-your` 用戶答案包 `<span lang="en">`（`yourAnswerHtml`，先 escape 後插 span）；`#ansNote` + Result `.rv-note` `lang="zh-HK"`；冇 `oy` 嘅答案 fallback 包 `lang="en"`（`quiz.js` `answerYueHtml`）；`.study-group-title`、Home `.ch-name`、`.tag.person`、`.tag.year` / `.tl-year`（`yearLangAttr`：`yl` 或 AD 先標）`lang="en"`；`lang-switch-test` +34 assert；**③** `APP_VERSION` 0.67（SW cache `lifeuk-v0.67`）；**④** Batch review 98 / 100 → Round 2 96 / 100（`.proj-docs/reviews/2026-10-07_review_v067-cui13-14_batch.md`，新 S-057…S-063）；Batch QA pass（Round 2 probe 58 / 58；`.proj-docs/qa/2026-10-07_qa_v067-cui13-14_batch.md`，31 / 31，全庫 sweep 0px），CUI-0013 / CUI-0014 completed；**⑤** 同一 session：S-056 + W-015 QA 重跑，CUI-0015 completed |
 | v0.68 | dcwhung/life-in-uk-test#43 | **S items 全清 + CUI-0016 + 知識點章內編號 + Home UI 文字 / hover**：**①** CUI-0016：錯題 / Flagged review 全部清晒之後 Result 收埋「重做」（`renderResultActions` `canRetry`），`startExam` 空 pool 直接 `leaveToHome`（之前開 0 題 session，render 拋 TypeError，畫面停喺上一輪最後一題）；**②** 知識點編號：Study 每章由 #1 開始（`chapterFactNumber`，喺 `js/domain/similar.js`，舊 shell 已有 script tag；內部 fact id / 書籤 / mastery 不變）；Chapters 顯示 `#n`；時間線 / 地理 / 人物 pill「📜 Ch 3 #1」（拎走獨立 #id）；Core Fact「Ch 5 #38」；知識點練習 header「Fact / 知識點 Ch 3 #15」（`common.factSet`、`setExamLabel` 用 DOM 砌 `lang="en"` span）；編號唔轉大楷（`.sqm-fact-label` / `.quiz-label` `[lang="en"] { text-transform: none }`）；分組標題拎走總數；**③** Home UI：錯題說明移入錯題 tile（「來自練習及模擬考試，於此答對後便會清除。每輪最多 {max} 題。」），0 題時只淡化 tile 其他部分（W-022）；副標題只顯示「尚餘 {n} 題」；已標記 tile 有題時冇副標題；Exam 說明刪「請於下方選擇試卷」；Practice 說明 4 點列點；離開 modal「取消 / Cancel」；Exam 模式已完成掣 hover 綠底白字；Practice 模式 Exam 掣 hover 進度字金色（方案 A，mockup `c6d98e2`）；**④** 內容 S-054（batch 8，用戶批准 4 條）；guard S-051（`_noteNonEmpty` 單向）/ S-061（yue 數量字）；`tests/tools/check-batch-replay.js`（S-053，代替 S-052）；S-037 / S-074 structure-test scanner；S-041 / S-045 / S-046 / S-057…S-060 / S-062 / S-063 / S-064…S-069 / S-070…S-073 / S-077 / S-080 / S-082…S-084；W-017 `sw-test` race（`utimesSync` mtime +2s，http.server `If-Modified-Since` 只精確到秒）；QA script v063 / v065 / v066 oracle 更新（S-039、W-018）；**⑤** `APP_VERSION` 0.68；Review 5 批（`.proj-docs/reviews/2026-10-07_review_v068-batch{1..5}*.md`，全部 pass，0 Critical）；Batch QA pass（`.proj-docs/qa/2026-10-08_qa_v068_batch.md`：v068 293 / 0、run-all 31 / 31、v063 186 / 0、v065 275 / 0、v066 1870 / 0、batch replay 0 mismatch），CUI-0016 completed |
+| — | dcwhung/life-in-uk-test#44 | **測試 only**：S-085 `layerCode` regex scanner 修三個漏報位（`${` 之後嘅 regex：`template()` 留 `(` 標記；後置 `++` / `--` 同 `.of` / `.in` 之後係除號）；S-088 keyword 要係完整名（`$in`、`o. of` 唔當 keyword）；S-089 binary `-` 之後 regex 嘅 sample（layering samples 19 → 29）；S-086 `factsession-test` S-077 case 唔再喺 `finishExam()` 之後重複 `renderResults()` / `showScreen()`；帶入 v0.68 HANDOFF PR link + session log。Review 98 pass（`.proj-docs/reviews/2026-10-08_review_s085-s086.md`）；QA pass（`.proj-docs/qa/2026-10-08_qa_s085-s089.md`：run-all 31 / 31、v063 186 / 0、v065 275 / 0、v066 1870 / 0、v068 293 / 0）|
 
 **Practice 數字圓圈設計決定（v0.55，preview 同用戶確認）**
 - 起因：用戶以為 Practice 「無咗」頂頭數字圓圈；查 code 同 git 記錄，v0.44 起圓圈一直只係 Exam 1–17 / Random Exam 先有，唔係 regression，改做新功能
@@ -594,9 +595,8 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 - `#reviewOrder` 係 Review filter chip 嘅容器，名係 v0.39 排序 chip 留低；測試用緊呢個 id，所以未改名
 - 1.19、14.3 兩條備注係單句列舉（曼島／五位演員），未改成分行
 - 124 條題目（408 − 284）冇類似題，因為佢哋嘅 fact 只有一個來源
-- **v0.68 之後未處理（全部 🟢 suggestion）**：
-    ◦ **S-085**：`tests/structure-test.js` `layerCode` regex scanner 三個漏報位：regex 緊接 `${` 之後、後置 `++` / `--` 之後嘅除號、叫 `of` / `in` 嘅 property 之後嘅除號（而家 `js/` 冇呢類寫法；review batch 5 有修正範例）
-    ◦ **S-086**：`factsession-test` S-077 case 喺 `finishExam()` 之後多 call 咗一次 `renderResults()` / `showScreen()`
+- **未處理（🟢 suggestion）**：
+    ◦ **S-090**（低優先）：`layerCode` 嘅 `REGEX_AFTER` keyword lookbehind 係 `[\w$]`，`this.#of / 2`、`éin / 2` 呢類 `#private` / non-ASCII 名後面嘅 `/` 會被當 regex（可能食咗後面嘅 code，令 layering guard 漏報）。而家 `js/` 冇 class / private field / non-ASCII identifier；要修就改 `(?<![\w$#\p{L}]|\.\s*)` 加 `u` flag 再補 sample
     ◦ **S-081（決定唔改）**：Home UI 新加 spacing literal（6px、20px、1.2em）唔抽 token —— `tokens.css` 冇 spacing token，成個 codebase 都用 px literal，淨係呢幾行改會變兩套寫法；日後要就一次過加 `--space-*` 再遷移（S-087 要求記低）
     ◦ **S-059**：`d37eb26` 一個 commit 包 S-047 / S-048 / S-049（已 merge，唔改 history）
     ◦ **v066 `EXPECTED_ORACLE`** 寫死 `{ files: 8, records: 737, kept: 3 }`：加 batch 9 要跟住改
@@ -613,6 +613,12 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 ## 主要 commit（新→舊）
 
 ```
+c83aa84 docs: QA S-085…S-089 (pass); factsession S-077 comment says finishExam is called directly
+59fc97c docs: review S-085 / S-086 (98 pass, new S-088 / S-089)
+510714e test: S-089 | layering sample pins a regex after a binary -
+c0fe1ce fix: S-088 | REGEX_AFTER keywords are whole names, not $in or a spaced property
+3afaea9 test: S-086 | factsession S-077 case relies on finishExam to render and show Result
+ca7c52e fix: S-085 | layerCode reads a regex right after ${, ++ / -- and .of / .in
 ac8af73 docs: W-007 | HANDOFF.md v0.59 after the P2 merge
 c85ad3e docs: S-018 | note that --text-inverse-* alpha steps are value-named on purpose
 82ed466 fix: S-014 | old-shell i18n load failure reloads once, then shows a fallback
@@ -744,5 +750,7 @@ c10115b feat: randomise answer option order in Practice and Exam mode
 - [x] Track 2：data 廣東話口語化（v0.66，`claude/yue-colloquial`）
 - [x] v0.67 小批次：S-054、S-051 / S-053（/ S-052）（v0.68）
 - [x] CUI-0013 窄屏多選題 quick nav；CUI-0014 `lang` 收尾（v0.67）
-- [x] S-041…S-084 review suggestion（v0.68，除 S-081 決定唔改、S-085 / S-086 待做）
+- [x] S-041…S-084 review suggestion（v0.68，除 S-081 決定唔改）
+- [x] S-085 / S-086 / S-088 / S-089（PR #44，測試 only）
+- [ ] S-090 `layerCode` `#private` / non-ASCII 名（低優先）
 - [ ] iPhone 實機（PingFang HK）睇 320 / 375px：M4 結果行、Study chip 行、CUI-0013（QA 建議）
