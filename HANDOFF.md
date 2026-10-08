@@ -1,4 +1,4 @@
-# Life in the UK Test PWA — Handoff (v0.70)
+# Life in the UK Test PWA — Handoff (v0.71)
 
 - **Repo:** https://github.com/dcwhung/life-in-uk-test （main branch，GitHub Pages root `/`）
 - **Live:** https://dcwhung.github.io/life-in-uk-test/
@@ -468,7 +468,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | `lang-switch-test.js` | v0.65（T-007）：pill 顯示目標語言（`中` / `EN`）、`aria-label` / `title`、44px hit area（四邊 `elementFromPoint`，S-044）；撳 pill → `<html lang>`、`lifeuk.uiLang`、reload 保持；Home / Quiz（Practice reveal + Similar、side session ↩、Exam 中途 + flag）/ Result（filter）/ Flagged / Study（tab / chip / 搜尋）每個畫面 en → zh-HK → en，`snapState` 比對 `state`、timer、`sessionReturn`、review、`study`、搜尋框、成個 localStorage（除 `uiLang`）不變、冇 `[i18n] missing key`、成績唔重複記錄；exam timer 即刻換字而唔 call `examTick`；confirm modal 開住（focus pill + Enter）唔切換；`<title>` 保持英文；M2 國家 chip 冇拉丁字母；M6 `📝 全部試題（408 題）` ↔ `📝 All Questions (408)`（v0.71 前 🎯）；W-014 `checkContentLang`（`closest('[lang]')`，唔准落到 `<html>`）；M4 `.result-sub` 320px 唔跌單字（要有 CJK 字體，S-045）；320px 冇橫向 overflow；pill dblclick 唔被 double tap guard 食（wait 由 `SCREEN_CHANGE_CLICK_GUARD_MS` 計，S-043） |
 | `practicedots-test.js` | v0.55：Practice 圓圈（24 / 9 / review 題數、冇 progress bar 同計時、啱綠錯紅、flag 橙邊、計數一行、撳跳題前後都得）；冇 score pill；Exam 最後一題快捷 ✓ 交卷（有未答彈 modal、全答直接去結果）；Flagged 列表「Practise flagged」書籤 icon 係橙色；首頁 Flagged 格 icon 橙色、Home 冇可見嘅黑色 SVG（v0.56）；CUI-0012：320px 圓點喺卡 content box 入面、冇橫向 scroll、正圓、號碼喺 border 入面（390px 同樣檢查） |
 
-## 版本記錄（v0.32–v0.70）
+## 版本記錄（v0.32–v0.71）
 
 | 版本 | PR | 改動 |
 |---|---|---|
@@ -520,6 +520,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | — | dcwhung/life-in-uk-test#45 | **測試 only**：`structure-test` `REGEX_AFTER` keyword lookbehind 改做 `(?<![$#\p{ID_Continue}\u200C\u200D]\|\.\s*)` + `u` flag —— S-090 `this.#of`、`éin`；S-091 任何 identifier 字元（combining mark、非 ASCII 數字、ZWJ）；S-092 明確列 ZWNJ / ZWJ（Unicode 15.1 先入 `\p{ID_Continue}`，舊 Node 唔會假紅），`\u{…}` escape 名記做已知限制。Layering samples 29 → 34。Review 99 pass（`.proj-docs/reviews/2026-10-08_review_s090.md`）；QA pass（`.proj-docs/qa/2026-10-08_qa_s090-s091.md`：run-all 31 / 31、v063 186 / 0、v065 276 / 0、v066 1870 / 0、v068 293 / 0；25 個實檔 `layerCode` 輸出新舊一樣）。S-092 喺 QA 之後先做，由 final review 覆核（`.proj-docs/reviews/2026-10-08_review_s091-s092-final.md`，93 pass，run-all 31 / 31；S-093）|
 | v0.69 | dcwhung/life-in-uk-test#46 | **鍵盤 / modal**：S-025 確認 modal focus trap（Tab / Shift+Tab 只喺兩粒掣之間）+ 關閉後 focus 返 opener（S-095 第二個 prompt 保留第一個 opener）；W-024 時間到會先關開住嘅 Submit / Leave modal（唔再蓋住結果頁或者重複交卷）；S-098 `showScreen` blur 留喺被收埋 screen 嘅 focus（之前時間到之後一下 Enter 由結果頁返 Home）；S-103 喺 Submit 長按 Enter 唔會經 prompt 交卷；S-102 結果頁 filter chip 揀完 focus 留喺 chip；S-023 `structure-test` 檢查每個 `var(--x)` 有定義；S-094 / S-099 / S-101 test；S-033 / S-105 註解；HANDOFF W-023 / S-093 / S-032 / S-096。Review v069 97 + delta 99 / 98；QA `.proj-docs/qa/2026-10-08_qa_v069.md` pass（keyboard 632 / 0、upgrade 20 / 0） |
 | v0.70 | dcwhung/life-in-uk-test#46 | **Study / Home UI（用戶截圖 + preview 確認）**：Timeline 年份 `text-box: trim-both cap alphabetic`，圓點喺文字正中、6px 空位（`@supports not` fallback 維持 v0.69 位置）；fact 卡星星自己一行；來源列 node 一分行「▶ Practise / 練習這 N 題」就自己一行全闊（純 flexbox，刪 `FACT_SRC_INLINE_MAX` / `.wrap-btn`）；錯題 tile 冇「N to clear / 尚餘 N 題」，0 題只顯示「Nothing to review yet / 暫時未有需要複習的題目」（`home.wrongToClear` 已刪）；Practice 答案框備注改用同結果頁一樣嘅逐行 render（`noteHtml` 搬去 `js/components/tags.js`，新 `css/components/note.css`，`.note-mark` 固定闊度 → 換行懸掛縮排）；B1：Crown dependency 記憶法（7 題共用）同 14.3 一項一行（batch 9）；S-104 / S-106 test。Review `.proj-docs/reviews/2026-10-08_review_v070.md` 98 + delta 99；QA `.proj-docs/qa/2026-10-08_qa_v070.md` pass（run-all 31 / 31、v066 1870 / 0、note 縮排 4125 行 0 錯、upgrade 20 / 0） |
+| v0.71 | dcwhung/life-in-uk-test#47 | **記憶法 + icon**：B2 四組新記憶法（Magna Carta 8、國王 vs 國會 8、二戰 9、都鐸王朝 9，batch 10；W-025 譯名統一 + Henry VIII 子項，batch 11；CUI-0017 保留「阿拉貢的凱瑟琳」，batch 12）；B3 Study fact 卡收埋式「💡 記憶法」（`factMemoryText` 由來源題目 note 讀，60 張卡，方案 B）；練習 / 考試 icon 對調（練習 📝、考試 🎯：首頁模式卡、結果頁、Practice「All Questions」格）；B4 中途續做、M5 諾曼征服題組：用戶決定唔做。Review `.proj-docs/reviews/2026-10-08_review_v071.md`（95 warn → W-025 已修）；QA `.proj-docs/qa/2026-10-08_qa_v071.md` + `..._v071-delta.md` pass（v071 5906 / 0、upgrade 22 / 0、batch replay 12 / 806 / 0） |
 
 **Practice 數字圓圈設計決定（v0.55，preview 同用戶確認）**
 - 起因：用戶以為 Practice 「無咗」頂頭數字圓圈；查 code 同 git 記錄，v0.44 起圓圈一直只係 Exam 1–17 / Random Exam 先有，唔係 regression，改做新功能
@@ -620,6 +621,16 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 ## 主要 commit（新→舊）
 
 ```
+5264761 docs: QA v0.71 delta (icons + CUI-0017 pass; CUI-0017 completed); HANDOFF icon lines follow the swap
+efeda72 fix: CUI-0017 | Tudor memory note keeps 阿拉貢的凱瑟琳 (option A)
+d472d59 docs: QA v0.71 (B2 / B3 pass; W-025 conflict → CUI-0017) + v071 QA scripts
+2dc025b feat: swap the Practice and Exam icons (Practice 📝, Exam 🎯)
+73afc45 fix: W-025 | B2 memory notes use the unified terms; Henry VIII points become sub-items
+7cce6c0 docs: review v0.71 (95 warn; W-025 B2 memory text terms)
+6d70288 docs: HANDOFF notes B3 (Study memory method) and marks the follow-up done
+556f2ce chore: APP_VERSION 0.71
+fedb416 feat: B3 | Study fact cards show their source questions' memory method, closed by default
+58ab25a feat: B2 | four new memory-method groups (Magna Carta, King vs Parliament, WWII, Tudors)
 232ed5c docs: QA v0.70 release (pass, no new items) + upgrade / keyboard / shots / hang / fallback QA scripts
 af9eceb fix: answer box note body is a div (it holds the note's row divs)
 66d3d03 test: S-106 | v066 QA script reads the answer box note as rows like the Results review
