@@ -221,6 +221,37 @@ async function checkSourceRow(pg) {
 // body font, "▶ Practise these 2" ~2.8px wider) must still fit: the 2nd node must not wrap under the 1st
 const TWO_SOURCE_ONE_LINE_FACTS = [25, 30, 62, 67, 74, 76, 78, 128, 155, 159, 181, 225, 231];
 const LINE_TOLERANCE_PX = 1;
+// v0.70: on every Study tab, in both languages, once the "Appears in:" nodes need a second line the Practise
+// button leaves their line and takes a full-width line of its own under them (it never sits beside wrapped nodes)
+const STUDY_VIEWS = [
+  ...[1, 2, 3, 4, 5].map(ch => `studySetTab('chapters'); studySetChapter(${ch})`),
+  "studySetTab('timeline')", "studySetTab('geo'); studySetNation(ALL_FILTER)", "studySetTab('people'); studySetGroup(ALL_FILTER)",
+];
+async function checkSourceRowWrap(pg) {
+  for (const lang of ['en', 'zh-HK']) {
+    const bad = await pg.evaluate(([views, lng, tol]) => {
+      setLang(lng); openStudy();
+      const out = [];
+      for (const view of views) {
+        new Function(view)();
+        for (const card of document.querySelectorAll('#studyContent .fact')) {
+          const row = card.querySelector('.fact-src').getBoundingClientRect();
+          const nodes = card.querySelector('.fact-src-nodes').getBoundingClientRect();
+          const first = card.querySelector('.fact-src .sqm-node').getBoundingClientRect();
+          const btn = card.querySelector('.fact-src .fact-practise').getBoundingClientRect();
+          const wrapped = nodes.height > first.height + tol;
+          const ownLine = btn.top >= nodes.bottom - tol;
+          const fullWidth = btn.width >= row.width - tol;
+          if ((wrapped && !ownLine) || (ownLine && !fullWidth)) out.push(`${view} #${card.dataset.factId}`);
+        }
+      }
+      return out;
+    }, [STUDY_VIEWS, lang, LINE_TOLERANCE_PX]);
+    assert(bad.length === 0, `${lang} 390px: wrapped source nodes put Practise on a full-width line below them (${bad.length} bad: ${bad.slice(0, 4).join(', ')})`);
+  }
+  await pg.evaluate(() => setLang('en'));
+  await openStudyChapter3(pg);
+}
 async function checkTwoSourceRowsOneLine(pg) {
   const wrapped = await pg.evaluate(([ids, tol]) => {
     openStudy(); studySetTab('chapters');
@@ -301,6 +332,7 @@ async function checkUnknownFact(pg) {
   await checkHomeAndAfter(pg);
   await checkSourceRow(pg);
   await checkTwoSourceRowsOneLine(pg);
+  await checkSourceRowWrap(pg);
   await checkEntryAndFlash(pg);
   await checkUnknownFact(pg);
   await checkResultLabelLang(pg);

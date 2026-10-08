@@ -69,13 +69,16 @@
   display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
   margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--divider);
 }
-.fact-src-nodes { display: flex; flex-wrap: wrap; gap: 5px; flex: 1; align-items: center; min-width: 0; }
+/* v0.70: the nodes ask for their one-line width (max-content); when that plus the button does not fit, the row wraps
+   the button onto its own line, where its flex-grow makes it full width. Beside one-line nodes the free space goes
+   almost all to the nodes (grow 1000 : 1), so the button keeps its pill width there */
+.fact-src-nodes { display: flex; flex-wrap: wrap; gap: 5px; flex: 1000 1 max-content; align-items: center; min-width: 0; }
 .fact-src .sqm-node { padding: 3px 8px; white-space: nowrap; }
 .fact-practise {
   background: var(--card); color: var(--navy);
   border: var(--fact-practise-border) solid var(--navy); border-radius: var(--radius-pill);
   padding: 6px var(--fact-practise-pad-x); font-size: var(--fs-sm); font-weight: 700;
-  white-space: nowrap; margin-left: auto; cursor: pointer;
+  white-space: nowrap; flex: 1 0 auto; cursor: pointer;
   /* S-030: --fact-practise-ring = (44px target - 29px pill (6px padding × 2 + ~14px line + 1.5px border × 2)) / 2,
      rounded up; ::before inset counts from the padding box, so the border is added back (as .fact-btn, CUI-0009) */
   --fact-practise-border: 1.5px; --fact-practise-ring: 8px;
@@ -99,8 +102,3 @@
 .sqm-fact-label [lang="en"] { text-transform: none; }
 .sqm-fact-en { font-size: var(--fs-base); line-height: 1.55; color: var(--navy); font-weight: 600; }
 .sqm-fact-yue { font-size: 12.5px; line-height: 1.6; color: var(--purple); margin-top: 4px; }
-
-@media (max-width: 480px) {
-  /* many nodes: the button takes a full-width line of its own under them */
-  .fact-src.wrap-btn .fact-practise { width: 100%; margin-left: 0; border-radius: var(--radius-sm); padding: 8px 12px; }
-}
