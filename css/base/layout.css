@@ -71,6 +71,8 @@ main { max-width: 780px; margin: 0 auto; padding: 20px 16px 100px; }
   font-size: var(--fs-base); font-weight: 700; color: var(--text-muted);
   text-transform: uppercase; letter-spacing: 0.05em;
 }
+/* W-016 / S-072: a fact set's "Ch 3 #15" keeps its case, as on the card pill */
+.quiz-label [lang="en"] { text-transform: none; }
 
 .section-title {
   font-size: var(--fs-base); font-weight: 700; color: var(--text-muted);

@@ -49,6 +49,66 @@ function actionNames() {
   return [...names];
 }
 
+// index just past a '…' / "…" string starting at i (an unclosed one ends at the line break)
+function endOfQuoted(src, i) {
+  const q = src[i];
+  for (let j = i + 1; j < src.length; j++) {
+    if (src[j] === '\\') j++;
+    else if (src[j] === q || src[j] === '\n') return j + 1;
+  }
+  return src.length;
+}
+
+// template text from i up to the closing backtick or the next ${: { end, expr } (expr = a ${ opened at end)
+function scanTemplateText(src, i) {
+  for (let j = i; j < src.length; j++) {
+    if (src[j] === '\\') j++;
+    else if (src[j] === '`') return { end: j + 1, expr: false };
+    else if (src[j] === '$' && src[j + 1] === '{') return { end: j + 2, expr: true };
+  }
+  return { end: src.length, expr: false };
+}
+
+// S-074: a / opens a regex literal where a value is expected: at the start, after an operator / opening
+// punctuation, or after a keyword such as return (after a name, a number, ) or ] it is a division)
+const REGEX_AFTER = /(?:^|[(,=:[!&|?;{}+\-*%<>~^]|\b(?:return|typeof|case|void|delete|in|of|throw|yield|await))\s*$/;
+// index just past a /…/ regex body starting at i ([…] classes and \ escapes included), or -1 if the line
+// ends first (a regex never spans lines, so that / was a division after all)
+function endOfRegex(src, i) {
+  for (let j = i + 1, inClass = false; j < src.length && src[j] !== '\n'; j++) {
+    if (src[j] === '\\') j++;
+    else if (src[j] === '[') inClass = true;
+    else if (src[j] === ']') inClass = false;
+    else if (src[j] === '/' && !inClass) return j + 1;
+  }
+  return -1;
+}
+
+// S-067: one pass, so a quote, // or /* inside a string, template or comment never starts another token.
+// Comments go, '…' / "…" / regex literals and template text become '', template ${…} expressions stay as code.
+function layerCode(src) {
+  let out = '', i = 0;
+  const exprDepth = []; // one entry per open ${…}: how many { are open inside it
+  const template = from => { const t = scanTemplateText(src, from); out += "''"; i = t.end; if (t.expr) exprDepth.push(0); };
+  const closesExpr = c => c === '}' && exprDepth.length > 0 && exprDepth[exprDepth.length - 1] === 0;
+  const lineEnd = from => { const e = src.indexOf('\n', from); return e < 0 ? src.length : e; };
+  const blockEnd = from => { const e = src.indexOf('*/', from + 2); return e < 0 ? src.length : e + 2; };
+  while (i < src.length) {
+    const c = src[i], two = src.slice(i, i + 2);
+    if (two === '//') i = lineEnd(i);
+    else if (two === '/*') { i = blockEnd(i); out += ' '; }
+    else if (c === "'" || c === '"') { out += "''"; i = endOfQuoted(src, i); }
+    else if (c === '/' && REGEX_AFTER.test(out) && endOfRegex(src, i) > 0) { out += "''"; i = endOfRegex(src, i); }
+    else if (c === '`') template(i + 1);
+    else if (closesExpr(c)) { exprDepth.pop(); template(i + 1); }
+    else {
+      if (exprDepth.length > 0 && (c === '{' || c === '}')) exprDepth[exprDepth.length - 1] += c === '{' ? 1 : -1;
+      out += c; i++;
+    }
+  }
+  return out;
+}
+
 (async () => {
   const inline = sources.flatMap(f => fs.readFileSync(f, 'utf8').split('\n')
     .map((line, i) => (/\son[a-z]+\s*=\s*["'`]/.test(line) ? `${rel(f)}:${i + 1}` : null)).filter(Boolean));
@@ -87,22 +147,51 @@ function actionNames() {
   // Study screen's `study` object (upgrade-test pins that object's shape); `.fact*` rules live in fact.css only
   const FACT_CARD_JS = path.join(ROOT, 'js/components/factCard.js');
   assert(fs.existsSync(FACT_CARD_JS), 'js/components/factCard.js exists');
-  const factCardCode = fs.readFileSync(FACT_CARD_JS, 'utf8')
-    .replace(/\/\/.*$/gm, '').replace(/'[^'\n]*'|`[^`]*`|"[^"\n]*"/g, "''"); // code only: no comments / strings ('study.x' keys)
+  // S-037: blank strings before stripping comments, so a `//` inside a string ("http://…") cannot eat the code after it
+  const stripComments = code => code.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
+  const factCardCode = stripComments(fs.readFileSync(FACT_CARD_JS, 'utf8')
+    .replace(/'[^'\n]*'|`[^`]*`|"[^"\n]*"/g, "''")); // code only: no comments / strings ('study.x' keys)
   assert(!/\bstudy\b/.test(factCardCode), 'js/components/factCard.js does not read the study global');
   // v0.64 (S-031): layering — components load before screens, so a component must not call anything a screen
-  // defines (it only worked because the global existed by render time). Comments are stripped; template
-  // literals are kept, since `${fn(...)}` inside a template is a real call; plain quoted strings (i18n keys such as
-  // 'study.x', data-action="name" attributes) are blanked unless they hold a `${…}`.
+  // defines (it only worked because the global existed by render time). layerCode drops comments and blanks quoted
+  // strings (i18n keys such as 'study.x', data-action="name") and template text, but keeps `${fn(...)}` expressions.
   const topLevelNames = f => [...fs.readFileSync(f, 'utf8')
     .matchAll(/^(?:async\s+)?(?:function\s+([A-Za-z_$][\w$]*)|(?:const|let|var)\s+([A-Za-z_$][\w$]*))/gm)]
     .map(m => m[1] || m[2]);
   const screenNames = new Set(jsFiles(path.join(ROOT, 'js/screens')).flatMap(topLevelNames));
+  // a bare name or window.name is a use; any other `.name` is a property of something else
+  const usesName = (code, n) => new RegExp(`(?<![\\w$]|(?<!\\bwindow)\\.)${n.replace(/\$/g, '\\$')}(?![\\w$])`).test(code);
+  // S-037: in-memory samples pin the guard's own parsing (a URL's // must not hide later code; window.X is a use)
+  const LAYER_SAMPLES = [
+    { code: 'const u = "http://x"; return renderStudy();', hit: true, why: 'a call after a URL string' },
+    { code: "const u = 'https://x'; renderStudy();", hit: true, why: 'a call after a single-quoted URL' },
+    { code: 'window.renderStudy();', hit: true, why: 'window.renderStudy()' },
+    { code: '/* renderStudy() */ const a = 1;', hit: false, why: 'a name inside a /* */ comment' },
+    { code: '// renderStudy()', hit: false, why: 'a name inside a // comment' },
+    { code: "const k = 'renderStudy';", hit: false, why: 'a name inside a plain string' },
+    { code: 'obj.renderStudy();', hit: false, why: "another object's property" },
+    // S-067: template literal text is not code; only its ${…} expressions are
+    { code: 'const s = `a // b`; renderStudy();', hit: true, why: 'a call after a template holding //' },
+    { code: 'const s = `/*`; renderStudy(); const t = `*/`;', hit: true, why: 'a call between templates holding /* and */' },
+    { code: 'const s = `<b>${renderStudy()}</b>`;', hit: true, why: 'a call inside a template ${…}' },
+    { code: 'const s = `renderStudy`;', hit: false, why: 'a name in template text' },
+    { code: 'const s = `${a ? `x` : renderStudy()}`;', hit: true, why: 'a call after a nested template' },
+    { code: 'const s = `${a({ b: 1 })} renderStudy`;', hit: false, why: 'template text after a ${…} holding braces' },
+    // S-074: a regex literal is not code, and a backtick or quote inside one must not open a template / string
+    { code: 'const r = /`/; renderStudy();', hit: true, why: 'a call after a regex holding a backtick' },
+    { code: 'if (/[/`]/.test(s)) renderStudy();', hit: true, why: 'a call after a regex whose [class] holds / and a backtick' },
+    { code: 'const r = /\\/`/; renderStudy();', hit: true, why: 'a call after a regex holding an escaped / and a backtick' },
+    { code: 'const r = /renderStudy/;', hit: false, why: 'a name inside a regex literal' },
+    { code: 'const q = a / b; renderStudy(); const p = c / d;', hit: true, why: 'a call between two divisions' },
+    { code: 'const q = f(x) / 2; renderStudy(); const p = y / 3;', hit: true, why: 'a call between divisions after ) and a name' },
+  ];
+  const sampleMisses = LAYER_SAMPLES.filter(({ code, hit }) => usesName(layerCode(code), 'renderStudy') !== hit)
+    .map(({ hit, why }) => `${hit ? 'missed' : 'flagged'} ${why}`);
+  assert(sampleMisses.length === 0, `layering guard reads ${LAYER_SAMPLES.length} in-memory samples right`
+    + (sampleMisses.length ? ': ' + sampleMisses.join(', ') : ''));
   const layerHits = jsFiles(path.join(ROOT, 'js/components')).flatMap(f => {
-    const code = fs.readFileSync(f, 'utf8').replace(/\/\/.*$/gm, '')
-      .replace(/'[^'\n]*'|"[^"\n]*"/g, s => (s.includes('${') ? s : "''"));
-    return [...screenNames].filter(n => new RegExp(`(?<![\\w$.])${n.replace(/\$/g, '\\$')}(?![\\w$])`).test(code))
-      .map(n => `${rel(f)} → ${n}`);
+    const code = layerCode(fs.readFileSync(f, 'utf8'));
+    return [...screenNames].filter(n => usesName(code, n)).map(n => `${rel(f)} → ${n}`);
   });
   assert(layerHits.length === 0, 'js/components/*.js use nothing defined in js/screens/*.js'
     + (layerHits.length ? ': ' + layerHits.join(', ') : ''));

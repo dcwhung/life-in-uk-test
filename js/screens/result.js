@@ -33,7 +33,7 @@ function finishExam() {
 function renderResults() {
   renderScore(reviewItems.filter(r => r.isCorrect).length, reviewItems.length);
   renderResultActions();
-  byId('resultLabel').textContent = examLabel(state.examNum);
+  setExamLabel(byId('resultLabel'), state.examNum);
   byId('diffTable').innerHTML = diffTableHtml();
   renderResultDots();
   renderReview();
@@ -73,7 +73,12 @@ function renderResultActions() {
   note.textContent = isExamMode ? '' : practiceResultNote();
   note.hidden = !note.textContent;
   const anotherLabel = isExamMode ? t('result.anotherExam') : t('result.anotherPractice');
-  document.querySelectorAll('#screenResult .retry-btn').forEach(btn => { btn.textContent = t('result.retry'); });
+  // CUI-0016: a review set emptied this round has nothing left to retry (only Home stays)
+  const canRetry = !isReviewSet(state.examNum) || poolFor(state.examNum).length > 0;
+  document.querySelectorAll('#screenResult .retry-btn').forEach(btn => {
+    btn.textContent = t('result.retry');
+    btn.hidden = !canRetry;
+  });
   document.querySelectorAll('#screenResult .another-btn').forEach(btn => { btn.textContent = anotherLabel; });
 }
 // practice result line: wrong-answer review → cleared / left; other sets → mastery gained this round

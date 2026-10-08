@@ -34,7 +34,7 @@ LOCALES['zh-HK'] = {
     modePractice: '練習',
     modeExam: '模擬考試',
     practiceDescHtml: '<strong>練習</strong> — 每題作答後即時顯示答案及廣東話翻譯。可按難度、章節或試卷選題，並顯示各組掌握進度。',
-    examDescHtml: '<strong>模擬考試</strong> — 仿照真實考試作答全部 {n} 題，可返回修改答案。於最後一題提交後，即可查看分數及答案。請於下方選擇試卷。',
+    examDescHtml: '<strong>模擬考試</strong> — 仿照真實考試作答全部 {n} 題，可返回修改答案。於最後一題提交後，即可查看分數及答案。',
     myReview: '我的複習',
     practiceBy: '練習分類',
     tabDifficulty: '難度',
@@ -44,18 +44,16 @@ LOCALES['zh-HK'] = {
     allExams: '🎯 全部試題（{n} 題）',
     randomExam: '🎲 隨機試卷',
     randomExamSub: '從 {total} 題中抽取 {n} 題',
-    practiceHintHtml: '同一題<b>連續答對 {streak} 次</b>即算掌握。每輪最多抽取 <b>{max}</b> 條未掌握的題目，每題出現一次；未掌握的題目會於下一輪再出現。已掌握的題目會略過，直至整組全部掌握。',
+    practiceHintHtml: '<ul><li>每輪最多抽取 <b>{max}</b> 條未掌握的題目，每題出現一次</li><li>同一題<b>連續答對 {streak} 次</b>即算掌握</li><li>未掌握的題目會於下一輪再出現</li><li>已掌握的題目會略過，直至整組全部掌握</li></ul>',
     resetProgress: '↺ 重設進度',
     examResetHint: '已完成的試卷會以 ✓ 標示。',
     resetCompleted: '↺ 重設已完成試卷',
     wrongTitle: '錯題',
     wrongEmpty: '暫時未有需要複習的題目',
     wrongToClear: '尚餘 {n} 題',
-    wrongToClearRounds: '尚餘 {n} 題 · 每輪 {max} 題',
     flaggedTitle: '已標記',
-    flaggedCount: '已標記 {n} 題',
     flaggedEmptyHtml: '於題目按 {icon} 即可標記',
-    myReviewNote: '錯題來自練習及模擬考試，於此答對後便會清除。每輪最多 {max} 題。',
+    myReviewNote: '來自練習及模擬考試，於此答對後便會清除。每輪最多 {max} 題。',
   },
 
   quiz: {
@@ -110,7 +108,7 @@ LOCALES['zh-HK'] = {
   similar: {
     title: '相似題目',
     subtitle: '同一知識點，不同問法',
-    coreFact: '📌 核心知識 #{id}',
+    coreFact: '📌 核心知識', // followed by study.chapterFactId
     appearsIn: '出現於：',
     node: 'E{exam}·Q{n}',
     legendCurrent: '本題',
@@ -146,7 +144,10 @@ LOCALES['zh-HK'] = {
     mastered: '已掌握',
     masteredDerived: '🏆 已掌握 — 所有來源題目均已掌握',
     progress: '🏆 已掌握 {n} / {total}',
-    factId: '#{id}',
+    // the fact's number within its chapter (chapterFactNumber); no UI text shows the global fact id (W-016)
+    factId: '#{n}',
+    // S-057: English in every language, like common.chapterShort
+    chapterFactId: 'Ch {ch} #{n}',
   },
 
   modal: {
@@ -158,7 +159,7 @@ LOCALES['zh-HK'] = {
     leaveTitle: '離開考試？',
     leaveMessage: '已作答的答案將會遺失。',
     leaveOk: '離開',
-    leaveCancel: '留下',
+    leaveCancel: '取消',
     resetProgressTitle: '重設練習進度？',
     resetProgressMessage: '掌握進度、錯題及標記將會清除。',
     resetCompletedTitle: '重設已完成試卷？',
@@ -177,7 +178,7 @@ LOCALES['zh-HK'] = {
     chapterN: 'Chapter {n}',
     chapterShort: 'Ch {n}',
     similarSet: '相似題目',
-    factSet: '知識點 #{id}',
+    factSet: '知識點 Ch {ch} #{n}', // W-016: "Ch {ch} #{n}" stays English (S-057), lang="en" in the quiz header
     wrongSet: '錯題',
     flaggedSet: '已標記',
     questionN: '第 {n} 題',

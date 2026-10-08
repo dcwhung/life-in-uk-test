@@ -3,9 +3,12 @@ const path = require('path');
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
 const launchOpts = { args: ['--no-sandbox'] };
 if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_PATH;
+const SUBPIXEL_TOLERANCE_PX = 0.5; // Chromium lays out in fractions of a px; absorb rounding, not real overflow
+const NARROW_WIDTHS = [320, 360];
+const VIEWPORT_H = 844;
 (async () => {
   const b = await chromium.launch(launchOpts);
-  const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
+  const pg = await b.newPage({ viewport: { width: 390, height: VIEWPORT_H } });
   const errs = []; pg.on('pageerror', e => errs.push(e.message));
   const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('ok:', m); };
   const vis = sel => pg.$eval(sel, e => getComputedStyle(e).display !== 'none');
@@ -91,19 +94,22 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
     const contentRight = card.getBoundingClientRect().right - parseFloat(cs.borderRightWidth) - parseFloat(cs.paddingRight);
     const range = document.createRange(); range.selectNodeContents(byId('qNum').firstElementChild);
     const lines = new Set([...range.getClientRects()].map(r => Math.round(r.top))).size;
-    return { over: byId('quickNext').getBoundingClientRect().right - contentRight, lines, text: byId('qNum').textContent };
+    // i and multi let the caller prove findIndex picked the intended kind of question (S-060)
+    return { i, multi: i >= 0 && state.questions[i].a.length > 1, over: byId('quickNext').getBoundingClientRect().right - contentRight, lines, text: byId('qNum').textContent };
   }, [mode, multi]);
   for (const lang of ['en', 'zh-HK']) {
     await pg.evaluate(l => { localStorage.clear(); setLang(l); }, lang);
-    for (const width of [320, 360]) {
-      await pg.setViewportSize({ width, height: 844 });
+    for (const width of NARROW_WIDTHS) {
+      await pg.setViewportSize({ width, height: VIEWPORT_H });
       for (const mode of ['exam', 'practice']) {
         const m = await headerFit(mode, true);
-        assert(m.over <= 0.5, `${lang} ${width}px ${mode} multi-answer: → inside the card content box (over by ${m.over.toFixed(1)}px)`);
+        assert(m.i >= 0 && m.multi === true, `${lang} ${width}px ${mode} multi-answer: a multi-answer question is on screen (#${m.i})`);
+        assert(m.over <= SUBPIXEL_TOLERANCE_PX, `${lang} ${width}px ${mode} multi-answer: → inside the card content box (over by ${m.over.toFixed(1)}px)`);
         assert(!/select|選擇|項）/i.test(m.text), `${lang} ${width}px ${mode} multi-answer: no "(select N)" hint in the header (${m.text})`);
         assert(m.lines === 1, `${lang} ${width}px ${mode} multi-answer: header text stays on one line (${m.lines})`);
         const s = await headerFit(mode, false);
-        assert(s.lines === 1 && s.over <= 0.5, `${lang} ${width}px ${mode} single-answer: header text stays on one line (${s.lines})`);
+        assert(s.i >= 0 && s.multi === false, `${lang} ${width}px ${mode} single-answer: a single-answer question is on screen (#${s.i})`);
+        assert(s.lines === 1 && s.over <= SUBPIXEL_TOLERANCE_PX, `${lang} ${width}px ${mode} single-answer: header text stays on one line (${s.lines})`);
       }
     }
   }

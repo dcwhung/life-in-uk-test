@@ -9,6 +9,16 @@
 // of locales/zh-HK.js).
 // Double tap guard (HANDOFF, CUI-0011): a pointer click within 40px / 350ms of a click that changed the view is
 // swallowed, so every navigation step below waits GUARD_WAIT afterwards.
+// 2026-10-07 refresh (Lane D): versionCheck / offlineAndUpgrade compare against the current APP_VERSION
+// (js/core/config.js) instead of v0.65; SW cache waits poll inside the page (waitForFunction with an async predicate
+// resolved immediately); the multi-select question number no longer carries a "(select N)" hint (CUI-0013 round 2,
+// v0.67); langAttrs prints only real gaps (untagged > 0) and measures the answer span `.rv-your > span` (S-047 plan A:
+// the "Your answer:" label follows the UI language by design).
+// 2026-10-07 refresh (v0.68 per-chapter fact numbers): the Core Fact label reads 📌 核心知識 Ch {ch} #{n} and the fact
+// session label 知識點 Ch {ch} #{n}; n is computed here from data/study.js (independent of the app).
+// 2026-10-07 refresh (v0.68 Home UI lane, literals from the lane spec): the practice hint is 4 <li>; the exam
+// description drops 請於下方選擇試卷。; the My Review note has new wording and sits inside #tileWrong; the
+// "已標記 n 題" / "尚餘 n 題 · 每輪 24 題" tile lines are gone (the count is the tile's .t-num); Leave modal stay = 取消.
 const { chromium } = require('playwright-core');
 const { execSync } = require('child_process');
 const fs = require('fs');
@@ -35,6 +45,28 @@ const TITLE = 'Life in the UK · Exam Practice';
 const DESC = 'Life in the UK Test — Exam 1–17 Practice App';
 const ZH = 'zh-HK';
 const ZH_SEED = JSON.stringify(ZH); // getLS reads JSON
+const CUR_VERSION = (fs.readFileSync(path.join(ROOT, 'js/core/config.js'), 'utf8').match(/const APP_VERSION = '([^']+)'/) || [])[1];
+const CUR_CACHE = 'lifeuk-v' + CUR_VERSION;
+// S-068: SW cache polling inside the page (waitForFunction with an async predicate resolves at once on the Promise)
+const CACHE_POLL_MS = 200;
+const CACHE_POLL_TRIES = 75; // × CACHE_POLL_MS = 15 s for a fresh install to create its cache
+const UPGRADE_POLL_TRIES = 100; // × CACHE_POLL_MS = 20 s for update + activate + old cache removal
+// poll caches.keys() until `name` exists (true) or the tries run out (false)
+const waitCache = (pg, name) => pg.evaluate(async ([n, tries, ms]) => { for (let i = 0; i < tries; i++) {
+  if ((await caches.keys()).includes(n)) return true; await new Promise(r => setTimeout(r, ms)); } return false; },
+[name, CACHE_POLL_TRIES, CACHE_POLL_MS]);
+// update() until the new worker controls the page and `cur` is the only cache (like tests/upgrade-test.js waitForCache)
+const waitUpgrade = (pg, cur) => pg.evaluate(async ([c, tries, ms]) => { const reg = await navigator.serviceWorker.getRegistration();
+  for (let i = 0; i < tries; i++) { const k = await caches.keys();
+    if (k.length === 1 && k[0] === c && !reg.installing && !reg.waiting && navigator.serviceWorker.controller) return true;
+    if (!reg.installing && !reg.waiting) await reg.update().catch(() => {}); await new Promise(r => setTimeout(r, ms)); }
+  return false; }, [cur, UPGRADE_POLL_TRIES, CACHE_POLL_MS]);
+
+// v0.68: n = 1-based position among the chapter's facts in data order
+const STUDY_DATA = (() => { const c = {}; vm.runInNewContext(fs.readFileSync(path.join(ROOT, 'data/study.js'), 'utf8') + ';this.STUDY=STUDY;', c); return c.STUDY; })();
+const FACT_NO = {};
+STUDY_DATA.reduce((seen, f) => { seen[f.ch] = (seen[f.ch] || 0) + 1; FACT_NO[f.id] = { ch: f.ch, n: seen[f.ch] }; return seen; }, {});
+const zhFactSetLabel = id => `知識點 Ch ${FACT_NO[id].ch} #${FACT_NO[id].n}`;
 
 // words of English allowed in zh-HK UI text = the ASCII words the zh-HK locale itself keeps (Exam {n}, Chapter {n},
 // chapter names, era / nation English in brackets, app name …)
@@ -66,6 +98,12 @@ async function expectTexts(tag, pg, list) {
   // .quiz-label is text-transform: uppercase, so ASCII is compared case-insensitively
   const missing = list.filter(s => !txt.toLowerCase().includes(s.toLowerCase()));
   ok(missing.length === 0, `${tag}: glossary strings visible (${list.length}) ${missing.length ? 'MISSING ' + JSON.stringify(missing) : ''}`);
+}
+// CUI-0013 round 2 (v0.67): the question number of a multi-select question is just 第 n 題（共 24 題）, no （選擇 N 項）
+async function noSelectHint(tag, pg, idx) {
+  const num = await pg.$eval('#qNum > span', e => e.textContent);
+  const body = await bodyText(pg);
+  ok(num === `第 ${idx + 1} 題（共 24 題）` && !/選擇 \d 項|\(select \d\)/i.test(body), `${tag}: question number "${num}" without a (select N) hint`);
 }
 async function expectAttr(tag, pg, sel, attr, want) {
   const v = await pg.$$eval(sel, (els, attr) => els.map(e => e.getAttribute(attr)), attr);
@@ -122,13 +160,36 @@ const quizSnap = pg => pg.evaluate(() => JSON.stringify({ mode: state.mode, exam
 const G = {
   homeTop: ['選擇模式', '溫習', '練習', '模擬考試'],
   practiceDesc: ['每題作答後即時顯示答案及廣東話翻譯。可按難度、章節或試卷選題，並顯示各組掌握進度。', '練習分類', '難度', '章節', '試卷', '容易', '基礎', '中等', '困難', '極難',
-    '即算掌握。每輪最多抽取', '↺ 重設進度'],
-  examDesc: ['仿照真實考試作答全部 24 題，可返回修改答案。於最後一題提交後，即可查看分數及答案。請於下方選擇試卷。', '選擇試卷', '🎲 隨機試卷', '從 408 題中抽取 24 題',
+    '↺ 重設進度'],
+  // v0.68 Home UI: the practice hint is a list of 4 <li>, in this order (max 24 per round, streak 3)
+  practiceHint: ['每輪最多抽取 24 條未掌握的題目，每題出現一次', '同一題連續答對 3 次即算掌握', '未掌握的題目會於下一輪再出現',
+    '已掌握的題目會略過，直至整組全部掌握'],
+  // v0.68 Home UI: the exam description no longer ends with 請於下方選擇試卷。
+  examDesc: ['仿照真實考試作答全部 24 題，可返回修改答案。於最後一題提交後，即可查看分數及答案。', '選擇試卷', '🎲 隨機試卷', '從 408 題中抽取 24 題',
     '已完成的試卷會以 ✓ 標示。', '↺ 重設已完成試卷'],
-  myReview: ['我的複習', '錯題', '已標記', '錯題來自練習及模擬考試，於此答對後便會清除。每輪最多 24 題。'],
+  myReview: ['我的複習', '錯題', '已標記'],
+  // v0.68 Home UI: new wording, shown inside the wrong-answers tile (#tileWrong .t-note) instead of #myReviewNote
+  myReviewNote: '來自練習及模擬考試，於此答對後便會清除。每輪最多 24 題。',
   info: ['Exam 1–17 練習', '收錄 408 條 lifeintheuktestweb.co.uk 官方風格題目，附廣東話翻譯及備注。', '📋 17 份試卷', '❓ 408 條題目', '🔒 支援離線使用'],
   install: ['安裝以便離線使用', '加至主畫面，無需網絡亦可溫習', '安裝'],
 };
+
+// v0.68 Home UI: the My Review tiles as rendered — the count lives only in .t-num (the "已標記 n 題" line and the
+// "· 每輪 24 題" suffix are gone); the wrong tile holds .sub + the .t-note, the flagged tile has no .sub while n > 0
+const myReviewTiles = pg => pg.evaluate(() => Object.fromEntries(['tileWrong', 'tileFlagged'].map(id => {
+  const el = document.getElementById(id), txt = sel => (el.querySelector(sel) || {}).textContent || '';
+  return [id, { num: txt('.t-num'), title: txt('b'), sub: txt('.sub'), note: txt('.t-note') }];
+}).concat([['oldNote', !!document.getElementById('myReviewNote')]])));
+// wrong tile: n + 尚餘 n 題 + the note; flagged tile: n, title only
+async function expectMyReview(tag, pg, wrongN, flagN) {
+  const t = await myReviewTiles(pg);
+  const w = t.tileWrong, f = t.tileFlagged;
+  ok(w.num === String(wrongN) && w.title === '錯題' && w.sub === `尚餘 ${wrongN} 題` && w.note === G.myReviewNote,
+    `${tag}: wrong tile ${wrongN} · 尚餘 ${wrongN} 題 + note inside the tile ${JSON.stringify(w)}`);
+  ok(f.num === String(flagN) && f.title === '已標記' && f.sub === '' && f.note === '',
+    `${tag}: flagged tile ${flagN}, no count line ${JSON.stringify(f)}`);
+  ok(!t.oldNote, `${tag}: no separate #myReviewNote below the tiles`);
+}
 
 // ══════════ 1. version / SW / document / manifest ══════════
 async function versionCheck(b) {
@@ -136,13 +197,13 @@ async function versionCheck(b) {
   try {
     const ctx = await b.newContext({ viewport: { width: 390, height: 844 } }); const pg = await ctx.newPage(); const { errs } = watch(pg);
     await pg.goto(base);
-    ok(await pg.evaluate(() => APP_VERSION) === '0.65', 'APP_VERSION === 0.65');
-    ok((await pg.textContent('#appVersion')) === 'v0.65', 'header shows v0.65');
+    ok(!!CUR_VERSION && await pg.evaluate(() => APP_VERSION) === CUR_VERSION, `APP_VERSION === ${CUR_VERSION} (js/core/config.js)`);
+    ok((await pg.textContent('#appVersion')) === 'v' + CUR_VERSION, `header shows v${CUR_VERSION}`);
     await pg.evaluate(() => navigator.serviceWorker.ready);
-    await pg.waitForFunction(async () => (await caches.keys()).includes('lifeuk-v0.65'), null, { timeout: 15000 }).catch(() => {});
+    await waitCache(pg, CUR_CACHE);
     const keys = await pg.evaluate(() => caches.keys());
-    ok(keys.length === 1 && keys[0] === 'lifeuk-v0.65', `SW cache = lifeuk-v0.65 only (${keys})`);
-    const zhCached = await pg.evaluate(async () => { const r = await (await caches.open('lifeuk-v0.65')).match('locales/zh-HK.js'); return r ? (await r.text()).includes("LOCALES['zh-HK']") : false; });
+    ok(keys.length === 1 && keys[0] === CUR_CACHE, `SW cache = ${CUR_CACHE} only (${keys})`);
+    const zhCached = await pg.evaluate(async c => { const r = await (await caches.open(c)).match('locales/zh-HK.js'); return r ? (await r.text()).includes("LOCALES['zh-HK']") : false; }, CUR_CACHE);
     ok(zhCached, 'locales/zh-HK.js is in the installed SW cache');
     const order = await pg.evaluate(() => [...document.scripts].map(s => s.getAttribute('src')));
     ok(order.indexOf('locales/zh-HK.js') === order.indexOf('locales/en.js') + 1 && order.indexOf('locales/zh-HK.js') < order.indexOf('js/core/i18n.js'), 'index.html loads zh-HK.js right after en.js, before i18n.js');
@@ -221,7 +282,10 @@ async function glossary(b) {
     const { ctx, pg, errs, warns } = await fresh(b, 390, {}, APP_URL, { 'lifeuk.wrongList': { '1.0': true, '1.1': true, '2.3': true }, 'lifeuk.practiceFlags': { '3.4': true, '6.7': true } });
     await pill(pg);
     await nav(pg, '#modePractice');
-    await expectTexts('Home practice › difficulty', pg, [...G.homeTop, ...G.practiceDesc, ...G.myReview, '尚餘 3 題', '已標記 2 題']);
+    await expectTexts('Home practice › difficulty', pg, [...G.homeTop, ...G.practiceDesc, ...G.practiceHint, ...G.myReview, G.myReviewNote, '尚餘 3 題']);
+    const hintLis = await pg.$$eval('#practiceHint li', els => els.map(e => e.textContent));
+    ok(JSON.stringify(hintLis) === JSON.stringify(G.practiceHint), `Home practice: hint is ${G.practiceHint.length} <li> in order ${JSON.stringify(hintLis)}`);
+    await expectMyReview('Home practice › difficulty', pg, 3, 2);
     await noEnglishLeft('Home practice › difficulty', pg); await noOverflow('Home practice › difficulty', pg);
     await tap(pg, '#ptabChapter');
     await expectTexts('Home practice › chapter', pg, ['Ch 1', 'Values & principles', 'Ch 3', 'History', 'Government & law']);
@@ -233,6 +297,7 @@ async function glossary(b) {
     await noEnglishLeft('Home practice › exam', pg); await noOverflow('Home practice › exam', pg);
     await nav(pg, '#modeExam');
     await expectTexts('Home exam', pg, [...G.homeTop, ...G.examDesc]);
+    ok(!(await bodyText(pg)).includes('請於下方選擇試卷'), 'Home exam: description has no 請於下方選擇試卷');
     await noEnglishLeft('Home exam', pg); await noOverflow('Home exam', pg);
     await tap(pg, '#infoBtn');
     await expectTexts('ⓘ popover', pg, G.info);
@@ -252,7 +317,8 @@ async function glossary(b) {
   {
     const { ctx, pg, errs } = await fresh(b, 390, {}, APP_URL, { 'lifeuk.wrongList': WRONG30, 'lifeuk.practiceFlags': FLAGS30, 'lifeuk.uiLang': ZH_SEED });
     await nav(pg, '#modePractice');
-    await expectTexts('My Review 30', pg, ['尚餘 30 題 · 每輪 24 題', '已標記 30 題']);
+    await expectMyReview('My Review 30', pg, 30, 30);
+    ok(!(await bodyText(pg)).includes('每輪 24 題'), 'My Review 30: no "· 每輪 24 題" round suffix on the tile');
     await nav(pg, '#tileWrong');
     await expectTexts('Wrong review quiz', pg, ['錯題', '第 1 輪（共 2 輪）· 錯題 30 題中的 24 題', '第 1 題（共 24 題）']);
     await noEnglishLeft('Wrong review quiz', pg);
@@ -323,7 +389,7 @@ async function glossary(b) {
     note('Exam 4 practice: similar idx', idx.sim, 'multi idx', idx.multi);
     await tap(pg, `#navDots .dot:nth-child(${idx.sim + 1})`);
     await answer(pg, false); await sleep(50);
-    await expectTexts('Quiz practice revealed (wrong)', pg, ['✗ 錯誤', '【廣東話翻譯】', '相似題目', '同一知識點，不同問法', '📌 核心知識 #', '本題', '進行中', '▶ 練習這', '下一題 →']);
+    await expectTexts('Quiz practice revealed (wrong)', pg, ['✗ 錯誤', '【廣東話翻譯】', '相似題目', '同一知識點，不同問法', '📌 核心知識 Ch ', '本題', '進行中', '▶ 練習這', '下一題 →']);
     const stars = await pg.$eval('#qNum .stars', e => e.title);
     ok(/^難度 [1-5]\/5$/.test(stars), `difficulty stars title 難度 d/5 (${stars})`);
     const hasNote = await pg.$eval('#ansNote', e => !!e.textContent);
@@ -333,8 +399,8 @@ async function glossary(b) {
     await pg.screenshot({ path: shot('zh-HK_quiz-practice-revealed_390'), fullPage: false });
     if (idx.multi >= 0) {
       await tap(pg, `#navDots .dot:nth-child(${idx.multi + 1})`);
-      await expectTexts('Quiz practice multi-select', pg, ['（選擇 2 項）']);
-    } else note('Exam 4 has no multi-select question; selectN checked in exam below');
+      await noSelectHint('Quiz practice multi-select', pg, idx.multi);
+    } else note('Exam 4 has no multi-select question; question number checked in exam below');
     await tap(pg, '#navDots .dot:last-child'); await answer(pg, true); await sleep(50);
     await expectTexts('Quiz practice last', pg, ['✓ 正確！', '完成 ✓']);
     await expectAttr('Quiz practice last', pg, '#quickNext', 'aria-label', '完成');
@@ -372,11 +438,12 @@ async function glossary(b) {
     const timer = await pg.textContent('#examTimer');
     ok(/^⏱ \d\d:\d\d$/.test(timer), `exam timer format ⏱ mm:ss (${timer})`);
     const multi = await pg.evaluate(() => state.questions.findIndex(q => q.a.length > 1));
-    if (multi >= 0) { await tap(pg, `#navDots .dot:nth-child(${multi + 1})`); await expectTexts('Quiz exam multi', pg, ['（選擇 2 項）']); }
+    if (multi >= 0) { await tap(pg, `#navDots .dot:nth-child(${multi + 1})`); await noSelectHint('Quiz exam multi', pg, multi); }
     await tap(pg, '#navDots .dot:nth-child(1)'); await tap(pg, '#opt0'); await tap(pg, '#flagBtn');
     await noEnglishLeft('Quiz exam', pg); await noOverflow('Quiz exam', pg);
     await tap(pg, '#screenQuiz .back-btn');
-    await expectTexts('Leave modal', pg, ['離開考試？', '已作答的答案將會遺失。', '離開', '留下']);
+    await expectTexts('Leave modal', pg, ['離開考試？', '已作答的答案將會遺失。', '離開', '取消']);
+    ok((await pg.textContent('#confirmCancel')) === '取消', 'Leave modal: the stay button reads 取消');
     await tap(pg, '#confirmCancel');
     await tap(pg, '#navDots .dot:last-child');
     ok((await pg.textContent('#nextBtn')) === '提交', 'exam last question: 提交');
@@ -455,7 +522,7 @@ async function glossary(b) {
     ok((await pg.textContent('#quizLabel')) === 'Chapter 3', 'chapter set label Chapter 3 (Q9)');
     await nav(pg, '#screenQuiz .back-btn'); await nav(pg, '#modeStudy'); await tap(pg, '#studyTabs [data-tab="chapters"]'); await tap(pg, '#studySubChips [data-arg="3"]');
     await nav(pg, '#studyContent .fact[data-fact-id="21"] .fact-practise');
-    ok((await pg.textContent('#quizLabel')) === '知識點 #21', `fact session label 知識點 #21 (${await pg.textContent('#quizLabel')})`);
+    ok((await pg.textContent('#quizLabel')) === zhFactSetLabel(21), `fact session label ${zhFactSetLabel(21)} (fact 21) (${await pg.textContent('#quizLabel')})`);
     await ctx.close();
   }
 }
@@ -691,7 +758,7 @@ async function langAttrs(b) {
   const gaps = async (tag, specs) => {
     const res = await pg.evaluate(specs => specs.map(([sel, want]) => { const els = [...document.querySelectorAll(sel)];
       return { sel, want, n: els.length, untagged: els.filter(e => { const l = e.closest('[lang]'); return l === document.documentElement || l.getAttribute('lang') !== want; }).length }; }), specs);
-    res.filter(r => r.n).forEach(r => note(`lang gap ${tag}: ${r.sel} → inherits <html lang="zh-HK">, should be ${r.want} (${r.untagged}/${r.n})`));
+    res.filter(r => r.n && r.untagged).forEach(r => note(`lang gap ${tag}: ${r.sel} → inherits <html lang="zh-HK">, should be ${r.want} (${r.untagged}/${r.n})`));
     return res;
   };
   await nav(pg, '#modePractice'); await tap(pg, '#ptabExam'); await nav(pg, '#examGrid [data-arg="4"]');
@@ -706,7 +773,7 @@ async function langAttrs(b) {
   const g1 = await gaps('quiz', [['#ansNote > strong', ZH]]);
   await tap(pg, '#navDots .dot:last-child'); await answer(pg, true); await nav(pg, '#nextBtn');
   await check('result', [['.rv-q-text', 'en'], ['.rv-correct-ans', 'en'], ['.rv-yue', ZH], ['.rv-note-line', ZH]]);
-  const g2 = await gaps('result', [['.rv-your', 'en']]);
+  const g2 = await gaps('result', [['.rv-your > span', 'en']]);
   await nav(pg, '#screenResult .back-btn'); await nav(pg, '#tileFlagged');
   await check('flagged', [['.fi-q', 'en'], ['.fi-yue', ZH]]);
   await nav(pg, '#screenFlagged .back-btn'); await nav(pg, '#modeStudy'); await tap(pg, '#studyTabs [data-tab="chapters"]');
@@ -745,7 +812,7 @@ async function offlineAndUpgrade(b) {
     try {
       const ctx = await b.newContext({ viewport: { width: 390, height: 844 } }); const pg = await ctx.newPage(); const { errs } = watch(pg);
       await pg.goto(base); await pg.evaluate(() => navigator.serviceWorker.ready);
-      await pg.waitForFunction(async () => (await caches.keys()).includes('lifeuk-v0.65'), null, { timeout: 15000 });
+      ok(await waitCache(pg, CUR_CACHE), `offline: SW cache ${CUR_CACHE} created`);
       await pg.reload(); await pg.waitForFunction(() => !!navigator.serviceWorker.controller, null, { timeout: 10000 });
       await ctx.setOffline(true);
       await pg.reload();
@@ -771,33 +838,28 @@ async function offlineAndUpgrade(b) {
     try {
       const ctx = await b.newContext({ viewport: { width: 390, height: 844 } }); const pg = await ctx.newPage(); const { errs } = watch(pg);
       await pg.goto(base); await pg.evaluate(() => navigator.serviceWorker.ready);
-      await pg.waitForFunction(async () => (await caches.keys()).includes('lifeuk-v0.64'), null, { timeout: 15000 });
+      ok(await waitCache(pg, 'lifeuk-v0.64'), 'upgrade: v0.64 SW cache created');
       await pg.reload();
       const v64 = await pg.evaluate(() => ({ v: APP_VERSION, pill: !!document.getElementById('langBtn') }));
       ok(v64.v === '0.64' && !v64.pill, `upgrade: v0.64 installed and controlling (no pill) ${JSON.stringify(v64)}`);
       await pg.evaluate(() => { localStorage.setItem('lifeuk.practiceStreak', '{"1.0":3,"2.1":1}'); localStorage.setItem('lifeuk.practiceFlags', '{"3.4":true}'); localStorage.setItem('lifeuk.completedExams', '{"1":true}'); });
       const before = await pg.evaluate(() => Object.fromEntries(Object.keys(localStorage).sort().map(k => [k, localStorage.getItem(k)])));
-      // deploy v0.65 over the same folder
+      // deploy the current version over the same folder
       fs.readdirSync(dir).forEach(f => fs.rmSync(path.join(dir, f), { recursive: true, force: true }));
       appFiles(ROOT).forEach(f => fs.cpSync(path.join(ROOT, f), path.join(dir, f), { recursive: true }));
       await pg.reload(); // still v0.64 from the old cache; registration update check fetches the new sw.js
       const mixed = await pg.evaluate(() => APP_VERSION);
-      // poll like tests/upgrade-test.js waitForCache: update() until the new worker controls and the old cache is gone
-      await pg.evaluate(async () => { const reg = await navigator.serviceWorker.getRegistration();
-        for (let i = 0; i < 100; i++) { const k = await caches.keys();
-          if (k.length === 1 && k[0] === 'lifeuk-v0.65' && !reg.installing && !reg.waiting && navigator.serviceWorker.controller) return true;
-          if (!reg.installing && !reg.waiting) await reg.update().catch(() => {}); await new Promise(r => setTimeout(r, 200)); }
-        return false; });
+      await waitUpgrade(pg, CUR_CACHE);
       const keys = await pg.evaluate(() => caches.keys());
-      ok(keys.length === 1 && keys[0] === 'lifeuk-v0.65', `upgrade: new SW activated, cache lifeuk-v0.65 only, v0.64 cache deleted (${keys}; page before reload v${mixed})`);
+      ok(keys.length === 1 && keys[0] === CUR_CACHE, `upgrade: new SW activated, cache ${CUR_CACHE} only, v0.64 cache deleted (${keys}; page before reload v${mixed})`);
       await pg.reload();
       const v65 = await pg.evaluate(() => ({ v: APP_VERSION, pill: !!byId('langBtn') && !byId('langBtn').hidden, zh: typeof LOCALES['zh-HK'] }));
-      ok(v65.v === '0.65' && v65.pill && v65.zh === 'object', `upgrade: after reload v0.65 with the pill and zh-HK locale ${JSON.stringify(v65)}`);
+      ok(v65.v === CUR_VERSION && v65.pill && v65.zh === 'object', `upgrade: after reload v${CUR_VERSION} with the pill and zh-HK locale ${JSON.stringify(v65)}`);
       await pill(pg);
       ok((await langNow(pg)).html === ZH, 'upgrade: pill switches to zh-HK');
       await nav(pg, '#modePractice');
-      const t = await bodyText(pg);
-      ok(t.includes('已標記 1 題'), 'upgrade: progress shows in zh-HK (My Review flagged 1)');
+      const fl = (await myReviewTiles(pg)).tileFlagged;
+      ok(fl.num === '1' && fl.title === '已標記', `upgrade: progress shows in zh-HK (My Review flagged 1) ${JSON.stringify(fl)}`);
       const after = await pg.evaluate(() => Object.fromEntries(Object.keys(localStorage).filter(k => k !== 'lifeuk.uiLang').sort().map(k => [k, localStorage.getItem(k)])));
       const keep = ['lifeuk.practiceStreak', 'lifeuk.practiceFlags', 'lifeuk.completedExams'];
       ok(keep.every(k => after[k] === before[k]), `upgrade: progress keys byte-identical (${keep.map(k => after[k]).join(' ')})`);

@@ -58,11 +58,12 @@ function buildDiffGrid() {
     labelHtml: `${starsHtml(d)}<span class="ch-name">${difficultyLabel(d)}</span>`,
   })).join('');
 }
-// CUI-0014: chapter names stay English in every language (plan Q10), so screen readers read them as en
+// CUI-0014: chapter names stay English in every language (plan Q10), so screen readers read them as en;
+// S-057: so does the "Ch {n}" label (common.chapterShort is untranslated by choice)
 function buildChapterGrid() {
   byId('chapterGrid').innerHTML = CHAPTER_NUMBERS.map(ch => setButtonHtml({
     action: 'startChapter', arg: ch, list: chapterQuestions(ch),
-    labelHtml: `<span class="ch-num">${t('common.chapterShort', { n: ch })}</span>
+    labelHtml: `<span class="ch-num" lang="en">${escapeHtml(t('common.chapterShort', { n: ch }))}</span>
       <span class="ch-name" lang="en">${t(`data.chapterShort.${ch}`)}</span>`,
   })).join('');
 }
@@ -125,25 +126,26 @@ function resetCompletedExams() {
 }
 
 // ── My Review (practice): wrong answers + flagged tiles, hidden while both are empty ──
-function renderReviewTile(id, n, iconHtml, title, sub) {
+function renderReviewTile(id, n, iconHtml, title, bodyHtml) {
   const el = byId(id);
   el.classList.toggle('empty', !n);
   el.disabled = !n;
-  el.innerHTML = `<div class="t-top"><span class="t-icon">${iconHtml}</span><span class="t-num">${n}</span></div><b>${title}</b><span class="sub">${sub}</span>`;
+  el.innerHTML = `<div class="t-top"><span class="t-icon">${iconHtml}</span><span class="t-num">${n}</span></div><b>${title}</b>${bodyHtml}`;
 }
-function wrongTileSub(n) {
-  if (!n) return t('home.wrongEmpty');
-  return n > PRACTICE_ROUND_MAX ? t('home.wrongToClearRounds', { n, max: PRACTICE_ROUND_MAX }) : t('home.wrongToClear', { n });
+// the note explains where wrong answers come from, so it stays even while the tile is empty
+function wrongTileBody(n) {
+  const sub = n ? t('home.wrongToClear', { n }) : t('home.wrongEmpty');
+  return `<span class="sub">${sub}</span><span class="t-note">${t('home.myReviewNote', { max: PRACTICE_ROUND_MAX })}</span>`;
 }
-function flaggedTileSub(n) {
-  return n ? t('home.flaggedCount', { n }) : t('home.flaggedEmptyHtml', { icon: bookmarkSvg('bm-inline') });
+// the count already shows in .t-num; only the empty tile needs a line (how to flag)
+function flaggedTileBody(n) {
+  return n ? '' : `<span class="sub">${t('home.flaggedEmptyHtml', { icon: bookmarkSvg('bm-inline') })}</span>`;
 }
 function renderMyReview() {
   const wrongN = keysOf(wrongList).length, flagN = keysOf(practiceFlags).length;
   byId('myReview').classList.toggle('show', pendingMode === PRACTICE_MODE && (wrongN + flagN) > 0);
-  renderReviewTile('tileWrong', wrongN, '✗', t('home.wrongTitle'), wrongTileSub(wrongN));
-  renderReviewTile('tileFlagged', flagN, bookmarkSvg('rv-flag-tile'), t('home.flaggedTitle'), flaggedTileSub(flagN));
-  byId('myReviewNote').textContent = t('home.myReviewNote', { max: PRACTICE_ROUND_MAX });
+  renderReviewTile('tileWrong', wrongN, '✗', t('home.wrongTitle'), wrongTileBody(wrongN));
+  renderReviewTile('tileFlagged', flagN, bookmarkSvg('rv-flag-tile'), t('home.flaggedTitle'), flaggedTileBody(flagN));
 }
 function startWrongReview() { pendingMode = PRACTICE_MODE; startExam(WRONG_EXAM); }
 function startFlaggedPractice() { pendingMode = PRACTICE_MODE; startExam(FLAGGED_EXAM); }

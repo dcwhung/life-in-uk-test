@@ -32,10 +32,12 @@ function resetAnswers() {
   state.flags = {};
 }
 function startExam(examNum) {
+  const pool = poolFor(examNum);
+  // CUI-0016: an emptied review set has no question to render; go Home before any session state changes
+  if (!pool.length) { leaveToHome(); return; }
   state.mode = pendingMode;
   state.examNum = examNum;
   clearSideSession();
-  const pool = poolFor(examNum);
   state.setPool = pool;
   state.masteredBefore = masteryOf(pool).mastered;
   state.reviewTotal = isReviewSet(examNum) ? pool.length : 0;
@@ -66,9 +68,22 @@ function renderQuestion() {
   renderExamTools(idx);
   renderNavButtons(idx, total, revealed);
 }
+// W-016: a fact set's "Ch c #n" is English in every language (S-057), so it goes in a lang="en" span;
+// built from text nodes, never innerHTML, so the locale string cannot inject markup
+function setExamLabel(el, examNum) {
+  const label = examLabel(examNum);
+  const num = isFactExam(examNum) ? t('study.chapterFactId', factSetParams(examNum)) : '';
+  const at = num ? label.indexOf(num) : -1;
+  if (at < 0) { el.textContent = label; return; }
+  const numEl = document.createElement('span');
+  numEl.lang = 'en';
+  numEl.textContent = num;
+  el.replaceChildren(label.slice(0, at), numEl, label.slice(at + num.length));
+}
 function renderQuizHeader(q, idx, total) {
-  byId('quizLabel').textContent =
-    state.examNum === ALL_EXAM && !isRandomExam(state.examNum) ? t('quiz.allShuffled') : examLabel(state.examNum);
+  const label = byId('quizLabel');
+  if (state.examNum === ALL_EXAM && !isRandomExam(state.examNum)) label.textContent = t('quiz.allShuffled');
+  else setExamLabel(label, state.examNum);
   byId('modeBadge').textContent = state.mode === PRACTICE_MODE ? t('common.practice') : t('common.exam');
   // progress: the question card's top border
   byId('progressFill').style.width = percent(idx + 1, total) + '%';

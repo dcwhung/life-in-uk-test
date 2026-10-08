@@ -126,8 +126,9 @@ function subChipRowHtml(action, current, keys, chipText) {
 // sub-filter row: chapter / nation / people group (timeline has none)
 function studySubChipsHtml() {
   if (study.tab === 'chapters') {
-    return CHAPTER_NUMBERS.map(ch => chipHtml({ extraCls: ' ch', active: study.chapter === ch,
-      action: 'studySetChapter', arg: ch, label: `${CHAPTER_ICONS[ch]} ${t('common.chapterShort', { n: ch })}` })).join('');
+    // S-057: "Ch {n}" stays English in zh-HK too; chipHtml takes no attributes, so a bare span carries the lang
+    return CHAPTER_NUMBERS.map(ch => chipHtml({ extraCls: ' ch', active: study.chapter === ch, action: 'studySetChapter', arg: ch,
+      label: `${CHAPTER_ICONS[ch]} <span lang="en">${escapeHtml(t('common.chapterShort', { n: ch }))}</span>` })).join('');
   }
   if (study.tab === 'geo') return subChipRowHtml('studySetNation', study.nation, NATIONS, k => nationText(k, CHIP_FIELD));
   if (study.tab === 'people') return subChipRowHtml('studySetGroup', study.group, PEOPLE_GROUPS, k => peopleText(k, CHIP_FIELD));
@@ -169,7 +170,7 @@ function renderStudyProgress() {
 function chapterGroupHtml(ch, list) {
   const title = t('study.chapterTitle', { n: ch, title: t(`data.chapters.${ch}`) });
   // S-049: study.chapterTitle and the chapter name are English in every language (plan Q10)
-  return `<div class="study-group-title" lang="en">${CHAPTER_ICONS[ch]} ${escapeHtml(title)} <span class="cnt">${list.length}</span></div>`
+  return `<div class="study-group-title" lang="en">${CHAPTER_ICONS[ch]} ${escapeHtml(title)}</div>`
     + list.map(f => renderFact(f, { noChapter: true })).join('');
 }
 function renderStudyChapters() {
@@ -210,7 +211,7 @@ function renderStudyGeo() {
   NATIONS.forEach(nation => {
     const list = facts.filter(f => f.geo[0] === nation);
     if (!list.length) return;
-    html += `<div class="study-group-title">${nationText(nation, LABEL_FIELD)} <span class="cnt">${list.length}</span></div>`;
+    html += `<div class="study-group-title">${nationText(nation, LABEL_FIELD)}</div>`;
     GEO_TYPES.forEach(type => {
       const sub = list.filter(f => f.geo[1] === type);
       if (!sub.length) return;
@@ -234,7 +235,7 @@ function renderStudyPeople() {
     const list = facts.filter(f => f.p[1] === group);
     if (!list.length) return;
     sortPeople(group, list);
-    html += `<div class="study-group-title">${peopleText(group, LABEL_FIELD)} <span class="cnt">${list.length}</span></div>`;
+    html += `<div class="study-group-title">${peopleText(group, LABEL_FIELD)}</div>`;
     html += list.map(f => renderFact(f, { noPerson: true, title: f.p[0] })).join('');
   });
   return { html, shown: facts.length, total: pool.length };

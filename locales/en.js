@@ -37,7 +37,7 @@ LOCALES.en = {
     modePractice: 'Practice',
     modeExam: 'Exam',
     practiceDescHtml: '<strong>Practice</strong> — See the answer and Cantonese translation immediately after each question. Pick a set by difficulty, chapter or exam; each shows how much you have mastered.',
-    examDescHtml: '<strong>Exam</strong> — Answer all {n} questions like the real test; you can go back and change answers. Submit on the last question to see your score and answers. Pick an exam below.',
+    examDescHtml: '<strong>Exam</strong> — Answer all {n} questions like the real test; you can go back and change answers. Submit on the last question to see your score and answers.',
     myReview: 'My Review',
     practiceBy: 'Practice By',
     tabDifficulty: 'Difficulty',
@@ -47,18 +47,16 @@ LOCALES.en = {
     allExams: '🎯 All Questions ({n})',
     randomExam: '🎲 Random Exam',
     randomExamSub: { one: '{n} question from {total}', other: '{n} questions from {total}' },
-    practiceHintHtml: 'Answer a question correctly <b>{streak} times in a row</b> to master it. Each round draws up to <b>{max}</b> unmastered questions, each asked once; unmastered ones come back in the next round. Mastered ones are skipped until the whole set is mastered.',
+    practiceHintHtml: '<ul><li>Each round draws up to <b>{max}</b> unmastered questions, each asked once</li><li>Answer a question correctly <b>{streak} times in a row</b> to master it</li><li>Unmastered questions come back in the next round</li><li>Mastered questions are skipped until the whole set is mastered</li></ul>',
     resetProgress: '↺ Reset progress',
     examResetHint: 'Completed exams are marked with ✓.',
     resetCompleted: '↺ Reset completed exams',
     wrongTitle: 'Wrong answers',
     wrongEmpty: 'Nothing to review yet',
     wrongToClear: '{n} to clear',
-    wrongToClearRounds: '{n} to clear · {max} per round',
     flaggedTitle: 'Flagged',
-    flaggedCount: '{n} flagged',
     flaggedEmptyHtml: 'Tap {icon} on a question to flag it',
-    myReviewNote: 'Wrong answers come from Practice and Exam, and clear when you get them right here. Up to {max} per round.',
+    myReviewNote: 'From Practice and Exam; cleared once you get them right here. Up to {max} per round.',
   },
 
   quiz: {
@@ -113,7 +111,7 @@ LOCALES.en = {
   similar: {
     title: 'Similar Questions',
     subtitle: 'Same fact, asked differently',
-    coreFact: '📌 Core Fact #{id}',
+    coreFact: '📌 Core Fact', // followed by study.chapterFactId
     appearsIn: 'Appears in:',
     node: 'E{exam}·Q{n}',
     legendCurrent: 'This question',
@@ -149,7 +147,10 @@ LOCALES.en = {
     mastered: 'Mastered',
     masteredDerived: '🏆 Mastered — every source question mastered',
     progress: '🏆 {n} / {total} mastered',
-    factId: '#{id}',
+    // the fact's number within its chapter (chapterFactNumber); no UI text shows the global fact id (W-016)
+    factId: '#{n}',
+    // S-057: English in every language, like common.chapterShort
+    chapterFactId: 'Ch {ch} #{n}',
   },
 
   modal: {
@@ -161,7 +162,7 @@ LOCALES.en = {
     leaveTitle: 'Leave the exam?',
     leaveMessage: 'Your answers will be lost.',
     leaveOk: 'Leave',
-    leaveCancel: 'Stay',
+    leaveCancel: 'Cancel',
     resetProgressTitle: 'Reset practice progress?',
     resetProgressMessage: 'Mastery streaks, wrong answers and flags will be cleared.',
     resetCompletedTitle: 'Reset completed exams?',
@@ -180,7 +181,7 @@ LOCALES.en = {
     chapterN: 'Chapter {n}',
     chapterShort: 'Ch {n}',
     similarSet: 'Similar Questions',
-    factSet: 'Fact #{id}',
+    factSet: 'Fact Ch {ch} #{n}', // W-016: "Ch {ch} #{n}" as study.chapterFactId; the quiz header gives it lang="en"
     wrongSet: 'Wrong answers',
     flaggedSet: 'Flagged',
     questionN: 'Question {n}',

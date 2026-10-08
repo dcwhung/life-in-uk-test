@@ -207,10 +207,10 @@ const bannerVisible = pg => pg.evaluate(() => byId('installBanner').classList.co
     await pg.screenshot({ path: path.join(SHOT_DIR, '2026-10-06_v060_leave-modal-focus.png') });
     await pg.keyboard.press('Enter');
     let qs = await pg.evaluate(() => ({ open: isConfirmOpen(), quiz: byId('screenQuiz').classList.contains('active'), running: isExamRunning(), a0: JSON.stringify(state.answers[0]) }));
-    ok(!qs.open && qs.quiz && qs.running && qs.a0 === '[0]', `Leave: Enter = Stay, still in exam ${JSON.stringify(qs)}`);
+    ok(!qs.open && qs.quiz && qs.running && qs.a0 === '[0]', `Leave: Enter = Cancel (#confirmCancel, formerly Stay), still in exam ${JSON.stringify(qs)}`);
     await pg.evaluate(() => goHome()); await pg.keyboard.press('Tab');
     const tabbed = await pg.evaluate(() => document.activeElement.id);
-    ok(tabbed === 'confirmOk', 'edge: Tab from Stay moves to Leave (deliberate path still reachable): ' + tabbed);
+    ok(tabbed === 'confirmOk', 'edge: Tab from Cancel (formerly Stay) moves to Leave (deliberate path still reachable): ' + tabbed);
     await pg.keyboard.press('Escape');
     // Submit modal keeps OK focus
     await pg.evaluate(() => { state.flags[1] = true; submitExam(); });

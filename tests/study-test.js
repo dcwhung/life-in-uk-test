@@ -17,6 +17,53 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
     return c;
   }, name);
   const css = (sel, prop) => pg.$eval(sel, (e, p) => getComputedStyle(e)[p], prop);
+  // expected chapter number, counted here from STUDY (not from the app helper): position among the same-chapter facts
+  const EXPECTED_NUM_JS = 'const f = STUDY.find(x => x.id === id); return STUDY.filter(x => x.ch === f.ch).indexOf(f) + 1;';
+  const STUDY_TOTAL = 236;
+  // helper unit test: each chapter's first fact is 1, its last is the chapter total, every (ch, n) pair is unique
+  async function checkChapterFactHelper() {
+    const r = await pg.evaluate(src => {
+      if (typeof chapterFactNumber !== 'function') return { fn: false };
+      const expected = new Function('id', src);
+      const chs = [...new Set(STUDY.map(f => f.ch))];
+      const ends = chs.map(ch => { const l = STUDY.filter(f => f.ch === ch); return [chapterFactNumber(l[0].id), chapterFactNumber(l[l.length - 1].id), l.length]; });
+      const pairs = new Set(STUDY.map(f => f.ch + ':' + chapterFactNumber(f.id)));
+      return { fn: true, ends, unique: pairs.size, total: STUDY.length, match: STUDY.every(f => chapterFactNumber(f.id) === expected(f.id)) };
+    }, EXPECTED_NUM_JS);
+    assert(r.fn && r.total === STUDY_TOTAL && r.unique === STUDY_TOTAL && r.match && r.ends.every(([a, z, n]) => a === 1 && z === n),
+      'chapterFactNumber: first = 1, last = chapter total, 236 unique (ch, n): ' + JSON.stringify(r));
+  }
+  // every card: the element its Practise button's aria-describedby points at exists and shows the chapter number;
+  // Chapters view (noChapter) = ".fact-id" "#n"; every other view = no ".fact-id", pill "<icon> Ch c #n" (lang="en")
+  // S-073: the description is the number text only — no chapter emoji read out; the pill's icon is aria-hidden
+  const DESCRIBED_BY_TEXT = /^(Ch \d+ )?#\d+$/;
+  async function checkChapterNumbers(tag) {
+    const bad = await pg.$$eval('#studyContent .fact', (cards, [src, describedRe]) => {
+      const expected = new Function('id', src);
+      const described = new RegExp(describedRe);
+      const chapters = study.tab === 'chapters';
+      return cards.map(c => {
+        const id = Number(c.dataset.factId), f = STUDY.find(x => x.id === id), n = expected(id);
+        const btn = c.querySelector('.fact-practise');
+        const target = btn && document.getElementById(btn.getAttribute('aria-describedby'));
+        const ids = c.querySelectorAll('.fact-id');
+        const pill = [...c.querySelectorAll('.fact-meta .tag')].find(e => /^\S+ Ch \d+ #\d+$/.test(e.textContent));
+        const icon = pill && pill.querySelector('[aria-hidden="true"]');
+        const ok = !!target && described.test(target.textContent) && (chapters
+          ? ids.length === 1 && ids[0].textContent === '#' + n && target === ids[0]
+          : ids.length === 0 && !!pill && pill.textContent.endsWith(`Ch ${f.ch} #${n}`) && pill.getAttribute('lang') === 'en'
+            && target.parentElement === pill && target.textContent === `Ch ${f.ch} #${n}` && !!icon && !icon.contains(target));
+        return ok ? null : { id, n, ids: ids.length, pill: pill && pill.textContent, target: target && target.textContent, icon: !!icon };
+      }).filter(Boolean);
+    }, [EXPECTED_NUM_JS, DESCRIBED_BY_TEXT.source]);
+    const n = await pg.$$eval('#studyContent .fact', els => els.length);
+    assert(n > 0 && bad.length === 0, `${tag}: every card shows its chapter number and Practise is described by it (${n} cards): ` + JSON.stringify(bad.slice(0, 3)));
+  }
+  // group titles carry no ".cnt" count and no trailing number
+  async function checkGroupTitlesNoCount(tag) {
+    const g = await pg.$$eval('#studyContent .study-group-title', els => els.map(e => ({ cnt: !!e.querySelector('.cnt'), text: e.textContent.trim() })));
+    assert(g.length > 0 && g.every(x => !x.cnt && !/\d$/.test(x.text)), `${tag}: group titles have no count: ` + JSON.stringify(g));
+  }
   await pg.goto(APP_URL);
   await pg.evaluate(() => localStorage.clear());
   await pg.reload();
@@ -69,13 +116,23 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   const firstCard = await pg.$eval('#studyContent .fact', e => ({
     id: e.dataset.factId, first: e.querySelector('.fact-meta').firstElementChild.className, text: e.querySelector('.fact-id')?.textContent,
   }));
-  assert(firstCard.first === 'fact-id' && firstCard.text === '#' + firstCard.id, 'fact card starts with its "#id" (Q6): ' + JSON.stringify(firstCard));
+  // 2026-10-07: the card number counts from 1 in each chapter (Ch3's first fact, id 7, reads "#1"); data-fact-id keeps the global id
+  assert(firstCard.first === 'fact-id' && firstCard.text === '#1' && firstCard.id === '7', 'Ch3 first card starts with its chapter number "#1" (Q6): ' + JSON.stringify(firstCard));
+  await checkChapterFactHelper();
+  await checkChapterNumbers('en chapters › 3');
+  await checkGroupTitlesNoCount('en chapters › 3');
+  await pg.click('#studySubChips .chip:nth-child(4)'); // Ch4
+  assert(await pg.$eval('#studyContent .fact .fact-id', e => e.textContent) === '#1', 'Ch4 first card is "#1"');
+  await pg.click('#studySubChips .chip:nth-child(1)'); // Ch1
+  assert(await pg.$$eval('#studyContent .fact .fact-id', els => els[1].textContent) === '#2', 'Ch1 second card is "#2"');
+  await pg.click('#studySubChips .chip:nth-child(3)'); // back to Ch3
   assert(await pg.evaluate(() => typeof factCardHtml === 'function'), 'factCardHtml component loaded');
 
   await pg.click('.study-tab[data-tab="timeline"]');
   assert((await count()) === '82 / 82 facts', 'timeline 82: ' + await count());
   const eras = await pg.$$eval('.tl-era', els => els.map(e => e.firstChild.textContent.trim()));
   assert(eras[0].startsWith('Stone Age') && eras.includes('Tudors') && eras[eras.length - 1].startsWith('21st'), 'eras in order: ' + eras.join(' > '));
+  await checkChapterNumbers('en timeline');
   const years = await pg.$$eval('.tl-year', els => els.map(e => e.textContent));
   assert(years[0] === 'c. 4000 BC' && years.includes('1066') && years.includes('1215'), 'year labels: ' + years.slice(0, 6).join(','));
   await pg.screenshot({ path: 'shot-timeline.png' });
@@ -95,6 +152,8 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert((await count()) === '32 / 32 facts', 'geo 32: ' + await count());
   const nations = await pg.$$eval('.study-group-title', els => els.map(e => e.textContent.trim().split(' ').slice(1).join(' ')));
   assert(nations.length === 5, 'geo 5 nation groups: ' + nations.join(' | '));
+  await checkChapterNumbers('en geo');
+  await checkGroupTitlesNoCount('en geo');
   await pg.screenshot({ path: 'shot-geo.png' });
   assert(await css('.study-sub-title', 'color') === accent, 'geography sub-title is study accent');
 
@@ -102,12 +161,17 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert((await count()) === '55 / 55 facts', 'people 55: ' + await count());
   const firstNames = await pg.$$eval('.fact-name', els => els.slice(0, 4).map(e => e.textContent));
   assert(firstNames[0] === 'Julius Caesar' && firstNames[1] === 'Boudicca', 'monarchs chronological: ' + firstNames.join(', '));
+  await checkChapterNumbers('en people');
+  await checkGroupTitlesNoCount('en people');
   await pg.screenshot({ path: 'shot-people.png' });
 
   // search
   await pg.click('.study-tab[data-tab="chapters"]');
   await pg.fill('#studySearch', 'Magna');
   assert((await count()) === '1 / 236 facts', 'search Magna across chapters: ' + await count());
+  // a search never renumbers: Magna Carta keeps its chapter number, not "#1" of the result list
+  await checkChapterNumbers('en chapters search Magna');
+  assert(await pg.$eval('#studyContent .fact .fact-id', e => e.textContent) !== '#1', 'search result keeps its chapter number, not #1 of the list');
   // Cantonese search: the term comes from the data (Track 2 rewrites yue wording), not a hard-coded word.
   // First 2-character CJK run in fact yue order that only Cantonese text contains, found in >= 5 facts
   // across >= 2 chapters; the count shown must equal the facts whose yue contains it.
@@ -210,6 +274,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(await pg.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('lifeuk.studyMastered'))).length === 1 && Object.keys(JSON.parse(localStorage.getItem('lifeuk.studyBookmarks'))).length === 1), 'persisted in localStorage');
   await pg.click('text=Hide mastered');
   assert((await count()) === '1 / 2 facts', 'hide mastered: ' + await count());
+  assert(await pg.$eval('#studyContent .fact .fact-id', e => e.textContent) === '#2', 'hide mastered: the remaining Ch1 card stays "#2"');
   await pg.click('text=Hide mastered');
   await pg.click('text=Bookmarked only');
   assert((await count()) === '1 / 2 facts', 'bookmarks only: ' + await count());
@@ -222,6 +287,19 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.reload();
   await pg.click('#modeStudy');
   assert(await pg.$eval('.study-tab.active', e => e.dataset.tab) === 'people', 'tab persisted after reload');
+  // zh-HK: the same numbers, the pill text stays English (S-057)
+  await pg.evaluate(() => { setLang('zh-HK'); studySetTab('chapters'); studySetChapter(3); });
+  assert(await pg.$eval('#studyContent .fact .fact-id', e => e.textContent) === '#1', 'zh-HK Ch3 first card "#1"');
+  await checkChapterNumbers('zh-HK chapters › 3');
+  await checkGroupTitlesNoCount('zh-HK chapters › 3');
+  for (const tab of ['timeline', 'geo', 'people']) {
+    await pg.evaluate(tab => studySetTab(tab), tab);
+    await checkChapterNumbers('zh-HK ' + tab);
+    if (tab !== 'timeline') await checkGroupTitlesNoCount('zh-HK ' + tab);
+  }
+  assert(await pg.evaluate(() => t('study.chapterFactId', { ch: 3, n: 1 })) === 'Ch 3 #1', 'zh-HK study.chapterFactId is English "Ch 3 #1"');
+  await pg.evaluate(() => { setLang('en'); studySetTab('people'); });
+  assert(await pg.evaluate(() => t('study.chapterFactId', { ch: 3, n: 1 })) === 'Ch 3 #1', 'en study.chapterFactId "Ch 3 #1"');
   await pg.click('#screenStudy .back-btn');
   assert(await pg.$eval('#screenHome', e => e.classList.contains('active')), 'back to home');
 
