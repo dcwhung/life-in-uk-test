@@ -148,7 +148,7 @@ v0.57（P1 refactor）起 `index.html` 只剩 `<head>`、各 screen 嘅 markup �
 | 掣 | `← Home`、`← Prev`、`Next →`、`↩ Back`、`Finish ✓`、`Submit` | `← 主頁`、`← 上一題`、`下一題 →`、`↩ 返回`、`完成 ✓`、`提交` |
 | 判定 | `✓ Correct!` / `✗ Wrong`；`🎉 PASSED` / `📚 NEEDS IMPROVEMENT` | `✓ 正確！` / `✗ 錯誤`；`🎉 合格` / `📚 有待改善` |
 | Flag | `Flag for review` / `Unflag` / `Flagged` / `{n} flagged` | `標記待覆閱` / `取消標記` / `已標記` / `已標記 {n} 題` |
-| 錯題 | `Wrong answers`、`{n} to clear` | `錯題`、`尚餘 {n} 題` |
+| 錯題 | `Wrong answers`（v0.70 起冇 `{n} to clear`） | `錯題`（v0.70 起冇 `尚餘 {n} 題`） |
 | 掌握 | `🏆 Mastered`、`🔥 n/3` | `🏆 已掌握`、`🔥 n/3` |
 | Similar | `Similar Questions`、`📌 Core Fact #21`、`Appears in:`、`▶ Practise these N` | `相似題目`、`📌 核心知識 #21`、`出現於：`、`▶ 練習這 N 題` |
 | Study | `📖 Study`、`✓ Hide mastered`、`Bookmarked only`、`⚔️ Wars only`、`{shown} / {total} facts` | `📖 溫習`、`✓ 隱藏已掌握`、`只顯示書籤`、`⚔️ 只顯示戰爭`、`{shown} / {total} 項知識點` |
@@ -294,7 +294,7 @@ v0.66（Track 2，plan `2026-10-07_plan_zh-hk-locale.md` Q5 / Q7 / Q8、T-101…
 **首頁**
 - Header：`Life in the UK ⓘ` + `Exam Practice v${APP_VERSION}`；ⓘ 彈出簡介 popover
 - 三個 mode 掣一行：Study / Practice / Exam；預設 Practice；描述撳咗先顯示
-- **My Review（v0.53）：** Practice mode 描述下面一個獨立 section，兩格：「Wrong answers」（數字 + 「N to clear」，超過 24 題加「· 24 per round」）同「Flagged」（「N flagged」；v0.58 或之前係「N saved」；空格提示「Tap ［書籤 SVG］ on a question to flag it」）；下面小字「Wrong answers come from Practice and Exam, and clear when you get them right here. Up to 24 per round.」；**錯題同 flag 都冇記錄時成個 section 唔顯示**；只喺 Practice 出；一格係 0 就灰色（Flagged 空格提示用 app 內嘅書籤 SVG icon，唔用 🔖 emoji）
+- **My Review（v0.53）：** Practice mode 描述下面一個獨立 section，兩格：「Wrong answers」（數字 + 「N to clear」，超過 24 題加「· 24 per round」）同「Flagged」（「N flagged」；v0.58 或之前係「N saved」；空格提示「Tap ［書籤 SVG］ on a question to flag it」）；下面小字「Wrong answers come from Practice and Exam, and clear when you get them right here. Up to 24 per round.」；**錯題同 flag 都冇記錄時成個 section 唔顯示**；只喺 Practice 出；一格係 0 就灰色（Flagged 空格提示用 app 內嘅書籤 SVG icon，唔用 🔖 emoji）。**v0.68 起**說明移入錯題 tile、Flagged 冇副標題；**v0.70 起**錯題 tile 有題時只顯示大數字 + 標題 + 說明（冇「N to clear / 尚餘 N 題」，數字已經講咗），0 題時只顯示「Nothing to review yet / 暫時未有需要複習的題目」（冇說明）；`home.wrongToClear` 已刪
 - My Review 下面標題「Practice By」（v0.59 改 Title Case），三個 tab 文字改做 Difficulty / Chapter / Exam（id 不變）：Difficulty（預設；v0.39 起難度只顯示英文；v0.53 起只有 Easy / Basic / Medium / Hard / Expert 五行，拎走「Hard & Expert」）/ Chapter / Exam，每粒掣顯示「已掌握/總數 · %」+ 進度條（`.mastery-bar`，absolute 貼格仔底；格仔要 `overflow: hidden` 先唔會爆出圓角，By Exam 喺 v0.42 補返）；下面嘅提示寫明「連續答啱 3 次 = 掌握、每輪最多 24 題、每題一輪一次」
 - Exam 下只有 Select Exam（完成過有 ✓）
 - Mode 同 tab 記住喺 localStorage `homePrefs`
@@ -354,7 +354,7 @@ v0.66（Track 2，plan `2026-10-07_plan_zh-hk-locale.md` Q5 / Q7 / Q8、T-101…
   - **組件**：`js/components/factCard.js` `factCardHtml(f, { variant, marks, opts })` + `css/components/fact.css`。`full` = Study 白卡（`study.js` `renderFact()` 經 `factMarks(f)` 傳 `{ bookmarks, mastered, derived }`）；`core` = Similar panel 金色「📌 Core Fact #id」（`.sqm-fact.core`，冇掣、冇來源列，panel 自己有 node map）。**組件唔讀 `study` global**（`upgrade-test` 鎖死 `study.mastered` / `study.bookmarks` / `.study-tab.active` 名同形狀；`structure-test` 去除註解同字串後 grep `study` 守住）。保留 hook：`.fact`、`.fact.war`、`.fact.mastered`、`.fact-btn.star` / `.tick`、`.fact-en`、`.fact-yue`、`.sqm-fact-*`；新：`data-fact-id`、`.fact-id`、`.fact-btn.trophy`、`.fact-src`、`.fact-practise`、`.fact.flash`。O5：`.fact` 加 `--shadow-sm`。Q6：卡頂第一個係 `#id` 細字（`--fs-2xs`，`id="factId{id}"`，亦係 Practise 掣嘅 `aria-describedby`）
   - **掌握規則（T-204 / T-205）**：fact 已掌握 = 手動剔 `study.mastered[id]` **或** `factMastery(f).derived`（`f.src` 每題都 `isMastered`）。推算值每次 render 即時計，**唔寫 storage**；`isFactMastered(f)` 用喺 Hide mastered 同頂部進度。推算 🏆：✓ 位變做 🏆 掣（`class="fact-btn tick trophy"`、`aria-disabled="true"`、**冇 `data-action`**，撳咗乜都唔做；保留 `.tick` 等 W-009 hit ring 照用），卡同手動剔一樣半透明（Q7）；推算同手動剔同時成立時顯示 🏆（**S-032 決定唔改**：手動剔被 🏆 遮住、冇得喺 UI 取消；Reset practice progress 之後張卡仍然係已掌握，因為手動剔仲喺度。如果用戶覺得混淆，再喺 `masteredDerived` tooltip 加一句「亦已手動剔」）。部分題掌握唔算。O7：header `#studyProgress` pill `🏆 n / 236 mastered`（綠色，`.study-progress`），n = 全部 236 條入面 `isFactMastered` 嘅數；舊 cache `index.html` 冇呢個 element 就唔填（`renderStudyProgress()` guard）
   - **Reset**：首頁「Reset practice progress」**唔清** Study 剔同書籤（O6，用戶決定，維持現狀）；但推算 🏆 跟 Practice streak，所以 reset 之後推算 🏆 會消失（R-007），手動剔仍然喺度
-  - **來源列（T-206）**：取代「Appears ×n」tag（`study.appears` / `.tag.freq` 已刪）：`Appears in:`（`similar.appearsIn`）+ 每條 `f.src` 一粒 node（`questionNodeHtml(k)`（`components/tags.js`；v0.63 叫 `similarNodeHtml`，喺 similarPanel），同 Similar map 共用：`E9·Q15`、🏆 綠 / 進行中紅 / 未做白；**純顯示，唔可以撳**）+「▶ Practise this one / these N」（`similar.practise` plural）→ 臨時 session（見「臨時 session」）。所有 fact 都有（1 題都有，寫 this one）。≤ 480px 而且 node 多過 `FACT_SRC_INLINE_MAX`（3）：掣自己成行全闊（`.fact-src.wrap-btn`）
+  - **來源列（T-206）**：取代「Appears ×n」tag（`study.appears` / `.tag.freq` 已刪）：`Appears in:`（`similar.appearsIn`）+ 每條 `f.src` 一粒 node（`questionNodeHtml(k)`（`components/tags.js`；v0.63 叫 `similarNodeHtml`，喺 similarPanel），同 Similar map 共用：`E9·Q15`、🏆 綠 / 進行中紅 / 未做白；**純顯示，唔可以撳**）+「▶ Practise this one / these N」（`similar.practise` plural）→ 臨時 session（見「臨時 session」）。所有 fact 都有（1 題都有，寫 this one）。v0.70 起唔再數 node（`FACT_SRC_INLINE_MAX` / `.wrap-btn` 已刪）：純 flexbox，`.fact-src-nodes` `flex: 1000 1 max-content`、掣 `flex: 1 0 auto`，node 一需要分行掣就自己落下一行並全闊（任何闊度、所有 Study tab、中英文；`factsession-test` 守住），node 一行放得落就喺旁邊維持 pill 闊度（W-012 兩個來源嘅卡照樣一行）。星星（`.fact-meta .stars`）v0.70 起自己一行，喺 tag 下面靠左（用戶揀唔搬去右邊）。Timeline（v0.70）：`.tl-year` `text-box: trim-both cap alphabetic` + `align-self: start`，圓點喺年份文字（一行或兩行）垂直正中，字同圓點之間 `--tl-year-gap` 6px（`study-test` 守住）
   - **↩ Back highlight（T-207，Q8）**：返 Study 後卡金色 outline 1.5s（`FACT_HIGHLIGHT_MS`），見「臨時 session」
   - **CUI-0009**（v0.63）：fact 掣 `::before` 由 padding box 計，-6px 只係伸出可見邊 5px（實際 42px 高）；改做 `inset: calc(-1 * (var(--fact-btn-ring) + var(--fact-btn-border)))`（`.fact-actions` 定義 `--fact-btn-border: 1.5px`、`--fact-btn-ring: 6px`），相鄰邊 `calc(var(--fact-actions-gap) / -2 - var(--fact-btn-border))` → 可撳範圍 45px 高、外側伸出可見邊 6px，W-009 唔重疊照守；外觀冇變
   - **W-011**（v0.63 review）：`factMastery()` 喺 `f.src = []` 時係 0 / 0，之前 `derived: true`（冇來源 fact 會自動當 🏆）；改做 `derived: m.total > 0 && m.mastered === m.total`，`factmastery-test` 守住（而家 236 條全部有來源，未觸發過）
@@ -594,7 +594,6 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 - 備注嘅 `\n` 係直接寫喺 `exams.js` 字串入面，冇 markdown 解析；縮排靠空格 + `pre-wrap`
 - `bookmarkSvg(cls)`（`js/components/icons.js`）輸出嘅 SVG path 冇 fill，新 class 一定要喺 CSS 設顏色（`css/components/buttons.css`），否則會係黑色（v0.55 / v0.56 踩過兩次）
 - `#reviewOrder` 係 Review filter chip 嘅容器，名係 v0.39 排序 chip 留低；測試用緊呢個 id，所以未改名
-- 1.19、14.3 兩條備注係單句列舉（曼島／五位演員），未改成分行
 - 124 條題目（408 − 284）冇類似題，因為佢哋嘅 fact 只有一個來源
 - **Review suggestion 狀態**（S-001…S-094；2026-10-08 final review 逐個核對，`.proj-docs/reviews/2026-10-08_review_s091-s092-final.md`）：全部已做，除咗下面決定唔改嘅 S-032（見「功能現況 › Study › 掌握規則」）、S-052（由 S-053 `check-batch-replay.js` 取代）、S-059、S-081、S-092 嘅 `\u{…}` 部分；S-013 / S-078 / S-079 從未發出
     ◦ **S-081（決定唔改）**：Home UI 新加 spacing literal（6px、20px、1.2em）唔抽 token —— `tokens.css` 冇 spacing token，成個 codebase 都用 px literal，淨係呢幾行改會變兩套寫法；日後要就一次過加 `--space-*` 再遷移（S-087 要求記低）
@@ -741,7 +740,7 @@ c10115b feat: randomise answer option order in Practice and Exam mode
 
 ## Follow-up 候選（未做）
 
-- [ ] 1.19、14.3 備注改成分行列點
+- [x] 1.19、14.3 備注改成分行列點（v0.70 B1，batch 9；Crown dependency 記憶法同組 7 題一齊改）
 - [ ] 其他可整合記憶法嘅題組：君主／王朝時序、Civil War（1642–1651）相關、WWII 事件（Dunkirk、Blitz、D-Day）、Magna Carta 1215 三條重複題
 - [x] Study fact 卡片加「跳去來源題目」（v0.63，P3 PR-3：來源列 +「▶ Practise these N」）
 - [ ] 記憶法備注同步落 `study.js` 對應 fact（目前只喺 `exams.js`）
