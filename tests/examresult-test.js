@@ -39,7 +39,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await finishExam4(WRONG, SKIP, FLAG);
 
   // header: mode icon, score once (red when failed), no 3-box breakdown
-  assert((await text('#resultEmoji')) === '📝', 'exam result icon follows the mode (📝)');
+  assert((await text('#resultEmoji')) === '🎯', 'exam result icon follows the mode (🎯)');
   assert((await text('#resultScore')) === '17 / 24 · 71%', 'score line: 17 / 24 · 71%');
   assert(await pg.$eval('#resultScore', e => e.classList.contains('fail')), 'failed: score line red');
   assert((await text('#resultLabel2')) === '📚 NEEDS IMPROVEMENT', 'failed verdict with the book icon');
@@ -109,7 +109,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
 
   // practice result now follows the exam layout (details in review-test.js)
   await pg.evaluate(() => { pendingMode = 'practice'; startExam('ch1'); state.questions.forEach((q, i) => { state.answers[i] = [...q.a]; }); finishExam(); });
-  assert((await text('#resultEmoji')) === '🎯', 'practice result icon follows the mode (🎯)');
+  assert((await text('#resultEmoji')) === '📝', 'practice result icon follows the mode (📝)');
   assert((await pg.$$('.result-breakdown')).length === 0 && await vis('#resultDots'), 'practice: no boxes, result dots shown');
   assert(JSON.stringify(await texts('#reviewOrder .chip')) === JSON.stringify(['All 9', 'Wrong 0', 'Flagged 0']), 'practice uses the All / Wrong / Flagged filters');
   assert(JSON.stringify(await texts('#screenResult .retry-btn')) === '["Retry","Retry"]' && JSON.stringify(await texts('#screenResult .another-btn')) === '["Another Practice","Another Practice"]', 'practice buttons: Retry / Another Practice');

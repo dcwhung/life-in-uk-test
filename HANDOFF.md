@@ -141,7 +141,7 @@ v0.57（P1 refactor）起 `index.html` 只剩 `<head>`、各 screen 嘅 markup �
 | 模式 | Study / Practice / Exam | 溫習 / 練習 / 模擬考試 |
 | 首頁標題 | Choose Mode / My Review / Practice By / Select Exam | 選擇模式 / 我的複習 / 練習分類 / 選擇試卷 |
 | Practice tab | Difficulty / Chapter / Exam | 難度 / 章節 / 試卷 |
-| 全部題目（M6） | `🎯 All Questions (408)`、quiz `All Questions (shuffled)`、set `All Questions` | `🎯 全部試題（408 題）`、`全部試題（隨機排序）`、`全部試題` |
+| 全部題目（M6） | `📝 All Questions (408)`（v0.71 前 🎯）、quiz `All Questions (shuffled)`、set `All Questions` | `📝 全部試題（408 題）`、`全部試題（隨機排序）`、`全部試題` |
 | Random Exam | `🎲 Random Exam`、`24 questions from 408` | `🎲 隨機試卷`、`從 408 題中抽取 24 題` |
 | 題號 | `Question 1 of 24`、`(select 2)` | `第 1 題（共 24 題）`、`（選擇 2 項）`；`Exam 9 · Q15` / `E9·Q15` 同 en |
 | 章節 | `Chapter 3`、`Ch 3`、章節名 | 同 en（英文） |
@@ -161,7 +161,7 @@ v0.57（P1 refactor）起 `index.html` 只剩 `<head>`、各 screen 嘅 markup �
 
 | 概念 | 用字 |
 |---|---|
-| 題數 | 全寫：`🎯 All Questions (408)`（v0.65 M6；v0.59–v0.64 係 `🎯 All Exams (408 questions)`）、`24 questions from 408`、`N questions unanswered`；單數 `1 question`；數字由 data 計。ⓘ popover 用 Title Case：`📋 17 Exams`、`❓ 408 Questions` |
+| 題數 | 全寫：`📝 All Questions (408)`（v0.71 起 📝；v0.65 M6；v0.59–v0.64 係 `🎯 All Exams (408 questions)`）、`24 questions from 408`、`N questions unanswered`；單數 `1 question`；數字由 data 計。ⓘ popover 用 Title Case：`📋 17 Exams`、`❓ 408 Questions` |
 | 題號 | `Exam 9 · Q15`；Similar map node `E9·Q15`（1-based） |
 | 章節 | chip / badge `Ch 3`；標題 `Chapter 3: …`；Quiz 標籤 `Chapter 3` |
 | Flag | 動作 `Flag for review` / `Unflag`；狀態 `Flagged`；`{n} flagged`（唔再用 saved）；空格提示 `Tap [書籤] on a question to flag it`；`Practise flagged (N)` 照舊 |
@@ -318,7 +318,7 @@ v0.66（Track 2，plan `2026-10-07_plan_zh-hk-locale.md` Q5 / Q7 / Q8、T-101…
 - 按 Chapter / Difficulty 練習唔會標記為完成 exam
 - 結果頁兩粒掣：Exam mode「Retry」/「Another Exam」，Practice mode「Retry」/「Another Practice」（v0.50；之前係 Retry Exam / Practise Again / Choose Another）；`.retry-btn` / `.another-btn` 上下兩組一齊改字；v0.39 起「重做 / Choose Another」掣喺 Review Answers 上面同最底各有一組（`.retry-btn`，兩粒一齊改字）
 - **Exam 結果頁（v0.50，先做 preview v1–v6 同用戶確認）：**
-    ◦ 頂頭 icon 跟 mode（`MODE_ICONS`：Exam 📝、Practice 🎯）
+    ◦ 頂頭 icon 跟 mode（`MODE_ICONS`：v0.71 起 Practice 📝、Exam 🎯，同首頁模式卡一致；之前相反，用戶要求對調）
     ◦ 判定前面加返 icon（v0.51）：「🎉 PASSED」/「📚 NEEDS IMPROVEMENT」
     ◦ 結果頁標題「By Difficulty」唔要中文（v0.51）
     ◦ 分數只顯示一次：「17 / 24 · 71%」，唔合格成行紅色（`.result-score.fail`），合格深藍；Exam mode 拎走 Correct / Wrong / Score 三格
@@ -330,7 +330,7 @@ v0.66（Track 2，plan `2026-10-07_plan_zh-hk-locale.md` Q5 / Q7 / Q8、T-101…
 - **錯題庫（v0.53）：** localStorage `wrongList` `{ "exam.idx": true }`；Practice 每次 reveal 答錯就加；Exam 交卷時「有答但答錯」嘅題加入（未答唔加）；**只有喺 Wrong answers review 入面答啱先會清走**（`examNum === 'wrong'`），平時練習答啱唔清
 - **Review round（v0.53）：** 撳 Wrong answers 格 → `startExam('wrong')`；Flagged 格 → Flagged 列表畫面。Review set 唔理掌握過濾，全部洗牌後抽最多 24 題（`PRACTICE_ROUND_MAX`）；題數多過 24 時問題卡**上面靠右**出細字「Round 1 of N · 24 of your T wrong answers / flagged questions」（`renderRoundNote()`）；暫時冇中途續做
 - **Flagged 列表畫面（v0.53，`#screenFlagged`）：** 頂頭「Practise flagged (N)」掣；每題一行：題目 + 廣東話 + 「Exam N · Qn」+ 書籤掣（撳即 unflag，列表即時更新）；冇 flag 剩低就顯示「No flagged questions left.」
-- **Practice 結果頁（v0.53，跟 Exam 結果頁排版）：** 🎯 icon、「18 / 24 · 75%」分數行（Practice 永遠唔紅）、拎走 Correct / Wrong / Score 三格、24 粒結果圓點（flag 橙圈）、All / Wrong / Flagged filter；下面一行 note：一般練習「Mastered N more this round · m/total in {set}」，錯題 review「Cleared X from your wrong answers · Y left」（v0.59；之前寫 wrong list）；每題 review 開頭有 streak tag（🔥 n/3 或 🏆 Mastered，`streakTag()`）；舊嘅「Original order / Wrong first」chip 同 `reviewOrder` 已拎走
+- **Practice 結果頁（v0.53，跟 Exam 結果頁排版）：** 📝 icon（v0.71 前 🎯）、「18 / 24 · 75%」分數行（Practice 永遠唔紅）、拎走 Correct / Wrong / Score 三格、24 粒結果圓點（flag 橙圈）、All / Wrong / Flagged filter；下面一行 note：一般練習「Mastered N more this round · m/total in {set}」，錯題 review「Cleared X from your wrong answers · Y left」（v0.59；之前寫 wrong list）；每題 review 開頭有 streak tag（🔥 n/3 或 🏆 Mastered，`streakTag()`）；舊嘅「Original order / Wrong first」chip 同 `reviewOrder` 已拎走
 - 結果頁 PASSED / NEEDS IMPROVEMENT 同 remark 只喺 Exam 1–17（Exam mode 或 Practice > By Exam）顯示；Chapter / Difficulty / All Exams（v0.65 起 UI 叫 All Questions）只顯示分數
 
 **Exam mode**

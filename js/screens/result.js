@@ -1,7 +1,7 @@
 // ════════════════════════════════════════
 // RESULTS — score + verdict, result dots, By Difficulty table, Review Answers (All / Wrong / Flagged)
 // ════════════════════════════════════════
-const MODE_ICONS = { [PRACTICE_MODE]: '🎯', [EXAM_MODE]: '📝' };
+const MODE_ICONS = { [PRACTICE_MODE]: '📝', [EXAM_MODE]: '🎯' }; // v0.71: swapped (user request)
 const PASS_PCT = PASS_RATIO * PERCENT;
 const PASS_MARK = REAL_TEST_SIZE * PASS_RATIO;
 const ANSWER_SLOT = '{answer}'; // review.yourAnswer's parameter, as t() leaves it when not passed
