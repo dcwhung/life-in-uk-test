@@ -73,7 +73,11 @@ function scanTemplateText(src, i) {
 // punctuation, or after a keyword such as return (after a name, a number, ) or ] it is a division)
 // S-085: postfix ++ / -- and a property named in / of (o.in) end a value, so a / after them is a division
 // S-088: a keyword is a whole name (not $in) and not a property, even after ". "
-const REGEX_AFTER = /(?:^|[(,=:[!&|?;{}*%<>~^]|(?<![+-])[+-]|(?<![\w$]|\.\s*)(?:return|typeof|case|void|delete|in|of|throw|yield|await))\s*$/;
+// S-090 / S-091: nor is the tail of a #private or non-ASCII name (this.#of, éin, x\u0301in): any identifier part
+// (\p{ID_Continue}; needs the u flag) before it keeps it a name. S-092: ZWNJ / ZWJ are listed because
+// \p{ID_Continue} only includes them from Unicode 15.1 (older Node). Known gap (won't fix: adding } breaks }return /x/):
+// a name ending in a \u{…} escape plus in / of (a\u{62}in) still reads as the keyword; js/ has no such names
+const REGEX_AFTER = /(?:^|[(,=:[!&|?;{}*%<>~^]|(?<![+-])[+-]|(?<![$#\p{ID_Continue}\u200C\u200D]|\.\s*)(?:return|typeof|case|void|delete|in|of|throw|yield|await))\s*$/u;
 // index just past a /…/ regex body starting at i ([…] classes and \ escapes included), or -1 if the line
 // ends first (a regex never spans lines, so that / was a division after all)
 function endOfRegex(src, i) {
@@ -199,6 +203,13 @@ function layerCode(src) {
     { code: 'x = $in / 2; renderStudy(); y = z / 3;', hit: true, why: 'a call between divisions after a $-prefixed name' },
     { code: 'x = o. of / 2; renderStudy(); y = z / 3;', hit: true, why: 'a call between divisions after a spaced property named of' },
     { code: 'a = b - /renderStudy/.source.length;', hit: false, why: 'a name inside a regex after a binary -' },
+    // S-090: a #private or non-ASCII name ending in in / of is a name, so a / after it is a division
+    { code: 'x = this.#of / 2; renderStudy(); y = z / 3;', hit: true, why: 'a call between divisions after a #private name' },
+    { code: 'x = éin / 2; renderStudy(); y = z / 3;', hit: true, why: 'a call between divisions after a non-ASCII name' },
+    // S-091: any identifier part (combining mark, non-ASCII digit, ZWJ) before in / of keeps it a name
+    { code: 'x = x\u0301in / 2; renderStudy(); y = z / 3;', hit: true, why: 'a call between divisions after a name with a combining mark' },
+    { code: 'x = x\u0663of / 2; renderStudy(); y = z / 3;', hit: true, why: 'a call between divisions after a name with a non-ASCII digit' },
+    { code: 'x = x\u200Din / 2; renderStudy(); y = z / 3;', hit: true, why: 'a call between divisions after a name with a ZWJ' },
   ];
   const sampleMisses = LAYER_SAMPLES.filter(({ code, hit }) => usesName(layerCode(code), 'renderStudy') !== hit)
     .map(({ hit, why }) => `${hit ? 'missed' : 'flagged'} ${why}`);
