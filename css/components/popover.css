@@ -15,7 +15,7 @@
   color: var(--text-inverse);
   border: 1px solid var(--gold-border);
   border-radius: var(--radius);
-  padding: 18px 20px;
+  padding: 18px var(--space-10);
   box-shadow: var(--shadow-pop);
   z-index: 200;
 }
@@ -26,19 +26,19 @@
   background: var(--navy); border-left: 1px solid var(--gold-border); border-top: 1px solid var(--gold-border);
   transform: rotate(45deg);
 }
-.info-pop h2 { font-size: 17px; font-weight: 800; margin-bottom: 6px; }
+.info-pop h2 { font-size: 17px; font-weight: 800; margin-bottom: var(--space-3); }
 .info-pop p { font-size: var(--fs-base); color: var(--text-inverse-strong); line-height: 1.5; }
 @media (min-width: 812px) { .info-pop { left: calc((100vw - 780px) / 2); } }
 
 /* info popover badges */
 .hero-meta {
-  display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap;
+  display: flex; gap: var(--space-4); margin-top: var(--space-7); flex-wrap: wrap;
 }
 .hero-badge {
   background: var(--gold-tint);
   border: 1px solid var(--gold-border);
   border-radius: var(--radius-sm);
-  padding: 6px 12px;
+  padding: var(--space-3) var(--space-6);
   font-size: var(--fs-sm); color: var(--gold-light);
   font-weight: 600;
 }
@@ -47,19 +47,19 @@
 .install-banner {
   background: linear-gradient(135deg, var(--navy-mid), var(--navy));
   border-radius: var(--radius);
-  padding: 16px 18px;
-  display: none; align-items: center; gap: 14px;
-  margin-bottom: 20px;
+  padding: var(--space-8) 18px;
+  display: none; align-items: center; gap: var(--space-7);
+  margin-bottom: var(--space-10);
 }
 .install-banner.visible { display: flex; }
 .install-text { flex: 1; }
-.install-text strong { color: var(--text-inverse); font-size: var(--fs-md); display: block; margin-bottom: 2px; }
+.install-text strong { color: var(--text-inverse); font-size: var(--fs-md); display: block; margin-bottom: var(--space-1); }
 .install-text span { color: var(--text-inverse-muted); font-size: var(--fs-sm); }
 .install-btn {
   background: var(--gold);
   color: var(--navy);
   border: none; border-radius: var(--radius-sm);
-  padding: 9px 16px;
+  padding: 9px var(--space-8);
   font-size: var(--fs-base); font-weight: 800;
   cursor: pointer; white-space: nowrap;
 }

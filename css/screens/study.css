@@ -4,9 +4,9 @@
   background: var(--card);
   border: 2px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 11px 14px;
+  padding: 11px var(--space-7);
   font-size: var(--fs-md); color: var(--text);
-  margin-bottom: 12px;
+  margin-bottom: var(--space-6);
   outline: none;
 }
 .study-search:focus { border-color: var(--navy-light); }
@@ -14,19 +14,19 @@
 .study-progress {
   font-size: var(--fs-sm); font-weight: 800; color: var(--green);
   background: var(--success-bg); border: 1.5px solid var(--green-light);
-  border-radius: var(--radius-pill); padding: 3px 10px; white-space: nowrap;
+  border-radius: var(--radius-pill); padding: 3px var(--space-5); white-space: nowrap;
 }
-.study-count { font-size: var(--fs-sm); color: var(--text-muted); margin-bottom: 10px; }
+.study-count { font-size: var(--fs-sm); color: var(--text-muted); margin-bottom: var(--space-5); }
 .study-group-title {
   font-size: var(--fs-md); font-weight: 800; color: var(--navy);
-  margin: 22px 0 10px;
-  display: flex; align-items: center; gap: 8px;
+  margin: 22px 0 var(--space-5);
+  display: flex; align-items: center; gap: var(--space-4);
 }
-.study-group-title:first-child { margin-top: 4px; }
+.study-group-title:first-child { margin-top: var(--space-2); }
 .study-sub-title {
   font-size: var(--fs-sm); font-weight: 700; color: var(--study-accent-strong);
   text-transform: uppercase; letter-spacing: 0.05em;
-  margin: 14px 0 8px;
+  margin: var(--space-7) 0 var(--space-4);
 }
 /* "Bookmarked only" chip icon: outline while off, like the fact button (result filter chips keep the orange icon) */
 #studyChips .chip:not(.active) .chip-flag path { fill: none; stroke: currentColor; }
@@ -36,19 +36,19 @@
 .tl-era {
   font-size: var(--fs-base); font-weight: 800; color: var(--text-inverse);
   background: linear-gradient(135deg, var(--navy), var(--navy-mid));
-  border-radius: var(--radius-sm); padding: 8px 12px;
-  margin: 22px 0 12px;
+  border-radius: var(--radius-sm); padding: var(--space-4) var(--space-6);
+  margin: 22px 0 var(--space-6);
   display: flex; justify-content: space-between; align-items: center;
 }
-.tl-era:first-child { margin-top: 4px; }
-.tl-item { display: grid; grid-template-columns: 74px 1fr; gap: 0 10px; position: relative; }
+.tl-era:first-child { margin-top: var(--space-2); }
+.tl-item { display: grid; grid-template-columns: 74px 1fr; gap: 0 var(--space-5); position: relative; }
 /* the dot sits on the vertical middle of the year text, one line or two ("c. 3000 BC"): text-box trims the line
    boxes to cap height and baseline (years are digits / capitals, so the line-box middle is the glyphs' middle, not
    ~1px below it), the label does not stretch to the card's height (align-self), and 50% of it past the top padding
    is that middle. --tl-year-pad keeps the trimmed text where the untrimmed text sat; --tl-year-gap is the space
    between the text and the dot */
 .tl-year {
-  --tl-year-pad: 16px; --tl-year-gap: 6px;
+  --tl-year-pad: var(--space-8); --tl-year-gap: var(--space-3);
   font-size: var(--fs-sm); font-weight: 800; color: var(--study-accent-strong);
   text-align: right; padding: var(--tl-year-pad) var(--tl-year-gap) 0 0; line-height: 1.2;
   text-box: trim-both cap alphabetic;
@@ -66,8 +66,8 @@
 }
 .tl-item.war .tl-year { color: var(--red); }
 .tl-item.war .tl-year::after { background: var(--red-light); box-shadow: 0 0 0 2px var(--red-light); }
-.tl-body { border-left: 2px solid var(--border); padding-left: 16px; padding-bottom: 2px; }
-.tl-body .fact { margin-bottom: 8px; }
+.tl-body { border-left: 2px solid var(--border); padding-left: var(--space-8); padding-bottom: var(--space-1); }
+.tl-body .fact { margin-bottom: var(--space-4); }
 
 @media (max-width: 480px) {
   .tl-item { grid-template-columns: 62px 1fr; }

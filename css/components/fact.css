@@ -4,9 +4,9 @@
 .fact {
   background: var(--card);
   border-radius: var(--radius-md);
-  padding: 12px 14px;
+  padding: var(--space-6) var(--space-7);
   border-left: 4px solid var(--study-accent);
-  margin-bottom: 10px;
+  margin-bottom: var(--space-5);
   box-shadow: var(--shadow-sm); /* O5: same card shadow as the other white cards */
   transition: opacity 0.15s;
 }
@@ -14,7 +14,7 @@
 .fact.mastered { opacity: 0.55; border-left-color: var(--green-light); }
 /* Q8: back from the fact's session — gold outline for FACT_HIGHLIGHT_MS (static, no animation) */
 .fact.flash { outline: 2px solid var(--gold); outline-offset: 2px; }
-.fact-top { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 6px; }
+.fact-top { display: flex; align-items: flex-start; gap: var(--space-4); margin-bottom: var(--space-3); }
 .fact-meta { flex: 1; display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
 /* v0.70: the difficulty stars take a line of their own under the tags */
 .fact-meta .stars { flex-basis: 100%; }
@@ -22,7 +22,7 @@
 .fact-id { font-size: var(--fs-2xs); font-weight: 800; color: var(--text-muted); letter-spacing: 0.04em; }
 .tag {
   font-size: 10.5px; font-weight: 700;
-  border-radius: var(--radius-xs); padding: 2px 7px;
+  border-radius: var(--radius-xs); padding: var(--space-1) 7px;
   background: var(--bg); color: var(--text-muted);
 }
 .tag.year { background: var(--study-accent-bg); color: var(--study-accent-strong); }
@@ -33,7 +33,7 @@
    S-033 (accepted): Chromium paints the 1.5px border as 1px, so each ring reaches 0.5px further and the two
    overlap by about 1px in the gap (the later ✓ button gets most of it); no visible area is covered */
 .fact-actions {
-  --fact-actions-gap: 4px; --fact-btn-border: 1.5px; --fact-btn-ring: 6px;
+  --fact-actions-gap: var(--space-2); --fact-btn-border: 1.5px; --fact-btn-ring: 6px;
   display: flex; gap: var(--fact-actions-gap); flex-shrink: 0;
 }
 .fact-btn {
@@ -62,34 +62,34 @@
 /* derived 🏆 (every source question mastered in Practice): not a toggle, so no pointer (Q7) */
 .fact-btn.trophy { background: var(--success-bg); border-color: var(--green-light); cursor: default; }
 .fact-btn.on.tick { background: var(--success-bg); border-color: var(--green); color: var(--green); }
-.fact-name { font-size: var(--fs-md); font-weight: 800; color: var(--navy); margin-bottom: 4px; }
+.fact-name { font-size: var(--fs-md); font-weight: 800; color: var(--navy); margin-bottom: var(--space-2); }
 .fact-en { font-size: var(--fs-md); font-weight: 500; color: var(--text); line-height: 1.5; }
 .fact-yue { font-size: var(--fs-base); color: var(--purple); line-height: 1.6; margin-top: 5px; }
 /* v0.71 (B3): the source questions' memory method, a closed <details>; the summary row is a 44px tap target (O2) */
-.fact-mem { margin-top: 10px; background: var(--gold-bg); border-radius: var(--radius-sm); }
+.fact-mem { margin-top: var(--space-5); background: var(--gold-bg); border-radius: var(--radius-sm); }
 .fact-mem summary {
-  list-style: none; cursor: pointer; padding: 12px; min-height: 44px; box-sizing: border-box;
+  list-style: none; cursor: pointer; padding: var(--space-6); min-height: 44px; box-sizing: border-box;
   font-size: var(--fs-sm); font-weight: 700; color: var(--note-label);
 }
 .fact-mem summary::-webkit-details-marker { display: none; }
 .fact-mem summary::before { content: '▸ '; }
 .fact-mem[open] summary::before { content: '▾ '; }
-.fact-mem-body { padding: 0 12px 12px; font-size: var(--fs-sm); line-height: 1.6; color: var(--text-muted); }
+.fact-mem-body { padding: 0 var(--space-6) var(--space-6); font-size: var(--fs-sm); line-height: 1.6; color: var(--text-muted); }
 
 /* T-206 source row: "Appears in:" + display-only nodes (Similar panel .sqm-node colours) + "▶ Practise" */
 .fact-src {
-  display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
-  margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--divider);
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3);
+  margin-top: var(--space-5); padding-top: var(--space-5); border-top: 1px solid var(--divider);
 }
 /* v0.70: the nodes ask for their one-line width (max-content); when that plus the button does not fit, the row wraps
    the button onto its own line, where its flex-grow makes it full width. Beside one-line nodes the free space goes
    almost all to the nodes (grow 1000 : 1), so the button keeps its pill width there */
 .fact-src-nodes { display: flex; flex-wrap: wrap; gap: 5px; flex: 1000 1 max-content; align-items: center; min-width: 0; }
-.fact-src .sqm-node { padding: 3px 8px; white-space: nowrap; }
+.fact-src .sqm-node { padding: 3px var(--space-4); white-space: nowrap; }
 .fact-practise {
   background: var(--card); color: var(--navy);
   border: var(--fact-practise-border) solid var(--navy); border-radius: var(--radius-pill);
-  padding: 6px var(--fact-practise-pad-x); font-size: var(--fs-sm); font-weight: 700;
+  padding: var(--space-3) var(--fact-practise-pad-x); font-size: var(--fs-sm); font-weight: 700;
   white-space: nowrap; flex: 1 0 auto; cursor: pointer;
   /* S-030: --fact-practise-ring = (44px target - 29px pill (6px padding × 2 + ~14px line + 1.5px border × 2)) / 2,
      rounded up; ::before inset counts from the padding box, so the border is added back (as .fact-btn, CUI-0009) */
@@ -97,7 +97,7 @@
   /* W-012: 10px, not 12px — since S-034 the label uses the body font (~2.8px wider than the UA button font), which
      at 390px pushed the 2nd source node of 13 two-source cards onto a 2nd line (+27px); 2px less each side keeps
      them on one line. Sides only, so the S-030 ring (top / bottom) is unchanged */
-  --fact-practise-pad-x: 10px;
+  --fact-practise-pad-x: var(--space-5);
   position: relative;
 }
 /* invisible tap ring, top and bottom only: above sits the row's 10px padding-top (single line) or the display-only
@@ -108,9 +108,9 @@
 }
 
 /* core variant: gold Core Fact inside the white Similar panel; same shape as .fact (v0.62 O8) */
-.sqm-fact { background: var(--fact-bg); border-left: 4px solid var(--gold); border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 14px; }
-.sqm-fact-label { font-size: var(--fs-2xs); font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: var(--fact-label); margin-bottom: 4px; }
+.sqm-fact { background: var(--fact-bg); border-left: 4px solid var(--gold); border-radius: var(--radius-md); padding: var(--space-6) var(--space-7); margin-bottom: var(--space-7); }
+.sqm-fact-label { font-size: var(--fs-2xs); font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: var(--fact-label); margin-bottom: var(--space-2); }
 /* S-072: the "Ch 5 #38" number keeps its case, as on the card pill */
 .sqm-fact-label [lang="en"] { text-transform: none; }
 .sqm-fact-en { font-size: var(--fs-base); line-height: 1.55; color: var(--navy); font-weight: 600; }
-.sqm-fact-yue { font-size: 12.5px; line-height: 1.6; color: var(--purple); margin-top: 4px; }
+.sqm-fact-yue { font-size: 12.5px; line-height: 1.6; color: var(--purple); margin-top: var(--space-2); }

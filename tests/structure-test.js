@@ -124,6 +124,23 @@ function undefinedTokens(cssTexts) {
   const used = new Set(code.flatMap(c => [...c.matchAll(/var\(\s*(--[\w-]+)/g)].map(m => m[1])));
   return [...used].filter(n => !defined.has(n));
 }
+// v0.72 (B5): spacing = margin* / padding* / gap / row-gap / column-gap, plus custom properties named *gap* / *pad*.
+// A px value on the --space-* scale must be written as the token; off-scale values (1, 3, 5px…) stay literal
+const SPACE_SCALE_PX = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24];
+const SPACING_PROP = /^(?:margin(?:-[a-z-]+)?|padding(?:-[a-z-]+)?|gap|row-gap|column-gap|--[\w-]*(?:gap|pad)[\w-]*)$/;
+function spacingScaleLiterals(css) {
+  const code = css.replace(/\/\*[\s\S]*?\*\//g, ' ');
+  return [...code.matchAll(/([\w-]+)\s*:\s*([^;{}]+)/g)]
+    .filter(([, prop, value]) => SPACING_PROP.test(prop) && [...value.matchAll(/(?<![\w.-])-?(\d+(?:\.\d+)?)px/g)].some(m => SPACE_SCALE_PX.includes(Number(m[1]))))
+    .map(([, prop, value]) => `${prop}: ${value.trim()}`);
+}
+const SPACING_SAMPLES = [
+  { css: 'a { margin: 8px 12px; }', hits: 1, why: 'scale values in margin' },
+  { css: 'b { padding: var(--space-4) 3px; gap: 5px; }', hits: 0, why: 'tokens and off-scale values' },
+  { css: 'c { --fact-actions-gap: 4px; width: 8px; top: -16px; }', hits: 1, why: 'a *gap custom property (width / top are not spacing)' },
+  { css: '/* margin: 8px */ d { margin-top: calc(-1 * 10px); }', hits: 1, why: 'a negative scale value in calc, not a comment' },
+];
+
 const TOKEN_SAMPLES = [
   { css: ['a { color: var(--nope); }'], gaps: '--nope', why: 'an undefined token' },
   { css: [':root { --a: 1px; }', 'b { margin: var(--a); }'], gaps: '', why: 'a token defined in another file' },
@@ -157,6 +174,12 @@ const TOKEN_SAMPLES = [
   assert(oldInverse.length === 0, 'no value-named --text-inverse-NN tokens in css (use strong / muted / faint)'
     + (oldInverse.length ? ': ' + oldInverse.join(', ') : ''));
 
+  // v0.72 (B5): spacing on the --space-* scale goes through the tokens (tokens.css defines them)
+  const spacingMisses = SPACING_SAMPLES.filter(({ css, hits }) => spacingScaleLiterals(css).length !== hits).map(({ why }) => why);
+  assert(spacingMisses.length === 0, `spacing guard reads ${SPACING_SAMPLES.length} in-memory samples right` + (spacingMisses.length ? ': ' + spacingMisses.join(', ') : ''));
+  const spacingLits = cssFiles(path.join(ROOT, 'css')).filter(f => f !== TOKENS_CSS)
+    .flatMap(f => spacingScaleLiterals(fs.readFileSync(f, 'utf8')).map(d => `${rel(f)} ${d}`));
+  assert(spacingLits.length === 0, `margin / padding / gap use --space-* for ${SPACE_SCALE_PX.join(' / ')}px (${spacingLits.length} literal): ${spacingLits.slice(0, 4).join(' | ')}`);
   // S-023: a var(--x) with no --x definition silently falls back (or drops the declaration)
   const tokenMisses = TOKEN_SAMPLES.filter(({ css, gaps }) => undefinedTokens(css).join(',') !== gaps).map(({ why }) => why);
   assert(tokenMisses.length === 0, `undefined-token guard reads ${TOKEN_SAMPLES.length} in-memory samples right`

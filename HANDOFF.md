@@ -1,4 +1,4 @@
-# Life in the UK Test PWA — Handoff (v0.71)
+# Life in the UK Test PWA — Handoff (v0.72)
 
 - **Repo:** https://github.com/dcwhung/life-in-uk-test （main branch，GitHub Pages root `/`）
 - **Live:** https://dcwhung.github.io/life-in-uk-test/
@@ -190,12 +190,13 @@ v0.57（P1 refactor）起 `index.html` 只剩 `<head>`、各 screen 嘅 markup �
 | Study 裝飾（v0.62，P3 Q2-a 全 navy） | `--study-accent`（= `--navy-light`：fact 左邊框、timeline 圓點）、`--study-accent-strong`（= `--navy-light`：`.tag.year` 字、timeline 年份、`.study-sub-title`、Home `.ch-num` + `.chapter-btn:hover`）、`--study-accent-bg`（= `--selected-bg`：`.tag.year` 底）。紫色（`--purple*`）只代表廣東話；`structure-test` fail `study.css` / `chips.css` / `home.css` 入面 `.fact-yue` 以外嘅 `--purple*` / `--year-bg`。v0.62 刪咗冇人用嘅 `--year-bg`、`--star-on` |
 | Radius | `--radius`（14px 卡）、`--radius-md`（10px）、`--radius-sm`（8px）、`--radius-xs`（6px，v0.62 O8：`.tag`（原 5px）、`.fact-btn`（原 7px）、Home `.ch-num`）、`--radius-pill`（999px）、`--radius-circle`（50%） |
 | Font size | `--fs-2xs` 10、`--fs-xs` 11、`--fs-sm` 12、`--fs-base` 13、`--fs-md` 14、`--fs-lg` 15（px）；10.5 / 12.5 / 13.5 半級同大標題字號照寫 px |
+| Spacing（v0.72，B5） | `--space-1` 2、`--space-2` 4、`--space-3` 6、`--space-4` 8、`--space-5` 10、`--space-6` 12、`--space-7` 14、`--space-8` 16、`--space-10` 20、`--space-12` 24（px；步數 = px / 2） |
 | Shadow / overlay | `--shadow`、`--shadow-sm`、`--shadow-header`、`--shadow-pop`、`--overlay` |
 
 - **新顏色一定要加喺 `tokens.css`**（按意思命名，同值同意思就重用現有 token）；`tests/structure-test.js` 會 fail 任何喺其他 css file 出現嘅 hex 或者 `rgb(` / `rgba(`
 - `--text-inverse-*`（S-018）：v0.59 token 化要 0 視覺改動，所以照搬咗 6 個按值命名嘅 alpha（75 / 70 / 65 / 60 / 55 / 45）；**v0.60 合併做 3 個語意級**（用戶已確認，有輕微視覺改動）：75、70 → `strong`（0.75）；65、60 → `muted`（0.6）；45 → `faint`（0.45）；55 → `muted`（W-008：`.exam-mastery.zero` 係 10px 字，0.45 喺 navy / navy-mid 上對比度 4.18 / 3.77，唔過 WCAG AA 4.5，所以用 muted）。即係 `.flag-start .fs-sub` 0.7 → 0.75、`.exam-sub` / install banner 副行 0.65 → 0.6、`.exam-mastery.zero` 0.55 → 0.6。`faint` 只可以用喺唔使讀嘅裝飾字（例如版本號）。`structure-test` fail 任何 css 再出現 `--text-inverse-[0-9]`；要新一級先諗清楚係咪真係需要，唔好再加按值命名嘅 token
 - **Form control 字體（v0.64，S-034）**：`layout.css` 有 `button, input, select, textarea { font-family: inherit; }`，所有掣 / 輸入框用 `body` 嘅 system font stack（之前係 UA 預設，Linux Chromium = Arial）。**只繼承 family，唔用 `font: inherit` shorthand**：shorthand 會連 size / weight 一齊重設，冇自己字號嘅掣（ⓘ `#infoBtn`、`#flagBtn`、Flagged unflag 掣）會變成跟 parent 字號 / 粗幼（例如 `#flagBtn` 13.33px → 11px、`#infoBtn` 400 → 700）。新掣要自己寫 `font-size` / `font-weight`。`line-height` 仍然係 `normal`，但 body font 嘅 metrics 比 Arial 高，所以單行掣高咗 1–2px（例如 `.nav-btn` 44 → 45、`.chapter-btn` 42 → 44），冇掣變矮；`::before` hit area（install ✕、fact 掣、Practise）冇變。W-012：390px 下 body font 令「▶ Practise these 2」闊咗約 2.8px，13 張 2 個來源嘅 fact 卡（#25、30、62、67、74、76、78、128、155、159、181、225、231）來源列由 1 行變 2 行（+27px）；`fact.css` `.fact-practise` 左右 padding 12 → 10px（`--fact-practise-pad-x`，上下 6px / S-030 ring 不變）令佢哋返一行（`factsession-test` 守住）。個別 class 原本嘅 `font: inherit`（`.sqm-cta button`、`.mode-card` 等）保留。`structure-test` 喺 Home / Practice 題目 / Study 檢查每個 `button` / `input` 嘅 `font-family` 同 `body` 一樣。CUI-0012：body font 令圓點號碼 "24" 闊咗（11.69 → 13.97px），而 `.nav-dots` / `.rdots` 原本 `repeat(12, 1fr)`（min = 號碼闊度），320–360px 圓點 grid 闊過張卡（320px 結果圓點凸出白卡、頁面橫向 scroll 2px）；改做 `repeat(12, minmax(0, 1fr))`，≤ 360px gap 6 → 4px、號碼 10.5 → 9px（`dots.css`，`examresult-test` / `practicedots-test` 320px 守住），390px 以上不變
-- Spacing（padding / margin / gap）冇統一 scale，仍然寫 px；只有重複又共用嘅 radius / font-size 先做 token
+- **Spacing（v0.72，B5，用戶揀方案 A：0 視覺改動）**：margin / padding / gap（連 `--*gap*` / `--*pad*` custom property）喺刻度上嘅 px 一律用 `--space-*`（184 個宣告），`structure-test` fail 任何刻度內嘅 literal（4 個 in-memory sample 守住 guard）；刻度以外嘅值（1 / 3 / 5 / 7 / 9 / 11 / 13 / 18 / 22 / 26 / 30 / 32 / 100px，53 處）保留原數，冇逐行註解，理由統一寫喺 `tokens.css`；width / height / top / left 等定位、font-size、border、radius 唔計。`visual-diff.js` 對 v0.71：76 個狀態 0 diff
 - `tests/tools/visual-diff.js` 比較 computed style 時會略過 `--*` custom property（每個 element 都繼承 `:root` token），所以加 / 改 token 名唔會報 diff，只報真正外觀差異
 
 ## 數據結構
@@ -468,7 +469,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | `lang-switch-test.js` | v0.65（T-007）：pill 顯示目標語言（`中` / `EN`）、`aria-label` / `title`、44px hit area（四邊 `elementFromPoint`，S-044）；撳 pill → `<html lang>`、`lifeuk.uiLang`、reload 保持；Home / Quiz（Practice reveal + Similar、side session ↩、Exam 中途 + flag）/ Result（filter）/ Flagged / Study（tab / chip / 搜尋）每個畫面 en → zh-HK → en，`snapState` 比對 `state`、timer、`sessionReturn`、review、`study`、搜尋框、成個 localStorage（除 `uiLang`）不變、冇 `[i18n] missing key`、成績唔重複記錄；exam timer 即刻換字而唔 call `examTick`；confirm modal 開住（focus pill + Enter）唔切換；`<title>` 保持英文；M2 國家 chip 冇拉丁字母；M6 `📝 全部試題（408 題）` ↔ `📝 All Questions (408)`（v0.71 前 🎯）；W-014 `checkContentLang`（`closest('[lang]')`，唔准落到 `<html>`）；M4 `.result-sub` 320px 唔跌單字（要有 CJK 字體，S-045）；320px 冇橫向 overflow；pill dblclick 唔被 double tap guard 食（wait 由 `SCREEN_CHANGE_CLICK_GUARD_MS` 計，S-043） |
 | `practicedots-test.js` | v0.55：Practice 圓圈（24 / 9 / review 題數、冇 progress bar 同計時、啱綠錯紅、flag 橙邊、計數一行、撳跳題前後都得）；冇 score pill；Exam 最後一題快捷 ✓ 交卷（有未答彈 modal、全答直接去結果）；Flagged 列表「Practise flagged」書籤 icon 係橙色；首頁 Flagged 格 icon 橙色、Home 冇可見嘅黑色 SVG（v0.56）；CUI-0012：320px 圓點喺卡 content box 入面、冇橫向 scroll、正圓、號碼喺 border 入面（390px 同樣檢查） |
 
-## 版本記錄（v0.32–v0.71）
+## 版本記錄（v0.32–v0.72）
 
 | 版本 | PR | 改動 |
 |---|---|---|
@@ -521,6 +522,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | v0.69 | dcwhung/life-in-uk-test#46 | **鍵盤 / modal**：S-025 確認 modal focus trap（Tab / Shift+Tab 只喺兩粒掣之間）+ 關閉後 focus 返 opener（S-095 第二個 prompt 保留第一個 opener）；W-024 時間到會先關開住嘅 Submit / Leave modal（唔再蓋住結果頁或者重複交卷）；S-098 `showScreen` blur 留喺被收埋 screen 嘅 focus（之前時間到之後一下 Enter 由結果頁返 Home）；S-103 喺 Submit 長按 Enter 唔會經 prompt 交卷；S-102 結果頁 filter chip 揀完 focus 留喺 chip；S-023 `structure-test` 檢查每個 `var(--x)` 有定義；S-094 / S-099 / S-101 test；S-033 / S-105 註解；HANDOFF W-023 / S-093 / S-032 / S-096。Review v069 97 + delta 99 / 98；QA `.proj-docs/qa/2026-10-08_qa_v069.md` pass（keyboard 632 / 0、upgrade 20 / 0） |
 | v0.70 | dcwhung/life-in-uk-test#46 | **Study / Home UI（用戶截圖 + preview 確認）**：Timeline 年份 `text-box: trim-both cap alphabetic`，圓點喺文字正中、6px 空位（`@supports not` fallback 維持 v0.69 位置）；fact 卡星星自己一行；來源列 node 一分行「▶ Practise / 練習這 N 題」就自己一行全闊（純 flexbox，刪 `FACT_SRC_INLINE_MAX` / `.wrap-btn`）；錯題 tile 冇「N to clear / 尚餘 N 題」，0 題只顯示「Nothing to review yet / 暫時未有需要複習的題目」（`home.wrongToClear` 已刪）；Practice 答案框備注改用同結果頁一樣嘅逐行 render（`noteHtml` 搬去 `js/components/tags.js`，新 `css/components/note.css`，`.note-mark` 固定闊度 → 換行懸掛縮排）；B1：Crown dependency 記憶法（7 題共用）同 14.3 一項一行（batch 9）；S-104 / S-106 test。Review `.proj-docs/reviews/2026-10-08_review_v070.md` 98 + delta 99；QA `.proj-docs/qa/2026-10-08_qa_v070.md` pass（run-all 31 / 31、v066 1870 / 0、note 縮排 4125 行 0 錯、upgrade 20 / 0） |
 | v0.71 | dcwhung/life-in-uk-test#47 | **記憶法 + icon**：B2 四組新記憶法（Magna Carta 8、國王 vs 國會 8、二戰 9、都鐸王朝 9，batch 10；W-025 譯名統一 + Henry VIII 子項，batch 11；CUI-0017 保留「阿拉貢的凱瑟琳」，batch 12）；B3 Study fact 卡收埋式「💡 記憶法」（`factMemoryText` 由來源題目 note 讀，60 張卡，方案 B）；練習 / 考試 icon 對調（練習 📝、考試 🎯：首頁模式卡、結果頁、Practice「All Questions」格）；B4 中途續做、M5 諾曼征服題組：用戶決定唔做。Review `.proj-docs/reviews/2026-10-08_review_v071.md`（95 warn → W-025 已修）；QA `.proj-docs/qa/2026-10-08_qa_v071.md` + `..._v071-delta.md` pass（v071 5906 / 0、upgrade 22 / 0、batch replay 12 / 806 / 0） |
+| v0.72 | dcwhung/life-in-uk-test#48 | **B5 spacing token（0 視覺改動，用戶揀方案 A）**：`tokens.css` 加 `--space-1`…`--space-12`（2–24px，步數 = px / 2）；184 個 margin / padding / gap 宣告（連 `--*gap` / `--*pad`）改用 token，53 個刻度外數值保留；`structure-test` spacing guard；S-107 HANDOFF S-081 狀態。Review `.proj-docs/reviews/2026-10-08_review_v072.md` 99 pass（visual-diff 76 / 76 一樣、159 行反向核對）；QA `.proj-docs/qa/2026-10-08_qa_v072.md` pass（320 / 360px pixel 92 / 92、fallback 24 / 24、upgrade 22 / 0） |
 
 **Practice 數字圓圈設計決定（v0.55，preview 同用戶確認）**
 - 起因：用戶以為 Practice 「無咗」頂頭數字圓圈；查 code 同 git 記錄，v0.44 起圓圈一直只係 Exam 1–17 / Random Exam 先有，唔係 regression，改做新功能
@@ -603,8 +605,8 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 - `bookmarkSvg(cls)`（`js/components/icons.js`）輸出嘅 SVG path 冇 fill，新 class 一定要喺 CSS 設顏色（`css/components/buttons.css`），否則會係黑色（v0.55 / v0.56 踩過兩次）
 - `#reviewOrder` 係 Review filter chip 嘅容器，名係 v0.39 排序 chip 留低；測試用緊呢個 id，所以未改名
 - 124 條題目（408 − 284）冇類似題，因為佢哋嘅 fact 只有一個來源
-- **Review suggestion 狀態**（S-001…S-094；2026-10-08 final review 逐個核對，`.proj-docs/reviews/2026-10-08_review_s091-s092-final.md`）：全部已做，除咗下面決定唔改嘅 S-032（見「功能現況 › Study › 掌握規則」）、S-052（由 S-053 `check-batch-replay.js` 取代）、S-059、S-081、S-092 嘅 `\u{…}` 部分；S-013 / S-078 / S-079 從未發出
-    ◦ **S-081（決定唔改）**：Home UI 新加 spacing literal（6px、20px、1.2em）唔抽 token —— `tokens.css` 冇 spacing token，成個 codebase 都用 px literal，淨係呢幾行改會變兩套寫法；日後要就一次過加 `--space-*` 再遷移（S-087 要求記低）
+- **Review suggestion 狀態**（S-001…S-094；2026-10-08 final review 逐個核對，`.proj-docs/reviews/2026-10-08_review_s091-s092-final.md`）：全部已做，除咗下面決定唔改嘅 S-032（見「功能現況 › Study › 掌握規則」）、S-052（由 S-053 `check-batch-replay.js` 取代）、S-059、S-092 嘅 `\u{…}` 部分（S-081 v0.72 已處理，見下）；S-013 / S-078 / S-079 從未發出
+    ◦ **S-081（v0.68 決定唔改 → v0.72 B5 已處理）**：v0.68 Home UI 新加嘅 spacing literal（6px、20px、1.2em）當時冇抽 token，因為 `tokens.css` 未有 spacing token、淨係嗰幾行改會變兩套寫法（S-087 要求記低）。v0.72 一次過加 `--space-*` 再遷移晒（見「Design tokens」）；`1.2em` 係 em 值，唔喺 px 刻度，所以保留 literal
     ◦ **S-092（`\u{…}` 部分決定唔改）**：`structure-test` layering scanner 名以 `\u{…}` escape 結尾再接 `in` / `of`（`a\u{62}in / 2`）仍然當 keyword；喺 lookbehind 加 `}` 會整壞 `}return /x/`，而 `js/` 冇呢類寫法
     ◦ **S-059**：`d37eb26` 一個 commit 包 S-047 / S-048 / S-049（已 merge，唔改 history）
     ◦ **v066 `EXPECTED_ORACLE`** 寫死 `{ files: 8, records: 737, kept: 3 }`：加 batch 9 要跟住改
@@ -621,6 +623,9 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 ## 主要 commit（新→舊）
 
 ```
+ca52020 docs: QA v0.72 (pass; pixel-identical at 320 / 360px, upgrade 22 / 0) + pixel / upgrade QA scripts
+1e9344f docs: S-107 | HANDOFF S-081 status reads v0.68 won't-fix → v0.72 done; review v0.72 (99 pass)
+15ee690 refactor: B5 | margin / padding / gap use a --space-* scale (0 visual change)
 5264761 docs: QA v0.71 delta (icons + CUI-0017 pass; CUI-0017 completed); HANDOFF icon lines follow the swap
 efeda72 fix: CUI-0017 | Tudor memory note keeps 阿拉貢的凱瑟琳 (option A)
 d472d59 docs: QA v0.71 (B2 / B3 pass; W-025 conflict → CUI-0017) + v071 QA scripts
@@ -811,7 +816,8 @@ c10115b feat: randomise answer option order in Practice and Exam mode
 - [x] Track 2：data 廣東話口語化（v0.66，`claude/yue-colloquial`）
 - [x] v0.67 小批次：S-054、S-051 / S-053（/ S-052）（v0.68）
 - [x] CUI-0013 窄屏多選題 quick nav；CUI-0014 `lang` 收尾（v0.67）
-- [x] S-041…S-084 review suggestion（v0.68，除 S-081 決定唔改）
+- [x] S-041…S-084 review suggestion（v0.68；S-081 當時決定唔改，v0.72 B5 已處理）
 - [x] S-085 / S-086 / S-088 / S-089（PR #44，測試 only）
 - [x] S-090 / S-091 / S-092 `layerCode` `#private` / Unicode 名（PR #45；`\u{…}` escape 名決定唔改）
-- [ ] iPhone 實機（PingFang HK）睇 320 / 375px：M4 結果行、Study chip 行、CUI-0013（QA 建議）
+- [x] Spacing token 統一（v0.72 B5：`--space-*`，0 視覺改動，S-081 後續）
+- [x] iPhone 實機（PingFang HK）睇 320 / 375px：M4 結果行、Study chip 行、CUI-0013（用戶 2026-10-08 實機確認冇問題，close）
