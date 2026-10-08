@@ -1,0 +1,23 @@
+/* ── SWITCH (js/components/switch.js; mockup .sp-switch) ── */
+.switch {
+  position: relative; flex-shrink: 0;
+  width: 52px; height: 30px;
+  border: 0; border-radius: var(--radius-pill);
+  background: var(--border);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+/* the 30px track keeps its look; the tap area grows to 44px (WCAG 2.5.5) */
+.switch::before { content: ''; position: absolute; inset: -7px -4px; }
+.switch i {
+  position: absolute; top: 3px; left: 3px;
+  width: 24px; height: 24px;
+  border-radius: var(--radius-circle);
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s;
+}
+.switch[aria-checked="true"] { background: var(--green-light); }
+.switch[aria-checked="true"] i { transform: translateX(22px); }
+.switch:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .switch, .switch i { transition: none; } }

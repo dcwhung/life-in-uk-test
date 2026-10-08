@@ -22,11 +22,13 @@
 <link rel="stylesheet" href="css/components/note.css">
 <link rel="stylesheet" href="css/components/popover.css">
 <link rel="stylesheet" href="css/components/fact.css">
+<link rel="stylesheet" href="css/components/switch.css">
 <link rel="stylesheet" href="css/screens/home.css">
 <link rel="stylesheet" href="css/screens/quiz.css">
 <link rel="stylesheet" href="css/screens/results.css">
 <link rel="stylesheet" href="css/screens/flagged.css">
 <link rel="stylesheet" href="css/screens/study.css">
+<link rel="stylesheet" href="css/screens/plan.css">
 </head>
 <body>
 
@@ -48,6 +50,14 @@
       <div class="hero-badge" id="infoExamCount"></div>
       <div class="hero-badge" id="infoQuestionCount"></div>
       <div class="hero-badge" data-i18n="app.infoOffline"></div>
+    </div>
+    <!-- study plan: "Features" switch (js/screens/planHome.js renderPlanSettings; hidden until the entry is ready) -->
+    <div class="plan-settings" id="infoPlanRow" hidden>
+      <div class="plan-settings-title" data-i18n="app.features"></div>
+      <div class="plan-setting-row">
+        <span><b data-i18n="app.planFeature"></b><span class="plan-setting-note" id="infoPlanStatus"></span></span>
+        <span id="infoPlanSwitch"></span>
+      </div>
     </div>
   </div>
 </header>
@@ -252,6 +262,64 @@
     </div>
   </div>
 
+  <!-- ── STUDY PLAN · GOAL (js/screens/planGoal.js) ── -->
+  <div class="screen" id="screenPlanGoal">
+    <div class="plan-stack">
+      <div class="quiz-header">
+        <button class="back-btn" data-action="goHome" data-i18n="common.home"></button>
+        <span class="quiz-label" data-i18n="plan.goal.step"></span>
+      </div>
+      <div class="plan-steps" aria-hidden="true"><i class="on"></i><i></i></div>
+      <div>
+        <h2 class="plan-h2" data-i18n="plan.goal.title"></h2>
+        <p class="plan-muted" data-i18n="plan.goal.intro"></p>
+      </div>
+
+      <div class="plan-card-box">
+        <div class="plan-field">
+          <div class="plan-field-label"><span data-i18n="plan.goal.daysLabel"></span><span class="plan-val plan-num" id="planDaysVal"></span></div>
+          <div class="plan-date-row">
+            <div class="chip-row" id="planDaysChips"></div>
+            <label class="plan-date-pick" for="planExamDate"><span data-i18n="plan.goal.orDate"></span> <input type="date" id="planExamDate" data-input-action="planSetExamDate"></label>
+          </div>
+        </div>
+      </div>
+
+      <div class="plan-card-box">
+        <div class="plan-field">
+          <label class="plan-field-label" for="planMins"><span data-i18n="plan.goal.minsLabel"></span><span class="plan-val plan-num" id="planMinsVal"></span></label>
+          <input class="plan-range" type="range" id="planMins" data-input-action="planSetMins">
+          <div class="plan-ticks plan-num" id="planMinsTicks" aria-hidden="true"></div>
+        </div>
+        <div class="plan-field">
+          <div class="plan-field-label" id="planRestLabel" data-i18n="plan.goal.restLabel"></div>
+          <div class="chip-row" id="planRestChips" role="group" aria-labelledby="planRestLabel"></div>
+        </div>
+      </div>
+
+      <div class="plan-card-box">
+        <div class="plan-field">
+          <div class="plan-field-label" id="planLevelLabel" data-i18n="plan.goal.levelLabel"></div>
+          <div class="mode-grid plan-levels" id="planLevelGrid" role="group" aria-labelledby="planLevelLabel"></div>
+        </div>
+      </div>
+
+      <div class="plan-card-box">
+        <div class="plan-row"><h3 data-i18n="plan.feas.title"></h3><span class="plan-pill" id="planFeasPill"></span></div>
+        <div class="plan-stats">
+          <div class="plan-stat"><span class="k" data-i18n="plan.feas.studyDays"></span><span class="v plan-num" id="planFeasDays"></span><span class="s" id="planFeasDaysSub"></span></div>
+          <div class="plan-stat"><span class="k" data-i18n="plan.feas.avail"></span><span class="v plan-num" id="planFeasAvail"></span><span class="s" data-i18n="plan.feas.availSub"></span></div>
+          <div class="plan-stat"><span class="k" data-i18n="plan.feas.need"></span><span class="v plan-num" id="planFeasNeed"></span><span class="s" data-i18n="plan.feas.needSub"></span></div>
+        </div>
+        <div class="plan-meter"><i class="plan-meter-fill" id="planFeasMeter"></i></div>
+        <p class="plan-muted" id="planFeasMsg" aria-live="polite"></p>
+      </div>
+
+      <p class="plan-hint" id="planGoalHint" role="status" hidden></p>
+      <button class="nav-btn plan-block" id="planCreateBtn" data-action="planCreate" data-i18n="plan.goal.create"></button>
+    </div>
+  </div>
+
 </main>
 
 <!-- in-app confirm modal -->
@@ -285,6 +353,7 @@
 <script src="js/components/modal.js"></script>
 <script src="js/components/popover.js"></script>
 <script src="js/components/factCard.js"></script>
+<script src="js/components/switch.js"></script>
 <script src="js/screens/home.js"></script>
 <script src="js/screens/quiz.js"></script>
 <script src="js/screens/examTools.js"></script>
@@ -293,6 +362,8 @@
 <script src="js/screens/result.js"></script>
 <script src="js/screens/flagged.js"></script>
 <script src="js/screens/study.js"></script>
+<script src="js/screens/planHome.js"></script>
+<script src="js/screens/planGoal.js"></script>
 <script src="js/core/actions.js"></script>
 <script src="js/pwa/pwa.js"></script>
 <script src="js/main.js"></script>

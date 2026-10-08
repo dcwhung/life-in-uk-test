@@ -290,6 +290,22 @@ async function checkFlagged(pg, ctx) {
   await switchCheckBack(pg, ctx, 'flagged', '#flaggedStart', [['.fi-q', EN], ['.fi-yue', ZH_HK]]);
 }
 
+// study plan goal screen (PR3; entry hidden, so the test overrides planEntryReady): the draft and the inputs
+// survive a switch, the slider ticks / feasibility text re-render
+async function checkPlanGoal(pg, ctx) {
+  await pg.evaluate(() => { window.planEntryReadyWas = planEntryReady; window.planEntryReady = () => true; openPlanGoal(); });
+  await pg.click('#planDaysChips .chip >> nth=2');
+  await pg.click('#planRestChips .chip >> nth=6');
+  const draft = () => pg.evaluate(() => JSON.stringify(planGoalDraft));
+  const before = await draft();
+  await switchTwice(pg, ctx, 'plan goal', '#planFeasMsg');
+  assert(await draft() === before, 'plan goal: the draft goal is unchanged by the switches: ' + before);
+  await pg.click(PILL);
+  assert((await textOf(pg, '#planMinsTicks')).includes('小時') && (await textOf(pg, '#planRestChips')).includes('六'), 'plan goal zh-HK: ticks and weekday chips re-rendered');
+  await pg.click(PILL);
+  await pg.evaluate(() => { window.planEntryReady = window.planEntryReadyWas; leaveToHome(); });
+}
+
 // Study: tab + chip + typed search, then chapters / timeline / geography
 async function checkStudy(pg, ctx) {
   await pg.evaluate(() => { openStudy(); studySetTab('people'); studySetGroup('writer'); });
@@ -528,7 +544,7 @@ const hasCjkFont = pg => pg.evaluate(({ px, chars, baseline }) => {
 // run in order: each check starts from the screen / language the previous one left
 const CHECKS = [
   checkPill, checkHomeSwitch, checkHomePractice, checkQuizPractice, checkAnswerFallback, checkOptionYueLang,
-  checkSideSession, checkQuizExam, checkExamTimer, checkModal, checkResult, checkFlagged, checkStudy, checkDoubleTap,
+  checkSideSession, checkQuizExam, checkExamTimer, checkModal, checkResult, checkFlagged, checkStudy, checkPlanGoal, checkDoubleTap,
   checkMyReviewTiles, checkExamDesc, checkPracticeHint, checkLeaveCancel,
 ];
 

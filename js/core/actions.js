@@ -9,7 +9,7 @@ const examArg = el => (/^\d+$/.test(el.dataset.arg) ? Number(el.dataset.arg) : e
 
 const ACTIONS = {
   // header + home
-  toggleInfo: () => toggleInfo(),
+  toggleInfo: () => { renderPlanSettings(); toggleInfo(); }, // the Features row follows the current language / switch
   // R-002: switching with the confirm modal open would leave its text in the old language, so the pill does nothing
   // until the modal closes (since v0.69 / S-025 Tab cannot reach the pill; this guard stays as a backstop)
   toggleLang: () => { if (!isConfirmOpen()) setLang(getLang() === DEFAULT_LANG ? ZH_HK_LANG : DEFAULT_LANG); },
@@ -50,6 +50,15 @@ const ACTIONS = {
   studyToggleMark: el => studyToggleMark(el.dataset.mark, numArg(el)),
   studySetSearch: el => studySetSearch(el.value),
   startFactPractice: el => startFactPractice(numArg(el)),
+  // study plan (entry hidden until planVisible: js/screens/planHome.js, planGoal.js)
+  togglePlanFeature: () => togglePlanFeature(),
+  openPlanGoal: () => openPlanGoal(),
+  planSetDays: el => planSetDays(numArg(el)),
+  planSetExamDate: el => planSetExamDate(el.value),
+  planSetMins: el => planSetMins(el.value),
+  planToggleRest: el => planToggleRest(numArg(el)),
+  planSetLevel: el => planSetLevel(el.dataset.arg),
+  planCreate: () => planCreate(),
   // confirm modal
   confirmAccept: () => confirmAccept(),
   closeConfirm: () => closeConfirm(),

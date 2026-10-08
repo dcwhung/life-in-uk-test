@@ -50,3 +50,5 @@ function clearStudyPlan() {
 }
 function isStudyPlanEnabled() { return getLS(STUDY_PLAN_ENABLED_LS) !== false; }
 function setStudyPlanEnabled(on) { setLS(STUDY_PLAN_ENABLED_LS, !!on); }
+function isPlanPreviewOn() { return getLS(STUDY_PLAN_PREVIEW_LS) === true; }
+function setPlanPreview(on) { if (on) setLS(STUDY_PLAN_PREVIEW_LS, true); else removeLS(STUDY_PLAN_PREVIEW_LS); }

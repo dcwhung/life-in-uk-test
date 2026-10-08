@@ -83,6 +83,9 @@
   --space-10: 20px;
   --space-12: 24px;
 
+  /* switch (css/components/switch.css): the off track on a dark surface (the ⓘ popover) */
+  --switch-track-inverse: rgba(255,255,255,0.25);
+
   /* shadows and overlays */
   --shadow: 0 4px 24px rgba(26,39,68,0.10);
   --shadow-sm: 0 2px 8px rgba(26,39,68,0.07);

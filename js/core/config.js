@@ -71,6 +71,11 @@ const INSTALL_DISMISSED_LS = LS_PREFIX + 'installDismissed';   // v0.60: install
 const STUDY_PLAN_ENABLED_LS = LS_PREFIX + 'studyPlanEnabled';
 const STUDY_PLAN_LS = LS_PREFIX + 'studyPlan';
 const STUDY_PLAN_PROGRESS_LS = LS_PREFIX + 'studyPlanProgress';
+// G31: ?preview=plan shows the hidden entry on this device until ?preview=off (only written when a param asks)
+const STUDY_PLAN_PREVIEW_LS = LS_PREFIX + 'studyPlanPreview';
+const PLAN_PREVIEW_PARAM = 'preview';
+const PLAN_PREVIEW_ON = 'plan';
+const PLAN_PREVIEW_OFF = 'off';
 const STUDY_LS = {
   prefs: LS_PREFIX + 'studyPrefs',
   mastered: LS_PREFIX + 'studyMastered',
