@@ -131,7 +131,7 @@
 .ans-yue-row { display: flex; gap: 6px; }
 .ans-yue-row b { flex-shrink: 0; }
 .ans-note { font-size: var(--fs-sm); color: var(--text-muted); line-height: 1.55; }
-.ans-note-text { display: block; margin-top: 4px; }
+.ans-note-text { margin-top: 4px; }
 .ans-note strong { color: var(--note-label); }
 
 /* similar questions — other questions built from the same STUDY fact (practice only) */
