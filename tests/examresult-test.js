@@ -39,7 +39,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await finishExam4(WRONG, SKIP, FLAG);
 
   // header: mode icon, score once (red when failed), no 3-box breakdown
-  assert((await text('#resultEmoji')) === '📝', 'exam result icon follows the mode (📝)');
+  assert((await text('#resultEmoji')) === '🎯', 'exam result icon follows the mode (🎯)');
   assert((await text('#resultScore')) === '17 / 24 · 71%', 'score line: 17 / 24 · 71%');
   assert(await pg.$eval('#resultScore', e => e.classList.contains('fail')), 'failed: score line red');
   assert((await text('#resultLabel2')) === '📚 NEEDS IMPROVEMENT', 'failed verdict with the book icon');
@@ -109,10 +109,26 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
 
   // practice result now follows the exam layout (details in review-test.js)
   await pg.evaluate(() => { pendingMode = 'practice'; startExam('ch1'); state.questions.forEach((q, i) => { state.answers[i] = [...q.a]; }); finishExam(); });
-  assert((await text('#resultEmoji')) === '🎯', 'practice result icon follows the mode (🎯)');
+  assert((await text('#resultEmoji')) === '📝', 'practice result icon follows the mode (📝)');
   assert((await pg.$$('.result-breakdown')).length === 0 && await vis('#resultDots'), 'practice: no boxes, result dots shown');
   assert(JSON.stringify(await texts('#reviewOrder .chip')) === JSON.stringify(['All 9', 'Wrong 0', 'Flagged 0']), 'practice uses the All / Wrong / Flagged filters');
   assert(JSON.stringify(await texts('#screenResult .retry-btn')) === '["Retry","Retry"]' && JSON.stringify(await texts('#screenResult .another-btn')) === '["Another Practice","Another Practice"]', 'practice buttons: Retry / Another Practice');
+
+  // v0.70: the Practice answer box draws the note the same way; a wrapped bullet / sub line continues under its text,
+  // after the "•" / "◦", not back at the left edge (hanging indent). 1.19's shared memory note has long wrapped lines
+  const hang = await pg.evaluate(() => {
+    pendingMode = 'practice'; startExam(1);
+    state.current = state.questions.findIndex(q => (q.note || '').startsWith('記憶法（三層）')); renderQuestion();
+    selectOption(state.questions[state.current].a[0]);
+    const lines = [...document.querySelectorAll('#ansNote .rv-note-line.bullet, #ansNote .rv-note-line.sub')];
+    return { n: lines.length, subs: lines.filter(l => l.classList.contains('sub')).length, bad: lines.filter(l => {
+      const r = document.createRange(); r.selectNodeContents(l);
+      const boxes = [...r.getClientRects()]; if (boxes.length < 2) return false;
+      const txt = l.querySelector('.note-mark').nextSibling, t = document.createRange(); t.setStart(txt, 0); t.setEnd(txt, 1); // first char after the marker
+      return Math.abs(boxes[boxes.length - 1].left - t.getBoundingClientRect().left) > 1;
+    }).map(l => l.textContent.slice(0, 12)), wrapped: lines.filter(l => { const r = document.createRange(); r.selectNodeContents(l.querySelector('.note-mark').nextSibling); return new Set([...r.getClientRects()].map(b => Math.round(b.top))).size > 1; }).length };
+  });
+  assert(hang.n === 13 && hang.subs === 9 && hang.wrapped > 0 && hang.bad.length === 0, `Practice answer note: bullet / sub rows with a hanging indent (${JSON.stringify(hang)})`);
 
   assert(errs.length === 0, 'no page errors: ' + errs.join('; '));
   console.log('EXAMRESULT PASS');

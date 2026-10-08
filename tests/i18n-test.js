@@ -17,7 +17,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
 const CJK = /[　-〿㐀-鿿豈-﫿＀-￯]/;
 // en keeps the Cantonese section labels in Chinese (user decision, see HANDOFF.md › i18n); the language pill
 // shows the target language, so in en it reads 中
-const CJK_WHITELIST = ['common.yueTitle', 'common.noteLabel', 'app.langSwitch'];
+const CJK_WHITELIST = ['common.yueTitle', 'common.noteLabel', 'app.langSwitch', 'study.memoryAid']; // v0.71: labels a Cantonese memory note, like noteLabel
 // zh-HK copies these from en: <title>, meta description and the manifest stay English (plan R-001)
 const SAME_AS_EN_KEYS = ['app.title', 'app.description', 'app.shortName', 'app.installName', 'app.installShortName'];
 const ZH_HK = 'zh-HK';

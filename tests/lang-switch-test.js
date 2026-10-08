@@ -155,9 +155,9 @@ async function checkHomePractice(pg, ctx) {
   // practice › exam: the all-questions button reads 全部試題 in zh-HK, All Questions in en
   await pg.evaluate(() => setPracticeView('exam'));
   await switchOn(pg, ctx, 'home practice › exam', '#examGrid');
-  assert((await textOf(pg, '#examGrid .exam-btn.all')).startsWith('🎯 全部試題（408 題）'), 'zh-HK: practice grid shows 全部試題（408 題）');
+  assert((await textOf(pg, '#examGrid .exam-btn.all')).startsWith('📝 全部試題（408 題）'), 'zh-HK: practice grid shows 全部試題（408 題）');
   await switchOn(pg, ctx, 'home practice › exam', '#examGrid');
-  assert((await textOf(pg, '#examGrid .exam-btn.all')).startsWith('🎯 All Questions (408)'), 'en: practice grid shows All Questions (408)');
+  assert((await textOf(pg, '#examGrid .exam-btn.all')).startsWith('📝 All Questions (408)'), 'en: practice grid shows All Questions (408)');
 }
 
 // Quiz practice: translation shown before answering, flagged, answered (Similar panel open)
@@ -321,14 +321,14 @@ async function checkDoubleTap(pg) {
   await pg.click(PILL);
 }
 
-// 2026-10-07: My Review tiles. The wrong answers note lives inside #tileWrong (also at 0), the wrong tile
-// shows only "{n} to clear" (no per round part), the flagged tile drops its count line; the pill re-renders it
+// 2026-10-07: My Review tiles. The wrong answers note lives inside #tileWrong, the flagged tile drops its count
+// line; the pill re-renders it. v0.70: the wrong tile drops its "{n} to clear" line too (the big count says it), and
+// at 0 it shows only "Nothing to review yet" (no note)
 const MY_REVIEW_NOTE = {
   [EN]: 'From Practice and Exam; cleared once you get them right here. Up to 24 per round.',
   [ZH_HK]: '來自練習及模擬考試，於此答對後便會清除。每輪最多 24 題。',
 };
-const WRONG_TO_CLEAR_30 = { [EN]: '30 to clear', [ZH_HK]: '尚餘 30 題' };
-const PER_ROUND = { [EN]: 'per round', [ZH_HK]: '每輪' };
+const WRONG_EMPTY = { [EN]: 'Nothing to review yet', [ZH_HK]: '暫時未有需要複習的題目' };
 const FLAGGED_8 = { [EN]: '8 flagged', [ZH_HK]: '已標記 8 題' };
 // flaggedEmptyHtml with its inline bookmark svg (no text) collapsed out
 const FLAGGED_EMPTY = { [EN]: 'Tap on a question to flag it', [ZH_HK]: '於題目按 即可標記' };
@@ -349,7 +349,6 @@ const myReviewView = pg => pg.evaluate(() => {
     return {
       text: squash(el), sub: squash(sub), note: squash(note),
       subVisible: !!sub && sub.getBoundingClientRect().height > 0,
-      noteAfterSub: !!note && !!sub && !!(sub.compareDocumentPosition(note) & Node.DOCUMENT_POSITION_FOLLOWING),
       height: Math.round(el.getBoundingClientRect().height),
     };
   };
@@ -360,30 +359,21 @@ async function checkMyReviewIn(pg, lang, tag) {
   assert((await langOf(pg)).lang === lang, `${tag}: page in ${lang}`);
   const v = await myReviewView(pg);
   assert(v.wrong.note === MY_REVIEW_NOTE[lang], `${tag}: note inside #tileWrong reads the ${lang} text: ${v.wrong.note}`);
-  assert(v.wrong.noteAfterSub, `${tag}: note sits below the wrong tile .sub`);
   assert(v.outside.length === 0, `${tag}: no note outside the tiles: ` + JSON.stringify(v.outside));
-  // the note itself says "per round", so only the count line is checked for it
-  assert(v.wrong.sub === WRONG_TO_CLEAR_30[lang] && !v.wrong.sub.includes(PER_ROUND[lang]), `${tag}: 30 wrong → sub "${WRONG_TO_CLEAR_30[lang]}", no "${PER_ROUND[lang]}": ${v.wrong.sub}`);
+  assert(v.wrong.sub === null, `${tag}: 30 wrong → no "to clear" line under the title (v0.70): ${v.wrong.sub}`);
   assert(!v.flagged.text.includes(FLAGGED_8[lang]) && !v.flagged.subVisible, `${tag}: 8 flagged → no "${FLAGGED_8[lang]}", no visible .sub: ${v.flagged.text}`);
   assert(v.wrong.height === v.flagged.height, `${tag}: tiles are the same height (${v.wrong.height} / ${v.flagged.height})`);
 }
 async function checkMyReviewEmptyIn(pg, lang, tag) {
   assert((await langOf(pg)).lang === lang, `${tag}: page in ${lang}`);
   const v = await myReviewView(pg);
-  assert(v.wrong.note === MY_REVIEW_NOTE[lang], `${tag}: 0 wrong → note still inside #tileWrong: ${v.wrong.note}`);
+  // v0.70: no note at 0, only "Nothing to review yet"
+  assert(v.wrong.note === null && v.wrong.sub === WRONG_EMPTY[lang], `${tag}: 0 wrong → "${WRONG_EMPTY[lang]}", no note: ${JSON.stringify(v.wrong)}`);
   assert(v.outside.length === 0, `${tag}: 0 wrong → no note outside the tiles: ` + JSON.stringify(v.outside));
   assert(v.wrong.height === v.flagged.height, `${tag}: 0 wrong → tiles the same height (${v.wrong.height} / ${v.flagged.height})`);
-  // W-022: the empty tile fades its own parts, but the note must stay at full contrast (opacity multiplies down the tree)
-  const fade = await effectiveOpacities(pg, '#tileWrong', ['.t-note', '.t-icon', '.t-num', 'b', '.sub']);
-  assert(fade['.t-note'] === 1, `${tag}: 0 wrong → note keeps full opacity: ${fade['.t-note']}`);
-  assert(['.t-icon', '.t-num', 'b', '.sub'].every(s => fade[s] < 1), `${tag}: 0 wrong → icon, count, title, sub still fade: ` + JSON.stringify(fade));
-  const noteColor = await pg.$eval('#tileWrong .t-note', e => {
-    const probe = document.createElement('span');
-    probe.style.color = 'var(--text-muted)'; document.body.appendChild(probe);
-    const want = getComputedStyle(probe).color; probe.remove();
-    return { got: getComputedStyle(e).color, want };
-  });
-  assert(noteColor.got === noteColor.want, `${tag}: 0 wrong → note colour stays --text-muted: ` + JSON.stringify(noteColor));
+  // W-022: the empty tile fades its own parts (opacity multiplies down the tree)
+  const fade = await effectiveOpacities(pg, '#tileWrong', ['.t-icon', '.t-num', 'b', '.sub']);
+  assert(Object.values(fade).every(o => o < 1), `${tag}: 0 wrong → icon, count, title, sub fade: ` + JSON.stringify(fade));
 }
 // product of an element's own opacity and every ancestor's, i.e. how faded it actually renders
 const effectiveOpacities = (pg, root, sels) => pg.$eval(root, (r, list) => Object.fromEntries(list.map(sel => {
@@ -426,15 +416,15 @@ async function checkMyReviewTiles(pg) {
   await pg.click(PILL);
   await checkMyReviewIn(pg, ZH_HK, 'My Review pill → zh-HK');
   await checkMyReviewNarrow(pg, checkMyReviewIn, ZH_HK, 'My Review zh-HK 320px');
+  await checkNoteTailIn(pg, ZH_HK, 'My Review zh-HK 390px note');
+  await pg.setViewportSize(NARROW);
+  await checkNoteTailIn(pg, ZH_HK, 'My Review zh-HK 320px note');
+  await pg.setViewportSize(WIDE);
   await seedMyReview(pg, MY_REVIEW_WRONG_N, 0);
   assert((await textOf(pg, '#tileFlagged .sub')) === FLAGGED_EMPTY[ZH_HK], 'My Review zh-HK: 0 flagged keeps flaggedEmptyHtml');
   await seedMyReview(pg, 0, MY_REVIEW_FLAG_N);
   await checkMyReviewEmptyIn(pg, ZH_HK, 'My Review zh-HK');
   await checkMyReviewNarrow(pg, checkMyReviewEmptyIn, ZH_HK, 'My Review zh-HK 0 wrong 320px');
-  await checkNoteTailIn(pg, ZH_HK, 'My Review zh-HK 390px note');
-  await pg.setViewportSize(NARROW);
-  await checkNoteTailIn(pg, ZH_HK, 'My Review zh-HK 320px note');
-  await pg.setViewportSize(WIDE);
   await pg.click(PILL);
   await checkMyReviewEmptyIn(pg, EN, 'My Review pill → en');
   await checkMyReviewNarrow(pg, checkMyReviewEmptyIn, EN, 'My Review en 0 wrong 320px');

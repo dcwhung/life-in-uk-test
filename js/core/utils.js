@@ -222,6 +222,10 @@ const percent = (part, whole) => (whole ? Math.round((part / whole) * PERCENT) :
 const byId = id => document.getElementById(id);
 function setShown(id, visible) { byId(id).hidden = !visible; }
 function showScreen(id) {
+  // S-098: focus left on a button of the screen being hidden (e.g. restored there by closeConfirm) would still
+  // take a stray Enter, so drop it
+  const focused = document.activeElement;
+  if (focused && focused.closest('.screen') && !byId(id).contains(focused)) focused.blur();
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   byId(id).classList.add('active');
 }

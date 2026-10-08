@@ -44,7 +44,7 @@ LOCALES.en = {
     tabChapter: 'Chapter',
     tabExam: 'Exam',
     selectExam: 'Select Exam',
-    allExams: '🎯 All Questions ({n})',
+    allExams: '📝 All Questions ({n})',
     randomExam: '🎲 Random Exam',
     randomExamSub: { one: '{n} question from {total}', other: '{n} questions from {total}' },
     practiceHintHtml: '<ul><li>Each round draws up to <b>{max}</b> unmastered questions, each asked once</li><li>Answer a question correctly <b>{streak} times in a row</b> to master it</li><li>Unmastered questions come back in the next round</li><li>Mastered questions are skipped until the whole set is mastered</li></ul>',
@@ -53,7 +53,6 @@ LOCALES.en = {
     resetCompleted: '↺ Reset completed exams',
     wrongTitle: 'Wrong answers',
     wrongEmpty: 'Nothing to review yet',
-    wrongToClear: '{n} to clear',
     flaggedTitle: 'Flagged',
     flaggedEmptyHtml: 'Tap {icon} on a question to flag it',
     myReviewNote: 'From Practice and Exam; cleared once you get them right here. Up to {max} per round.',
@@ -146,6 +145,7 @@ LOCALES.en = {
     bookmark: 'Bookmark',
     mastered: 'Mastered',
     masteredDerived: '🏆 Mastered — every source question mastered',
+    memoryAid: '💡 記憶法', // the memory notes are in Cantonese, like common.noteLabel
     progress: '🏆 {n} / {total} mastered',
     // the fact's number within its chapter (chapterFactNumber); no UI text shows the global fact id (W-016)
     factId: '#{n}',

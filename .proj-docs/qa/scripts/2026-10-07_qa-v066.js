@@ -9,7 +9,7 @@
 // offlineAndUpgrade compare against the current APP_VERSION (js/core/config.js) and the current data files instead of
 // hard-coding v0.66 / the pre-batch-7 E11·Q4 yue. overflow no longer exempts the quick nav (CUI-0013 fixed in v0.67).
 // 2026-10-07 W-018: the script checks the current data, so the oracle replays every batch JSON on disk (found by
-// filename, numeric order): today 8 files / 737 records, 3 `keep` not replayed. EXPECTED_ORACLE is the sanity count.
+// filename, numeric order): today 12 files / 806 records, 3 `keep` not replayed. EXPECTED_ORACLE is the sanity count.
 //
 // Oracle (independent of HEAD data): the v0.65 data files (git show <v065-ref>) with every user-approved batch JSON
 // file (.proj-docs/plans/2026-10-07_yue-batch-<N>*.json) replayed in numeric order; every record's `before` must match.
@@ -69,7 +69,7 @@ const BATCH_RE = ext => new RegExp(`^2026-10-07_yue-batch-(\\d+)(?:-[a-z0-9]+)?\
 const batchNum = f => Number(f.match(BATCH_RE('json'))[1]);
 const BATCH_FILES = fs.readdirSync(PLAN_DIR).filter(f => BATCH_RE('json').test(f)).sort((a, b) => batchNum(a) - batchNum(b));
 // sanity count of the approved batches (1..8); update together with the next batch JSON
-const EXPECTED_ORACLE = { files: 8, records: 737, kept: 3 };
+const EXPECTED_ORACLE = { files: 12, records: 806, kept: 3 }; // v0.71: + batch 9 (B1), 10 (B2 memory groups), 11 (W-025 terms), 12 (CUI-0017)
 const CUR_VERSION = (fs.readFileSync(path.join(ROOT, 'js/core/config.js'), 'utf8').match(/const APP_VERSION = '([^']+)'/) || [])[1];
 const CUR_CACHE = 'lifeuk-v' + CUR_VERSION;
 const replay = { records: 0, beforeMismatch: [], kept: [] };
@@ -268,10 +268,14 @@ async function practiceSample(b) {
         right = !right;
         const box = await pg.evaluate(() => {
           const rows = [...document.querySelectorAll('#ansYue .ans-yue-row span')].map(s => s.textContent);
-          const n = byId('ansNote'); const span = n.querySelector('.ans-note-text');
-          return { show: byId('answerBox').classList.contains('show'), rows,
-            noteText: span ? span.textContent : '', noteVisible: n.innerText, kids: [...n.children].map(c => c.tagName), spanKids: span ? span.children.length : 0,
-            lineBoxes: span ? span.getClientRects().length : 0, ws: getComputedStyle(n).whiteSpace };
+          // v0.70 (S-106): the answer box draws the note like the Results review — one .rv-note-line / .rv-note-gap row per
+          // line, a leading "•" / "◦" / "→" in a .note-mark span
+          const n = byId('ansNote'); const body = n.querySelector('.ans-note-text');
+          const lines = body ? [...body.querySelectorAll('.rv-note-line, .rv-note-gap')].map(d => d.classList.contains('rv-note-gap') ? '' : d.textContent) : [];
+          const marksAtStart = body ? [...body.querySelectorAll('.note-mark')].every(m => m === m.parentElement.firstChild) : true;
+          return { show: byId('answerBox').classList.contains('show'), rows, lines, marksAtStart,
+            noteText: lines.join('\n'), noteVisible: n.innerText, kids: [...n.children].map(c => c.tagName),
+            foreign: body ? [...body.querySelectorAll('*')].filter(e => e.tagName !== 'DIV' && !(e.tagName === 'SPAN' && e.classList.contains('note-mark'))).map(e => e.tagName) : [] };
         });
         // multi-answer: the session's (shuffled) answer order decides the join order, so compare as a set
         const asSet = s => s.split(ANSWER_SEP).sort().join(ANSWER_SEP);
@@ -279,11 +283,10 @@ async function practiceSample(b) {
         box.rows[1] = box.rows[1] && asSet(box.rows[1]);
         ok(box.show && box.rows[0] === q.yue && box.rows[1] === expAns, `${tag} answer box yue + answer translation ${box.rows[1] === expAns ? '' : JSON.stringify({ got: box.rows, want: expAns })}`);
         if (q.note) {
-          const lines = q.note.split('\n');
-          const p = noteProblems({ text: box.noteVisible, foreign: box.kids.filter(t => !['STRONG', 'SPAN'].includes(t)).concat(box.spanKids ? ['span>child'] : []) });
-          const visLines = box.noteVisible.split('\n').slice(1); // first line = 💡 label
-          ok(box.noteText === q.note && p.length === 0 && box.ws === 'pre-wrap' && box.lineBoxes >= lines.filter(l => l.trim()).length
-            && visLines.length === lines.length, `${tag} answer box note = oracle${changed.note.has(k) ? ' (changed)' : ''}, ${lines.length} line(s) rendered as breaks (${box.lineBoxes} line boxes) ${p.join(';')}`);
+          const want = q.note.split('\n').map(l => l.trim());
+          const p = noteProblems({ text: box.noteVisible, foreign: box.kids.filter(t => !['STRONG', 'DIV'].includes(t)).concat(box.foreign) });
+          ok(JSON.stringify(box.lines) === JSON.stringify(want) && box.marksAtStart && p.length === 0,
+            `${tag} answer box note = oracle${changed.note.has(k) ? ' (changed)' : ''}, ${want.length} row(s), markers lead their rows ${p.join(';')} ${JSON.stringify(box.lines) === JSON.stringify(want) ? '' : JSON.stringify(box.lines).slice(0, 80)}`);
           renderedNotes.practice[lang + k] = box.noteText;
           stats.note++;
         } else ok(box.noteText === '' && box.kids.length === 0, `${tag} no note → answer box note empty`);
@@ -325,7 +328,7 @@ async function resultReview(b) {
         const yue = it.querySelector('.rv-yue'); const nt = it.querySelector('.rv-note');
         return { yue: yue.textContent, yueKids: yue.children.length,
           lines: nt ? [...nt.querySelectorAll('.rv-note-line, .rv-note-gap')].map(d => d.classList.contains('rv-note-gap') ? '' : d.textContent) : null,
-          noteVisible: nt ? nt.innerText : '', foreign: nt ? [...nt.querySelectorAll('*')].filter(e => e.tagName !== 'DIV').map(e => e.tagName) : [] };
+          noteVisible: nt ? nt.innerText : '', foreign: nt ? [...nt.querySelectorAll('*')].filter(e => e.tagName !== 'DIV' && !(e.tagName === 'SPAN' && e.classList.contains('note-mark') && e === e.parentElement.firstChild)).map(e => e.tagName) : [] };
       }));
       const yt = await pg.evaluate(() => t('common.yueTitle'));
       ok(items.length === 24 && keys.length === 24, `${lang} Exam ${exam} result: 24 review items`);
@@ -487,13 +490,13 @@ async function offlineAndUpgrade(b) {
     const keep = ['lifeuk.practiceStreak', 'lifeuk.practiceFlags', 'lifeuk.wrongList', 'lifeuk.completedExams', 'lifeuk.studyBookmarks', 'lifeuk.studyMastered', 'lifeuk.uiLang'];
     ok(keep.every(k => after[k] === afterOldFlow[k] && after[k] === before[k]), `upgrade: progress / streaks / flags / wrong list / Study marks byte-identical ${keep.map(k => k.slice(7) + '=' + after[k]).join(' ')}`);
     await nav(pg, '#modePractice');
-    // v0.68 Home UI: no "已標記 n 題" line any more; each tile's count is its .t-num, the wrong tile adds 尚餘 n 題
+    // v0.68 Home UI: no "已標記 n 題" line any more; each tile's count is its .t-num (v0.70: no 尚餘 n 題 line either)
     const tiles = await pg.evaluate(() => ['tileWrong', 'tileFlagged'].map(id => {
       const el = document.getElementById(id), txt = sel => (el.querySelector(sel) || {}).textContent || '';
       return { num: txt('.t-num'), title: txt('b'), sub: txt('.sub') };
     }));
     const [wt, ft] = tiles;
-    ok(ft.num === '1' && ft.title === '已標記' && wt.num === '2' && wt.title === '錯題' && wt.sub === '尚餘 2 題',
+    ok(ft.num === '1' && ft.title === '已標記' && wt.num === '2' && wt.title === '錯題' && wt.sub === '',
       `upgrade: My Review shows flagged 1 + 2 wrong in zh-HK ${JSON.stringify(tiles)}`);
     await pg.goto(base); await sleep(200);
     const newYue = await translateYue(pg);

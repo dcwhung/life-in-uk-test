@@ -63,6 +63,29 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(!(await modalOpen()) && await active('screenQuiz'), 'Keep going closes the modal and stays');
   await pg.click('#nextBtn'); await pg.keyboard.press('Escape');
   assert(!(await modalOpen()) && await active('screenQuiz'), 'Escape also cancels');
+  // S-025: Tab / Shift+Tab stay on the modal's two buttons; closing returns focus to the button that opened it
+  await pg.focus('#nextBtn'); await pg.keyboard.press('Enter');
+  assert(await modalOpen() && (await focusedId()) === 'confirmOk', 'S-025: Enter on Submit opens the modal on Submit');
+  await pg.keyboard.press('Tab');
+  assert((await focusedId()) === 'confirmCancel', 'S-025: Tab from the last button wraps to Keep going');
+  await pg.keyboard.press('Tab');
+  assert((await focusedId()) === 'confirmOk', 'S-025: Tab moves on to Submit');
+  await pg.keyboard.press('Shift+Tab'); await pg.keyboard.press('Shift+Tab');
+  assert((await focusedId()) === 'confirmOk', 'S-025: Shift+Tab from the first button wraps to Submit');
+  await pg.keyboard.press('Escape');
+  assert(!(await modalOpen()) && (await focusedId()) === 'nextBtn', 'S-025: Escape returns focus to Submit');
+  await pg.keyboard.press('Enter'); await pg.keyboard.press('Shift+Tab'); await pg.keyboard.press('Enter');
+  assert(!(await modalOpen()) && (await focusedId()) === 'nextBtn', 'S-025: Keep going returns focus to Submit');
+  // S-103: holding Enter on Submit opens the prompt once; the key repeats must not press its Submit
+  await pg.keyboard.down('Enter'); await pg.keyboard.down('Enter'); await pg.keyboard.down('Enter'); await pg.keyboard.up('Enter');
+  assert(await modalOpen() && await active('screenQuiz'), 'S-103: held Enter leaves the submit prompt open (no submit)');
+  await pg.keyboard.press('Escape');
+  assert(!(await modalOpen()) && (await focusedId()) === 'nextBtn', 'S-103: Escape closes it, focus back on Submit');
+  // S-095: a second prompt over an open one keeps the first opener
+  await pg.keyboard.press('Enter'); await pg.evaluate(() => goHome());
+  assert(await modalOpen() && /Leave the exam\?/.test(await modalText()), 'S-095: Home over the submit modal shows the leave modal');
+  await pg.keyboard.press('Escape');
+  assert(!(await modalOpen()) && (await focusedId()) === 'nextBtn', 'S-095: closing it returns focus to the first opener (Submit)');
 
   // Home asks before leaving a running exam
   await pg.click('#screenQuiz .back-btn');
@@ -83,6 +106,23 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(await active('screenResult') && !(await modalOpen()), 'time up: straight to results, no prompt');
   assert(await vis('#resultTimeUp') && (await text('#resultTimeUp')).includes("Time's up"), 'results note the auto-submit');
   assert(await pg.evaluate(() => examTimerId === null), 'timer stopped');
+  // W-024: time up while the submit modal is open closes it — results are not covered and cannot be submitted twice
+  await pg.evaluate(() => { pendingMode = 'exam'; startExam(4); state.current = state.questions.length - 1; renderQuestion(); });
+  await pg.focus('#nextBtn'); await pg.keyboard.press('Enter'); // S-099: keyboard-opened, so focus returns to Submit
+  assert(await modalOpen(), 'W-024: submit modal open before time up');
+  // S-099: press Enter straight after time up (no layout read in between, which would let Chromium drop the focus
+  // itself) — it must not reopen Submit, so the exam cannot be finished twice
+  await pg.evaluate(() => { examDeadline = Date.now() - 1; examTick(); });
+  await pg.keyboard.press('Enter');
+  assert(await active('screenResult') && !(await modalOpen()), 'W-024: time up closes the open modal on the way to results');
+  assert(await vis('#resultTimeUp'), "W-024 / S-099: results keep the time-up note after a stray Enter");
+  // S-098: same with the Leave prompt open — time up still submits, and a stray Enter does not go home
+  await pg.evaluate(() => { pendingMode = 'exam'; startExam(4); });
+  await pg.focus('#screenQuiz .back-btn'); await pg.keyboard.press('Enter'); // S-099: keyboard-opened, so focus returns there
+  assert(await modalOpen() && /Leave the exam\?/.test(await modalText()), 'S-098: leave modal open before time up');
+  await pg.evaluate(() => { examDeadline = Date.now() - 1; examTick(); });
+  await pg.keyboard.press('Enter');
+  assert(await active('screenResult') && !(await modalOpen()) && await vis('#resultTimeUp'), 'S-098: time up over the leave modal lands on results and stays');
   // a normal submit has no time-up note; results "Choose Another" does not ask
   await pg.evaluate(() => { pendingMode = 'exam'; startExam(4); state.questions.forEach((q, i) => { state.answers[i] = [...q.a]; }); state.current = 23; renderQuestion(); });
   await pg.click('#nextBtn');
@@ -113,7 +153,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.click('#modeExam');
   assert((await pg.$eval('#examGrid .exam-btn.all', e => e.firstChild.textContent.trim())) === '🎲 Random Exam' && (await text('#examGrid .exam-btn.all .exam-sub')) === '24 questions from 408', 'exam grid: 🎲 Random Exam / 24 questions from 408');
   await pg.click('#modePractice'); await pg.click('#ptabExam');
-  assert((await text('#examGrid .exam-btn.all')).startsWith('🎯 All Questions (408)'), 'practice grid shows All Questions (408)');
+  assert((await text('#examGrid .exam-btn.all')).startsWith('📝 All Questions (408)'), 'practice grid shows All Questions (408)');
   await pg.evaluate(() => { pendingMode = 'practice'; startExam('all'); });
   assert(await pg.evaluate(() => state.questions.length === 24) && !(await vis('#examTimer')), 'practice All Exams unchanged: round of 24, no timer');
 

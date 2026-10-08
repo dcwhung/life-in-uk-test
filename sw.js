@@ -26,6 +26,7 @@ const SHELL = [
   'css/components/chips.css',
   'css/components/dots.css',
   'css/components/modal.css',
+  'css/components/note.css',
   'css/components/popover.css',
   'css/components/fact.css',
   'css/screens/home.css',

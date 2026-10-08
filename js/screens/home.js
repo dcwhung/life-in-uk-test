@@ -132,10 +132,11 @@ function renderReviewTile(id, n, iconHtml, title, bodyHtml) {
   el.disabled = !n;
   el.innerHTML = `<div class="t-top"><span class="t-icon">${iconHtml}</span><span class="t-num">${n}</span></div><b>${title}</b>${bodyHtml}`;
 }
-// the note explains where wrong answers come from, so it stays even while the tile is empty
+// v0.70: the count already shows in .t-num, so a non-empty tile only explains where wrong answers come from;
+// the empty tile only says there is nothing to review
 function wrongTileBody(n) {
-  const sub = n ? t('home.wrongToClear', { n }) : t('home.wrongEmpty');
-  return `<span class="sub">${sub}</span><span class="t-note">${t('home.myReviewNote', { max: PRACTICE_ROUND_MAX })}</span>`;
+  return n ? `<span class="t-note">${t('home.myReviewNote', { max: PRACTICE_ROUND_MAX })}</span>`
+    : `<span class="sub">${t('home.wrongEmpty')}</span>`;
 }
 // the count already shows in .t-num; only the empty tile needs a line (how to flag)
 function flaggedTileBody(n) {
