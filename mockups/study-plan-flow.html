@@ -181,6 +181,10 @@
   .day.exam .d small { color: var(--navy); font-weight: 700; }
   .day.exam .tasks b { color: var(--navy); font-size: var(--fs-md); }
   .day.today { background: var(--selected-bg); margin: 0 -8px; padding-inline: 8px; border-radius: var(--radius-sm); }
+  /* days not reached yet: light grey row, text and date box one step lighter */
+  .day.future { background: #f6f7fa; margin: 0 -8px; padding-inline: 8px; }
+  .day.future .tasks { color: var(--text-muted); }
+  .day.future .d { opacity: 0.6; }
   .tasks { display: grid; gap: 3px; font-size: var(--fs-sm); line-height: 1.45; }
   .tasks .t { display: flex; gap: 6px; }
 
@@ -858,7 +862,8 @@ function renderDayList(plan) {
   plan.cal.forEach(d => {
     if (d.i % DAYS_PER_WEEK === 0) html += `<div class="week-h">Week ${d.i / DAYS_PER_WEEK + 1}</div>`;
     const tasks = d.rest ? '<div class="t"><span>😴 休息日</span></div>' : d.tasks.map(t => `<div class="t"><span>${TASK_ICONS[t.type]}</span><span>${t.t}</span></div>`).join('');
-    html += `<div class="day ${d.rest ? 'rest' : d.phase} ${d.i === TODAY_INDEX ? 'today' : ''}">
+    const when = d.i === TODAY_INDEX ? 'today' : d.i > TODAY_INDEX ? 'future' : '';
+    html += `<div class="day ${d.rest ? 'rest' : d.phase} ${when}">
       <div class="d num">${d.i + 1}<small>${fmtDate(d.date)} ${WEEKDAYS[d.date.getDay()]}</small></div>
       <div class="tasks">${tasks}</div><div>${statusPill(d)}</div></div>`;
   });
