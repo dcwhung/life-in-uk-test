@@ -402,6 +402,109 @@ function checkReplan() {
   assert(after.days.slice(21, 24).every(d => d.phase === 'rest'), 'gap days are rest days');
 }
 
+// W-026: a fact finished today or early on a later day is never planned again; today's finished groups stay on today
+function checkReplanKeepsDoneFacts() {
+  const readFacts = days => days.flatMap(d => d.tasks.filter(t => t.type === 'read').flatMap(t => t.facts));
+  const plan = g('buildPlan')(goalFor(21, 120), TODAY);
+  const dayQids = d => d.tasks.filter(t => t.type === 'practice').flatMap(t => t.qids);
+  const sameDay = logWith(TODAY, dayQids(plan.days[0]));
+  const doneToday = readFacts([plan.days[0]]);
+  const re = g('replanFrom')(clone(plan), goalFor(21, 30), TODAY, sameDay);
+  assert(doneToday.length > 20 && !readFacts(re.days.slice(1)).some(id => doneToday.includes(id)), `W-026: ${doneToday.length} facts done today, then 30 min/day the same day → none moved to later days`);
+  assert(doneToday.every(id => readFacts([re.days[0]]).includes(id)), "W-026: today's finished groups stay on the new today");
+  const after = g('planDayCompletion')(re.days[0], g('planDayLog')(sameDay, TODAY));
+  assert(after.done >= doneToday.length + dayQids(plan.days[0]).length, "W-026: today's % keeps the work already done");
+  const all = readFacts(re.days);
+  assert(all.length === FACT_COUNT && new Set(all).size === FACT_COUNT, 'W-026: every fact still appears exactly once');
+  assert(re.days[0].tasks.every(t => t.type !== 'read' || (re.days[0].tasks[t.pair].type === 'practice' && same(re.days[0].tasks[t.pair].qids, t.facts.flatMap(id => g('planFactQids')(STUDY.find(f => f.id === id)))))), 'W-026: pinned read tasks point at their own practice task');
+  const early = plan.days.find(d => d.date === '2026-10-13');
+  const earlyLog = logWith('2026-10-13', dayQids(early));
+  const earlyFacts = readFacts([early]);
+  const re2 = g('replanFrom')(clone(plan), goalFor(28, 60, [0]), '2026-10-09', earlyLog);
+  const planned = readFacts(re2.days.slice(1));
+  assert(earlyFacts.length > 0 && !planned.some(id => earlyFacts.includes(id)), `W-026: ${earlyFacts.length} facts finished early on 10-13 are not planned again after a re-plan on 10-09`);
+  assert(same(planned, g('PLAN_LEARN_ORDER').filter(id => !earlyFacts.includes(id))), 'W-026: every other fact (Day 1 ones included, unfinished) is planned once, in learn order');
+}
+
+// W-027: a past drill / wrong-facts task gets its contents when opened; carry and next step never point at an empty task
+function checkPastDayContents() {
+  const plan = g('buildPlan')(goalFor(42, 60, [0]), TODAY);
+  const drillIdx = plan.days.findIndex(d => d.phase === 'drill');
+  const drillDay = plan.days[drillIdx];
+  const today = isoAddDays(drillDay.date, 1);
+  const carry = g('planCarryTasks')(plan, emptyLog(), today);
+  assert(!carry.some(c => !g('planIsMaterialized')(c.task)), 'W-027: carry never lists a task with no contents yet');
+  const step = g('planNextStep')(plan, emptyLog(), drillDay.date);
+  assert(step.kind === 'done' || g('planIsMaterialized')(plan.days[g('planDayIndex')(plan, step.date)].tasks[step.taskIndex]), 'W-027: next step never points at a task with no contents');
+  const ctx = { wrongKeys: ['4.14'], streaks: {}, completedExams: {}, plan, log: emptyLog(), types: g('PLAN_PAST_TYPES') };
+  const past = g('materializePlanDay')(drillDay, ctx).day;
+  assert(past.tasks.every(t => g('planIsMaterialized')(t)) && past.tasks.some(t => t.type === 'drill' && t.qids.length > 0), 'W-027: a past drill day gets its questions');
+  const learnPast = g('materializePlanDay')(plan.days[0], ctx);
+  assert(!learnPast.changed && !('qids' in learnPast.day.tasks.find(t => t.type === 'review')), 'G24: a never-opened past review stays empty');
+  const mockDay = plan.days.find(d => d.tasks.some(t => t.type === 'mock'));
+  assert(!g('materializePlanDay')(mockDay, ctx).changed, 'a past mock is never filled (mocks are not carried)');
+  const p2 = clone(plan);
+  p2.days[drillIdx] = past;
+  const carry2 = g('planCarryTasks')(p2, emptyLog(), today);
+  assert(carry2.some(c => c.date === drillDay.date && c.task.type === 'drill'), 'W-027: once filled, the past drill is carried');
+}
+
+function checkEnsurePlanDay() {
+  const plan = g('buildPlan')(goalFor(42, 60, [0]), TODAY);
+  const mockIdx = plan.days.findIndex(d => d.phase === 'mock' && !d.light);
+  const drills = plan.days.slice(0, mockIdx).filter(d => d.phase === 'drill');
+  const at = days => { const d = new Date(2026, 9, 8, 10, 0); d.setDate(d.getDate() + days); return d.toISOString(); };
+  // learn days finished on their own days, so the oldest unfinished carry task holding a question is a drill day
+  const learnLog = { v: 1, days: Object.fromEntries(plan.days.filter(d => d.phase === 'learn').map(d =>
+    [d.date, { ok: Object.fromEntries(d.tasks.flatMap(t => t.qids || []).map(k => [k, 1])), bad: {}, mock: [] }])) };
+  const a = loadApp({ 'lifeuk.studyPlan': JSON.stringify(plan), 'lifeuk.wrongList': JSON.stringify({ '4.14': true }), 'lifeuk.studyPlanProgress': JSON.stringify(learnLog) });
+  a.g(`this.AT = ${JSON.stringify(at(mockIdx))}; this.PAST = ${JSON.stringify(at(mockIdx - 1))};`);
+  const writes = a.storage.writes;
+  a.g(`ensurePlanDay(${JSON.stringify(isoAddDays(plan.days[mockIdx].date, 1))}, new Date(AT))`);
+  assert(a.storage.writes === writes, 'ensurePlanDay on a future day writes nothing (G23)');
+  a.g('ensurePlanToday(new Date(AT))');
+  const stored = JSON.parse(a.storage.getItem('lifeuk.studyPlan'));
+  const sd = date => stored.days.find(d => d.date === date);
+  assert(drills.length > 0 && drills.every(d => sd(d.date).tasks.every(t => Array.isArray(t.qids) || Array.isArray(t.facts))), `W-027: ensurePlanToday fills the ${drills.length} past drill days (drill + wrong facts)`);
+  assert(sd(plan.days[0].date).tasks.every(t => t.type !== 'review' || !('qids' in t)), 'G24: past reviews stay empty');
+  assert(sd(plan.days[mockIdx].date).tasks.filter(t => t.type === 'mock').every(t => Number.isInteger(t.exam)), "today's mock slots get their exam");
+  const todayQ = new Set(sd(plan.days[mockIdx].date).tasks.flatMap(t => t.qids || []));
+  const firstDrill = drills.map(d => sd(d.date)).find(d => d.tasks.some(t => t.type === 'drill' && t.qids.some(k => !todayQ.has(k))));
+  const qid = firstDrill.tasks.find(t => t.type === 'drill').qids.find(k => !todayQ.has(k));
+  const want = drills.map(d => sd(d.date)).find(d => d.tasks.some(t => (t.qids || []).includes(qid))).date;
+  assert(a.g(`recordPlanAnswer(${JSON.stringify(qid)}, true, null, new Date(AT))`) === want, 'W-027: answering a carried drill question counts for its day');
+  // Wednesdays off: the light day is Tue 17 Nov, so Wed 18 (the day before the exam) can still carry it
+  const wedOff = g('buildPlan')(goalFor(42, 60, [3]), TODAY);
+  const light = wedOff.days.find(d => d.light);
+  const b = loadApp({ 'lifeuk.studyPlan': JSON.stringify(wedOff), 'lifeuk.wrongList': JSON.stringify({ '4.14': true }) });
+  b.g(`this.AT = ${JSON.stringify(at(wedOff.days.indexOf(light) + 1))}`);
+  b.g(`ensurePlanDay(${JSON.stringify(light.date)}, new Date(AT))`);
+  const lightStored = JSON.parse(b.storage.getItem('lifeuk.studyPlan')).days.find(d => d.light);
+  assert(light.date < isoAddDays(wedOff.goal.examDate, -1) && Array.isArray(lightStored.tasks.find(t => t.type === 'wrongFacts').facts)
+    && !('qids' in lightStored.tasks.find(t => t.type === 'review')), 'W-027: a past light day fills its wrong-facts task (its review stays empty, G24)');
+}
+
+// S-108: chapter / quota / slot / pair are checked too, so a bad value is "no plan" instead of a throw later
+function checkParseTaskFields() {
+  const plan = g('buildPlan')(goalFor(42, 60, [0]), TODAY);
+  const drillIdx = plan.days.findIndex(d => d.phase === 'drill');
+  const mockIdx = plan.days.findIndex(d => d.tasks.some(t => t.type === 'mock'));
+  const withTask = (i, k, patch) => { const p = clone(plan); Object.assign(p.days[i].tasks[k], patch); return p; };
+  const drillK = plan.days[drillIdx].tasks.findIndex(t => t.type === 'drill');
+  const wfK = plan.days[drillIdx].tasks.findIndex(t => t.type === 'wrongFacts');
+  const mockK = plan.days[mockIdx].tasks.findIndex(t => t.type === 'mock');
+  const bad = [withTask(drillIdx, drillK, { ch: 9 }), withTask(drillIdx, drillK, { quota: -1 }), withTask(drillIdx, drillK, { quota: 1.5 }),
+    withTask(drillIdx, wfK, { quota: 'x' }), withTask(mockIdx, mockK, { slot: 'x' }), withTask(mockIdx, mockK, { slot: -1 }),
+    withTask(0, 0, { ch: 6 }), withTask(0, 0, { pair: 99 }), withTask(0, 1, { ch: undefined }), withTask(0, 1, { qids: [1] })];
+  assert(bad.every(b => g('parseStoredPlan')(b) === null), `S-108: ${bad.length} plans with a bad ch / quota / slot / pair / qid parse to null`);
+  const a = loadApp({ 'lifeuk.studyPlan': JSON.stringify(bad[0]) });
+  const at = new Date(2026, 9, 8, 10, 0);
+  at.setDate(at.getDate() + drillIdx);
+  a.g('this.AT = ' + JSON.stringify(at.toISOString()));
+  const writes = a.storage.writes;
+  assert(a.g('ensurePlanToday(new Date(AT))') === null && a.storage.writes === writes, 'S-108: ensurePlanToday on a bad drill chapter returns no plan, no throw, no write');
+}
+
 function checkOverview() {
   const band = g('planPctBand');
   assert([[0, 0], [1, 1], [49, 1], [50, 2], [74, 2], [75, 3], [99, 3], [100, 4]].every(([p, b]) => band(p) === b), 'G27: 5 colour bands 0 / <50 / <75 / <100 / 100');
@@ -564,6 +667,10 @@ function runSuite() {
   checkRounds();
   checkMaterialize();
   checkReplan();
+  checkReplanKeepsDoneFacts();
+  checkPastDayContents();
+  checkEnsurePlanDay();
+  checkParseTaskFields();
   checkOverview();
   checkStreak();
   checkService();

@@ -269,15 +269,26 @@ function planValidGoalShape(goal) {
   return planIsObject(goal) && isoIsValid(goal.examDate) && planValidMins(goal.dailyMins)
     && planValidRestDays(goal.restDays) && planIsLevel(goal.level);
 }
-// a task naming a fact the data no longer has (content change) would break completion later, so it fails here
-function planValidTask(t) {
-  return planIsObject(t) && Object.values(PLAN_TASK).includes(t.type)
-    && (t.facts === undefined || (Array.isArray(t.facts) && t.facts.every(id => !!PLAN_FACT_BY_ID[id])))
-    && (t.qids === undefined || Array.isArray(t.qids));
+// S-108: every field a later step reads is checked here, so bad data is "no plan" rather than a throw later
+// (a fact the data no longer has after a content change included)
+function planIsCount(n) { return Number.isInteger(n) && n >= 0; }
+function planValidList(list, isItem) { return list === undefined || (Array.isArray(list) && list.every(isItem)); }
+function planValidTaskFields(t, dayTasks) {
+  const needsCh = [PLAN_TASK.read, PLAN_TASK.practice, PLAN_TASK.drill].includes(t.type);
+  if (needsCh && !PLAN_STUDY_ORDER.includes(t.ch)) return false;
+  if ((t.type === PLAN_TASK.drill || t.type === PLAN_TASK.wrongFacts) && !planIsCount(t.quota)) return false;
+  if (t.type === PLAN_TASK.mock && !planIsCount(t.slot)) return false;
+  if (t.type === PLAN_TASK.read && !(planIsCount(t.pair) && dayTasks[t.pair] && dayTasks[t.pair].type === PLAN_TASK.practice)) return false;
+  if (t.type === PLAN_TASK.read && !Array.isArray(t.facts)) return false;
+  return t.type !== PLAN_TASK.practice || Array.isArray(t.qids);
+}
+function planValidTask(t, dayTasks) {
+  return planIsObject(t) && Object.values(PLAN_TASK).includes(t.type) && planValidTaskFields(t, dayTasks)
+    && planValidList(t.facts, id => !!PLAN_FACT_BY_ID[id]) && planValidList(t.qids, k => typeof k === 'string');
 }
 function planValidDay(day, i, start) {
   return planIsObject(day) && day.date === isoAddDays(start, i) && Object.values(PLAN_PHASE).includes(day.phase)
-    && Array.isArray(day.tasks) && day.tasks.every(planValidTask);
+    && Array.isArray(day.tasks) && day.tasks.every(t => planValidTask(t, day.tasks));
 }
 function parseStoredPlan(raw) {
   if (!planIsObject(raw) || raw.v !== PLAN_SCHEMA_VERSION || !isoIsValid(raw.start)) return null;

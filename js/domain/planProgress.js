@@ -88,18 +88,21 @@ function planMaterializeMock(task, ctx, taken) {
   const free = EXAM_NUMBERS.find(n => !completed[n] && !taken.includes(n));
   return { ...task, exam: free !== undefined ? free : EXAM_NUMBERS[taken.length % EXAM_NUMBERS.length] };
 }
+// W-027: a past day opened for carry-over fills only these; its review stays empty (G24), its mocks are never carried
+const PLAN_PAST_TYPES = [PLAN_TASK.drill, PLAN_TASK.wrongFacts];
 const PLAN_MATERIALIZERS = {
   [PLAN_TASK.review]: planMaterializeReview,
   [PLAN_TASK.drill]: planMaterializeDrill,
   [PLAN_TASK.wrongFacts]: planMaterializeWrongFacts,
   [PLAN_TASK.mock]: planMaterializeMock,
 };
-// ctx = { wrongKeys, streaks, completedExams, plan, log }; returns a new day, the input is never changed
+// ctx = { wrongKeys, streaks, completedExams, plan, log, types? } (types: only these task types are filled);
+// returns a new day, the input is never changed
 function materializePlanDay(day, ctx) {
   const taken = planAssignedExams(ctx.plan);
   let changed = false;
   const tasks = day.tasks.map(task => {
-    if (planIsMaterialized(task) || !PLAN_MATERIALIZERS[task.type]) return task;
+    if (planIsMaterialized(task) || !PLAN_MATERIALIZERS[task.type] || (ctx.types && !ctx.types.includes(task.type))) return task;
     changed = true;
     const filled = PLAN_MATERIALIZERS[task.type](task, ctx, taken);
     if ('exam' in filled) taken.push(filled.exam);
@@ -145,7 +148,8 @@ function planDayCompletion(day, dayLog) {
   return { pct: total ? percent(done, total) : null, done, total, tasks };
 }
 
-// G8: every unfinished past task except mocks, oldest first; G7: nothing from before the last re-plan; G16: none after
+// G8: every unfinished past task except mocks, oldest first; G7: nothing from before the last re-plan; G16: none after.
+// W-027: only tasks with contents (ensurePlanToday fills past drill / wrong-facts days first)
 function planCarryTasks(plan, log, todayIso) {
   if (planStatus(plan, todayIso) !== PLAN_STATUS.active) return [];
   const out = [];
@@ -153,7 +157,7 @@ function planCarryTasks(plan, log, todayIso) {
     if (day.date >= todayIso || (plan.carryFrom && day.date < plan.carryFrom)) return;
     const dayLog = planDayLog(log, day.date);
     day.tasks.forEach((task, taskIndex) => {
-      const p = task.type === PLAN_TASK.mock ? null : planTaskProgress(task, dayLog);
+      const p = task.type === PLAN_TASK.mock || !planIsMaterialized(task) ? null : planTaskProgress(task, dayLog);
       if (p && p.total > 0 && !p.complete) out.push({ date: day.date, dayNumber: i + 1, taskIndex, task });
     });
   });
@@ -208,7 +212,8 @@ function planNextStep(plan, log, todayIso) {
   if (planStatus(plan, todayIso) !== PLAN_STATUS.active) return { kind: PLAN_NEXT.done };
   const day = planDayAt(plan, todayIso);
   const dayLog = planDayLog(log, todayIso);
-  const taskIndex = day ? day.tasks.findIndex(t => { const p = planTaskProgress(t, dayLog); return p.total > 0 && !p.complete; }) : -1;
+  const open = t => { const p = planTaskProgress(t, dayLog); return planIsMaterialized(t) && p.total > 0 && !p.complete; };
+  const taskIndex = day ? day.tasks.findIndex(open) : -1;
   if (taskIndex >= 0) return { kind: PLAN_NEXT.today, date: todayIso, taskIndex, resumeAt: planResumeAt(day.tasks[taskIndex], dayLog) };
   const carry = planCarryTasks(plan, log, todayIso)[0];
   if (!carry) return { kind: PLAN_NEXT.done };
@@ -274,12 +279,34 @@ function planMonthGrid(plan, log, year, month, todayIso) {
 }
 
 // ── re-plan (G7): past days frozen word for word, unfinished facts re-planned from today, Day 1 unchanged ──
-function planFactsLeft(plan, todayIso, log) {
+// W-026: a fact counts as done on the day of the read task that holds it, past, today or early on a later day alike
+function planFactsDoneSet(plan, log) {
   const done = new Set();
-  plan.days.filter(d => d.date < todayIso).forEach(d => d.tasks
+  plan.days.forEach(d => d.tasks
     .filter(t => t.type === PLAN_TASK.read)
     .forEach(t => t.facts.filter(id => planFactDone(id, planDayLog(log, d.date))).forEach(id => done.add(id))));
+  return done;
+}
+function planFactsLeft(plan, log) {
+  const done = planFactsDoneSet(plan, log);
   return PLAN_LEARN_ORDER.filter(id => !done.has(id));
+}
+// today's finished facts as read + practice groups, so the new today still shows (and counts) the work done
+function planTodayDoneTasks(plan, todayIso, log) {
+  const day = planDayAt(plan, todayIso);
+  const dayLog = planDayLog(log, todayIso);
+  if (!day) return [];
+  return day.tasks.filter(t => t.type === PLAN_TASK.read).flatMap(t => {
+    const facts = t.facts.filter(id => planFactDone(id, dayLog));
+    return facts.length ? planLearnTasks([{ ch: t.ch, ids: facts }]).slice(0, -1) : [];
+  });
+}
+// pinned groups go first on the new today (not on a rest day); the day's own pair indexes shift past them
+function planPinToday(days, pinned) {
+  if (!pinned.length || !days.length || days[0].phase === PLAN_PHASE.rest) return days;
+  const pin = pinned.map((t, i) => (t.type === PLAN_TASK.read ? { ...t, pair: i + 1 } : t));
+  const own = days[0].tasks.map(t => (t.type === PLAN_TASK.read ? { ...t, pair: t.pair + pin.length } : t));
+  return [{ ...days[0], tasks: [...pin, ...own] }, ...days.slice(1)];
 }
 // days before today as they are; a re-plan after the exam fills the dates in between with rest days
 function planFrozenDays(plan, todayIso) {
@@ -294,7 +321,8 @@ function replanFrom(plan, goal, todayIso, log) {
   // clock moved before Day 1: nothing is frozen, the plan restarts today
   if (todayIso < plan.start) return { ...buildPlan(goal, todayIso), createdAt: plan.createdAt, goalHistory: history };
   const own = planCopyGoal(goal);
-  const days = [...planFrozenDays(plan, todayIso), ...buildPlanDays(todayIso, own, planFactsLeft(plan, todayIso, log))];
+  const fresh = planPinToday(buildPlanDays(todayIso, own, planFactsLeft(plan, log)), planTodayDoneTasks(plan, todayIso, log));
+  const days = [...planFrozenDays(plan, todayIso), ...fresh];
   return { ...plan, goal: own, goalHistory: history, carryFrom: todayIso, days };
 }
 
@@ -326,18 +354,45 @@ function recordPlanMock(result, ctxIso = null, now = new Date()) {
   if (iso) writePlanLog(planApplyMock(log, iso, { exam: result.examNum, correct: result.correct, total: result.total }));
   return iso;
 }
-// G9: the first open of a day (plan page or home card) fixes today's review / drill / mock contents; later opens
-// and plan-less devices write nothing
+function planMaterializeCtx(plan) {
+  return { wrongKeys: keysOf(wrongList), streaks, completedExams: completedExams(), plan, log: planLoadLog() };
+}
+// fills the given day indexes (today: every type; past: PLAN_PAST_TYPES) against the current wrong list / streaks
+function planFillDays(plan, indexes, todayIso) {
+  const base = planMaterializeCtx(plan); // read once: up to ~180 days may be filled in one call
+  let next = plan, changed = false;
+  indexes.forEach(i => {
+    const ctx = { ...base, plan: next, types: next.days[i].date === todayIso ? null : PLAN_PAST_TYPES };
+    const filled = materializePlanDay(next.days[i], ctx);
+    if (!filled.changed) return;
+    changed = true;
+    next = { ...next, days: next.days.map((d, k) => (k === i ? filled.day : d)) };
+  });
+  return { plan: next, changed };
+}
+function planWriteFilled(plan, indexes, todayIso) {
+  const { plan: next, changed } = planFillDays(plan, indexes, todayIso);
+  if (changed) writeStudyPlan(next);
+  return next;
+}
+// W-027 / G9: the first open of a plan day (today, or a past day shown for carry-over) fixes its contents; future
+// days, days before the last re-plan, plan-less devices and unchanged days write nothing. Returns the plan or null.
+function ensurePlanDay(iso, now = new Date()) {
+  const plan = planLoad();
+  if (!plan) return null;
+  const todayIso = planTodayIso(now);
+  const i = planDayIndex(plan, iso);
+  const open = planStatus(plan, todayIso) === PLAN_STATUS.active && iso <= todayIso && !!plan.days[i]
+    && !(plan.carryFrom && iso < plan.carryFrom);
+  return open ? planWriteFilled(plan, [i], todayIso) : plan;
+}
+// today plus every past day carry-over can still show, in one write (plan page / home card first open)
 function ensurePlanToday(now = new Date()) {
   const plan = planLoad();
   if (!plan) return null;
   const todayIso = planTodayIso(now);
-  const i = planDayIndex(plan, todayIso);
-  if (planStatus(plan, todayIso) !== PLAN_STATUS.active || !plan.days[i]) return plan;
-  const ctx = { wrongKeys: keysOf(wrongList), streaks, completedExams: completedExams(), plan, log: planLoadLog() };
-  const { day, changed } = materializePlanDay(plan.days[i], ctx);
-  if (!changed) return plan;
-  const next = { ...plan, days: plan.days.map((d, k) => (k === i ? day : d)) };
-  writeStudyPlan(next);
-  return next;
+  if (planStatus(plan, todayIso) !== PLAN_STATUS.active) return plan;
+  const from = plan.carryFrom || plan.start;
+  const indexes = plan.days.map((d, i) => i).filter(i => plan.days[i].date >= from && plan.days[i].date <= todayIso);
+  return planWriteFilled(plan, indexes, todayIso);
 }
