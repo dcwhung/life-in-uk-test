@@ -1,7 +1,7 @@
 // ════════════════════════════════════════
 // ACTIONS — event delegation instead of inline handlers.
-// Markup: <button data-action="name" data-arg="…">; inputs: <input data-input-action="name">.
-// One document-level click, input and keydown (Escape; Tab inside the confirm modal) listener each.
+// Markup: <button data-action="name" data-arg="…">; inputs: <input data-input-action="name"> (each input) / data-blur-action="name" (on leaving the field).
+// One document-level click, input, focusout and keydown (Escape; Tab inside the confirm modal) listener each.
 // ════════════════════════════════════════
 const numArg = el => Number(el.dataset.arg);
 // Exam 1–17 are numbers; 'all' and the other set ids stay strings (isNumberedExam checks the type)
@@ -55,6 +55,7 @@ const ACTIONS = {
   openPlanGoal: () => openPlanGoal(),
   planSetDays: el => planSetDays(numArg(el)),
   planSetExamDate: el => planSetExamDate(el.value),
+  planCommitExamDate: el => planCommitExamDate(el.value),
   planSetMins: el => planSetMins(el.value),
   planToggleRest: el => planToggleRest(numArg(el)),
   planSetLevel: el => planSetLevel(el.dataset.arg),
@@ -113,6 +114,12 @@ document.addEventListener('click', e => {
 document.addEventListener('input', e => {
   const el = e.target.closest('[data-input-action]');
   if (el) runAction(el.dataset.inputAction, el, e);
+});
+// leaving a field commits it (W-033: Chromium fires input / change on every typed segment of a date field, and
+// handling change there drops the field's focus, so a date is committed when focus leaves)
+document.addEventListener('focusout', e => {
+  const el = e.target.closest && e.target.closest('[data-blur-action]');
+  if (el) runAction(el.dataset.blurAction, el, e);
 });
 document.addEventListener('keydown', e => {
   if (e.key === 'Tab' && isConfirmOpen()) trapConfirmTab(e);

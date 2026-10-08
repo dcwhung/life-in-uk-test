@@ -44,10 +44,20 @@ function renderPlanDays(todayIso) {
     const labelKey = PLAN_PRESET_LABEL_KEYS[n];
     return `<button type="button" class="chip${n === days ? ' active' : ''}" ${planPressed(n === days)} data-action="planSetDays" data-arg="${n}">${t(labelKey)}</button>`;
   }).join('');
+  renderPlanDateInput(todayIso);
+}
+// W-033: while the field has focus its half-typed segments are left alone (planCommitExamDate writes it back)
+function renderPlanDateInput(todayIso) {
   const input = byId('planExamDate'), range = planExamDateRange(todayIso);
-  input.min = range.min;
-  input.max = range.max;
-  input.value = planGoalDraft.examDate;
+  // re-setting min / max on a focused date field drops its focus in Chromium, so only on a change (midnight)
+  if (input.min !== range.min) input.min = range.min;
+  if (input.max !== range.max) input.max = range.max;
+  if (document.activeElement !== input) input.value = planGoalDraft.examDate;
+}
+// S-111: a draft left open past midnight moves up to the new minimum (as a date past the maximum moves down)
+function planClampDraftDate(todayIso) {
+  const range = planExamDateRange(todayIso);
+  if (planGoalDraft.examDate < range.min) planGoalDraft.examDate = range.min;
 }
 function renderPlanMins() {
   const m = planGoalDraft.dailyMins, input = byId('planMins');
@@ -101,6 +111,7 @@ function renderPlanCta(todayIso) {
 function renderPlanGoal() {
   if (!planGoalDraft) planGoalDraft = planDefaultDraft(planTodayIso());
   const todayIso = planTodayIso();
+  planClampDraftDate(todayIso);
   renderPlanDays(todayIso);
   renderPlanMins();
   renderPlanRest();
@@ -110,16 +121,33 @@ function renderPlanGoal() {
 }
 
 // ── inputs ──
+// S-109 (as S-102): a redrawn button group hands focus back to the button just chosen
+function planRenderKeepFocus(groupId, arg) {
+  const hadFocus = byId(groupId).contains(document.activeElement);
+  renderPlanGoal();
+  const btn = hadFocus && byId(groupId).querySelector(`[data-arg="${arg}"]`);
+  if (btn) btn.focus();
+}
 function planSetDays(n) {
   if (!PLAN_EXAM_DAY_PRESETS.includes(n)) return;
   planGoalDraft.examDate = isoAddDays(planTodayIso(), n);
-  renderPlanGoal();
+  planRenderKeepFocus('planDaysChips', n);
 }
-// a date past the 6-month limit moves to the limit; an empty or too-early one is ignored
+// W-033: Chromium fires input on every typed segment, and a half-typed date is often out of range, so input only
+// takes a complete in-range date and never rewrites the field. Leaving the field commits it: a date past the
+// 6-month limit moves to the limit, anything else not taken snaps back to the draft.
 function planSetExamDate(value) {
   const range = planExamDateRange(planTodayIso());
-  if (isoIsValid(value) && value >= range.min) planGoalDraft.examDate = value > range.max ? range.max : value;
+  if (!isoIsValid(value) || value < range.min || value > range.max) return;
+  planGoalDraft.examDate = value;
   renderPlanGoal();
+}
+function planCommitExamDate(value) {
+  const range = planExamDateRange(planTodayIso());
+  if (isoIsValid(value) && value > range.max) planGoalDraft.examDate = range.max;
+  else if (isoIsValid(value) && value >= range.min) planGoalDraft.examDate = value;
+  renderPlanGoal();
+  byId('planExamDate').value = planGoalDraft.examDate;
 }
 function planSetMins(value) {
   const m = Number(value);
@@ -129,11 +157,11 @@ function planSetMins(value) {
 function planToggleRest(d) {
   const rest = planGoalDraft.restDays;
   planGoalDraft.restDays = rest.includes(d) ? rest.filter(x => x !== d) : [...rest, d].sort();
-  renderPlanGoal();
+  planRenderKeepFocus('planRestChips', d);
 }
 function planSetLevel(level) {
   if (planIsLevel(level)) planGoalDraft.level = level;
-  renderPlanGoal();
+  planRenderKeepFocus('planLevelGrid', level);
 }
 // O-2: a new plan never inherits the old log (or a corrupt one, O-1); the schedule screen is PR4, so Home for now
 function planCreate() {

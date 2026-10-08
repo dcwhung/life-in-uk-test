@@ -178,7 +178,7 @@ LOCALES.en = {
     // G15: turning the study plan off leaves its screens; the plan and progress stay
     planOffTitle: 'Turn off the study plan?',
     planOffMessage: "The plan card, schedule and today's tasks will be hidden, and you'll leave the study plan screens. Your plan and progress are kept: turn it back on to carry on where you left off.",
-    planOffOk: 'Turn off',
+    planOffOk: 'Confirm',
     planOffCancel: 'Cancel',
   },
 
@@ -219,6 +219,9 @@ LOCALES.en = {
     createText: "Tell us your exam date and how much time you have each day, and we'll plan what to study and practise each day.",
     createGo: 'Create →',
     cardTitle: '🗓️ Study plan',
+    // toast after the ⓘ switch
+    toastOff: 'Study plan turned off',
+    toastOn: 'Study plan turned on: carry on where you left off',
     dayOf: 'Day {n} / {total}',
     daysLeft: { one: '{n} day to the exam · {date}', other: '{n} days to the exam · {date}' },
     goal: {
@@ -230,7 +233,7 @@ LOCALES.en = {
       preset2w: '2 weeks',
       preset3w: '3 weeks',
       preset4w: '4 weeks',
-      preset6w: '6 weeks',
+      preset6w: '1.5 months',
       orDate: 'or exam date',
       minsLabel: 'Most time you can study a day',
       mins: '{m} min',

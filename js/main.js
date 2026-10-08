@@ -19,6 +19,7 @@ const LATE_BOOT_SCRIPTS = [
   // study plan PR3: Home (renderModeSelection → renderPlanCard) and startApp call planHome.js, which renders the
   // ⓘ switch; the create card opens planGoal.js
   { src: 'js/components/switch.js', ready: () => typeof switchHtml === 'function' },
+  { src: 'js/components/toast.js', ready: () => typeof showToast === 'function' },
   { src: 'js/screens/planHome.js', ready: () => typeof renderPlanCard === 'function' },
   { src: 'js/screens/planGoal.js', ready: () => typeof openPlanGoal === 'function' },
 ];
@@ -76,7 +77,7 @@ function clearI18nBootRetry() {
 
 // Same cutover for styles: v0.63 moved the .fact* / .sqm-fact* rules out of study.css / quiz.css into fact.css,
 // which an older cached index.html never links — add the <link> so Study and the Similar Core Fact keep their look
-const LATE_BOOT_STYLES = ['css/components/fact.css', 'css/components/switch.css', 'css/screens/plan.css'];
+const LATE_BOOT_STYLES = ['css/components/fact.css', 'css/components/switch.css', 'css/components/toast.css', 'css/screens/plan.css'];
 function addMissingBootStyles() {
   LATE_BOOT_STYLES.filter(href => !document.querySelector(`link[rel="stylesheet"][href="${href}"]`)).forEach(href => {
     const el = document.createElement('link');

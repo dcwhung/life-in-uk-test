@@ -93,6 +93,7 @@ async function checkSwitch(pg) {
   await pg.click(sw);
   assert(await pg.evaluate(() => isConfirmOpen()), 'switch off: asks in the app modal');
   assert((await text(pg, '#confirmMsg')).includes('leave'), 'switch off: the message says the plan screens are left (G15)');
+  assert(await text(pg, '#confirmOk') === 'Confirm' && await text(pg, '#confirmCancel') === 'Cancel', 'switch off modal: Confirm / Cancel');
   await pg.click('#confirmCancel');
   assert(await pg.evaluate(() => isStudyPlanEnabled()) && (await planKeys(pg)).length === 0, 'switch off → Cancel: still on, nothing written');
   await pg.evaluate(() => openPlanGoal());
@@ -119,7 +120,7 @@ async function checkGoalDefaults(pg) {
   assert(d.examDate === '2026-10-29' && d.dailyMins === 120 && JSON.stringify(d.restDays) === '[0]' && d.level === 'none',
     'goal defaults: 3 weeks, 2 hours, Sunday rest, starting fresh: ' + JSON.stringify(d));
   const chips = await pg.$$eval('#planDaysChips .chip', els => els.map(e => [e.textContent, e.classList.contains('active'), e.getAttribute('aria-pressed')]));
-  assert(JSON.stringify(chips.map(c => c[0])) === JSON.stringify(['2 weeks', '3 weeks', '4 weeks', '6 weeks']) && chips[1][1] && chips[1][2] === 'true',
+  assert(JSON.stringify(chips.map(c => c[0])) === JSON.stringify(['2 weeks', '3 weeks', '4 weeks', '1.5 months']) && chips[1][1] && chips[1][2] === 'true',
     'exam presets 14 / 21 / 28 / 42 days, 3 weeks active: ' + JSON.stringify(chips));
   const range = await pg.$eval('#planExamDate', e => [e.min, e.max, e.value]);
   assert(range[0] === '2026-10-15' && range[1] === '2027-04-08' && range[2] === '2026-10-29', 'date picker: min today + 7, max today + 6 months: ' + range);
@@ -138,12 +139,15 @@ async function checkGoalDefaults(pg) {
 
 async function checkGoalInputs(pg) {
   await pg.click('#planDaysChips .chip >> nth=3');
-  assert((await goalDraft(pg)).examDate === '2026-11-19' && await text(pg, '#planDaysVal') === '42 days', 'preset 6 weeks → 42 days');
+  assert((await goalDraft(pg)).examDate === '2026-11-19' && await text(pg, '#planDaysVal') === '42 days', 'preset 1.5 months → 42 days');
+  const blurDate = () => pg.$eval('#planExamDate', e => e.blur());
   await pg.fill('#planExamDate', '2026-12-25');
   assert((await goalDraft(pg)).examDate === '2026-12-25' && !(await pg.$$eval('#planDaysChips .chip.active', e => e.length)), 'typed date: no preset active');
   await pg.fill('#planExamDate', '2027-09-01');
-  assert((await goalDraft(pg)).examDate === '2027-04-08', 'date past 6 months clamps to the max');
+  await blurDate();
+  assert((await goalDraft(pg)).examDate === '2027-04-08', 'date past 6 months clamps to the max when the field is left');
   await pg.fill('#planExamDate', '2026-10-10');
+  await blurDate();
   assert((await goalDraft(pg)).examDate === '2027-04-08' && await pg.$eval('#planExamDate', e => e.value) === '2027-04-08', 'date before today + 7 is ignored');
   await pg.$eval('#planMins', e => { e.value = '75'; e.dispatchEvent(new Event('input', { bubbles: true })); });
   assert((await goalDraft(pg)).dailyMins === 75 && await text(pg, '#planMinsVal') === '1 hr 15 min', 'slider 75 → 1 hr 15 min');
@@ -155,6 +159,112 @@ async function checkGoalInputs(pg) {
     'active rest chip is coloured');
   await pg.click('#planLevelGrid .mode-card >> nth=2');
   assert((await goalDraft(pg)).level === 'exam' && await pg.$eval('#planLevelGrid .mode-card >> nth=2', e => e.classList.contains('selected')), 'level card select');
+}
+
+// W-031: switching off from outside the plan screens keeps the current screen (an exam keeps running)
+async function checkSwitchOffElsewhere(pg) {
+  await fresh(pg, '?preview=plan');
+  const ids = await pg.evaluate(() => [...document.querySelectorAll('.screen[id^="screenPlan"]')].map(e => e.id).filter(id => !PLAN_SCREEN_IDS.includes(id)));
+  assert(ids.length === 0, 'W-031: every #screenPlan* is listed in PLAN_SCREEN_IDS: ' + ids);
+  await pg.evaluate(() => startExam(3, EXAM_MODE));
+  await pg.click('#infoBtn');
+  await pg.click('#planFeatureSwitch');
+  await pg.click('#confirmOk');
+  const r = await pg.evaluate(() => ({ screen: document.querySelector('.screen.active').id, timer: examTimerId !== null, on: isStudyPlanEnabled() }));
+  assert(r.screen === 'screenQuiz' && r.timer && !r.on, 'W-031: off during an Exam keeps the exam screen and its timer: ' + JSON.stringify(r));
+  await pg.evaluate(() => { setStudyPlanEnabled(true); stopExamTimer(); openStudy(); });
+  await pg.click('#infoBtn');
+  await pg.click('#planFeatureSwitch');
+  await pg.click('#confirmOk');
+  assert(await activeScreen(pg) === 'screenStudy', 'W-031: off on Study stays on Study');
+  await pg.evaluate(() => leaveToHome());
+  assert(!(await visible(pg, '#planCard')), 'W-031: the Home plan card is gone');
+}
+
+// toast (mockup .sp-toast): switching off / on says so at the bottom, for TOAST_MS, without taking focus
+async function checkToast(pg) {
+  await fresh(pg, '?preview=plan');
+  const toast = () => pg.evaluate(() => {
+    const e = byId('appToast');
+    return { hidden: e.hidden, display: getComputedStyle(e).display, text: e.textContent, role: e.closest('[role="status"]') && e.closest('[role="status"]').getAttribute('aria-live'),
+      focus: document.activeElement === e, bottom: Math.round(innerHeight - e.getBoundingClientRect().bottom) };
+  });
+  const idle = await toast();
+  assert(idle.hidden && idle.display === 'none', '[hidden] toast is not displayed before use');
+  await pg.click('#infoBtn');
+  await pg.click('#planFeatureSwitch');
+  await pg.click('#confirmOk');
+  const off = await toast();
+  assert(!off.hidden && off.display !== 'none' && off.text === 'Study plan turned off' && off.role === 'polite' && !off.focus && off.bottom > 0,
+    'toast after switching off: shown at the bottom, polite status, focus not taken: ' + JSON.stringify(off));
+  const ms = await pg.evaluate(() => TOAST_MS);
+  await pg.waitForTimeout(ms + 300);
+  const gone = await toast();
+  assert(gone.hidden && gone.display === 'none', `toast hides itself after TOAST_MS (${ms} ms)`);
+  await pg.click('#infoBtn');
+  await pg.click('#planFeatureSwitch');
+  const on = await toast();
+  assert(!on.hidden && on.text.startsWith('Study plan turned on') && await pg.evaluate(() => document.activeElement.id) === 'planFeatureSwitch',
+    'toast after switching on: shown, focus stays on the switch: ' + on.text);
+  await pg.keyboard.press('Escape');
+}
+
+// W-032: the switch updates in place: the popover stays open and focus stays on the switch
+async function checkSwitchInPlace(pg) {
+  await fresh(pg, '?preview=plan');
+  await pg.evaluate(() => setStudyPlanEnabled(false));
+  await pg.click('#infoBtn');
+  await pg.click('#planFeatureSwitch');
+  const r = await pg.evaluate(() => ({ open: byId('infoPop').classList.contains('show'), focus: document.activeElement.id,
+    on: byId('planFeatureSwitch').getAttribute('aria-checked'), note: byId('infoPlanStatus').textContent }));
+  assert(r.open && r.focus === 'planFeatureSwitch' && r.on === 'true' && r.note.startsWith('On'), 'W-032: switch on by click: popover open, focus kept: ' + JSON.stringify(r));
+  await pg.click('#infoBtn');
+  await pg.click('#infoBtn');
+  await pg.evaluate(() => setStudyPlanEnabled(false));
+  await pg.click('#infoBtn');
+  await pg.click('#infoBtn');
+  await pg.focus('#planFeatureSwitch');
+  await pg.keyboard.press('Space');
+  const k = await pg.evaluate(() => ({ open: byId('infoPop').classList.contains('show'), focus: document.activeElement.id, on: isStudyPlanEnabled() }));
+  assert(k.open && k.focus === 'planFeatureSwitch' && k.on, 'W-032: switch on by Space: popover open, focus kept: ' + JSON.stringify(k));
+  await pg.keyboard.press('Escape');
+}
+
+// W-033: typing a date segment by segment (half-typed values fall before the minimum) ends on that date;
+// a date past the maximum clamps once the field commits (change)
+async function checkDateTyping(pg) {
+  const order = await pg.evaluate(() => new Intl.DateTimeFormat(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' })
+    .formatToParts(new Date(2026, 11, 25)).filter(p => p.type !== 'literal').map(p => p.value).join(''));
+  await pg.focus('#planExamDate');
+  await pg.keyboard.type(order, { delay: 20 });
+  assert((await goalDraft(pg)).examDate === '2026-12-25' && await pg.$eval('#planExamDate', e => e.value) === '2026-12-25',
+    'W-033: typed ' + order + ' segment by segment → 2026-12-25: ' + JSON.stringify([(await goalDraft(pg)).examDate, await pg.$eval('#planExamDate', e => e.value)]));
+  await pg.$eval('#planExamDate', e => { e.value = '2027-09-01'; e.dispatchEvent(new Event('input', { bubbles: true })); });
+  assert((await goalDraft(pg)).examDate === '2026-12-25', 'W-033: an out-of-range value is not applied while typing');
+  assert(await pg.$eval('#planExamDate', e => e.value === '2027-09-01' && document.activeElement === e), 'W-033: the field is not rewritten while focused');
+  await pg.$eval('#planExamDate', e => e.blur());
+  assert((await goalDraft(pg)).examDate === '2027-04-08' && await pg.$eval('#planExamDate', e => e.value) === '2027-04-08', 'W-033: leaving the field clamps a date past 6 months to the max');
+  await pg.focus('#planExamDate');
+  await pg.$eval('#planExamDate', e => { e.value = '2026-10-10'; e.dispatchEvent(new Event('input', { bubbles: true })); e.blur(); });
+  assert((await goalDraft(pg)).examDate === '2027-04-08' && await pg.$eval('#planExamDate', e => e.value) === '2027-04-08', 'W-033: a date before today + 7 snaps back to the draft when the field is left');
+}
+
+// S-109: a redrawn chip group / level grid keeps focus on the chosen button
+async function checkKeepFocus(pg) {
+  for (const [group, nth] of [['#planDaysChips', 0], ['#planRestChips', 3], ['#planLevelGrid', 1]]) {
+    await pg.focus(`${group} button >> nth=${nth}`);
+    const arg = await pg.$eval(`${group} button >> nth=${nth}`, e => e.dataset.arg);
+    await pg.keyboard.press('Enter');
+    const f = await pg.evaluate(g => { const a = document.activeElement; return { inGroup: byId(g.slice(1)).contains(a), arg: a.dataset.arg }; }, group);
+    assert(f.inGroup && f.arg === arg, `S-109: ${group} keeps focus on data-arg ${arg} after Enter: ` + JSON.stringify(f));
+  }
+}
+
+// S-111: a draft left open past midnight moves up to the new minimum instead of a silent disabled CTA
+async function checkMidnightClamp(pg) {
+  await setGoal(pg, { examDate: '2026-10-14', restDays: [] });
+  const r = await pg.evaluate(() => ({ date: planGoalDraft.examDate, disabled: byId('planCreateBtn').disabled }));
+  assert(r.date === '2026-10-15' && !r.disabled, 'S-111: a date before today + 7 clamps to the minimum, CTA enabled: ' + JSON.stringify(r));
 }
 
 const setGoal = (pg, goal) => pg.evaluate(g => { Object.assign(planGoalDraft, g); renderPlanGoal(); }, goal);
@@ -238,9 +348,9 @@ function checkLateBoot() {
   const main = require('fs').readFileSync(path.resolve(__dirname, '..', 'js', 'main.js'), 'utf8');
   const scripts = main.slice(main.indexOf('const LATE_BOOT_SCRIPTS'), main.indexOf('];', main.indexOf('const LATE_BOOT_SCRIPTS')));
   const styles = main.slice(main.indexOf('const LATE_BOOT_STYLES'), main.indexOf(';', main.indexOf('const LATE_BOOT_STYLES')));
-  assert(['js/components/switch.js', 'js/screens/planHome.js', 'js/screens/planGoal.js'].every(f => scripts.includes(`'${f}'`)),
+  assert(['js/components/switch.js', 'js/components/toast.js', 'js/screens/planHome.js', 'js/screens/planGoal.js'].every(f => scripts.includes(`'${f}'`)),
     'R1: LATE_BOOT_SCRIPTS loads switch.js, planHome.js, planGoal.js for old shells');
-  assert(['css/components/switch.css', 'css/screens/plan.css'].every(f => styles.includes(`'${f}'`)), 'R1: LATE_BOOT_STYLES adds switch.css, plan.css');
+  assert(['css/components/switch.css', 'css/components/toast.css', 'css/screens/plan.css'].every(f => styles.includes(`'${f}'`)), 'R1: LATE_BOOT_STYLES adds switch.css, plan.css');
 }
 
 async function main() {
@@ -250,7 +360,7 @@ async function main() {
   const errs = [];
   pg.on('pageerror', e => errs.push(e.message));
   await pg.clock.setFixedTime(NOW);
-  for (const check of [checkHidden, checkPreview, checkCreateCard, checkSwitch, checkGoalDefaults, checkGoalInputs, checkFeasibility, checkCreate, checkWidths]) {
+  for (const check of [checkHidden, checkPreview, checkCreateCard, checkSwitch, checkSwitchOffElsewhere, checkSwitchInPlace, checkToast, checkGoalDefaults, checkGoalInputs, checkDateTyping, checkKeepFocus, checkFeasibility, checkMidnightClamp, checkCreate, checkWidths]) {
     await check(pg);
   }
   assert(errs.length === 0, 'no page errors: ' + errs.join(' | '));

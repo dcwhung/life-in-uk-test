@@ -23,6 +23,7 @@
 <link rel="stylesheet" href="css/components/popover.css">
 <link rel="stylesheet" href="css/components/fact.css">
 <link rel="stylesheet" href="css/components/switch.css">
+<link rel="stylesheet" href="css/components/toast.css">
 <link rel="stylesheet" href="css/screens/home.css">
 <link rel="stylesheet" href="css/screens/quiz.css">
 <link rel="stylesheet" href="css/screens/results.css">
@@ -280,7 +281,7 @@
           <div class="plan-field-label"><span data-i18n="plan.goal.daysLabel"></span><span class="plan-val plan-num" id="planDaysVal"></span></div>
           <div class="plan-date-row">
             <div class="chip-row" id="planDaysChips"></div>
-            <label class="plan-date-pick" for="planExamDate"><span data-i18n="plan.goal.orDate"></span> <input type="date" id="planExamDate" data-input-action="planSetExamDate"></label>
+            <label class="plan-date-pick" for="planExamDate"><span data-i18n="plan.goal.orDate"></span> <input type="date" id="planExamDate" data-input-action="planSetExamDate" data-blur-action="planCommitExamDate"></label>
           </div>
         </div>
       </div>
@@ -333,6 +334,8 @@
     </div>
   </div>
 </div>
+<!-- toast (js/components/toast.js): a polite status line; the region draws nothing while the toast is hidden -->
+<div class="toast-region" role="status" aria-live="polite"><div class="toast" id="appToast" hidden></div></div>
 <!-- load order: data → config → utils → locales → i18n → store → domain → components → screens → actions → pwa → main (classic scripts, shared globals) -->
 <script src="data/exams.js"></script>
 <script src="data/study.js"></script>
@@ -354,6 +357,7 @@
 <script src="js/components/popover.js"></script>
 <script src="js/components/factCard.js"></script>
 <script src="js/components/switch.js"></script>
+<script src="js/components/toast.js"></script>
 <script src="js/screens/home.js"></script>
 <script src="js/screens/quiz.js"></script>
 <script src="js/screens/examTools.js"></script>

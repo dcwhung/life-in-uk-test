@@ -212,6 +212,8 @@ LOCALES['zh-HK'] = {
     createText: '告訴我們考試日期及每日可用時間，為你編排每日要溫習及練習的內容。',
     createGo: '建立 →',
     cardTitle: '🗓️ 溫習計劃',
+    toastOff: '已關閉溫習計劃',
+    toastOn: '已開啟溫習計劃，可從原本進度繼續',
     dayOf: 'Day {n} / {total}',
     daysLeft: '距離考試 {n} 日 · {date}',
     goal: {

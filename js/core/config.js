@@ -44,6 +44,7 @@ const DOUBLE_TAP_SLOP_PX = 40; // ...and only near the point of that click (the 
 const OPTION_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 const LIST_SEP = ' · ';    // between parts of one line ("✓ Correct! · 🔥 1/3")
 const ANSWER_SEP = ' | ';  // between the options of a multi-answer question
+const TOAST_MS = 2400; // how long a toast stays on screen (js/components/toast.js)
 
 // ── study plan (js/domain/plan.js, planProgress.js) ──
 // G19: the entry points (ⓘ switch, home card) stay hidden until the release PR flips this; answer hooks ignore it
