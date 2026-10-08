@@ -140,6 +140,9 @@
   .sp-chw .c { text-align: right; color: var(--text-muted); }
   .sp-legend { display: flex; gap: 4px; align-items: center; font-size: var(--fs-2xs); color: var(--text-muted); flex-wrap: wrap; }
   .sp-legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+  /* day list scrolls on its own and opens at today; week headings stick while scrolling */
+  .sp-day-scroll { max-height: min(60vh, 520px); overflow-y: auto; overflow-x: hidden; padding-inline: 8px; margin-inline: -8px; overscroll-behavior: contain; scroll-behavior: smooth; }
+  .sp-day-scroll .sp-week { position: sticky; top: 0; z-index: 1; background: var(--card); padding-bottom: 4px; }
   .sp-week { font-size: var(--fs-xs); font-weight: 800; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; padding-top: 8px; }
   .sp-day { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; gap: 10px; align-items: start; padding: 10px 0; border-top: 1px solid var(--border); }
   .sp-day .d { text-align: center; border-radius: var(--radius-sm); padding: 4px 0; font-weight: 800; font-size: var(--fs-md); line-height: 1.15; }
@@ -245,7 +248,7 @@
     .sp-plan-cta { grid-template-columns: 44px minmax(0, 1fr); }
     .sp-plan-cta .go { grid-column: 1 / -1; text-align: center; }
   }
-  @media (prefers-reduced-motion: reduce) { .sp-ring .prog { transition: none; } }
+  @media (prefers-reduced-motion: reduce) { .sp-ring .prog { transition: none; } .sp-day-scroll { scroll-behavior: auto; } }
 </style>
 </head>
 <body>
@@ -413,7 +416,7 @@
             <h3>每日任務</h3>
             <span class="sp-legend"><i class="sp-bg-learn"></i>讀 + 練 <i class="sp-bg-practice"></i>強化練習 <i class="sp-bg-mock"></i>模擬考</span>
           </div>
-          <div id="dayList"></div>
+          <div class="sp-day-scroll" id="dayList"></div>
         </div>
 
         <button class="nav-btn sp-block" data-goto="3">睇今日任務 →</button>
@@ -947,6 +950,18 @@ function renderDayList(plan) {
   });
   html += `<div class="sp-day exam"><div class="d num sp-exam-pat">🎯<small>${fmtDate(exam)} ${WEEKDAYS[exam.getDay()]}</small></div><div class="tasks"><div class="t"><b>考試日</b></div><div class="t"><span>帶備 ID 同確認信，提早 30 分鐘到</span></div></div><div></div></div>`;
   $('dayList').innerHTML = html;
+  scrollDayListToToday();
+}
+
+// open the list at today (below its sticky week heading), without moving the page itself
+function scrollDayListToToday() {
+  const list = $('dayList');
+  const row = list.querySelector('.sp-day.today');
+  if (!row) return;
+  const head = list.querySelector('.sp-week');
+  list.style.scrollBehavior = 'auto';
+  list.scrollTop = row.offsetTop - list.offsetTop - (head ? head.offsetHeight : 0);
+  list.style.scrollBehavior = '';
 }
 
 function renderPlan() {
