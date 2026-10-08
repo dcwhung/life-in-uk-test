@@ -9,7 +9,7 @@
 // offlineAndUpgrade compare against the current APP_VERSION (js/core/config.js) and the current data files instead of
 // hard-coding v0.66 / the pre-batch-7 E11·Q4 yue. overflow no longer exempts the quick nav (CUI-0013 fixed in v0.67).
 // 2026-10-07 W-018: the script checks the current data, so the oracle replays every batch JSON on disk (found by
-// filename, numeric order): today 10 files / 779 records, 3 `keep` not replayed. EXPECTED_ORACLE is the sanity count.
+// filename, numeric order): today 11 files / 797 records, 3 `keep` not replayed. EXPECTED_ORACLE is the sanity count.
 //
 // Oracle (independent of HEAD data): the v0.65 data files (git show <v065-ref>) with every user-approved batch JSON
 // file (.proj-docs/plans/2026-10-07_yue-batch-<N>*.json) replayed in numeric order; every record's `before` must match.
@@ -69,7 +69,7 @@ const BATCH_RE = ext => new RegExp(`^2026-10-07_yue-batch-(\\d+)(?:-[a-z0-9]+)?\
 const batchNum = f => Number(f.match(BATCH_RE('json'))[1]);
 const BATCH_FILES = fs.readdirSync(PLAN_DIR).filter(f => BATCH_RE('json').test(f)).sort((a, b) => batchNum(a) - batchNum(b));
 // sanity count of the approved batches (1..8); update together with the next batch JSON
-const EXPECTED_ORACLE = { files: 10, records: 779, kept: 3 }; // v0.71: + batch 9 (B1) + batch 10 (B2 memory groups)
+const EXPECTED_ORACLE = { files: 11, records: 797, kept: 3 }; // v0.71: + batch 9 (B1), 10 (B2 memory groups), 11 (W-025 terms)
 const CUR_VERSION = (fs.readFileSync(path.join(ROOT, 'js/core/config.js'), 'utf8').match(/const APP_VERSION = '([^']+)'/) || [])[1];
 const CUR_CACHE = 'lifeuk-v' + CUR_VERSION;
 const replay = { records: 0, beforeMismatch: [], kept: [] };
