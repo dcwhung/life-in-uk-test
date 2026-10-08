@@ -294,10 +294,11 @@ function planFactsLeft(log) {
   const done = planFactsDoneSet(log);
   return PLAN_LEARN_ORDER.filter(id => !done.has(id));
 }
-// facts finished today as read + practice groups (learn order, one group per chapter run), so the new today still
-// shows and counts them
+// facts first finished today (W-029: not ones already finished on another day, e.g. re-answered on a drill day) as
+// read + practice groups (learn order, one group per chapter run), so the new today still shows and counts them
 function planTodayDoneTasks(todayIso, log) {
-  const done = new Set(planFactsDoneOn(log, todayIso));
+  const earlier = planFactsDoneSet({ ...log, days: Object.fromEntries(Object.entries(log.days).filter(([iso]) => iso !== todayIso)) });
+  const done = new Set(planFactsDoneOn(log, todayIso).filter(id => !earlier.has(id)));
   const items = PLAN_LEARN_ORDER.filter(id => done.has(id)).map(id => ({ ch: planFactById(id).ch, id, w: 1 }));
   return items.length ? planLearnTasks(planChunkWeighted(items, 1)[0]).slice(0, -1) : [];
 }
@@ -307,6 +308,20 @@ function planPinToday(days, pinned) {
   const pin = pinned.map((t, i) => (t.type === PLAN_TASK.read ? { ...t, pair: i + 1 } : t));
   const own = days[0].tasks.map(t => (t.type === PLAN_TASK.read ? { ...t, pair: t.pair + pin.length } : t));
   return [{ ...days[0], tasks: [...pin, ...own] }, ...days.slice(1)];
+}
+// W-029: today's tasks already filled (G9 review snapshot, a drill of the same chapter, wrong facts, a mock slot)
+// keep their contents on the new today, so a re-plan does not throw away what was answered today
+function planSameTask(a, b) {
+  return a.type === b.type && (a.type !== PLAN_TASK.drill || a.ch === b.ch) && (a.type !== PLAN_TASK.mock || a.slot === b.slot);
+}
+function planKeepTodayContents(oldDay, days) {
+  if (!oldDay || !days.length || days[0].date !== oldDay.date) return days;
+  const left = oldDay.tasks.filter(t => planIsMaterialized(t) && PLAN_MATERIALIZERS[t.type]);
+  const tasks = days[0].tasks.map(t => {
+    const k = planIsMaterialized(t) ? -1 : left.findIndex(o => planSameTask(o, t));
+    return k < 0 ? t : left.splice(k, 1)[0];
+  });
+  return [{ ...days[0], tasks }, ...days.slice(1)];
 }
 // days before today as they are; a re-plan after the exam fills the dates in between with rest days
 function planFrozenDays(plan, todayIso) {
@@ -321,7 +336,8 @@ function replanFrom(plan, goal, todayIso, log) {
   // clock moved before Day 1: nothing is frozen, the plan restarts today
   if (todayIso < plan.start) return { ...buildPlan(goal, todayIso), createdAt: plan.createdAt, goalHistory: history };
   const own = planCopyGoal(goal);
-  const fresh = planPinToday(buildPlanDays(todayIso, own, planFactsLeft(log)), planTodayDoneTasks(todayIso, log));
+  const built = planKeepTodayContents(planDayAt(plan, todayIso), buildPlanDays(todayIso, own, planFactsLeft(log)));
+  const fresh = planPinToday(built, planTodayDoneTasks(todayIso, log));
   const days = [...planFrozenDays(plan, todayIso), ...fresh];
   return { ...plan, goal: own, goalHistory: history, carryFrom: todayIso, days };
 }

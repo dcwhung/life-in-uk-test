@@ -451,6 +451,25 @@ function checkReplanTwice() {
   assert(doneToday.every(id => readFacts([back.days[0]]).includes(id)) && all.length === FACT_COUNT && new Set(all).size === FACT_COUNT, 'W-028: they are back on today, every fact once');
 }
 
+// W-029: a re-plan on a non-learn day pins only facts first finished today; facts learnt earlier stay where they were
+function checkReplanOnDrillDay() {
+  const readFacts = days => days.flatMap(d => d.tasks.filter(t => t.type === 'read').flatMap(t => t.facts));
+  const plan = clone(g('buildPlan')(goalFor(21, 120), TODAY));
+  const drillIdx = plan.days.findIndex(d => d.phase === 'drill');
+  const today = plan.days[drillIdx].date;
+  const ctx = { wrongKeys: ['4.14', '1.0'], streaks: {}, completedExams: {}, plan, log: emptyLog() };
+  plan.days[drillIdx] = g('materializePlanDay')(plan.days[drillIdx], ctx).day;
+  const okOn = d => [d.date, { ok: Object.fromEntries(d.tasks.flatMap(t => g('planTaskQids')(t)).map(k => [k, 1])), bad: {}, mock: [] }];
+  const log = { v: 1, days: Object.fromEntries(plan.days.filter(d => d.phase === 'learn' || d.date === today).map(okOn)) };
+  const before = g('planDayCompletion')(plan.days[drillIdx], g('planDayLog')(log, today)).pct;
+  const re = g('replanFrom')(clone(plan), goalFor(21, 90), today, log);
+  const all = readFacts(re.days);
+  assert(before === 100 && all.length === FACT_COUNT && new Set(all).size === FACT_COUNT, `W-029: re-plan on a finished drill day keeps every fact exactly once (${all.length} reads)`);
+  assert(!re.days[drillIdx].tasks.some(t => t.type === 'read'), 'W-029: facts learnt before today are not pinned on today');
+  const after = g('planDayCompletion')(re.days[drillIdx], g('planDayLog')(log, today)).pct;
+  assert(after >= before, `W-029: today's % does not drop (${before} → ${after})`);
+}
+
 // W-027: a past drill / wrong-facts task gets its contents when opened; carry and next step never point at an empty task
 function checkPastDayContents() {
   const plan = g('buildPlan')(goalFor(42, 60, [0]), TODAY);
@@ -694,6 +713,7 @@ function runSuite() {
   checkReplan();
   checkReplanKeepsDoneFacts();
   checkReplanTwice();
+  checkReplanOnDrillDay();
   checkPastDayContents();
   checkEnsurePlanDay();
   checkParseTaskFields();
