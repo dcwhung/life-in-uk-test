@@ -268,6 +268,16 @@ const TOKEN_SAMPLES = [
   });
   assert(layerHits.length === 0, 'js/components/*.js use nothing defined in js/screens/*.js'
     + (layerHits.length ? ': ' + layerHits.join(', ') : ''));
+  // study plan PR2 (T-312, arch §D): the plan domain never reads screen state (state.planDay, pendingMode, …) —
+  // screens pass the context in as parameters. questions.js is left out (isRandomExam reads state.mode today).
+  const planDomainFiles = jsFiles(path.join(ROOT, 'js/domain')).filter(f => /^plan\w*\.js$/.test(path.basename(f)));
+  assert(planDomainFiles.length >= 2, 'js/domain/plan*.js found: ' + planDomainFiles.map(rel).join(', '));
+  const planLayerHits = planDomainFiles.flatMap(f => {
+    const code = layerCode(fs.readFileSync(f, 'utf8'));
+    return [...screenNames].filter(n => usesName(code, n)).map(n => `${rel(f)} → ${n}`);
+  });
+  assert(planLayerHits.length === 0, 'js/domain/plan*.js use nothing defined in js/screens/*.js'
+    + (planLayerHits.length ? ': ' + planLayerHits.join(', ') : ''));
   const factRules = f => {
     const file = path.join(ROOT, f);
     return fs.existsSync(file) ? fs.readFileSync(file, 'utf8').split('\n').filter(l => /^\.(fact|sqm-fact)\b/.test(l)).length : 0;
