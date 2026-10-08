@@ -143,3 +143,57 @@ context: |
   時答啱清唔走（probe：4.14 → 3.12 重現）；而家入口收埋 + runner 未有所以 latent，建議 developer 喺 QA 前
   用方案 A 修 + 補 test，最遲寫入 PR6a 驗收。PR6b 注意 retryExam 用 pendingMode。報告未 commit。
 ```
+
+---
+
+# Round 2 — W-030 修正驗證（commit cd52ecb）
+
+- 日期：2026-10-08
+- 範圍：`cd52ecb`：`planProgress.js` 新增純函數 `planSameQuestionKeys`；`quiz.js` `recordPracticeResult` 喺 plan review session 改用 `clearPlanReviewWrong`，刪咗 `clearsWrongAnswers`；`plan-hook-test` / `plan-test` 各補 case
+- 結果：**W-030 已修好，冇新問題。100 / 100，pass**
+
+## Hard Gates
+
+| Gate | 結果 | 備注 |
+|---|---|---|
+| Lint / Type check / Coverage / Security scan | n/a | 同 Round 1 |
+| Tests | pass | Reviewer 重跑 `run-all.sh` 33 / 33 PASS（`plan-test` 2646 checks，新增 1 個；`plan-hook-test` 包括 W-030 重複題 case）；跑完已還原 png，working tree 只有呢份報告有改動 |
+| No Critical | pass | 0 |
+| （附加）visual-diff | pass | `ff3e4da` → VISUAL IDENTICAL（76 個狀態） |
+
+## 核對
+
+| 項目 | 結果 |
+|---|---|
+| Round 1 嘅重現（錯題簿有 `4.14`，任務出 `3.12`，答啱） | ✅ 錯題簿變空，`cleared` = 1（之前係 `['4.14']` / 0） |
+| 錯題簿同時有 `4.14` + `3.12` + 唔相關嘅 `1.0` | ✅ 兩份都清走，`1.0` 保留，`cleared` 只 +1 |
+| plan review 答啱一題唔喺錯題簿入面嘅題 | ✅ 唔清、`cleared` 唔變（`if (keys.length)`） |
+| plan practice session（`type: practice`） | ✅ 唔清（行 `WRONG_EXAM` 分支，`examNum` 係 `p1`，條件 false） |
+| `WRONG_EXAM` 普通錯題複習 | ✅ 行為冇變：分支同原本 `examNum === WRONG_EXAM && wrongList[qKey(q)]` 一樣，只清答嗰個 key（答 `4.14` 只清 `4.14`，`3.12` 保留），`cleared` +1 |
+| 普通 Chapter Practice | ✅ 唔清 |
+| 分支次序 | ✅ plan side session 嘅 `examNum` 係 `PLAN_PREFIX + n`，唔會等於 `WRONG_EXAM`，所以兩個分支唔會重疊 |
+| Layer | ✅ `planSameQuestionKeys` 係純函數，冇讀 screen state（structure-test guard PASS）；`keysOf` 喺 `utils.js`，`questionByKey` 喺 `questions.js`，方向係 screen → domain |
+| 寫入次數 | 每清一份 key 一次 `setLS`，最多 2 次（重複題最多兩份），可以接受 |
+
+## Handoff receipt（Round 2）
+
+```handoff-receipt
+from: code-reviewer
+task: review PR #58 round 2 (commit cd52ecb: W-030 fix)
+status: pass
+score: 100
+hard_gates:
+  lint: n/a
+  type_check: n/a
+  tests: pass (run-all 33/33 reviewer re-run; plan-test 2646 checks; plan-hook-test W-030 case PASS; visual-diff ff3e4da IDENTICAL 76 states)
+  coverage: n/a
+  no_critical: pass
+  security_scan: n/a
+findings: C=0 W=0 S=0 (no new IDs); W-030 verified fixed
+report: .proj-docs/reviews/2026-10-08_review_plan-pr2.md (Round 2 section)
+next_action: invoke_qa
+context: |
+  Probe 4.14 / 3.12：清晒同一題嘅兩份，cleared 只 +1，唔相關 entry 保留；題目唔喺錯題簿就唔清；
+  plan practice session 唔清。WRONG_EXAM 只清答嗰個 key，同改之前一樣。PR2 全部 ID 已關。報告未 commit。
+  PR6b 記得處理 retryExam 用 pendingMode 嘅問題（Round 1 觀察 1）。
+```
