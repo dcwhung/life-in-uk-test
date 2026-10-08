@@ -682,7 +682,7 @@ function learnTasks(chunk) {
 }
 
 function drillTasks(chunk) {
-  const tasks = chunk.groups.map(g => ({ type: 'practice', t: `再練 ${chLabel(g.ch)} 未 🏆 題目`, label: `Chapter ${g.ch}`, total: count(g), from: 1, unit: '題' }));
+  const tasks = chunk.groups.map(g => ({ type: 'practice', t: `再練 ${chLabel(g.ch)} 未掌握題目`, label: `Chapter ${g.ch}`, total: count(g), from: 1, unit: '題' }));
   tasks.push({ type: 'read', t: '重溫答錯題目嘅知識點', label: '錯題知識點', total: REVIEW_SET_SIZE, from: 1, unit: '條', wrongFacts: true });
   return tasks;
 }
@@ -906,7 +906,7 @@ function renderStrategy(plan, phaseDays) {
       <li>讀完一段知識點，即刻做返同一段嘅題目（${TOTAL_FACTS} 條知識點 · ${TOTAL_QS} 題）</li>
       <li>每日最後重溫昨日 + 清錯題</li></ul></div></div>
     ${drill ? `<div class="sp-strat practice"><span class="n">2</span><div><span class="days">${range('practice')}</span><h4>強化練習：再做未掌握嘅題目</h4><ul>
-      <li>同一次序再行一次，淨係做錯過或者未 🏆 嘅題目</li>
+      <li>同一次序再行一次，淨係做錯過或者未掌握嘅題目</li>
       <li>做完即刻睇返相關知識點</li></ul></div></div>` : ''}
     <div class="sp-strat mock"><span class="n">${drill ? 3 : 2}</span><div><span class="days">${range('mock')}</span><h4>模擬考：計時做 ${plan.mocks} 份 exam</h4><ul>
       <li>真考試條件：${REAL_TEST_SIZE} 題、${EXAM_MINUTES} 分鐘、唔睇答案</li>
