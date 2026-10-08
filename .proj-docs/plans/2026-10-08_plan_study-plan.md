@@ -6,7 +6,7 @@
 **Design Origin**：`mockup:mockups/study-plan-flow.html`（section：`#infoPop` ⓘ 開關、`#step0` 主頁卡、`#step1` 訂立目標、`#step2` 進度表、`#step3` 今日任務 + 月曆 + 整體進度、`#runner` 做任務、`#spModal` 確認框）
 **Base**：`main` `ff3e4da`（`APP_VERSION = '1.0.0'`，SemVer）
 **負責人**：Project Manager + Architect Agent
-**狀態**：待用戶確認（特別係「開放問題」Q-A7）
+**狀態**：✅ 用戶已確認（2026-10-08）；開放問題全部有答案（grill G22–G29）
 
 ---
 
@@ -293,17 +293,17 @@ Step 6 → T-340 對照表俾用戶 → 確認 → PR7 → QA → merge → tag 
 
 ---
 
-## 開放問題
+## 開放問題（已全部解決）
 
-Q-A1–Q-A7 來自 arch §H.2；「建議答案」係 Architect 建議，**PM 唔拍板，要用戶決定**（未答就唔可以開工對應 PR）。
+用戶 2026-10-08 逐條確認，決定記錄喺 `2026-10-08_grill_study-plan.md` G22–G29。**同 Architect 建議唔同嘅兩條**：
 
-| # | 問題 | Architect 建議答案 | 影響任務 | 需要誰決定 | 截止 |
-|---|---|---|---|---|---|
-| **Q-A7** ⚠️ | **Exam mode（模擬考試）逐題答案計唔計入 practice 題目完成度？** 張力：G2 寫「今日喺**任何地方**答啱今日任務嘅題目都計」，但 G2 列舉（Practice / 錯題 / Flagged / Similar / 計劃 runner）冇 Exam。Exam 冇即時對錯、冇 reveal，交卷先知啱錯。選項：(a) **唔計**（只計模擬考任務本身；Architect 建議）；(b) **計**：交卷時將答啱嘅題寫入今日 log（`recordExamResults` 多一個 loop，+0.5 d，同時要決定 Leave 中途離開嘅已答題計唔計） | (a) 唔計 | T-310、T-305、T-313（PR2） | **用戶** | PR2 開工前 |
-| Q-A1 | 未到日子嘅清錯題 / 強化 task 可唔可以提早做？ | 唔可以；預覽顯示「到時按錯題簿決定」，只可提早做 learn task | T-305、T-323 | 用戶 | PR5 開工前 |
-| Q-A2 | 已過日子從未打開（清錯題未 snapshot）點計？ | 嗰個 review 唔計入嗰日 total、唔入補做 | T-305 | 用戶 | PR1 T-305 前 |
-| Q-A3 | 模擬考 task 喺日 % 嘅權重 | 24 個單位；合格 = 24、未合格 = 0（卡上顯示最高分） | T-305、T-323 | 用戶 | PR1 T-305 前 |
-| Q-A4 | 計劃 runner 入面顯示 Similar panel？ | 唔顯示（同其他 side session 一致；`sessionReturn` 只有一格） | T-329 | 用戶 | PR6a 開工前 |
-| Q-A5 | 紅→綠色階：連續漸變定 5 級？ | 5 級 band（token-pure）；要連續就用 CSS `color-mix` | T-314 | 用戶 | PR3 開工前 |
-| Q-A6 | 最少溫習日 | `PLAN_MIN_STUDY_DAYS = 3`；唔夠 disable CTA + 提示減休息日 | T-303、T-316 | 用戶 | PR1 T-303 前 |
-| Q-P1 | （PM）`🔥 連續 n 日 100%` pill（mockup 有、spec 冇寫）要唔要？ | 要（見 A6） | T-324 | 用戶 | PR5 開工前 |
+| # | 用戶決定 | 影響 |
+|---|---|---|
+| Q-A7 | 唔計（G22，同建議） | T-310：Exam 唔寫 practice log |
+| Q-A1 | 只可以提早做「讀 + 練」（G23，同建議） | — |
+| Q-A2 | 當冇呢項（G24，同建議） | — |
+| Q-A3 | 24 單位，合格先計（G25，同建議） | — |
+| **Q-A4** | **顯示 Similar panel，但冇「▶ 練習這 n 題」掣**（G26，**改咗**） | T-329：plan side session 都 render Similar，CTA 收埋；`similarPanelHtml` CTA 參數化（arch §E 已有）|
+| Q-A5 | 5 級色（G27，同建議） | — |
+| **Q-A6** | **最少 7 個溫習日**（G28，**改咗**；建議係 3） | T-303 `PLAN_MIN_STUDY_DAYS = 7`；T-316 提示文案 |
+| Q-P1 | 要（G29） | T-324 |

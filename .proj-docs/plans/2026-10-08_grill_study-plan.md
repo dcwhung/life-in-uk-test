@@ -2,7 +2,7 @@
 
 **日期**：2026-10-08
 **來源**：`.proj-docs/plans/2026-10-08_handoff_study-plan.md`、`mockups/study-plan-flow.html`
-**狀態**：用戶已逐條確認（grill-me）；G21 由用戶喺 grill 後補充；本文件**覆蓋** handoff §4「未決定」同 §3.3「`APP_VERSION` +0.01」（v1.0.0 起用 SemVer）
+**狀態**：用戶已逐條確認（grill-me）；G21 由用戶喺 grill 後補充；G22–G29 = Architect Q-A1–A7 + PM Q-P1，用戶逐條確認（2026-10-08）；本文件**覆蓋** handoff §4「未決定」同 §3.3「`APP_VERSION` +0.01」（v1.0.0 起用 SemVer）
 
 ---
 
@@ -31,6 +31,14 @@
 | G19 | 交付 | 逐個 PR 入 `main`（review + QA + 自動 merge）；`config.js` 加 constant（例如 `STUDY_PLAN_READY = false`）收埋 ⓘ switch 同主頁卡；**最後一個 PR** 打開入口 + 升 **1.1.0** + 刪 mockup；中間 PR 唔升版本 |
 | G20 | en 文字 | 我（Claude）按 app 現有 en 用字譯；打開入口嘅 PR 之前列 zh-HK ↔ en 對照表俾用戶一次過睇 |
 | G21 | zh-HK UI 文字 | 跟 `locales/zh-HK.js` core：**書面語**（HANDOFF「i18n › zh-HK」Q5：唔用口語；中英之間唔加空格、數字前後留空格、全形標點）。Mockup 嘅口語字眼（例如「唔夠」「聽日再嚟」「做緊」「睇今日任務」）實作時全部改書面語（「不足」「明天再來」「進行中」「查看今日任務」）；用字對齊現有 key（例如「練習」「模擬考試」「溫習」「錯題」「確定」）。G20 對照表要包埋 zh-HK 書面語版本俾用戶睇。題目 data（`yue` / `oy` / `note`、fact `yue`）照舊用口語，唔受影響 |
+| G22 | Q-A7 Exam 逐題答案 | **唔計**入「練題目」任務；Exam 只計「模擬考」任務 |
+| G23 | Q-A1 提早做 | 未到嘅日子只可以提早做「讀 + 練」；清錯題 / 強化預覽顯示「到時按錯題簿決定」，到嗰日先做得 |
+| G24 | Q-A2 從未打開嘅已過日子 | 嗰日嘅清錯題當**冇呢項**：唔計入嗰日 total、唔入補做 |
+| G25 | Q-A3 模擬考權重 | 當日 24 單位；合格 = 24、唔合格 = 0；卡上顯示最高分 |
+| G26 | Q-A4 計劃 runner 嘅 Similar panel | **顯示**（核心知識、出現於、legend、題目列表），但**冇「▶ 練習這 n 題」掣**（避免跳去另一個 side session 返唔到計劃）|
+| G27 | Q-A5 紅→綠色階 | **5 級**固定色（`tokens.css` token），唔用連續漸變 |
+| G28 | Q-A6 最少溫習日 | **7 日**；少過 7 日「建立進度表」disabled + 提示減休息日 / 延後考試日（覆蓋 Architect 建議 3 日）|
+| G29 | Q-P1 連續紀錄 | 要「🔥 連續 n 日 100%」pill：休息日唔打斷；唔夠 100% 歸零；0 日唔顯示 |
 
 ---
 
