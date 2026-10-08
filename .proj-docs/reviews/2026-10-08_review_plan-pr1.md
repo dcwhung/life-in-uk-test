@@ -204,3 +204,92 @@ context: |
   S-108 planValidTask 唔檢查 ch / quota / slot → 壞 drill.ch 令 ensurePlanToday throw。
   6 個自報偏離全部合理（parseStoredPlan 嚴格度見 S-108）。visual-diff 0 diff。報告未 commit。
 ```
+
+---
+
+# Round 2（commit 4e7b503，基於 b7d3fdc）
+
+- 日期：2026-10-08
+- 範圍：`git show 4e7b503`。只改咗 `js/domain/plan.js`、`js/domain/planProgress.js`、`tests/plan-test.js`
+- 方法：重跑 Round 1 嘅 probe，另外加一個新 probe `probe2`（連續改目標兩次、今日變休息日、`ensurePlanToday` 填已過日子、`ch=9` parse），再跑 `run-all.sh`
+- 總評：三項都修好咗，而且有測試守住。不過 W-026 嘅修法有一個殘留情況：**第二次改目標**時會失去已完成嘅記錄，開 W-028 跟進。**94 / 100，pass**
+
+## Hard Gates（Round 2）
+
+| Gate | 結果 | 備注 |
+|---|---|---|
+| Lint / Type / Coverage / Security | n/a | 同 Round 1 |
+| Tests | pass | `run-all.sh` 32 / 32 PASS，`plan-test` 2637 checks × 3 TZ；跑完已還原 png、刪 `shot-similar.png`，working tree clean |
+| No Critical | pass | 0 |
+
+## 評分結果（Round 2）
+
+| 維度 | 得分 | 滿分 | 備注 |
+|------|------|------|------|
+| 正確性 | 20 | 25 | W-028 |
+| 安全性 | 20 | 20 | S-108 已修 |
+| 可維護性 | 20 | 20 | `planFillDays` / `planWriteFilled` 拆得清楚；`PLAN_PAST_TYPES` 有命名 |
+| 測試覆蓋 | 14 | 15 | 新增 4 組 check 都係行為測試；未有「連續改目標兩次」case |
+| 性能 | 10 | 10 | `ensurePlanToday` 一次寫入；`planMaterializeCtx` 只讀一次，最多 ~180 日都只係 O(n²) 嘅淺 copy |
+| 代碼風格 | 10 | 10 | — |
+| **總分** | **94** | **100** | |
+
+**結果：✅ pass**（按規則：≥ 90、冇 Critical。W-028 建議喺 PR4 改目標 UI 上線前修好；改目標要到 PR4 先有入口）
+
+## 驗證結果
+
+| ID | 狀態 | 證據 |
+|---|---|---|
+| W-026 | ✅ 已修（單次改目標）；殘留問題見 W-028 | 原本嘅 repro：今日完成 32 條，同日改做 30 分鐘 → 32 / 32 條釘喺新今日、聽日重複 0 條、`parseStoredPlan` 照過、全部 fact 剛好排一次。提早喺 10-13 完成嘅 32 條，第一次改目標後重排 0 條 |
+| W-027 | ✅ 已修 | 已過、從未打開嘅強化日：`ensurePlanToday` 之後補做出現 `drill:4 / drill:4 / drill:15`（有題目）；已過 review 仍然冇內容（G24）；已過 mock 冇揀 Exam（G8）；`planCarryTasks` / `planNextStep` 唔會再指向冇內容嘅 task；`carryFrom` 之前嘅日子唔會填；未來日子唔會寫入（G23） |
+| S-108 | ✅ 已修 | `ch=9` → parse `null`；10 種壞 field（ch / quota / slot / pair / qid 類型）都係 `null`；`ensurePlanToday` 返 `null`、唔 throw、唔寫入 |
+
+## 新問題
+
+### 🟡 W-028 — 第二次改目標會再排返之前已完成嘅知識點（W-026 修法有殘留）
+
+- **位置**：`js/domain/planProgress.js` `planFactsDoneSet`（只睇 plan 入面 read task 嘅日子）、`planPinToday`（新今日係休息日時唔釘）
+- **描述**：判斷「已完成」要靠嗰條 fact 仍然喺某個 read task 入面，而且嗰日嘅 log 全部 `ok`。第一次改目標之後，以下兩類已完成嘅 fact **唔再喺任何 read task 入面**：
+  1. 提早喺未來日子完成嘅 fact：嗰啲未來日子已經重新生成，而新日子唔會包含已完成嘅 fact。
+  2. 今日完成，但新目標令今日變成休息日（developer 自報「唔顯示但照當完成」）。
+  第二次改目標時，`planFactsDoneSet` 搵唔返佢哋，於是當未完成再排。
+- **重現**（probe2）：
+  - 提早喺 10-13 完成 32 條 → 10-09 改目標 → 0 條重排 ✅ → 同日再改一次 → **32 條重排** ❌
+  - 今日完成 32 條 → 改目標令今日變休息日 → 0 條重排 ✅ → 改返 → **32 條重排** ❌
+- **影響**：同 W-026 一樣：用戶做過嘅嘢「唔計」、要再做（G7 / G5）。要連續改目標兩次先會出現，但係改目標本身冇次數限制，用戶好容易試幾次。
+- **方案 A**（推薦）：完成度直接睇 log。某條 fact 只要喺**某一日**嘅 log 入面，全部 canonical 題都 `ok`，就算已完成；唔需要 plan 入面仲有對應嘅 read task。
+  - Trade-off：強化 / 清錯題日答啱都可能令 fact 算完成。但係 G3 嘅定義本身就係「答啱對應題目」，而 log 只會記錄喺計劃任務入面出現過嘅題目，所以語意一致；改動最細，又唔使改 schema。
+- **方案 B**：`replanFrom` 將已完成嘅 fact 記入 `plan.doneFacts`（每次 union），`planFactsDoneSet` 一齊睇；`parseStoredPlan` 要驗證呢個欄位。
+  - Trade-off：記錄明確，但多一個要 migrate / 驗證嘅欄位。
+- **測試**：加兩個 case，分別係「提早完成 → 改兩次」同「今日完成、今日變休息日 → 改兩次」，兩個都要 assert 已完成嘅 fact 唔會再出現喺新嘅 learn 任務。
+
+## 其他觀察（冇開 ID）
+
+- 提早完成嘅日子（例如 10-13）改目標之後，嗰日嘅新任務係另一批 fact，所以嗰日會顯示 0%，但係 fact 本身照計已完成（KPI 用 log）。到嗰日先係正常一日，唔算 defect。PR5 月曆只會顯示 `<= today` 嘅 %，所以睇唔到。
+- `ensurePlanToday` 會用**打開嗰陣**嘅錯題簿 / streaks，一次過填晒全部未填嘅已過強化日。所以同一章幾日嘅 drill 題目可能一樣。跟 Round 1 方案 A 嘅 trade-off，可以接受。
+- `mock.exam` 仲未驗證（只驗 `slot`）。PR5 / PR6b 用 `exam` 開考試時，記得用 `EXAM_NUMBERS.includes` 做 guard。
+
+## HANDOFF_RECEIPT（Round 2）
+
+```
+HANDOFF_RECEIPT
+from: code-reviewer
+task: review PR #57 round 2 (commit 4e7b503: W-026 / W-027 / S-108 fixes)
+status: pass
+score: 94
+hard_gates:
+  lint: n/a
+  type_check: n/a
+  tests: pass (32/32, plan-test 2637 checks × 3 TZ)
+  coverage: n/a
+  no_critical: pass
+  security_scan: n/a
+findings: C=0 W=1 (W-028 new) S=0; W-026 / W-027 / S-108 verified fixed
+report: .proj-docs/reviews/2026-10-08_review_plan-pr1.md (Round 2 section)
+next_action: invoke_qa
+context: |
+  W-026 單次改目標已修；殘留 → W-028：第二次改目標會再排返「提早喺未來日子完成」同
+  「今日完成但今日變休息日」嘅 fact（planFactsDoneSet 只睇 plan 入面嘅 read task）。
+  推薦方案 A：直接用 log 判斷 fact 完成（某一日全部 canonical 題 ok）。改目標入口要到 PR4，
+  建議 PR4 前（或者 merge 前順手）修好。W-027、S-108 已確認修好。報告未 commit。
+```
