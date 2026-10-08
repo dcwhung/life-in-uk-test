@@ -142,7 +142,8 @@
   .sp-legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
   /* day list scrolls on its own and opens at today; week headings stick while scrolling */
   .sp-day-scroll { max-height: min(60vh, 520px); overflow-y: auto; overflow-x: hidden; padding-inline: 8px; margin-inline: -8px; overscroll-behavior: contain; scroll-behavior: smooth; }
-  .sp-day-scroll .sp-week { position: sticky; top: 0; z-index: 1; background: var(--card); padding-bottom: 4px; }
+  /* the heading spans the scroller's full width (rows bleed 8px each side), so nothing shows past its edges */
+  .sp-day-scroll .sp-week { position: sticky; top: 0; z-index: 2; background: var(--card); margin-inline: -8px; padding: 8px 8px 4px; }
   .sp-week { font-size: var(--fs-xs); font-weight: 800; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; padding-top: 8px; }
   .sp-day { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; gap: 10px; align-items: start; padding: 10px 0; border-top: 1px solid var(--border); }
   .sp-day .d { text-align: center; border-radius: var(--radius-sm); padding: 4px 0; font-weight: 800; font-size: var(--fs-md); line-height: 1.15; }
@@ -228,6 +229,8 @@
   .sp-cell.rest { background: repeating-linear-gradient(45deg, var(--bg), var(--bg) 4px, var(--border) 4px, var(--border) 6px); color: var(--text-muted); }
   .sp-cell.future { background: var(--card); border: 1.5px dashed var(--border); color: var(--sp-future-text); }
   .sp-cell.out { background: transparent; color: var(--sp-out-text); font-weight: 600; }
+  /* days already gone are dimmed, as in the day list */
+  .sp-cell.past { opacity: 0.45; }
   .sp-cell.today { outline: 2.5px solid var(--navy); outline-offset: 1px; }
   .sp-cell.exam { color: var(--navy); }
   .sp-cell.exam small { position: absolute; left: 0; right: 0; top: calc(50% + 0.75em); text-align: center; font-size: 9px; font-weight: 800; white-space: nowrap; }
@@ -1024,6 +1027,7 @@ function heatCell(date, plan) {
   if (!d) return `<span class="sp-cell out num">${date.getDate()}</span>`;
   const p = dayPct(d);
   let cls = 'sp-cell';
+  if (d.i < TODAY_INDEX) cls += ' past';
   if (d.rest) cls += ' rest';
   else if (d.i > TODAY_INDEX) cls += ' future';
   else cls += ` ${heatClass(p)}${d.i === TODAY_INDEX ? ' today' : ''}`;
