@@ -42,6 +42,8 @@
 | G30 | 改目標時今日已揀好嘅題目 | **保留**：今日已 materialise 嘅清錯題（G9 snapshot）、同 chapter 強化、錯題知識點、同 slot 模擬考，改目標後維持原本內容，今日已做嘅唔會消失（用戶 2026-10-08 確認；`planKeepTodayContents`，PR1 W-029）|
 | G31 | 喺 GitHub Pages 預覽未推出功能 | PR3 加 **`?preview=plan`**：開咗記入 localStorage（per device），`?preview=off` 收返；`planVisible()` = `STUDY_PLAN_READY \|\| preview`；唔改 `APP_VERSION`。PR7 正式開入口時決定保留定拎走（用戶 2026-10-08 確認）|
 | G32 | 邊啲考試計模擬考任務 | 只計 **Exam mode**（計時）嘅 Exam 1–17 / Random Exam；Practice mode 揀 Exam 唔計（會即時見答案、題數未必 24）（用戶 2026-10-08 確認；PR2 `recordPlanExam`）|
+| G33 | en 字眼（PR3） | 「6 weeks」改「1.5 months」；保留「2 hr」（單位縮寫唔加 s，同「min」一致）；保留「✕ Not enough」；「Turn off」待用戶睇完整 modal 再決定（用戶 2026-10-08）|
+| G34 | Toast | **加** toast component（跟 mockup `.sp-toast`：底部置中深藍膠囊、約 2.4 秒消失）；PR3 用喺 ⓘ 開 / 關，PR4 用喺重設計劃（用戶 2026-10-08）|
 
 ---
 
