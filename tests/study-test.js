@@ -154,9 +154,12 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
     const textRight = Math.max(...[...range.getClientRects()].map(x => x.right));
     const ring = parseFloat(a.boxShadow.split(' ').slice(-1)[0]);
     const dotLeft = r.right - parseFloat(a.right) - parseFloat(a.width) - 2 * parseFloat(a.borderLeftWidth) - ring;
-    return { year: e.textContent, trim: cs.textBoxTrim, off: Math.abs(dot - contentMid), gap: dotLeft - textRight, lines: new Set([...range.getClientRects()].map(x => Math.round(x.top))).size };
+    const lines = new Set([...range.getClientRects()].map(x => Math.round(x.top))).size;
+    // S-104: the label must hug its text (align-self: start), or the dot drifts to the middle of the card
+    const tall = r.height - padTop > lines * parseFloat(cs.lineHeight) + 1;
+    return { year: e.textContent, trim: cs.textBoxTrim, off: Math.abs(dot - contentMid), gap: dotLeft - textRight, lines, tall };
   }));
-  const offCentre = dotOff.filter(d => d.trim !== 'trim-both' || d.off > 0.5 || d.gap < TL_YEAR_GAP_PX - 0.5);
+  const offCentre = dotOff.filter(d => d.trim !== 'trim-both' || d.off > 0.5 || d.gap < TL_YEAR_GAP_PX - 0.5 || d.tall);
   assert(dotOff.some(d => d.lines > 1) && offCentre.length === 0, `timeline dots centred on the cap-trimmed year text and ${TL_YEAR_GAP_PX}px clear of it, incl. ${dotOff.filter(d => d.lines > 1).length} two-line years (bad: ${JSON.stringify(offCentre.slice(0, 3))})`);
   // v0.70: the difficulty stars take a line of their own under the card's tags, at its left edge
   const starsOff = await pg.$$eval('#studyContent .fact', cards => cards.map(c => {
