@@ -16,6 +16,9 @@
 // the "Your answer:" label follows the UI language by design).
 // 2026-10-07 refresh (v0.68 per-chapter fact numbers): the Core Fact label reads 📌 核心知識 Ch {ch} #{n} and the fact
 // session label 知識點 Ch {ch} #{n}; n is computed here from data/study.js (independent of the app).
+// 2026-10-07 refresh (v0.68 Home UI lane, literals from the lane spec): the practice hint is 4 <li>; the exam
+// description drops 請於下方選擇試卷。; the My Review note has new wording and sits inside #tileWrong; the
+// "已標記 n 題" / "尚餘 n 題 · 每輪 24 題" tile lines are gone (the count is the tile's .t-num); Leave modal stay = 取消.
 const { chromium } = require('playwright-core');
 const { execSync } = require('child_process');
 const fs = require('fs');
@@ -59,13 +62,14 @@ const waitUpgrade = (pg, cur) => pg.evaluate(async ([c, tries, ms]) => { const r
     if (!reg.installing && !reg.waiting) await reg.update().catch(() => {}); await new Promise(r => setTimeout(r, ms)); }
   return false; }, [cur, UPGRADE_POLL_TRIES, CACHE_POLL_MS]);
 
-// words of English allowed in zh-HK UI text = the ASCII words the zh-HK locale itself keeps (Exam {n}, Chapter {n},
-// chapter names, era / nation English in brackets, app name …)
 // v0.68: n = 1-based position among the chapter's facts in data order
 const STUDY_DATA = (() => { const c = {}; vm.runInNewContext(fs.readFileSync(path.join(ROOT, 'data/study.js'), 'utf8') + ';this.STUDY=STUDY;', c); return c.STUDY; })();
 const FACT_NO = {};
 STUDY_DATA.reduce((seen, f) => { seen[f.ch] = (seen[f.ch] || 0) + 1; FACT_NO[f.id] = { ch: f.ch, n: seen[f.ch] }; return seen; }, {});
 const zhFactSetLabel = id => `知識點 Ch ${FACT_NO[id].ch} #${FACT_NO[id].n}`;
+
+// words of English allowed in zh-HK UI text = the ASCII words the zh-HK locale itself keeps (Exam {n}, Chapter {n},
+// chapter names, era / nation English in brackets, app name …)
 const zhLocale = (() => { const ctx = { LOCALES: {} }; vm.runInNewContext(fs.readFileSync(path.join(ROOT, 'locales/zh-HK.js'), 'utf8'), ctx); return ctx.LOCALES[ZH]; })();
 const flat = (o, out = []) => { for (const v of Object.values(o)) typeof v === 'string' ? out.push(v) : flat(v, out); return out; };
 const ZH_ASCII_WORDS = new Set(flat(zhLocale).join(' ').match(/[A-Za-z]{3,}/g));
@@ -156,13 +160,36 @@ const quizSnap = pg => pg.evaluate(() => JSON.stringify({ mode: state.mode, exam
 const G = {
   homeTop: ['選擇模式', '溫習', '練習', '模擬考試'],
   practiceDesc: ['每題作答後即時顯示答案及廣東話翻譯。可按難度、章節或試卷選題，並顯示各組掌握進度。', '練習分類', '難度', '章節', '試卷', '容易', '基礎', '中等', '困難', '極難',
-    '即算掌握。每輪最多抽取', '↺ 重設進度'],
-  examDesc: ['仿照真實考試作答全部 24 題，可返回修改答案。於最後一題提交後，即可查看分數及答案。請於下方選擇試卷。', '選擇試卷', '🎲 隨機試卷', '從 408 題中抽取 24 題',
+    '↺ 重設進度'],
+  // v0.68 Home UI: the practice hint is a list of 4 <li>, in this order (max 24 per round, streak 3)
+  practiceHint: ['每輪最多抽取 24 條未掌握的題目，每題出現一次', '同一題連續答對 3 次即算掌握', '未掌握的題目會於下一輪再出現',
+    '已掌握的題目會略過，直至整組全部掌握'],
+  // v0.68 Home UI: the exam description no longer ends with 請於下方選擇試卷。
+  examDesc: ['仿照真實考試作答全部 24 題，可返回修改答案。於最後一題提交後，即可查看分數及答案。', '選擇試卷', '🎲 隨機試卷', '從 408 題中抽取 24 題',
     '已完成的試卷會以 ✓ 標示。', '↺ 重設已完成試卷'],
-  myReview: ['我的複習', '錯題', '已標記', '錯題來自練習及模擬考試，於此答對後便會清除。每輪最多 24 題。'],
+  myReview: ['我的複習', '錯題', '已標記'],
+  // v0.68 Home UI: new wording, shown inside the wrong-answers tile (#tileWrong .t-note) instead of #myReviewNote
+  myReviewNote: '來自練習及模擬考試，於此答對後便會清除。每輪最多 24 題。',
   info: ['Exam 1–17 練習', '收錄 408 條 lifeintheuktestweb.co.uk 官方風格題目，附廣東話翻譯及備注。', '📋 17 份試卷', '❓ 408 條題目', '🔒 支援離線使用'],
   install: ['安裝以便離線使用', '加至主畫面，無需網絡亦可溫習', '安裝'],
 };
+
+// v0.68 Home UI: the My Review tiles as rendered — the count lives only in .t-num (the "已標記 n 題" line and the
+// "· 每輪 24 題" suffix are gone); the wrong tile holds .sub + the .t-note, the flagged tile has no .sub while n > 0
+const myReviewTiles = pg => pg.evaluate(() => Object.fromEntries(['tileWrong', 'tileFlagged'].map(id => {
+  const el = document.getElementById(id), txt = sel => (el.querySelector(sel) || {}).textContent || '';
+  return [id, { num: txt('.t-num'), title: txt('b'), sub: txt('.sub'), note: txt('.t-note') }];
+}).concat([['oldNote', !!document.getElementById('myReviewNote')]])));
+// wrong tile: n + 尚餘 n 題 + the note; flagged tile: n, title only
+async function expectMyReview(tag, pg, wrongN, flagN) {
+  const t = await myReviewTiles(pg);
+  const w = t.tileWrong, f = t.tileFlagged;
+  ok(w.num === String(wrongN) && w.title === '錯題' && w.sub === `尚餘 ${wrongN} 題` && w.note === G.myReviewNote,
+    `${tag}: wrong tile ${wrongN} · 尚餘 ${wrongN} 題 + note inside the tile ${JSON.stringify(w)}`);
+  ok(f.num === String(flagN) && f.title === '已標記' && f.sub === '' && f.note === '',
+    `${tag}: flagged tile ${flagN}, no count line ${JSON.stringify(f)}`);
+  ok(!t.oldNote, `${tag}: no separate #myReviewNote below the tiles`);
+}
 
 // ══════════ 1. version / SW / document / manifest ══════════
 async function versionCheck(b) {
@@ -255,7 +282,10 @@ async function glossary(b) {
     const { ctx, pg, errs, warns } = await fresh(b, 390, {}, APP_URL, { 'lifeuk.wrongList': { '1.0': true, '1.1': true, '2.3': true }, 'lifeuk.practiceFlags': { '3.4': true, '6.7': true } });
     await pill(pg);
     await nav(pg, '#modePractice');
-    await expectTexts('Home practice › difficulty', pg, [...G.homeTop, ...G.practiceDesc, ...G.myReview, '尚餘 3 題', '已標記 2 題']);
+    await expectTexts('Home practice › difficulty', pg, [...G.homeTop, ...G.practiceDesc, ...G.practiceHint, ...G.myReview, G.myReviewNote, '尚餘 3 題']);
+    const hintLis = await pg.$$eval('#practiceHint li', els => els.map(e => e.textContent));
+    ok(JSON.stringify(hintLis) === JSON.stringify(G.practiceHint), `Home practice: hint is ${G.practiceHint.length} <li> in order ${JSON.stringify(hintLis)}`);
+    await expectMyReview('Home practice › difficulty', pg, 3, 2);
     await noEnglishLeft('Home practice › difficulty', pg); await noOverflow('Home practice › difficulty', pg);
     await tap(pg, '#ptabChapter');
     await expectTexts('Home practice › chapter', pg, ['Ch 1', 'Values & principles', 'Ch 3', 'History', 'Government & law']);
@@ -267,6 +297,7 @@ async function glossary(b) {
     await noEnglishLeft('Home practice › exam', pg); await noOverflow('Home practice › exam', pg);
     await nav(pg, '#modeExam');
     await expectTexts('Home exam', pg, [...G.homeTop, ...G.examDesc]);
+    ok(!(await bodyText(pg)).includes('請於下方選擇試卷'), 'Home exam: description has no 請於下方選擇試卷');
     await noEnglishLeft('Home exam', pg); await noOverflow('Home exam', pg);
     await tap(pg, '#infoBtn');
     await expectTexts('ⓘ popover', pg, G.info);
@@ -286,7 +317,8 @@ async function glossary(b) {
   {
     const { ctx, pg, errs } = await fresh(b, 390, {}, APP_URL, { 'lifeuk.wrongList': WRONG30, 'lifeuk.practiceFlags': FLAGS30, 'lifeuk.uiLang': ZH_SEED });
     await nav(pg, '#modePractice');
-    await expectTexts('My Review 30', pg, ['尚餘 30 題 · 每輪 24 題', '已標記 30 題']);
+    await expectMyReview('My Review 30', pg, 30, 30);
+    ok(!(await bodyText(pg)).includes('每輪 24 題'), 'My Review 30: no "· 每輪 24 題" round suffix on the tile');
     await nav(pg, '#tileWrong');
     await expectTexts('Wrong review quiz', pg, ['錯題', '第 1 輪（共 2 輪）· 錯題 30 題中的 24 題', '第 1 題（共 24 題）']);
     await noEnglishLeft('Wrong review quiz', pg);
@@ -410,7 +442,8 @@ async function glossary(b) {
     await tap(pg, '#navDots .dot:nth-child(1)'); await tap(pg, '#opt0'); await tap(pg, '#flagBtn');
     await noEnglishLeft('Quiz exam', pg); await noOverflow('Quiz exam', pg);
     await tap(pg, '#screenQuiz .back-btn');
-    await expectTexts('Leave modal', pg, ['離開考試？', '已作答的答案將會遺失。', '離開', '留下']);
+    await expectTexts('Leave modal', pg, ['離開考試？', '已作答的答案將會遺失。', '離開', '取消']);
+    ok((await pg.textContent('#confirmCancel')) === '取消', 'Leave modal: the stay button reads 取消');
     await tap(pg, '#confirmCancel');
     await tap(pg, '#navDots .dot:last-child');
     ok((await pg.textContent('#nextBtn')) === '提交', 'exam last question: 提交');
@@ -825,8 +858,8 @@ async function offlineAndUpgrade(b) {
       await pill(pg);
       ok((await langNow(pg)).html === ZH, 'upgrade: pill switches to zh-HK');
       await nav(pg, '#modePractice');
-      const t = await bodyText(pg);
-      ok(t.includes('已標記 1 題'), 'upgrade: progress shows in zh-HK (My Review flagged 1)');
+      const fl = (await myReviewTiles(pg)).tileFlagged;
+      ok(fl.num === '1' && fl.title === '已標記', `upgrade: progress shows in zh-HK (My Review flagged 1) ${JSON.stringify(fl)}`);
       const after = await pg.evaluate(() => Object.fromEntries(Object.keys(localStorage).filter(k => k !== 'lifeuk.uiLang').sort().map(k => [k, localStorage.getItem(k)])));
       const keep = ['lifeuk.practiceStreak', 'lifeuk.practiceFlags', 'lifeuk.completedExams'];
       ok(keep.every(k => after[k] === before[k]), `upgrade: progress keys byte-identical (${keep.map(k => after[k]).join(' ')})`);

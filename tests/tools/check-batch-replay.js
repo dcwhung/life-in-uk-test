@@ -63,11 +63,32 @@ function selfCheckOrder() {
   process.exit(1);
 }
 
+// S-075: a batch JSON whose name BATCH_FILE cannot parse would be skipped silently, so its changes would go
+// unchecked; any such name is an error instead
+const BATCH_PREFIX = '2026-10-07_yue-batch-';
+const unparsedBatchFiles = names => names.filter(f => f.startsWith(BATCH_PREFIX) && f.endsWith('.json') && !BATCH_FILE.test(f));
+const UNPARSED_SAMPLE = ['2026-10-07_yue-batch-9-s070-fix.json', '2026-10-07_yue-batch-9-S070.json', '2026-10-07_yue-batch-x.json',
+  '2026-10-07_yue-batch-1.json', '2026-10-07_yue-batch-7-antileak.json', '2026-10-07_yue-batch-2.md', 'notes.json'];
+const UNPARSED_EXPECTED = UNPARSED_SAMPLE.slice(0, 3);
+function selfCheckUnparsed() {
+  const got = unparsedBatchFiles(UNPARSED_SAMPLE);
+  if (JSON.stringify(got) === JSON.stringify(UNPARSED_EXPECTED)) return;
+  console.log(`BATCH-REPLAY SELF-CHECK FAIL: unparsed batch names ${JSON.stringify(got)}, want ${JSON.stringify(UNPARSED_EXPECTED)}`);
+  process.exit(1);
+}
+
 const show = v => (v === undefined ? '(missing)' : JSON.stringify(v));
 
 function main() {
   selfCheckOrder();
-  const files = batchFiles(fs.readdirSync(PLAN_DIR));
+  selfCheckUnparsed();
+  const names = fs.readdirSync(PLAN_DIR);
+  const unparsed = unparsedBatchFiles(names);
+  if (unparsed.length) {
+    console.log(`BATCH-REPLAY FAIL: batch file name(s) not matching ${BATCH_FILE}: ${unparsed.join(', ')}`);
+    process.exit(1);
+  }
+  const files = batchFiles(names);
   const missingFix = POST_BATCH_FIXES.filter(fix => !files.includes(fix.afterFile));
   const { expected, stats } = expectedFields(files);
   const data = loadData().values;
