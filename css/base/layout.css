@@ -26,7 +26,8 @@ header {
   height: 58px;
 }
 .logo { display: flex; align-items: center; gap: var(--space-5); }
-.logo-flag { font-size: 22px; }
+/* app icon (icons/icon.svg) beside the title; width / height also set on the <img> so it never jumps while loading */
+.logo-icon { display: block; flex-shrink: 0; width: 36px; height: 36px; }
 .logo-text { display: flex; align-items: center; gap: var(--space-3); color: var(--text-inverse); font-size: var(--fs-lg); font-weight: 700; letter-spacing: 0.01em; }
 .logo-sub { color: var(--gold); font-size: var(--fs-xs); font-weight: 500; margin-top: 1px; }
 .app-version { color: var(--text-inverse-faint); font-weight: 600; margin-left: var(--space-2); }
