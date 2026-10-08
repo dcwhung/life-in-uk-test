@@ -195,9 +195,10 @@ function layerCode(src) {
     { code: 'x = o.in / 2; renderStudy(); y = z / 3;', hit: true, why: 'a call between divisions after a property named in' },
     { code: 'for (const k of /renderStudy/.exec(s)) k;', hit: false, why: 'a name inside a regex after the of keyword' },
     { code: 'a = b + /renderStudy/.source;', hit: false, why: 'a name inside a regex after a binary +' },
-    // S-088: a $name or a property after ". " is not a keyword
+    // S-088: a $name or a property after ". " is not a keyword; S-089: a / after a binary - opens a regex
     { code: 'x = $in / 2; renderStudy(); y = z / 3;', hit: true, why: 'a call between divisions after a $-prefixed name' },
     { code: 'x = o. of / 2; renderStudy(); y = z / 3;', hit: true, why: 'a call between divisions after a spaced property named of' },
+    { code: 'a = b - /renderStudy/.source.length;', hit: false, why: 'a name inside a regex after a binary -' },
   ];
   const sampleMisses = LAYER_SAMPLES.filter(({ code, hit }) => usesName(layerCode(code), 'renderStudy') !== hit)
     .map(({ hit, why }) => `${hit ? 'missed' : 'flagged'} ${why}`);
