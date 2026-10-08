@@ -48,6 +48,7 @@ v0.57（P1 refactor）起 `index.html` 只剩 `<head>`、各 screen 嘅 markup �
 | `tests/tools/make-content-baseline.js` | v0.66（T-101）：生成上面個 fixture：`node tests/tools/make-content-baseline.js`（亦 export `loadData` / `project` / `BASELINE` 俾 guard 用）。**只可以喺刻意改 English 內容或者 data 結構（id、`ch`、`d`、`src`、答案、次序、題數）嗰陣重生成，同嗰個改動放喺同一個 commit**；**唔准喺廣東話改寫之後為咗令 guard pass 而重生成**（guard 存在就係防 `yue` / `oy` / `note` 改寫靜靜雞改埋其他嘢；fixture 只喺 T-101 `30f0e8d`（v0.66）同 S-051 `295bd71`（v0.68，加 `_noteNonEmpty`）commit 過）。同一規則寫咗喺 tool 檔頭、guard 檔頭同 `tests/tools/README.md` |
 | `tests/*.js` | 31 套測試（v0.63 加 `factmastery-test`，v0.64 加 `doubletap-test`，v0.65 加 `lang-switch-test`，v0.66 加 `content-guard-test`）（大部分 Playwright），`tests/run-all.sh` 一次過跑 |
 | `mockups/similar-question-map.html` | Similar Questions 嘅設計 mockup（獨立 HTML，頂部 tab 切換情景；PR 嘅 `Design Origin`） |
+| `mockups/study-plan-flow.html` | 溫習計劃（Study Plan）嘅設計 mockup（PR #51 / #52，用戶 2026-10-08 確認）：link app 嘅 `css/`，頂部 tab 切換入口 / 訂立目標 / 進度表 / 今日任務；開發 handoff 見 `.proj-docs/plans/2026-10-08_handoff_study-plan.md`；功能完成後刪除 |
 
 **載入次序：** `data/exams.js` → `data/study.js` → `js/core/config.js` → `core/utils` → `locales/en.js` → `locales/zh-HK.js`（v0.65，要喺 en 之後：佢加落 en 建立嘅 `LOCALES`）→ `core/i18n`（v0.59）→ `core/store` → `domain/*` → `components/*`（`icons` → `dots` → `tags` → `modal` → `popover` → `factCard`（v0.63））→ `screens/*`（`home` → `quiz` → `examTools` → `sideSession`（v0.62）→ `similarPanel` → `result` → `flagged` → `study`）→ `core/actions` → `pwa/pwa` → `main`。全部係 classic `<script src>`，全局變量，冇 ES module（`file://` 同 iOS PWA 兼容）；唔好包 IIFE，因為頂層 `let`（`state`、`streaks`、`pendingMode`…）要喺全局 lexical scope，測試先改得到。檔案之間只可以喺 function 入面互相 call，而且 `components/*` 唔可以 call `screens/*`（v0.64 S-031，`structure-test`）；頂層即刻行嘅 code 只可以用前面已載入嘅 file。`store.js` 頂層嘅 `getLS()` 係第一個讀 storage 嘅地方，舊 key 遷移就喺嗰下 lazy 行（v0.58 起冇獨立 `migrate.js`，見「localStorage keys」）。
 
@@ -800,6 +801,7 @@ c10115b feat: randomise answer option order in Practice and Exam mode
 
 ## Follow-up 候選（未做）
 
+- [ ] **溫習計劃（Study Plan）**：mockup 已確認（`mockups/study-plan-flow.html`），**下一個開發任務**。規格、建議模組、LS key、未決定事項同驗收清單見 `.proj-docs/plans/2026-10-08_handoff_study-plan.md`；建議由 `/plan` 開始
 - [x] 1.19、14.3 備注改成分行列點（v0.70 B1，batch 9；Crown dependency 記憶法同組 7 題一齊改）
 - [x] 其他可整合記憶法嘅題組（v0.71 B2，batch 10）：Magna Carta、國王 vs 國會、二戰、都鐸王朝；諾曼征服（M5）用戶決定唔做
 - [x] Study fact 卡片加「跳去來源題目」（v0.63，P3 PR-3：來源列 +「▶ Practise these N」）
