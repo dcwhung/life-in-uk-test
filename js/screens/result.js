@@ -140,8 +140,11 @@ function diffTableHtml() {
 
 // ── Review Answers ──
 function setReviewFilter(key) {
+  // S-102: the chips are redrawn, so a chip that had focus (keyboard use) hands it to the chip just chosen
+  const hadFocus = byId('reviewOrder').contains(document.activeElement);
   reviewFilter = key;
   renderReview();
+  if (hadFocus) byId('reviewOrder').querySelector(`[data-arg="${key}"]`).focus();
 }
 function visibleReviewItems() {
   return reviewItems.filter(REVIEW_FILTERS.find(f => f.key === reviewFilter).keep);
