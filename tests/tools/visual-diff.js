@@ -108,7 +108,7 @@ const dump = () => {
     };
   }
   // the version label legitimately differs between refs
-  return { els: res, text: document.body.innerText.replace(/v\d+\.\d+/g, 'vX') };
+  return { els: res, text: document.body.innerText.replace(/v\d+(?:\.\d+)+/g, 'vX') };
 };
 
 async function capture(browser, dir, width, script) {

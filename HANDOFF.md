@@ -1,11 +1,12 @@
-# Life in the UK Test PWA — Handoff (v0.72)
+# Life in the UK Test PWA — Handoff (v1.0.0)
 
 - **Repo:** https://github.com/dcwhung/life-in-uk-test （main branch，GitHub Pages root `/`）
 - **Live:** https://dcwhung.github.io/life-in-uk-test/
 - **Stack:** 純 HTML + vanilla JS + CSS，冇 build tool、冇 dependency；PWA（Service Worker 離線）
 - **用戶：** 香港廣東話使用者，備考 Life in the UK Test（ILR，BN(O) route）
 - **開發流程（v0.32 起）：** 每次改動喺 `claude/*` branch 做，開 PR 入 `main` 再 merge（merge commit）；`main` merge 後 GitHub Pages 自動部署。冇 `develop` branch。PR merge 咗之後，同一條 branch 要由最新 `main` 重新開過先加新 commit
-- **版本：** 改 app 嘅 commit `APP_VERSION` +0.01；只改測試／文件唔升版本
+- **版本：** v1.0.0（2026-10-08）起用 SemVer（`APP_VERSION = 'MAJOR.MINOR.PATCH'`）：新功能升 minor（1.1.0）、修 bug／細改升 patch（1.0.1）、大改／唔兼容（例如 localStorage 結構要遷移）升 major（2.0.0）；只改測試／文件唔升版本。v0.01–v0.72 用舊規則（每次改 app +0.01）。`APP_VERSION` 只當字串用（SW cache 名 `lifeuk-v<版本>`、header / ⓘ 顯示 `v<版本>`、`lifeuk.migrated` marker），冇數值比較
+- **Freeze：** v1.0.0 = 第一個 freeze 版本，git annotated tag `v1.0.0`（`git checkout v1.0.0` 可以返去）；之後每個 major / minor release 都打 tag `v<版本>`
 - **UI 改動：** 用戶通常要求先做 preview／mockup 確認先改 code（例如 `mockups/similar-question-map.html`、v0.41 嘅臨時 quiz header preview、v0.65 嘅 `mockups/lang-switch.html`（確認後已 delete））；臨時 preview 確認後要 delete，唔好留喺 `main`
 - **每輪改完：** 用戶通常會要求「開 PR 入 main 然後 merge」，之後再「更新 HANDOFF.md 記錄今次所有改動」
 
@@ -470,7 +471,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | `lang-switch-test.js` | v0.65（T-007）：pill 顯示目標語言（`中` / `EN`）、`aria-label` / `title`、44px hit area（四邊 `elementFromPoint`，S-044）；撳 pill → `<html lang>`、`lifeuk.uiLang`、reload 保持；Home / Quiz（Practice reveal + Similar、side session ↩、Exam 中途 + flag）/ Result（filter）/ Flagged / Study（tab / chip / 搜尋）每個畫面 en → zh-HK → en，`snapState` 比對 `state`、timer、`sessionReturn`、review、`study`、搜尋框、成個 localStorage（除 `uiLang`）不變、冇 `[i18n] missing key`、成績唔重複記錄；exam timer 即刻換字而唔 call `examTick`；confirm modal 開住（focus pill + Enter）唔切換；`<title>` 保持英文；M2 國家 chip 冇拉丁字母；M6 `📝 全部試題（408 題）` ↔ `📝 All Questions (408)`（v0.71 前 🎯）；W-014 `checkContentLang`（`closest('[lang]')`，唔准落到 `<html>`）；M4 `.result-sub` 320px 唔跌單字（要有 CJK 字體，S-045）；320px 冇橫向 overflow；pill dblclick 唔被 double tap guard 食（wait 由 `SCREEN_CHANGE_CLICK_GUARD_MS` 計，S-043） |
 | `practicedots-test.js` | v0.55：Practice 圓圈（24 / 9 / review 題數、冇 progress bar 同計時、啱綠錯紅、flag 橙邊、計數一行、撳跳題前後都得）；冇 score pill；Exam 最後一題快捷 ✓ 交卷（有未答彈 modal、全答直接去結果）；Flagged 列表「Practise flagged」書籤 icon 係橙色；首頁 Flagged 格 icon 橙色、Home 冇可見嘅黑色 SVG（v0.56）；CUI-0012：320px 圓點喺卡 content box 入面、冇橫向 scroll、正圓、號碼喺 border 入面（390px 同樣檢查） |
 
-## 版本記錄（v0.32–v0.72）
+## 版本記錄（v0.32–v1.0.0）
 
 | 版本 | PR | 改動 |
 |---|---|---|
@@ -524,6 +525,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | v0.70 | dcwhung/life-in-uk-test#46 | **Study / Home UI（用戶截圖 + preview 確認）**：Timeline 年份 `text-box: trim-both cap alphabetic`，圓點喺文字正中、6px 空位（`@supports not` fallback 維持 v0.69 位置）；fact 卡星星自己一行；來源列 node 一分行「▶ Practise / 練習這 N 題」就自己一行全闊（純 flexbox，刪 `FACT_SRC_INLINE_MAX` / `.wrap-btn`）；錯題 tile 冇「N to clear / 尚餘 N 題」，0 題只顯示「Nothing to review yet / 暫時未有需要複習的題目」（`home.wrongToClear` 已刪）；Practice 答案框備注改用同結果頁一樣嘅逐行 render（`noteHtml` 搬去 `js/components/tags.js`，新 `css/components/note.css`，`.note-mark` 固定闊度 → 換行懸掛縮排）；B1：Crown dependency 記憶法（7 題共用）同 14.3 一項一行（batch 9）；S-104 / S-106 test。Review `.proj-docs/reviews/2026-10-08_review_v070.md` 98 + delta 99；QA `.proj-docs/qa/2026-10-08_qa_v070.md` pass（run-all 31 / 31、v066 1870 / 0、note 縮排 4125 行 0 錯、upgrade 20 / 0） |
 | v0.71 | dcwhung/life-in-uk-test#47 | **記憶法 + icon**：B2 四組新記憶法（Magna Carta 8、國王 vs 國會 8、二戰 9、都鐸王朝 9，batch 10；W-025 譯名統一 + Henry VIII 子項，batch 11；CUI-0017 保留「阿拉貢的凱瑟琳」，batch 12）；B3 Study fact 卡收埋式「💡 記憶法」（`factMemoryText` 由來源題目 note 讀，60 張卡，方案 B）；練習 / 考試 icon 對調（練習 📝、考試 🎯：首頁模式卡、結果頁、Practice「All Questions」格）；B4 中途續做、M5 諾曼征服題組：用戶決定唔做。Review `.proj-docs/reviews/2026-10-08_review_v071.md`（95 warn → W-025 已修）；QA `.proj-docs/qa/2026-10-08_qa_v071.md` + `..._v071-delta.md` pass（v071 5906 / 0、upgrade 22 / 0、batch replay 12 / 806 / 0） |
 | v0.72 | dcwhung/life-in-uk-test#48 | **B5 spacing token（0 視覺改動，用戶揀方案 A）**：`tokens.css` 加 `--space-1`…`--space-12`（2–24px，步數 = px / 2）；184 個 margin / padding / gap 宣告（連 `--*gap` / `--*pad`）改用 token，53 個刻度外數值保留；`structure-test` spacing guard；S-107 HANDOFF S-081 狀態。Review `.proj-docs/reviews/2026-10-08_review_v072.md` 99 pass（visual-diff 76 / 76 一樣、159 行反向核對）；QA `.proj-docs/qa/2026-10-08_qa_v072.md` pass（320 / 360px pixel 92 / 92、fallback 24 / 24、upgrade 22 / 0） |
+| v1.0.0 | dcwhung/life-in-uk-test#54 | **Freeze v1.0.0（用戶決定）**：功能同 v0.72 一樣，`APP_VERSION` `0.72` → `1.0.0`（SW cache `lifeuk-v1.0.0`，裝咗嘅 app 會自動換新 cache）；版本規則改 SemVer（見頂部「版本」）；git tag `v1.0.0`；`tests/tools/visual-diff.js` 版本 mask 改 `v\d+(?:\.\d+)+`（三段版本號都 mask 晒）；同日 HANDOFF iPhone 實機 check close（PR #50，用戶確認冇問題） |
 
 **Practice 數字圓圈設計決定（v0.55，preview 同用戶確認）**
 - 起因：用戶以為 Practice 「無咗」頂頭數字圓圈；查 code 同 git 記錄，v0.44 起圓圈一直只係 Exam 1–17 / Random Exam 先有，唔係 regression，改做新功能
