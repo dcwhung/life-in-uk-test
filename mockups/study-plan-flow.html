@@ -183,8 +183,10 @@
   .day.today { background: var(--selected-bg); margin: 0 -8px; padding-inline: 8px; border-radius: var(--radius-sm); }
   /* days not reached yet: light grey row, text and date box one step lighter */
   .day.future { background: #f6f7fa; margin: 0 -8px; padding-inline: 8px; }
-  .day.future .tasks { color: var(--text-muted); }
-  .day.future .d { opacity: 0.6; }
+  .day.future .tasks { color: #a3adc4; }
+  .day.future .tasks .t span:first-child { opacity: 0.55; }
+  .day.future .d { opacity: 0.4; }
+  .day.future .pill { opacity: 0.5; }
   .tasks { display: grid; gap: 3px; font-size: var(--fs-sm); line-height: 1.45; }
   .tasks .t { display: flex; gap: 6px; }
 
@@ -214,12 +216,17 @@
   .tag { display: inline-block; font-size: var(--fs-2xs); font-weight: 800; border-radius: var(--radius-pill); padding: 1px 7px; margin-left: 6px; vertical-align: 1px; }
   .tag.carry { background: var(--flag-bg); color: var(--orange); }
   .tag.auto { background: var(--success-bg); color: var(--green); }
+  /* each month is its own block; side by side when there is room */
+  .months { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px 20px; }
+  .month { display: grid; gap: 8px; min-width: 0; }
+  .month-h { font-size: var(--fs-md); font-weight: 800; }
+  .cell.out { background: transparent; color: #b4bccf; font-weight: 600; }
   .heat { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
   .heat .dow { font-size: var(--fs-2xs); color: var(--text-muted); text-align: center; font-weight: 700; }
   .cell { aspect-ratio: 1; max-width: 100%; border-radius: var(--radius-sm); display: grid; place-items: center; font-size: var(--fs-xs); font-weight: 800; background: var(--heat-0); }
   .cell.h1 { background: var(--heat-1); color: var(--text-inverse); } .cell.h2 { background: var(--heat-2); } .cell.h3 { background: var(--heat-3); } .cell.h4 { background: var(--heat-4); color: var(--text-inverse); }
   .cell.rest { background: repeating-linear-gradient(45deg, var(--bg), var(--bg) 4px, var(--border) 4px, var(--border) 6px); color: var(--text-muted); }
-  .cell.future { background: var(--card); border: 1.5px dashed var(--border); color: var(--text-muted); }
+  .cell.future { background: var(--card); border: 1.5px dashed var(--border); color: #a3adc4; }
   .cell.today { outline: 2.5px solid var(--navy); outline-offset: 1px; }
   /* exam day: amber with a fine gold lattice, icon + label */
   .exam-pat { background-color: var(--exam-bg); background-image: linear-gradient(45deg, var(--exam-line) 1px, transparent 1px), linear-gradient(-45deg, var(--exam-line) 1px, transparent 1px); background-size: 8px 8px; }
@@ -454,7 +461,7 @@
 
         <div class="card">
           <div class="row"><h3>每日完成度</h3><span class="pill ok num" id="streakPill"></span></div>
-          <div class="heat" id="heat"></div>
+          <div class="months" id="heat"></div>
           <div class="legend">0% <i style="background: var(--heat-1)"></i><i style="background: var(--heat-2)"></i><i style="background: var(--heat-3)"></i><i style="background: var(--heat-4)"></i> 100% · <i class="exam-swatch"></i> 考試日</div>
         </div>
 
@@ -552,6 +559,8 @@ const FEAS_METER_SCALE = 1.5;
 const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六'];
 const DAYS_PER_WEEK = 7;
 const MS_PER_DAY = 86400000;
+const MONTHS_PER_YEAR = 12;
+const MAX_PLAN_MONTHS = 6;                    // exam date can be at most half a year ahead
 const PHASES = {
   learn: { name: '讀 + 練', cls: 'learn' },
   practice: { name: '強化練習', cls: 'practice' },
@@ -581,6 +590,7 @@ function fmtMins(m, sep = ' ') {
   if (!h) return `${r} 分鐘`;
   return r ? `${h} 小時${sep}${r} 分` : `${h} 小時`;
 }
+function maxExamDate() { const d = new Date(state.start); d.setMonth(d.getMonth() + MAX_PLAN_MONTHS); return d; }
 function chapterOf(ch) { return CHAPTERS.find(c => c.ch === ch); }
 function chLabel(ch) { return `Ch${ch} ${chapterOf(ch).name}`; }
 function count(g) { return g.to - g.from + 1; }
@@ -812,6 +822,8 @@ function renderGoal() {
   $('minsRange').value = state.mins;
   document.querySelectorAll('#daysChips .chip').forEach(b => b.classList.toggle('on', +b.dataset.days === state.days));
   $('examDate').value = isoDate(addDays(state.start, state.days));
+  $('examDate').min = isoDate(addDays(state.start, DAYS_PER_WEEK));
+  $('examDate').max = isoDate(maxExamDate());
   $('restChips').innerHTML = WEEKDAYS.map((w, i) => `<button class="chip rest ${state.rest.has(i) ? 'on' : ''}" data-rest="${i}">${w}</button>`).join('');
   renderTicks();
   renderLevels();
@@ -914,19 +926,38 @@ function renderRing(tasks) {
 
 function heatClass(p) { return p >= PERCENT ? 'h4' : p >= HEAT_STEPS[0] ? 'h3' : p >= HEAT_STEPS[1] ? 'h2' : p > 0 ? 'h1' : ''; }
 
-function renderHeat(plan) {
+// one full calendar month per block; plan days carry their status, days outside the plan stay plain
+function heatCell(date, plan, examDate) {
+  const i = Math.round((date - state.start) / MS_PER_DAY);
+  if (i === state.days) return `<span class="cell exam exam-pat num" title="考試日">${date.getDate()}<small>🎯 考試日</small></span>`;
+  const d = plan.cal[i];
+  if (!d) return `<span class="cell out num">${date.getDate()}</span>`;
+  const p = dayPct(d);
+  let cls = 'cell';
+  if (d.rest) cls += ' rest';
+  else if (d.i > TODAY_INDEX) cls += ' future';
+  else cls += ` ${heatClass(p)}${d.i === TODAY_INDEX ? ' today' : ''}`;
+  return `<span class="${cls} num" title="Day ${d.i + 1}${p === null ? '' : ` · ${p}%`}">${date.getDate()}</span>`;
+}
+
+function monthBlock(year, month, plan, examDate) {
+  const first = new Date(year, month, 1);
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
   let html = WEEKDAYS.map(w => `<span class="dow">${w}</span>`).join('');
-  for (let k = 0; k < plan.cal[0].date.getDay(); k++) html += '<span></span>';
-  plan.cal.forEach(d => {
-    const p = dayPct(d);
-    let cls = 'cell';
-    if (d.rest) cls += ' rest';
-    else if (d.i > TODAY_INDEX) cls += ' future';
-    else cls += ` ${heatClass(p)}${d.i === TODAY_INDEX ? ' today' : ''}`;
-    html += `<span class="${cls} num" title="Day ${d.i + 1}${p === null ? '' : ` · ${p}%`}">${d.date.getDate()}</span>`;
-  });
-  html += `<span class="cell exam exam-pat num" title="考試日">${addDays(state.start, state.days).getDate()}<small>🎯 考試日</small></span>`;
-  $('heat').innerHTML = html;
+  for (let k = 0; k < first.getDay(); k++) html += '<span></span>';
+  for (let n = 1; n <= daysInMonth; n++) html += heatCell(new Date(year, month, n), plan, examDate);
+  return `<div class="month"><div class="month-h num">${year} 年 ${month + 1} 月</div><div class="heat">${html}</div></div>`;
+}
+
+function renderHeat(plan) {
+  const examDate = addDays(state.start, state.days);
+  const blocks = [];
+  for (let y = state.start.getFullYear(), m = state.start.getMonth();
+    y < examDate.getFullYear() || (y === examDate.getFullYear() && m <= examDate.getMonth());
+    m === MONTHS_PER_YEAR - 1 ? (y++, m = 0) : m++) {
+    blocks.push(monthBlock(y, m, plan, examDate));
+  }
+  $('heat').innerHTML = blocks.join('');
   let streak = 0;
   for (let i = TODAY_INDEX - 1; i >= 0; i--) { const d = plan.cal[i]; if (d.rest) continue; if (dayPct(d) >= PERCENT) streak++; else break; }
   $('streakPill').textContent = `🔥 連續 ${streak} 日 100%`;
@@ -1045,7 +1076,8 @@ document.addEventListener('click', e => {
 $('minsRange').addEventListener('input', e => { state.mins = +e.target.value; renderGoal(); });
 $('examDate').addEventListener('change', e => {
   const n = Math.round((new Date(e.target.value + 'T00:00:00') - state.start) / MS_PER_DAY);
-  if (n >= DAYS_PER_WEEK) state.days = n;
+  const max = Math.round((maxExamDate() - state.start) / MS_PER_DAY);
+  if (n >= DAYS_PER_WEEK) state.days = Math.min(n, max);
   renderGoal();
 });
 
