@@ -2,7 +2,7 @@
 
 **日期**：2026-10-08
 **來源**：`.proj-docs/plans/2026-10-08_handoff_study-plan.md`、`mockups/study-plan-flow.html`
-**狀態**：用戶已逐條確認（grill-me）；本文件**覆蓋** handoff §4「未決定」同 §3.3「`APP_VERSION` +0.01」（v1.0.0 起用 SemVer）
+**狀態**：用戶已逐條確認（grill-me）；G21 由用戶喺 grill 後補充；本文件**覆蓋** handoff §4「未決定」同 §3.3「`APP_VERSION` +0.01」（v1.0.0 起用 SemVer）
 
 ---
 
@@ -30,6 +30,7 @@
 | G18 | 4.10 mockup | 最後一個 PR 刪 `mockups/study-plan-flow.html`（HANDOFF 慣例，唔使問） |
 | G19 | 交付 | 逐個 PR 入 `main`（review + QA + 自動 merge）；`config.js` 加 constant（例如 `STUDY_PLAN_READY = false`）收埋 ⓘ switch 同主頁卡；**最後一個 PR** 打開入口 + 升 **1.1.0** + 刪 mockup；中間 PR 唔升版本 |
 | G20 | en 文字 | 我（Claude）按 app 現有 en 用字譯；打開入口嘅 PR 之前列 zh-HK ↔ en 對照表俾用戶一次過睇 |
+| G21 | zh-HK UI 文字 | 跟 `locales/zh-HK.js` core：**書面語**（HANDOFF「i18n › zh-HK」Q5：唔用口語；中英之間唔加空格、數字前後留空格、全形標點）。Mockup 嘅口語字眼（例如「唔夠」「聽日再嚟」「做緊」「睇今日任務」）實作時全部改書面語（「不足」「明天再來」「進行中」「查看今日任務」）；用字對齊現有 key（例如「練習」「模擬考試」「溫習」「錯題」「確定」）。G20 對照表要包埋 zh-HK 書面語版本俾用戶睇。題目 data（`yue` / `oy` / `note`、fact `yue`）照舊用口語，唔受影響 |
 
 ---
 
