@@ -269,9 +269,9 @@ async function checkEntryAndFlash(pg) {
 }
 
 // S-077: the Result header (#resultLabel, also .quiz-label) is setExamLabel's other caller. A fact session ends on
-// ↩ Back, never on results, so its results are drawn directly to guard the same lang="en" span there
+// ↩ Back, never on results, so the test calls finishExam() directly to guard the same lang="en" span there
 async function checkResultLabelLang(pg) {
-  await pg.evaluate(id => { setLang('en'); startFactPractice(id); finishExam(); renderResults(); showScreen('screenResult'); }, FACT_ID);
+  await pg.evaluate(id => { setLang('en'); startFactPractice(id); finishExam(); }, FACT_ID); // finishExam renders and shows Result
   assert(await text(pg, '#resultLabel') === FACT_LABEL.en, `#resultLabel: ${FACT_LABEL.en} (${await text(pg, '#resultLabel')})`);
   await checkHeaderNumberLang(pg, 'en', '#resultLabel');
   await pg.evaluate(() => setLang('zh-HK'));
