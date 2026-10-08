@@ -76,6 +76,11 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(!(await modalOpen()) && (await focusedId()) === 'nextBtn', 'S-025: Escape returns focus to Submit');
   await pg.keyboard.press('Enter'); await pg.keyboard.press('Shift+Tab'); await pg.keyboard.press('Enter');
   assert(!(await modalOpen()) && (await focusedId()) === 'nextBtn', 'S-025: Keep going returns focus to Submit');
+  // S-095: a second prompt over an open one keeps the first opener
+  await pg.keyboard.press('Enter'); await pg.evaluate(() => goHome());
+  assert(await modalOpen() && /Leave the exam\?/.test(await modalText()), 'S-095: Home over the submit modal shows the leave modal');
+  await pg.keyboard.press('Escape');
+  assert(!(await modalOpen()) && (await focusedId()) === 'nextBtn', 'S-095: closing it returns focus to the first opener (Submit)');
 
   // Home asks before leaving a running exam
   await pg.click('#screenQuiz .back-btn');
