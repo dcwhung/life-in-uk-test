@@ -4,276 +4,228 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Study Plan Flow</title>
+<!-- the app's own stylesheets: every existing component (header, back-btn, chip, mode-card, q-card, opt,
+     answer-box, nav-btn, fact card, result card, quick-btn, study-progress) renders exactly as in the app -->
+<link rel="stylesheet" href="../css/base/tokens.css">
+<link rel="stylesheet" href="../css/base/layout.css">
+<link rel="stylesheet" href="../css/components/buttons.css">
+<link rel="stylesheet" href="../css/components/chips.css">
+<link rel="stylesheet" href="../css/components/dots.css">
+<link rel="stylesheet" href="../css/components/modal.css">
+<link rel="stylesheet" href="../css/components/note.css">
+<link rel="stylesheet" href="../css/components/popover.css">
+<link rel="stylesheet" href="../css/components/fact.css">
+<link rel="stylesheet" href="../css/screens/home.css">
+<link rel="stylesheet" href="../css/screens/quiz.css">
+<link rel="stylesheet" href="../css/screens/results.css">
+<link rel="stylesheet" href="../css/screens/flagged.css">
+<link rel="stylesheet" href="../css/screens/study.css">
 <style>
-  /* Layout: app shell (navy header + 780px main column) behind a sticky mockup bar that switches the screens.
-     Single light look on purpose: the app itself has no dark theme, so this preview matches it. */
-  /* ── tokens copied from css/base/tokens.css (v0.68) ── */
+  /* Study plan mockup. Only NEW components live here, all prefixed sp- (plan) or mock- (preview chrome),
+     built on the app's tokens from css/base/tokens.css. Single light look, as the app. */
   :root {
     color-scheme: light;
-    --orange: #d9822b;
-    --navy: #1a2744; --navy-mid: #243460; --navy-light: #2e4080;
-    --gold: #c9a84c; --gold-light: #e8c97a;
-    --green: #2d6a4f; --green-light: #52b788;
-    --red: #922b21; --red-light: #e74c3c;
-    --purple: #6b3fa0; --purple-light: #9b6dca;
-    --bg: #f0f2f7; --card: #ffffff; --text: #1a2744; --text-muted: #5a6a8a; --border: #dde2f0;
-    --text-inverse: #fff; --text-inverse-muted: rgba(255,255,255,0.7); --text-inverse-faint: rgba(255,255,255,0.45);
-    --success-bg: #edf8f2; --danger-bg: #fdf0ef; --selected-bg: #f0f4ff; --flag-bg: #fdf3e8;
-    --gold-bg: #fdf6e3; --gold-text: #8a6d1f; --yue-bg: #f3eefa; --fact-bg: #fbf5e6;
-    --radius: 14px; --radius-md: 10px; --radius-sm: 8px; --radius-pill: 999px;
-    --fs-2xs: 10px; --fs-xs: 11px; --fs-sm: 12px; --fs-base: 13px; --fs-md: 14px; --fs-lg: 15px; --fs-xl: 20px;
-    --shadow: 0 4px 24px rgba(26,39,68,0.10); --shadow-sm: 0 2px 8px rgba(26,39,68,0.07); --shadow-header: 0 2px 16px rgba(0,0,0,0.25);
-    /* mockup-only chrome */
     --mock-ground: #e4e7ef; --mock-note-bg: #fffbea; --mock-note-border: #e8d48a;
-    /* phase colours (plan-only, mapped onto existing hues) */
-    --ph-learn: var(--navy-light); --ph-learn-bg: var(--selected-bg);
-    --ph-practice: var(--purple); --ph-practice-bg: var(--yue-bg);
-    --ph-mock: var(--orange); --ph-mock-bg: var(--flag-bg);
-    --heat-0: #e3e7f1; --heat-1: #e8735f; --heat-2: #f0a54a; --heat-3: #c9cf4f; --heat-4: var(--green-light);
-    --exam-bg: #f2a93b; --exam-line: rgba(255,214,120,0.75);
+    --sp-ph-learn: var(--navy-light); --sp-ph-learn-bg: var(--selected-bg);
+    --sp-ph-practice: var(--purple); --sp-ph-practice-bg: var(--yue-bg);
+    --sp-ph-mock: var(--orange); --sp-ph-mock-bg: var(--flag-bg);
+    --sp-heat-0: #e3e7f1; --sp-heat-1: #e8735f; --sp-heat-2: #f0a54a; --sp-heat-3: #c9cf4f; --sp-heat-4: var(--green-light);
+    --sp-exam-bg: #f2a93b; --sp-exam-line: rgba(255,214,120,0.75);
+    --sp-future-text: #a3adc4; --sp-future-row: #f6f7fa; --sp-out-text: #b4bccf;
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, 'PingFang HK', 'Noto Sans HK', 'Noto Sans CJK HK', 'Microsoft JhengHei', sans-serif;
-    background: var(--mock-ground); color: var(--text); -webkit-font-smoothing: antialiased;
-  }
-  /* buttons never fall back to the UA text colour (iOS paints button text in its tint colour) */
-  button, input, select { font-family: inherit; color: var(--text); }
-  button:focus-visible, input:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
   .num { font-variant-numeric: tabular-nums; }
-  [hidden] { display: none !important; }
 
   /* ════════ mockup chrome ════════ */
-  .mock-bar { background: var(--navy); color: var(--text-inverse); padding: 10px 16px; font-size: var(--fs-sm); position: sticky; top: env(safe-area-inset-top, 0px); z-index: 50; box-shadow: var(--shadow-header); }
+  body { background: var(--mock-ground); }
+  .mock-bar { background: var(--navy); color: var(--text-inverse); padding: 10px 16px; font-size: var(--fs-sm); position: sticky; top: env(safe-area-inset-top, 0px); z-index: 200; box-shadow: var(--shadow-header); }
   .mock-bar b { color: var(--gold-light); }
   .mock-row { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; align-items: center; }
   .mock-tab { background: transparent; border: 1.5px solid rgba(255,255,255,0.3); color: var(--text-inverse); border-radius: var(--radius-pill); padding: 5px 12px; font-size: var(--fs-sm); font-weight: 700; cursor: pointer; }
   .mock-tab.on { background: var(--gold); border-color: var(--gold); color: var(--navy); }
-  .brief { max-width: 780px; margin: 16px auto 0; background: var(--mock-note-bg); border: 1.5px solid var(--mock-note-border); border-radius: var(--radius-md); padding: 12px 14px; font-size: var(--fs-base); line-height: 1.6; }
-  .brief h2 { font-size: var(--fs-lg); margin-bottom: 4px; }
-  .brief ul { padding-left: 18px; }
-  .page { padding: 0 16px 40px; }
-  .frame-label { justify-self: start; font-size: var(--fs-xs); font-weight: 800; padding: 3px 10px; border-radius: var(--radius-pill); background: var(--text-muted); color: var(--text-inverse); }
-  .ann { font-size: var(--fs-xs); color: var(--text-muted); line-height: 1.55; }
-  .ann b { color: var(--navy); }
+  .mock-page { padding: 0 16px 40px; }
+  .mock-brief { max-width: 780px; margin: 16px auto 0; background: var(--mock-note-bg); border: 1.5px solid var(--mock-note-border); border-radius: var(--radius-md); padding: 12px 14px; font-size: var(--fs-base); line-height: 1.6; }
+  .mock-brief h2 { font-size: var(--fs-lg); margin-bottom: 4px; }
+  .mock-brief ul { padding-left: 18px; }
+  .mock-label { justify-self: start; font-size: var(--fs-xs); font-weight: 800; padding: 3px 10px; border-radius: var(--radius-pill); background: var(--text-muted); color: var(--text-inverse); }
+  .mock-ann { font-size: var(--fs-xs); color: var(--text-muted); line-height: 1.55; }
+  .mock-ann b { color: var(--navy); }
   .mock-divider { border: 0; border-top: 2px dashed #c9cfdd; margin: 6px 0; }
+  .mock-ff { justify-self: start; background: transparent; border: 1.5px dashed var(--mock-note-border); color: var(--gold-text); border-radius: var(--radius-sm); padding: 6px 12px; font-size: var(--fs-xs); font-weight: 700; cursor: pointer; }
+  /* the app frame: the real header stays in the frame instead of sticking to the viewport */
+  .sp-app { max-width: 780px; margin: 16px auto 0; background: var(--bg); border: 1px solid #c9cfdd; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); }
+  .sp-app header { position: static; }
+  .sp-app main { padding-bottom: 28px; }
 
-  /* ════════ app shell (layout.css) ════════ */
-  .app { max-width: 780px; margin: 16px auto 0; background: var(--bg); border: 1px solid #c9cfdd; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); }
-  .hdr { background: var(--navy); padding: 0 16px; }
-  .hdr-in { height: 58px; display: flex; align-items: center; gap: 10px; }
-  .hdr .flag { font-size: 22px; }
-  .hdr .t1 { color: var(--text-inverse); font-size: var(--fs-lg); font-weight: 700; }
-  .hdr .t2 { color: var(--gold); font-size: var(--fs-xs); font-weight: 500; }
-  .main { padding: 20px 16px 28px; }
-  .screen { display: grid; gap: 16px; }
-  .section-title { font-size: var(--fs-base); font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
-  .card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow-sm); padding: 16px; display: grid; gap: 12px; min-width: 0; }
-  .card h3 { font-size: var(--fs-lg); text-wrap: balance; }
-  .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .muted { color: var(--text-muted); font-size: var(--fs-sm); line-height: 1.55; }
-  .steps { display: flex; gap: 6px; }
-  .step-dot { flex: 1; height: 4px; border-radius: var(--radius-pill); background: var(--border); }
-  .step-dot.on { background: var(--gold); }
-  .eyebrow { font-size: var(--fs-xs); font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold-text); }
-  .h2 { font-size: var(--fs-xl); margin-top: 2px; }
-  .back { background: none; border: 0; color: var(--navy-light); font-size: var(--fs-md); font-weight: 700; cursor: pointer; padding: 4px 0; justify-self: start; }
+  /* ════════ new plan components (sp-) ════════ */
+  .sp-stack { display: grid; gap: 16px; }
+  .sp-stack > .section-title, .sp-stack > .quiz-header, .sp-stack > .mode-grid, .sp-stack > .chip-row { margin-bottom: 0; }
+  .sp-card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow-sm); padding: 16px; display: grid; gap: 12px; min-width: 0; }
+  .sp-card h3 { font-size: var(--fs-lg); text-wrap: balance; }
+  .sp-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .sp-muted { color: var(--text-muted); font-size: var(--fs-sm); line-height: 1.55; }
+  .sp-h2 { font-size: 20px; margin-top: 2px; }
+  .sp-steps { display: flex; gap: 6px; }
+  .sp-steps i { flex: 1; height: 4px; border-radius: var(--radius-pill); background: var(--border); }
+  .sp-steps i.on { background: var(--gold); }
+  .nav-btn.sp-block { width: 100%; }
+  .nav-btn.sp-small { padding: 7px 14px; font-size: var(--fs-base); }
 
-  /* ── home (home.css) ── */
-  .mode-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-  .mode-card { background: var(--card); border-radius: var(--radius); padding: 16px 10px; border: 2px solid var(--border); text-align: center; display: grid; gap: 6px; }
-  .mode-icon { font-size: 26px; }
-  .mode-title { font-size: var(--fs-md); font-weight: 700; }
-  .plan-cta { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 12px; align-items: center; background: var(--card); border: 2px dashed var(--gold); border-radius: var(--radius); padding: 14px; cursor: pointer; text-align: left; width: 100%; }
-  .plan-cta .ic { width: 44px; height: 44px; border-radius: 12px; background: var(--gold-bg); display: grid; place-items: center; font-size: 22px; }
-  .plan-cta b { font-size: var(--fs-md); display: block; }
-  .plan-cta .go { background: var(--navy); color: var(--text-inverse); border-radius: var(--radius-pill); padding: 7px 12px; font-size: var(--fs-sm); font-weight: 800; white-space: nowrap; }
-  /* plan card: blue (option 1 of the lightness picker) */
-  .plan-home { --pc-bg: var(--navy-light); --pc-fg: var(--text-inverse); --pc-muted: var(--text-inverse-muted); --pc-day: var(--gold-light); --pc-track: rgba(255,255,255,0.18); --pc-line: rgba(255,255,255,0.4); --pc-border: transparent;
-    background: var(--pc-bg); color: var(--pc-fg); border: 1.5px solid var(--pc-border); border-radius: var(--radius); padding: 16px; display: grid; gap: 12px; box-shadow: var(--shadow-sm); }
-  .plan-home .top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
-  .plan-home .ttl { font-size: var(--fs-lg); font-weight: 800; }
-  .plan-home .ttl span { color: var(--pc-day); }
-  .plan-home .cd { font-size: var(--fs-sm); color: var(--pc-muted); }
-  .plan-home .bar { height: 8px; border-radius: var(--radius-pill); background: var(--pc-track); overflow: hidden; }
-  .plan-home .bar i { display: block; height: 100%; background: var(--green-light); border-radius: var(--radius-pill); }
-  .plan-home .next { font-size: var(--fs-sm); color: var(--pc-muted); line-height: 1.5; }
-  .plan-home .next b { color: var(--pc-fg); }
-  .plan-home .acts { display: flex; gap: 8px; flex-wrap: wrap; }
-  .plan-home .btn-line { color: var(--pc-fg); border-color: var(--pc-line); }
-  .btn-gold { background: var(--gold); color: var(--navy); border: 0; border-radius: var(--radius-sm); padding: 10px 16px; font-size: var(--fs-md); font-weight: 800; cursor: pointer; }
-  .btn-line { background: transparent; color: var(--text-inverse); border: 1.5px solid rgba(255,255,255,0.35); border-radius: var(--radius-sm); padding: 10px 14px; font-size: var(--fs-sm); font-weight: 700; cursor: pointer; }
+  /* home entry cards */
+  .sp-plan-cta { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 12px; align-items: center; background: var(--card); color: var(--text); border: 2px dashed var(--gold); border-radius: var(--radius); padding: 14px; cursor: pointer; text-align: left; width: 100%; }
+  .sp-plan-cta .ic { width: 44px; height: 44px; border-radius: 12px; background: var(--gold-bg); display: grid; place-items: center; font-size: 22px; }
+  .sp-plan-cta b { font-size: var(--fs-md); display: block; }
+  .sp-plan-cta .go { background: var(--navy); color: var(--text-inverse); border-radius: var(--radius-pill); padding: 7px 12px; font-size: var(--fs-sm); font-weight: 800; white-space: nowrap; }
+  .sp-plan-home { background: var(--navy-light); color: var(--text-inverse); border-radius: var(--radius); padding: 16px; display: grid; gap: 12px; box-shadow: var(--shadow-sm); }
+  .sp-plan-home .top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .sp-plan-home .ttl { font-size: var(--fs-lg); font-weight: 800; }
+  .sp-plan-home .ttl span { color: var(--gold-light); }
+  .sp-plan-home .cd, .sp-plan-home .next { font-size: var(--fs-sm); color: var(--text-inverse-strong); line-height: 1.5; }
+  .sp-plan-home .next b { color: var(--text-inverse); }
+  .sp-plan-home .bar { height: 8px; border-radius: var(--radius-pill); background: rgba(255,255,255,0.18); overflow: hidden; }
+  .sp-plan-home .bar i { display: block; height: 100%; background: var(--green-light); border-radius: var(--radius-pill); }
+  .sp-plan-home .acts { display: flex; gap: 8px; flex-wrap: wrap; }
+  .sp-btn-gold { background: var(--gold); color: var(--navy); border: 0; border-radius: var(--radius-md); padding: 10px 16px; font-size: var(--fs-md); font-weight: 800; cursor: pointer; }
+  .sp-btn-line { background: transparent; color: var(--text-inverse); border: 1.5px solid rgba(255,255,255,0.4); border-radius: var(--radius-md); padding: 10px 14px; font-size: var(--fs-sm); font-weight: 700; cursor: pointer; }
 
-  /* ── form ── */
-  .field { display: grid; gap: 8px; }
-  .field-label { font-size: var(--fs-md); font-weight: 700; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-  .field-label .val { color: var(--navy-light); font-size: var(--fs-lg); }
-  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-  .chip { background: var(--card); border: 1.5px solid var(--border); color: var(--text); border-radius: var(--radius-pill); padding: 7px 14px; font-size: var(--fs-base); font-weight: 600; cursor: pointer; }
-  .chip.on { background: var(--navy); border-color: var(--navy); color: var(--text-inverse); }
-  .chip.rest.on { background: var(--red); border-color: var(--red); }
-  .date-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-  .date-pick { margin-left: auto; display: flex; align-items: center; gap: 6px; font-size: var(--fs-sm); color: var(--text-muted); white-space: nowrap; }
-  input[type=date] { border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 6px 8px; font-size: var(--fs-base); background: var(--card); }
-  input[type=range] { width: 100%; accent-color: var(--navy); }
-  .ticks { position: relative; height: 28px; }
-  .ticks span { position: absolute; top: 0; transform: translateX(-50%); text-align: center; font-size: var(--fs-2xs); line-height: 1.25; color: var(--text-muted); white-space: nowrap; }
-  .ticks span.on { color: var(--navy); font-weight: 800; }
-  .level-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-  .level { background: var(--card); color: var(--text); border: 2px solid var(--border); border-radius: var(--radius-md); padding: 12px 8px; text-align: center; cursor: pointer; display: grid; gap: 4px; align-content: start; }
-  .level.on { border-color: var(--navy); background: var(--selected-bg); color: var(--text); }
-  .level.on .nm { color: var(--navy); }
-  .level.on .sb { color: var(--text-muted); }
-  .level .ic { font-size: 20px; }
-  .level .nm { font-size: var(--fs-base); font-weight: 800; color: var(--text); }
-  .level .sb { font-size: var(--fs-2xs); color: var(--text-muted); line-height: 1.4; }
+  /* goal form */
+  .sp-field { display: grid; gap: 8px; }
+  .sp-field-label { font-size: var(--fs-md); font-weight: 700; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .sp-field-label .val { color: var(--navy-light); font-size: var(--fs-lg); }
+  .sp-date-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .sp-date-row .chip-row, .sp-field .chip-row { margin-bottom: 0; }
+  .sp-date-pick { margin-left: auto; display: flex; align-items: center; gap: 6px; font-size: var(--fs-sm); color: var(--text-muted); white-space: nowrap; }
+  .sp-date-pick input { border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 6px 8px; font-size: var(--fs-base); background: var(--card); color: var(--text); }
+  .sp-range { width: 100%; accent-color: var(--navy); }
+  .sp-ticks { position: relative; height: 16px; }
+  .sp-ticks span { position: absolute; top: 0; transform: translateX(-50%); font-size: var(--fs-2xs); color: var(--text-muted); white-space: nowrap; }
+  .sp-ticks span.on { color: var(--navy); font-weight: 800; }
+  .chip.sp-rest.active { background: var(--red); border-color: var(--red); }
+  .mode-grid.sp-levels { margin-bottom: 0; }
+  .sp-level-sub { display: block; font-size: var(--fs-2xs); color: var(--text-muted); line-height: 1.4; font-weight: 500; }
 
-  /* ── feasibility ── */
-  .feas, .kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-  .stat { background: var(--bg); border-radius: var(--radius-md); padding: 10px; display: grid; gap: 2px; }
-  .stat .k { font-size: var(--fs-2xs); color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
-  .stat .v { font-size: var(--fs-xl); font-weight: 800; }
-  .stat .s { font-size: var(--fs-2xs); color: var(--text-muted); }
-  .meter { height: 10px; border-radius: var(--radius-pill); background: var(--border); overflow: hidden; position: relative; }
-  .meter i { position: absolute; inset: 0 auto 0 0; border-radius: var(--radius-pill); }
-  .pill { display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-xs); font-weight: 800; border-radius: var(--radius-pill); padding: 3px 10px; white-space: nowrap; }
-  .pill.ok { background: var(--success-bg); color: var(--green); }
-  .pill.warn { background: var(--gold-bg); color: var(--gold-text); }
-  .pill.bad { background: var(--danger-bg); color: var(--red); }
-  .pill.mute { background: var(--bg); color: var(--text-muted); }
-  .pill.now { background: var(--navy); color: var(--text-inverse); }
-  .heat-pill.h1 { background: var(--heat-1); color: var(--text-inverse); } .heat-pill.h2 { background: var(--heat-2); color: var(--text); } .heat-pill.h3 { background: var(--heat-3); color: var(--text); }
-  .cta { background: var(--navy); color: var(--text-inverse); border: 0; border-radius: var(--radius-md); padding: 14px; font-size: var(--fs-md); font-weight: 800; cursor: pointer; width: 100%; }
-  .cta:hover { background: var(--navy-mid); }
-  .ghost { background: transparent; border: 1.5px solid var(--border); color: var(--text-muted); border-radius: var(--radius-sm); padding: 6px 12px; font-size: var(--fs-sm); font-weight: 700; cursor: pointer; }
+  /* stats + pills */
+  .sp-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .sp-stat { background: var(--bg); border-radius: var(--radius-md); padding: 10px; display: grid; gap: 2px; }
+  .sp-stat .k { font-size: var(--fs-2xs); color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+  .sp-stat .v { font-size: 20px; font-weight: 800; }
+  .sp-stat .s { font-size: var(--fs-2xs); color: var(--text-muted); }
+  .sp-meter { height: 10px; border-radius: var(--radius-pill); background: var(--border); overflow: hidden; position: relative; }
+  .sp-meter i { position: absolute; inset: 0 auto 0 0; border-radius: var(--radius-pill); }
+  .sp-pill { display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-xs); font-weight: 800; border-radius: var(--radius-pill); padding: 3px 10px; white-space: nowrap; }
+  .sp-pill.ok { background: var(--success-bg); color: var(--green); }
+  .sp-pill.warn { background: var(--gold-bg); color: var(--gold-text); }
+  .sp-pill.bad { background: var(--danger-bg); color: var(--red); }
+  .sp-pill.mute { background: var(--bg); color: var(--text-muted); }
+  .sp-pill.now { background: var(--navy); color: var(--text-inverse); }
+  .sp-pill.h1 { background: var(--sp-heat-1); color: var(--text-inverse); } .sp-pill.h2 { background: var(--sp-heat-2); color: var(--text); } .sp-pill.h3 { background: var(--sp-heat-3); color: var(--text); }
 
-  /* ── plan: phases ── */
-  .phase-bar { display: flex; height: 34px; border-radius: var(--radius-sm); overflow: hidden; font-size: var(--fs-xs); font-weight: 800; color: var(--text-inverse); }
-  .phase-bar > div { display: flex; align-items: center; justify-content: center; min-width: 0; white-space: nowrap; overflow: hidden; padding: 0 4px; }
-  .ph-learn { background: var(--ph-learn); } .ph-practice { background: var(--ph-practice); } .ph-mock { background: var(--ph-mock); }
-  .strategy { display: grid; gap: 10px; }
-  .strat { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 10px; align-items: start; padding: 12px; border-radius: var(--radius-md); }
-  .strat.learn { background: var(--ph-learn-bg); } .strat.practice { background: var(--ph-practice-bg); } .strat.mock { background: var(--ph-mock-bg); }
-  .strat .n { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; color: var(--text-inverse); font-weight: 800; font-size: var(--fs-base); }
-  .strat.learn .n { background: var(--ph-learn); } .strat.practice .n { background: var(--ph-practice); } .strat.mock .n { background: var(--ph-mock); }
-  .strat h4 { font-size: var(--fs-md); margin-bottom: 2px; }
-  .strat ul { padding-left: 16px; font-size: var(--fs-sm); line-height: 1.6; }
-  .strat .days { font-size: var(--fs-xs); color: var(--text-muted); font-weight: 700; }
-  .order { display: grid; gap: 10px; }
-  .ord { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 10px; align-items: start; }
-  .ord .n { width: 26px; height: 26px; border-radius: 50%; background: var(--navy); color: var(--text-inverse); display: grid; place-items: center; font-size: var(--fs-sm); font-weight: 800; }
-  .ord .why { font-size: var(--fs-xs); color: var(--text-muted); line-height: 1.5; }
-  .chw { display: grid; grid-template-columns: minmax(0, 1fr) 90px 76px; gap: 8px; align-items: center; font-size: var(--fs-sm); }
-  .chw .bar { height: 8px; background: var(--border); border-radius: var(--radius-pill); overflow: hidden; }
-  .chw .bar i { display: block; height: 100%; background: var(--navy-light); border-radius: var(--radius-pill); }
-  .chw .c { text-align: right; color: var(--text-muted); }
+  /* plan: phases, order, day list */
+  .sp-phase-bar { display: flex; height: 34px; border-radius: var(--radius-sm); overflow: hidden; font-size: var(--fs-xs); font-weight: 800; color: var(--text-inverse); }
+  .sp-phase-bar > div { display: flex; align-items: center; justify-content: center; min-width: 0; white-space: nowrap; overflow: hidden; padding: 0 4px; }
+  .sp-bg-learn { background: var(--sp-ph-learn); } .sp-bg-practice { background: var(--sp-ph-practice); } .sp-bg-mock { background: var(--sp-ph-mock); }
+  .sp-strat { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 10px; align-items: start; padding: 12px; border-radius: var(--radius-md); }
+  .sp-strat.learn { background: var(--sp-ph-learn-bg); } .sp-strat.practice { background: var(--sp-ph-practice-bg); } .sp-strat.mock { background: var(--sp-ph-mock-bg); }
+  .sp-strat .n { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; color: var(--text-inverse); font-weight: 800; font-size: var(--fs-base); }
+  .sp-strat.learn .n { background: var(--sp-ph-learn); } .sp-strat.practice .n { background: var(--sp-ph-practice); } .sp-strat.mock .n { background: var(--sp-ph-mock); }
+  .sp-strat h4 { font-size: var(--fs-md); margin-bottom: 2px; }
+  .sp-strat ul { padding-left: 16px; font-size: var(--fs-sm); line-height: 1.6; }
+  .sp-strat .days { font-size: var(--fs-xs); color: var(--text-muted); font-weight: 700; }
+  .sp-order { display: grid; gap: 10px; }
+  .sp-ord { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 10px; align-items: start; }
+  .sp-ord .n { width: 26px; height: 26px; border-radius: 50%; background: var(--navy); color: var(--text-inverse); display: grid; place-items: center; font-size: var(--fs-sm); font-weight: 800; }
+  .sp-ord .why { font-size: var(--fs-xs); color: var(--text-muted); line-height: 1.5; }
+  .sp-chw { display: grid; grid-template-columns: minmax(0, 1fr) 90px 76px; gap: 8px; align-items: center; font-size: var(--fs-sm); }
+  .sp-chw .bar { height: 8px; background: var(--border); border-radius: var(--radius-pill); overflow: hidden; }
+  .sp-chw .bar i { display: block; height: 100%; background: var(--navy-light); border-radius: var(--radius-pill); }
+  .sp-chw .c { text-align: right; color: var(--text-muted); }
+  .sp-legend { display: flex; gap: 4px; align-items: center; font-size: var(--fs-2xs); color: var(--text-muted); flex-wrap: wrap; }
+  .sp-legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+  .sp-week { font-size: var(--fs-xs); font-weight: 800; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; padding-top: 8px; }
+  .sp-day { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; gap: 10px; align-items: start; padding: 10px 0; border-top: 1px solid var(--border); }
+  .sp-day .d { text-align: center; border-radius: var(--radius-sm); padding: 4px 0; font-weight: 800; font-size: var(--fs-md); line-height: 1.15; }
+  .sp-day .d small { display: block; font-size: var(--fs-2xs); font-weight: 600; color: var(--text-muted); }
+  .sp-day.learn .d { background: var(--sp-ph-learn-bg); color: var(--sp-ph-learn); }
+  .sp-day.practice .d { background: var(--sp-ph-practice-bg); color: var(--sp-ph-practice); }
+  .sp-day.mock .d { background: var(--sp-ph-mock-bg); color: var(--sp-ph-mock); }
+  .sp-day.rest .d { background: var(--bg); color: var(--text-muted); }
+  .sp-day.exam .d { color: var(--navy); }
+  .sp-day.exam .d small { color: var(--navy); font-weight: 700; }
+  .sp-day.exam .tasks b { color: var(--navy); font-size: var(--fs-md); }
+  .sp-day.today { background: var(--selected-bg); margin: 0 -8px; padding-inline: 8px; border-radius: var(--radius-sm); }
+  /* days not reached yet: light grey row, text and date box lighter */
+  .sp-day.future { background: var(--sp-future-row); margin: 0 -8px; padding-inline: 8px; }
+  .sp-day.future .tasks { color: var(--sp-future-text); }
+  .sp-day.future .tasks .t span:first-child { opacity: 0.55; }
+  .sp-day.future .d { opacity: 0.4; }
+  .sp-day.future .sp-pill { opacity: 0.5; }
+  .sp-day .tasks { display: grid; gap: 3px; font-size: var(--fs-sm); line-height: 1.45; }
+  .sp-day .tasks .t { display: flex; gap: 6px; }
+  /* exam day: amber with a fine gold lattice */
+  .sp-exam-pat, .sp-cell.sp-exam-pat { background-color: var(--sp-exam-bg); background-image: linear-gradient(45deg, var(--sp-exam-line) 1px, transparent 1px), linear-gradient(-45deg, var(--sp-exam-line) 1px, transparent 1px); background-size: 8px 8px; }
 
-  /* ── plan: day list ── */
-  .week-h { font-size: var(--fs-xs); font-weight: 800; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; padding-top: 8px; }
-  .day { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; gap: 10px; align-items: start; padding: 10px 0; border-top: 1px solid var(--border); }
-  .day .d { text-align: center; border-radius: var(--radius-sm); padding: 4px 0; font-weight: 800; font-size: var(--fs-md); line-height: 1.15; }
-  .day .d small { display: block; font-size: var(--fs-2xs); font-weight: 600; color: var(--text-muted); }
-  .day.learn .d { background: var(--ph-learn-bg); color: var(--ph-learn); }
-  .day.practice .d { background: var(--ph-practice-bg); color: var(--ph-practice); }
-  .day.mock .d { background: var(--ph-mock-bg); color: var(--ph-mock); }
-  .day.rest .d { background: var(--bg); color: var(--text-muted); }
-  .day.exam .d { color: var(--navy); }
-  .day.exam .d small { color: var(--navy); font-weight: 700; }
-  .day.exam .tasks b { color: var(--navy); font-size: var(--fs-md); }
-  .day.today { background: var(--selected-bg); margin: 0 -8px; padding-inline: 8px; border-radius: var(--radius-sm); }
-  /* days not reached yet: light grey row, text and date box one step lighter */
-  .day.future { background: #f6f7fa; margin: 0 -8px; padding-inline: 8px; }
-  .day.future .tasks { color: #a3adc4; }
-  .day.future .tasks .t span:first-child { opacity: 0.55; }
-  .day.future .d { opacity: 0.4; }
-  .day.future .pill { opacity: 0.5; }
-  .tasks { display: grid; gap: 3px; font-size: var(--fs-sm); line-height: 1.45; }
-  .tasks .t { display: flex; gap: 6px; }
-
-  /* ── today ── */
-  .today-head { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 16px; align-items: center; }
-  .ring { width: 112px; height: 112px; }
-  .ring circle { fill: none; stroke-width: 10; }
-  .ring .track { stroke: var(--border); }
-  .ring .prog { stroke: var(--green-light); stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset 0.4s; }
-  .ring text { fill: var(--text); font-weight: 800; font-size: 22px; }
-  .ring .sub { fill: var(--text-muted); font-size: 10px; font-weight: 700; }
-  .task { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px; border-radius: var(--radius-md); border: 1.5px solid var(--border); background: var(--card); cursor: pointer; text-align: left; width: 100%; }
-  .task:hover { border-color: var(--navy-light); }
-  .task .ic { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; font-size: 19px; }
-  .task.read .ic { background: var(--fact-bg); } .task.practice .ic { background: var(--selected-bg); } .task.review .ic { background: var(--danger-bg); } .task.mock .ic { background: var(--flag-bg); }
-  .task .ttl { font-size: var(--fs-md); font-weight: 700; line-height: 1.35; }
-  .task .st { font-size: var(--fs-xs); color: var(--text-muted); margin-top: 3px; }
-  .task .st b { color: var(--green); }
-  .task .mini { height: 5px; background: var(--border); border-radius: var(--radius-pill); overflow: hidden; margin-top: 6px; }
-  .task .mini i { display: block; height: 100%; background: var(--green-light); border-radius: var(--radius-pill); }
-  .task .go { font-size: var(--fs-sm); font-weight: 800; color: var(--navy-light); white-space: nowrap; }
-  .task.done { background: var(--success-bg); border-color: var(--green-light); }
-  .task.done .go { color: var(--green); }
+  /* today */
+  .sp-today-head { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 16px; align-items: center; }
+  .sp-ring { width: 112px; height: 112px; }
+  .sp-ring circle { fill: none; stroke-width: 10; }
+  .sp-ring .track { stroke: var(--border); }
+  .sp-ring .prog { stroke: var(--green-light); stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset 0.4s; }
+  .sp-ring text { fill: var(--text); font-weight: 800; font-size: 22px; }
+  .sp-ring .sub { fill: var(--text-muted); font-size: 10px; font-weight: 700; }
+  .sp-task { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px; border-radius: var(--radius-md); border: 1.5px solid var(--border); background: var(--card); color: var(--text); cursor: pointer; text-align: left; width: 100%; }
+  .sp-task:hover { border-color: var(--navy-light); }
+  .sp-task .ic { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; font-size: 19px; }
+  .sp-task.read .ic { background: var(--fact-bg); } .sp-task.practice .ic { background: var(--selected-bg); } .sp-task.review .ic { background: var(--danger-bg); } .sp-task.mock .ic { background: var(--flag-bg); }
+  .sp-task .ttl { display: block; font-size: var(--fs-md); font-weight: 700; line-height: 1.35; }
+  .sp-task .st { display: block; font-size: var(--fs-xs); color: var(--text-muted); margin-top: 3px; }
+  .sp-task .st b { color: var(--green); }
+  .sp-task .mini { display: block; height: 5px; background: var(--border); border-radius: var(--radius-pill); overflow: hidden; margin-top: 6px; }
+  .sp-task .mini i { display: block; height: 100%; background: var(--green-light); border-radius: var(--radius-pill); }
+  .sp-task .go { font-size: var(--fs-sm); font-weight: 800; color: var(--navy-light); white-space: nowrap; }
+  .sp-task.done { background: var(--success-bg); border-color: var(--green-light); }
+  .sp-task.done .go { color: var(--green); }
   /* not started = dashed; in progress = solid; done = green */
-  .task.todo { border-style: dashed; border-color: #bcc5dc; }
-  .task.carry { border-color: var(--orange); }
-  .tag { display: inline-block; font-size: var(--fs-2xs); font-weight: 800; border-radius: var(--radius-pill); padding: 1px 7px; margin-left: 6px; vertical-align: 1px; }
-  .tag.carry { background: var(--flag-bg); color: var(--orange); }
-  .tag.auto { background: var(--success-bg); color: var(--green); }
-  /* month switcher: ‹ 今日 › */
-  .cal-nav { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-  .cal-nav b { font-size: var(--fs-lg); }
-  .cal-btns { display: flex; gap: 4px; }
-  .cal-btn { background: var(--bg); border: 1.5px solid var(--border); border-radius: var(--radius-sm); min-width: 36px; height: 34px; padding: 0 10px; font-size: var(--fs-lg); font-weight: 700; color: var(--navy); cursor: pointer; }
-  .cal-btn.today { font-size: var(--fs-sm); padding: 0 14px; }
-  .cal-btn:disabled { opacity: 0.35; cursor: default; }
-  .cell.out { background: transparent; color: #b4bccf; font-weight: 600; }
-  .heat { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
-  .heat .dow { font-size: var(--fs-2xs); color: var(--text-muted); text-align: center; font-weight: 700; }
-  .cell { aspect-ratio: 1; max-width: 100%; border-radius: var(--radius-sm); display: grid; place-items: center; font-size: var(--fs-xs); font-weight: 800; background: var(--heat-0); }
-  .cell.h1 { background: var(--heat-1); color: var(--text-inverse); } .cell.h2 { background: var(--heat-2); } .cell.h3 { background: var(--heat-3); } .cell.h4 { background: var(--heat-4); color: var(--text-inverse); }
-  .cell.rest { background: repeating-linear-gradient(45deg, var(--bg), var(--bg) 4px, var(--border) 4px, var(--border) 6px); color: var(--text-muted); }
-  .cell.future { background: var(--card); border: 1.5px dashed var(--border); color: #a3adc4; }
-  .cell.today { outline: 2.5px solid var(--navy); outline-offset: 1px; }
-  /* exam day: amber with a fine gold lattice, icon + label */
-  .exam-pat { background-color: var(--exam-bg); background-image: linear-gradient(45deg, var(--exam-line) 1px, transparent 1px), linear-gradient(-45deg, var(--exam-line) 1px, transparent 1px); background-size: 8px 8px; }
-  .cell { position: relative; }
-  .cell.exam { color: var(--navy); }
-  .cell.exam small { position: absolute; left: 0; right: 0; top: calc(50% + 0.75em); text-align: center; font-size: 9px; font-weight: 800; white-space: nowrap; }
-  .legend .exam-swatch { background-color: var(--exam-bg); }
-  .legend { display: flex; gap: 4px; align-items: center; font-size: var(--fs-2xs); color: var(--text-muted); flex-wrap: wrap; }
-  .legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
-  .prog-rows { display: grid; gap: 10px; }
-  .pr { display: grid; gap: 4px; }
-  .pr .top { display: flex; justify-content: space-between; font-size: var(--fs-sm); font-weight: 700; gap: 8px; }
-  .pr .top span:last-child { color: var(--text-muted); }
-  .done-banner { background: var(--success-bg); color: var(--green); border-radius: var(--radius-md); padding: 12px 14px; font-size: var(--fs-md); line-height: 1.5; }
-  .done-banner b { margin-right: 4px; }
-  .alert { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px; background: var(--flag-bg); border-radius: var(--radius-md); padding: 10px 12px; font-size: var(--fs-sm); line-height: 1.55; }
+  .sp-task.todo { border-style: dashed; border-color: #bcc5dc; }
+  .sp-task.carry { border-color: var(--orange); }
+  .sp-tag { display: inline-block; font-size: var(--fs-2xs); font-weight: 800; border-radius: var(--radius-pill); padding: 1px 7px; margin-left: 6px; vertical-align: 1px; }
+  .sp-tag.carry { background: var(--flag-bg); color: var(--orange); }
+  .sp-tag.auto { background: var(--success-bg); color: var(--green); }
+  .sp-done-banner { background: var(--success-bg); color: var(--green); border-radius: var(--radius-md); padding: 12px 14px; font-size: var(--fs-md); line-height: 1.5; }
+  .sp-alert { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px; background: var(--flag-bg); border-radius: var(--radius-md); padding: 10px 12px; font-size: var(--fs-sm); line-height: 1.55; }
+  .sp-note { font-size: var(--fs-xs); color: var(--green); background: var(--success-bg); border-radius: var(--radius-sm); padding: 8px 10px; line-height: 1.5; }
 
-  /* ── runner (simulated Study / Practice screen) ── */
-  .run-head { display: grid; gap: 8px; }
-  .run-meta { display: flex; justify-content: space-between; font-size: var(--fs-sm); color: var(--text-muted); font-weight: 700; gap: 8px; }
-  .fact { background: var(--fact-bg); border-radius: var(--radius); padding: 18px; display: grid; gap: 10px; border: 1px solid rgba(201,168,76,0.35); }
-  .fact .en { font-size: var(--fs-lg); line-height: 1.55; font-weight: 600; }
-  .fact .yue { font-size: var(--fs-md); line-height: 1.6; color: var(--text-muted); }
-  .demo-tag { justify-self: start; font-size: var(--fs-2xs); font-weight: 800; color: var(--gold-text); background: var(--gold-bg); border-radius: var(--radius-pill); padding: 2px 8px; }
-  .q-text { font-size: var(--fs-lg); font-weight: 700; line-height: 1.5; }
-  .q-yue { font-size: var(--fs-base); color: var(--text-muted); margin-top: 4px; }
-  .opts { display: grid; gap: 8px; }
-  .opt { text-align: left; background: var(--card); border: 2px solid var(--border); border-radius: var(--radius-md); padding: 12px 14px; font-size: var(--fs-md); cursor: pointer; line-height: 1.4; }
-  .opt.right { border-color: var(--green-light); background: var(--success-bg); }
-  .opt.wrong { border-color: var(--red-light); background: var(--danger-bg); }
-  .opt:disabled { cursor: default; }
-  .run-acts { display: flex; gap: 8px; flex-wrap: wrap; }
-  .run-acts .cta { flex: 1; width: auto; }
-  .note { font-size: var(--fs-xs); color: var(--green); background: var(--success-bg); border-radius: var(--radius-sm); padding: 8px 10px; line-height: 1.5; }
+  /* completion calendar (one month, ‹ 今日 › switcher built from .quick-btn + .chip) */
+  .sp-cal-nav { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .sp-cal-nav b { font-size: var(--fs-lg); }
+  .sp-cal-btns { display: flex; gap: 6px; align-items: center; }
+  .sp-cal-btns .chip { padding: 6px 14px; }
+  .sp-heat { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+  .sp-heat .dow { font-size: var(--fs-2xs); color: var(--text-muted); text-align: center; font-weight: 700; }
+  .sp-cell { position: relative; aspect-ratio: 1; max-width: 100%; border-radius: var(--radius-sm); display: grid; place-items: center; font-size: var(--fs-xs); font-weight: 800; background: var(--sp-heat-0); }
+  .sp-cell.h1 { background: var(--sp-heat-1); color: var(--text-inverse); } .sp-cell.h2 { background: var(--sp-heat-2); } .sp-cell.h3 { background: var(--sp-heat-3); } .sp-cell.h4 { background: var(--sp-heat-4); color: var(--text-inverse); }
+  .sp-cell.rest { background: repeating-linear-gradient(45deg, var(--bg), var(--bg) 4px, var(--border) 4px, var(--border) 6px); color: var(--text-muted); }
+  .sp-cell.future { background: var(--card); border: 1.5px dashed var(--border); color: var(--sp-future-text); }
+  .sp-cell.out { background: transparent; color: var(--sp-out-text); font-weight: 600; }
+  .sp-cell.today { outline: 2.5px solid var(--navy); outline-offset: 1px; }
+  .sp-cell.exam { color: var(--navy); }
+  .sp-cell.exam small { position: absolute; left: 0; right: 0; top: calc(50% + 0.75em); text-align: center; font-size: 9px; font-weight: 800; white-space: nowrap; }
+  .sp-prog-rows { display: grid; gap: 10px; }
+  .sp-pr { display: grid; gap: 4px; }
+  .sp-pr .top { display: flex; justify-content: space-between; font-size: var(--fs-sm); font-weight: 700; gap: 8px; }
+  .sp-pr .top span:last-child { color: var(--text-muted); }
+
+  /* runner: progress line above the fact card, spacing between app blocks */
+  .sp-run-meta { display: flex; justify-content: space-between; font-size: var(--fs-sm); color: var(--text-muted); font-weight: 700; gap: 8px; margin-bottom: 6px; }
+  .sp-run-gap { height: 14px; }
 
   @media (max-width: 480px) {
-    .feas, .kpis { grid-template-columns: 1fr 1fr; }
-    .feas .stat:last-child, .kpis .stat:last-child { grid-column: 1 / -1; }
-    .today-head { grid-template-columns: 1fr; justify-items: center; text-align: center; }
-    .chw { grid-template-columns: minmax(0, 1fr) 70px 70px; }
-    .plan-cta { grid-template-columns: 44px minmax(0, 1fr); }
-    .plan-cta .go { grid-column: 1 / -1; text-align: center; }
+    .sp-stats { grid-template-columns: 1fr 1fr; }
+    .sp-stats .sp-stat:last-child { grid-column: 1 / -1; }
+    .sp-today-head { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+    .sp-chw { grid-template-columns: minmax(0, 1fr) 70px 70px; }
+    .sp-plan-cta { grid-template-columns: 44px minmax(0, 1fr); }
+    .sp-plan-cta .go { grid-column: 1 / -1; text-align: center; }
   }
-  @media (prefers-reduced-motion: reduce) { .ring .prog { transition: none; } }
+  @media (prefers-reduced-motion: reduce) { .sp-ring .prog { transition: none; } }
 </style>
 </head>
 <body>
@@ -288,222 +240,221 @@
   </div>
 </div>
 
-<div class="page">
-  <div class="brief">
+<div class="mock-page">
+  <div class="mock-brief">
     <h2>點樣睇呢個 mockup</h2>
     <ul>
-      <li><b>入口</b>：主頁「選擇模式」上面加一張溫習計劃卡。未有計劃就顯示「建立」；有計劃之後，每次打開 app 都會見到今日進度，㩒「繼續」返去今日任務。</li>
-      <li><b>今日任務</b>唔使自己剔。System 根據你喺溫習／練習模式做咗幾多嚟計完成度；練完一段題目，對應嗰段知識點會當溫咗。㩒任務會入去溫或者練（mockup 用示範內容模擬）。</li>
-      <li>溫習次序：Ch1–2（熱身）→ Ch5 → Ch4 → Ch3 History（最難記，放最後）。每日讀完知識點，即刻做同一段嘅題目。</li>
-      <li>內容量用 app 真實數字：236 條知識點、408 題（17 份 exam × 24 題）、合格線 18/24。Step ③ 假設今日係第 8 日，之前幾日係示範數據。</li>
+      <li><b>Common component</b>：直接載入 app 嘅 CSS（<code>css/</code>）。header、← 主頁、chip、模式卡、題目卡、選項、答案框、上一題／下一題、知識點卡、結果卡全部同 app 一樣；新 component 先用 <code>sp-</code> 前綴。</li>
+      <li><b>入口</b>：主頁「選擇模式」上面加溫習計劃卡。未有計劃顯示「建立」；有計劃每日打開都見到今日進度，㩒「繼續」返去今日任務。</li>
+      <li><b>今日任務</b>唔使自己剔，完成度由 system 計。㩒任務會入去同 Practice mode 一樣嘅答題介面，或者同溫習模式一樣嘅知識點卡。練完一段題目，對應知識點當溫咗。</li>
+      <li>溫習次序：Ch1–2 → Ch5 → Ch4 → Ch3 History。內容量用 app 真實數字（236 條知識點、408 題）。Step ③ 假設今日係第 8 日。</li>
     </ul>
   </div>
 
-  <div class="app">
-    <header class="hdr"><div class="hdr-in"><span class="flag">🇬🇧</span><div><div class="t1">Life in the UK Test</div><div class="t2">英國入籍試練習</div></div></div></header>
-    <main class="main">
+  <div class="sp-app">
+    <header>
+      <div class="header-inner">
+        <div class="logo">
+          <span class="logo-flag">🇬🇧</span>
+          <div>
+            <div class="logo-text"><span>Life in the UK</span></div>
+            <div class="logo-sub"><span>考試練習</span> <span class="app-version">v0.71</span></div>
+          </div>
+        </div>
+        <button class="lang-btn" type="button">EN</button>
+      </div>
+    </header>
+    <main>
 
       <!-- ════════ STEP 0: ENTRY (HOME) ════════ -->
-      <section class="screen" id="step0">
-        <span class="frame-label">狀態 A · 未有計劃</span>
-        <button class="plan-cta" data-goto="1">
+      <div class="screen active" id="step0"><div class="sp-stack">
+        <span class="mock-label">狀態 A · 未有計劃</span>
+        <button class="sp-plan-cta" data-goto="1">
           <span class="ic">🗓️</span>
-          <span><b>建立溫習計劃</b><span class="muted">話我知幾時考試、每日有幾多時間，幫你排好每日要溫同練嘅內容。</span></span>
+          <span><b>建立溫習計劃</b><span class="sp-muted">話我知幾時考試、每日有幾多時間，幫你排好每日要溫同練嘅內容。</span></span>
           <span class="go">建立 →</span>
         </button>
         <div class="section-title">選擇模式</div>
         <div class="mode-grid">
-          <div class="mode-card"><div class="mode-icon">📖</div><div class="mode-title">溫習</div></div>
-          <div class="mode-card"><div class="mode-icon">📝</div><div class="mode-title">練習</div></div>
-          <div class="mode-card"><div class="mode-icon">🎯</div><div class="mode-title">模擬考試</div></div>
+          <button class="mode-card"><div class="mode-icon">📖</div><div class="mode-title">溫習</div></button>
+          <button class="mode-card"><div class="mode-icon">📝</div><div class="mode-title">練習</div></button>
+          <button class="mode-card"><div class="mode-icon">🎯</div><div class="mode-title">模擬考試</div></button>
         </div>
-        <p class="ann">第一次用，或者未建立計劃：主頁頂多一張金色虛線卡。用戶可以唔理佢，照用原本三個模式。</p>
+        <p class="mock-ann">第一次用，或者未建立計劃：主頁頂多一張金色虛線卡。用戶可以唔理佢，照用原本三個模式。</p>
 
         <hr class="mock-divider">
 
-        <span class="frame-label">狀態 B · 已有計劃（每日打開 app）</span>
-        <div class="plan-home" id="planHome">
+        <span class="mock-label">狀態 B · 已有計劃（每日打開 app）</span>
+        <div class="sp-plan-home">
           <div class="top"><span class="ttl">🗓️ 溫習計劃 · <span class="num" id="hDay"></span></span><span class="cd num" id="hLeft"></span></div>
-          <div class="row" style="font-size: var(--fs-sm);"><span>今日完成度</span><b class="num" id="hPct"></b></div>
+          <div class="sp-row" style="font-size: var(--fs-sm);"><span>今日完成度</span><b class="num" id="hPct"></b></div>
           <div class="bar"><i id="hBar"></i></div>
           <div class="next" id="hNext"></div>
           <div class="acts">
-            <button class="btn-gold" data-goto="3" id="hGo">繼續今日任務 →</button>
-            <button class="btn-line" data-goto="2">進度表</button>
+            <button class="sp-btn-gold" data-goto="3" id="hGo">繼續今日任務 →</button>
+            <button class="sp-btn-line" data-goto="2">進度表</button>
           </div>
         </div>
         <div class="section-title">選擇模式</div>
         <div class="mode-grid">
-          <div class="mode-card"><div class="mode-icon">📖</div><div class="mode-title">溫習</div></div>
-          <div class="mode-card"><div class="mode-icon">📝</div><div class="mode-title">練習</div></div>
-          <div class="mode-card"><div class="mode-icon">🎯</div><div class="mode-title">模擬考試</div></div>
+          <button class="mode-card"><div class="mode-icon">📖</div><div class="mode-title">溫習</div></button>
+          <button class="mode-card"><div class="mode-icon">📝</div><div class="mode-title">練習</div></button>
+          <button class="mode-card"><div class="mode-icon">🎯</div><div class="mode-title">模擬考試</div></button>
         </div>
-        <p class="ann"><b>每日返嚟：</b>建立計劃之後，計劃卡會換成藍色系，顯示第幾日、今日完成度同下一步，㩒「繼續」會由上次停低嘅位置開始。用原本嘅溫習／練習模式做過嘅內容都會計入今日進度。今日全部完成之後，卡會變成「✓ 今日完成」，第二日再顯示新任務。</p>
-      </section>
+        <p class="mock-ann"><b>每日返嚟：</b>計劃卡顯示第幾日、今日完成度同下一步，㩒「繼續」由上次停低嘅位置開始。用原本溫習／練習模式做過嘅內容都會計入今日進度。今日全部完成之後，卡會顯示「✓ 今日完成」。</p>
+      </div></div>
 
       <!-- ════════ STEP 1: GOAL ════════ -->
-      <section class="screen" id="step1" hidden>
-        <button class="back" data-goto="0">← 主頁</button>
-        <div class="steps"><i class="step-dot on"></i><i class="step-dot"></i></div>
+      <div class="screen" id="step1"><div class="sp-stack">
+        <div class="quiz-header">
+          <button class="back-btn" data-goto="0">← 主頁</button>
+          <span class="quiz-label">建立計劃 · 1 / 2</span>
+        </div>
+        <div class="sp-steps"><i class="on"></i><i></i></div>
         <div>
-          <div class="eyebrow">建立計劃 · 1 / 2</div>
-          <h2 class="h2">定個目標先</h2>
-          <p class="muted">答 4 條問題，幫你計一份做得到嘅進度表。</p>
+          <h2 class="sp-h2">定個目標先</h2>
+          <p class="sp-muted">答 4 條問題，幫你計一份做得到嘅進度表。</p>
         </div>
 
-        <div class="card">
-          <div class="field">
-            <div class="field-label">幾耐之後考試？<span class="val num" id="daysVal"></span></div>
-            <div class="date-row">
-              <div class="chips" id="daysChips">
+        <div class="sp-card">
+          <div class="sp-field">
+            <div class="sp-field-label">幾耐之後考試？<span class="val num" id="daysVal"></span></div>
+            <div class="sp-date-row">
+              <div class="chip-row" id="daysChips">
                 <button class="chip" data-days="14">2 星期</button>
-                <button class="chip on" data-days="21">3 星期</button>
+                <button class="chip active" data-days="21">3 星期</button>
                 <button class="chip" data-days="28">4 星期</button>
                 <button class="chip" data-days="42">個半月</button>
               </div>
-              <label class="date-pick" for="examDate">或考試日期 <input type="date" id="examDate"></label>
+              <label class="sp-date-pick" for="examDate">或考試日期 <input type="date" id="examDate"></label>
             </div>
           </div>
         </div>
 
-        <div class="card">
-          <div class="field">
-            <label class="field-label" for="minsRange">每日最多可以溫幾耐？<span class="val num" id="minsVal"></span></label>
-            <input type="range" id="minsRange" min="30" max="120" step="15" value="120">
-            <div class="ticks num" id="minsTicks"></div>
+        <div class="sp-card">
+          <div class="sp-field">
+            <label class="sp-field-label" for="minsRange">每日最多可以溫幾耐？<span class="val num" id="minsVal"></span></label>
+            <input class="sp-range" type="range" id="minsRange" min="30" max="120" step="15" value="120">
+            <div class="sp-ticks num" id="minsTicks"></div>
           </div>
-          <div class="field">
-            <div class="field-label">休息日（唔排任務）</div>
-            <div class="chips" id="restChips"></div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="field">
-            <div class="field-label">你而家嘅程度</div>
-            <div class="level-grid" id="levelGrid"></div>
+          <div class="sp-field">
+            <div class="sp-field-label">休息日（唔排任務）</div>
+            <div class="chip-row" id="restChips"></div>
           </div>
         </div>
 
-        <div class="card">
-          <div class="row"><h3>時間夠唔夠？</h3><span class="pill" id="feasPill"></span></div>
-          <div class="feas">
-            <div class="stat"><span class="k">溫習日</span><span class="v num" id="fDays"></span><span class="s" id="fDaysS"></span></div>
-            <div class="stat"><span class="k">可用時間</span><span class="v num" id="fAvail"></span><span class="s">每日上限 × 溫習日</span></div>
-            <div class="stat"><span class="k">建議需要</span><span class="v num" id="fNeed"></span><span class="s">讀 + 練 + mock</span></div>
+        <div class="sp-card">
+          <div class="sp-field">
+            <div class="sp-field-label">你而家嘅程度</div>
+            <div class="mode-grid sp-levels" id="levelGrid"></div>
           </div>
-          <div class="meter"><i id="fMeter"></i></div>
-          <p class="muted" id="feasMsg"></p>
         </div>
 
-        <button class="cta" data-goto="2">建立進度表 →</button>
-      </section>
+        <div class="sp-card">
+          <div class="sp-row"><h3>時間夠唔夠？</h3><span class="sp-pill" id="feasPill"></span></div>
+          <div class="sp-stats">
+            <div class="sp-stat"><span class="k">溫習日</span><span class="v num" id="fDays"></span><span class="s" id="fDaysS"></span></div>
+            <div class="sp-stat"><span class="k">可用時間</span><span class="v num" id="fAvail"></span><span class="s">每日上限 × 溫習日</span></div>
+            <div class="sp-stat"><span class="k">建議需要</span><span class="v num" id="fNeed"></span><span class="s">讀 + 練 + mock</span></div>
+          </div>
+          <div class="sp-meter"><i id="fMeter"></i></div>
+          <p class="sp-muted" id="feasMsg"></p>
+        </div>
+
+        <button class="nav-btn sp-block" data-goto="2">建立進度表 →</button>
+      </div></div>
 
       <!-- ════════ STEP 2: PLAN ════════ -->
-      <section class="screen" id="step2" hidden>
-        <button class="back" data-goto="0">← 主頁</button>
-        <div class="row" style="align-items: end;">
-          <div>
-            <div class="eyebrow">進度表</div>
-            <h2 class="h2">你嘅進度表</h2>
-            <p class="muted" id="planSummary"></p>
-          </div>
-          <button class="ghost" data-goto="1">改目標</button>
+      <div class="screen" id="step2"><div class="sp-stack">
+        <div class="quiz-header">
+          <button class="back-btn" data-goto="0">← 主頁</button>
+          <span class="quiz-label">進度表</span>
+          <button class="nav-btn secondary sp-small" data-goto="1">改目標</button>
+        </div>
+        <div>
+          <h2 class="sp-h2">你嘅進度表</h2>
+          <p class="sp-muted" id="planSummary"></p>
         </div>
 
-        <div class="card">
+        <div class="sp-card">
           <h3>三個階段</h3>
-          <div class="phase-bar" id="phaseBar"></div>
-          <div class="strategy" id="strategy"></div>
+          <div class="sp-phase-bar" id="phaseBar"></div>
+          <div class="sp-stack" style="gap: 10px;" id="strategy"></div>
         </div>
 
-        <div class="card">
+        <div class="sp-card">
           <h3>溫習次序：由易到難，History 放最後</h3>
-          <p class="muted">每章分配嘅時間跟知識點數量；次序按難度排，最難記嘅 History 擺最後，考試前仲記得新鮮。</p>
+          <p class="sp-muted">每章分配嘅時間跟知識點數量；次序按難度排，最難記嘅 History 擺最後，考試前仲記得新鮮。</p>
           <div id="chWeight"></div>
         </div>
 
-        <div class="card">
-          <div class="row">
+        <div class="sp-card">
+          <div class="sp-row">
             <h3>每日任務</h3>
-            <span class="legend"><i style="background: var(--ph-learn)"></i>讀 + 練 <i style="background: var(--ph-practice)"></i>強化練習 <i style="background: var(--ph-mock)"></i>模擬考</span>
+            <span class="sp-legend"><i class="sp-bg-learn"></i>讀 + 練 <i class="sp-bg-practice"></i>強化練習 <i class="sp-bg-mock"></i>模擬考</span>
           </div>
           <div id="dayList"></div>
         </div>
 
-        <button class="cta" data-goto="3">睇今日任務 →</button>
-      </section>
+        <button class="nav-btn sp-block" data-goto="3">睇今日任務 →</button>
+      </div></div>
 
       <!-- ════════ STEP 3: TODAY ════════ -->
-      <section class="screen" id="step3" hidden>
-        <button class="back" data-goto="0">← 主頁</button>
-        <div class="row" style="align-items: end;">
-          <div>
-            <div class="eyebrow num" id="todayEyebrow"></div>
-            <h2 class="h2">今日任務</h2>
-          </div>
-          <button class="ghost" data-goto="2">進度表</button>
+      <div class="screen" id="step3"><div class="sp-stack">
+        <div class="quiz-header">
+          <button class="back-btn" data-goto="0">← 主頁</button>
+          <span class="quiz-label num" id="todayLabel"></span>
+          <button class="nav-btn secondary sp-small" data-goto="2">進度表</button>
         </div>
 
-        <div class="card">
-          <div class="today-head">
-            <svg class="ring" viewBox="0 0 112 112" aria-hidden="true">
+        <div class="sp-card">
+          <div class="sp-today-head">
+            <svg class="sp-ring" viewBox="0 0 112 112" aria-hidden="true">
               <circle class="track" cx="56" cy="56" r="46"></circle>
               <circle class="prog" id="ringProg" cx="56" cy="56" r="46"></circle>
               <text x="56" y="58" text-anchor="middle" class="num" id="ringPct">0%</text>
               <text x="56" y="76" text-anchor="middle" class="sub">今日完成度</text>
             </svg>
             <div style="display: grid; gap: 6px;">
-              <span class="pill" id="todayPhase" style="justify-self: start;"></span>
+              <span class="sp-pill" id="todayPhase" style="justify-self: start;"></span>
               <div style="font-size: var(--fs-md); font-weight: 700;" class="num" id="todayCount"></div>
-              <p class="muted">完成度由 system 自動計：喺溫習／練習模式做咗嘅都計。練完一段題目，嗰段知識點當溫咗。</p>
+              <p class="sp-muted">完成度由 system 自動計：喺溫習／練習模式做咗嘅都計。練完一段題目，嗰段知識點當溫咗。</p>
             </div>
           </div>
-          <div class="done-banner" id="doneBanner" hidden>🎉 <b>今日任務全部完成！</b>聽日主頁會顯示新一日嘅任務。</div>
+          <div class="sp-done-banner" id="doneBanner" hidden>🎉 <b>今日任務全部完成！</b>聽日主頁會顯示新一日嘅任務。</div>
           <div style="display: grid; gap: 8px;" id="taskList"></div>
-          <button class="ghost" data-reset="1" style="justify-self: start;">↺ 重設示範進度（mockup）</button>
+          <button class="mock-ff" data-reset="1">↺ 重設示範進度（mockup）</button>
         </div>
 
-        <div class="alert"><span>⚠️</span><div><b>第 5 日仲有 1 項未完成。</b>已經自動加入今日，標住「補做」。如果連續 2 日落後，app 會建議調整進度表。</div></div>
+        <div class="sp-alert"><span>⚠️</span><div><b>第 5 日仲有 1 項未完成。</b>已經自動加入今日，標住「補做」。如果連續 2 日落後，app 會建議調整進度表。</div></div>
 
-        <div class="card">
-          <div class="row"><h3>每日完成度</h3><span class="pill ok num" id="streakPill"></span></div>
-          <div class="cal-nav">
+        <div class="sp-card">
+          <div class="sp-row"><h3>每日完成度</h3><span class="study-progress num" id="streakPill"></span></div>
+          <div class="sp-cal-nav">
             <b class="num" id="calTitle"></b>
-            <div class="cal-btns">
-              <button class="cal-btn" id="calPrev" data-month="-1" aria-label="上個月">‹</button>
-              <button class="cal-btn today" id="calToday" data-month="0">今日</button>
-              <button class="cal-btn" id="calNext" data-month="1" aria-label="下個月">›</button>
+            <div class="sp-cal-btns">
+              <button class="quick-btn" id="calPrev" data-month="-1" aria-label="上個月">‹</button>
+              <button class="chip" id="calToday" data-month="0">今日</button>
+              <button class="quick-btn" id="calNext" data-month="1" aria-label="下個月">›</button>
             </div>
           </div>
           <div id="heat"></div>
-          <div class="legend">0% <i style="background: var(--heat-1)"></i><i style="background: var(--heat-2)"></i><i style="background: var(--heat-3)"></i><i style="background: var(--heat-4)"></i> 100% · <i class="exam-swatch"></i> 考試日</div>
+          <div class="sp-legend">0% <i style="background: var(--sp-heat-1)"></i><i style="background: var(--sp-heat-2)"></i><i style="background: var(--sp-heat-3)"></i><i style="background: var(--sp-heat-4)"></i> 100% · <i style="background: var(--sp-exam-bg)"></i> 考試日</div>
         </div>
 
-        <div class="card">
+        <div class="sp-card">
           <h3>整體進度</h3>
-          <div class="kpis">
-            <div class="stat"><span class="k">計劃進度</span><span class="v num" id="kPlan"></span><span class="s num" id="kPlanS"></span></div>
-            <div class="stat"><span class="k">平均完成度</span><span class="v num" id="kAvg"></span><span class="s">已過嘅溫習日</span></div>
-            <div class="stat"><span class="k">距離考試</span><span class="v num" id="kLeft"></span><span class="s">連休息日</span></div>
+          <div class="sp-stats">
+            <div class="sp-stat"><span class="k">計劃進度</span><span class="v num" id="kPlan"></span><span class="s num" id="kPlanS"></span></div>
+            <div class="sp-stat"><span class="k">平均完成度</span><span class="v num" id="kAvg"></span><span class="s">已過嘅溫習日</span></div>
+            <div class="sp-stat"><span class="k">距離考試</span><span class="v num" id="kLeft"></span><span class="s">連休息日</span></div>
           </div>
-          <div class="prog-rows" id="progRows"></div>
+          <div class="sp-prog-rows" id="progRows"></div>
         </div>
-      </section>
+      </div></div>
 
-      <!-- ════════ RUNNER: simulated Study / Practice screen ════════ -->
-      <section class="screen" id="runner" hidden>
-        <button class="back" data-goto="3">← 今日任務</button>
-        <div class="run-head">
-          <div class="eyebrow" id="runMode"></div>
-          <h2 class="h2" id="runTitle" style="font-size: var(--fs-lg);"></h2>
-          <div class="run-meta num"><span id="runPos"></span><span id="runCount"></span></div>
-          <div class="meter"><i id="runBar" style="background: var(--green-light);"></i></div>
-        </div>
-        <div id="runBody"></div>
-        <div class="run-acts" id="runActs"></div>
-        <p class="ann">Mockup：內容係示範，唔係真係對應嗰個 # 號。㩒「快進」可以即刻當完成呢項，睇返完成度點樣更新。</p>
-      </section>
+      <!-- ════════ RUNNER: the app's own Practice / Study / Result markup ════════ -->
+      <div class="screen" id="runner"></div>
 
     </main>
   </div>
@@ -526,17 +477,22 @@ const REAL_TEST_SIZE = 24;
 const PASS_RATIO = 0.75;
 const PASS_SCORE = Math.ceil(REAL_TEST_SIZE * PASS_RATIO);
 const EXAM_MINUTES = 45;
+const MASTERY_STREAK = 3;
+const PRACTICE_ROUND_MAX = 24;               // js/core/config.js: questions per practice round
+const MAX_STARS = 5;
+const OPTION_LETTERS = ['A', 'B', 'C', 'D'];
+const BOOKMARK_PATH = 'M7.5 3.5h9A2.5 2.5 0 0 1 19 6v14.5l-7-5.1-7 5.1V6a2.5 2.5 0 0 1 2.5-2.5z';
 
-// ── sample content for the simulated runner (real items from data/study.js + data/exams.js) ──
+// ── sample content for the runner (real items from data/study.js + data/exams.js) ──
 const SAMPLE_FACTS = [
-  { en: 'The First World War ended at 11am on 11th November 1918.', yue: '第一次世界大戰喺 1918 年 11 月 11 日上午 11 時結束。' },
-  { en: 'In 1918 women over 30 were given the right to vote, in recognition of their contribution to the First World War.', yue: '1918 年 30 歲以上嘅女性有咗投票權，係表揚佢哋喺一戰嘅貢獻。' },
-  { en: 'In 1928 women were given the right to vote at 21, the same age as men.', yue: '1928 年女性投票年齡降到 21 歲，同男性一樣。' },
+  { id: 67, d: 3, src: ['E4·Q12', 'E15·Q5'], en: 'The First World War ended at 11am on 11th November 1918.', yue: '第一次世界大戰喺 1918 年 11 月 11 日上午 11 時結束。' },
+  { id: 68, d: 4, src: ['E2·Q4', 'E10·Q6'], en: 'In 1918 women over 30 were given the right to vote, in recognition of their contribution to the First World War.', yue: '1918 年 30 歲以上嘅女性有咗投票權，係表揚佢哋喺一戰嘅貢獻。' },
+  { id: 69, d: 4, src: ['E1·Q2', 'E9·Q6'], en: 'In 1928 women were given the right to vote at 21, the same age as men.', yue: '1928 年女性投票年齡降到 21 歲，同男性一樣。' },
 ];
 const SAMPLE_QS = [
-  { q: 'What is the significance of the Act of Union 1707?', yue: '1707年《聯合法案》有咩重要性？', o: ['England and Ireland merged', 'England and Wales formally united', 'United England and Scotland into one kingdom (Great Britain)', 'The UK joined the EU'], a: 2 },
-  { q: 'Where did William Shakespeare go to school?', yue: '莎士比亞喺邊度讀書？', o: ['Eton College', 'Oxford University', 'Stratford Grammar School, Stratford-upon-Avon', 'Cambridge University'], a: 2 },
-  { q: 'What is the significance of the Good Friday Agreement?', yue: '《耶穌受難日協議》有咩重要性？', o: ['It ended the Second World War', 'Brought peace to Northern Ireland after decades of conflict (signed 1998)', 'It created the Scottish Parliament', 'It established the Human Rights Act'], a: 1 },
+  { d: 3, q: 'During the reign of Charles II, parts of London were destroyed by:', yue: '查理二世嗰陣，倫敦有部分地區被摧毀，原因係：', o: ['A war', 'A flood', 'A fire', 'An earthquake'], oy: ['一場戰爭', '水災', '火災', '地震'], a: 2, note: '1666年倫敦大火，包括聖保羅大教堂' },
+  { d: 1, q: 'What limited the power of the English King in 1215?', yue: '1215年邊份文件限制咗英格蘭國王嘅權力？', o: ['The Bill of Rights', 'The Magna Carta', 'The Act of Union', 'The Petition of Right'], oy: ['《權利法案》', '《大憲章》', '《聯合法案》', '《權利請願書》'], a: 1, note: '記憶法（Magna Carta，大憲章）：\n1215 → King John（約翰王）簽署；\n限制國王權力 → 冇人凌駕法律之上，國王都唔例外；\n奠定法治（rule of law）基礎。' },
+  { d: 1, q: 'Who defeated Harold at the Battle of Hastings?', yue: '邊個喺黑斯廷斯戰役打敗哈羅德國王？', o: ['King Canute', 'William, Duke of Normandy', 'Julius Caesar', 'Edward the Confessor'], oy: ['克努特國王', '諾曼第公爵威廉', '凱撒', '懺悔者愛德華'], a: 1, note: '1066 → Battle of Hastings（黑斯廷斯戰役）→ William of Normandy 打敗 Harold → 諾曼征服' },
 ];
 
 // ── plan tuning ──
@@ -582,7 +538,7 @@ const PHASES = {
   mock: { name: '模擬考', cls: 'mock' },
 };
 const TASK_ICONS = { read: '📖', practice: '📝', review: '🔁', mock: '🎯' };
-const TASK_MODES = { read: '溫習模式', practice: '練習模式', review: '錯題', mock: '模擬考試' };
+const TASK_MODES = { read: '溫習', practice: '練習', review: '錯題', mock: '模擬考試' };
 
 // ── daily demo ──
 const TODAY_INDEX = 7;                        // 0-based: plan day 8
@@ -592,7 +548,7 @@ const DEMO_READ_DONE = 12;                    // today's first reading task is a
 const PERCENT = 100;
 const HEAT_STEPS = [75, 50];                  // % thresholds for heat colours h3 / h2
 const RING_R = 46;
-const LS_KEY = 'mock.studyPlan.progress.v2';
+const LS_KEY = 'mock.studyPlan.progress.v3';
 
 const state = { heatMonth: null, days: 21, mins: 120, rest: new Set([0]), level: 'none', start: startOfToday(), runner: null };
 
@@ -600,10 +556,10 @@ function startOfToday() { const d = new Date(); d.setHours(0, 0, 0, 0); return d
 function addDays(d, n) { const r = new Date(d); r.setDate(r.getDate() + n); return r; }
 function fmtDate(d) { return `${d.getDate()}/${d.getMonth() + 1}`; }
 function isoDate(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
-function fmtMins(m, sep = ' ') {
+function fmtMins(m) {
   const h = Math.floor(m / MINUTES_PER_HOUR); const r = m % MINUTES_PER_HOUR;
   if (!h) return `${r} 分鐘`;
-  return r ? `${h} 小時${sep}${r} 分` : `${h} 小時`;
+  return r ? `${h} 小時 ${r} 分` : `${h} 小時`;
 }
 function maxExamDate() { const d = new Date(state.start); d.setMonth(d.getMonth() + MAX_PLAN_MONTHS); return d; }
 function chapterOf(ch) { return CHAPTERS.find(c => c.ch === ch); }
@@ -612,6 +568,9 @@ function count(g) { return g.to - g.from + 1; }
 function $(id) { return document.getElementById(id); }
 function readLS() { try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch (e) { return {}; } }
 function writeLS(v) { try { localStorage.setItem(LS_KEY, JSON.stringify(v)); } catch (e) { /* preview / private mode */ } }
+// same markup as starsHtml() / bookmarkSvg() in js/components/icons.js
+function starsHtml(d) { return `<span class="stars" title="難度 ${d}/${MAX_STARS}">${'★'.repeat(d)}<span class="off">${'★'.repeat(MAX_STARS - d)}</span></span>`; }
+function bookmarkSvg() { return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${BOOKMARK_PATH}"></path></svg>`; }
 
 // ════════ plan builder ════════
 function calendar() {
@@ -677,14 +636,14 @@ function pairedQuestions(g) {
   return { from, to: Math.max(from, Math.floor(g.to * c.qs / c.facts)) };
 }
 
-function reviewTask() { return { type: 'review', t: '重溫昨日 + 清錯題', total: REVIEW_SET_SIZE, from: 1, unit: '題' }; }
+function reviewTask() { return { type: 'review', t: '重溫昨日 + 清錯題', label: '錯題', total: REVIEW_SET_SIZE, from: 1, unit: '題' }; }
 
 function learnTasks(chunk) {
   const tasks = [];
   chunk.groups.forEach(g => {
     const q = pairedQuestions(g);
-    const read = { type: 'read', t: `讀 ${chLabel(g.ch)} 知識點 #${g.from}–${g.to}`, total: count(g), from: g.from, unit: '條' };
-    const prac = { type: 'practice', t: `練 ${chLabel(g.ch)} 題目 #${q.from}–${q.to}`, total: count(q), from: q.from, unit: '題' };
+    const read = { type: 'read', t: `讀 ${chLabel(g.ch)} 知識點 #${g.from}–${g.to}`, label: `Chapter ${g.ch}`, total: count(g), from: g.from, unit: '條' };
+    const prac = { type: 'practice', t: `練 ${chLabel(g.ch)} 題目 #${q.from}–${q.to}`, label: `Chapter ${g.ch}`, total: count(q), from: q.from, unit: '題' };
     read.pair = prac;
     tasks.push(read, prac);
   });
@@ -693,8 +652,8 @@ function learnTasks(chunk) {
 }
 
 function drillTasks(chunk) {
-  const tasks = chunk.groups.map(g => ({ type: 'practice', t: `再練 ${chLabel(g.ch)} 未 🏆 題目`, total: count(g), from: 1, unit: '題' }));
-  tasks.push({ type: 'read', t: '重溫答錯題目嘅知識點', total: REVIEW_SET_SIZE, from: 1, unit: '條' });
+  const tasks = chunk.groups.map(g => ({ type: 'practice', t: `再練 ${chLabel(g.ch)} 未 🏆 題目`, label: `Chapter ${g.ch}`, total: count(g), from: 1, unit: '題' }));
+  tasks.push({ type: 'read', t: '重溫答錯題目嘅知識點', label: '錯題知識點', total: REVIEW_SET_SIZE, from: 1, unit: '條' });
   return tasks;
 }
 
@@ -703,9 +662,9 @@ function mockTasks(examCursor) {
   const tasks = [];
   for (let k = 0; k < perDay; k++) {
     const ex = (examCursor.n++ % EXAM_COUNT) + 1;
-    tasks.push({ type: 'mock', t: `模擬考 Exam ${ex}（計時 ${EXAM_MINUTES} 分鐘）`, total: REAL_TEST_SIZE, from: 1, unit: '題' });
+    tasks.push({ type: 'mock', t: `模擬考 Exam ${ex}（計時 ${EXAM_MINUTES} 分鐘）`, label: `Exam ${ex}`, total: REAL_TEST_SIZE, from: 1, unit: '題' });
   }
-  tasks.push({ type: 'review', t: '模擬考錯題再做一次', total: REVIEW_SET_SIZE, from: 1, unit: '題' });
+  tasks.push({ ...reviewTask(), t: '模擬考錯題再做一次' });
   return tasks;
 }
 
@@ -721,7 +680,7 @@ function buildPlan() {
   let s = 0;
   cal.forEach(d => {
     if (d.rest) { d.phase = 'rest'; d.tasks = []; return; }
-    if (d === lastStudy) { d.phase = 'mock'; d.tasks = [{ type: 'review', t: '輕鬆重溫：錯題 set + 易錯知識點（唔做新 mock）', total: REVIEW_SET_SIZE, from: 1, unit: '題' }]; return; }
+    if (d === lastStudy) { d.phase = 'mock'; d.tasks = [{ ...reviewTask(), t: '輕鬆重溫：錯題 set + 易錯知識點（唔做新 mock）' }]; return; }
     if (s < split.learn) { d.phase = 'learn'; d.tasks = learnTasks(learnChunks[s]); }
     else if (s < split.learn + split.practice) { d.phase = 'practice'; d.tasks = drillTasks(drillChunks[s - split.learn]); }
     else { d.phase = 'mock'; d.tasks = mockTasks(examCursor); }
@@ -781,6 +740,7 @@ function dayPct(d) {
 }
 
 function nextTask(tasks) { return tasks.find(t => effectiveDone(t) < t.total); }
+function heatClass(p) { return p >= PERCENT ? 'h4' : p >= HEAT_STEPS[0] ? 'h3' : p >= HEAT_STEPS[1] ? 'h2' : p > 0 ? 'h1' : ''; }
 
 // ════════ step 0 ════════
 function renderHome() {
@@ -810,9 +770,10 @@ function renderTicks() {
   $('minsTicks').innerHTML = html;
 }
 
+// levels reuse the home screen's .mode-card (+ .selected)
 function renderLevels() {
   $('levelGrid').innerHTML = Object.entries(LEVELS).map(([k, lv]) =>
-    `<button class="level ${k === state.level ? 'on' : ''}" data-level="${k}"><span class="ic">${lv.ic}</span><span class="nm">${lv.label}</span><span class="sb">${lv.sub}</span></button>`).join('');
+    `<button class="mode-card ${k === state.level ? 'selected' : ''}" data-level="${k}"><div class="mode-icon">${lv.ic}</div><div class="mode-title">${lv.label}</div><span class="sp-level-sub">${lv.sub}</span></button>`).join('');
 }
 
 function renderFeasibility() {
@@ -827,21 +788,21 @@ function renderFeasibility() {
   const pill = $('feasPill'); const meter = $('fMeter');
   meter.style.width = `${Math.min(PERCENT, Math.round(ratio * PERCENT / FEAS_METER_SCALE))}%`;
   const diffH = Math.round(Math.abs(avail - need) / MINUTES_PER_HOUR);
-  if (ratio >= FEAS_OK) { pill.className = 'pill ok'; pill.textContent = '✓ 充裕'; meter.style.background = 'var(--green-light)'; $('feasMsg').textContent = `有大約 ${diffH} 小時緩衝，可以多做幾份 mock 或者應付突發。`; }
-  else if (ratio >= FEAS_TIGHT) { pill.className = 'pill warn'; pill.textContent = '△ 剛好'; meter.style.background = 'var(--gold)'; $('feasMsg').textContent = '時間啱啱好，冇咩空間 miss 日子。建議少揀一日休息，或者每日加 15 分鐘。'; }
-  else { pill.className = 'pill bad'; pill.textContent = '✕ 唔夠'; meter.style.background = 'var(--red-light)'; $('feasMsg').textContent = `仲差大約 ${diffH} 小時。可以延遲考試、加長每日時間，或者減少休息日。`; }
+  if (ratio >= FEAS_OK) { pill.className = 'sp-pill ok'; pill.textContent = '✓ 充裕'; meter.style.background = 'var(--green-light)'; $('feasMsg').textContent = `有大約 ${diffH} 小時緩衝，可以多做幾份 mock 或者應付突發。`; }
+  else if (ratio >= FEAS_TIGHT) { pill.className = 'sp-pill warn'; pill.textContent = '△ 剛好'; meter.style.background = 'var(--gold)'; $('feasMsg').textContent = '時間啱啱好，冇咩空間 miss 日子。建議少揀一日休息，或者每日加 15 分鐘。'; }
+  else { pill.className = 'sp-pill bad'; pill.textContent = '✕ 唔夠'; meter.style.background = 'var(--red-light)'; $('feasMsg').textContent = `仲差大約 ${diffH} 小時。可以延遲考試、加長每日時間，或者減少休息日。`; }
 }
 
 function renderGoal() {
+  state.heatMonth = null;
   $('daysVal').textContent = `${state.days} 日`;
   $('minsVal').textContent = fmtMins(state.mins);
   $('minsRange').value = state.mins;
-  document.querySelectorAll('#daysChips .chip').forEach(b => b.classList.toggle('on', +b.dataset.days === state.days));
+  document.querySelectorAll('#daysChips .chip').forEach(b => b.classList.toggle('active', +b.dataset.days === state.days));
   $('examDate').value = isoDate(addDays(state.start, state.days));
   $('examDate').min = isoDate(addDays(state.start, DAYS_PER_WEEK));
   $('examDate').max = isoDate(maxExamDate());
-  $('restChips').innerHTML = WEEKDAYS.map((w, i) => `<button class="chip rest ${state.rest.has(i) ? 'on' : ''}" data-rest="${i}">${w}</button>`).join('');
-  state.heatMonth = null;
+  $('restChips').innerHTML = WEEKDAYS.map((w, i) => `<button class="chip sp-rest ${state.rest.has(i) ? 'active' : ''}" data-rest="${i}">${w}</button>`).join('');
   renderTicks();
   renderLevels();
   renderFeasibility();
@@ -852,14 +813,14 @@ function renderStrategy(plan, phaseDays) {
   const range = k => phaseDays[k].length ? `Day ${phaseDays[k][0]}–${phaseDays[k][phaseDays[k].length - 1]}` : '';
   const drill = plan.split.practice;
   $('strategy').innerHTML = `
-    <div class="strat learn"><span class="n">1</span><div><span class="days">${range('learn')}</span><h4>讀 + 練：每日讀完即刻做題</h4><ul>
+    <div class="sp-strat learn"><span class="n">1</span><div><span class="days">${range('learn')}</span><h4>讀 + 練：每日讀完即刻做題</h4><ul>
       <li>次序 Ch1–2 → Ch5 → Ch4 → Ch3：由易到難，History 放最後</li>
       <li>讀完一段知識點，即刻做返同一段嘅題目（${TOTAL_FACTS} 條知識點 · ${TOTAL_QS} 題）</li>
       <li>每日最後重溫昨日 + 清錯題</li></ul></div></div>
-    ${drill ? `<div class="strat practice"><span class="n">2</span><div><span class="days">${range('practice')}</span><h4>強化練習：再做未掌握嘅題目</h4><ul>
+    ${drill ? `<div class="sp-strat practice"><span class="n">2</span><div><span class="days">${range('practice')}</span><h4>強化練習：再做未掌握嘅題目</h4><ul>
       <li>同一次序再行一次，淨係做錯過或者未 🏆 嘅題目</li>
       <li>做完即刻睇返相關知識點</li></ul></div></div>` : ''}
-    <div class="strat mock"><span class="n">${drill ? 3 : 2}</span><div><span class="days">${range('mock')}</span><h4>模擬考：計時做 ${plan.mocks} 份 exam</h4><ul>
+    <div class="sp-strat mock"><span class="n">${drill ? 3 : 2}</span><div><span class="days">${range('mock')}</span><h4>模擬考：計時做 ${plan.mocks} 份 exam</h4><ul>
       <li>真考試條件：${REAL_TEST_SIZE} 題、${EXAM_MINUTES} 分鐘、唔睇答案</li>
       <li>合格線 ${PASS_SCORE}/24；連續 3 份 ≥ ${SAFE_SCORE}/24 先算穩陣</li>
       <li>最後一日唔做新 mock，淨係重溫錯題</li></ul></div></div>`;
@@ -867,36 +828,36 @@ function renderStrategy(plan, phaseDays) {
 
 function renderOrder() {
   const maxF = Math.max(...CHAPTERS.map(c => c.facts));
-  $('chWeight').innerHTML = `<div class="order">${ORDER_STEPS.map((chs, i) => {
+  $('chWeight').innerHTML = `<div class="sp-order">${ORDER_STEPS.map((chs, i) => {
     const cs = chs.map(chapterOf);
     const facts = cs.reduce((a, c) => a + c.facts, 0);
     const qs = cs.reduce((a, c) => a + c.qs, 0);
-    return `<div class="ord"><span class="n num">${i + 1}</span><div style="display: grid; gap: 4px; min-width: 0;">
-      <div class="chw"><b>${cs.map(c => `Ch${c.ch} ${c.name}`).join(' + ')}</b><span class="bar"><i style="width:${Math.max(2, facts / maxF * PERCENT)}%"></i></span><span class="c num">${facts} 條 · ${qs} 題</span></div>
+    return `<div class="sp-ord"><span class="n num">${i + 1}</span><div style="display: grid; gap: 4px; min-width: 0;">
+      <div class="sp-chw"><b>${cs.map(c => `Ch${c.ch} ${c.name}`).join(' + ')}</b><span class="bar"><i style="width:${Math.max(2, facts / maxF * PERCENT)}%"></i></span><span class="c num">${facts} 條 · ${qs} 題</span></div>
       <span class="why">${ORDER_WHY[chs[0]]}</span></div></div>`;
   }).join('')}</div>`;
 }
 
 function statusPill(d) {
-  if (d.rest) return '<span class="pill mute">休息</span>';
+  if (d.rest) return '<span class="sp-pill mute">休息</span>';
   const p = dayPct(d);
-  if (d.i === TODAY_INDEX) return `<span class="pill now num">今日 ${p}%</span>`;
+  if (d.i === TODAY_INDEX) return `<span class="sp-pill now num">今日 ${p}%</span>`;
   if (p === null) return '';
-  return p >= PERCENT ? '<span class="pill ok">✓ 完成</span>' : `<span class="pill num heat-pill ${heatClass(p)}">${p}%</span>`;
+  return p >= PERCENT ? '<span class="sp-pill ok">✓ 完成</span>' : `<span class="sp-pill num ${heatClass(p)}">${p}%</span>`;
 }
 
 function renderDayList(plan) {
   const exam = addDays(state.start, state.days);
   let html = '';
   plan.cal.forEach(d => {
-    if (d.i % DAYS_PER_WEEK === 0) html += `<div class="week-h">Week ${d.i / DAYS_PER_WEEK + 1}</div>`;
-    const tasks = d.rest ? '<div class="t"><span>😴 休息日</span></div>' : d.tasks.map(t => `<div class="t"><span>${TASK_ICONS[t.type]}</span><span>${t.t}</span></div>`).join('');
+    if (d.i % DAYS_PER_WEEK === 0) html += `<div class="sp-week">Week ${d.i / DAYS_PER_WEEK + 1}</div>`;
+    const tasks = d.rest ? '<div class="t"><span>😴</span><span>休息日</span></div>' : d.tasks.map(t => `<div class="t"><span>${TASK_ICONS[t.type]}</span><span>${t.t}</span></div>`).join('');
     const when = d.i === TODAY_INDEX ? 'today' : d.i > TODAY_INDEX ? 'future' : '';
-    html += `<div class="day ${d.rest ? 'rest' : d.phase} ${when}">
+    html += `<div class="sp-day ${d.rest ? 'rest' : d.phase} ${when}">
       <div class="d num">${d.i + 1}<small>${fmtDate(d.date)} ${WEEKDAYS[d.date.getDay()]}</small></div>
       <div class="tasks">${tasks}</div><div>${statusPill(d)}</div></div>`;
   });
-  html += `<div class="day exam"><div class="d num exam-pat">🎯<small>${fmtDate(exam)} ${WEEKDAYS[exam.getDay()]}</small></div><div class="tasks"><div class="t"><b>考試日</b></div><div class="t"><span>帶備 ID 同確認信，提早 30 分鐘到</span></div></div><div></div></div>`;
+  html += `<div class="sp-day exam"><div class="d num sp-exam-pat">🎯<small>${fmtDate(exam)} ${WEEKDAYS[exam.getDay()]}</small></div><div class="tasks"><div class="t"><b>考試日</b></div><div class="t"><span>帶備 ID 同確認信，提早 30 分鐘到</span></div></div><div></div></div>`;
   $('dayList').innerHTML = html;
 }
 
@@ -906,7 +867,7 @@ function renderPlan() {
   $('planSummary').textContent = `${fmtDate(state.start)} 開始 · ${fmtDate(exam)} 考試 · 每日最多 ${fmtMins(state.mins)} · ${LEVELS[state.level].label}`;
   const phaseDays = { learn: [], practice: [], mock: [] };
   plan.cal.forEach(d => { if (phaseDays[d.phase]) phaseDays[d.phase].push(d.i + 1); });
-  $('phaseBar').innerHTML = Object.keys(PHASES).filter(k => phaseDays[k].length).map(k => `<div class="ph-${k}" style="flex:${phaseDays[k].length}">${PHASES[k].name} ${phaseDays[k].length}日</div>`).join('');
+  $('phaseBar').innerHTML = Object.keys(PHASES).filter(k => phaseDays[k].length).map(k => `<div class="sp-bg-${k}" style="flex:${phaseDays[k].length}">${PHASES[k].name} ${phaseDays[k].length}日</div>`).join('');
   renderStrategy(plan, phaseDays);
   renderOrder();
   renderDayList(plan);
@@ -916,18 +877,19 @@ function renderPlan() {
 function taskStatus(t) {
   const own = doneRaw(t); const eff = effectiveDone(t);
   if (eff >= t.total) return { go: '✓ 完成', st: eff > own ? '<b>✓ 練咗對應題目，自動當溫咗</b>' : `<b>✓ 已完成 ${t.total} ${t.unit}</b>` };
-  if (eff > 0) return { go: '繼續 ›', st: `已做 ${eff} / ${t.total} ${t.unit} · 由 #${t.from + eff} 繼續${eff > own ? '<span class="tag auto">部份由練習自動計</span>' : ''}` };
+  if (eff > 0) return { go: '繼續 ›', st: `已做 ${eff} / ${t.total} ${t.unit} · 由 #${t.from + eff} 繼續${eff > own ? '<span class="sp-tag auto">部份由練習自動計</span>' : ''}` };
   return { go: '開始 ›', st: `${t.total} ${t.unit} · ${TASK_MODES[t.type]}` };
 }
 
 function renderTaskList(tasks) {
   $('taskList').innerHTML = tasks.map((t, i) => {
     const s = taskStatus(t); const eff = effectiveDone(t);
-    return `<button class="task ${t.type} ${t.carry ? 'carry' : ''} ${eff >= t.total ? 'done' : eff === 0 ? 'todo' : ''}" data-task="${i}">
+    const stateCls = eff >= t.total ? 'done' : eff === 0 ? 'todo' : '';
+    return `<button class="sp-task ${t.type} ${t.carry ? 'carry' : ''} ${stateCls}" data-task="${i}">
       <span class="ic">${TASK_ICONS[t.type]}</span>
-      <span style="min-width: 0;"><span class="ttl" style="display: block;">${t.t}${t.carry ? `<span class="tag carry">Day ${DEMO_CARRY_DAY}</span>` : ''}</span>
-        <span class="st" style="display: block;">${s.st}</span>
-        <span class="mini" style="display: block;"><i style="width:${eff / t.total * PERCENT}%"></i></span></span>
+      <span style="min-width: 0;"><span class="ttl">${t.t}${t.carry ? `<span class="sp-tag carry">Day ${DEMO_CARRY_DAY}</span>` : ''}</span>
+        <span class="st">${s.st}</span>
+        <span class="mini"><i style="width:${eff / t.total * PERCENT}%"></i></span></span>
       <span class="go">${s.go}</span></button>`;
   }).join('');
 }
@@ -941,29 +903,26 @@ function renderRing(tasks) {
   $('todayCount').textContent = `${tasks.filter(t => effectiveDone(t) >= t.total).length} / ${tasks.length} 項完成`;
 }
 
-function heatClass(p) { return p >= PERCENT ? 'h4' : p >= HEAT_STEPS[0] ? 'h3' : p >= HEAT_STEPS[1] ? 'h2' : p > 0 ? 'h1' : ''; }
-
-// one full calendar month per block; plan days carry their status, days outside the plan stay plain
-function heatCell(date, plan, examDate) {
+function heatCell(date, plan) {
   const i = Math.round((date - state.start) / MS_PER_DAY);
-  if (i === state.days) return `<span class="cell exam exam-pat num" title="考試日">${date.getDate()}<small>🎯 考試日</small></span>`;
+  if (i === state.days) return `<span class="sp-cell exam sp-exam-pat num" title="考試日">${date.getDate()}<small>🎯 考試日</small></span>`;
   const d = plan.cal[i];
-  if (!d) return `<span class="cell out num">${date.getDate()}</span>`;
+  if (!d) return `<span class="sp-cell out num">${date.getDate()}</span>`;
   const p = dayPct(d);
-  let cls = 'cell';
+  let cls = 'sp-cell';
   if (d.rest) cls += ' rest';
   else if (d.i > TODAY_INDEX) cls += ' future';
   else cls += ` ${heatClass(p)}${d.i === TODAY_INDEX ? ' today' : ''}`;
   return `<span class="${cls} num" title="Day ${d.i + 1}${p === null ? '' : ` · ${p}%`}">${date.getDate()}</span>`;
 }
 
-function monthBlock(year, month, plan, examDate) {
+function monthGrid(year, month, plan) {
   const first = new Date(year, month, 1);
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   let html = WEEKDAYS.map(w => `<span class="dow">${w}</span>`).join('');
   for (let k = 0; k < first.getDay(); k++) html += '<span></span>';
-  for (let n = 1; n <= daysInMonth; n++) html += heatCell(new Date(year, month, n), plan, examDate);
-  return `<div class="heat">${html}</div>`;
+  for (let n = 1; n <= daysInMonth; n++) html += heatCell(new Date(year, month, n), plan);
+  return `<div class="sp-heat">${html}</div>`;
 }
 
 // months the plan touches, as { y, m }
@@ -990,7 +949,7 @@ function renderHeat(plan) {
   $('calPrev').disabled = state.heatMonth === 0;
   $('calNext').disabled = state.heatMonth === months.length - 1;
   $('calToday').disabled = state.heatMonth === todayMonthIndex(months);
-  $('heat').innerHTML = monthBlock(y, m, plan, addDays(state.start, state.days));
+  $('heat').innerHTML = monthGrid(y, m, plan);
   let streak = 0;
   for (let i = TODAY_INDEX - 1; i >= 0; i--) { const d = plan.cal[i]; if (d.rest) continue; if (dayPct(d) >= PERCENT) streak++; else break; }
   $('streakPill').textContent = `🔥 連續 ${streak} 日 100%`;
@@ -1017,18 +976,18 @@ function renderKpis(plan) {
   ];
   $('progRows').innerHTML = rows.map(r => {
     const pct = Math.round(r.v / r.of * PERCENT);
-    return `<div class="pr"><div class="top"><span>${r.k}</span><span class="num">${r.v} / ${r.of} · <b>${pct}%</b></span></div><div class="meter"><i style="width:${pct}%;background:var(--green-light)"></i></div></div>`;
+    return `<div class="sp-pr"><div class="top"><span>${r.k}</span><span class="num">${r.v} / ${r.of} · <b>${pct}%</b></span></div><div class="sp-meter"><i style="width:${pct}%;background:var(--green-light)"></i></div></div>`;
   }).join('');
 }
 
 function renderToday() {
   const { plan, today, tasks } = refreshToday();
-  $('todayEyebrow').textContent = `Day ${today.i + 1} / ${state.days} · ${fmtDate(today.date)}（${WEEKDAYS[today.date.getDay()]}）`;
+  $('todayLabel').textContent = `Day ${today.i + 1} / ${state.days} · ${fmtDate(today.date)}（${WEEKDAYS[today.date.getDay()]}）`;
   const phase = PHASES[today.phase];
   const pill = $('todayPhase');
-  pill.className = 'pill';
-  pill.style.background = phase ? `var(--ph-${phase.cls}-bg)` : 'var(--bg)';
-  pill.style.color = phase ? `var(--ph-${phase.cls})` : 'var(--text-muted)';
+  pill.className = 'sp-pill';
+  pill.style.background = phase ? `var(--sp-ph-${phase.cls}-bg)` : 'var(--bg)';
+  pill.style.color = phase ? `var(--sp-ph-${phase.cls})` : 'var(--text-muted)';
   pill.textContent = phase ? `${phase.name}階段` : '休息日';
   renderRing(tasks);
   renderTaskList(tasks);
@@ -1037,87 +996,190 @@ function renderToday() {
   renderKpis(plan);
 }
 
-// ════════ runner ════════
-const RUN_HINTS = {
-  read: '逐條睇：英文原句 + 廣東話解釋。睇完一條就計一條。',
-  practice: '揀答案即刻見對錯。答錯嘅題目會自動加入錯題 set。',
-  review: '錯題 set：答啱就由錯題清走；答錯會留低聽日再出。',
-  mock: '計時 45 分鐘，做晒先睇答案。',
-};
+// ════════ runner: same markup as the app's Practice (screenQuiz), Study (.fact) and Result screens ════════
+const RUN_BADGE = { read: '溫習', practice: '練習', review: '練習', mock: '模擬考試' };
 
 function openRunner(i) {
-  state.runner = { index: i, task: todayCache.tasks[i], picked: null, right: 0, wrong: 0, startDone: effectiveDone(todayCache.tasks[i]) };
+  const t = todayCache.tasks[i];
+  state.runner = { index: i, task: t, picked: null, yue: false, right: 0, wrong: 0, results: {}, startDone: effectiveDone(t) };
   show('runner');
   renderRunner();
+}
+
+function runHeader(t) {
+  return `<div class="quiz-header">
+      <button class="back-btn" data-goto="3">← 今日任務</button>
+      <div class="quiz-meta"><span class="quiz-label">${t.label}</span><span class="quiz-mode-badge">${RUN_BADGE[t.type]}</span></div>
+    </div>`;
 }
 
 function renderRunner() {
   const t = state.runner.task;
   const done = effectiveDone(t);
-  $('runMode').textContent = TASK_MODES[t.type];
-  $('runTitle').textContent = t.t;
-  $('runPos').textContent = done >= t.total ? '全部完成' : `#${t.from + done}`;
-  $('runCount').textContent = `${done} / ${t.total} ${t.unit}`;
-  $('runBar').style.width = `${done / t.total * PERCENT}%`;
-  if (done >= t.total) return renderTaskDone(t);
-  if (t.type === 'read') renderFact(done); else renderQuestion(done);
+  if (done >= t.total) { $('runner').innerHTML = runHeader(t) + taskDoneHtml(t); return; }
+  $('runner').innerHTML = runHeader(t) + (t.type === 'read' ? factRunHtml(t, done) : questionRunHtml(t, done));
+}
+
+// study: the real fact card (factCardHtml, variant full) + the quiz nav row
+function factRunHtml(t, done) {
+  const f = SAMPLE_FACTS[done % SAMPLE_FACTS.length];
+  const nodes = f.src.map(s => `<span class="sqm-node">${s}</span>`).join('');
+  return `<div class="sp-run-meta num"><span>${t.t}</span><span>${done} / ${t.total} 條</span></div>
+    <div class="sp-meter" style="height: 5px; margin-bottom: 14px;"><i style="width:${done / t.total * PERCENT}%; background: var(--green-light);"></i></div>
+    <div class="fact" data-fact-id="${f.id}">
+      <div class="fact-top">
+        <div class="fact-meta"><span class="fact-id">#${t.from + done}</span>${starsHtml(f.d)}</div>
+        <div class="fact-actions">
+          <button class="fact-btn star" title="書籤" aria-label="書籤" aria-pressed="false">${bookmarkSvg()}</button>
+          <button class="fact-btn tick" title="已掌握" aria-label="已掌握" aria-pressed="false">✓</button>
+        </div>
+      </div>
+      <div class="fact-en" lang="en">${f.en}</div>
+      <div class="fact-yue" lang="zh-HK">${f.yue}</div>
+      <div class="fact-src">
+        <div class="fact-src-nodes"><span class="sqm-map-label">出現於：</span>${nodes}</div>
+      </div>
+    </div>
+    <div class="sp-run-gap"></div>
+    <div class="nav-row">
+      <button class="nav-btn secondary" disabled>← 上一條</button>
+      <button class="nav-btn" data-run="next">下一條 →</button>
+    </div>
+    <div class="sp-run-gap"></div>
+    <button class="mock-ff" data-run="skip">⏩ 快進完成呢項（mockup）</button>`;
+}
+
+function optionHtml(q, oi, revealed) {
+  const cls = !revealed ? 'opt' : 'opt disabled' + (oi === q.a ? ' correct' : oi === state.runner.picked ? ' wrong' : '');
+  const optYue = revealed ? `<span class="opt-yue" lang="zh-HK">${q.oy[oi]}</span>` : '';
+  return `<button class="${cls}" data-opt="${oi}">
+      <span class="opt-letter">${OPTION_LETTERS[oi]}</span>
+      <span class="opt-body"><span>${q.o[oi]}</span>${optYue}</span>
+    </button>`;
+}
+
+function noteRows(note) { return note.split('\n').map(line => `<div class="rv-note-line">${line}</div>`).join(''); }
+
+function answerBoxHtml(q, revealed) {
+  if (!revealed) return '<div class="answer-box"></div>';
+  const correct = state.runner.picked === q.a;
+  return `<div class="answer-box show${correct ? '' : ' wrong-ans'}">
+      <div class="ans-label${correct ? '' : ' wrong'}">${correct ? '✓ 正確！' : '✗ 錯誤'} · 🔥 ${correct ? 1 : 0}/${MASTERY_STREAK}</div>
+      <div class="ans-en${correct ? '' : ' wrong'}" lang="en">${q.o[q.a]}</div>
+      <div class="divider"></div>
+      <div class="ans-yue" lang="zh-HK"><div class="ans-yue-title">【廣東話翻譯】</div>
+        <div class="ans-yue-row"><b>Q)</b><span>${q.yue}</span></div>
+        <div class="ans-yue-row"><b>A)</b><span>${q.oy[q.a]}</span></div></div>
+      <div class="ans-note" lang="zh-HK"><strong>💡 備注：</strong><div class="ans-note-text" lang="zh-HK">${noteRows(q.note)}</div></div>
+    </div>`;
+}
+
+// practice: the screenQuiz layout (q-card, options, answer box, nav row); answers reveal on tap as in Practice mode
+function questionRunHtml(t, done) {
+  const q = SAMPLE_QS[done % SAMPLE_QS.length];
+  const revealed = state.runner.picked !== null;
+  const yueOn = revealed || state.runner.yue;
+  const paired = todayCache.tasks.some(x => x.pair === t);
+  const pairNote = paired ? '<p class="sp-note">練完呢段題目，對應嗰段知識點會自動當溫咗。</p><div class="sp-run-gap"></div>' : '';
+  const round = roundOf(t, done);
+  return `${round.count > 1 ? `<div class="round-row"><span class="round-note">第 ${round.n} 輪（共 ${round.count} 輪）</span></div>` : ''}
+    <div class="q-card">
+      <div class="nav-dots">${navDotsHtml(t, done, round)}</div>
+      <div class="dots-meta practice">${dotsMetaHtml(round)}</div>
+      <div class="q-num">
+        <span class="q-num-text"><span>第 ${done - round.start + 1} 題（共 ${round.size} 題）</span>${starsHtml(q.d)}</span>
+        <button class="flag-btn" title="標記待覆閱" aria-label="標記待覆閱">${bookmarkSvg()}</button>
+        <button class="yue-toggle ${revealed ? '' : 'visible'} ${yueOn ? 'on' : ''}" data-yue="1">${yueOn ? '隱藏翻譯' : '翻譯'}</button>
+        <span class="quick-nav ${revealed ? 'visible' : ''}">
+          <button class="quick-btn" disabled aria-label="上一題">←</button>
+          <button class="quick-btn primary" data-run="next" aria-label="下一題">→</button>
+        </span>
+      </div>
+      <div class="q-text" lang="en">${q.q}</div>
+      <div class="q-yue ${yueOn ? 'show' : ''}" lang="zh-HK">${q.yue}</div>
+    </div>
+    <div class="options" lang="en">${q.o.map((_, oi) => optionHtml(q, oi, revealed)).join('')}</div>
+    ${answerBoxHtml(q, revealed)}
+    ${pairNote}
+    <div class="nav-row">
+      <button class="nav-btn secondary" disabled>← 上一題</button>
+      <button class="nav-btn" data-run="next">下一題 →</button>
+    </div>
+    <div class="sp-run-gap"></div>
+    <button class="mock-ff" data-run="skip">⏩ 快進完成呢項（mockup）</button>`;
+}
+
+// a long task runs as rounds of up to PRACTICE_ROUND_MAX questions, like a practice round in the app
+function roundOf(t, done) {
+  const count = Math.ceil(t.total / PRACTICE_ROUND_MAX);
+  const idx = Math.floor(done / PRACTICE_ROUND_MAX);
+  const start = idx * PRACTICE_ROUND_MAX;
+  return { n: idx + 1, count, start, size: Math.min(PRACTICE_ROUND_MAX, t.total - start) };
+}
+
+// same classes as navDotsHtml() / dotStateCls() in js/screens/examTools.js; earlier sessions count as answered
+function dotState(pos, done) {
+  const res = state.runner.results[pos];
+  if (res !== undefined) return res ? 'ok' : 'bad';
+  return pos < done && pos < state.runner.startDone ? 'ok' : '';
+}
+
+function navDotsHtml(t, done, round) {
+  let html = '';
+  for (let k = 0; k < round.size; k++) {
+    const pos = round.start + k;
+    const cls = ['dot', dotState(pos, done), pos === done && 'current'].filter(Boolean).join(' ');
+    html += `<button class="${cls}" aria-label="第 ${k + 1} 題">${k + 1}</button>`;
+  }
+  return html;
+}
+
+function dotsMetaHtml(round) {
+  let ok = 0; let bad = 0;
+  for (let k = 0; k < round.size; k++) {
+    const st = dotState(round.start + k, effectiveDone(state.runner.task));
+    if (st === 'ok') ok++; else if (st === 'bad') bad++;
+  }
+  const sep = ' <span class="sep">|</span> ';
+  return [['lg-ok', '正確', ok], ['lg-bad', '錯誤', bad], ['lg-todo', '未作答', round.size - ok - bad], ['lg-flag', '已標記', 0]]
+    .map(([cls, label, n]) => `<span><i class="${cls}"></i>${label} <b>${n}</b></span>`).join(sep);
 }
 
 function sessionSummary(t) {
   const r = state.runner;
   if (t.type === 'read') return `今次讀咗 ${t.total - r.startDone} 條知識點。`;
-  const answered = r.right + r.wrong;
-  if (!answered) return `${t.total} ${t.unit}已經完成。`;
+  if (!(r.right + r.wrong)) return `${t.total} ${t.unit}已經完成。`;
   if (!r.wrong) return `今次答啱晒 ${r.right} 題。`;
   const wrongNote = t.type === 'review' ? `${r.wrong} 題仍然答錯，留喺錯題 set` : `${r.wrong} 題答錯，已加入錯題 set`;
   return `今次答啱 ${r.right} 題，${wrongNote}。`;
 }
 
-// after a task: summary, then straight on to the next unfinished task (or the end-of-day screen)
-function renderTaskDone(t) {
+// after a task: the Result screen card, then straight on to the next unfinished task (or the end-of-day card)
+function taskDoneHtml(t) {
   const next = nextTask(todayCache.tasks);
   const pct = todayPct(todayCache.tasks);
   const pair = t.type === 'practice' && todayCache.tasks.find(x => x.pair === t);
-  const pairLine = pair ? `<p class="note">對應嘅「${pair.t}」已經自動當溫咗。</p>` : '';
+  const pairLine = pair ? `<p class="sp-note">對應嘅「${pair.t}」已經自動當溫咗。</p><div class="sp-run-gap"></div>` : '';
   if (!next) {
-    $('runBody').innerHTML = `<div class="card" style="text-align: center; justify-items: center;"><div style="font-size: 40px;">🎉</div><h3>今日任務全部完成！</h3><p class="muted">今日完成度 100%。聽日打開 app，主頁會顯示新一日嘅任務。</p></div>${pairLine}`;
-    $('runActs').innerHTML = '<button class="cta" data-goto="3">返回今日任務</button><button class="ghost" data-goto="0">返主頁</button>';
-    return;
+    return `<div class="result-card"><div class="result-emoji">🎉</div><div class="result-score num">100<span>%</span></div>
+        <div class="result-label pass">今日任務全部完成！</div><div class="result-sub">聽日打開 app，主頁會顯示新一日嘅任務。</div></div>
+      ${pairLine}
+      <div class="nav-row"><button class="nav-btn secondary" data-goto="0">← 主頁</button><button class="nav-btn" data-goto="3">返回今日任務</button></div>`;
   }
-  $('runBody').innerHTML = `<div class="card" style="text-align: center; justify-items: center;"><div style="font-size: 32px;">✓</div><h3>呢項完成咗</h3><p class="muted">${sessionSummary(t)}</p><span class="pill now num">今日完成度 ${pct}%</span></div>${pairLine}
-    <div class="card" style="gap: 4px;"><span class="eyebrow">下一項</span><b>${TASK_ICONS[next.type]} ${next.t}</b><span class="muted">${next.total} ${next.unit} · ${TASK_MODES[next.type]}</span></div>`;
-  $('runActs').innerHTML = `<button class="cta" data-next="${todayCache.tasks.indexOf(next)}">開始下一項 →</button><button class="ghost" data-goto="3">返回今日任務</button>`;
-}
-
-function renderFact(done) {
-  const f = SAMPLE_FACTS[done % SAMPLE_FACTS.length];
-  $('runBody').innerHTML = `<p class="muted">${RUN_HINTS.read}</p><div class="fact"><span class="demo-tag">示範內容</span><div class="en" lang="en">${f.en}</div><div class="yue">${f.yue}</div></div>`;
-  $('runActs').innerHTML = '<button class="cta" data-run="next">睇完，下一條 →</button><button class="ghost" data-run="skip">⏩ 快進完成</button>';
-}
-
-function renderQuestion(done) {
-  const t = state.runner.task;
-  const q = SAMPLE_QS[done % SAMPLE_QS.length];
-  const picked = state.runner.picked;
-  const opts = q.o.map((o, k) => {
-    let cls = 'opt';
-    if (picked !== null && k === q.a) cls += ' right';
-    else if (picked === k) cls += ' wrong';
-    return `<button class="${cls}" data-opt="${k}" ${picked !== null ? 'disabled' : ''} lang="en">${o}</button>`;
-  }).join('');
-  const verdict = picked === null ? '' : picked === q.a
-    ? `<p class="note">✓ 答啱${t.type === 'review' ? '，呢題由錯題 set 清走' : ''}</p>`
-    : `<p class="note" style="color: var(--red); background: var(--danger-bg);">✕ 答錯，正確答案係 ${String.fromCharCode(65 + q.a)}${t.type === 'review' ? '，呢題留喺錯題 set' : '，已加入錯題 set'}</p>`;
-  const paired = todayCache.tasks.some(x => x.pair === t);
-  const pairNote = paired && picked === null ? '<p class="note">練完呢段題目，對應嗰段知識點會自動當溫咗。</p>' : '';
-  $('runBody').innerHTML = `<p class="muted">${RUN_HINTS[t.type]}</p><div class="card"><span class="demo-tag">示範內容</span><div><div class="q-text" lang="en">${q.q}</div><div class="q-yue">${q.yue}</div></div><div class="opts">${opts}</div>${verdict}</div>${pairNote}`;
-  $('runActs').innerHTML = `${picked !== null ? '<button class="cta" data-run="next">下一題 →</button>' : ''}<button class="ghost" data-run="skip">⏩ 快進完成</button>`;
+  return `<div class="result-card"><div class="result-emoji">✅</div><div class="result-score num">${pct}<span>%</span></div>
+      <div class="result-label">呢項完成咗 · 今日完成度</div><div class="result-sub">${sessionSummary(t)}</div></div>
+    ${pairLine}
+    <div class="sp-card" style="gap: 4px; margin-bottom: 14px;"><span class="section-title" style="margin: 0;">下一項</span><b>${TASK_ICONS[next.type]} ${next.t}</b><span class="sp-muted">${next.total} ${next.unit} · ${TASK_MODES[next.type]}</span></div>
+    <div class="nav-row"><button class="nav-btn secondary" data-goto="3">返回今日任務</button><button class="nav-btn" data-next="${todayCache.tasks.indexOf(next)}">開始下一項 →</button></div>`;
 }
 
 function pickOption(k) {
   const r = state.runner;
+  if (r.picked !== null) return;
   r.picked = k;
-  const q = SAMPLE_QS[effectiveDone(r.task) % SAMPLE_QS.length];
+  const done = effectiveDone(r.task);
+  const q = SAMPLE_QS[done % SAMPLE_QS.length];
+  r.results[done] = k === q.a;
   if (k === q.a) r.right++; else r.wrong++;
   renderRunner();
 }
@@ -1126,9 +1188,11 @@ function runAction(kind) {
   const t = state.runner.task;
   setDone(t, kind === 'skip' ? t.total : effectiveDone(t) + 1);
   state.runner.picked = null;
+  state.runner.yue = false;
   refreshToday();
   state.runner.task = todayCache.tasks[state.runner.index];
   renderRunner();
+  window.scrollTo({ top: 0 });
 }
 
 function resetDemo() { writeLS({}); goto(3); }
@@ -1137,7 +1201,8 @@ function resetDemo() { writeLS({}); goto(3); }
 const SCREENS = ['step0', 'step1', 'step2', 'step3', 'runner'];
 const RENDER = { 0: renderHome, 1: renderGoal, 2: renderPlan, 3: renderToday };
 
-function show(id) { SCREENS.forEach(s => { $(s).hidden = s !== id; }); window.scrollTo({ top: 0 }); }
+// the app's screen switch: .screen + .active (css/base/layout.css)
+function show(id) { SCREENS.forEach(s => $(s).classList.toggle('active', s === id)); window.scrollTo({ top: 0 }); }
 
 function goto(step) {
   show(`step${step}`);
@@ -1147,7 +1212,7 @@ function goto(step) {
 
 document.addEventListener('click', e => {
   const b = e.target.closest('button');
-  if (!b) return;
+  if (!b || b.disabled) return;
   const ds = b.dataset;
   if (ds.step) return goto(+ds.step);
   if (ds.goto) return goto(+ds.goto);
@@ -1156,6 +1221,7 @@ document.addEventListener('click', e => {
   if (ds.level) { state.level = ds.level; return renderGoal(); }
   if (ds.task) return openRunner(+ds.task);
   if (ds.opt) return pickOption(+ds.opt);
+  if (ds.yue) { state.runner.yue = !state.runner.yue; return renderRunner(); }
   if (ds.next) return openRunner(+ds.next);
   if (ds.reset) return resetDemo();
   if (ds.month) return stepMonth(+ds.month);
