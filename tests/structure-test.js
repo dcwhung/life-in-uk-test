@@ -71,7 +71,8 @@ function scanTemplateText(src, i) {
 
 // S-074: a / opens a regex literal where a value is expected: at the start, after an operator / opening
 // punctuation, or after a keyword such as return (after a name, a number, ) or ] it is a division)
-const REGEX_AFTER = /(?:^|[(,=:[!&|?;{}+\-*%<>~^]|\b(?:return|typeof|case|void|delete|in|of|throw|yield|await))\s*$/;
+// S-085: postfix ++ / -- and a property named in / of (o.in) end a value, so a / after them is a division
+const REGEX_AFTER = /(?:^|[(,=:[!&|?;{}*%<>~^]|(?<![+-])[+-]|(?<!\.)\b(?:return|typeof|case|void|delete|in|of|throw|yield|await))\s*$/;
 // index just past a /…/ regex body starting at i ([…] classes and \ escapes included), or -1 if the line
 // ends first (a regex never spans lines, so that / was a division after all)
 function endOfRegex(src, i) {
@@ -89,7 +90,8 @@ function endOfRegex(src, i) {
 function layerCode(src) {
   let out = '', i = 0;
   const exprDepth = []; // one entry per open ${…}: how many { are open inside it
-  const template = from => { const t = scanTemplateText(src, from); out += "''"; i = t.end; if (t.expr) exprDepth.push(0); };
+  // S-085: an opened ${ expects a value, so it leaves a "(" for REGEX_AFTER to read (usesName ignores it)
+  const template = from => { const t = scanTemplateText(src, from); out += t.expr ? "''(" : "''"; i = t.end; if (t.expr) exprDepth.push(0); };
   const closesExpr = c => c === '}' && exprDepth.length > 0 && exprDepth[exprDepth.length - 1] === 0;
   const lineEnd = from => { const e = src.indexOf('\n', from); return e < 0 ? src.length : e; };
   const blockEnd = from => { const e = src.indexOf('*/', from + 2); return e < 0 ? src.length : e + 2; };
@@ -184,6 +186,14 @@ function layerCode(src) {
     { code: 'const r = /renderStudy/;', hit: false, why: 'a name inside a regex literal' },
     { code: 'const q = a / b; renderStudy(); const p = c / d;', hit: true, why: 'a call between two divisions' },
     { code: 'const q = f(x) / 2; renderStudy(); const p = y / 3;', hit: true, why: 'a call between divisions after ) and a name' },
+    // S-085: ${ expects a value; after postfix ++ / -- or a property named of / in, a / is a division
+    { code: 'const s = `${/\'/.test(x)}`; renderStudy();', hit: true, why: 'a call after a regex right after ${' },
+    { code: 'a = b++ / 2; renderStudy(); c = d / 3;', hit: true, why: 'a call between divisions after b++ and a name' },
+    { code: 'a = b-- / 2; renderStudy(); c = d / 3;', hit: true, why: 'a call between divisions after b-- and a name' },
+    { code: 'x = o.of / 2; renderStudy(); y = z / 3;', hit: true, why: 'a call between divisions after a property named of' },
+    { code: 'x = o.in / 2; renderStudy(); y = z / 3;', hit: true, why: 'a call between divisions after a property named in' },
+    { code: 'for (const k of /renderStudy/.exec(s)) k;', hit: false, why: 'a name inside a regex after the of keyword' },
+    { code: 'a = b + /renderStudy/.source;', hit: false, why: 'a name inside a regex after a binary +' },
   ];
   const sampleMisses = LAYER_SAMPLES.filter(({ code, hit }) => usesName(layerCode(code), 'renderStudy') !== hit)
     .map(({ hit, why }) => `${hit ? 'missed' : 'flagged'} ${why}`);
