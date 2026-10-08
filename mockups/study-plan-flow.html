@@ -204,7 +204,9 @@
   .task .go { font-size: var(--fs-sm); font-weight: 800; color: var(--navy-light); white-space: nowrap; }
   .task.done { background: var(--success-bg); border-color: var(--green-light); }
   .task.done .go { color: var(--green); }
-  .task.carry { border-style: dashed; border-color: var(--orange); }
+  /* not started = dashed; in progress = solid; done = green */
+  .task.todo { border-style: dashed; border-color: #bcc5dc; }
+  .task.carry { border-color: var(--orange); }
   .tag { display: inline-block; font-size: var(--fs-2xs); font-weight: 800; border-radius: var(--radius-pill); padding: 1px 7px; margin-left: 6px; vertical-align: 1px; }
   .tag.carry { background: var(--flag-bg); color: var(--orange); }
   .tag.auto { background: var(--success-bg); color: var(--green); }
@@ -887,7 +889,7 @@ function taskStatus(t) {
 function renderTaskList(tasks) {
   $('taskList').innerHTML = tasks.map((t, i) => {
     const s = taskStatus(t); const eff = effectiveDone(t);
-    return `<button class="task ${t.type} ${t.carry ? 'carry' : ''} ${eff >= t.total ? 'done' : ''}" data-task="${i}">
+    return `<button class="task ${t.type} ${t.carry ? 'carry' : ''} ${eff >= t.total ? 'done' : eff === 0 ? 'todo' : ''}" data-task="${i}">
       <span class="ic">${TASK_ICONS[t.type]}</span>
       <span style="min-width: 0;"><span class="ttl" style="display: block;">${t.t}${t.carry ? `<span class="tag carry">Day ${DEMO_CARRY_DAY}</span>` : ''}</span>
         <span class="st" style="display: block;">${s.st}</span>
