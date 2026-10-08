@@ -190,12 +190,13 @@ v0.57（P1 refactor）起 `index.html` 只剩 `<head>`、各 screen 嘅 markup �
 | Study 裝飾（v0.62，P3 Q2-a 全 navy） | `--study-accent`（= `--navy-light`：fact 左邊框、timeline 圓點）、`--study-accent-strong`（= `--navy-light`：`.tag.year` 字、timeline 年份、`.study-sub-title`、Home `.ch-num` + `.chapter-btn:hover`）、`--study-accent-bg`（= `--selected-bg`：`.tag.year` 底）。紫色（`--purple*`）只代表廣東話；`structure-test` fail `study.css` / `chips.css` / `home.css` 入面 `.fact-yue` 以外嘅 `--purple*` / `--year-bg`。v0.62 刪咗冇人用嘅 `--year-bg`、`--star-on` |
 | Radius | `--radius`（14px 卡）、`--radius-md`（10px）、`--radius-sm`（8px）、`--radius-xs`（6px，v0.62 O8：`.tag`（原 5px）、`.fact-btn`（原 7px）、Home `.ch-num`）、`--radius-pill`（999px）、`--radius-circle`（50%） |
 | Font size | `--fs-2xs` 10、`--fs-xs` 11、`--fs-sm` 12、`--fs-base` 13、`--fs-md` 14、`--fs-lg` 15（px）；10.5 / 12.5 / 13.5 半級同大標題字號照寫 px |
+| Spacing（v0.72，B5） | `--space-1` 2、`--space-2` 4、`--space-3` 6、`--space-4` 8、`--space-5` 10、`--space-6` 12、`--space-7` 14、`--space-8` 16、`--space-10` 20、`--space-12` 24（px；步數 = px / 2） |
 | Shadow / overlay | `--shadow`、`--shadow-sm`、`--shadow-header`、`--shadow-pop`、`--overlay` |
 
 - **新顏色一定要加喺 `tokens.css`**（按意思命名，同值同意思就重用現有 token）；`tests/structure-test.js` 會 fail 任何喺其他 css file 出現嘅 hex 或者 `rgb(` / `rgba(`
 - `--text-inverse-*`（S-018）：v0.59 token 化要 0 視覺改動，所以照搬咗 6 個按值命名嘅 alpha（75 / 70 / 65 / 60 / 55 / 45）；**v0.60 合併做 3 個語意級**（用戶已確認，有輕微視覺改動）：75、70 → `strong`（0.75）；65、60 → `muted`（0.6）；45 → `faint`（0.45）；55 → `muted`（W-008：`.exam-mastery.zero` 係 10px 字，0.45 喺 navy / navy-mid 上對比度 4.18 / 3.77，唔過 WCAG AA 4.5，所以用 muted）。即係 `.flag-start .fs-sub` 0.7 → 0.75、`.exam-sub` / install banner 副行 0.65 → 0.6、`.exam-mastery.zero` 0.55 → 0.6。`faint` 只可以用喺唔使讀嘅裝飾字（例如版本號）。`structure-test` fail 任何 css 再出現 `--text-inverse-[0-9]`；要新一級先諗清楚係咪真係需要，唔好再加按值命名嘅 token
 - **Form control 字體（v0.64，S-034）**：`layout.css` 有 `button, input, select, textarea { font-family: inherit; }`，所有掣 / 輸入框用 `body` 嘅 system font stack（之前係 UA 預設，Linux Chromium = Arial）。**只繼承 family，唔用 `font: inherit` shorthand**：shorthand 會連 size / weight 一齊重設，冇自己字號嘅掣（ⓘ `#infoBtn`、`#flagBtn`、Flagged unflag 掣）會變成跟 parent 字號 / 粗幼（例如 `#flagBtn` 13.33px → 11px、`#infoBtn` 400 → 700）。新掣要自己寫 `font-size` / `font-weight`。`line-height` 仍然係 `normal`，但 body font 嘅 metrics 比 Arial 高，所以單行掣高咗 1–2px（例如 `.nav-btn` 44 → 45、`.chapter-btn` 42 → 44），冇掣變矮；`::before` hit area（install ✕、fact 掣、Practise）冇變。W-012：390px 下 body font 令「▶ Practise these 2」闊咗約 2.8px，13 張 2 個來源嘅 fact 卡（#25、30、62、67、74、76、78、128、155、159、181、225、231）來源列由 1 行變 2 行（+27px）；`fact.css` `.fact-practise` 左右 padding 12 → 10px（`--fact-practise-pad-x`，上下 6px / S-030 ring 不變）令佢哋返一行（`factsession-test` 守住）。個別 class 原本嘅 `font: inherit`（`.sqm-cta button`、`.mode-card` 等）保留。`structure-test` 喺 Home / Practice 題目 / Study 檢查每個 `button` / `input` 嘅 `font-family` 同 `body` 一樣。CUI-0012：body font 令圓點號碼 "24" 闊咗（11.69 → 13.97px），而 `.nav-dots` / `.rdots` 原本 `repeat(12, 1fr)`（min = 號碼闊度），320–360px 圓點 grid 闊過張卡（320px 結果圓點凸出白卡、頁面橫向 scroll 2px）；改做 `repeat(12, minmax(0, 1fr))`，≤ 360px gap 6 → 4px、號碼 10.5 → 9px（`dots.css`，`examresult-test` / `practicedots-test` 320px 守住），390px 以上不變
-- Spacing（padding / margin / gap）冇統一 scale，仍然寫 px；只有重複又共用嘅 radius / font-size 先做 token
+- **Spacing（v0.72，B5，用戶揀方案 A：0 視覺改動）**：margin / padding / gap（連 `--*gap*` / `--*pad*` custom property）喺刻度上嘅 px 一律用 `--space-*`（184 個宣告），`structure-test` fail 任何刻度內嘅 literal（4 個 in-memory sample 守住 guard）；刻度以外嘅值（1 / 3 / 5 / 7 / 9 / 11 / 13 / 18 / 22 / 26 / 30 / 32 / 100px，53 處）保留原數，冇逐行註解，理由統一寫喺 `tokens.css`；width / height / top / left 等定位、font-size、border、radius 唔計。`visual-diff.js` 對 v0.71：76 個狀態 0 diff
 - `tests/tools/visual-diff.js` 比較 computed style 時會略過 `--*` custom property（每個 element 都繼承 `:root` token），所以加 / 改 token 名唔會報 diff，只報真正外觀差異
 
 ## 數據結構
@@ -604,7 +605,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 - `#reviewOrder` 係 Review filter chip 嘅容器，名係 v0.39 排序 chip 留低；測試用緊呢個 id，所以未改名
 - 124 條題目（408 − 284）冇類似題，因為佢哋嘅 fact 只有一個來源
 - **Review suggestion 狀態**（S-001…S-094；2026-10-08 final review 逐個核對，`.proj-docs/reviews/2026-10-08_review_s091-s092-final.md`）：全部已做，除咗下面決定唔改嘅 S-032（見「功能現況 › Study › 掌握規則」）、S-052（由 S-053 `check-batch-replay.js` 取代）、S-059、S-081、S-092 嘅 `\u{…}` 部分；S-013 / S-078 / S-079 從未發出
-    ◦ **S-081（決定唔改）**：Home UI 新加 spacing literal（6px、20px、1.2em）唔抽 token —— `tokens.css` 冇 spacing token，成個 codebase 都用 px literal，淨係呢幾行改會變兩套寫法；日後要就一次過加 `--space-*` 再遷移（S-087 要求記低）
+    ◦ **S-081（v0.72 B5 已處理：spacing token 統一）**：Home UI 新加 spacing literal（6px、20px、1.2em）唔抽 token —— `tokens.css` 冇 spacing token，成個 codebase 都用 px literal，淨係呢幾行改會變兩套寫法；日後要就一次過加 `--space-*` 再遷移（S-087 要求記低）
     ◦ **S-092（`\u{…}` 部分決定唔改）**：`structure-test` layering scanner 名以 `\u{…}` escape 結尾再接 `in` / `of`（`a\u{62}in / 2`）仍然當 keyword；喺 lookbehind 加 `}` 會整壞 `}return /x/`，而 `js/` 冇呢類寫法
     ◦ **S-059**：`d37eb26` 一個 commit 包 S-047 / S-048 / S-049（已 merge，唔改 history）
     ◦ **v066 `EXPECTED_ORACLE`** 寫死 `{ files: 8, records: 737, kept: 3 }`：加 batch 9 要跟住改
@@ -814,4 +815,5 @@ c10115b feat: randomise answer option order in Practice and Exam mode
 - [x] S-041…S-084 review suggestion（v0.68，除 S-081 決定唔改）
 - [x] S-085 / S-086 / S-088 / S-089（PR #44，測試 only）
 - [x] S-090 / S-091 / S-092 `layerCode` `#private` / Unicode 名（PR #45；`\u{…}` escape 名決定唔改）
+- [x] Spacing token 統一（v0.72 B5：`--space-*`，0 視覺改動，S-081 後續）
 - [ ] iPhone 實機（PingFang HK）睇 320 / 375px：M4 結果行、Study chip 行、CUI-0013（QA 建議）

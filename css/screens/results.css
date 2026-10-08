@@ -2,12 +2,12 @@
 .result-card {
   background: var(--card);
   border-radius: var(--radius);
-  padding: 32px 24px;
+  padding: 32px var(--space-12);
   text-align: center;
   box-shadow: var(--shadow);
-  margin-bottom: 20px;
+  margin-bottom: var(--space-10);
 }
-.result-emoji { font-size: 52px; margin-bottom: 12px; }
+.result-emoji { font-size: 52px; margin-bottom: var(--space-6); }
 .result-score {
   font-size: 52px; font-weight: 900; color: var(--navy);
   line-height: 1;
@@ -15,17 +15,17 @@
 .result-score span { font-size: 22px; color: var(--text-muted); font-weight: 500; }
 /* exam: failed score line is red; passed stays navy */
 .result-score.fail, .result-score.fail span { color: var(--red-light); }
-.result-label { font-size: 16px; font-weight: 700; margin: 8px 0 4px; }
+.result-label { font-size: 16px; font-weight: 700; margin: var(--space-4) 0 var(--space-2); }
 .result-sub { font-size: var(--fs-base); color: var(--text-muted); }
 .pass { color: var(--green); }
 .fail { color: var(--red); }
 
-.result-actions { margin-bottom: 20px; }
-.review-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+.result-actions { margin-bottom: var(--space-10); }
+.review-list { display: flex; flex-direction: column; gap: var(--space-6); margin-bottom: var(--space-10); }
 .review-item {
   background: var(--card);
   border-radius: var(--radius-md);
-  padding: 16px 18px;
+  padding: var(--space-8) 18px;
   border-left: 4px solid var(--border);
   font-size: var(--fs-base);
   line-height: 1.55;
@@ -33,26 +33,26 @@
 }
 .review-item.rv-correct { border-color: var(--green-light); }
 .review-item.rv-wrong { border-color: var(--red-light); }
-.rv-q { font-weight: 600; color: var(--navy); margin-bottom: 8px; line-height: 1.5; }
-.rv-your { color: var(--text-muted); font-size: 12.5px; line-height: 1.6; margin-bottom: 4px; }
+.rv-q { font-weight: 600; color: var(--navy); margin-bottom: var(--space-4); line-height: 1.5; }
+.rv-your { color: var(--text-muted); font-size: 12.5px; line-height: 1.6; margin-bottom: var(--space-2); }
 .rv-correct-ans { color: var(--green); font-size: 12.5px; font-weight: 600; line-height: 1.6; }
 /* translation + note: own block under the answer, one row per note line, hanging indent for bullets */
-.rv-tr { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); }
+.rv-tr { margin-top: var(--space-5); padding-top: var(--space-5); border-top: 1px dashed var(--border); }
 .rv-yue { color: var(--purple); font-size: 12.5px; line-height: 1.6; }
-.rv-note { margin-top: 10px; color: var(--purple); font-size: 12.5px; line-height: 1.6; }
-.rv-note-label { color: var(--note-label); font-weight: 700; margin-bottom: 4px; }
+.rv-note { margin-top: var(--space-5); color: var(--purple); font-size: 12.5px; line-height: 1.6; }
+.rv-note-label { color: var(--note-label); font-weight: 700; margin-bottom: var(--space-2); }
 .review-item.hl { box-shadow: 0 0 0 3px var(--gold); }
 
 .result-timeup {
   background: var(--danger-bg); color: var(--red);
   border: 1.5px solid var(--red-light); border-radius: var(--radius-md);
-  padding: 10px 14px; margin-bottom: 14px; font-size: var(--fs-base); font-weight: 700; text-align: center;
+  padding: var(--space-5) var(--space-7); margin-bottom: var(--space-7); font-size: var(--fs-base); font-weight: 700; text-align: center;
 }
-.result-note { font-size: var(--fs-base); color: var(--text-muted); margin-top: 8px; }
-.rv-streak { float: right; font-size: var(--fs-xs); font-weight: 700; color: var(--text-muted); margin-left: 8px; }
+.result-note { font-size: var(--fs-base); color: var(--text-muted); margin-top: var(--space-4); }
+.rv-streak { float: right; font-size: var(--fs-xs); font-weight: 700; color: var(--text-muted); margin-left: var(--space-4); }
 
-.diff-table { background: var(--card); border-radius: var(--radius-md); padding: 6px 14px; margin-bottom: 20px; }
-.diff-row { display: grid; grid-template-columns: 82px 1fr 82px; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: var(--fs-base); }
+.diff-table { background: var(--card); border-radius: var(--radius-md); padding: var(--space-3) var(--space-7); margin-bottom: var(--space-10); }
+.diff-row { display: grid; grid-template-columns: 82px 1fr 82px; gap: var(--space-5); align-items: center; padding: var(--space-4) 0; border-bottom: 1px solid var(--border); font-size: var(--fs-base); }
 .diff-row:last-child { border-bottom: none; }
 .diff-bar { height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
 .diff-bar > div { height: 100%; background: var(--green-light); border-radius: 4px; }

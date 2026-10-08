@@ -3,14 +3,14 @@
   background: var(--navy);
   color: var(--gold-light);
   border-radius: 20px;
-  padding: 4px 12px;
+  padding: var(--space-2) var(--space-6);
   font-size: var(--fs-xs); font-weight: 700;
 }
-.quiz-meta { display: flex; align-items: center; gap: 8px; }
+.quiz-meta { display: flex; align-items: center; gap: var(--space-4); }
 
 /* review round note (above the question card, right) */
-.round-row { display: flex; justify-content: flex-end; margin: -4px 0 8px; }
-.round-note { background: var(--danger-bg); color: var(--red); border-radius: 6px; padding: 3px 8px; font-size: var(--fs-xs); font-weight: 700; }
+.round-row { display: flex; justify-content: flex-end; margin: calc(-1 * var(--space-2)) 0 var(--space-4); }
+.round-note { background: var(--danger-bg); color: var(--red); border-radius: 6px; padding: 3px var(--space-4); font-size: var(--fs-xs); font-weight: 700; }
 /* exam tools (Exam 1–17 in exam mode): 45-min timer, question navigator dots, bookmark flag */
 .exam-timer {
   display: inline-flex; align-items: center;
@@ -28,7 +28,7 @@
   border-radius: var(--radius);
   padding: 26px 22px;
   box-shadow: var(--shadow-sm);
-  margin-bottom: 14px;
+  margin-bottom: var(--space-7);
 }
 /* progress bar = the question card's top border */
 .q-progress { position: absolute; left: 0; right: 0; top: 0; height: 5px; background: var(--border); }
@@ -40,19 +40,19 @@
 .q-num {
   font-size: var(--fs-xs); font-weight: 700; color: var(--text-muted);
   text-transform: uppercase; letter-spacing: 0.05em;
-  margin-bottom: 10px;
-  display: flex; align-items: center; gap: 8px; min-height: 30px;
+  margin-bottom: var(--space-5);
+  display: flex; align-items: center; gap: var(--space-4); min-height: 30px;
 }
 /* "Question X of Y" ★★★ ✓ n/m — the pill wraps to a second line when the row is full.
    CUI-0013: min-width 0 + white-space normal keep the quick nav inside .q-card on narrow screens if the header text ever grows */
-.q-num .q-num-text { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; column-gap: 6px; row-gap: 4px; white-space: normal; }
+.q-num .q-num-text { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; column-gap: var(--space-3); row-gap: var(--space-2); white-space: normal; }
 .yue-toggle {
   text-transform: none; letter-spacing: 0;
   background: var(--yue-bg);
   border: 1.5px solid var(--purple-light);
   color: var(--purple);
   border-radius: var(--radius-pill);
-  padding: 5px 12px;
+  padding: 5px var(--space-6);
   font-size: var(--fs-sm); font-weight: 700;
   cursor: pointer;
   display: none;
@@ -61,8 +61,8 @@
 .yue-toggle.on { background: var(--purple); color: var(--text-inverse); }
 .q-yue {
   display: none;
-  margin-top: 10px;
-  padding: 10px 12px;
+  margin-top: var(--space-5);
+  padding: var(--space-5) var(--space-6);
   background: var(--yue-bg-soft);
   border-left: 3px solid var(--purple-light);
   border-radius: 0 8px 8px 0;
@@ -78,16 +78,16 @@
 }
 
 /* options */
-.options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+.options { display: flex; flex-direction: column; gap: var(--space-5); margin-bottom: var(--space-8); }
 .opt {
   background: var(--card);
   border: 2px solid var(--border);
   border-radius: 11px;
-  padding: 14px 16px;
+  padding: var(--space-7) var(--space-8);
   font-size: var(--fs-md); font-weight: 500;
   color: var(--text);
   cursor: pointer;
-  display: flex; align-items: flex-start; gap: 12px;
+  display: flex; align-items: flex-start; gap: var(--space-6);
   transition: all 0.15s;
   text-align: left;
 }
@@ -115,56 +115,56 @@
   background: var(--success-bg);
   border: 1.5px solid var(--green-light);
   border-radius: 11px;
-  padding: 16px 18px;
-  margin-bottom: 14px;
+  padding: var(--space-8) 18px;
+  margin-bottom: var(--space-7);
   display: none;
 }
 .answer-box.show { display: block; animation: slideIn 0.25s ease; }
 .answer-box.wrong-ans { background: var(--danger-bg); border-color: var(--red-light); }
-.ans-label { font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--green); margin-bottom: 6px; }
+.ans-label { font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--green); margin-bottom: var(--space-3); }
 .ans-label.wrong { color: var(--red); }
-.ans-en { font-size: var(--fs-md); font-weight: 700; color: var(--green); margin-bottom: 10px; line-height: 1.5; }
+.ans-en { font-size: var(--fs-md); font-weight: 700; color: var(--green); margin-bottom: var(--space-5); line-height: 1.5; }
 .ans-en.wrong { color: var(--red); }
-.divider { height: 1px; background: var(--divider); margin: 10px 0; }
-.ans-yue { font-size: var(--fs-base); color: var(--purple); font-weight: 600; margin-bottom: 4px; line-height: 1.6; }
-.ans-yue-title { font-weight: 800; margin-bottom: 2px; }
-.ans-yue-row { display: flex; gap: 6px; }
+.divider { height: 1px; background: var(--divider); margin: var(--space-5) 0; }
+.ans-yue { font-size: var(--fs-base); color: var(--purple); font-weight: 600; margin-bottom: var(--space-2); line-height: 1.6; }
+.ans-yue-title { font-weight: 800; margin-bottom: var(--space-1); }
+.ans-yue-row { display: flex; gap: var(--space-3); }
 .ans-yue-row b { flex-shrink: 0; }
 .ans-note { font-size: var(--fs-sm); color: var(--text-muted); line-height: 1.55; }
-.ans-note-text { margin-top: 4px; }
+.ans-note-text { margin-top: var(--space-2); }
 .ans-note strong { color: var(--note-label); }
 
 /* similar questions — other questions built from the same STUDY fact (practice only) */
-.sqm { display: none; background: var(--card); border: 1.5px solid var(--border); border-radius: 11px; margin: 16px 0 14px; padding: 14px 18px 16px; }
+.sqm { display: none; background: var(--card); border: 1.5px solid var(--border); border-radius: 11px; margin: var(--space-8) 0 var(--space-7); padding: var(--space-7) 18px var(--space-8); }
 .sqm.show { display: block; animation: slideIn 0.25s ease; }
-.sqm-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.sqm-head { display: flex; align-items: center; gap: var(--space-5); margin-bottom: var(--space-6); }
 .sqm-icon { width: 30px; height: 30px; border-radius: var(--radius-sm); background: var(--fact-bg); display: flex; align-items: center; justify-content: center; font-size: var(--fs-lg); flex-shrink: 0; }
 .sqm-title { flex: 1; }
 .sqm-title b { display: block; font-size: var(--fs-md); color: var(--navy); }
 .sqm-title span { font-size: var(--fs-sm); color: var(--text-muted); }
 .sqm-count { background: var(--navy); color: var(--gold-light); border-radius: var(--radius-pill); padding: 3px 9px; font-size: var(--fs-xs); font-weight: 800; }
-.sqm-map { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 14px; }
-.sqm-map-label { font-size: var(--fs-xs); color: var(--text-muted); font-weight: 700; margin-right: 2px; }
-.sqm-node { font-size: var(--fs-xs); font-weight: 700; padding: 4px 9px; border-radius: var(--radius-pill); border: 1.5px solid var(--border); color: var(--text-muted); background: var(--card); }
+.sqm-map { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; margin-bottom: var(--space-7); }
+.sqm-map-label { font-size: var(--fs-xs); color: var(--text-muted); font-weight: 700; margin-right: var(--space-1); }
+.sqm-node { font-size: var(--fs-xs); font-weight: 700; padding: var(--space-2) 9px; border-radius: var(--radius-pill); border: 1.5px solid var(--border); color: var(--text-muted); background: var(--card); }
 .sqm-node.current { background: var(--navy); border-color: var(--navy); color: var(--text-inverse); }
 .sqm-node.mastered { border-color: var(--green-light); color: var(--green); background: var(--success-bg); }
 .sqm-node.weak { border-color: var(--red-light); color: var(--red); background: var(--danger-bg); }
-.sqm-legend { display: flex; gap: 12px; font-size: 10.5px; color: var(--text-muted); margin: -6px 0 14px; flex-wrap: wrap; }
-.sqm-legend i { display: inline-block; width: 8px; height: 8px; border-radius: var(--radius-circle); margin-right: 4px; }
+.sqm-legend { display: flex; gap: var(--space-6); font-size: 10.5px; color: var(--text-muted); margin: calc(-1 * var(--space-3)) 0 var(--space-7); flex-wrap: wrap; }
+.sqm-legend i { display: inline-block; width: 8px; height: 8px; border-radius: var(--radius-circle); margin-right: var(--space-2); }
 .sqm-legend .lg-current { background: var(--navy); }
 .sqm-legend .lg-mastered { background: var(--green-light); }
 .sqm-legend .lg-weak { background: var(--red-light); }
 .sqm-legend .lg-new { background: var(--border); }
-.sqm-list { display: flex; flex-direction: column; gap: 8px; }
+.sqm-list { display: flex; flex-direction: column; gap: var(--space-4); }
 .sqm-item { border: 1.5px solid var(--border); border-radius: var(--radius-md); padding: 11px 13px; }
-.sqm-item-top { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
+.sqm-item-top { display: flex; align-items: center; gap: var(--space-3); margin-bottom: 5px; }
 .sqm-id { font-size: 10.5px; font-weight: 800; color: var(--text-muted); letter-spacing: 0.04em; }
 .sqm-streak { margin-left: auto; font-size: var(--fs-xs); font-weight: 700; color: var(--text-muted); }
 .sqm-streak.done { color: var(--green); }
 .sqm-q { font-size: 13.5px; font-weight: 600; color: var(--navy); line-height: 1.5; }
-.sqm-qy { font-size: var(--fs-sm); color: var(--purple); line-height: 1.5; margin-top: 2px; }
-.sqm-cta { margin-top: 14px; }
-.sqm-cta button { width: 100%; border-radius: var(--radius-md); padding: 11px 10px; font: inherit; font-size: var(--fs-base); font-weight: 700; cursor: pointer; background: var(--gold); color: var(--navy); border: none; }
+.sqm-qy { font-size: var(--fs-sm); color: var(--purple); line-height: 1.5; margin-top: var(--space-1); }
+.sqm-cta { margin-top: var(--space-7); }
+.sqm-cta button { width: 100%; border-radius: var(--radius-md); padding: 11px var(--space-5); font: inherit; font-size: var(--fs-base); font-weight: 700; cursor: pointer; background: var(--gold); color: var(--navy); border: none; }
 
 @media (max-width: 480px) {
   .q-text { font-size: var(--fs-lg); }

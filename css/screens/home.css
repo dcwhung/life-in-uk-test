@@ -1,9 +1,9 @@
 /* ── HOME SCREEN ── */
-.mode-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.mode-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-5); margin-bottom: var(--space-6); }
 .mode-card {
   background: var(--card);
   border-radius: var(--radius);
-  padding: 16px 10px;
+  padding: var(--space-8) var(--space-5);
   border: 2px solid var(--border);
   cursor: pointer;
   transition: all 0.18s;
@@ -12,17 +12,17 @@
 }
 .mode-card:hover { border-color: var(--navy-light); transform: translateY(-2px); box-shadow: var(--shadow); }
 .mode-card.selected { border-color: var(--navy); background: var(--selected-bg); }
-.practice-tabs { display: none; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 14px; }
+.practice-tabs { display: none; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-3); margin-bottom: var(--space-7); }
 .practice-tabs.show { display: grid; }
 .exam-select-section.hidden { display: none; }
 .reset-row {
   display: none;
-  align-items: center; gap: 12px; flex-wrap: wrap;
+  align-items: center; gap: var(--space-6); flex-wrap: wrap;
   background: var(--card);
   border: 1.5px dashed var(--border);
   border-radius: var(--radius-md);
-  padding: 10px 14px;
-  margin-bottom: 24px;
+  padding: var(--space-5) var(--space-7);
+  margin-bottom: var(--space-12);
   font-size: var(--fs-sm); color: var(--text-muted); line-height: 1.5;
 }
 .reset-row.show { display: flex; }
@@ -37,7 +37,7 @@
   border: 1.5px solid var(--red-light);
   color: var(--red);
   border-radius: var(--radius-sm);
-  padding: 6px 12px;
+  padding: var(--space-3) var(--space-6);
   font: inherit; font-size: var(--fs-sm); font-weight: 700;
   cursor: pointer; white-space: nowrap;
 }
@@ -48,38 +48,38 @@
 .chapter-btn .ch-count.mastery.zero { color: var(--text-muted); font-weight: 500; }
 .mastery-bar { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--green-light); border-radius: 0 2px 2px 0; }
 .chapter-btn.complete { border-color: var(--green-light); }
-.exam-btn .exam-mastery { display: block; font-size: var(--fs-2xs); font-weight: 600; color: var(--green); margin-top: 2px; }
+.exam-btn .exam-mastery { display: block; font-size: var(--fs-2xs); font-weight: 600; color: var(--green); margin-top: var(--space-1); }
 .exam-btn .exam-mastery.zero { color: var(--text-muted); font-weight: 500; }
 /* clip the mastery bar to the rounded box; .done keeps overflow for its ✓ badge (exam mode only, no bar) */
 .exam-btn:not(.done) { overflow: hidden; }
 .exam-btn .mastery-bar { border-radius: 0; }
 .exam-btn.all .exam-mastery { color: var(--gold-light); }
-.exam-btn .exam-sub { display: block; font-size: var(--fs-2xs); font-weight: 600; color: var(--text-inverse-muted); margin-top: 2px; }
+.exam-btn .exam-sub { display: block; font-size: var(--fs-2xs); font-weight: 600; color: var(--text-inverse-muted); margin-top: var(--space-1); }
 .exam-btn.all .exam-mastery.zero { color: var(--text-inverse-muted); }
 /* Practice: the navy hover would bury the green mastery line, so it turns gold like All Exams (option A).
    Exam mode's .done:hover (green fill) never meets this: .done buttons carry no mastery line */
 .exam-btn:hover .exam-mastery { color: var(--gold-light); }
 .exam-btn:hover .exam-mastery.zero { color: var(--text-inverse-muted); }
-.mode-icon { font-size: 26px; margin-bottom: 6px; }
+.mode-icon { font-size: 26px; margin-bottom: var(--space-3); }
 .mode-title { font-size: var(--fs-md); font-weight: 700; color: var(--navy); }
 .mode-desc-panel {
   display: none;
   background: var(--card);
   border-left: 4px solid var(--navy);
   border-radius: var(--radius-md);
-  padding: 12px 14px;
+  padding: var(--space-6) var(--space-7);
   font-size: var(--fs-base); color: var(--text-muted); line-height: 1.55;
-  margin-bottom: 24px;
+  margin-bottom: var(--space-12);
 }
 .mode-desc-panel.show { display: block; }
 .mode-desc-panel strong { color: var(--navy); }
-.exam-select-section { margin-bottom: 24px; }
-.exam-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; }
+.exam-select-section { margin-bottom: var(--space-12); }
+.exam-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: var(--space-4); }
 .exam-btn {
   background: var(--card);
   border: 2px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 10px 6px;
+  padding: var(--space-5) var(--space-3);
   font-size: var(--fs-base); font-weight: 700;
   color: var(--navy);
   cursor: pointer; text-align: center;
@@ -106,21 +106,21 @@
   background: linear-gradient(135deg, var(--navy), var(--navy-mid));
   color: var(--text-inverse); border-color: transparent;
   grid-column: 1 / -1;
-  padding: 12px;
+  padding: var(--space-6);
 }
 
 /* practice "My Review": sets built from what the user has done (wrong answers, flagged) */
-.my-review { display: none; margin-bottom: 4px; }
+.my-review { display: none; margin-bottom: var(--space-2); }
 .my-review.show { display: block; }
-.my-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+.my-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-5); margin-bottom: var(--space-10); }
 /* grid stretches both tiles to one height; flex column keeps a short tile's content at the top
    (a <button> centres its content vertically by default) */
 .my-tile {
   display: flex; flex-direction: column; justify-content: flex-start;
   background: var(--card); border: 2px solid var(--border); border-radius: 12px;
-  padding: 12px 12px 11px; text-align: left; cursor: pointer; box-shadow: var(--shadow-sm); font: inherit;
+  padding: var(--space-6) var(--space-6) 11px; text-align: left; cursor: pointer; box-shadow: var(--shadow-sm); font: inherit;
 }
-.my-tile .t-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.my-tile .t-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-4); }
 .my-tile .t-icon { width: 30px; height: 30px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: var(--fs-lg); font-weight: 900; }
 .my-tile.wrong { border-left: 4px solid var(--red-light); }
 .my-tile.wrong .t-icon { background: var(--danger-bg); color: var(--red-light); }
@@ -129,10 +129,10 @@
 .my-tile .t-icon svg { width: 17px; height: 17px; }
 .my-tile .t-num { font-size: 24px; font-weight: 900; color: var(--navy); line-height: 1; }
 .my-tile b { display: block; font-size: 13.5px; color: var(--navy); }
-.my-tile .sub, .my-tile .t-note { display: block; font-size: var(--fs-xs); color: var(--text-muted); margin-top: 2px; line-height: 1.4; }
+.my-tile .sub, .my-tile .t-note { display: block; font-size: var(--fs-xs); color: var(--text-muted); margin-top: var(--space-1); line-height: 1.4; }
 /* the wrong tile's note (only while it has questions, v0.70): same small text as .sub, set apart from the title above;
    text-wrap: pretty stops a lone "題。" on the last line (S-084), browsers without it wrap as before */
-.my-tile .t-note { margin-top: 6px; text-wrap: pretty; }
+.my-tile .t-note { margin-top: var(--space-3); text-wrap: pretty; }
 /* W-022: fade the empty tile's parts (since v0.70 / S-105 an empty tile has no note, so every part fades); the grey
    left border and dropped shadow still mark the tile as empty */
 .my-tile.empty { cursor: default; border-left-color: var(--border); box-shadow: none; }
@@ -143,13 +143,13 @@
 .practice-by-title.show { display: block; }
 
 /* ── HOME: chapter / difficulty practice ── */
-.chapter-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+.chapter-grid { display: grid; grid-template-columns: 1fr; gap: var(--space-4); }
 .chapter-btn {
   background: var(--card);
   border: 2px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 10px 14px;
-  display: flex; align-items: center; gap: 10px;
+  padding: var(--space-5) var(--space-7);
+  display: flex; align-items: center; gap: var(--space-5);
   cursor: pointer; text-align: left;
   font-size: var(--fs-base); color: var(--navy);
   transition: all 0.15s;
@@ -157,16 +157,16 @@
 .chapter-btn:hover { border-color: var(--study-accent-strong); }
 .chapter-btn .ch-num {
   background: var(--study-accent-strong); color: var(--text-inverse);
-  border-radius: var(--radius-xs); padding: 3px 8px;
+  border-radius: var(--radius-xs); padding: 3px var(--space-4);
   font-size: var(--fs-xs); font-weight: 800; flex-shrink: 0;
 }
 .chapter-btn .ch-name { font-weight: 700; flex: 1; }
 .chapter-btn .ch-count { color: var(--text-muted); font-size: var(--fs-sm); white-space: nowrap; }
-.diff-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+.diff-grid { display: grid; grid-template-columns: 1fr; gap: var(--space-4); }
 .diff-btn .stars { font-size: var(--fs-md); flex: 1; }
 .diff-btn .ch-name { flex: 0; white-space: nowrap; color: var(--text-muted); font-weight: 600; font-size: var(--fs-sm); }
 
 @media (max-width: 480px) {
-  .mode-card { padding: 14px 6px; }
+  .mode-card { padding: var(--space-7) var(--space-3); }
   .mode-title { font-size: var(--fs-base); }
 }

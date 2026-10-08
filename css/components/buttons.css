@@ -3,20 +3,20 @@
   background: var(--card);
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 7px 14px;
+  padding: 7px var(--space-7);
   font-size: var(--fs-base); font-weight: 600; color: var(--navy);
-  cursor: pointer; display: flex; align-items: center; gap: 6px;
+  cursor: pointer; display: flex; align-items: center; gap: var(--space-3);
 }
 .back-btn:hover { background: var(--navy); color: var(--text-inverse); border-color: transparent; }
 
 /* nav buttons */
-.nav-row { display: flex; gap: 10px; justify-content: flex-end; }
+.nav-row { display: flex; gap: var(--space-5); justify-content: flex-end; }
 .nav-btn {
   background: var(--navy);
   color: var(--text-inverse);
   border: none;
   border-radius: var(--radius-md);
-  padding: 12px 24px;
+  padding: var(--space-6) var(--space-12);
   font-size: var(--fs-md); font-weight: 700;
   cursor: pointer; transition: all 0.15s;
 }
@@ -26,7 +26,7 @@
 .nav-btn:disabled { opacity: 0.4; cursor: default; }
 
 /* quick Prev / Next in the question header */
-.quick-nav { display: none; gap: 6px; flex-shrink: 0; text-transform: none; letter-spacing: 0; }
+.quick-nav { display: none; gap: var(--space-3); flex-shrink: 0; text-transform: none; letter-spacing: 0; }
 .quick-nav.visible { display: inline-flex; }
 .quick-btn {
   width: 32px; height: 32px; border-radius: var(--radius-circle);
