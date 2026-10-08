@@ -101,6 +101,13 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(await active('screenResult') && !(await modalOpen()), 'time up: straight to results, no prompt');
   assert(await vis('#resultTimeUp') && (await text('#resultTimeUp')).includes("Time's up"), 'results note the auto-submit');
   assert(await pg.evaluate(() => examTimerId === null), 'timer stopped');
+  // W-024: time up while the submit modal is open closes it — results are not covered and cannot be submitted twice
+  await pg.evaluate(() => { pendingMode = 'exam'; startExam(4); state.current = state.questions.length - 1; renderQuestion(); });
+  await pg.click('#nextBtn');
+  assert(await modalOpen(), 'W-024: submit modal open before time up');
+  await pg.evaluate(() => { examDeadline = Date.now() - 1; examTick(); });
+  assert(await active('screenResult') && !(await modalOpen()), 'W-024: time up closes the open modal on the way to results');
+  assert(await vis('#resultTimeUp'), "W-024: results keep the time-up note");
   // a normal submit has no time-up note; results "Choose Another" does not ask
   await pg.evaluate(() => { pendingMode = 'exam'; startExam(4); state.questions.forEach((q, i) => { state.answers[i] = [...q.a]; }); state.current = 23; renderQuestion(); });
   await pg.click('#nextBtn');

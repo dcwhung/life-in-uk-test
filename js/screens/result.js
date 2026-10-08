@@ -16,6 +16,8 @@ let reviewFilter = 'all';
 
 function finishExam() {
   stopExamTimer();
+  // W-024: time up can land while Submit / Leave is asking; drop that prompt so it cannot cover or re-submit the results
+  if (isConfirmOpen()) closeConfirm();
   setShown('resultTimeUp', examTimeUp);
   examTimeUp = false;
   reviewItems = state.questions.map((q, idx) => {
