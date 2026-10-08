@@ -110,7 +110,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
     state.questions.forEach((q, i) => { state.current = i; state.answers[i] = i % 4 ? [...q.a] : [q.o.findIndex((_, k) => !q.a.includes(k))]; revealAnswer(); });
     finishExam();
   });
-  assert((await text('#resultEmoji')) === '🎯' && (await pg.$$('.result-breakdown')).length === 0, 'practice result: 🎯, no boxes');
+  assert((await text('#resultEmoji')) === '📝' && (await pg.$$('.result-breakdown')).length === 0, 'practice result: 📝, no boxes');
   assert((await text('#resultScore')) === '18 / 24 · 75%' && !(await pg.$eval('#resultScore', e => e.classList.contains('fail'))), 'score line, never red in practice');
   assert((await pg.$$('#resultDots .rdot')).length === 24 && await pg.evaluate(() => document.querySelector('#resultDots .rdot.flag') !== null), 'practice result dots incl. flag ring');
   assert(JSON.stringify(await texts('#reviewOrder .chip')) === JSON.stringify(['All 24', 'Wrong 6', 'Flagged 1']), 'practice review filters');

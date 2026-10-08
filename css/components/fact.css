@@ -65,6 +65,16 @@
 .fact-name { font-size: var(--fs-md); font-weight: 800; color: var(--navy); margin-bottom: 4px; }
 .fact-en { font-size: var(--fs-md); font-weight: 500; color: var(--text); line-height: 1.5; }
 .fact-yue { font-size: var(--fs-base); color: var(--purple); line-height: 1.6; margin-top: 5px; }
+/* v0.71 (B3): the source questions' memory method, a closed <details>; the summary row is a 44px tap target (O2) */
+.fact-mem { margin-top: 10px; background: var(--gold-bg); border-radius: var(--radius-sm); }
+.fact-mem summary {
+  list-style: none; cursor: pointer; padding: 12px; min-height: 44px; box-sizing: border-box;
+  font-size: var(--fs-sm); font-weight: 700; color: var(--note-label);
+}
+.fact-mem summary::-webkit-details-marker { display: none; }
+.fact-mem summary::before { content: '▸ '; }
+.fact-mem[open] summary::before { content: '▾ '; }
+.fact-mem-body { padding: 0 12px 12px; font-size: var(--fs-sm); line-height: 1.6; color: var(--text-muted); }
 
 /* T-206 source row: "Appears in:" + display-only nodes (Similar panel .sqm-node colours) + "▶ Practise" */
 .fact-src {

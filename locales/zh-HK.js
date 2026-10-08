@@ -41,7 +41,7 @@ LOCALES['zh-HK'] = {
     tabChapter: '章節',
     tabExam: '試卷',
     selectExam: '選擇試卷',
-    allExams: '🎯 全部試題（{n} 題）',
+    allExams: '📝 全部試題（{n} 題）',
     randomExam: '🎲 隨機試卷',
     randomExamSub: '從 {total} 題中抽取 {n} 題',
     practiceHintHtml: '<ul><li>每輪最多抽取 <b>{max}</b> 條未掌握的題目，每題出現一次</li><li>同一題<b>連續答對 {streak} 次</b>即算掌握</li><li>未掌握的題目會於下一輪再出現</li><li>已掌握的題目會略過，直至整組全部掌握</li></ul>',
@@ -142,6 +142,7 @@ LOCALES['zh-HK'] = {
     bookmark: '書籤',
     mastered: '已掌握',
     masteredDerived: '🏆 已掌握 — 所有來源題目均已掌握',
+    memoryAid: '💡 記憶法',
     progress: '🏆 已掌握 {n} / {total}',
     // the fact's number within its chapter (chapterFactNumber); no UI text shows the global fact id (W-016)
     factId: '#{n}',

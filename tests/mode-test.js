@@ -17,6 +17,8 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(styles[0] === styles[2], 'Study styled like Exam (unselected): ' + styles[0]);
   // 2. default practice
   assert(await pg.$eval('#modePractice', e => e.classList.contains('selected')), 'Practice selected by default');
+  // v0.71: mode icons swapped — Practice 📝, Exam 🎯 (user request)
+  assert(await pg.$eval('#modePractice .mode-icon', e => e.textContent) === '📝' && await pg.$eval('#modeExam .mode-icon', e => e.textContent) === '🎯', 'mode cards: Practice 📝, Exam 🎯');
   assert(await vis('#modeDesc') && (await pg.$eval('#modeDesc', e => e.textContent)).includes('Practice'), 'practice description shown by default');
   // 4. practice tabs default difficulty
   assert(await vis('#practiceTabs') && await pg.$eval('#ptabDifficulty', e => e.classList.contains('active')), 'practice tabs visible, By Difficulty active');

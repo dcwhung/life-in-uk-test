@@ -155,9 +155,9 @@ async function checkHomePractice(pg, ctx) {
   // practice › exam: the all-questions button reads 全部試題 in zh-HK, All Questions in en
   await pg.evaluate(() => setPracticeView('exam'));
   await switchOn(pg, ctx, 'home practice › exam', '#examGrid');
-  assert((await textOf(pg, '#examGrid .exam-btn.all')).startsWith('🎯 全部試題（408 題）'), 'zh-HK: practice grid shows 全部試題（408 題）');
+  assert((await textOf(pg, '#examGrid .exam-btn.all')).startsWith('📝 全部試題（408 題）'), 'zh-HK: practice grid shows 全部試題（408 題）');
   await switchOn(pg, ctx, 'home practice › exam', '#examGrid');
-  assert((await textOf(pg, '#examGrid .exam-btn.all')).startsWith('🎯 All Questions (408)'), 'en: practice grid shows All Questions (408)');
+  assert((await textOf(pg, '#examGrid .exam-btn.all')).startsWith('📝 All Questions (408)'), 'en: practice grid shows All Questions (408)');
 }
 
 // Quiz practice: translation shown before answering, flagged, answered (Similar panel open)

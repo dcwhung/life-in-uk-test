@@ -292,7 +292,7 @@ async function glossary(b) {
     await noEnglishLeft('Home practice › chapter', pg); await noOverflow('Home practice › chapter', pg);
     await tap(pg, '#ptabExam');
     const allBtn = await pg.$eval('#examGrid [data-arg="all"]', e => e.textContent.replace(/\s+/g, ' ').trim());
-    ok(allBtn.startsWith('🎯 全部試題（408 題）'), `M6 Home practice › exam: all-questions cell "🎯 全部試題（408 題）" (${allBtn})`);
+    ok(allBtn.startsWith('📝 全部試題（408 題）'), `M6 Home practice › exam: all-questions cell "📝 全部試題（408 題）" (${allBtn})`);
     await expectTexts('Home practice › exam', pg, ['Exam 1', 'Exam 17']);
     await noEnglishLeft('Home practice › exam', pg); await noOverflow('Home practice › exam', pg);
     await nav(pg, '#modeExam');
@@ -415,7 +415,7 @@ async function glossary(b) {
     const { ctx, pg, errs } = await fresh(b, 390);
     await nav(pg, '#modePractice'); await tap(pg, '#ptabExam');
     const enCell = await pg.$eval('#examGrid [data-arg="all"]', e => e.textContent.replace(/\s+/g, ' ').trim());
-    ok(enCell.startsWith('🎯 All Questions (408)'), `M6 en: all-questions cell "🎯 All Questions (408)" (${enCell})`);
+    ok(enCell.startsWith('📝 All Questions (408)'), `M6 en: all-questions cell "📝 All Questions (408)" (${enCell})`);
     await nav(pg, '#examGrid [data-arg="all"]');
     ok((await pg.textContent('#quizLabel')) === 'All Questions (shuffled)', 'M6 en: quiz label All Questions (shuffled)');
     await pill(pg);

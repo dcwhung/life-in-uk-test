@@ -71,6 +71,12 @@ function factSourceRowHtml(f) {
     </div>`;
 }
 
+// v0.71 (B3): the source questions' memory method, closed until tapped (user picked option B); notes are Cantonese
+function factMemoryHtml(f) {
+  const text = factMemoryText(f);
+  return text ? `<details class="fact-mem"><summary>${t('study.memoryAid')}</summary><div class="fact-mem-body" lang="zh-HK">${noteHtml(text)}</div></details>` : '';
+}
+
 // marks: { bookmarks, mastered (ticked by hand), derived (factMastery) } booleans for this fact;
 // opts: tag switches + title (People tab name line)
 function factFullHtml(f, { marks = {}, opts = {} }) {
@@ -85,6 +91,7 @@ function factFullHtml(f, { marks = {}, opts = {} }) {
     ${opts.title ? `<div class="fact-name" lang="en">${escapeHtml(opts.title)}</div>` : ''}
     <div class="fact-en" lang="en">${escapeHtml(f.en)}</div>
     <div class="fact-yue" lang="zh-HK">${escapeHtml(f.yue)}</div>
+    ${factMemoryHtml(f)}
     ${factSourceRowHtml(f)}
   </div>`;
 }
