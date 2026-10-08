@@ -145,6 +145,7 @@ LOCALES.en = {
     bookmark: 'Bookmark',
     mastered: 'Mastered',
     masteredDerived: '🏆 Mastered — every source question mastered',
+    memoryAid: '💡 記憶法', // the memory notes are in Cantonese, like common.noteLabel
     progress: '🏆 {n} / {total} mastered',
     // the fact's number within its chapter (chapterFactNumber); no UI text shows the global fact id (W-016)
     factId: '#{n}',

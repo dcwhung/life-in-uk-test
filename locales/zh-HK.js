@@ -142,6 +142,7 @@ LOCALES['zh-HK'] = {
     bookmark: '書籤',
     mastered: '已掌握',
     masteredDerived: '🏆 已掌握 — 所有來源題目均已掌握',
+    memoryAid: '💡 記憶法',
     progress: '🏆 已掌握 {n} / {total}',
     // the fact's number within its chapter (chapterFactNumber); no UI text shows the global fact id (W-016)
     factId: '#{n}',
