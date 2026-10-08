@@ -1,4 +1,4 @@
-# Life in the UK Test PWA — Handoff (v0.67)
+# Life in the UK Test PWA — Handoff (v0.68)
 
 - **Repo:** https://github.com/dcwhung/life-in-uk-test （main branch，GitHub Pages root `/`）
 - **Live:** https://dcwhung.github.io/life-in-uk-test/
@@ -43,9 +43,9 @@ v0.57（P1 refactor）起 `index.html` 只剩 `<head>`、各 screen 嘅 markup �
 | `icons/icon.svg` | v0.59（CUI-0001）：app icon **source**（navy 底 + 白色「UK」字，用戶確認嘅 wordmark）；同時係 SVG favicon。注意 SVG 註解唔可以有 `--`（XML 規定），有就成個 SVG decode 唔到 |
 | `icons/*.png` | 由 `icon.svg` 生成，**唔好手改**：`icon-192.png`（PNG favicon fallback + manifest）、`icon-512.png`、`icon-maskable-512.png`（navy 滿版、圖案縮到 80% 入 safe zone）、`apple-touch-icon.png`（180，navy 滿版，iOS 自己切圓角） |
 | `tests/tools/make-icons.js` | 改咗 `icon.svg` 之後跑：`NODE_PATH=… CHROMIUM_PATH=… node tests/tools/make-icons.js`，用 Chromium 按準確尺寸 render 晒所有 PNG（navy 由 `tokens.css` 讀），再 commit PNG |
-| `tests/content-guard-test.js` | v0.66（T-101）：Track 2 content guard（純 node，唔使 browser）：`data/exams.js` 除 `yue` / `oy` / `note` 之外、`data/study.js` 除 fact `yue` 之外嘅**所有**欄位同 `tests/fixtures/content-baseline.json` 逐個比較（English `q` / `o` / `a`、`ch`、`d`、`src`、`en`、`geo`、`p`、`yl`、加 / 刪 key、次序、題數 / fact 數、`CHAPTERS`、每個 data file 嘅 top-level 名）；可以改嘅欄位只比形狀（`yue` 非空、`oy.length === o.length` 同每個 slot 空 / 非空、有冇 `note` key），所以 `oy` 原本 `''` 嘅 slot 要保持 `''`；報錯寫 `Exam N · Qk (index)` / `fact #id (index)`，最多列 40 條。**R3 check**（v0.66，S-055）：同一條 English 題目（`q` trim + 唔分大細階）喺唔同 exam 出現，`yue` 一定要逐字一樣，否則列出成組題目再 fail。盲點見「已知限制」S-051 / S-052 |
+| `tests/content-guard-test.js` | v0.66（T-101）：Track 2 content guard（純 node，唔使 browser）：`data/exams.js` 除 `yue` / `oy` / `note` 之外、`data/study.js` 除 fact `yue` 之外嘅**所有**欄位同 `tests/fixtures/content-baseline.json` 逐個比較（English `q` / `o` / `a`、`ch`、`d`、`src`、`en`、`geo`、`p`、`yl`、加 / 刪 key、次序、題數 / fact 數、`CHAPTERS`、每個 data file 嘅 top-level 名）；可以改嘅欄位只比形狀（`yue` 非空、`oy.length === o.length` 同每個 slot 空 / 非空、有冇 `note` key），所以 `oy` 原本 `''` 嘅 slot 要保持 `''`；報錯寫 `Exam N · Qk (index)` / `fact #id (index)`，最多列 40 條。**R3 check**（v0.66，S-055）：同一條 English 題目（`q` trim + 唔分大細階）喺唔同 exam 出現，`yue` 一定要逐字一樣，否則列出成組題目再 fail。v0.68 加 S-051 `_noteNonEmpty` 單向規則（有內容嘅 note 唔可以清空）同 S-061 多選題 yue 數量字；`oy` 錯位由 `tests/tools/check-batch-replay.js` 守（S-053） |
 | `tests/fixtures/content-baseline.json` | v0.66（T-101）：guard 嘅 committed baseline（受保護欄位原樣 + 可改欄位嘅形狀，一題一行，改 English 時 diff 易睇）；用 fixture 唔用 git ref，因為 `origin/main` 會郁、shallow clone 未必有舊 commit。**唔好手改** |
-| `tests/tools/make-content-baseline.js` | v0.66（T-101）：生成上面個 fixture：`node tests/tools/make-content-baseline.js`（亦 export `loadData` / `project` / `BASELINE` 俾 guard 用）。**只可以喺刻意改 English 內容或者 data 結構（id、`ch`、`d`、`src`、答案、次序、題數）嗰陣重生成，同嗰個改動放喺同一個 commit**；**唔准喺廣東話改寫之後為咗令 guard pass 而重生成**（guard 存在就係防 `yue` / `oy` / `note` 改寫靜靜雞改埋其他嘢；fixture v0.66 只喺 T-101 `30f0e8d` commit 過一次）。同一規則寫咗喺 tool 檔頭、guard 檔頭同 `tests/tools/README.md` |
+| `tests/tools/make-content-baseline.js` | v0.66（T-101）：生成上面個 fixture：`node tests/tools/make-content-baseline.js`（亦 export `loadData` / `project` / `BASELINE` 俾 guard 用）。**只可以喺刻意改 English 內容或者 data 結構（id、`ch`、`d`、`src`、答案、次序、題數）嗰陣重生成，同嗰個改動放喺同一個 commit**；**唔准喺廣東話改寫之後為咗令 guard pass 而重生成**（guard 存在就係防 `yue` / `oy` / `note` 改寫靜靜雞改埋其他嘢；fixture 只喺 T-101 `30f0e8d`（v0.66）同 S-051 `295bd71`（v0.68，加 `_noteNonEmpty`）commit 過）。同一規則寫咗喺 tool 檔頭、guard 檔頭同 `tests/tools/README.md` |
 | `tests/*.js` | 31 套測試（v0.63 加 `factmastery-test`，v0.64 加 `doubletap-test`，v0.65 加 `lang-switch-test`，v0.66 加 `content-guard-test`）（大部分 Playwright），`tests/run-all.sh` 一次過跑 |
 | `mockups/similar-question-map.html` | Similar Questions 嘅設計 mockup（獨立 HTML，頂部 tab 切換情景；PR 嘅 `Design Origin`） |
 
@@ -463,7 +463,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | `lang-switch-test.js` | v0.65（T-007）：pill 顯示目標語言（`中` / `EN`）、`aria-label` / `title`、44px hit area（四邊 `elementFromPoint`，S-044）；撳 pill → `<html lang>`、`lifeuk.uiLang`、reload 保持；Home / Quiz（Practice reveal + Similar、side session ↩、Exam 中途 + flag）/ Result（filter）/ Flagged / Study（tab / chip / 搜尋）每個畫面 en → zh-HK → en，`snapState` 比對 `state`、timer、`sessionReturn`、review、`study`、搜尋框、成個 localStorage（除 `uiLang`）不變、冇 `[i18n] missing key`、成績唔重複記錄；exam timer 即刻換字而唔 call `examTick`；confirm modal 開住（focus pill + Enter）唔切換；`<title>` 保持英文；M2 國家 chip 冇拉丁字母；M6 `🎯 全部試題（408 題）` ↔ `🎯 All Questions (408)`；W-014 `checkContentLang`（`closest('[lang]')`，唔准落到 `<html>`）；M4 `.result-sub` 320px 唔跌單字（要有 CJK 字體，S-045）；320px 冇橫向 overflow；pill dblclick 唔被 double tap guard 食（wait 由 `SCREEN_CHANGE_CLICK_GUARD_MS` 計，S-043） |
 | `practicedots-test.js` | v0.55：Practice 圓圈（24 / 9 / review 題數、冇 progress bar 同計時、啱綠錯紅、flag 橙邊、計數一行、撳跳題前後都得）；冇 score pill；Exam 最後一題快捷 ✓ 交卷（有未答彈 modal、全答直接去結果）；Flagged 列表「Practise flagged」書籤 icon 係橙色；首頁 Flagged 格 icon 橙色、Home 冇可見嘅黑色 SVG（v0.56）；CUI-0012：320px 圓點喺卡 content box 入面、冇橫向 scroll、正圓、號碼喺 border 入面（390px 同樣檢查） |
 
-## 版本記錄（v0.32–v0.67）
+## 版本記錄（v0.32–v0.68）
 
 | 版本 | PR | 改動 |
 |---|---|---|
@@ -510,6 +510,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | v0.65 | dcwhung/life-in-uk-test#39 | **zh-HK UI locale + 語言切換掣（Track 1，plan `2026-10-07_plan_zh-hk-locale.md`，T-001…T-012）**：**①** 新 `locales/zh-HK.js`（書面語，key 同 en 一樣；`SAME_AS_EN_KEYS` 令 `<title>` / meta / manifest 保持英文；帶號碼標籤 `Exam {n}` / `Chapter {n}` / `Ch {n}` / `Exam 9 · Q15` 同章節名保留英文；tab 中文；國家 chip 只寫中文（M2）、時代 / 國家標題「中文（English）」）；**②** header pill `#langBtn`（`.lang-btn`，顯示目標語言 `中` / `EN`，`toggleLang`，confirm modal 開住唔切換，`::before` hit area ≥ 44px），`config.js` `ZH_HK_LANG`，切換即時 re-render 當前畫面並保留狀態，exam 倒數即刻換字（`refreshExamTimer()`，唔 call `examTick`）；**③** `body` font stack 加系統 CJK 字體（PingFang HK / Noto Sans HK / Noto Sans CJK HK / Microsoft JhengHei，冇 web font）；M4 ≤ 360px `.result-sub` 細一級（en 一樣）；**④** `sw.js` SHELL + `index.html`（en.js 之後）加 `locales/zh-HK.js`，唔入 `LATE_BOOT_SCRIPTS`；`APP_VERSION` 0.65；**⑤** M6：Practice 全部題目組改名 `🎯 All Questions (408)` / `🎯 全部試題（408 題）`（`home.allExams` param `{count}` → `{n}`、`quiz.allShuffled`、`common.allExams`），刪 `common.questions`；**⑥** Review（Round 1 84 → Round 2 93 / 100）：W-013 冇 zh-HK locale 收埋 pill（`syncLangPill()`）、W-014 英文題目 / 選項 / 答案 / fact `lang="en"`、廣東話 `lang="zh-HK"`、S-042 M4 註解寫明 en 都縮、S-043 / S-044 測試收緊；**⑦** 測試：新 `lang-switch-test`（30 套）、`i18n-test` zh-HK parity、`upgrade-test` ⑥ 舊 shell + stored zh-HK、⑦ 缺 `zh-HK.js`；QA 264 / 265（唯一 fail = v0.64 已存在嘅 CUI-0013）；**⑧** 刪 `mockups/lang-switch.html`（確認咗嘅 mockup，T-012）。未處理：CUI-0013、CUI-0014、S-041、S-045、S-046（見「已知限制 / 未做」） |
 | v0.66 | dcwhung/life-in-uk-test#40 | **data 廣東話口語化（Track 2，plan `2026-10-07_plan_zh-hk-locale.md`，T-101…T-109）**：**①** `data/exams.js`：`yue` 331 題（batch 1–5 322 + batch 7 R2 防洩露 16 + S-055 R3 1；batch 7 有 8 題係 batch 1–5 已經改過嘅，所以淨數 331 唔係 339）、`note` 140 題、`oy` 71 題（102 個選項）；`data/study.js` fact `yue` 140 條（batch 6）；English / 結構 0 改動（content guard；review 同 QA 由 v0.65 data 重放批准咗嘅批次 JSON，結果同 data 一致）；**②** 規則：語感規則 1–15、統一譯名表、R1 手冊先現況後（Senedd / 歐洲委員會 / 英聯邦）、R2 題目翻譯唔洩露答案（W-015，batch 7；A6 / A9 / A10 用戶例外）、R3 同一條 English 題目同一個 `yue`（S-055），見「廣東話翻譯（yue）規則（v0.66）」；**③** 測試：新 `content-guard-test`（31 套）+ `tests/fixtures/content-baseline.json` + `tests/tools/make-content-baseline.js`，R3 check（`04883d0`）；T-102 `similar-test` / `study-test` 改由 data 讀 `yue`；**④** `APP_VERSION` 0.66（SW cache `lifeuk-v0.66`；batch 7 / S-055 冇再升）；**⑤** Review round 1 91 → round 2 94 / 100；QA（@ `066da69`，batch 7 之前）31 / 31、QA script 1671 / 1671，開 CUI-0015；**W-015 QA 重跑已驗證**（@ `f91abe4`，`.proj-docs/qa/2026-10-07_qa_v066-w015-rerun.md`：S-056 反轉 assert，`QA_ONLY=w015,practiceSample` 1601 / 1601、run-all 31 / 31，掃描 48 → 34、新增 0，CUI-0015 completed）。未處理：S-051…S-054（見「已知限制 / 未做」）；CUI-0013 / CUI-0014 喺 v0.67 修 |
 | v0.67 | dcwhung/life-in-uk-test#42 | **CUI-0013 + CUI-0014（parallel dispatch，Lane A / B）**：**①** CUI-0013：`css/screens/quiz.css` `.q-num .q-num-text` `white-space: normal` + `min-width: 0`，≤ 375px 多選題「(select 2)」/「（選擇 2 項）」換第二行，`#quickPrev` / `#quickNext` 唔再被 `.q-card` 截走（320px 由 +61px 變 0）；單選題唔換行；`quicknav-test` +16 assert（en / zh-HK × 320 / 360 × exam / practice）；**Round 2（用戶決定）**：英文原題已經寫明揀幾多個（15 / 15 多選題有 two / three），所以拎走 `quiz.selectN`「(select N)」/「（選擇 N 項）」提示（`quiz.js`、兩個 locale），題號行永遠一行；`content-guard-test` 加 `COUNT_WORDS` guard（多選題 `q.q` 一定要有數量字），`quicknav-test` assert 冇提示 + 320 / 360px 一行；**②** CUI-0014（W-014 收尾，S-047 / S-048 / S-049）：Result `.rv-your` 用戶答案包 `<span lang="en">`（`yourAnswerHtml`，先 escape 後插 span）；`#ansNote` + Result `.rv-note` `lang="zh-HK"`；冇 `oy` 嘅答案 fallback 包 `lang="en"`（`quiz.js` `answerYueHtml`）；`.study-group-title`、Home `.ch-name`、`.tag.person`、`.tag.year` / `.tl-year`（`yearLangAttr`：`yl` 或 AD 先標）`lang="en"`；`lang-switch-test` +34 assert；**③** `APP_VERSION` 0.67（SW cache `lifeuk-v0.67`）；**④** Batch review 98 / 100 → Round 2 96 / 100（`.proj-docs/reviews/2026-10-07_review_v067-cui13-14_batch.md`，新 S-057…S-063）；Batch QA pass（Round 2 probe 58 / 58；`.proj-docs/qa/2026-10-07_qa_v067-cui13-14_batch.md`，31 / 31，全庫 sweep 0px），CUI-0013 / CUI-0014 completed；**⑤** 同一 session：S-056 + W-015 QA 重跑，CUI-0015 completed |
+| v0.68 | （待開 PR，branch `claude/quirky-keller-40h0qp`） | **S items 全清 + CUI-0016 + 知識點章內編號 + Home UI 文字 / hover**：**①** CUI-0016：錯題 / Flagged review 全部清晒之後 Result 收埋「重做」（`renderResultActions` `canRetry`），`startExam` 空 pool 直接 `leaveToHome`（之前開 0 題 session，render 拋 TypeError，畫面停喺上一輪最後一題）；**②** 知識點編號：Study 每章由 #1 開始（`chapterFactNumber`，喺 `js/domain/similar.js`，舊 shell 已有 script tag；內部 fact id / 書籤 / mastery 不變）；Chapters 顯示 `#n`；時間線 / 地理 / 人物 pill「📜 Ch 3 #1」（拎走獨立 #id）；Core Fact「Ch 5 #38」；知識點練習 header「Fact / 知識點 Ch 3 #15」（`common.factSet`、`setExamLabel` 用 DOM 砌 `lang="en"` span）；編號唔轉大楷（`.sqm-fact-label` / `.quiz-label` `[lang="en"] { text-transform: none }`）；分組標題拎走總數；**③** Home UI：錯題說明移入錯題 tile（「來自練習及模擬考試，於此答對後便會清除。每輪最多 {max} 題。」），0 題時只淡化 tile 其他部分（W-022）；副標題只顯示「尚餘 {n} 題」；已標記 tile 有題時冇副標題；Exam 說明刪「請於下方選擇試卷」；Practice 說明 4 點列點；離開 modal「取消 / Cancel」；Exam 模式已完成掣 hover 綠底白字；Practice 模式 Exam 掣 hover 進度字金色（方案 A，mockup `c6d98e2`）；**④** 內容 S-054（batch 8，用戶批准 4 條）；guard S-051（`_noteNonEmpty` 單向）/ S-061（yue 數量字）；`tests/tools/check-batch-replay.js`（S-053，代替 S-052）；S-037 / S-074 structure-test scanner；S-041 / S-045 / S-046 / S-057…S-060 / S-062 / S-063 / S-064…S-069 / S-070…S-073 / S-077 / S-080 / S-082…S-084；W-017 `sw-test` race（`utimesSync` mtime +2s，http.server `If-Modified-Since` 只精確到秒）；QA script v063 / v065 / v066 oracle 更新（S-039、W-018）；**⑤** `APP_VERSION` 0.68；Review 5 批（`.proj-docs/reviews/2026-10-07_review_v068-batch{1..5}*.md`，全部 pass，0 Critical）；Batch QA pass（`.proj-docs/qa/2026-10-08_qa_v068_batch.md`：v068 293 / 0、run-all 31 / 31、v063 186 / 0、v065 275 / 0、v066 1870 / 0、batch replay 0 mismatch），CUI-0016 completed |
 
 **Practice 數字圓圈設計決定（v0.55，preview 同用戶確認）**
 - 起因：用戶以為 Practice 「無咗」頂頭數字圓圈；查 code 同 git 記錄，v0.44 起圓圈一直只係 Exam 1–17 / Random Exam 先有，唔係 regression，改做新功能
@@ -593,33 +594,21 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 - `#reviewOrder` 係 Review filter chip 嘅容器，名係 v0.39 排序 chip 留低；測試用緊呢個 id，所以未改名
 - 1.19、14.3 兩條備注係單句列舉（曼島／五位演員），未改成分行
 - 124 條題目（408 − 284）冇類似題，因為佢哋嘅 fact 只有一個來源
-- **v0.65 zh-HK 未處理（全部 🟢，唔 block；CUI-0013 / CUI-0014 已喺 v0.67 修）**：
-    ◦ **S-041**：current shell + `locales/en.js` 載入失敗 → `zh-HK.js` 拋 `LOCALES is not defined`（S-014 fallback 照出、pill 收埋）；冇 `upgrade-test` case
-    ◦ **S-045**：`lang-switch-test` M4 check（`.result-sub` 換唔換行）依賴測試機有 CJK 字體；Linux CI 用 WenQuanYi 等 fallback，換 image 可能 flaky（測試環境要有 `fonts-noto-cjk` 或同等字體）
-    ◦ **S-046**：`tests/lang-switch-test.js` `main()` 約 150 行（`structure-test` 只掃 `js/`，跟現有測試風格）
-- **v0.67 未處理（全部 🟢 suggestion）**：
-    ◦ **S-057**：`common.chapterShort`「Ch {n}」喺 zh-HK 下冇標 `lang="en"`（`home.js` `.ch-num`、`factCard.js` 章節 tag、`study.js`）
-    ◦ **S-058**：`quicknav-test` 0.5px 容差 / 844 高度未抽常數；`lang-switch-test` 用 `.ans-yue-row` `[1]` index 揀行
+- **v0.68 之後未處理（全部 🟢 suggestion）**：
+    ◦ **S-085**：`tests/structure-test.js` `layerCode` regex scanner 三個漏報位：regex 緊接 `${` 之後、後置 `++` / `--` 之後嘅除號、叫 `of` / `in` 嘅 property 之後嘅除號（而家 `js/` 冇呢類寫法；review batch 5 有修正範例）
+    ◦ **S-086**：`factsession-test` S-077 case 喺 `finishExam()` 之後多 call 咗一次 `renderResults()` / `showScreen()`
+    ◦ **S-081（決定唔改）**：Home UI 新加 spacing literal（6px、20px、1.2em）唔抽 token —— `tokens.css` 冇 spacing token，成個 codebase 都用 px literal，淨係呢幾行改會變兩套寫法；日後要就一次過加 `--space-*` 再遷移（S-087 要求記低）
     ◦ **S-059**：`d37eb26` 一個 commit 包 S-047 / S-048 / S-049（已 merge，唔改 history）
-    ◦ **S-060**：`quicknav-test` 多選題 header case 要 assert 揀中嘅真係多選題（`i >= 0`）
-    ◦ **S-061**：yue 題目嘅「兩 / 三」冇 guard（而家 15 / 15 有；`selectN` 拎走咗，中文用戶靠翻譯）
-    ◦ **S-062**：`css/screens/quiz.css:47–48` 註解仲講 "(select 2)"
-    ◦ **S-063**：`sw-test` `checkVersionBump` polling 約 10 秒，忙機偶然 timeout（flaky，見過 1 次）
-    ◦ **Exam 多選揀唔夠數當已作答**（v0.57 起，`examTools.js:14` `isAnswered` = 有揀任何一個）：題號點變色、Submit 冇「未作答」提醒，計分照當錯；**用戶 2026-10-07 決定唔改**（接受嘅行為，唔好再提案）
-    ◦ **多選題規則（用戶 2026-10-07）**：英文原題已經講明揀幾多個，app 唔另外再講；新增多選題原題一定要有 two / three（guard 守住）
-    ◦ **QA v065 script `langAttrs` oracle**：會印 0/n 行，同量 `.rv-your` 外層而唔係 `> span`，所以照印 6 條 note（唔係產品問題；QA 修正副本 0 gap）
-- **v0.66 Track 2 未處理（全部非 blocking）**：
-    ◦ **W-015 已解決並經 QA 驗證**：batch 7（`e8185b7`）改咗 16 條題目 `yue`（R2，包括 review 嘅 E11·Q4、E4·Q12、E12·Q12）；QA 重跑（`.proj-docs/qa/2026-10-07_qa_v066-w015-rerun.md`，@ `f91abe4`）確認 16 條作答前翻譯 en / zh-HK 都冇洩露，掃描 48 → 34 對、新增 0；**CUI-0015 completed**（`.tickets/completed/0001-0200/CUI-0015.md`）
-    ◦ **Practice 翻譯洩露 —— 用戶接受嘅 trade-off（唔係 bug，唔好再提案改）**：以下 3 題用戶 2026-10-07 決定保留題目 `yue`（`yue-terms.md` R2 例外；batch 7 A6 / A9 / A10），Practice 作答前撳「翻譯」，題目同正確選項 `oy` 共用一個詞；Exam mode 作答前冇翻譯，計分唔受影響。QA script `w015()` 對呢 3 題只出 note、唔 fail
-        ▪ A6 **Exam 3 · Q3**：「蘇格蘭嘅除夕夜叫乜嘢？」↔ oy「Hogmanay（蘇格蘭除夕）」—— 共用 **除夕**（English New Year's Eve vs Hogmanay 冇重疊）
-        ▪ A9 **Exam 12 · Q17**：「邊個慈善機構幫助長者？」↔ oy「Age UK（長者慈善機構）」—— 共用 **長者**（English elderly / Age UK 有少少提示）
-        ▪ A10 **Exam 17 · Q11**：「君主喺國會開幕大典做邊兩件事？」↔ oy「宣讀君主演講（King's/Queen's Speech）…」—— 共用 **君主**（English Monarch / King's Speech 有少少提示）
-        ▪ 其餘 31 對掃描結果（batch 7 md C 節）English 原題已經有同樣提示，唔使處理；34 對係 `w015Scan` 基線，之後改 `yue` 要冇新增
-    ◦ **QA script `versionCheck` 已過時**（`.proj-docs/qa/scripts/2026-10-07_qa-v066.js`）：仍然 assert 6 個 batch JSON / 713 條同 SW cache 有舊 E11·Q4 yue，全量跑會 fail；W-015 重跑冇用到。要全量重跑前改成 7 個檔 / 732 條（keep 3 條唔重放）。S-055 E7·Q12 冇 batch JSON，script 用 `POST_BATCH_FIXES` 補
-    ◦ **S-051**：guard 唔保護 `note` 由有變冇（baseline 只記 `_hasNote`）；建議加 `_noteNonEmpty` 單向檢查（`false → true` 容許，R1），要重生成 fixture，放獨立 test commit（唔可以同 data 改動一齊）
-    ◦ **S-052**：guard 捉唔到 `oy` slot 對調 / 錯位（形狀一樣）；可選 heuristic（`o[k]` 嘅數字 / 專有名詞要喺 `oy[k]` 出現）
-    ◦ **S-053**：「批次 JSON 重放 = data」冇自動測試（review / QA 手動做過）；建議 `tests/tools/` 手動 checker，改 `yue` 之後跑。注意 S-055（E7·Q12）冇 JSON 紀錄，checker 要計埋
-    ◦ **S-054**：零星書面語 / 格式：E3·Q4 `oy[2]`「成為」、E1·Q13 / E8·Q3 共用 note「亦可以」（兩處一齊改）、E11·Q8 `oy[1]`「亦係」、Study fact #96 連續兩個括號；v0.67 小批次（要用戶確認對照表）
+    ◦ **v066 `EXPECTED_ORACLE`** 寫死 `{ files: 8, records: 737, kept: 3 }`：加 batch 9 要跟住改
+- **用戶決定 / 接受嘅行為（唔係 bug，唔好再提案）**：
+    ◦ **Exam 多選揀唔夠數當已作答**（v0.57 起，`examTools.js` `isAnswered` = 有揀任何一個）：題號點變色、Submit 冇「未作答」提醒，計分照當錯；用戶 2026-10-07 決定唔改
+    ◦ **多選題規則（用戶 2026-10-07）**：英文原題已經講明揀幾多個，app 唔另外再講；新增多選題原題一定要有 two / three（`content-guard` 守住），yue 要有「兩 / 三」（S-061）
+    ◦ **Practice 翻譯洩露 trade-off**：以下 3 題用戶 2026-10-07 決定保留題目 `yue`（`yue-terms.md` R2 例外；batch 7 A6 / A9 / A10），Practice 作答前撳「翻譯」，題目同正確選項 `oy` 共用一個詞；Exam mode 作答前冇翻譯，計分唔受影響。QA script `w015()` 對呢 3 題只出 note
+        ▪ A6 **Exam 3 · Q3**：「蘇格蘭嘅除夕夜叫乜嘢？」↔ oy「Hogmanay（蘇格蘭除夕）」—— 共用 **除夕**
+        ▪ A9 **Exam 12 · Q17**：「邊個慈善機構幫助長者？」↔ oy「Age UK（長者慈善機構）」—— 共用 **長者**
+        ▪ A10 **Exam 17 · Q11**：「君主喺國會開幕大典做邊兩件事？」↔ oy「宣讀君主演講（King's/Queen's Speech）…」—— 共用 **君主**
+        ▪ 34 對係 `w015Scan` 基線，之後改 `yue` 要冇新增
+- **改 `yue` / `oy` / `note` / fact `yue` 之後**：跑 `node tests/tools/check-batch-replay.js`（0 mismatch），同埋新開一個 batch JSON 記低（跟 batch 8 格式）
 
 ## 主要 commit（新→舊）
 
@@ -753,7 +742,7 @@ c10115b feat: randomise answer option order in Practice and Exam mode
 - [x] P3：Study mode 統一（v0.61–v0.63，PR-1…PR-3）
 - [x] 中文（zh-HK）locale + 語言切換掣（v0.65，Track 1）
 - [x] Track 2：data 廣東話口語化（v0.66，`claude/yue-colloquial`）
-- [ ] v0.67 小批次：S-054 零星書面語（用戶確認對照表）；guard 強化 S-051 / S-053（/ S-052）；（S-056 / CUI-0015 已完成 2026-10-07）
+- [x] v0.67 小批次：S-054、S-051 / S-053（/ S-052）（v0.68）
 - [x] CUI-0013 窄屏多選題 quick nav；CUI-0014 `lang` 收尾（v0.67）
-- [ ] S-057 / S-058（v0.67 review suggestion）
+- [x] S-041…S-084 review suggestion（v0.68，除 S-081 決定唔改、S-085 / S-086 待做）
 - [ ] iPhone 實機（PingFang HK）睇 320 / 375px：M4 結果行、Study chip 行、CUI-0013（QA 建議）
