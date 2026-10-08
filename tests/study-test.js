@@ -141,16 +141,23 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(accent === await tokenRgb('--navy-light'), '--study-accent is navy-light');
   assert(await css('.tl-item:not(.war) .tl-year', 'color') === accent, 'timeline year is study accent');
   assert(await pg.$eval('.tl-item:not(.war) .tl-year', e => getComputedStyle(e, '::after').backgroundColor) === accent, 'timeline dot is study accent');
-  // v0.70: each dot's centre sits on the vertical middle of its year text, one line or two ("c. 3000 BC")
+  // v0.70: each dot's centre sits on the vertical middle of its year text, one line or two ("c. 3000 BC"). The line
+  // boxes are trimmed to cap height / baseline (text-box), so the content box is the glyphs' box (digits and
+  // capitals); and the text keeps TL_YEAR_GAP_PX clear of the dot's ring
+  const TL_YEAR_GAP_PX = 6;
   const dotOff = await pg.$$eval('.tl-year', els => els.map(e => {
+    const cs = getComputedStyle(e), a = getComputedStyle(e, '::after'), r = e.getBoundingClientRect();
+    const padTop = parseFloat(cs.paddingTop);
+    const contentMid = r.top + padTop + (r.height - padTop) / 2;
+    const dot = r.top + parseFloat(a.top);
     const range = document.createRange(); range.selectNodeContents(e);
-    const lines = [...range.getClientRects()];
-    const mid = (Math.min(...lines.map(r => r.top)) + Math.max(...lines.map(r => r.bottom))) / 2;
-    const dot = e.getBoundingClientRect().top + parseFloat(getComputedStyle(e, '::after').top);
-    return { year: e.textContent, lines: new Set(lines.map(r => Math.round(r.top))).size, off: Math.abs(dot - mid) };
+    const textRight = Math.max(...[...range.getClientRects()].map(x => x.right));
+    const ring = parseFloat(a.boxShadow.split(' ').slice(-1)[0]);
+    const dotLeft = r.right - parseFloat(a.right) - parseFloat(a.width) - 2 * parseFloat(a.borderLeftWidth) - ring;
+    return { year: e.textContent, trim: cs.textBoxTrim, off: Math.abs(dot - contentMid), gap: dotLeft - textRight, lines: new Set([...range.getClientRects()].map(x => Math.round(x.top))).size };
   }));
-  const offCentre = dotOff.filter(d => d.off > 1);
-  assert(dotOff.some(d => d.lines > 1) && offCentre.length === 0, `timeline dots centred on the year text, incl. ${dotOff.filter(d => d.lines > 1).length} two-line years (off: ${JSON.stringify(offCentre.slice(0, 3))})`);
+  const offCentre = dotOff.filter(d => d.trim !== 'trim-both' || d.off > 0.5 || d.gap < TL_YEAR_GAP_PX - 0.5);
+  assert(dotOff.some(d => d.lines > 1) && offCentre.length === 0, `timeline dots centred on the cap-trimmed year text and ${TL_YEAR_GAP_PX}px clear of it, incl. ${dotOff.filter(d => d.lines > 1).length} two-line years (bad: ${JSON.stringify(offCentre.slice(0, 3))})`);
   assert(await css('.tl-item:not(.war) .fact', 'borderLeftColor') === accent, 'fact left border is study accent');
   assert(await css('.tl-item.war .tl-year', 'color') === await tokenRgb('--red'), 'war year stays red');
   await pg.click('.chip.war');
