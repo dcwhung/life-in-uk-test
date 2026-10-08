@@ -76,18 +76,17 @@
   .sp-switch[aria-checked="true"] { background: var(--green-light); }
   .sp-switch[aria-checked="true"] i { transform: translateX(22px); }
   .sp-switch:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
-  .sp-toggle-card b { font-size: var(--fs-lg); }
-  .sp-plan-off { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: 10px; align-items: center; background: var(--card); border: 1.5px dashed var(--border); border-radius: var(--radius); padding: 10px 12px; }
-  .sp-plan-off .ic { width: 36px; height: 36px; border-radius: 10px; background: var(--bg); display: grid; place-items: center; font-size: 18px; filter: grayscale(1); }
-  .sp-plan-off b { display: block; font-size: var(--fs-md); }
-  .sp-danger-row { padding-top: 8px; border-top: 1px dashed var(--border); flex-wrap: nowrap; }
-  .sp-danger-row .reset-btn { flex-shrink: 0; }
-  /* paused: plan screen dims everything but the switch; task screen shows only the paused card */
-  .sp-paused-card { display: none; }
-  #step3.sp-paused .sp-paused-card { display: grid; }
-  #step3.sp-paused .sp-stack > :not(.quiz-header):not(.sp-paused-card) { display: none; }
-  #step2.sp-paused .sp-stack > .sp-card:not(.sp-toggle-card) { opacity: 0.45; pointer-events: none; }
-  #step2.sp-paused .sp-hide-paused { display: none; }
+  /* module switch inside the header's info popover */
+  .sp-app header { position: relative; }
+  .sp-app .info-pop { left: 16px; }
+  .sp-settings { margin-top: var(--space-8, 16px); padding-top: var(--space-6, 12px); border-top: 1px solid var(--gold-border); display: grid; gap: 8px; }
+  .sp-settings-title { font-size: var(--fs-xs); font-weight: 800; letter-spacing: 0.08em; color: var(--gold-light); }
+  .sp-setting-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .sp-setting-row b { display: block; font-size: var(--fs-md); }
+  .sp-setting-row span span { display: block; font-size: var(--fs-sm); color: var(--text-inverse-strong); line-height: 1.45; }
+  .sp-setting-row .sp-switch { background: rgba(255,255,255,0.25); }
+  .sp-setting-row .sp-switch[aria-checked="true"] { background: var(--green-light); }
+  .mock-tab:disabled { opacity: 0.35; cursor: not-allowed; }
   .modal-actions.sp-modal-stack { flex-direction: column; }
   .sp-toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 400; background: var(--navy); color: var(--text-inverse); border-radius: var(--radius-pill); padding: 10px 18px; font-size: var(--fs-md); font-weight: 700; box-shadow: var(--shadow); }
 
@@ -293,7 +292,7 @@
     <h2>點樣睇呢個 mockup</h2>
     <ul>
       <li><b>Common component</b>：直接載入 app 嘅 CSS（<code>css/</code>）。header、← 主頁、chip、模式卡、題目卡、選項、答案框、上一題／下一題、知識點卡、結果卡全部同 app 一樣；新 component 先用 <code>sp-</code> 前綴。</li>
-      <li><b>On / Off</b>：進度表頂有「溫習計劃」開關。關 = 暫停（進度保留、主頁變做細行、唔計完成度）；開返時揀點處理暫停咗嘅日子。「刪除計劃」係另一個掣，要確認。</li>
+      <li><b>功能開關</b>：header 嘅 ⓘ 入面有「溫習計劃」總開關。關咗之後，主頁計劃卡、進度表、今日任務全部收埋，app 同未有呢個功能一樣；計劃同進度保留，開返由原本進度繼續。</li>
       <li><b>入口</b>：主頁「選擇模式」上面加溫習計劃卡。未有計劃顯示「建立」；有計劃每日打開都見到今日進度，㩒「繼續」返去今日任務。</li>
       <li><b>今日任務</b>唔使自己剔，完成度由 system 計。㩒任務會入去同 Practice mode 一樣嘅答題介面，或者同溫習模式一樣嘅知識點卡。練完一段題目，對應知識點當溫咗。</li>
       <li>溫習次序：Ch1–2 → Ch5 → Ch4 → Ch3 History。內容量用 app 真實數字（236 條知識點、408 題）。Step ③ 假設今日係第 8 日。</li>
@@ -306,17 +305,30 @@
         <div class="logo">
           <span class="logo-flag">🇬🇧</span>
           <div>
-            <div class="logo-text"><span>Life in the UK</span></div>
+            <div class="logo-text"><span>Life in the UK</span> <button class="info-btn" id="infoBtn" aria-label="關於" aria-expanded="false" data-info="toggle">ⓘ</button></div>
             <div class="logo-sub"><span>考試練習</span> <span class="app-version">v0.71</span></div>
           </div>
         </div>
         <button class="lang-btn" type="button">EN</button>
+      </div>
+      <div class="info-pop" id="infoPop" role="dialog" aria-label="關於">
+        <h2>Life in the UK 考試練習 <span class="app-version">v0.71</span></h2>
+        <p>17 份模擬試卷、408 題，附廣東話翻譯同記憶貼士。</p>
+        <div class="hero-meta"><div class="hero-badge">17 份試卷</div><div class="hero-badge">408 題</div><div class="hero-badge">離線可用</div></div>
+        <div class="sp-settings">
+          <div class="sp-settings-title">功能</div>
+          <div class="sp-setting-row">
+            <span><b>🗓️ 溫習計劃</b><span id="moduleText"></span></span>
+            <button class="sp-switch" id="moduleSwitch" role="switch" aria-checked="true" aria-label="溫習計劃功能" data-module="toggle"><i></i></button>
+          </div>
+        </div>
       </div>
     </header>
     <main>
 
       <!-- ════════ STEP 0: ENTRY (HOME) ════════ -->
       <div class="screen active" id="step0"><div class="sp-stack">
+        <div class="sp-stack" id="homeModuleOn">
         <span class="mock-label">狀態 A · 未有計劃</span>
         <button class="sp-plan-cta" data-goto="1">
           <span class="ic">🗓️</span>
@@ -351,22 +363,18 @@
           <button class="mode-card"><div class="mode-icon">🎯</div><div class="mode-title">模擬考試</div></button>
         </div>
         <p class="mock-ann"><b>每日返嚟：</b>計劃卡顯示第幾日、今日完成度同下一步，㩒「繼續」由上次停低嘅位置開始。用原本溫習／練習模式做過嘅內容都會計入今日進度。今日全部完成之後，卡會顯示「✓ 今日完成」。</p>
-
-        <hr class="mock-divider">
-
-        <span class="mock-label">狀態 C · 計劃暫停（Off）</span>
-        <div class="sp-plan-off">
-          <span class="ic">🗓️</span>
-          <span><b>溫習計劃已暫停</b><span class="sp-muted num">做到 Day 8 / 21 · 進度已保留</span></span>
-          <button class="chip" data-plan="on">開返</button>
         </div>
-        <div class="section-title">選擇模式</div>
-        <div class="mode-grid">
-          <button class="mode-card"><div class="mode-icon">📖</div><div class="mode-title">溫習</div></button>
-          <button class="mode-card"><div class="mode-icon">📝</div><div class="mode-title">練習</div></button>
-          <button class="mode-card"><div class="mode-icon">🎯</div><div class="mode-title">模擬考試</div></button>
+
+        <div class="sp-stack" id="homeModuleOff" hidden>
+          <span class="mock-label">功能關閉 · 主頁</span>
+          <div class="section-title">選擇模式</div>
+          <div class="mode-grid">
+            <button class="mode-card"><div class="mode-icon">📖</div><div class="mode-title">溫習</div></button>
+            <button class="mode-card"><div class="mode-icon">📝</div><div class="mode-title">練習</div></button>
+            <button class="mode-card"><div class="mode-icon">🎯</div><div class="mode-title">模擬考試</div></button>
+          </div>
+          <p class="mock-ann"><b>功能關閉：</b>主頁同今日一樣，冇計劃卡亦冇「建立」卡；進度表、今日任務都入唔到（mockup 頂部 ①②③ 會變灰）。要開返就㩒 header 嘅 ⓘ。</p>
         </div>
-        <p class="mock-ann"><b>暫停之後：</b>藍色大卡收細做一行，唔會再提醒每日任務，亦唔計完成度；原本嘅溫習／練習模式照用。㩒「開返」會問點處理暫停咗嘅日子。</p>
       </div></div>
 
       <!-- ════════ STEP 1: GOAL ════════ -->
@@ -441,13 +449,6 @@
           <p class="sp-muted" id="planSummary"></p>
         </div>
 
-        <div class="sp-card sp-toggle-card">
-          <div class="sp-row" style="flex-wrap: nowrap;">
-            <div style="min-width: 0;"><b>溫習計劃</b><p class="sp-muted" id="planStateText"></p></div>
-            <button class="sp-switch" id="planSwitch" role="switch" aria-checked="true" aria-label="溫習計劃開關" data-plan="toggle"><i></i></button>
-          </div>
-        </div>
-
         <div class="sp-card">
           <h3>三個階段</h3>
           <div class="sp-phase-bar" id="phaseBar"></div>
@@ -468,7 +469,7 @@
           <div class="sp-day-scroll" id="dayList"></div>
         </div>
 
-        <button class="nav-btn sp-block sp-hide-paused" data-goto="3">睇今日任務 →</button>
+        <button class="nav-btn sp-block" data-goto="3">睇今日任務 →</button>
         <div class="sp-row sp-danger-row">
           <span class="sp-muted">唔再需要呢個計劃？刪除後計劃進度會清除，練習記錄唔受影響。</span>
           <button class="reset-btn" data-plan="delete">刪除計劃</button>
@@ -485,12 +486,6 @@
             <button class="quick-btn" id="dayNext" data-dayshift="1" aria-label="後一日">›</button>
           </div>
           <button class="nav-btn secondary sp-small" data-goto="2">進度表</button>
-        </div>
-        <div class="sp-card sp-paused-card" style="text-align: center; justify-items: center;">
-          <div style="font-size: 32px;">⏸️</div>
-          <h3>溫習計劃已暫停</h3>
-          <p class="sp-muted">暫停期間唔會排任務，亦唔計完成度。進度已經保留。</p>
-          <button class="nav-btn" data-plan="on">開返溫習計劃</button>
         </div>
         <div class="sp-card">
           <div class="sp-today-head">
@@ -651,9 +646,8 @@ const HEAT_STEPS = [75, 50];                  // % thresholds for heat colours h
 const RING_R = 46;
 const LS_KEY = 'mock.studyPlan.progress.v3';
 
-const PAUSED_DEMO_DAYS = 3;                  // pretend the plan was off for this many days when it is switched back on
 const TOAST_MS = 2400;
-const state = { planOn: true, viewDay: TODAY_INDEX, heatMonth: null, days: 21, mins: 120, rest: new Set([0]), level: 'none', start: startOfToday(), runner: null };
+const state = { moduleOn: true, viewDay: TODAY_INDEX, heatMonth: null, days: 21, mins: 120, rest: new Set([0]), level: 'none', start: startOfToday(), runner: null };
 
 function startOfToday() { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }
 function addDays(d, n) { const r = new Date(d); r.setDate(r.getDate() + n); return r; }
@@ -1034,15 +1028,7 @@ function scrollDayListToToday() {
   list.style.scrollBehavior = '';
 }
 
-function renderPlanSwitch() {
-  const on = state.planOn;
-  $('planSwitch').setAttribute('aria-checked', on);
-  $('planStateText').textContent = on ? '開咗：主頁顯示計劃卡，每日任務計完成度。' : '已暫停：主頁唔顯示計劃卡，唔計完成度；進度已保留。';
-  $('step2').classList.toggle('sp-paused', !on);
-}
-
 function renderPlan() {
-  renderPlanSwitch();
   const plan = refresh();
   const exam = addDays(state.start, state.days);
   $('planSummary').textContent = `${fmtDate(state.start)} 開始 · ${fmtDate(exam)} 考試 · 每日最多 ${fmtMins(state.mins)} · ${LEVELS[state.level].label}`;
@@ -1185,7 +1171,6 @@ function dayStatusPill(d) {
 }
 
 function renderToday() {
-  $('step3').classList.toggle('sp-paused', !state.planOn);
   const plan = refresh();
   const d = plan.cal[state.viewDay];
   const tasks = dayTasks(d.i);
@@ -1490,36 +1475,47 @@ function toast(text) {
   toast.timer = setTimeout(() => { el.hidden = true; }, TOAST_MS);
 }
 
-function askPause() {
-  openModal('暫停溫習計劃？', '進度會保留。暫停期間主頁唔會顯示計劃卡，亦唔會計完成度。\n隨時可以喺主頁或者進度表開返。',
-    '<button class="nav-btn secondary" data-plan="cancel">取消</button><button class="nav-btn" data-plan="pause">暫停</button>');
-}
-
-function askResume() {
-  const exam = addDays(state.start, state.days);
-  openModal('開返溫習計劃', `暫停咗 ${PAUSED_DEMO_DAYS} 日。剩低嘅任務點安排？`,
-    `<button class="nav-btn" data-plan="keep">考試日期唔變（${fmtDate(exam)}），重新分配剩餘任務</button>
-     <button class="nav-btn secondary" data-plan="shift">全部順延 ${PAUSED_DEMO_DAYS} 日（考試日改做 ${fmtDate(addDays(exam, PAUSED_DEMO_DAYS))}）</button>
-     <button class="nav-btn secondary" data-plan="cancel">取消</button>`, true);
-}
-
 function askDelete() {
   openModal('刪除溫習計劃？', '計劃同每日完成度會清除，冇得還原。\n溫習同練習記錄（掌握程度、錯題、書籤）唔受影響。',
     '<button class="nav-btn secondary" data-plan="cancel">取消</button><button class="nav-btn" style="background: var(--red);" data-plan="confirmDelete">刪除</button>');
+}
+
+// module switch: off hides every study-plan item (home card, plan, tasks); the plan and progress stay stored
+function setInfoOpen(open) {
+  $('infoPop').classList.toggle('show', open);
+  $('infoBtn').classList.toggle('open', open);
+  $('infoBtn').setAttribute('aria-expanded', open);
+}
+
+function renderModule() {
+  const on = state.moduleOn;
+  $('moduleSwitch').setAttribute('aria-checked', on);
+  $('moduleText').textContent = on ? '開咗：主頁顯示溫習計劃' : '關咗：所有溫習計劃項目都收埋';
+  $('homeModuleOn').hidden = !on;
+  $('homeModuleOff').hidden = on;
+  document.querySelectorAll('.mock-tab').forEach(b => { b.disabled = !on && +b.dataset.step > 0; });
+}
+
+function setModule(on) {
+  state.moduleOn = on;
+  closeModal();
+  renderModule();
+  goto(0);
+  toast(on ? '已開啟溫習計劃，由原本進度繼續' : '已關閉溫習計劃');
+}
+
+function askModuleOff() {
+  openModal('關閉溫習計劃功能？', '主頁計劃卡、進度表同今日任務會全部收埋。\n你嘅計劃同進度會保留，開返會由原本進度繼續。',
+    '<button class="nav-btn secondary" data-plan="cancel">取消</button><button class="nav-btn" data-module="off">關閉</button>');
 }
 
 function currentStep() { return SCREENS.findIndex(s => $(s).classList.contains('active')); }
 
 function planAction(kind) {
   const actions = {
-    toggle: () => (state.planOn ? askPause() : askResume()),
-    on: askResume,
     cancel: closeModal,
-    pause: () => { state.planOn = false; closeModal(); toast('溫習計劃已暫停'); },
-    keep: () => { state.planOn = true; closeModal(); toast('已開返，剩餘任務已重新分配'); },
-    shift: () => { state.planOn = true; state.days += PAUSED_DEMO_DAYS; closeModal(); toast(`已開返，考試日順延 ${PAUSED_DEMO_DAYS} 日`); },
     delete: askDelete,
-    confirmDelete: () => { closeModal(); writeLS({}); state.planOn = true; goto(0); toast('溫習計劃已刪除'); return true; },
+    confirmDelete: () => { closeModal(); writeLS({}); goto(0); toast('溫習計劃已刪除'); return true; },
   };
   const jumped = actions[kind]();
   const step = currentStep();
@@ -1537,10 +1533,14 @@ document.addEventListener('click', e => {
   const dayEl = e.target.closest('[data-day]');
   if (dayEl) return viewDay(+dayEl.dataset.day);
   if (e.target.id === 'spModal') return closeModal();
+  if (!e.target.closest('#infoPop') && !e.target.closest('#infoBtn') && !e.target.closest('#spModal')) setInfoOpen(false);
   const b = e.target.closest('button');
   if (!b || b.disabled) return;
   const ds = b.dataset;
   if (ds.plan) return planAction(ds.plan);
+  if (ds.info) return setInfoOpen(!$('infoPop').classList.contains('show'));
+  if (ds.module === 'toggle') return state.moduleOn ? askModuleOff() : setModule(true);
+  if (ds.module === 'off') return setModule(false);
   if (ds.step) return goto(+ds.step);
   if (ds.goto) return goto(+ds.goto, true);
   if (ds.viewday) return viewDay(TODAY_INDEX);
@@ -1559,7 +1559,7 @@ document.addEventListener('click', e => {
   if (ds.review) { state.runner.review = true; state.runner.pos = 0; renderRunner(); return window.scrollTo({ top: 0 }); }
 });
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closeModal();
+  if (e.key === 'Escape') { closeModal(); setInfoOpen(false); }
   const dayEl = e.target.closest && e.target.closest('[data-day]');
   if (dayEl && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); viewDay(+dayEl.dataset.day); }
 });
@@ -1571,6 +1571,7 @@ $('examDate').addEventListener('change', e => {
   renderGoal();
 });
 
+renderModule();
 goto(0);
 </script>
 </body>
