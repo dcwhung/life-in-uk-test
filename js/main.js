@@ -13,6 +13,9 @@ const LATE_BOOT_SCRIPTS = [
   { src: 'js/core/i18n.js', ready: () => typeof t === 'function' },
   { src: 'js/screens/sideSession.js', ready: () => typeof isSideSession === 'function' },
   { src: 'js/components/factCard.js', ready: () => typeof factCardHtml === 'function' },
+  // study plan (PR2 answer hooks call recordPlanAnswer from mastery.js / result.js): plan.js before planProgress.js
+  { src: 'js/domain/plan.js', ready: () => typeof buildPlan === 'function' },
+  { src: 'js/domain/planProgress.js', ready: () => typeof recordPlanAnswer === 'function' },
 ];
 // shown when the scripts still fail after one reload; t() is not available then, so it cannot be a locale key
 const I18N_BOOT_FALLBACK_MSG = 'The app could not finish loading. Please check your connection and reload the page.';

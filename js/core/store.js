@@ -31,3 +31,22 @@ function clearCompletedExams() { setLS(COMPLETED_LS, {}); }
 
 function readHomePrefs() { return getLS(HOME_PREFS_LS) || {}; }
 function writeHomePrefs(prefs) { setLS(HOME_PREFS_LS, prefs); }
+
+// ── study plan (shapes: arch §B; parsed by js/domain/plan.js parseStoredPlan / planProgress.js parsePlanLog) ──
+// raw stored values: a malformed one must reach the parser untouched, so it is never "repaired" here
+function readStudyPlan() { return getLS(STUDY_PLAN_LS); }
+function writeStudyPlan(plan) { setLS(STUDY_PLAN_LS, plan); }
+// { stored, value }: a log that is stored but does not parse (value undefined) must never be overwritten
+function readPlanLog() {
+  const raw = getRawLS(STUDY_PLAN_PROGRESS_LS);
+  if (raw === null) return { stored: false, value: null };
+  try { return { stored: true, value: JSON.parse(raw) }; } catch { return { stored: true, value: undefined }; }
+}
+function writePlanLog(log) { setLS(STUDY_PLAN_PROGRESS_LS, log); }
+// "↺ Reset plan" deletes the schedule and its log; practice records and the switch are kept
+function clearStudyPlan() {
+  removeLS(STUDY_PLAN_LS);
+  removeLS(STUDY_PLAN_PROGRESS_LS);
+}
+function isStudyPlanEnabled() { return getLS(STUDY_PLAN_ENABLED_LS) !== false; }
+function setStudyPlanEnabled(on) { setLS(STUDY_PLAN_ENABLED_LS, !!on); }

@@ -206,8 +206,14 @@ function lsKey(key) {
 function getLS(key) {
   try { return JSON.parse(localStorage.getItem(lsKey(key))); } catch { return null; }
 }
+function getRawLS(key) {
+  try { return localStorage.getItem(lsKey(key)); } catch { return null; }
+}
 function setLS(key, val) {
   try { localStorage.setItem(lsKey(key), JSON.stringify(val)); } catch {}
+}
+function removeLS(key) {
+  try { localStorage.removeItem(lsKey(key)); } catch {}
 }
 
 // Escape text for safe insertion into innerHTML.
