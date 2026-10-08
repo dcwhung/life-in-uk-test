@@ -83,7 +83,14 @@
   input[type=date] { border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 7px 10px; font-size: var(--fs-base); color: var(--text); background: var(--card); }
   .level-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
   .level { background: var(--card); border: 2px solid var(--border); border-radius: var(--radius-md); padding: 10px 8px; text-align: center; cursor: pointer; display: grid; gap: 2px; }
+  .level { position: relative; }
   .level.on { border-color: var(--navy); background: var(--selected-bg); }
+  .level .tick { position: absolute; top: 6px; right: 6px; width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--border); font-size: var(--fs-2xs); line-height: 15px; color: transparent; }
+  .level.on .tick { background: var(--navy); border-color: var(--navy); color: var(--text-inverse); }
+  .order { display: grid; gap: 8px; }
+  .ord { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 10px; align-items: start; }
+  .ord .n { width: 26px; height: 26px; border-radius: 50%; background: var(--navy); color: var(--text-inverse); display: grid; place-items: center; font-size: var(--fs-sm); font-weight: 800; }
+  .ord .why { font-size: var(--fs-xs); color: var(--text-muted); line-height: 1.5; }
   .level .ic { font-size: 20px; }
   .level b { font-size: var(--fs-base); }
   .level span { font-size: var(--fs-2xs); color: var(--text-muted); }
@@ -118,7 +125,7 @@
   .strat ul { padding-left: 16px; font-size: var(--fs-sm); line-height: 1.6; color: var(--text); }
   .strat .days { font-size: var(--fs-xs); color: var(--text-muted); font-weight: 700; }
   .ch-weight { display: grid; gap: 6px; }
-  .chw { display: grid; grid-template-columns: 112px minmax(0, 1fr) 70px; gap: 8px; align-items: center; font-size: var(--fs-sm); }
+  .chw { display: grid; grid-template-columns: minmax(0, 1fr) 90px 76px; gap: 8px; align-items: center; font-size: var(--fs-sm); }
   .chw .bar { height: 8px; background: var(--border); border-radius: var(--radius-pill); overflow: hidden; }
   .chw .bar i { display: block; height: 100%; background: var(--navy-light); border-radius: var(--radius-pill); }
   .chw .c { text-align: right; color: var(--text-muted); }
@@ -180,7 +187,7 @@
     .feas, .kpis { grid-template-columns: 1fr 1fr; }
     .feas .stat:last-child, .kpis .stat:last-child { grid-column: 1 / -1; }
     .today-head { grid-template-columns: 1fr; justify-items: center; text-align: center; }
-    .chw { grid-template-columns: 92px minmax(0, 1fr) 60px; }
+    .chw { grid-template-columns: minmax(0, 1fr) 70px 70px; }
   }
   @media (prefers-reduced-motion: reduce) { .ring .prog { transition: none; } }
 </style>
@@ -201,6 +208,7 @@
     <h2>點樣睇呢個 mockup</h2>
     <ul>
       <li>Step ① 嘅設定係 live：改日數／每日時間／休息日／程度，Step ② 進度表同 Step ③ 會即時重新計。</li>
+      <li>溫習次序：Ch1–2（熱身）→ Ch5 → Ch4 → Ch3 History（最難記，放最後）。每日讀完知識點即刻做返同一段嘅練習題。</li>
       <li>內容量用 app 真實數字：236 條知識點（Ch3 History 最多，91 條）、408 題（17 份 exam × 24 題）、合格線 18/24（75%）、每份 45 分鐘。</li>
       <li>Step ③ 假設今日係計劃第 8 日，之前幾日係示範數據；今日嘅 checklist 可以剔。</li>
     </ul>
@@ -226,7 +234,7 @@
               <button class="chip" data-days="14">2 星期</button>
               <button class="chip on" data-days="21">3 星期</button>
               <button class="chip" data-days="28">4 星期</button>
-              <button class="chip" data-days="42">6 星期</button>
+              <button class="chip" data-days="42">個半月</button>
             </div>
             <label class="muted" for="examDate">或者揀考試日期：<input type="date" id="examDate"></label>
           </div>
@@ -235,8 +243,9 @@
         <div class="card">
           <div class="field">
             <label class="field-label" for="minsRange">每日最多可以溫幾耐？<span class="val num" id="minsVal"></span></label>
-            <input type="range" id="minsRange" min="30" max="180" step="15" value="120">
-            <div class="scale num"><span>30 分鐘</span><span>1 小時</span><span>2 小時</span><span>3 小時</span></div>
+            <input type="range" id="minsRange" min="30" max="120" step="15" value="120" list="minsTicks">
+            <datalist id="minsTicks"><option value="30"></option><option value="45"></option><option value="60"></option><option value="75"></option><option value="90"></option><option value="105"></option><option value="120"></option></datalist>
+            <div class="scale num" id="minsScale"></div>
           </div>
           <div class="field">
             <div class="field-label">休息日（唔排任務）</div>
@@ -246,11 +255,11 @@
 
         <div class="card">
           <div class="field">
-            <div class="field-label">你而家嘅程度</div>
+            <div class="field-label">你而家嘅程度<span class="muted" style="font-weight: 500;">可以揀多項，未開始就唔使揀</span></div>
             <div class="level-grid" id="levelGrid">
-              <button class="level on" data-level="new"><span class="ic">🌱</span><b>未開始</b><span>未讀過 handbook</span></button>
-              <button class="level" data-level="some"><span class="ic">📖</span><b>讀過少少</b><span>識部分內容</span></button>
-              <button class="level" data-level="mock"><span class="ic">🎯</span><b>做過 mock</b><span>想衝刺</span></button>
+              <button class="level" data-flag="read" aria-pressed="false"><span class="tick">✓</span><span class="ic">📖</span><b>讀過部份內容</b><span>知識點唔係全新</span></button>
+              <button class="level" data-flag="practiced" aria-pressed="false"><span class="tick">✓</span><span class="ic">✏️</span><b>做過練習</b><span>答過部份題目</span></button>
+              <button class="level" data-flag="mocked" aria-pressed="false"><span class="tick">✓</span><span class="ic">🎯</span><b>做過 mock</b><span>試過計時考</span></button>
             </div>
           </div>
         </div>
@@ -291,15 +300,15 @@
         </div>
 
         <div class="card">
-          <h3>點解 History 排最多時間</h3>
-          <p class="muted">按每章知識點數量分配溫習時間，題目亦大致跟同一比例出。</p>
+          <h3>溫習次序：由易到難，History 放最後</h3>
+          <p class="muted">每章分配嘅時間跟知識點數量；次序就按難度，先易後難，最難記嘅 History 擺最後，考試前仲記得新鮮。</p>
           <div class="ch-weight" id="chWeight"></div>
         </div>
 
         <div class="card">
           <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
             <h3>每日任務</h3>
-            <span class="legend"><i style="background: var(--ph-learn)"></i>打底 <i style="background: var(--ph-practice)"></i>練習 <i style="background: var(--ph-mock)"></i>模擬考</span>
+            <span class="legend"><i style="background: var(--ph-learn)"></i>讀 + 練 <i style="background: var(--ph-practice)"></i>強化練習 <i style="background: var(--ph-mock)"></i>模擬考</span>
           </div>
           <div id="dayList"></div>
         </div>
@@ -379,26 +388,40 @@ const PASS_SCORE = Math.ceil(REAL_TEST_SIZE * PASS_RATIO);
 const EXAM_MINUTES = 45;
 
 // ── plan tuning ──
-const MIN_PER_QUESTION = 0.75;
+// study order: easy → hard; History (dates / names / places) last so it is freshest on exam day
+const STUDY_ORDER = [1, 2, 5, 4, 3];
+const ORDER_WHY = {
+  1: '得 2 條知識點，題目少，用嚟熱身',
+  2: '得 4 條，同 Ch1 一齊一日搞掂',
+  5: '政府、法律、權利，好多同香港相似，靠常識都推斷到',
+  4: '節日、運動、文化，比歷史易記',
+  3: '年份、人名、地方最多，最難記，放最後等考試前仲記得',
+};
+const BASE_MIN_PER_FACT = 1.5;
+const READ_MIN_PER_FACT = 1.0;
+const BASE_MIN_PER_QUESTION = 0.75;
+const PRACTICED_MIN_PER_QUESTION = 0.6;
+const SECOND_PASS_RATIO = 0.4;               // share of questions re-done in the drill phase (wrong / not yet 🏆)
+const BASE_MOCK_SHARE = 0.2;
+const MOCK_SHARE_STEP = 0.1;                  // +10% mock days per "practiced" / "mocked" flag
+const MIN_DRILL_DAYS = 1;
 const MOCK_REVIEW_MINUTES = 15;
 const MOCK_BLOCK = EXAM_MINUTES + MOCK_REVIEW_MINUTES;
 const MIN_MOCKS = 5;
+const MAX_MOCKS_PER_DAY = 2;
 const REVIEW_SLOT_MINUTES = 15;
 const LAST_DAY_MINUTES = 30;
 const SAFE_SCORE = 21;
-const LEVELS = {
-  new:  { label: '未開始', minPerFact: 1.5, split: [0.45, 0.35, 0.20] },
-  some: { label: '讀過少少', minPerFact: 1.0, split: [0.35, 0.40, 0.25] },
-  mock: { label: '做過 mock', minPerFact: 0.6, split: [0.20, 0.40, 0.40] },
-};
+const FLAG_LABELS = { read: '讀過部份內容', practiced: '做過練習', mocked: '做過 mock' };
+const MINS_TICKS = [30, 45, 60, 75, 90, 105, 120];
 const FEAS_OK = 1.15;
 const FEAS_TIGHT = 0.95;
 const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六'];
 const DAYS_PER_WEEK = 7;
 const MS_PER_DAY = 86400000;
 const PHASES = {
-  learn: { name: '打底', cls: 'learn' },
-  practice: { name: '練習', cls: 'practice' },
+  learn: { name: '讀 + 練', cls: 'learn' },
+  practice: { name: '強化練習', cls: 'practice' },
   mock: { name: '模擬考', cls: 'mock' },
 };
 
@@ -409,13 +432,14 @@ const DEMO_CARRY_DAY = 5;
 const RING_R = 46;
 const LS_KEY = 'mock.studyPlan.todayDone';
 
-const state = { days: 21, mins: 120, rest: new Set([0]), level: 'new', start: startOfToday() };
+const state = { days: 21, mins: 120, rest: new Set([0]), flags: new Set(), start: startOfToday() };
 
 function startOfToday() { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }
 function addDays(d, n) { const r = new Date(d); r.setDate(r.getDate() + n); return r; }
 function fmtDate(d) { return `${d.getDate()}/${d.getMonth() + 1}`; }
 function fmtHours(m) { return m >= 60 ? `${(m / 60).toFixed(m % 60 ? 1 : 0)} 小時` : `${m} 分鐘`; }
 function isoDate(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+function chapterOf(ch) { return CHAPTERS.find(c => c.ch === ch); }
 function $(id) { return document.getElementById(id); }
 function readLS() { try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch (e) { return {}; } }
 function writeLS(v) { try { localStorage.setItem(LS_KEY, JSON.stringify(v)); } catch (e) { /* preview / private mode */ } }
@@ -430,78 +454,124 @@ function calendar() {
   return out;
 }
 
+function profile() {
+  const f = state.flags;
+  const mockShare = BASE_MOCK_SHARE + MOCK_SHARE_STEP * ((f.has('practiced') ? 1 : 0) + (f.has('mocked') ? 1 : 0));
+  return {
+    minPerFact: f.has('read') ? READ_MIN_PER_FACT : BASE_MIN_PER_FACT,
+    minPerQ: f.has('practiced') ? PRACTICED_MIN_PER_QUESTION : BASE_MIN_PER_QUESTION,
+    mockShare,
+    label: f.size ? [...f].map(k => FLAG_LABELS[k]).join('、') : '未開始',
+  };
+}
+
+function learnMinutes(pf) { return TOTAL_FACTS * pf.minPerFact + TOTAL_QS * pf.minPerQ; }
+function drillMinutes(pf) { return TOTAL_QS * SECOND_PASS_RATIO * pf.minPerQ; }
+
 function needMinutes() {
-  const lv = LEVELS[state.level];
-  return Math.round(TOTAL_FACTS * lv.minPerFact + TOTAL_QS * MIN_PER_QUESTION + MIN_MOCKS * MOCK_BLOCK);
+  const pf = profile();
+  return Math.round(learnMinutes(pf) + drillMinutes(pf) + MIN_MOCKS * MOCK_BLOCK);
 }
 
+// learn days are sized by time (each day = cap minus the review slot); mock days by share; drill gets the rest
 function splitStudyDays(n) {
-  const [a, b] = LEVELS[state.level].split;
-  const learn = Math.max(1, Math.round(n * a));
-  const practice = Math.max(1, Math.round(n * b));
-  return { learn, practice, mock: Math.max(1, n - learn - practice) };
+  const pf = profile();
+  const mock = Math.max(1, Math.round(n * pf.mockShare));
+  const fit = Math.ceil(learnMinutes(pf) / Math.max(1, state.mins - REVIEW_SLOT_MINUTES));
+  const learn = Math.max(1, Math.min(fit, n - mock - MIN_DRILL_DAYS));
+  return { learn, practice: Math.max(0, n - learn - mock), mock };
 }
 
-// walk a per-chapter list in chunks of `per` items, returning one label set per day
-function chunkByChapter(key, dayCount) {
-  const per = Math.ceil(CHAPTERS.reduce((s, c) => s + c[key], 0) / dayCount);
-  const items = [];
-  CHAPTERS.forEach(c => { for (let k = 1; k <= c[key]; k++) items.push({ ch: c.ch, k }); });
-  const days = [];
-  for (let d = 0; d < dayCount; d++) {
-    const slice = items.slice(d * per, (d + 1) * per);
-    const groups = [];
-    slice.forEach(it => {
-      const g = groups[groups.length - 1];
-      if (g && g.ch === it.ch) g.to = it.k; else groups.push({ ch: it.ch, from: it.k, to: it.k });
-    });
-    days.push({ count: slice.length, groups });
-  }
+// split an ordered, weighted item list into `dayCount` chunks of roughly equal weight; consecutive items of the
+// same chapter merge into one { ch, from, to } group
+function chunkWeighted(items, dayCount) {
+  const budget = items.reduce((s, it) => s + it.w, 0) / dayCount;
+  const days = Array.from({ length: dayCount }, () => ({ groups: [], w: 0 }));
+  let d = 0;
+  items.forEach(it => {
+    if (days[d].w >= budget && d < dayCount - 1) d++;
+    const day = days[d]; const g = day.groups[day.groups.length - 1];
+    if (g && g.ch === it.ch) g.to = it.k; else day.groups.push({ ch: it.ch, from: it.k, to: it.k });
+    day.w += it.w;
+  });
   return days;
 }
 
-function groupLabel(g, unit) { return `Ch${g.ch} ${CHAPTERS[g.ch - 1].name} ${unit} #${g.from}–${g.to}`; }
+// one item per fact, weighted by its reading time plus its share of that chapter's questions
+function learnItems(pf) {
+  const items = [];
+  STUDY_ORDER.map(chapterOf).forEach(c => {
+    const w = pf.minPerFact + (c.qs / c.facts) * pf.minPerQ;
+    for (let k = 1; k <= c.facts; k++) items.push({ ch: c.ch, k, w });
+  });
+  return items;
+}
 
-function learnTasks(chunk) {
-  const lv = LEVELS[state.level];
-  const tasks = chunk.groups.map(g => ({ t: `讀 ${groupLabel(g, '知識點')}`, m: Math.round((g.to - g.from + 1) * lv.minPerFact), how: '睇英文原句 + 廣東話解釋，記住年份同人名' }));
-  tasks.push({ t: '重溫昨日知識點（Study 模式快速掃）', m: REVIEW_SLOT_MINUTES, how: '揀返昨日讀過嘅章節，淨係睇未 🏆 嘅' });
+function drillItems(pf) {
+  const items = [];
+  STUDY_ORDER.map(chapterOf).forEach(c => {
+    const n = Math.max(1, Math.round(c.qs * SECOND_PASS_RATIO));
+    for (let k = 1; k <= n; k++) items.push({ ch: c.ch, k, w: pf.minPerQ });
+  });
+  return items;
+}
+
+function chLabel(ch) { return `Ch${ch} ${chapterOf(ch).name}`; }
+function count(g) { return g.to - g.from + 1; }
+
+// the questions that go with facts #from–#to of a chapter, by position
+function pairedQuestions(g) {
+  const c = chapterOf(g.ch);
+  const from = Math.floor((g.from - 1) * c.qs / c.facts) + 1;
+  const to = Math.floor(g.to * c.qs / c.facts);
+  return { from, to: Math.max(from, to) };
+}
+
+function learnTasks(chunk, pf) {
+  const tasks = [];
+  chunk.groups.forEach(g => {
+    const q = pairedQuestions(g);
+    tasks.push({ t: `讀 ${chLabel(g.ch)} 知識點 #${g.from}–${g.to}`, m: Math.round(count(g) * pf.minPerFact), how: '睇英文原句 + 廣東話解釋，記住年份同人名' });
+    tasks.push({ t: `練 ${chLabel(g.ch)} 題目 #${q.from}–${q.to}`, m: Math.round(count(q) * pf.minPerQ), how: '讀完即刻做返同一段嘅題目；答錯會自動入錯題' });
+  });
+  tasks.push({ t: '重溫昨日 + 清錯題', m: REVIEW_SLOT_MINUTES, how: '做「錯題」set，連續答啱先算 🏆' });
   return tasks;
 }
 
-function practiceTasks(chunk) {
-  const tasks = chunk.groups.map(g => ({ t: `練習 ${groupLabel(g, '題')}`, m: Math.round((g.to - g.from + 1) * MIN_PER_QUESTION), how: 'Practice 模式，按章節；答錯會自動入錯題' }));
-  tasks.push({ t: '錯題重溫', m: REVIEW_SLOT_MINUTES, how: '做「錯題」set，連續答啱先算掌握' });
+function drillTasks(chunk, pf) {
+  const tasks = chunk.groups.map(g => ({ t: `再練 ${chLabel(g.ch)} 未 🏆 題目 ${count(g)} 題`, m: Math.round(count(g) * pf.minPerQ), how: 'Practice 模式，淨係做未掌握嘅題目' }));
+  tasks.push({ t: '重溫相關知識點（Study 模式）', m: REVIEW_SLOT_MINUTES, how: '答錯嗰題嘅知識點再睇一次' });
   return tasks;
 }
 
-function mockTasks(dayNo, examCursor) {
-  const perDay = Math.max(1, Math.min(2, Math.floor((state.mins - REVIEW_SLOT_MINUTES) / EXAM_MINUTES)));
+function mockTasks(examCursor) {
+  const perDay = Math.max(1, Math.min(MAX_MOCKS_PER_DAY, Math.floor(state.mins / MOCK_BLOCK)));
   const tasks = [];
   for (let k = 0; k < perDay; k++) {
     const ex = (examCursor.n++ % EXAM_COUNT) + 1;
     tasks.push({ t: `模擬考 Exam ${ex}（${REAL_TEST_SIZE} 題 / ${EXAM_MINUTES} 分鐘計時）`, m: EXAM_MINUTES, how: `目標 ≥ ${SAFE_SCORE}/24，合格線 ${PASS_SCORE}/24` });
   }
-  tasks.push({ t: '對答案 + 錯題重溫', m: MOCK_REVIEW_MINUTES * perDay, how: '每題錯題睇返相似題目 map' });
+  tasks.push({ t: '對答案 + 錯題練習', m: MOCK_REVIEW_MINUTES * perDay, how: '錯題睇返相似題目 map，再做一次' });
   return tasks;
 }
 
 function buildPlan() {
+  const pf = profile();
   const cal = calendar();
   const study = cal.filter(d => !d.rest);
   const lastStudy = study[study.length - 1];
-  const core = study.slice(0, -1);   // final study day = light review
-  const split = splitStudyDays(Math.max(3, core.length));
-  const learnChunks = chunkByChapter('facts', split.learn);
-  const practiceChunks = chunkByChapter('qs', split.practice);
+  const core = study.length - 1;   // final study day = light review
+  const split = splitStudyDays(Math.max(3, core));
+  const learnChunks = chunkWeighted(learnItems(pf), split.learn);
+  const drillChunks = split.practice ? chunkWeighted(drillItems(pf), split.practice) : [];
   const examCursor = { n: 0 };
   let s = 0;
   cal.forEach(d => {
     if (d.rest) { d.phase = 'rest'; d.tasks = [{ t: '休息日', m: 0 }]; return; }
-    if (d === lastStudy) { d.phase = 'mock'; d.tasks = [{ t: '輕鬆重溫：高頻易錯知識點 + 錯題 set', m: LAST_DAY_MINUTES, how: '唔好再做新 mock，早啲瞓' }]; return; }
-    if (s < split.learn) { d.phase = 'learn'; d.tasks = learnTasks(learnChunks[s]); }
-    else if (s < split.learn + split.practice) { d.phase = 'practice'; d.tasks = practiceTasks(practiceChunks[s - split.learn]); }
-    else { d.phase = 'mock'; d.tasks = mockTasks(s, examCursor); }
+    if (d === lastStudy) { d.phase = 'mock'; d.tasks = [{ t: '輕鬆重溫：錯題 set + 高頻易錯知識點', m: LAST_DAY_MINUTES, how: '唔好再做新 mock，早啲瞓' }]; return; }
+    if (s < split.learn) { d.phase = 'learn'; d.tasks = learnTasks(learnChunks[s], pf); }
+    else if (s < split.learn + split.practice) { d.phase = 'practice'; d.tasks = drillTasks(drillChunks[s - split.learn], pf); }
+    else { d.phase = 'mock'; d.tasks = mockTasks(examCursor); }
     s++;
   });
   cal.forEach(d => { d.total = d.tasks.reduce((a, t) => a + t.m, 0); });
@@ -515,7 +585,11 @@ function renderGoal() {
   document.querySelectorAll('#daysChips .chip').forEach(b => b.classList.toggle('on', +b.dataset.days === state.days));
   $('examDate').value = isoDate(addDays(state.start, state.days));
   $('restChips').innerHTML = WEEKDAYS.map((w, i) => `<button class="chip rest ${state.rest.has(i) ? 'on' : ''}" data-rest="${i}">${w}</button>`).join('');
-  document.querySelectorAll('#levelGrid .level').forEach(b => b.classList.toggle('on', b.dataset.level === state.level));
+  document.querySelectorAll('#levelGrid .level').forEach(b => {
+    const on = state.flags.has(b.dataset.flag);
+    b.classList.toggle('on', on); b.setAttribute('aria-pressed', on);
+  });
+  $('minsScale').innerHTML = MINS_TICKS.map(m => `<span>${m}′</span>`).join('');
 
   const plan = buildPlan();
   const avail = plan.studyDays * state.mins;
@@ -536,9 +610,9 @@ function renderGoal() {
 // ════════ step 2 ════════
 function renderPlan() {
   const plan = buildPlan();
-  const lv = LEVELS[state.level];
+  const pf = profile();
   const exam = addDays(state.start, state.days);
-  $('planSummary').textContent = `${fmtDate(state.start)} 開始 · ${fmtDate(exam)} 考試 · 每日最多 ${fmtHours(state.mins)} · ${lv.label}`;
+  $('planSummary').textContent = `${fmtDate(state.start)} 開始 · ${fmtDate(exam)} 考試 · 每日最多 ${fmtHours(state.mins)} · ${pf.label}`;
 
   const phaseDays = { learn: [], practice: [], mock: [] };
   plan.cal.forEach(d => { if (phaseDays[d.phase]) phaseDays[d.phase].push(d.i + 1); });
@@ -546,20 +620,31 @@ function renderPlan() {
   $('phaseAxis').innerHTML = `<span>Day 1</span><span>Day ${state.days}</span><span>🎯 考試</span>`;
 
   const range = k => phaseDays[k].length ? `Day ${phaseDays[k][0]}–${phaseDays[k][phaseDays[k].length - 1]}` : '';
+  const orderText = STUDY_ORDER.filter(ch => ch !== 2).map(ch => ch === 1 ? 'Ch1–2' : `Ch${ch}`).join(' → ');
   $('strategy').innerHTML = `
-    <div class="strat learn"><span class="n">1</span><div><span class="days">${range('learn')}</span><h4>打底：讀晒 ${TOTAL_FACTS} 條知識點</h4><ul>
-      <li>由 Ch1–2（得 6 條）熱身，之後 History → Modern society → Government</li>
-      <li>每日最後 ${REVIEW_SLOT_MINUTES} 分鐘重溫昨日，間隔重複先記得牢</li></ul></div></div>
-    <div class="strat practice"><span class="n">2</span><div><span class="days">${range('practice')}</span><h4>練習：按章節做晒 ${TOTAL_QS} 題</h4><ul>
-      <li>Practice 模式，同一章連續做，答錯即刻睇解釋</li>
-      <li>每日留時間清錯題，目標每題連續答啱先算 🏆</li></ul></div></div>
-    <div class="strat mock"><span class="n">3</span><div><span class="days">${range('mock')}</span><h4>模擬考：計時做 ${plan.mocks} 份 exam</h4><ul>
+    <div class="strat learn"><span class="n">1</span><div><span class="days">${range('learn')}</span><h4>讀 + 練：每日讀完即刻做題</h4><ul>
+      <li>次序 ${orderText}：由易到難，History 放最後</li>
+      <li>讀完一段知識點，即刻做返同一段嘅題目（${TOTAL_FACTS} 條知識點 · ${TOTAL_QS} 題）</li>
+      <li>每日最後 ${REVIEW_SLOT_MINUTES} 分鐘重溫昨日 + 清錯題</li></ul></div></div>
+    ${plan.split.practice ? `<div class="strat practice"><span class="n">2</span><div><span class="days">${range('practice')}</span><h4>強化練習：再做未掌握嘅題目</h4><ul>
+      <li>同一次序再行一次，淨係做錯過或者未 🏆 嘅題目（約 ${Math.round(SECOND_PASS_RATIO * 100)}%）</li>
+      <li>做完即刻睇返相關知識點</li></ul></div></div>` : ''}
+    <div class="strat mock"><span class="n">${plan.split.practice ? 3 : 2}</span><div><span class="days">${range('mock')}</span><h4>模擬考：計時做 ${plan.mocks} 份 exam</h4><ul>
       <li>真考試條件：${REAL_TEST_SIZE} 題、${EXAM_MINUTES} 分鐘、唔睇答案</li>
       <li>合格線 ${PASS_SCORE}/24；連續 3 份 ≥ ${SAFE_SCORE}/24 先算穩陣</li>
       <li>最後一日唔做新 mock，淨係重溫錯題</li></ul></div></div>`;
 
   const maxF = Math.max(...CHAPTERS.map(c => c.facts));
-  $('chWeight').innerHTML = CHAPTERS.map(c => `<div class="chw"><span>Ch${c.ch} ${c.name}</span><span class="bar"><i style="width:${Math.max(2, c.facts / maxF * 100)}%"></i></span><span class="c num">${c.facts} 條 · ${Math.round(c.facts / TOTAL_FACTS * 100)}%</span></div>`).join('');
+  const steps = [[1, 2], [5], [4], [3]];
+  $('chWeight').innerHTML = `<div class="order">${steps.map((chs, i) => {
+    const cs = chs.map(chapterOf);
+    const facts = cs.reduce((a, c) => a + c.facts, 0);
+    const qs = cs.reduce((a, c) => a + c.qs, 0);
+    const name = cs.map(c => `Ch${c.ch} ${c.name}`).join(' + ');
+    return `<div class="ord"><span class="n num">${i + 1}</span><div style="display: grid; gap: 4px; min-width: 0;">
+      <div class="chw"><b>${name}</b><span class="bar"><i style="width:${Math.max(2, facts / maxF * 100)}%"></i></span><span class="c num">${facts} 條 · ${qs} 題</span></div>
+      <span class="why">${ORDER_WHY[chs[0]]}</span></div></div>`;
+  }).join('')}</div>`;
 
   let html = '';
   plan.cal.forEach(d => {
@@ -587,7 +672,7 @@ function renderDaily() {
   const plan = buildPlan();
   const { today, tasks } = todayTasks(plan);
   const done = readLS();
-  const key = i => `${state.days}-${state.mins}-${state.level}-${i}`;
+  const key = i => `${state.days}-${state.mins}-${[...state.flags].sort().join('')}-${i}`;
   $('todayEyebrow').textContent = `Day ${today.i + 1} / ${state.days} · ${fmtDate(today.date)}（${WEEKDAYS[today.date.getDay()]}）`;
 
   const phase = PHASES[today.phase];
@@ -595,7 +680,7 @@ function renderDaily() {
   pill.className = 'pill'; pill.style.background = phase ? `var(--ph-${phase.cls}-bg)` : 'var(--bg)';
   pill.style.color = phase ? `var(--ph-${phase.cls})` : 'var(--text-muted)';
   pill.textContent = phase ? `${phase.name}階段` : '休息日';
-  $('todayTip').textContent = today.phase === 'learn' ? '先讀新知識點，最後先重溫，唔好倒轉。' : today.phase === 'practice' ? '答錯唔緊要，重點係即刻睇解釋。' : today.phase === 'mock' ? '計時做，做完先對答案。' : '今日休息，聽日繼續。';
+  $('todayTip').textContent = today.phase === 'learn' ? '讀完一段知識點，即刻做返同一段嘅題目。' : today.phase === 'practice' ? '答錯唔緊要，重點係即刻睇解釋。' : today.phase === 'mock' ? '計時做，做完先對答案。' : '今日休息，聽日繼續。';
 
   $('checklist').innerHTML = tasks.map((t, i) => `
     <label class="check ${t.carry ? 'carry' : ''} ${done[key(i)] ? 'done' : ''}" for="task${i}">
@@ -657,10 +742,12 @@ function renderKpis(plan) {
   $('kPlanS').textContent = `Day ${TODAY_INDEX + 1} / ${state.days}`;
   $('kAvg').textContent = `${avg}%`;
   $('kLeft').textContent = `${state.days - TODAY_INDEX} 日`;
-  const factsDone = Math.min(TOTAL_FACTS, Math.round(TOTAL_FACTS * Math.min(1, past.length / plan.split.learn) * avg / 100));
+  const learnShare = Math.min(1, past.length / plan.split.learn) * avg / 100;
+  const factsDone = Math.round(TOTAL_FACTS * learnShare);
+  const qsDone = Math.round(TOTAL_QS * learnShare);
   const rows = [
     { k: '知識點已讀', v: factsDone, of: TOTAL_FACTS, c: 'var(--ph-learn)' },
-    { k: '題目已練', v: 0, of: TOTAL_QS, c: 'var(--ph-practice)' },
+    { k: '題目已練', v: qsDone, of: TOTAL_QS, c: 'var(--ph-learn)' },
     { k: `模擬考 ≥ ${SAFE_SCORE}/24`, v: 0, of: 3, c: 'var(--ph-mock)' },
   ];
   $('progRows').innerHTML = rows.map(r => `<div class="pr"><div class="top"><span>${r.k}</span><span class="num">${r.v} / ${r.of}</span></div><div class="meter"><i style="width:${r.v / r.of * 100}%;background:${r.c}"></i></div></div>`).join('');
@@ -681,7 +768,7 @@ document.addEventListener('click', e => {
   if (b.dataset.goto) return goto(+b.dataset.goto);
   if (b.dataset.days) { state.days = +b.dataset.days; return renderGoal(); }
   if (b.dataset.rest) { const r = +b.dataset.rest; state.rest.has(r) ? state.rest.delete(r) : state.rest.add(r); return renderGoal(); }
-  if (b.dataset.level) { state.level = b.dataset.level; return renderGoal(); }
+  if (b.dataset.flag) { const f = b.dataset.flag; state.flags.has(f) ? state.flags.delete(f) : state.flags.add(f); return renderGoal(); }
 });
 $('minsRange').addEventListener('input', e => { state.mins = +e.target.value; renderGoal(); });
 $('examDate').addEventListener('change', e => {
