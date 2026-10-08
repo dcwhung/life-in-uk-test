@@ -88,11 +88,9 @@
   .plan-cta .ic { width: 44px; height: 44px; border-radius: 12px; background: var(--gold-bg); display: grid; place-items: center; font-size: 22px; }
   .plan-cta b { font-size: var(--fs-md); display: block; }
   .plan-cta .go { background: var(--navy); color: var(--text-inverse); border-radius: var(--radius-pill); padding: 7px 12px; font-size: var(--fs-sm); font-weight: 800; white-space: nowrap; }
-  /* plan card: three lightness options (mockup picker), each sets its own colour set */
+  /* plan card: blue (option 1 of the lightness picker) */
   .plan-home { --pc-bg: var(--navy-light); --pc-fg: var(--text-inverse); --pc-muted: var(--text-inverse-muted); --pc-day: var(--gold-light); --pc-track: rgba(255,255,255,0.18); --pc-line: rgba(255,255,255,0.4); --pc-border: transparent;
     background: var(--pc-bg); color: var(--pc-fg); border: 1.5px solid var(--pc-border); border-radius: var(--radius); padding: 16px; display: grid; gap: 12px; box-shadow: var(--shadow-sm); }
-  .plan-home.v2 { --pc-bg: #dfe6f6; --pc-fg: var(--navy); --pc-muted: #4a5a7e; --pc-day: var(--navy-light); --pc-track: rgba(26,39,68,0.12); --pc-line: rgba(26,39,68,0.3); }
-  .plan-home.v3 { --pc-bg: #f5f7fc; --pc-fg: var(--navy); --pc-muted: var(--text-muted); --pc-day: var(--navy-light); --pc-track: var(--border); --pc-line: var(--border); --pc-border: #cfd8ee; }
   .plan-home .top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
   .plan-home .ttl { font-size: var(--fs-lg); font-weight: 800; }
   .plan-home .ttl span { color: var(--pc-day); }
@@ -103,8 +101,6 @@
   .plan-home .next b { color: var(--pc-fg); }
   .plan-home .acts { display: flex; gap: 8px; flex-wrap: wrap; }
   .plan-home .btn-line { color: var(--pc-fg); border-color: var(--pc-line); }
-  .variant-pick { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: var(--fs-xs); color: var(--text-muted); font-weight: 700; }
-  .variant-pick .chip { padding: 4px 10px; font-size: var(--fs-xs); }
   .btn-gold { background: var(--gold); color: var(--navy); border: 0; border-radius: var(--radius-sm); padding: 10px 16px; font-size: var(--fs-md); font-weight: 800; cursor: pointer; }
   .btn-line { background: transparent; color: var(--text-inverse); border: 1.5px solid rgba(255,255,255,0.35); border-radius: var(--radius-sm); padding: 10px 14px; font-size: var(--fs-sm); font-weight: 700; cursor: pointer; }
 
@@ -223,7 +219,7 @@
   .exam-pat { background-color: var(--exam-bg); background-image: linear-gradient(45deg, var(--exam-line) 1px, transparent 1px), linear-gradient(-45deg, var(--exam-line) 1px, transparent 1px); background-size: 8px 8px; }
   .cell { position: relative; }
   .cell.exam { color: var(--navy); }
-  .cell.exam small { position: absolute; left: 0; right: 0; bottom: 3px; text-align: center; font-size: 9px; font-weight: 800; white-space: nowrap; }
+  .cell.exam small { position: absolute; left: 0; right: 0; top: calc(50% + 0.75em); text-align: center; font-size: 9px; font-weight: 800; white-space: nowrap; }
   .legend .exam-swatch { background-color: var(--exam-bg); }
   .legend { display: flex; gap: 4px; align-items: center; font-size: var(--fs-2xs); color: var(--text-muted); flex-wrap: wrap; }
   .legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
@@ -308,12 +304,7 @@
         <hr class="mock-divider">
 
         <span class="frame-label">狀態 B · 已有計劃（每日打開 app）</span>
-        <div class="variant-pick" id="variantPick">卡片底色（揀一個）：
-          <button class="chip" data-variant="v1">1 · 藍</button>
-          <button class="chip on" data-variant="v2">2 · 淺藍</button>
-          <button class="chip" data-variant="v3">3 · 最淺</button>
-        </div>
-        <div class="plan-home v2" id="planHome">
+        <div class="plan-home" id="planHome">
           <div class="top"><span class="ttl">🗓️ 溫習計劃 · <span class="num" id="hDay"></span></span><span class="cd num" id="hLeft"></span></div>
           <div class="row" style="font-size: var(--fs-sm);"><span>今日完成度</span><b class="num" id="hPct"></b></div>
           <div class="bar"><i id="hBar"></i></div>
@@ -1040,11 +1031,6 @@ document.addEventListener('click', e => {
   if (ds.days) { state.days = +ds.days; return renderGoal(); }
   if (ds.rest) { const r = +ds.rest; state.rest.has(r) ? state.rest.delete(r) : state.rest.add(r); return renderGoal(); }
   if (ds.level) { state.level = ds.level; return renderGoal(); }
-  if (ds.variant) {
-    $('planHome').className = `plan-home ${ds.variant}`;
-    document.querySelectorAll('#variantPick .chip').forEach(c => c.classList.toggle('on', c === b));
-    return;
-  }
   if (ds.task) return openRunner(+ds.task);
   if (ds.opt) { state.runner.picked = +ds.opt; return renderRunner(); }
   if (ds.run) return runAction(ds.run);
