@@ -116,6 +116,21 @@ function layerCode(src) {
   return out;
 }
 
+// S-023: custom properties used through var(--x) in any of the given css texts but defined (--x: …) in none of
+// them; comments are dropped first, so a "--x:" in a comment does not count as a definition
+function undefinedTokens(cssTexts) {
+  const code = cssTexts.map(c => c.replace(/\/\*[\s\S]*?\*\//g, ' '));
+  const defined = new Set(code.flatMap(c => [...c.matchAll(/(--[\w-]+)\s*:/g)].map(m => m[1])));
+  const used = new Set(code.flatMap(c => [...c.matchAll(/var\(\s*(--[\w-]+)/g)].map(m => m[1])));
+  return [...used].filter(n => !defined.has(n));
+}
+const TOKEN_SAMPLES = [
+  { css: ['a { color: var(--nope); }'], gaps: '--nope', why: 'an undefined token' },
+  { css: [':root { --a: 1px; }', 'b { margin: var(--a); }'], gaps: '', why: 'a token defined in another file' },
+  { css: ['c { --b: 2px; padding: var( --b ); }'], gaps: '', why: 'a local custom property' },
+  { css: ['/* --c: 1px */ d { top: var(--c, 0); }'], gaps: '--c', why: 'a "definition" inside a comment' },
+];
+
 (async () => {
   const inline = sources.flatMap(f => fs.readFileSync(f, 'utf8').split('\n')
     .map((line, i) => (/\son[a-z]+\s*=\s*["'`]/.test(line) ? `${rel(f)}:${i + 1}` : null)).filter(Boolean));
@@ -141,6 +156,13 @@ function layerCode(src) {
       .map((line, i) => (/--text-inverse-[0-9]/.test(line) ? `${rel(f)}:${i + 1}` : null)).filter(Boolean));
   assert(oldInverse.length === 0, 'no value-named --text-inverse-NN tokens in css (use strong / muted / faint)'
     + (oldInverse.length ? ': ' + oldInverse.join(', ') : ''));
+
+  // S-023: a var(--x) with no --x definition silently falls back (or drops the declaration)
+  const tokenMisses = TOKEN_SAMPLES.filter(({ css, gaps }) => undefinedTokens(css).join(',') !== gaps).map(({ why }) => why);
+  assert(tokenMisses.length === 0, `undefined-token guard reads ${TOKEN_SAMPLES.length} in-memory samples right`
+    + (tokenMisses.length ? ': ' + tokenMisses.join(', ') : ''));
+  const tokenGaps = undefinedTokens(cssFiles(path.join(ROOT, 'css')).map(f => fs.readFileSync(f, 'utf8')));
+  assert(tokenGaps.length === 0, 'every var(--x) in css has a --x definition' + (tokenGaps.length ? ': ' + tokenGaps.join(', ') : ''));
 
   // v0.62 (P3 Q2-a): purple means Cantonese only — Study / Home chrome uses the navy --study-accent* tokens;
   // the only purple rules left in these files are the Cantonese lines .fact-yue / .sqm-fact-yue (v0.63: fact.css)
