@@ -820,4 +820,4 @@ c10115b feat: randomise answer option order in Practice and Exam mode
 - [x] S-085 / S-086 / S-088 / S-089（PR #44，測試 only）
 - [x] S-090 / S-091 / S-092 `layerCode` `#private` / Unicode 名（PR #45；`\u{…}` escape 名決定唔改）
 - [x] Spacing token 統一（v0.72 B5：`--space-*`，0 視覺改動，S-081 後續）
-- [ ] iPhone 實機（PingFang HK）睇 320 / 375px：M4 結果行、Study chip 行、CUI-0013（QA 建議）
+- [x] iPhone 實機（PingFang HK）睇 320 / 375px：M4 結果行、Study chip 行、CUI-0013（用戶 2026-10-08 實機確認冇問題，close）
