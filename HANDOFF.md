@@ -1,4 +1,4 @@
-# Life in the UK Test PWA — Handoff (v0.68)
+# Life in the UK Test PWA — Handoff (v0.70)
 
 - **Repo:** https://github.com/dcwhung/life-in-uk-test （main branch，GitHub Pages root `/`）
 - **Live:** https://dcwhung.github.io/life-in-uk-test/
@@ -463,7 +463,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | `lang-switch-test.js` | v0.65（T-007）：pill 顯示目標語言（`中` / `EN`）、`aria-label` / `title`、44px hit area（四邊 `elementFromPoint`，S-044）；撳 pill → `<html lang>`、`lifeuk.uiLang`、reload 保持；Home / Quiz（Practice reveal + Similar、side session ↩、Exam 中途 + flag）/ Result（filter）/ Flagged / Study（tab / chip / 搜尋）每個畫面 en → zh-HK → en，`snapState` 比對 `state`、timer、`sessionReturn`、review、`study`、搜尋框、成個 localStorage（除 `uiLang`）不變、冇 `[i18n] missing key`、成績唔重複記錄；exam timer 即刻換字而唔 call `examTick`；confirm modal 開住（focus pill + Enter）唔切換；`<title>` 保持英文；M2 國家 chip 冇拉丁字母；M6 `🎯 全部試題（408 題）` ↔ `🎯 All Questions (408)`；W-014 `checkContentLang`（`closest('[lang]')`，唔准落到 `<html>`）；M4 `.result-sub` 320px 唔跌單字（要有 CJK 字體，S-045）；320px 冇橫向 overflow；pill dblclick 唔被 double tap guard 食（wait 由 `SCREEN_CHANGE_CLICK_GUARD_MS` 計，S-043） |
 | `practicedots-test.js` | v0.55：Practice 圓圈（24 / 9 / review 題數、冇 progress bar 同計時、啱綠錯紅、flag 橙邊、計數一行、撳跳題前後都得）；冇 score pill；Exam 最後一題快捷 ✓ 交卷（有未答彈 modal、全答直接去結果）；Flagged 列表「Practise flagged」書籤 icon 係橙色；首頁 Flagged 格 icon 橙色、Home 冇可見嘅黑色 SVG（v0.56）；CUI-0012：320px 圓點喺卡 content box 入面、冇橫向 scroll、正圓、號碼喺 border 入面（390px 同樣檢查） |
 
-## 版本記錄（v0.32–v0.68 + PR #44 / #45）
+## 版本記錄（v0.32–v0.70）
 
 | 版本 | PR | 改動 |
 |---|---|---|
@@ -513,6 +513,8 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | v0.68 | dcwhung/life-in-uk-test#43 | **S items 全清 + CUI-0016 + 知識點章內編號 + Home UI 文字 / hover**：**①** CUI-0016：錯題 / Flagged review 全部清晒之後 Result 收埋「重做」（`renderResultActions` `canRetry`），`startExam` 空 pool 直接 `leaveToHome`（之前開 0 題 session，render 拋 TypeError，畫面停喺上一輪最後一題）；**②** 知識點編號：Study 每章由 #1 開始（`chapterFactNumber`，喺 `js/domain/similar.js`，舊 shell 已有 script tag；內部 fact id / 書籤 / mastery 不變）；Chapters 顯示 `#n`；時間線 / 地理 / 人物 pill「📜 Ch 3 #1」（拎走獨立 #id）；Core Fact「Ch 5 #38」；知識點練習 header「Fact / 知識點 Ch 3 #15」（`common.factSet`、`setExamLabel` 用 DOM 砌 `lang="en"` span）；編號唔轉大楷（`.sqm-fact-label` / `.quiz-label` `[lang="en"] { text-transform: none }`）；分組標題拎走總數；**③** Home UI：錯題說明移入錯題 tile（「來自練習及模擬考試，於此答對後便會清除。每輪最多 {max} 題。」），0 題時只淡化 tile 其他部分（W-022）；副標題只顯示「尚餘 {n} 題」；已標記 tile 有題時冇副標題；Exam 說明刪「請於下方選擇試卷」；Practice 說明 4 點列點；離開 modal「取消 / Cancel」；Exam 模式已完成掣 hover 綠底白字；Practice 模式 Exam 掣 hover 進度字金色（方案 A，mockup `c6d98e2`）；**④** 內容 S-054（batch 8，用戶批准 4 條）；guard S-051（`_noteNonEmpty` 單向）/ S-061（yue 數量字）；`tests/tools/check-batch-replay.js`（S-053，代替 S-052）；S-037 / S-074 structure-test scanner；S-041 / S-045 / S-046 / S-057…S-060 / S-062 / S-063 / S-064…S-069 / S-070…S-073 / S-077 / S-080 / S-082…S-084；W-017 `sw-test` race（`utimesSync` mtime +2s，http.server `If-Modified-Since` 只精確到秒）；QA script v063 / v065 / v066 oracle 更新（S-039、W-018）；**⑤** `APP_VERSION` 0.68；Review 5 批（`.proj-docs/reviews/2026-10-07_review_v068-batch{1..5}*.md`，全部 pass，0 Critical）；Batch QA pass（`.proj-docs/qa/2026-10-08_qa_v068_batch.md`：v068 293 / 0、run-all 31 / 31、v063 186 / 0、v065 275 / 0、v066 1870 / 0、batch replay 0 mismatch），CUI-0016 completed |
 | — | dcwhung/life-in-uk-test#44 | **測試 only**：S-085 `layerCode` regex scanner 修三個漏報位（`${` 之後嘅 regex：`template()` 留 `(` 標記；後置 `++` / `--` 同 `.of` / `.in` 之後係除號）；S-088 keyword 要係完整名（`$in`、`o. of` 唔當 keyword）；S-089 binary `-` 之後 regex 嘅 sample（layering samples 19 → 29）；S-086 `factsession-test` S-077 case 唔再喺 `finishExam()` 之後重複 `renderResults()` / `showScreen()`；帶入 v0.68 HANDOFF PR link + session log。Review 98 pass（`.proj-docs/reviews/2026-10-08_review_s085-s086.md`）；QA pass（`.proj-docs/qa/2026-10-08_qa_s085-s089.md`：run-all 31 / 31、v063 186 / 0、v065 275 / 0、v066 1870 / 0、v068 293 / 0）|
 | — | dcwhung/life-in-uk-test#45 | **測試 only**：`structure-test` `REGEX_AFTER` keyword lookbehind 改做 `(?<![$#\p{ID_Continue}\u200C\u200D]\|\.\s*)` + `u` flag —— S-090 `this.#of`、`éin`；S-091 任何 identifier 字元（combining mark、非 ASCII 數字、ZWJ）；S-092 明確列 ZWNJ / ZWJ（Unicode 15.1 先入 `\p{ID_Continue}`，舊 Node 唔會假紅），`\u{…}` escape 名記做已知限制。Layering samples 29 → 34。Review 99 pass（`.proj-docs/reviews/2026-10-08_review_s090.md`）；QA pass（`.proj-docs/qa/2026-10-08_qa_s090-s091.md`：run-all 31 / 31、v063 186 / 0、v065 276 / 0、v066 1870 / 0、v068 293 / 0；25 個實檔 `layerCode` 輸出新舊一樣）。S-092 喺 QA 之後先做，由 final review 覆核（`.proj-docs/reviews/2026-10-08_review_s091-s092-final.md`，93 pass，run-all 31 / 31；S-093）|
+| v0.69 | dcwhung/life-in-uk-test#46 | **鍵盤 / modal**：S-025 確認 modal focus trap（Tab / Shift+Tab 只喺兩粒掣之間）+ 關閉後 focus 返 opener（S-095 第二個 prompt 保留第一個 opener）；W-024 時間到會先關開住嘅 Submit / Leave modal（唔再蓋住結果頁或者重複交卷）；S-098 `showScreen` blur 留喺被收埋 screen 嘅 focus（之前時間到之後一下 Enter 由結果頁返 Home）；S-103 喺 Submit 長按 Enter 唔會經 prompt 交卷；S-102 結果頁 filter chip 揀完 focus 留喺 chip；S-023 `structure-test` 檢查每個 `var(--x)` 有定義；S-094 / S-099 / S-101 test；S-033 / S-105 註解；HANDOFF W-023 / S-093 / S-032 / S-096。Review v069 97 + delta 99 / 98；QA `.proj-docs/qa/2026-10-08_qa_v069.md` pass（keyboard 632 / 0、upgrade 20 / 0） |
+| v0.70 | dcwhung/life-in-uk-test#46 | **Study / Home UI（用戶截圖 + preview 確認）**：Timeline 年份 `text-box: trim-both cap alphabetic`，圓點喺文字正中、6px 空位（`@supports not` fallback 維持 v0.69 位置）；fact 卡星星自己一行；來源列 node 一分行「▶ Practise / 練習這 N 題」就自己一行全闊（純 flexbox，刪 `FACT_SRC_INLINE_MAX` / `.wrap-btn`）；錯題 tile 冇「N to clear / 尚餘 N 題」，0 題只顯示「Nothing to review yet / 暫時未有需要複習的題目」（`home.wrongToClear` 已刪）；Practice 答案框備注改用同結果頁一樣嘅逐行 render（`noteHtml` 搬去 `js/components/tags.js`，新 `css/components/note.css`，`.note-mark` 固定闊度 → 換行懸掛縮排）；B1：Crown dependency 記憶法（7 題共用）同 14.3 一項一行（batch 9）；S-104 / S-106 test。Review `.proj-docs/reviews/2026-10-08_review_v070.md` 98 + delta 99；QA `.proj-docs/qa/2026-10-08_qa_v070.md` pass（run-all 31 / 31、v066 1870 / 0、note 縮排 4125 行 0 錯、upgrade 20 / 0） |
 
 **Practice 數字圓圈設計決定（v0.55，preview 同用戶確認）**
 - 起因：用戶以為 Practice 「無咗」頂頭數字圓圈；查 code 同 git 記錄，v0.44 起圓圈一直只係 Exam 1–17 / Random Exam 先有，唔係 regression，改做新功能
@@ -613,6 +615,43 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 ## 主要 commit（新→舊）
 
 ```
+232ed5c docs: QA v0.70 release (pass, no new items) + upgrade / keyboard / shots / hang / fallback QA scripts
+af9eceb fix: answer box note body is a div (it holds the note's row divs)
+66d3d03 test: S-106 | v066 QA script reads the answer box note as rows like the Results review
+5a7f3f3 docs: review v0.70 delta (99 pass; S-106)
+05daec4 fix: timeline year keeps its v0.69 position in browsers without text-box
+0849fdc refactor: S-105 | empty My Review tile fades every part; comments follow the v0.70 tile
+17fae10 test: S-104 | timeline check fails when the year label stretches to the card height
+cccc915 docs: review v0.70 (98 pass; S-104 / S-105)
+51eec2e fix: Practice answer note keeps a hanging indent on wrapped bullet lines
+aa1df26 docs: HANDOFF notes the v0.70 source row, stars line, timeline dot, wrong tile and B1
+20d0672 chore: APP_VERSION 0.70
+56a262d test: QA scripts v063 / v065 / v066 / v068 follow the v0.70 wrong tile and source row
+cd97f0d fix: S-103 | holding Enter on Submit no longer submits through the prompt
+a88945e fix: S-102 | results filter chip keeps keyboard focus after the chips redraw
+97ed3a8 feat: B1 | Crown dependency memory note and the Oscar note list one item per line
+6dbea5a feat: wrong answers tile drops "{n} to clear"; at 0 it shows only "Nothing to review yet"
+2b98336 feat: fact card difficulty stars take their own line under the tags
+c64d88d fix: timeline year text is cap-trimmed so the dot centres on the glyphs, with a 6px gap
+1374951 fix: fact source row moves Practise to its own full-width line once the nodes wrap
+785e1eb fix: Study timeline dot sits on the vertical middle of its year text
+da008d5 test: S-101 | v065 E2 checks the S-025 focus trap; toggleLang comment no longer says there is no trap
+e65dbbf docs: QA v0.69 release (pass; S-101 / S-102 / S-103) + keyboard / upgrade / ring QA scripts
+b66d169 docs: review v0.69 S-098 (98 pass, S-099 / S-100)
+ddd995f test: S-099 | time up over a keyboard-opened Submit / Leave prompt, then Enter, stays on results
+f4b1ba6 docs: S-098 | HANDOFF notes showScreen drops focus from the hidden screen
+04dfeae docs: review v0.69 delta (99 pass, S-098)
+f225bdf fix: S-098 | showScreen drops focus left on the screen it hides
+ba33f7f docs: S-096 | HANDOFF says where focus goes after OK navigates away; notes S-095 / W-024; review v0.69 (97 pass)
+4922d62 fix: W-024 | time up closes an open Submit / Leave prompt before the results
+079fdc8 test: S-095 | a second prompt over an open modal keeps the first opener
+1ada9d2 docs: W-023 / S-093 / S-032 | HANDOFF lists the won't-fix suggestions, S-092 review note, S-032 decision, v0.69 modal / guard notes
+295bb0b docs: S-033 | fact.css notes the accepted 1.5px → 1px border rounding in the touch-ring gap
+9ae3c2c test: S-094 | layering sample for a ZWNJ inside a name
+678ae69 test: S-023 | structure-test fails a var(--x) with no --x definition in css
+245188e chore: APP_VERSION 0.69
+418f365 fix: S-025 | confirm modal keeps Tab inside and returns focus to its opener
+b65f467 docs: final review S-091 / S-092 (93 pass) + S-item audit (open: S-023, S-025, S-033, S-032; new W-023, S-093, S-094)
 2520d78 fix: S-092 | REGEX_AFTER lists ZWNJ / ZWJ for Node before Unicode 15.1; note the \u{…} gap
 1541444 docs: review S-090 (99 pass, new S-091)
 b752df8 fix: S-091 | REGEX_AFTER keyword lookbehind uses \p{ID_Continue}
