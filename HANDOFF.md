@@ -6,7 +6,7 @@
 - **用戶：** 香港廣東話使用者，備考 Life in the UK Test（ILR，BN(O) route）
 - **開發流程（v0.32 起）：** 每次改動喺 `claude/*` branch 做，開 PR 入 `main` 再 merge（merge commit）；`main` merge 後 GitHub Pages 自動部署。冇 `develop` branch。PR merge 咗之後，同一條 branch 要由最新 `main` 重新開過先加新 commit
 - **版本：** v1.0.0（2026-10-08）起用 SemVer（`APP_VERSION = 'MAJOR.MINOR.PATCH'`）：新功能升 minor（1.1.0）、修 bug／細改升 patch（1.0.1）、大改／唔兼容（例如 localStorage 結構要遷移）升 major（2.0.0）；只改測試／文件唔升版本。v0.01–v0.72 用舊規則（每次改 app +0.01）。`APP_VERSION` 只當字串用（SW cache 名 `lifeuk-v<版本>`、header / ⓘ 顯示 `v<版本>`、`lifeuk.migrated` marker），冇數值比較
-- **Freeze：** v1.0.0 = 第一個 freeze 版本，git annotated tag `v1.0.0`（`git checkout v1.0.0` 可以返去）；之後每個 major / minor release 都打 tag `v<版本>`
+- **Freeze：** v1.0.0 = 第一個 freeze 版本，git tag `v1.0.0` → `de11fcc`（GitHub Release 頁開，lightweight tag；`git checkout v1.0.0` 可以返去）；之後每個 major / minor release 都打 tag `v<版本>`
 - **UI 改動：** 用戶通常要求先做 preview／mockup 確認先改 code（例如 `mockups/similar-question-map.html`、v0.41 嘅臨時 quiz header preview、v0.65 嘅 `mockups/lang-switch.html`（確認後已 delete））；臨時 preview 確認後要 delete，唔好留喺 `main`
 - **每輪改完：** 用戶通常會要求「開 PR 入 main 然後 merge」，之後再「更新 HANDOFF.md 記錄今次所有改動」
 
