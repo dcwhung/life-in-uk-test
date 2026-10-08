@@ -107,6 +107,8 @@ document.addEventListener('input', e => {
 });
 document.addEventListener('keydown', e => {
   if (e.key === 'Tab' && isConfirmOpen()) trapConfirmTab(e);
+  // S-103: Enter held on the button that opened the prompt would auto-repeat onto the prompt's default button
+  if (e.key === 'Enter' && e.repeat && isConfirmOpen()) e.preventDefault();
   if (e.key !== 'Escape') return;
   if (isConfirmOpen()) closeConfirm();
   setInfoOpen(false);
