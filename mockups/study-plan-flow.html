@@ -134,10 +134,10 @@
   .sp-ord { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 10px; align-items: start; }
   .sp-ord .n { width: 26px; height: 26px; border-radius: 50%; background: var(--navy); color: var(--text-inverse); display: grid; place-items: center; font-size: var(--fs-sm); font-weight: 800; }
   .sp-ord .why { font-size: var(--fs-xs); color: var(--text-muted); line-height: 1.5; }
-  .sp-chw { display: grid; grid-template-columns: minmax(0, 1fr) 90px 76px; gap: 8px; align-items: center; font-size: var(--fs-sm); }
+  .sp-chw { display: grid; grid-template-columns: minmax(0, 1fr) 90px auto; gap: 8px; align-items: center; font-size: var(--fs-sm); }
   .sp-chw .bar { height: 8px; background: var(--border); border-radius: var(--radius-pill); overflow: hidden; }
   .sp-chw .bar i { display: block; height: 100%; background: var(--navy-light); border-radius: var(--radius-pill); }
-  .sp-chw .c { text-align: right; color: var(--text-muted); }
+  .sp-chw .c { text-align: right; color: var(--text-muted); white-space: nowrap; }
   .sp-legend { display: flex; gap: 4px; align-items: center; font-size: var(--fs-2xs); color: var(--text-muted); flex-wrap: wrap; }
   .sp-legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
   /* day list scrolls on its own and opens at today; week headings stick while scrolling */
@@ -247,7 +247,8 @@
     .sp-stats { grid-template-columns: 1fr 1fr; }
     .sp-stats .sp-stat:last-child { grid-column: 1 / -1; }
     .sp-today-head { grid-template-columns: 1fr; justify-items: center; text-align: center; }
-    .sp-chw { grid-template-columns: minmax(0, 1fr) 70px 70px; }
+    .sp-chw { grid-template-columns: minmax(0, 1fr) auto; row-gap: 4px; }
+    .sp-chw b { grid-column: 1 / -1; }
     .sp-plan-cta { grid-template-columns: 44px minmax(0, 1fr); }
     .sp-plan-cta .go { grid-column: 1 / -1; text-align: center; }
   }
