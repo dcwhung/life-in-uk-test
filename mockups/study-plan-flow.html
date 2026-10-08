@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Study Plan Flow</title>
+<style>
+  /* Layout: app shell (navy header + 780px main column) behind a sticky mockup bar that switches the 3 steps.
+     Single light look on purpose: the app itself has no dark theme, so this preview matches it. */
+  /* ── tokens copied from css/base/tokens.css (v0.68) ── */
+  :root {
+    color-scheme: light;
+    --orange: #d9822b;
+    --navy: #1a2744; --navy-mid: #243460; --navy-light: #2e4080;
+    --gold: #c9a84c; --gold-light: #e8c97a;
+    --green: #2d6a4f; --green-light: #52b788;
+    --red: #922b21; --red-light: #e74c3c;
+    --purple: #6b3fa0; --purple-light: #9b6dca;
+    --bg: #f0f2f7; --card: #ffffff; --text: #1a2744; --text-muted: #5a6a8a; --border: #dde2f0;
+    --text-inverse: #fff; --text-inverse-muted: rgba(255,255,255,0.6); --text-inverse-faint: rgba(255,255,255,0.45);
+    --success-bg: #edf8f2; --danger-bg: #fdf0ef; --selected-bg: #f0f4ff; --flag-bg: #fdf3e8;
+    --gold-bg: #fdf6e3; --gold-text: #8a6d1f; --yue-bg: #f3eefa;
+    --radius: 14px; --radius-md: 10px; --radius-sm: 8px; --radius-pill: 999px;
+    --fs-2xs: 10px; --fs-xs: 11px; --fs-sm: 12px; --fs-base: 13px; --fs-md: 14px; --fs-lg: 15px; --fs-xl: 20px; --fs-2xl: 28px;
+    --shadow: 0 4px 24px rgba(26,39,68,0.10); --shadow-sm: 0 2px 8px rgba(26,39,68,0.07); --shadow-header: 0 2px 16px rgba(0,0,0,0.25);
+    /* mockup-only chrome */
+    --mock-ground: #e4e7ef; --mock-note-bg: #fffbea; --mock-note-border: #e8d48a;
+    /* phase colours (plan-only, mapped onto existing hues) */
+    --ph-learn: var(--navy-light); --ph-learn-bg: var(--selected-bg);
+    --ph-practice: var(--purple); --ph-practice-bg: var(--yue-bg);
+    --ph-mock: var(--orange); --ph-mock-bg: var(--flag-bg);
+    --heat-0: #e3e7f1; --heat-1: #b7dcc8; --heat-2: #7cc29e; --heat-3: var(--green-light); --heat-4: var(--green);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, 'PingFang HK', 'Noto Sans HK', 'Noto Sans CJK HK', 'Microsoft JhengHei', sans-serif;
+    background: var(--mock-ground); color: var(--text); -webkit-font-smoothing: antialiased;
+  }
+  button, input, select { font-family: inherit; }
+  button:focus-visible, input:focus-visible, label:focus-within { outline: 2px solid var(--gold); outline-offset: 2px; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  /* ════════ mockup chrome ════════ */
+  .mock-bar { background: var(--navy); color: var(--text-inverse); padding: 10px 16px; font-size: var(--fs-sm); position: sticky; top: env(safe-area-inset-top, 0px); z-index: 50; box-shadow: var(--shadow-header); }
+  .mock-bar b { color: var(--gold-light); }
+  .mock-row { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; align-items: center; }
+  .mock-tab { background: transparent; border: 1.5px solid rgba(255,255,255,0.3); color: var(--text-inverse); border-radius: var(--radius-pill); padding: 5px 12px; font-size: var(--fs-sm); font-weight: 700; cursor: pointer; }
+  .mock-tab.on { background: var(--gold); border-color: var(--gold); color: var(--navy); }
+  .brief { max-width: 780px; margin: 16px auto 0; background: var(--mock-note-bg); border: 1.5px solid var(--mock-note-border); border-radius: var(--radius-md); padding: 12px 14px; font-size: var(--fs-base); line-height: 1.6; }
+  .brief h2 { font-size: var(--fs-lg); margin-bottom: 4px; }
+  .brief ul { padding-left: 18px; }
+  .page { padding: 0 16px 40px; }
+
+  /* ════════ app shell (layout.css) ════════ */
+  .app { max-width: 780px; margin: 16px auto 0; background: var(--bg); border: 1px solid #c9cfdd; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); }
+  .hdr { background: var(--navy); padding: 0 16px; }
+  .hdr-in { height: 58px; display: flex; align-items: center; gap: 10px; }
+  .hdr .flag { font-size: 22px; }
+  .hdr .t1 { color: var(--text-inverse); font-size: var(--fs-lg); font-weight: 700; }
+  .hdr .t2 { color: var(--gold); font-size: var(--fs-xs); font-weight: 500; }
+  .main { padding: 20px 16px 28px; display: grid; gap: 16px; }
+  .screen[hidden] { display: none; }
+  .screen { display: grid; gap: 16px; }
+  .section-title { font-size: var(--fs-sm); font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow-sm); padding: 16px; display: grid; gap: 12px; min-width: 0; }
+  .card h3 { font-size: var(--fs-lg); text-wrap: balance; }
+  .muted { color: var(--text-muted); font-size: var(--fs-sm); line-height: 1.55; }
+  .steps { display: flex; gap: 6px; }
+  .step-dot { flex: 1; height: 4px; border-radius: var(--radius-pill); background: var(--border); }
+  .step-dot.on { background: var(--gold); }
+  .eyebrow { font-size: var(--fs-xs); font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold-text); }
+
+  /* ── form ── */
+  .field { display: grid; gap: 8px; }
+  .field-label { font-size: var(--fs-md); font-weight: 700; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .field-label .val { color: var(--navy-light); font-size: var(--fs-lg); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { background: var(--card); border: 1.5px solid var(--border); color: var(--text); border-radius: var(--radius-pill); padding: 7px 14px; font-size: var(--fs-base); font-weight: 600; cursor: pointer; }
+  .chip.on { background: var(--navy); border-color: var(--navy); color: var(--text-inverse); }
+  .chip.rest.on { background: var(--red); border-color: var(--red); }
+  input[type=range] { width: 100%; accent-color: var(--navy); }
+  .scale { display: flex; justify-content: space-between; font-size: var(--fs-2xs); color: var(--text-muted); }
+  input[type=date] { border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 7px 10px; font-size: var(--fs-base); color: var(--text); background: var(--card); }
+  .level-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .level { background: var(--card); border: 2px solid var(--border); border-radius: var(--radius-md); padding: 10px 8px; text-align: center; cursor: pointer; display: grid; gap: 2px; }
+  .level.on { border-color: var(--navy); background: var(--selected-bg); }
+  .level .ic { font-size: 20px; }
+  .level b { font-size: var(--fs-base); }
+  .level span { font-size: var(--fs-2xs); color: var(--text-muted); }
+
+  /* ── feasibility ── */
+  .feas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .stat { background: var(--bg); border-radius: var(--radius-md); padding: 10px; display: grid; gap: 2px; }
+  .stat .k { font-size: var(--fs-2xs); color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat .v { font-size: var(--fs-xl); font-weight: 800; }
+  .stat .s { font-size: var(--fs-2xs); color: var(--text-muted); }
+  .meter { height: 10px; border-radius: var(--radius-pill); background: var(--border); overflow: hidden; position: relative; }
+  .meter i { position: absolute; inset: 0 auto 0 0; border-radius: var(--radius-pill); }
+  .pill { display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-xs); font-weight: 800; border-radius: var(--radius-pill); padding: 3px 10px; }
+  .pill.ok { background: var(--success-bg); color: var(--green); }
+  .pill.warn { background: var(--gold-bg); color: var(--gold-text); }
+  .pill.bad { background: var(--danger-bg); color: var(--red); }
+  .cta { background: var(--navy); color: var(--text-inverse); border: 0; border-radius: var(--radius-md); padding: 14px; font-size: var(--fs-md); font-weight: 800; cursor: pointer; width: 100%; }
+  .cta:hover { background: var(--navy-mid); }
+  .ghost { background: transparent; border: 1.5px solid var(--border); color: var(--text-muted); border-radius: var(--radius-sm); padding: 6px 12px; font-size: var(--fs-sm); font-weight: 700; cursor: pointer; }
+
+  /* ── plan: phase bar ── */
+  .phase-bar { display: flex; height: 34px; border-radius: var(--radius-sm); overflow: hidden; font-size: var(--fs-xs); font-weight: 800; color: var(--text-inverse); }
+  .phase-bar > div { display: flex; align-items: center; justify-content: center; min-width: 0; white-space: nowrap; overflow: hidden; padding: 0 4px; }
+  .ph-learn { background: var(--ph-learn); } .ph-practice { background: var(--ph-practice); } .ph-mock { background: var(--ph-mock); }
+  .phase-axis { display: flex; justify-content: space-between; font-size: var(--fs-2xs); color: var(--text-muted); }
+  .strategy { display: grid; gap: 10px; }
+  .strat { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 10px; align-items: start; padding: 12px; border-radius: var(--radius-md); }
+  .strat.learn { background: var(--ph-learn-bg); } .strat.practice { background: var(--ph-practice-bg); } .strat.mock { background: var(--ph-mock-bg); }
+  .strat .n { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; color: var(--text-inverse); font-weight: 800; font-size: var(--fs-base); }
+  .strat.learn .n { background: var(--ph-learn); } .strat.practice .n { background: var(--ph-practice); } .strat.mock .n { background: var(--ph-mock); }
+  .strat h4 { font-size: var(--fs-md); margin-bottom: 2px; }
+  .strat ul { padding-left: 16px; font-size: var(--fs-sm); line-height: 1.6; color: var(--text); }
+  .strat .days { font-size: var(--fs-xs); color: var(--text-muted); font-weight: 700; }
+  .ch-weight { display: grid; gap: 6px; }
+  .chw { display: grid; grid-template-columns: 112px minmax(0, 1fr) 70px; gap: 8px; align-items: center; font-size: var(--fs-sm); }
+  .chw .bar { height: 8px; background: var(--border); border-radius: var(--radius-pill); overflow: hidden; }
+  .chw .bar i { display: block; height: 100%; background: var(--navy-light); border-radius: var(--radius-pill); }
+  .chw .c { text-align: right; color: var(--text-muted); }
+
+  /* ── plan: day list ── */
+  .week-h { font-size: var(--fs-xs); font-weight: 800; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; padding-top: 4px; }
+  .day { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; gap: 10px; align-items: start; padding: 10px 0; border-top: 1px solid var(--border); }
+  .day:first-of-type { border-top: 0; }
+  .day .d { text-align: center; border-radius: var(--radius-sm); padding: 4px 0; font-weight: 800; font-size: var(--fs-md); line-height: 1.1; }
+  .day .d small { display: block; font-size: var(--fs-2xs); font-weight: 600; color: var(--text-muted); }
+  .day.learn .d { background: var(--ph-learn-bg); color: var(--ph-learn); }
+  .day.practice .d { background: var(--ph-practice-bg); color: var(--ph-practice); }
+  .day.mock .d { background: var(--ph-mock-bg); color: var(--ph-mock); }
+  .day.rest .d, .day.exam .d { background: var(--bg); color: var(--text-muted); }
+  .day.exam .d { background: var(--gold); color: var(--navy); }
+  .day.exam .d small { color: var(--navy); }
+  .day.today { background: var(--gold-bg); margin: 0 -8px; padding-inline: 8px; border-radius: var(--radius-sm); }
+  .tasks { display: grid; gap: 4px; font-size: var(--fs-sm); line-height: 1.45; }
+  .tasks .t { display: flex; gap: 6px; }
+  .tasks .t em { font-style: normal; color: var(--text-muted); flex-shrink: 0; }
+  .mins { font-size: var(--fs-xs); font-weight: 800; color: var(--text-muted); white-space: nowrap; }
+  .mins.over { color: var(--red); }
+
+  /* ── daily ── */
+  .today-head { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 16px; align-items: center; }
+  .ring { width: 112px; height: 112px; }
+  .ring circle { fill: none; stroke-width: 10; }
+  .ring .track { stroke: var(--border); }
+  .ring .prog { stroke: var(--green-light); stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset 0.4s; }
+  .ring text { fill: var(--text); font-weight: 800; font-size: 22px; }
+  .ring .sub { fill: var(--text-muted); font-size: 10px; font-weight: 700; }
+  .check { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; gap: 10px; align-items: start; padding: 10px; border-radius: var(--radius-md); border: 1.5px solid var(--border); cursor: pointer; background: var(--card); }
+  .check input { width: 20px; height: 20px; accent-color: var(--green); margin-top: 1px; }
+  .check .ttl { font-size: var(--fs-md); font-weight: 700; }
+  .check .how { font-size: var(--fs-xs); color: var(--text-muted); line-height: 1.5; margin-top: 2px; }
+  .check.done { background: var(--success-bg); border-color: var(--green-light); }
+  .check.done .ttl { text-decoration: line-through; color: var(--text-muted); }
+  .check.carry { border-style: dashed; border-color: var(--orange); }
+  .tag { display: inline-block; font-size: var(--fs-2xs); font-weight: 800; border-radius: var(--radius-pill); padding: 1px 7px; margin-left: 6px; vertical-align: 1px; }
+  .tag.carry { background: var(--flag-bg); color: var(--orange); }
+  .heat { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+  .heat .dow { font-size: var(--fs-2xs); color: var(--text-muted); text-align: center; font-weight: 700; }
+  .cell { aspect-ratio: 1; max-width: 100%; border-radius: var(--radius-sm); display: grid; place-items: center; font-size: var(--fs-xs); font-weight: 800; color: var(--text); background: var(--heat-0); position: relative; }
+  .cell.h1 { background: var(--heat-1); } .cell.h2 { background: var(--heat-2); } .cell.h3 { background: var(--heat-3); color: var(--text-inverse); } .cell.h4 { background: var(--heat-4); color: var(--text-inverse); }
+  .cell.rest { background: repeating-linear-gradient(45deg, var(--bg), var(--bg) 4px, var(--border) 4px, var(--border) 6px); color: var(--text-muted); }
+  .cell.future { background: var(--card); border: 1.5px dashed var(--border); color: var(--text-muted); }
+  .cell.today { outline: 2.5px solid var(--gold); outline-offset: 1px; }
+  .cell.exam { background: var(--gold); color: var(--navy); }
+  .legend { display: flex; gap: 4px; align-items: center; font-size: var(--fs-2xs); color: var(--text-muted); flex-wrap: wrap; }
+  .legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+  .kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .prog-rows { display: grid; gap: 10px; }
+  .pr { display: grid; gap: 4px; }
+  .pr .top { display: flex; justify-content: space-between; font-size: var(--fs-sm); font-weight: 700; gap: 8px; }
+  .pr .top span:last-child { color: var(--text-muted); }
+  .alert { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px; background: var(--flag-bg); border-radius: var(--radius-md); padding: 10px 12px; font-size: var(--fs-sm); line-height: 1.55; }
+
+  @media (max-width: 480px) {
+    .feas, .kpis { grid-template-columns: 1fr 1fr; }
+    .feas .stat:last-child, .kpis .stat:last-child { grid-column: 1 / -1; }
+    .today-head { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+    .chw { grid-template-columns: 92px minmax(0, 1fr) 60px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .ring .prog { transition: none; } }
+</style>
+</head>
+<body>
+
+<div class="mock-bar">
+  <b>MOCKUP</b> · 溫習計劃 flow（預覽，未接入 app）
+  <div class="mock-row" role="tablist">
+    <button class="mock-tab on" data-step="1" role="tab">① 訂立目標</button>
+    <button class="mock-tab" data-step="2" role="tab">② 進度表 + 策略</button>
+    <button class="mock-tab" data-step="3" role="tab">③ 每日完成度</button>
+  </div>
+</div>
+
+<div class="page">
+  <div class="brief">
+    <h2>點樣睇呢個 mockup</h2>
+    <ul>
+      <li>Step ① 嘅設定係 live：改日數／每日時間／休息日／程度，Step ② 進度表同 Step ③ 會即時重新計。</li>
+      <li>內容量用 app 真實數字：236 條知識點（Ch3 History 最多，91 條）、408 題（17 份 exam × 24 題）、合格線 18/24（75%）、每份 45 分鐘。</li>
+      <li>Step ③ 假設今日係計劃第 8 日，之前幾日係示範數據；今日嘅 checklist 可以剔。</li>
+    </ul>
+  </div>
+
+  <div class="app">
+    <header class="hdr"><div class="hdr-in"><span class="flag">🇬🇧</span><div><div class="t1">Life in the UK Test</div><div class="t2">溫習計劃</div></div></div></header>
+    <main class="main">
+
+      <!-- ════════ STEP 1: GOAL ════════ -->
+      <section class="screen" id="step1">
+        <div class="steps"><i class="step-dot on"></i><i class="step-dot"></i><i class="step-dot"></i></div>
+        <div>
+          <div class="eyebrow">Step 1 / 3</div>
+          <h2 style="font-size: var(--fs-xl); margin-top: 2px;">定個目標先</h2>
+          <p class="muted">答 4 條問題，幫你計一份做得到嘅進度表。</p>
+        </div>
+
+        <div class="card">
+          <div class="field">
+            <div class="field-label">幾耐之後考試？<span class="val num" id="daysVal"></span></div>
+            <div class="chips" id="daysChips">
+              <button class="chip" data-days="14">2 星期</button>
+              <button class="chip on" data-days="21">3 星期</button>
+              <button class="chip" data-days="28">4 星期</button>
+              <button class="chip" data-days="42">6 星期</button>
+            </div>
+            <label class="muted" for="examDate">或者揀考試日期：<input type="date" id="examDate"></label>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="field">
+            <label class="field-label" for="minsRange">每日最多可以溫幾耐？<span class="val num" id="minsVal"></span></label>
+            <input type="range" id="minsRange" min="30" max="180" step="15" value="120">
+            <div class="scale num"><span>30 分鐘</span><span>1 小時</span><span>2 小時</span><span>3 小時</span></div>
+          </div>
+          <div class="field">
+            <div class="field-label">休息日（唔排任務）</div>
+            <div class="chips" id="restChips"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="field">
+            <div class="field-label">你而家嘅程度</div>
+            <div class="level-grid" id="levelGrid">
+              <button class="level on" data-level="new"><span class="ic">🌱</span><b>未開始</b><span>未讀過 handbook</span></button>
+              <button class="level" data-level="some"><span class="ic">📖</span><b>讀過少少</b><span>識部分內容</span></button>
+              <button class="level" data-level="mock"><span class="ic">🎯</span><b>做過 mock</b><span>想衝刺</span></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <h3>時間夠唔夠？</h3><span class="pill" id="feasPill"></span>
+          </div>
+          <div class="feas">
+            <div class="stat"><span class="k">溫習日</span><span class="v num" id="fDays"></span><span class="s" id="fDaysS"></span></div>
+            <div class="stat"><span class="k">可用時間</span><span class="v num" id="fAvail"></span><span class="s">每日上限 × 溫習日</span></div>
+            <div class="stat"><span class="k">建議需要</span><span class="v num" id="fNeed"></span><span class="s">讀 + 練 + mock</span></div>
+          </div>
+          <div class="meter"><i id="fMeter"></i></div>
+          <p class="muted" id="feasMsg"></p>
+        </div>
+
+        <button class="cta" data-goto="2">生成進度表 →</button>
+      </section>
+
+      <!-- ════════ STEP 2: PLAN ════════ -->
+      <section class="screen" id="step2" hidden>
+        <div class="steps"><i class="step-dot on"></i><i class="step-dot on"></i><i class="step-dot"></i></div>
+        <div style="display: flex; justify-content: space-between; align-items: end; gap: 8px; flex-wrap: wrap;">
+          <div>
+            <div class="eyebrow">Step 2 / 3</div>
+            <h2 style="font-size: var(--fs-xl); margin-top: 2px;">你嘅進度表</h2>
+            <p class="muted" id="planSummary"></p>
+          </div>
+          <button class="ghost" data-goto="1">← 改目標</button>
+        </div>
+
+        <div class="card">
+          <h3>三個階段</h3>
+          <div class="phase-bar" id="phaseBar"></div>
+          <div class="phase-axis num" id="phaseAxis"></div>
+          <div class="strategy" id="strategy"></div>
+        </div>
+
+        <div class="card">
+          <h3>點解 History 排最多時間</h3>
+          <p class="muted">按每章知識點數量分配溫習時間，題目亦大致跟同一比例出。</p>
+          <div class="ch-weight" id="chWeight"></div>
+        </div>
+
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <h3>每日任務</h3>
+            <span class="legend"><i style="background: var(--ph-learn)"></i>打底 <i style="background: var(--ph-practice)"></i>練習 <i style="background: var(--ph-mock)"></i>模擬考</span>
+          </div>
+          <div id="dayList"></div>
+        </div>
+
+        <button class="cta" data-goto="3">開始 · 睇今日任務 →</button>
+      </section>
+
+      <!-- ════════ STEP 3: DAILY ════════ -->
+      <section class="screen" id="step3" hidden>
+        <div class="steps"><i class="step-dot on"></i><i class="step-dot on"></i><i class="step-dot on"></i></div>
+        <div style="display: flex; justify-content: space-between; align-items: end; gap: 8px; flex-wrap: wrap;">
+          <div>
+            <div class="eyebrow" id="todayEyebrow"></div>
+            <h2 style="font-size: var(--fs-xl); margin-top: 2px;">今日任務</h2>
+          </div>
+          <button class="ghost" data-goto="2">睇全個進度表</button>
+        </div>
+
+        <div class="card">
+          <div class="today-head">
+            <svg class="ring" viewBox="0 0 112 112" aria-hidden="true">
+              <circle class="track" cx="56" cy="56" r="46"></circle>
+              <circle class="prog" id="ringProg" cx="56" cy="56" r="46"></circle>
+              <text x="56" y="58" text-anchor="middle" class="num" id="ringPct">0%</text>
+              <text x="56" y="76" text-anchor="middle" class="sub">今日完成度</text>
+            </svg>
+            <div style="display: grid; gap: 6px;">
+              <span class="pill" id="todayPhase" style="justify-self: start;"></span>
+              <div style="font-size: var(--fs-md); font-weight: 700;" class="num" id="todayMins"></div>
+              <p class="muted" id="todayTip"></p>
+            </div>
+          </div>
+          <div style="display: grid; gap: 8px;" id="checklist"></div>
+        </div>
+
+        <div class="alert" id="carryAlert"><span>⚠️</span><div><b>第 5 日仲有 1 項未完成。</b>已經自動加入今日，標住「補做」。如果連續 2 日落後，app 會建議縮短打底期或者加休息日嘅時間。</div></div>
+
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <h3>每日完成度</h3><span class="pill ok num" id="streakPill"></span>
+          </div>
+          <div class="heat" id="heat"></div>
+          <div class="legend">少 <i style="background: var(--heat-0)"></i><i style="background: var(--heat-1)"></i><i style="background: var(--heat-2)"></i><i style="background: var(--heat-3)"></i><i style="background: var(--heat-4)"></i> 100% · <i style="background: var(--gold)"></i> 考試日</div>
+        </div>
+
+        <div class="card">
+          <h3>整體進度</h3>
+          <div class="kpis">
+            <div class="stat"><span class="k">計劃進度</span><span class="v num" id="kPlan"></span><span class="s" id="kPlanS"></span></div>
+            <div class="stat"><span class="k">平均完成度</span><span class="v num" id="kAvg"></span><span class="s">已過嘅溫習日</span></div>
+            <div class="stat"><span class="k">距離考試</span><span class="v num" id="kLeft"></span><span class="s">連休息日</span></div>
+          </div>
+          <div class="prog-rows" id="progRows"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script>
+'use strict';
+// ── real content numbers from data/study.js + data/exams.js + js/core/config.js ──
+const CHAPTERS = [
+  { ch: 1, name: 'Values & principles', facts: 2, qs: 9 },
+  { ch: 2, name: 'What is the UK?', facts: 4, qs: 11 },
+  { ch: 3, name: 'History', facts: 91, qs: 167 },
+  { ch: 4, name: 'Modern society', facts: 68, qs: 113 },
+  { ch: 5, name: 'Government & law', facts: 71, qs: 108 },
+];
+const TOTAL_FACTS = CHAPTERS.reduce((s, c) => s + c.facts, 0);
+const TOTAL_QS = CHAPTERS.reduce((s, c) => s + c.qs, 0);
+const EXAM_COUNT = 17;
+const REAL_TEST_SIZE = 24;
+const PASS_RATIO = 0.75;
+const PASS_SCORE = Math.ceil(REAL_TEST_SIZE * PASS_RATIO);
+const EXAM_MINUTES = 45;
+
+// ── plan tuning ──
+const MIN_PER_QUESTION = 0.75;
+const MOCK_REVIEW_MINUTES = 15;
+const MOCK_BLOCK = EXAM_MINUTES + MOCK_REVIEW_MINUTES;
+const MIN_MOCKS = 5;
+const REVIEW_SLOT_MINUTES = 15;
+const LAST_DAY_MINUTES = 30;
+const SAFE_SCORE = 21;
+const LEVELS = {
+  new:  { label: '未開始', minPerFact: 1.5, split: [0.45, 0.35, 0.20] },
+  some: { label: '讀過少少', minPerFact: 1.0, split: [0.35, 0.40, 0.25] },
+  mock: { label: '做過 mock', minPerFact: 0.6, split: [0.20, 0.40, 0.40] },
+};
+const FEAS_OK = 1.15;
+const FEAS_TIGHT = 0.95;
+const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六'];
+const DAYS_PER_WEEK = 7;
+const MS_PER_DAY = 86400000;
+const PHASES = {
+  learn: { name: '打底', cls: 'learn' },
+  practice: { name: '練習', cls: 'practice' },
+  mock: { name: '模擬考', cls: 'mock' },
+};
+
+// ── daily demo ──
+const TODAY_INDEX = 7;                       // 0-based: plan day 8
+const DEMO_PAST = [100, 100, 80, 100, 60, 100, 100];
+const DEMO_CARRY_DAY = 5;
+const RING_R = 46;
+const LS_KEY = 'mock.studyPlan.todayDone';
+
+const state = { days: 21, mins: 120, rest: new Set([0]), level: 'new', start: startOfToday() };
+
+function startOfToday() { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }
+function addDays(d, n) { const r = new Date(d); r.setDate(r.getDate() + n); return r; }
+function fmtDate(d) { return `${d.getDate()}/${d.getMonth() + 1}`; }
+function fmtHours(m) { return m >= 60 ? `${(m / 60).toFixed(m % 60 ? 1 : 0)} 小時` : `${m} 分鐘`; }
+function isoDate(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+function $(id) { return document.getElementById(id); }
+function readLS() { try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch (e) { return {}; } }
+function writeLS(v) { try { localStorage.setItem(LS_KEY, JSON.stringify(v)); } catch (e) { /* preview / private mode */ } }
+
+// ════════ plan builder ════════
+function calendar() {
+  const out = [];
+  for (let i = 0; i < state.days; i++) {
+    const date = addDays(state.start, i);
+    out.push({ i, date, rest: state.rest.has(date.getDay()) });
+  }
+  return out;
+}
+
+function needMinutes() {
+  const lv = LEVELS[state.level];
+  return Math.round(TOTAL_FACTS * lv.minPerFact + TOTAL_QS * MIN_PER_QUESTION + MIN_MOCKS * MOCK_BLOCK);
+}
+
+function splitStudyDays(n) {
+  const [a, b] = LEVELS[state.level].split;
+  const learn = Math.max(1, Math.round(n * a));
+  const practice = Math.max(1, Math.round(n * b));
+  return { learn, practice, mock: Math.max(1, n - learn - practice) };
+}
+
+// walk a per-chapter list in chunks of `per` items, returning one label set per day
+function chunkByChapter(key, dayCount) {
+  const per = Math.ceil(CHAPTERS.reduce((s, c) => s + c[key], 0) / dayCount);
+  const items = [];
+  CHAPTERS.forEach(c => { for (let k = 1; k <= c[key]; k++) items.push({ ch: c.ch, k }); });
+  const days = [];
+  for (let d = 0; d < dayCount; d++) {
+    const slice = items.slice(d * per, (d + 1) * per);
+    const groups = [];
+    slice.forEach(it => {
+      const g = groups[groups.length - 1];
+      if (g && g.ch === it.ch) g.to = it.k; else groups.push({ ch: it.ch, from: it.k, to: it.k });
+    });
+    days.push({ count: slice.length, groups });
+  }
+  return days;
+}
+
+function groupLabel(g, unit) { return `Ch${g.ch} ${CHAPTERS[g.ch - 1].name} ${unit} #${g.from}–${g.to}`; }
+
+function learnTasks(chunk) {
+  const lv = LEVELS[state.level];
+  const tasks = chunk.groups.map(g => ({ t: `讀 ${groupLabel(g, '知識點')}`, m: Math.round((g.to - g.from + 1) * lv.minPerFact), how: '睇英文原句 + 廣東話解釋，記住年份同人名' }));
+  tasks.push({ t: '重溫昨日知識點（Study 模式快速掃）', m: REVIEW_SLOT_MINUTES, how: '揀返昨日讀過嘅章節，淨係睇未 🏆 嘅' });
+  return tasks;
+}
+
+function practiceTasks(chunk) {
+  const tasks = chunk.groups.map(g => ({ t: `練習 ${groupLabel(g, '題')}`, m: Math.round((g.to - g.from + 1) * MIN_PER_QUESTION), how: 'Practice 模式，按章節；答錯會自動入錯題' }));
+  tasks.push({ t: '錯題重溫', m: REVIEW_SLOT_MINUTES, how: '做「錯題」set，連續答啱先算掌握' });
+  return tasks;
+}
+
+function mockTasks(dayNo, examCursor) {
+  const perDay = Math.max(1, Math.min(2, Math.floor((state.mins - REVIEW_SLOT_MINUTES) / EXAM_MINUTES)));
+  const tasks = [];
+  for (let k = 0; k < perDay; k++) {
+    const ex = (examCursor.n++ % EXAM_COUNT) + 1;
+    tasks.push({ t: `模擬考 Exam ${ex}（${REAL_TEST_SIZE} 題 / ${EXAM_MINUTES} 分鐘計時）`, m: EXAM_MINUTES, how: `目標 ≥ ${SAFE_SCORE}/24，合格線 ${PASS_SCORE}/24` });
+  }
+  tasks.push({ t: '對答案 + 錯題重溫', m: MOCK_REVIEW_MINUTES * perDay, how: '每題錯題睇返相似題目 map' });
+  return tasks;
+}
+
+function buildPlan() {
+  const cal = calendar();
+  const study = cal.filter(d => !d.rest);
+  const lastStudy = study[study.length - 1];
+  const core = study.slice(0, -1);   // final study day = light review
+  const split = splitStudyDays(Math.max(3, core.length));
+  const learnChunks = chunkByChapter('facts', split.learn);
+  const practiceChunks = chunkByChapter('qs', split.practice);
+  const examCursor = { n: 0 };
+  let s = 0;
+  cal.forEach(d => {
+    if (d.rest) { d.phase = 'rest'; d.tasks = [{ t: '休息日', m: 0 }]; return; }
+    if (d === lastStudy) { d.phase = 'mock'; d.tasks = [{ t: '輕鬆重溫：高頻易錯知識點 + 錯題 set', m: LAST_DAY_MINUTES, how: '唔好再做新 mock，早啲瞓' }]; return; }
+    if (s < split.learn) { d.phase = 'learn'; d.tasks = learnTasks(learnChunks[s]); }
+    else if (s < split.learn + split.practice) { d.phase = 'practice'; d.tasks = practiceTasks(practiceChunks[s - split.learn]); }
+    else { d.phase = 'mock'; d.tasks = mockTasks(s, examCursor); }
+    s++;
+  });
+  cal.forEach(d => { d.total = d.tasks.reduce((a, t) => a + t.m, 0); });
+  return { cal, split, studyDays: study.length, mocks: examCursor.n };
+}
+
+// ════════ step 1 ════════
+function renderGoal() {
+  $('daysVal').textContent = `${state.days} 日`;
+  $('minsVal').textContent = fmtHours(state.mins);
+  document.querySelectorAll('#daysChips .chip').forEach(b => b.classList.toggle('on', +b.dataset.days === state.days));
+  $('examDate').value = isoDate(addDays(state.start, state.days));
+  $('restChips').innerHTML = WEEKDAYS.map((w, i) => `<button class="chip rest ${state.rest.has(i) ? 'on' : ''}" data-rest="${i}">${w}</button>`).join('');
+  document.querySelectorAll('#levelGrid .level').forEach(b => b.classList.toggle('on', b.dataset.level === state.level));
+
+  const plan = buildPlan();
+  const avail = plan.studyDays * state.mins;
+  const need = needMinutes();
+  const ratio = avail / need;
+  $('fDays').textContent = plan.studyDays;
+  $('fDaysS').textContent = `${state.days} 日減 ${state.days - plan.studyDays} 日休息`;
+  $('fAvail').textContent = `${Math.round(avail / 60)}h`;
+  $('fNeed').textContent = `${Math.round(need / 60)}h`;
+  const pill = $('feasPill'); const meter = $('fMeter');
+  const pct = Math.min(100, Math.round(ratio * 100 / 1.5));
+  meter.style.width = `${pct}%`;
+  if (ratio >= FEAS_OK) { pill.className = 'pill ok'; pill.textContent = '✓ 充裕'; meter.style.background = 'var(--green-light)'; $('feasMsg').textContent = `有大約 ${Math.round((avail - need) / 60)} 小時緩衝，可以多做幾份 mock 或者應付突發。`; }
+  else if (ratio >= FEAS_TIGHT) { pill.className = 'pill warn'; pill.textContent = '△ 剛好'; meter.style.background = 'var(--gold)'; $('feasMsg').textContent = '時間啱啱好，冇咩空間 miss 日子。建議少揀一日休息，或者每日加 15 分鐘。'; }
+  else { pill.className = 'pill bad'; pill.textContent = '✕ 唔夠'; meter.style.background = 'var(--red-light)'; $('feasMsg').textContent = `仲差大約 ${Math.round((need - avail) / 60)} 小時。可以延遲考試、加長每日時間，或者減少休息日。`; }
+}
+
+// ════════ step 2 ════════
+function renderPlan() {
+  const plan = buildPlan();
+  const lv = LEVELS[state.level];
+  const exam = addDays(state.start, state.days);
+  $('planSummary').textContent = `${fmtDate(state.start)} 開始 · ${fmtDate(exam)} 考試 · 每日最多 ${fmtHours(state.mins)} · ${lv.label}`;
+
+  const phaseDays = { learn: [], practice: [], mock: [] };
+  plan.cal.forEach(d => { if (phaseDays[d.phase]) phaseDays[d.phase].push(d.i + 1); });
+  $('phaseBar').innerHTML = Object.keys(PHASES).map(k => `<div class="ph-${k}" style="flex:${phaseDays[k].length}">${PHASES[k].name} ${phaseDays[k].length}日</div>`).join('');
+  $('phaseAxis').innerHTML = `<span>Day 1</span><span>Day ${state.days}</span><span>🎯 考試</span>`;
+
+  const range = k => phaseDays[k].length ? `Day ${phaseDays[k][0]}–${phaseDays[k][phaseDays[k].length - 1]}` : '';
+  $('strategy').innerHTML = `
+    <div class="strat learn"><span class="n">1</span><div><span class="days">${range('learn')}</span><h4>打底：讀晒 ${TOTAL_FACTS} 條知識點</h4><ul>
+      <li>由 Ch1–2（得 6 條）熱身，之後 History → Modern society → Government</li>
+      <li>每日最後 ${REVIEW_SLOT_MINUTES} 分鐘重溫昨日，間隔重複先記得牢</li></ul></div></div>
+    <div class="strat practice"><span class="n">2</span><div><span class="days">${range('practice')}</span><h4>練習：按章節做晒 ${TOTAL_QS} 題</h4><ul>
+      <li>Practice 模式，同一章連續做，答錯即刻睇解釋</li>
+      <li>每日留時間清錯題，目標每題連續答啱先算 🏆</li></ul></div></div>
+    <div class="strat mock"><span class="n">3</span><div><span class="days">${range('mock')}</span><h4>模擬考：計時做 ${plan.mocks} 份 exam</h4><ul>
+      <li>真考試條件：${REAL_TEST_SIZE} 題、${EXAM_MINUTES} 分鐘、唔睇答案</li>
+      <li>合格線 ${PASS_SCORE}/24；連續 3 份 ≥ ${SAFE_SCORE}/24 先算穩陣</li>
+      <li>最後一日唔做新 mock，淨係重溫錯題</li></ul></div></div>`;
+
+  const maxF = Math.max(...CHAPTERS.map(c => c.facts));
+  $('chWeight').innerHTML = CHAPTERS.map(c => `<div class="chw"><span>Ch${c.ch} ${c.name}</span><span class="bar"><i style="width:${Math.max(2, c.facts / maxF * 100)}%"></i></span><span class="c num">${c.facts} 條 · ${Math.round(c.facts / TOTAL_FACTS * 100)}%</span></div>`).join('');
+
+  let html = '';
+  plan.cal.forEach(d => {
+    if (d.i % DAYS_PER_WEEK === 0) html += `<div class="week-h">Week ${d.i / DAYS_PER_WEEK + 1}</div>`;
+    const cls = d.rest ? 'rest' : d.phase;
+    const over = d.total > state.mins;
+    html += `<div class="day ${cls} ${d.i === TODAY_INDEX ? 'today' : ''}">
+      <div class="d num">${d.i + 1}<small>${fmtDate(d.date)} ${WEEKDAYS[d.date.getDay()]}</small></div>
+      <div class="tasks">${d.tasks.map(t => `<div class="t"><span>${d.rest ? '😴' : '•'}</span><span>${t.t}${t.m ? ` <em>${t.m}′</em>` : ''}</span></div>`).join('')}</div>
+      <div class="mins num ${over ? 'over' : ''}">${d.total ? `${d.total} 分${over ? ' ⚠' : ''}` : ''}</div></div>`;
+  });
+  html += `<div class="day exam"><div class="d num">🎯<small>${fmtDate(exam)}</small></div><div class="tasks"><div class="t"><b>考試日</b></div><div class="t"><span>帶備 ID + 確認信，提早 30 分鐘到</span></div></div><div></div></div>`;
+  $('dayList').innerHTML = html;
+}
+
+// ════════ step 3 ════════
+function todayTasks(plan) {
+  const today = plan.cal[TODAY_INDEX] || plan.cal[plan.cal.length - 1];
+  const carryFrom = plan.cal[DEMO_CARRY_DAY - 1];
+  const carry = carryFrom && !carryFrom.rest ? [{ ...carryFrom.tasks[carryFrom.tasks.length - 1], carry: true }] : [];
+  return { today, tasks: [...carry, ...today.tasks] };
+}
+
+function renderDaily() {
+  const plan = buildPlan();
+  const { today, tasks } = todayTasks(plan);
+  const done = readLS();
+  const key = i => `${state.days}-${state.mins}-${state.level}-${i}`;
+  $('todayEyebrow').textContent = `Day ${today.i + 1} / ${state.days} · ${fmtDate(today.date)}（${WEEKDAYS[today.date.getDay()]}）`;
+
+  const phase = PHASES[today.phase];
+  const pill = $('todayPhase');
+  pill.className = 'pill'; pill.style.background = phase ? `var(--ph-${phase.cls}-bg)` : 'var(--bg)';
+  pill.style.color = phase ? `var(--ph-${phase.cls})` : 'var(--text-muted)';
+  pill.textContent = phase ? `${phase.name}階段` : '休息日';
+  $('todayTip').textContent = today.phase === 'learn' ? '先讀新知識點，最後先重溫，唔好倒轉。' : today.phase === 'practice' ? '答錯唔緊要，重點係即刻睇解釋。' : today.phase === 'mock' ? '計時做，做完先對答案。' : '今日休息，聽日繼續。';
+
+  $('checklist').innerHTML = tasks.map((t, i) => `
+    <label class="check ${t.carry ? 'carry' : ''} ${done[key(i)] ? 'done' : ''}" for="task${i}">
+      <input type="checkbox" id="task${i}" data-key="${key(i)}" ${done[key(i)] ? 'checked' : ''}>
+      <div><div class="ttl">${t.t}${t.carry ? '<span class="tag carry">補做 · Day ' + DEMO_CARRY_DAY + '</span>' : ''}</div>${t.how ? `<div class="how">${t.how}</div>` : ''}</div>
+      <span class="mins num">${t.m ? t.m + ' 分' : ''}</span></label>`).join('');
+  updateToday(tasks, key);
+  renderHeat(plan, tasks, key);
+  renderKpis(plan);
+}
+
+function todayPct(tasks, key) {
+  const done = readLS();
+  const total = tasks.reduce((s, t) => s + t.m, 0) || 1;
+  const got = tasks.reduce((s, t, i) => s + (done[key(i)] ? t.m : 0), 0);
+  return { pct: Math.round(got / total * 100), got, total };
+}
+
+function updateToday(tasks, key) {
+  const { pct, got, total } = todayPct(tasks, key);
+  const c = 2 * Math.PI * RING_R;
+  const ring = $('ringProg');
+  ring.style.strokeDasharray = c; ring.style.strokeDashoffset = c * (1 - pct / 100);
+  $('ringPct').textContent = `${pct}%`;
+  $('todayMins').textContent = `${got} / ${total} 分鐘 · ${tasks.filter((t, i) => readLS()[key(i)]).length}/${tasks.length} 項`;
+}
+
+function heatClass(p) { return p >= 100 ? 'h4' : p >= 75 ? 'h3' : p >= 50 ? 'h2' : p > 0 ? 'h1' : ''; }
+
+function pastPct(d) {
+  if (d.rest) return null;
+  const studyBefore = d.i;
+  return DEMO_PAST[studyBefore % DEMO_PAST.length];
+}
+
+function renderHeat(plan, tasks, key) {
+  const first = plan.cal[0].date.getDay();
+  let html = WEEKDAYS.map(w => `<span class="dow">${w}</span>`).join('');
+  for (let k = 0; k < first; k++) html += '<span></span>';
+  let streak = 0;
+  plan.cal.forEach(d => {
+    let cls = 'cell'; let title = '';
+    if (d.rest) cls += ' rest';
+    else if (d.i < TODAY_INDEX) { const p = pastPct(d); cls += ' ' + heatClass(p); title = `${p}%`; }
+    else if (d.i === TODAY_INDEX) { const p = todayPct(tasks, key).pct; cls += ' today ' + heatClass(p); title = `${p}%`; }
+    else cls += ' future';
+    html += `<span class="${cls} num" title="Day ${d.i + 1} ${title}">${d.date.getDate()}</span>`;
+  });
+  html += `<span class="cell exam num" title="考試日">🎯</span>`;
+  $('heat').innerHTML = html;
+  for (let i = TODAY_INDEX - 1; i >= 0; i--) { const d = plan.cal[i]; if (d.rest) continue; if (pastPct(d) >= 100) streak++; else break; }
+  $('streakPill').textContent = `🔥 連續 ${streak} 日 100%`;
+}
+
+function renderKpis(plan) {
+  const past = plan.cal.slice(0, TODAY_INDEX).filter(d => !d.rest);
+  const avg = past.length ? Math.round(past.reduce((s, d) => s + pastPct(d), 0) / past.length) : 0;
+  $('kPlan').textContent = `${Math.round(TODAY_INDEX / state.days * 100)}%`;
+  $('kPlanS').textContent = `Day ${TODAY_INDEX + 1} / ${state.days}`;
+  $('kAvg').textContent = `${avg}%`;
+  $('kLeft').textContent = `${state.days - TODAY_INDEX} 日`;
+  const factsDone = Math.min(TOTAL_FACTS, Math.round(TOTAL_FACTS * Math.min(1, past.length / plan.split.learn) * avg / 100));
+  const rows = [
+    { k: '知識點已讀', v: factsDone, of: TOTAL_FACTS, c: 'var(--ph-learn)' },
+    { k: '題目已練', v: 0, of: TOTAL_QS, c: 'var(--ph-practice)' },
+    { k: `模擬考 ≥ ${SAFE_SCORE}/24`, v: 0, of: 3, c: 'var(--ph-mock)' },
+  ];
+  $('progRows').innerHTML = rows.map(r => `<div class="pr"><div class="top"><span>${r.k}</span><span class="num">${r.v} / ${r.of}</span></div><div class="meter"><i style="width:${r.v / r.of * 100}%;background:${r.c}"></i></div></div>`).join('');
+}
+
+// ════════ wiring ════════
+function goto(step) {
+  [1, 2, 3].forEach(n => { $('step' + n).hidden = n !== step; });
+  document.querySelectorAll('.mock-tab').forEach(b => b.classList.toggle('on', +b.dataset.step === step));
+  if (step === 1) renderGoal(); else if (step === 2) renderPlan(); else renderDaily();
+  window.scrollTo({ top: 0 });
+}
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  if (b.dataset.step) return goto(+b.dataset.step);
+  if (b.dataset.goto) return goto(+b.dataset.goto);
+  if (b.dataset.days) { state.days = +b.dataset.days; return renderGoal(); }
+  if (b.dataset.rest) { const r = +b.dataset.rest; state.rest.has(r) ? state.rest.delete(r) : state.rest.add(r); return renderGoal(); }
+  if (b.dataset.level) { state.level = b.dataset.level; return renderGoal(); }
+});
+$('minsRange').addEventListener('input', e => { state.mins = +e.target.value; renderGoal(); });
+$('examDate').addEventListener('change', e => {
+  const d = new Date(e.target.value + 'T00:00:00');
+  const n = Math.round((d - state.start) / MS_PER_DAY);
+  if (n >= DAYS_PER_WEEK) { state.days = n; }
+  renderGoal();
+});
+document.addEventListener('change', e => {
+  if (!e.target.matches('#checklist input')) return;
+  const done = readLS(); done[e.target.dataset.key] = e.target.checked; writeLS(done);
+  renderDaily();
+});
+
+goto(1);
+</script>
+</body>
+</html>
