@@ -29,7 +29,8 @@
     --ph-learn: var(--navy-light); --ph-learn-bg: var(--selected-bg);
     --ph-practice: var(--purple); --ph-practice-bg: var(--yue-bg);
     --ph-mock: var(--orange); --ph-mock-bg: var(--flag-bg);
-    --heat-0: #e3e7f1; --heat-1: #b7dcc8; --heat-2: #7cc29e; --heat-3: var(--green-light); --heat-4: var(--green);
+    --heat-0: #e3e7f1; --heat-1: #e8735f; --heat-2: #f0a54a; --heat-3: #c9cf4f; --heat-4: var(--green-light);
+    --exam-bg: #f2a93b; --exam-line: rgba(255,214,120,0.75);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -117,7 +118,9 @@
   .ticks span.on { color: var(--navy); font-weight: 800; }
   .level-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
   .level { background: var(--card); color: var(--text); border: 2px solid var(--border); border-radius: var(--radius-md); padding: 12px 8px; text-align: center; cursor: pointer; display: grid; gap: 4px; align-content: start; }
-  .level.on { border-color: var(--navy); background: var(--selected-bg); }
+  .level.on { border-color: var(--navy); background: var(--selected-bg); color: var(--text); }
+  .level.on .nm { color: var(--navy); }
+  .level.on .sb { color: var(--text-muted); }
   .level .ic { font-size: 20px; }
   .level .nm { font-size: var(--fs-base); font-weight: 800; color: var(--text); }
   .level .sb { font-size: var(--fs-2xs); color: var(--text-muted); line-height: 1.4; }
@@ -136,6 +139,7 @@
   .pill.bad { background: var(--danger-bg); color: var(--red); }
   .pill.mute { background: var(--bg); color: var(--text-muted); }
   .pill.now { background: var(--navy); color: var(--text-inverse); }
+  .heat-pill.h1 { background: var(--heat-1); color: var(--text-inverse); } .heat-pill.h2 { background: var(--heat-2); color: var(--text); } .heat-pill.h3 { background: var(--heat-3); color: var(--text); }
   .cta { background: var(--navy); color: var(--text-inverse); border: 0; border-radius: var(--radius-md); padding: 14px; font-size: var(--fs-md); font-weight: 800; cursor: pointer; width: 100%; }
   .cta:hover { background: var(--navy-mid); }
   .ghost { background: transparent; border: 1.5px solid var(--border); color: var(--text-muted); border-radius: var(--radius-sm); padding: 6px 12px; font-size: var(--fs-sm); font-weight: 700; cursor: pointer; }
@@ -170,8 +174,8 @@
   .day.practice .d { background: var(--ph-practice-bg); color: var(--ph-practice); }
   .day.mock .d { background: var(--ph-mock-bg); color: var(--ph-mock); }
   .day.rest .d { background: var(--bg); color: var(--text-muted); }
-  .day.exam .d { background: var(--navy); color: var(--text-inverse); }
-  .day.exam .d small { color: var(--text-inverse-muted); }
+  .day.exam .d { color: var(--navy); }
+  .day.exam .d small { color: var(--navy); font-weight: 700; }
   .day.exam .tasks b { color: var(--navy); font-size: var(--fs-md); }
   .day.today { background: var(--selected-bg); margin: 0 -8px; padding-inline: 8px; border-radius: var(--radius-sm); }
   .tasks { display: grid; gap: 3px; font-size: var(--fs-sm); line-height: 1.45; }
@@ -204,11 +208,15 @@
   .heat { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
   .heat .dow { font-size: var(--fs-2xs); color: var(--text-muted); text-align: center; font-weight: 700; }
   .cell { aspect-ratio: 1; max-width: 100%; border-radius: var(--radius-sm); display: grid; place-items: center; font-size: var(--fs-xs); font-weight: 800; background: var(--heat-0); }
-  .cell.h1 { background: var(--heat-1); } .cell.h2 { background: var(--heat-2); } .cell.h3 { background: var(--heat-3); color: var(--text-inverse); } .cell.h4 { background: var(--heat-4); color: var(--text-inverse); }
+  .cell.h1 { background: var(--heat-1); color: var(--text-inverse); } .cell.h2 { background: var(--heat-2); } .cell.h3 { background: var(--heat-3); } .cell.h4 { background: var(--heat-4); color: var(--text-inverse); }
   .cell.rest { background: repeating-linear-gradient(45deg, var(--bg), var(--bg) 4px, var(--border) 4px, var(--border) 6px); color: var(--text-muted); }
   .cell.future { background: var(--card); border: 1.5px dashed var(--border); color: var(--text-muted); }
   .cell.today { outline: 2.5px solid var(--navy); outline-offset: 1px; }
-  .cell.exam { background: var(--navy); color: var(--text-inverse); }
+  /* exam day: amber with a fine gold lattice, icon + label */
+  .exam-pat { background-color: var(--exam-bg); background-image: linear-gradient(45deg, var(--exam-line) 1px, transparent 1px), linear-gradient(-45deg, var(--exam-line) 1px, transparent 1px); background-size: 8px 8px; }
+  .cell.exam { color: var(--navy); font-size: var(--fs-2xs); line-height: 1.15; text-align: center; gap: 0; align-content: center; }
+  .cell.exam b { font-size: var(--fs-2xs); }
+  .legend .exam-swatch { background-color: var(--exam-bg); }
   .legend { display: flex; gap: 4px; align-items: center; font-size: var(--fs-2xs); color: var(--text-muted); flex-wrap: wrap; }
   .legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
   .prog-rows { display: grid; gap: 10px; }
@@ -277,15 +285,15 @@
       <section class="screen" id="step0">
         <span class="frame-label">狀態 A · 未有計劃</span>
         <button class="plan-cta" data-goto="1">
-          <span class="ic">📅</span>
+          <span class="ic">🗓️</span>
           <span><b>建立溫習計劃</b><span class="muted">話我知幾時考試、每日有幾多時間，幫你排好每日要溫同練嘅內容。</span></span>
           <span class="go">建立 →</span>
         </button>
         <div class="section-title">選擇模式</div>
         <div class="mode-grid">
           <div class="mode-card"><div class="mode-icon">📖</div><div class="mode-title">溫習</div></div>
-          <div class="mode-card"><div class="mode-icon">🎯</div><div class="mode-title">練習</div></div>
-          <div class="mode-card"><div class="mode-icon">📝</div><div class="mode-title">模擬考試</div></div>
+          <div class="mode-card"><div class="mode-icon">📝</div><div class="mode-title">練習</div></div>
+          <div class="mode-card"><div class="mode-icon">🎯</div><div class="mode-title">模擬考試</div></div>
         </div>
         <p class="ann">第一次用，或者未建立計劃：主頁頂多一張金色虛線卡。用戶可以唔理佢，照用原本三個模式。</p>
 
@@ -293,7 +301,7 @@
 
         <span class="frame-label">狀態 B · 已有計劃（每日打開 app）</span>
         <div class="plan-home">
-          <div class="top"><span class="ttl">📅 溫習計劃 · <span class="num" id="hDay"></span></span><span class="cd num" id="hLeft"></span></div>
+          <div class="top"><span class="ttl">🗓️ 溫習計劃 · <span class="num" id="hDay"></span></span><span class="cd num" id="hLeft"></span></div>
           <div class="row" style="font-size: var(--fs-sm);"><span>今日完成度</span><b class="num" id="hPct"></b></div>
           <div class="bar"><i id="hBar"></i></div>
           <div class="next" id="hNext"></div>
@@ -305,8 +313,8 @@
         <div class="section-title">選擇模式</div>
         <div class="mode-grid">
           <div class="mode-card"><div class="mode-icon">📖</div><div class="mode-title">溫習</div></div>
-          <div class="mode-card"><div class="mode-icon">🎯</div><div class="mode-title">練習</div></div>
-          <div class="mode-card"><div class="mode-icon">📝</div><div class="mode-title">模擬考試</div></div>
+          <div class="mode-card"><div class="mode-icon">📝</div><div class="mode-title">練習</div></div>
+          <div class="mode-card"><div class="mode-icon">🎯</div><div class="mode-title">模擬考試</div></div>
         </div>
         <p class="ann"><b>每日返嚟：</b>建立計劃之後，計劃卡會變成深藍色，顯示第幾日、今日完成度同下一步，㩒「繼續」會由上次停低嘅位置開始。用原本嘅溫習／練習模式做過嘅內容都會計入今日進度。今日全部完成之後，卡會變成「✓ 今日完成」，第二日再顯示新任務。</p>
       </section>
@@ -437,7 +445,7 @@
         <div class="card">
           <div class="row"><h3>每日完成度</h3><span class="pill ok num" id="streakPill"></span></div>
           <div class="heat" id="heat"></div>
-          <div class="legend">少 <i style="background: var(--heat-0)"></i><i style="background: var(--heat-1)"></i><i style="background: var(--heat-2)"></i><i style="background: var(--heat-3)"></i><i style="background: var(--heat-4)"></i> 100% · <i style="background: var(--navy)"></i> 考試日</div>
+          <div class="legend">0% <i style="background: var(--heat-1)"></i><i style="background: var(--heat-2)"></i><i style="background: var(--heat-3)"></i><i style="background: var(--heat-4)"></i> 100% · <i class="exam-swatch"></i> 考試日</div>
         </div>
 
         <div class="card">
@@ -511,7 +519,7 @@ const ORDER_WHY = {
 };
 const LEVELS = {
   none: { ic: '🌱', label: '未做過練習', sub: '乜都未睇過、未溫過', minPerFact: 1.5, minPerQ: 0.75, mockShare: 0.2 },
-  some: { ic: '✏️', label: '做過下練習', sub: '睇過下、做過部份題目', minPerFact: 1.0, minPerQ: 0.6, mockShare: 0.3 },
+  some: { ic: '📝', label: '做過下練習', sub: '睇過下、做過部份題目', minPerFact: 1.0, minPerQ: 0.6, mockShare: 0.3 },
   exam: { ic: '🎯', label: '做過 Exam', sub: '試過做模擬考', minPerFact: 0.8, minPerQ: 0.5, mockShare: 0.4 },
 };
 const SECOND_PASS_RATIO = 0.4;               // share of questions re-done in the drill phase (wrong / not yet 🏆)
@@ -539,7 +547,7 @@ const PHASES = {
   practice: { name: '強化練習', cls: 'practice' },
   mock: { name: '模擬考', cls: 'mock' },
 };
-const TASK_ICONS = { read: '📖', practice: '🎯', review: '🔁', mock: '📝' };
+const TASK_ICONS = { read: '📖', practice: '📝', review: '🔁', mock: '🎯' };
 const TASK_MODES = { read: '溫習模式', practice: '練習模式', review: '錯題', mock: '模擬考試' };
 
 // ── daily demo ──
@@ -753,19 +761,22 @@ function renderHome() {
 }
 
 // ════════ step 1 ════════
+// past the first hour only the minutes show ("15 分"), so the row stays short
+function tickLabel(m) { return m > MINUTES_PER_HOUR && m % MINUTES_PER_HOUR ? `${m % MINUTES_PER_HOUR} 分` : fmtMins(m); }
+
 function renderTicks() {
   const span = MINS_MAX - MINS_MIN;
   let html = '';
   for (let m = MINS_MIN; m <= MINS_MAX; m += MINS_STEP) {
     const p = (m - MINS_MIN) / span;
-    html += `<span class="${m === state.mins ? 'on' : ''}" style="left: calc(${THUMB_HALF_PX}px + ${p} * (100% - ${THUMB_HALF_PX * 2}px))">${fmtMins(m, '<br>')}</span>`;
+    html += `<span class="${m === state.mins ? 'on' : ''}" style="left: calc(${THUMB_HALF_PX}px + ${p} * (100% - ${THUMB_HALF_PX * 2}px))">${tickLabel(m)}</span>`;
   }
   $('minsTicks').innerHTML = html;
 }
 
 function renderLevels() {
   $('levelGrid').innerHTML = Object.entries(LEVELS).map(([k, lv]) =>
-    `<button class="level ${k === state.level ? 'on' : ''}" data-level="${k}" aria-pressed="${k === state.level}"><span class="ic">${lv.ic}</span><span class="nm">${lv.label}</span><span class="sb">${lv.sub}</span></button>`).join('');
+    `<button class="level ${k === state.level ? 'on' : ''}" data-level="${k}"><span class="ic">${lv.ic}</span><span class="nm">${lv.label}</span><span class="sb">${lv.sub}</span></button>`).join('');
 }
 
 function renderFeasibility() {
@@ -832,7 +843,7 @@ function statusPill(d) {
   const p = dayPct(d);
   if (d.i === TODAY_INDEX) return `<span class="pill now num">今日 ${p}%</span>`;
   if (p === null) return '';
-  return p >= PERCENT ? '<span class="pill ok">✓ 完成</span>' : `<span class="pill warn num">${p}%</span>`;
+  return p >= PERCENT ? '<span class="pill ok">✓ 完成</span>' : `<span class="pill num heat-pill ${heatClass(p)}">${p}%</span>`;
 }
 
 function renderDayList(plan) {
@@ -845,7 +856,7 @@ function renderDayList(plan) {
       <div class="d num">${d.i + 1}<small>${fmtDate(d.date)} ${WEEKDAYS[d.date.getDay()]}</small></div>
       <div class="tasks">${tasks}</div><div>${statusPill(d)}</div></div>`;
   });
-  html += `<div class="day exam"><div class="d num">考試<small>${fmtDate(exam)}</small></div><div class="tasks"><div class="t"><b>🎯 考試日</b></div><div class="t"><span>帶備 ID 同確認信，提早 30 分鐘到</span></div></div><div></div></div>`;
+  html += `<div class="day exam"><div class="d num exam-pat">🎯 考試<small>${fmtDate(exam)}</small></div><div class="tasks"><div class="t"><b>考試日</b></div><div class="t"><span>帶備 ID 同確認信，提早 30 分鐘到</span></div></div><div></div></div>`;
   $('dayList').innerHTML = html;
 }
 
@@ -903,7 +914,7 @@ function renderHeat(plan) {
     else cls += ` ${heatClass(p)}${d.i === TODAY_INDEX ? ' today' : ''}`;
     html += `<span class="${cls} num" title="Day ${d.i + 1}${p === null ? '' : ` · ${p}%`}">${d.date.getDate()}</span>`;
   });
-  html += '<span class="cell exam" title="考試日">🎯</span>';
+  html += `<span class="cell exam exam-pat num" title="考試日"><span>🎯</span><b>考試 ${addDays(state.start, state.days).getDate()}</b></span>`;
   $('heat').innerHTML = html;
   let streak = 0;
   for (let i = TODAY_INDEX - 1; i >= 0; i--) { const d = plan.cal[i]; if (d.rest) continue; if (dayPct(d) >= PERCENT) streak++; else break; }
@@ -923,7 +934,10 @@ function renderKpis(plan) {
     { k: '題目已練', v: Math.round(TOTAL_QS * learnShare), of: TOTAL_QS },
     { k: `模擬考 ≥ ${SAFE_SCORE}/24`, v: 0, of: 3 },
   ];
-  $('progRows').innerHTML = rows.map(r => `<div class="pr"><div class="top"><span>${r.k}</span><span class="num">${r.v} / ${r.of}</span></div><div class="meter"><i style="width:${r.v / r.of * PERCENT}%;background:var(--ph-learn)"></i></div></div>`).join('');
+  $('progRows').innerHTML = rows.map(r => {
+    const pct = Math.round(r.v / r.of * PERCENT);
+    return `<div class="pr"><div class="top"><span>${r.k}</span><span class="num">${r.v} / ${r.of} · <b>${pct}%</b></span></div><div class="meter"><i style="width:${pct}%;background:var(--green-light)"></i></div></div>`;
+  }).join('');
 }
 
 function renderToday() {
