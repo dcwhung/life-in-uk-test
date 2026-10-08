@@ -232,6 +232,8 @@ const TOKEN_SAMPLES = [
     { code: 'x = x\u0301in / 2; renderStudy(); y = z / 3;', hit: true, why: 'a call between divisions after a name with a combining mark' },
     { code: 'x = x\u0663of / 2; renderStudy(); y = z / 3;', hit: true, why: 'a call between divisions after a name with a non-ASCII digit' },
     { code: 'x = x\u200Din / 2; renderStudy(); y = z / 3;', hit: true, why: 'a call between divisions after a name with a ZWJ' },
+    // S-094: ZWNJ too
+    { code: 'x = x\u200Cof / 2; renderStudy(); y = z / 3;', hit: true, why: 'a call between divisions after a name with a ZWNJ' },
   ];
   const sampleMisses = LAYER_SAMPLES.filter(({ code, hit }) => usesName(layerCode(code), 'renderStudy') !== hit)
     .map(({ hit, why }) => `${hit ? 'missed' : 'flagged'} ${why}`);
