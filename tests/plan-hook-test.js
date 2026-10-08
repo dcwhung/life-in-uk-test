@@ -20,6 +20,9 @@ const MORNING = 'T09:00:00';
 const PLAN_DAYS = 21;
 const DAILY_MINS = 60;
 const OTHER_DAY_INDEX = 2; // Day 3: a learn day after today
+// W-030: one of the 19 duplicate questions — Exam 4 Q15 has the same text as Exam 3 Q13 (its canonical key)
+const DUP_COPY_KEY = '4.14';
+const DUP_CANON_KEY = '3.12';
 
 const at = iso => new Date(iso + MORNING);
 // every lifeuk.studyPlan* key in storage
@@ -151,6 +154,18 @@ async function checkPlanReviewClearsWrong(pg, days) {
   await run(qb, 'review');
   await answerQid(pg, qb, true);
   assert(await pg.evaluate(qid => !wrongList[qid] && state.cleared === 1, qb), 'plan review session: a right answer clears the wrong list entry (R9)');
+  // W-030: the wrong list holds the copy answered (4.14), the task the canonical one (3.12) — both copies go
+  const dup = await pg.evaluate(({ copy, canon, ret }) => {
+    addWrong(questionByKey(copy));
+    addWrong(questionByKey(canon));
+    startSideSession(PLAN_PREFIX + 1, [questionByKey(canon)].map(toQuestionItem), ret);
+    return planCanonKey(copy);
+  }, { copy: DUP_COPY_KEY, canon: DUP_CANON_KEY, ret: { kind: 'plan', date: TODAY, taskIndex: reviewIndex, type: 'review' } });
+  assert(dup === DUP_CANON_KEY, `${DUP_COPY_KEY} is a copy of ${DUP_CANON_KEY}`);
+  await answerQid(pg, DUP_CANON_KEY, true);
+  assert(await pg.evaluate(({ copy, canon }) => !wrongList[copy] && !wrongList[canon] && state.cleared === 1,
+    { copy: DUP_COPY_KEY, canon: DUP_CANON_KEY }),
+    'plan review session: a right answer on 3.12 clears every copy (4.14 + 3.12) from the wrong list, cleared +1 (W-030)');
   await pg.evaluate(() => leaveToHome());
 }
 

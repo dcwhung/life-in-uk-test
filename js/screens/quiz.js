@@ -208,10 +208,14 @@ function recordPracticeResult(q, correct) {
   recordPracticeAnswer(q, correct, state.planDay || null);
   // wrong answers join the review list; only a correct answer inside the review (or a plan review task, R9) clears one
   if (!correct) addWrong(q);
-  else if (clearsWrongAnswers() && wrongList[qKey(q)]) { clearWrong(q); state.cleared++; }
+  else if (isPlanReviewSession()) clearPlanReviewWrong(q);
+  else if (state.examNum === WRONG_EXAM && wrongList[qKey(q)]) { clearWrong(q); state.cleared++; }
 }
-function clearsWrongAnswers() {
-  return state.examNum === WRONG_EXAM || isPlanReviewSession();
+// W-030: the plan task asks the canonical copy; clear every copy of that question the wrong list holds, counted once
+function clearPlanReviewWrong(q) {
+  const keys = planSameQuestionKeys(keysOf(wrongList), qKey(q));
+  keys.forEach(k => clearWrong(questionByKey(k)));
+  if (keys.length) state.cleared++;
 }
 
 // ── navigation ──
