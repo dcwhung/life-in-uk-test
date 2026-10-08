@@ -63,6 +63,19 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(!(await modalOpen()) && await active('screenQuiz'), 'Keep going closes the modal and stays');
   await pg.click('#nextBtn'); await pg.keyboard.press('Escape');
   assert(!(await modalOpen()) && await active('screenQuiz'), 'Escape also cancels');
+  // S-025: Tab / Shift+Tab stay on the modal's two buttons; closing returns focus to the button that opened it
+  await pg.focus('#nextBtn'); await pg.keyboard.press('Enter');
+  assert(await modalOpen() && (await focusedId()) === 'confirmOk', 'S-025: Enter on Submit opens the modal on Submit');
+  await pg.keyboard.press('Tab');
+  assert((await focusedId()) === 'confirmCancel', 'S-025: Tab from the last button wraps to Keep going');
+  await pg.keyboard.press('Tab');
+  assert((await focusedId()) === 'confirmOk', 'S-025: Tab moves on to Submit');
+  await pg.keyboard.press('Shift+Tab'); await pg.keyboard.press('Shift+Tab');
+  assert((await focusedId()) === 'confirmOk', 'S-025: Shift+Tab from the first button wraps to Submit');
+  await pg.keyboard.press('Escape');
+  assert(!(await modalOpen()) && (await focusedId()) === 'nextBtn', 'S-025: Escape returns focus to Submit');
+  await pg.keyboard.press('Enter'); await pg.keyboard.press('Shift+Tab'); await pg.keyboard.press('Enter');
+  assert(!(await modalOpen()) && (await focusedId()) === 'nextBtn', 'S-025: Keep going returns focus to Submit');
 
   // Home asks before leaving a running exam
   await pg.click('#screenQuiz .back-btn');

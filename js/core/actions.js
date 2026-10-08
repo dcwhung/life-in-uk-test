@@ -1,7 +1,7 @@
 // ════════════════════════════════════════
 // ACTIONS — event delegation instead of inline handlers.
 // Markup: <button data-action="name" data-arg="…">; inputs: <input data-input-action="name">.
-// One document-level click, input and keydown (Escape) listener each.
+// One document-level click, input and keydown (Escape; Tab inside the confirm modal) listener each.
 // ════════════════════════════════════════
 const numArg = el => Number(el.dataset.arg);
 // Exam 1–17 are numbers; 'all' and the other set ids stay strings (isNumberedExam checks the type)
@@ -106,6 +106,7 @@ document.addEventListener('input', e => {
   if (el) runAction(el.dataset.inputAction, el, e);
 });
 document.addEventListener('keydown', e => {
+  if (e.key === 'Tab' && isConfirmOpen()) trapConfirmTab(e);
   if (e.key !== 'Escape') return;
   if (isConfirmOpen()) closeConfirm();
   setInfoOpen(false);
