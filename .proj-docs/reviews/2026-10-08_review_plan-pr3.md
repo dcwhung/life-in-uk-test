@@ -224,3 +224,84 @@ blockers:
   - "W-033 planSetExamDate on every input event + renderPlanDays rewrites input.value -> typed segments reset"
   - "U-1 (user request) en plan.goal.preset6w -> '1.5 months'; update tests/plan-ui-test.js:122"
 ```
+
+---
+
+# Round 2 — 修正驗證（commit bdcd90e，喺 2fc337e 之上；docs 8cc62b1 / 6bdef7c 記 G33 / G34）
+
+- 日期：2026-10-08
+- 範圍：W-031 `PLAN_SCREEN_IDS` + `isOnPlanScreen`；W-032 `setSwitchOn` 原位更新；W-033 input 只收完整有效日期 + `focusout` / `data-blur-action` 新慣例、min / max 有變先設；S-109 `planRenderKeepFocus`；S-111 clamp；S-110 搬去 PR4 驗收（2fc337e plan doc）；U-1 `1.5 months`；G33 en `modal.planOffOk` = `Confirm`；G34 新 toast component（`toast.js` / `toast.css`、`TOAST_MS`、`role="status"` `aria-live="polite"`）+ `plan.toastOn` / `plan.toastOff`
+- 結果：**W-031 / W-032 / W-033 / S-109 / S-110 / S-111 / U-1 全部修好；新增 1 個 Suggestion（S-112）。99 / 100，pass**
+
+## Hard Gates
+
+| Gate | 結果 | 備注 |
+|---|---|---|
+| Lint / Type check / Coverage / Security scan | n/a | 同 Round 1；`structure-test` PASS（action 掃描加咗 `data-blur-action`） |
+| Tests | pass | Reviewer 重跑 `run-all.sh`：**34 / 34 PASS** |
+| No Critical | pass | 0 |
+| （附加）visual-diff | pass | `visual-diff.js origin/main` → `VISUAL IDENTICAL (vs origin/main, 76 states)`（toast region 收埋時冇 layout）；已還原 png、刪 `shot-similar.png` |
+
+## Round 1 probe 重跑
+
+| Item | Round 1 | Round 2 |
+|---|---|---|
+| W-031 | Exam 3 計時中關 switch → `screenHome` | `screenQuiz`、timer 仲行；Study → 仍然 `screenStudy`；goal screen → Home（plan-ui-test 有 case） ✅ |
+| W-032 | 撳「開」→ popover 收埋、focus `BODY` | popover 仲開、focus = `#planFeatureSwitch` ✅ |
+| W-033 | 逐格打 `12252026` → 彈返原值 | draft / field = `2026-12-25` ✅；ArrowUp 去到 `2027-12-25`（> max）input 時唔收，離開 field 先 clamp 去 max ✅ |
+| S-109 | preset / 休息日 / 程度卡 Enter → `BODY` | focus 留喺揀中嗰粒（`data-arg` 14 / 3 / some） ✅ |
+| S-111 | 早過 min → CTA disabled 冇提示 | clamp 去 today + 7；該例子溫習日得 6 → G28 hint 正常出 ✅ |
+| U-1 | `6 weeks` | `1.5 months`，test 跟住改 ✅ |
+
+## `data-blur-action` 新慣例 — 判斷：✅ 合理
+
+- 同現有慣例一致：`data-action` → click、`data-input-action` → input、`data-blur-action` → focusout，都經 `runAction(name, el, e)`、`ACTIONS` registry；`structure-test` 嘅 action 掃描已包括（每個 handler 都要有人用 / 每個 attribute 都要有 handler）。
+- 用 `focusout`（會 bubble）而唔係 `blur`，先可以 document 一個 listener delegation，正確；`e.target.closest &&` guard 擋住 `document` / `window` target。
+- 冇撞：Esc keydown 只關 modal / popover，唔涉及 field；喺 date field 撳 chip / ← Home 時，次序係 mousedown → focusout commit → click action，結果正確（chip 會覆蓋，Home 照走）。Chromium date field 喺 segment 之間移動唔會出 focusout（逐格打 probe 證實）。轉 tab / window 失焦都會觸發 commit，但 commit 係 idempotent，冇副作用。
+- 文檔：HANDOFF「data-action 慣例」未提 `data-blur-action`；plan 定咗 HANDOFF 喺 PR7（T-341）先一次過更新，`actions.js` header 已經寫咗。**T-341 要記得加**（唔開 ID）。
+
+## Toast（G34）— a11y / token：✅ 合規
+
+- Token：`--navy` / `--text-inverse` / `--radius-pill` / `--shadow` / `--fs-md` / `--space-5` / `--space-12`；`18px` padding 屬刻度外 literal（HANDOFF v0.72 允許）；`max-width: calc(100vw - 32px)`（width 唔計）；`z-index: 400` 同 modal 300 / popover 200 嘅 literal 做法一致，放喺 modal 之上啱。白字 on navy 對比度足。`prefers-reduced-motion` 冇動畫；`hidden` + `[hidden] !important` 收埋。
+- a11y：CDP `Accessibility.getFullAXTree` 證實 `display: contents` 嘅外層喺 Chromium 仍然係 `role=status`、`live="polite"`（idle 同顯示時都喺 tree）；文字喺顯示前寫入、之後 unhide，屬新增內容會被讀出；`pointer-events: none`、唔攞 focus；`TOAST_MS` 2400 後自動收（probe 證實）。360px：toast 180px 闊、置中、喺 viewport 內。
+- 附註（唔開 ID）：舊版 Safari（< 17）曾經有 `display: contents` 令 role 消失嘅 bug；如果要更保險，可以拎走 `display: contents`（外層冇內容、toast 自己 fixed，本身都唔佔位）。
+
+## 新發現
+
+### 🟢 S-112 — 關 switch 嘅 modal 撳 Cancel / OK / Esc 之後，focus 返去一粒睇唔到嘅 switch
+
+- 位置：`js/core/actions.js` document click（`if (!e.target.closest('#infoPop')) setInfoOpen(false);`）同 keydown Esc（`closeConfirm()` 之後再 `setInfoOpen(false)`）
+- 描述：modal 喺 `#infoPop` 外面，所以撳 `#confirmCancel` / `#confirmOk` 會當 outside click 收埋 popover；`confirmReturnFocus` 已將 focus 交返 opener（switch），結果 `activeElement = #planFeatureSwitch` 但 `getClientRects().length = 0`（probe）。鍵盤用戶睇唔到 focus（WCAG 2.4.7）；再撳 Tab 會由 DOM 位置繼續（去咗 `#modeStudy`）。用戶亦睇唔到 switch 已經變咗（只靠 toast）。W-032 之前 focus 落 `BODY`，所以唔算倒退，但係真缺陷。
+- 方案 A（推薦）：outside-click 檢查豁免 modal：`if (!e.target.closest('#infoPop, #confirmModal')) setInfoOpen(false);`；Esc：`if (isConfirmOpen()) { closeConfirm(); return; }`（Esc 先關最上層）。Popover 留開，switch 新狀態同 focus 都睇得到。Trade-off：改咗全域行為：其他 modal 開嘅時候 popover 本身唔會開住，所以冇影響，但要喺 `examtools-test` / `mastery-test` 跑一次確認。
+- 方案 B：switch 嘅 `onOk` / cancel 之後 focus `#infoBtn`。Trade-off：只修呢個 case；popover 照收，用戶要再開先睇到狀態。
+
+## 評分（Round 2）
+
+| 維度 | 得分 | 滿分 | 備注 |
+|------|------|------|------|
+| 正確性 | 25 | 25 | — |
+| 安全性 | 20 | 20 | — |
+| 可維護性 | 20 | 20 | 新慣例同現有一致、有 guard |
+| 測試覆蓋 | 15 | 15 | 每個 item 都有 case（用咗 Round 1 probe） |
+| 性能 | 10 | 10 | — |
+| 代碼風格（含 a11y） | 9 | 10 | S-112 |
+| **總分** | **99** | **100** | |
+
+**結果：✅ pass**（S-112 建議喺 QA 前順手修，唔 block）
+
+## Handoff receipt（Round 2）
+
+```handoff-receipt
+protocol: 1
+status: pass
+score: 99/100
+hard_gates:
+  lint: n/a
+  type_check: n/a
+  tests: pass
+  coverage: n/a
+next_action: invoke_qa
+next_agent: quality-assurance
+branch: "claude/charming-hopper-48ypzp"
+context: "PR3 Round 2 @bdcd90e: W-031/W-032/W-033/S-109/S-110/S-111/U-1 verified by re-running Round 1 probes; run-all 34/34, visual-diff 76 identical; data-blur-action convention OK (doc in HANDOFF at T-341); toast tokens + a11y OK (AX role=status polite). New S-112 (modal Cancel/OK/Esc returns focus to switch inside the now-closed popover) suggested, non-blocking"
+```

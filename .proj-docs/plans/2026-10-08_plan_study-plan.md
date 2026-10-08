@@ -127,6 +127,7 @@
 | T-322 | `plan-ui-test` 進度表部份（次序、sticky、scroll 到今日、淡化、重設 = 刪除、改目標凍結過去）；`lang-switch-test` schedule | test | frontend-developer | none-required | 0.75 | T-319–T-321 | P0 |
 
 **PR4 驗收**：
+- [ ] PR3 S-112：關 switch 嘅確認 modal 撳 Cancel / Confirm / Esc 之後 ⓘ popover 保持開住、focus 返 switch（outside-click 豁免 `#confirmModal`；modal 開住時 Esc 只關 modal）
 - [ ] PR3 S-110 / PR1 QA O-1：計劃正常但 log 壞咗時，進度表「↺ 重設計劃」可以清走壞 log 恢復（T-320）
 - [ ] G27 5 級色 token、階段色、考試日格紋、補做橙喺第一次用到嘅 PR 加（PR3 延後）
 - [ ] handoff §5「進度表」全部：次序、三階段、scroll 到今日、sticky WEEK、已過淡化、重設 = 刪除
@@ -193,6 +194,7 @@
 | T-343 | Merge 後 git tag `v1.1.0` | chore | devops-engineer | none-required | 0.1 | T-342 | P0 |
 
 **PR7 驗收**：
+- [ ] HANDOFF「data-action 慣例」加 PR3 新 `data-blur-action`（`focusout` delegation）同 toast component
 - [ ] 用戶已確認對照表（T-340，PR 開之前）
 - [ ] handoff §5 十項全部打勾；入口真用戶睇得到（預設開）
 - [ ] `sw-test` cache 名 `lifeuk-v1.1.0`；mockup 已刪、冇其他 file 引用佢
