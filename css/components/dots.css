@@ -1,9 +1,9 @@
 /* dot grids (quiz navigator + result dots): 12 columns; minmax(0, 1fr) so a column never grows to the
    number's width (1fr = minmax(auto, 1fr) pushed the grid past the card at 320–360px once buttons used the
    body font, CUI-0012). Gap and number size are custom properties so the narrow query below can shrink both. */
-.nav-dots, .rdots { --dots-gap: 6px; --dot-fs: 10.5px; }
+.nav-dots, .rdots { --dots-gap: var(--space-3); --dot-fs: 10.5px; }
 /* question navigator dots (quiz) */
-.nav-dots { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--dots-gap); margin-bottom: 8px; }
+.nav-dots { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--dots-gap); margin-bottom: var(--space-4); }
 /* numbered dot: quiz navigator (.dot) and result dots (.rdot) share the shape */
 .dot, .rdot {
   aspect-ratio: 1; width: 100%; max-width: 30px; justify-self: center; padding: 0;
@@ -23,13 +23,13 @@
 .dots-meta .sep, .rmeta .sep { color: var(--border); }
 .dots-meta i, .rmeta i { display: inline-block; border-radius: var(--radius-circle); vertical-align: -1px; }
 .dots-meta {
-  align-items: center; gap: 8px;
+  align-items: center; gap: var(--space-4);
   font-size: 10.5px; color: var(--text-muted);
-  margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
+  margin-bottom: var(--space-7); padding-bottom: var(--space-6); border-bottom: 1px solid var(--border);
 }
-.dots-meta.practice { gap: 4px; font-size: var(--fs-2xs); }   /* four counts fit one line at 390px */
+.dots-meta.practice { gap: var(--space-2); font-size: var(--fs-2xs); }   /* four counts fit one line at 390px */
 .dots-meta.practice i { margin-right: 3px; }
-.dots-meta i { width: 9px; height: 9px; margin-right: 4px; }
+.dots-meta i { width: 9px; height: 9px; margin-right: var(--space-2); }
 .dots-meta .lg-done { background: var(--navy-light); }
 .dots-meta .lg-todo { border: 1.5px solid var(--border); }
 .dots-meta .lg-flag { background: var(--orange); }
@@ -37,7 +37,7 @@
 .dots-meta .lg-bad { background: var(--red-light); }
 
 /* exam: per-question result dots (tap to jump to the review) */
-.rdots-wrap { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); }
+.rdots-wrap { margin-top: 18px; padding-top: var(--space-8); border-top: 1px solid var(--border); }
 .rdots { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--dots-gap); }
 .rdot { border: 2px solid transparent; color: var(--text-inverse); }
 .rdot.ok { background: var(--green-light); border-color: var(--green-light); }
@@ -45,7 +45,7 @@
 .rdot.skip { background: var(--card); border-color: var(--red-light); color: var(--red-light); }
 .rdot.flag { box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--orange); }
 .rmeta {
-  gap: 5px; margin-top: 10px;
+  gap: 5px; margin-top: var(--space-5);
   font-size: var(--fs-2xs); color: var(--text-muted); white-space: nowrap;
 }
 .rmeta i { width: 8px; height: 8px; margin-right: 3px; }
@@ -58,5 +58,5 @@
    4px gaps give the dots back ~2px (16.3px result / 16.7px quiz at 320, about v0.63's size) and still clear
    the 4px flag / current ring; 9px numbers fit inside the border. 390px and up keep 6px / 10.5px. */
 @media (max-width: 360px) {
-  .nav-dots, .rdots { --dots-gap: 4px; --dot-fs: 9px; }
+  .nav-dots, .rdots { --dots-gap: var(--space-2); --dot-fs: 9px; }
 }

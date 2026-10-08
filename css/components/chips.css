@@ -3,7 +3,7 @@
   background: var(--card);
   border: 2px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 9px 4px;
+  padding: 9px var(--space-2);
   font-size: var(--fs-sm); font-weight: 700; color: var(--text-muted);
   cursor: pointer; text-align: center;
   transition: all 0.15s;
@@ -12,17 +12,17 @@
 .practice-tab.active { background: var(--navy); border-color: var(--navy); color: var(--text-inverse); }
 .study-tabs {
   display: grid; grid-template-columns: repeat(4, 1fr);
-  gap: 6px; margin-bottom: 12px;
+  gap: var(--space-3); margin-bottom: var(--space-6);
 }
 /* v0.62: selection is navy like .practice-tab / .chip (purple means Cantonese only); class name is an upgrade-test hook */
 .study-tab.active { background: var(--navy); border-color: var(--navy); color: var(--text-inverse); }
 
-.chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.chip-row { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-7); }
 .chip {
   background: var(--card);
   border: 1.5px solid var(--border);
   border-radius: var(--radius-pill);
-  padding: 5px 12px;
+  padding: 5px var(--space-6);
   font-size: var(--fs-sm); font-weight: 600; color: var(--text-muted);
   cursor: pointer;
   transition: all 0.15s;
@@ -36,5 +36,5 @@
 .stars .off { color: var(--border); }
 
 @media (max-width: 480px) {
-  .study-tab { font-size: var(--fs-xs); padding: 8px 2px; }
+  .study-tab { font-size: var(--fs-xs); padding: var(--space-4) var(--space-1); }
 }
