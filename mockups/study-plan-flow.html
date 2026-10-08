@@ -1454,7 +1454,7 @@ function resetDemo() { writeLS({}); goto(3); }
 // 重設計劃 = delete: plan and progress cleared, home goes back to 建立溫習計劃
 function askReset() {
   openModal('重設溫習計劃？', '呢個計劃同每日完成度會清除，冇得還原，之後可以重新建立。\n溫習同練習記錄（掌握程度、錯題、書籤）唔受影響。',
-    '<button class="nav-btn secondary" data-plan="cancel">取消</button><button class="nav-btn" style="background: var(--red);" data-plan="confirmReset">重設</button>');
+    '<button class="nav-btn secondary" data-plan="cancel">取消</button><button class="nav-btn" style="background: var(--red);" data-plan="confirmReset">確定</button>');
 }
 
 // ════════ wiring ════════
@@ -1508,7 +1508,7 @@ function setModule(on) {
 
 function askModuleOff() {
   openModal('關閉溫習計劃功能？', '主頁計劃卡、進度表同今日任務會全部收埋。\n你嘅計劃同進度會保留，開返會由原本進度繼續。',
-    '<button class="nav-btn secondary" data-plan="cancel">取消</button><button class="nav-btn" data-module="off">關閉</button>');
+    '<button class="nav-btn secondary" data-plan="cancel">取消</button><button class="nav-btn" data-module="off">確定</button>');
 }
 
 function currentStep() { return SCREENS.findIndex(s => $(s).classList.contains('active')); }
