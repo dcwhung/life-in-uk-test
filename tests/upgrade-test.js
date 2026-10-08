@@ -25,6 +25,7 @@ const V057_REF = process.env.V057_REF || 'dc84cab549bf6dab4148d04a65a4ca60c831bc
 const V057_FILES = ['index.html', 'sw.js', 'data', 'css', 'js'];
 const P = 'lifeuk.';
 const MARKER = P + 'migrated';
+const PLAN_LS_PREFIX = P + 'studyPlan'; // studyPlan, studyPlanProgress, studyPlanEnabled
 const CURRENT_VERSION = fs.readFileSync(path.join(ROOT, 'js/core/config.js'), 'utf8').match(/const APP_VERSION = '([^']+)'/)[1];
 const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('ok:', m); };
 
@@ -89,6 +90,9 @@ async function mixedShell(b) {
   assert(await pg.evaluate(() => typeof isSideSession === 'function' && !!document.querySelector('script[src="js/screens/sideSession.js"]')), 'mixed shell: missing sideSession.js loaded at start-up (v0.62)');
   assert(await pg.evaluate(() => typeof factCardHtml === 'function' && !!document.querySelector('script[src="js/components/factCard.js"]')), 'mixed shell: missing factCard.js loaded at start-up (v0.63)');
   assert(await pg.evaluate(() => !!document.querySelector('link[rel="stylesheet"][href="css/components/fact.css"]')), 'mixed shell: missing fact.css stylesheet added at start-up (v0.63: .fact* / .sqm-fact* rules moved there)');
+  // study plan (arch R1): mastery.js / result.js call recordPlanAnswer / recordPlanMock on every answer / submit
+  assert(await pg.evaluate(() => typeof recordPlanAnswer === 'function' && typeof recordPlanMock === 'function'
+    && ['js/domain/plan.js', 'js/domain/planProgress.js'].every(src => !!document.querySelector(`script[src="${src}"]`))), 'mixed shell: missing plan.js + planProgress.js loaded at start-up (PR2 hooks)');
   assert((await text(pg, '#examGrid .exam-btn.all .exam-mastery')).startsWith('3/408'), 'mixed shell: legacy mastery shown (3/408)');
   assert((await text(pg, '#tileFlagged .t-num')) === '5', 'mixed shell: legacy Flagged 5 shown');
   const newKey = await pg.evaluate(() => {
@@ -97,6 +101,9 @@ async function mixedShell(b) {
     const q = state.questions[i]; state.current = i; state.answers[i] = [...q.a]; revealAnswer();
     return qKey(q);
   });
+  // PR2: an Exam-mode submit runs the plan mock hook too (no plan stored → nothing written, R3)
+  await pg.evaluate(() => { startExam(2, EXAM_MODE); finishExam(); leaveToHome(); });
+  assert(!Object.keys(await dump(pg)).some(k => k.startsWith(PLAN_LS_PREFIX)), 'mixed shell: an answer and an exam submit with no plan write no study plan key');
   await pg.goto('file://' + path.join(dir, 'index.html'));
   const s = await dump(pg);
   const streak = JSON.parse(s[P + 'practiceStreak']);
@@ -272,6 +279,14 @@ async function swUpgrade(b) {
     assert(diffs.length === 0, 'UI identical before / after the upgrade' + (diffs.length ? ': ' + diffs.join(', ') : ''));
     await pg.reload();
     assert(JSON.stringify(await dump(pg)) === JSON.stringify(ls), 'another reload: storage unchanged');
+    // PR2 (arch R3): with no plan, the answer / submit hooks add no study plan key — the marker stays the only new key
+    await pg.evaluate(() => {
+      pendingMode = 'practice'; startExam('ch2');
+      const q = state.questions[0]; state.answers[0] = [...q.a]; revealAnswer();
+      startExam(3, EXAM_MODE); finishExam(); leaveToHome();
+    });
+    const after = Object.keys(await dump(pg)).filter(k => !(k in FOREIGN) && !(k.startsWith(P) && k.slice(P.length) in LEGACY));
+    assert(JSON.stringify(after) === JSON.stringify([MARKER]), 'no plan: after an answer + an exam submit the only new key is still the marker: ' + after);
     assert(errs.length === 0, 'upgrade: no page errors: ' + errs.join(' | '));
     await ctx.close();
   } finally {
