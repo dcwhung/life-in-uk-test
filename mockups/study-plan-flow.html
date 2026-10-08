@@ -216,10 +216,13 @@
   .tag { display: inline-block; font-size: var(--fs-2xs); font-weight: 800; border-radius: var(--radius-pill); padding: 1px 7px; margin-left: 6px; vertical-align: 1px; }
   .tag.carry { background: var(--flag-bg); color: var(--orange); }
   .tag.auto { background: var(--success-bg); color: var(--green); }
-  /* each month is its own block; side by side when there is room */
-  .months { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px 20px; }
-  .month { display: grid; gap: 8px; min-width: 0; }
-  .month-h { font-size: var(--fs-md); font-weight: 800; }
+  /* month switcher: ‹ 今日 › */
+  .cal-nav { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .cal-nav b { font-size: var(--fs-lg); }
+  .cal-btns { display: flex; gap: 4px; }
+  .cal-btn { background: var(--bg); border: 1.5px solid var(--border); border-radius: var(--radius-sm); min-width: 36px; height: 34px; padding: 0 10px; font-size: var(--fs-lg); font-weight: 700; color: var(--navy); cursor: pointer; }
+  .cal-btn.today { font-size: var(--fs-sm); padding: 0 14px; }
+  .cal-btn:disabled { opacity: 0.35; cursor: default; }
   .cell.out { background: transparent; color: #b4bccf; font-weight: 600; }
   .heat { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
   .heat .dow { font-size: var(--fs-2xs); color: var(--text-muted); text-align: center; font-weight: 700; }
@@ -240,6 +243,8 @@
   .pr { display: grid; gap: 4px; }
   .pr .top { display: flex; justify-content: space-between; font-size: var(--fs-sm); font-weight: 700; gap: 8px; }
   .pr .top span:last-child { color: var(--text-muted); }
+  .done-banner { background: var(--success-bg); color: var(--green); border-radius: var(--radius-md); padding: 12px 14px; font-size: var(--fs-md); line-height: 1.5; }
+  .done-banner b { margin-right: 4px; }
   .alert { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px; background: var(--flag-bg); border-radius: var(--radius-md); padding: 10px 12px; font-size: var(--fs-sm); line-height: 1.55; }
 
   /* ── runner (simulated Study / Practice screen) ── */
@@ -323,7 +328,7 @@
           <div class="bar"><i id="hBar"></i></div>
           <div class="next" id="hNext"></div>
           <div class="acts">
-            <button class="btn-gold" data-goto="3">繼續今日任務 →</button>
+            <button class="btn-gold" data-goto="3" id="hGo">繼續今日任務 →</button>
             <button class="btn-line" data-goto="2">進度表</button>
           </div>
         </div>
@@ -454,14 +459,24 @@
               <p class="muted">完成度由 system 自動計：喺溫習／練習模式做咗嘅都計。練完一段題目，嗰段知識點當溫咗。</p>
             </div>
           </div>
+          <div class="done-banner" id="doneBanner" hidden>🎉 <b>今日任務全部完成！</b>聽日主頁會顯示新一日嘅任務。</div>
           <div style="display: grid; gap: 8px;" id="taskList"></div>
+          <button class="ghost" data-reset="1" style="justify-self: start;">↺ 重設示範進度（mockup）</button>
         </div>
 
         <div class="alert"><span>⚠️</span><div><b>第 5 日仲有 1 項未完成。</b>已經自動加入今日，標住「補做」。如果連續 2 日落後，app 會建議調整進度表。</div></div>
 
         <div class="card">
           <div class="row"><h3>每日完成度</h3><span class="pill ok num" id="streakPill"></span></div>
-          <div class="months" id="heat"></div>
+          <div class="cal-nav">
+            <b class="num" id="calTitle"></b>
+            <div class="cal-btns">
+              <button class="cal-btn" id="calPrev" data-month="-1" aria-label="上個月">‹</button>
+              <button class="cal-btn today" id="calToday" data-month="0">今日</button>
+              <button class="cal-btn" id="calNext" data-month="1" aria-label="下個月">›</button>
+            </div>
+          </div>
+          <div id="heat"></div>
           <div class="legend">0% <i style="background: var(--heat-1)"></i><i style="background: var(--heat-2)"></i><i style="background: var(--heat-3)"></i><i style="background: var(--heat-4)"></i> 100% · <i class="exam-swatch"></i> 考試日</div>
         </div>
 
@@ -579,7 +594,7 @@ const HEAT_STEPS = [75, 50];                  // % thresholds for heat colours h
 const RING_R = 46;
 const LS_KEY = 'mock.studyPlan.progress.v2';
 
-const state = { days: 21, mins: 120, rest: new Set([0]), level: 'none', start: startOfToday(), runner: null };
+const state = { heatMonth: null, days: 21, mins: 120, rest: new Set([0]), level: 'none', start: startOfToday(), runner: null };
 
 function startOfToday() { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }
 function addDays(d, n) { const r = new Date(d); r.setDate(r.getDate() + n); return r; }
@@ -777,6 +792,7 @@ function renderHome() {
   $('hBar').style.width = `${pct}%`;
   const nx = nextTask(tasks);
   const at = nx ? effectiveDone(nx) : 0;
+  $('hGo').textContent = nx ? '繼續今日任務 →' : '睇今日任務';
   $('hNext').innerHTML = nx ? `下一步：<b>${nx.t}</b>${at ? `（由 #${nx.from + at} 繼續）` : ''}` : '<b>✓ 今日完成</b>，聽日再嚟';
 }
 
@@ -825,6 +841,7 @@ function renderGoal() {
   $('examDate').min = isoDate(addDays(state.start, DAYS_PER_WEEK));
   $('examDate').max = isoDate(maxExamDate());
   $('restChips').innerHTML = WEEKDAYS.map((w, i) => `<button class="chip rest ${state.rest.has(i) ? 'on' : ''}" data-rest="${i}">${w}</button>`).join('');
+  state.heatMonth = null;
   renderTicks();
   renderLevels();
   renderFeasibility();
@@ -946,21 +963,43 @@ function monthBlock(year, month, plan, examDate) {
   let html = WEEKDAYS.map(w => `<span class="dow">${w}</span>`).join('');
   for (let k = 0; k < first.getDay(); k++) html += '<span></span>';
   for (let n = 1; n <= daysInMonth; n++) html += heatCell(new Date(year, month, n), plan, examDate);
-  return `<div class="month"><div class="month-h num">${year} 年 ${month + 1} 月</div><div class="heat">${html}</div></div>`;
+  return `<div class="heat">${html}</div>`;
 }
 
-function renderHeat(plan) {
+// months the plan touches, as { y, m }
+function planMonths() {
   const examDate = addDays(state.start, state.days);
-  const blocks = [];
+  const out = [];
   for (let y = state.start.getFullYear(), m = state.start.getMonth();
     y < examDate.getFullYear() || (y === examDate.getFullYear() && m <= examDate.getMonth());
-    m === MONTHS_PER_YEAR - 1 ? (y++, m = 0) : m++) {
-    blocks.push(monthBlock(y, m, plan, examDate));
-  }
-  $('heat').innerHTML = blocks.join('');
+    m === MONTHS_PER_YEAR - 1 ? (y++, m = 0) : m++) out.push({ y, m });
+  return out;
+}
+
+function todayMonthIndex(months) {
+  const t = addDays(state.start, TODAY_INDEX);
+  return Math.max(0, months.findIndex(x => x.y === t.getFullYear() && x.m === t.getMonth()));
+}
+
+// one month at a time; ‹ 今日 › steps through the plan's months only
+function renderHeat(plan) {
+  const months = planMonths();
+  if (state.heatMonth === null || state.heatMonth >= months.length) state.heatMonth = todayMonthIndex(months);
+  const { y, m } = months[state.heatMonth];
+  $('calTitle').textContent = `${y} 年 ${m + 1} 月`;
+  $('calPrev').disabled = state.heatMonth === 0;
+  $('calNext').disabled = state.heatMonth === months.length - 1;
+  $('calToday').disabled = state.heatMonth === todayMonthIndex(months);
+  $('heat').innerHTML = monthBlock(y, m, plan, addDays(state.start, state.days));
   let streak = 0;
   for (let i = TODAY_INDEX - 1; i >= 0; i--) { const d = plan.cal[i]; if (d.rest) continue; if (dayPct(d) >= PERCENT) streak++; else break; }
   $('streakPill').textContent = `🔥 連續 ${streak} 日 100%`;
+}
+
+function stepMonth(dir) {
+  const months = planMonths();
+  state.heatMonth = dir === 0 ? todayMonthIndex(months) : Math.min(months.length - 1, Math.max(0, state.heatMonth + dir));
+  renderHeat(todayCache.plan);
 }
 
 function renderKpis(plan) {
@@ -993,13 +1032,21 @@ function renderToday() {
   pill.textContent = phase ? `${phase.name}階段` : '休息日';
   renderRing(tasks);
   renderTaskList(tasks);
+  $('doneBanner').hidden = todayPct(tasks) < PERCENT;
   renderHeat(plan);
   renderKpis(plan);
 }
 
 // ════════ runner ════════
+const RUN_HINTS = {
+  read: '逐條睇：英文原句 + 廣東話解釋。睇完一條就計一條。',
+  practice: '揀答案即刻見對錯。答錯嘅題目會自動加入錯題 set。',
+  review: '錯題 set：答啱就由錯題清走；答錯會留低聽日再出。',
+  mock: '計時 45 分鐘，做晒先睇答案。',
+};
+
 function openRunner(i) {
-  state.runner = { task: todayCache.tasks[i], picked: null };
+  state.runner = { index: i, task: todayCache.tasks[i], picked: null, right: 0, wrong: 0, startDone: effectiveDone(todayCache.tasks[i]) };
   show('runner');
   renderRunner();
 }
@@ -1012,21 +1059,44 @@ function renderRunner() {
   $('runPos').textContent = done >= t.total ? '全部完成' : `#${t.from + done}`;
   $('runCount').textContent = `${done} / ${t.total} ${t.unit}`;
   $('runBar').style.width = `${done / t.total * PERCENT}%`;
-  if (done >= t.total) {
-    $('runBody').innerHTML = '<div class="card" style="text-align: center;"><div style="font-size: 32px;">✓</div><h3>呢項完成咗</h3><p class="muted">今日任務嘅完成度已經更新。</p></div>';
-    $('runActs').innerHTML = '<button class="cta" data-goto="3">返回今日任務</button>';
+  if (done >= t.total) return renderTaskDone(t);
+  if (t.type === 'read') renderFact(done); else renderQuestion(done);
+}
+
+function sessionSummary(t) {
+  const r = state.runner;
+  if (t.type === 'read') return `今次讀咗 ${t.total - r.startDone} 條知識點。`;
+  const answered = r.right + r.wrong;
+  if (!answered) return `${t.total} ${t.unit}已經完成。`;
+  if (!r.wrong) return `今次答啱晒 ${r.right} 題。`;
+  const wrongNote = t.type === 'review' ? `${r.wrong} 題仍然答錯，留喺錯題 set` : `${r.wrong} 題答錯，已加入錯題 set`;
+  return `今次答啱 ${r.right} 題，${wrongNote}。`;
+}
+
+// after a task: summary, then straight on to the next unfinished task (or the end-of-day screen)
+function renderTaskDone(t) {
+  const next = nextTask(todayCache.tasks);
+  const pct = todayPct(todayCache.tasks);
+  const pair = t.type === 'practice' && todayCache.tasks.find(x => x.pair === t);
+  const pairLine = pair ? `<p class="note">對應嘅「${pair.t}」已經自動當溫咗。</p>` : '';
+  if (!next) {
+    $('runBody').innerHTML = `<div class="card" style="text-align: center; justify-items: center;"><div style="font-size: 40px;">🎉</div><h3>今日任務全部完成！</h3><p class="muted">今日完成度 100%。聽日打開 app，主頁會顯示新一日嘅任務。</p></div>${pairLine}`;
+    $('runActs').innerHTML = '<button class="cta" data-goto="3">返回今日任務</button><button class="ghost" data-goto="0">返主頁</button>';
     return;
   }
-  if (t.type === 'read') renderFact(done); else renderQuestion(done);
+  $('runBody').innerHTML = `<div class="card" style="text-align: center; justify-items: center;"><div style="font-size: 32px;">✓</div><h3>呢項完成咗</h3><p class="muted">${sessionSummary(t)}</p><span class="pill now num">今日完成度 ${pct}%</span></div>${pairLine}
+    <div class="card" style="gap: 4px;"><span class="eyebrow">下一項</span><b>${TASK_ICONS[next.type]} ${next.t}</b><span class="muted">${next.total} ${next.unit} · ${TASK_MODES[next.type]}</span></div>`;
+  $('runActs').innerHTML = `<button class="cta" data-next="${todayCache.tasks.indexOf(next)}">開始下一項 →</button><button class="ghost" data-goto="3">返回今日任務</button>`;
 }
 
 function renderFact(done) {
   const f = SAMPLE_FACTS[done % SAMPLE_FACTS.length];
-  $('runBody').innerHTML = `<div class="fact"><span class="demo-tag">示範內容</span><div class="en" lang="en">${f.en}</div><div class="yue">${f.yue}</div></div>`;
+  $('runBody').innerHTML = `<p class="muted">${RUN_HINTS.read}</p><div class="fact"><span class="demo-tag">示範內容</span><div class="en" lang="en">${f.en}</div><div class="yue">${f.yue}</div></div>`;
   $('runActs').innerHTML = '<button class="cta" data-run="next">睇完，下一條 →</button><button class="ghost" data-run="skip">⏩ 快進完成</button>';
 }
 
 function renderQuestion(done) {
+  const t = state.runner.task;
   const q = SAMPLE_QS[done % SAMPLE_QS.length];
   const picked = state.runner.picked;
   const opts = q.o.map((o, k) => {
@@ -1035,18 +1105,33 @@ function renderQuestion(done) {
     else if (picked === k) cls += ' wrong';
     return `<button class="${cls}" data-opt="${k}" ${picked !== null ? 'disabled' : ''} lang="en">${o}</button>`;
   }).join('');
-  const paired = todayCache.tasks.some(x => x.pair === state.runner.task);
-  const pairNote = paired ? '<p class="note">練完呢段題目，對應嗰段知識點會自動當溫咗。</p>' : '';
-  $('runBody').innerHTML = `<div class="card"><span class="demo-tag">示範內容</span><div><div class="q-text" lang="en">${q.q}</div><div class="q-yue">${q.yue}</div></div><div class="opts">${opts}</div></div>${pairNote}`;
+  const verdict = picked === null ? '' : picked === q.a
+    ? `<p class="note">✓ 答啱${t.type === 'review' ? '，呢題由錯題 set 清走' : ''}</p>`
+    : `<p class="note" style="color: var(--red); background: var(--danger-bg);">✕ 答錯，正確答案係 ${String.fromCharCode(65 + q.a)}${t.type === 'review' ? '，呢題留喺錯題 set' : '，已加入錯題 set'}</p>`;
+  const paired = todayCache.tasks.some(x => x.pair === t);
+  const pairNote = paired && picked === null ? '<p class="note">練完呢段題目，對應嗰段知識點會自動當溫咗。</p>' : '';
+  $('runBody').innerHTML = `<p class="muted">${RUN_HINTS[t.type]}</p><div class="card"><span class="demo-tag">示範內容</span><div><div class="q-text" lang="en">${q.q}</div><div class="q-yue">${q.yue}</div></div><div class="opts">${opts}</div>${verdict}</div>${pairNote}`;
   $('runActs').innerHTML = `${picked !== null ? '<button class="cta" data-run="next">下一題 →</button>' : ''}<button class="ghost" data-run="skip">⏩ 快進完成</button>`;
+}
+
+function pickOption(k) {
+  const r = state.runner;
+  r.picked = k;
+  const q = SAMPLE_QS[effectiveDone(r.task) % SAMPLE_QS.length];
+  if (k === q.a) r.right++; else r.wrong++;
+  renderRunner();
 }
 
 function runAction(kind) {
   const t = state.runner.task;
   setDone(t, kind === 'skip' ? t.total : effectiveDone(t) + 1);
   state.runner.picked = null;
+  refreshToday();
+  state.runner.task = todayCache.tasks[state.runner.index];
   renderRunner();
 }
+
+function resetDemo() { writeLS({}); goto(3); }
 
 // ════════ wiring ════════
 const SCREENS = ['step0', 'step1', 'step2', 'step3', 'runner'];
@@ -1070,7 +1155,10 @@ document.addEventListener('click', e => {
   if (ds.rest) { const r = +ds.rest; state.rest.has(r) ? state.rest.delete(r) : state.rest.add(r); return renderGoal(); }
   if (ds.level) { state.level = ds.level; return renderGoal(); }
   if (ds.task) return openRunner(+ds.task);
-  if (ds.opt) { state.runner.picked = +ds.opt; return renderRunner(); }
+  if (ds.opt) return pickOption(+ds.opt);
+  if (ds.next) return openRunner(+ds.next);
+  if (ds.reset) return resetDemo();
+  if (ds.month) return stepMonth(+ds.month);
   if (ds.run) return runAction(ds.run);
 });
 $('minsRange').addEventListener('input', e => { state.mins = +e.target.value; renderGoal(); });
