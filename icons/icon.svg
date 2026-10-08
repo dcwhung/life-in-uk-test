@@ -1,8 +1,23 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <!-- App icon source: header navy (the navy token in css/base/tokens.css) with a white "UK" wordmark.
-       The PNGs next to this file are generated from it by tests/tools/make-icons.js. -->
-  <rect width="512" height="512" rx="96" fill="#1a2744"/>
-  <text x="256" y="262" fill="#ffffff" stroke="none" text-anchor="middle" dominant-baseline="central"
-        font-family="Inter, 'Helvetica Neue', Helvetica, Arial, 'Liberation Sans', sans-serif"
-        font-size="236" font-weight="800" letter-spacing="-6">UK</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="1254" height="1254" viewBox="0 0 1254 1254">
+<title>UK LIFE icon</title>
+<defs><clipPath id="icon-clip"><rect x="30" y="18.4" width="1194" height="1209.6" rx="185" ry="185"/></clipPath><linearGradient id="blueLetters" gradientUnits="userSpaceOnUse" x1="382.2" y1="945.4" x2="263.0" y2="307.9"><stop offset="0" stop-color="#0139a8"/><stop offset="1" stop-color="#0144ba"/></linearGradient><linearGradient id="kRed" gradientUnits="userSpaceOnUse" x1="1108.9" y1="305.9" x2="670.2" y2="892.8"><stop offset="0" stop-color="#f30113"/><stop offset="1" stop-color="#e70112"/></linearGradient><linearGradient id="tlBlue" gradientUnits="userSpaceOnUse" x1="159.9" y1="391.4" x2="444.5" y2="-125.8"><stop offset="0" stop-color="#0137a2"/><stop offset="1" stop-color="#0150cf"/></linearGradient><linearGradient id="brBlue" gradientUnits="userSpaceOnUse" x1="959.2" y1="912.0" x2="884.8" y2="1299.9"><stop offset="0" stop-color="#0144b6"/><stop offset="1" stop-color="#0135a1"/></linearGradient><linearGradient id="trRed" gradientUnits="userSpaceOnUse" x1="1001.0" y1="-20.4" x2="1235.4" y2="308.8"><stop offset="0" stop-color="#f70113"/><stop offset="1" stop-color="#e80112"/></linearGradient><linearGradient id="blRed" gradientUnits="userSpaceOnUse" x1="173.4" y1="1042.2" x2="80.6" y2="1161.0"><stop offset="0" stop-color="#f40113"/><stop offset="1" stop-color="#eb0214"/></linearGradient><linearGradient id="darkTri" gradientUnits="userSpaceOnUse" x1="824.8" y1="915.3" x2="349.9" y2="1195.7"><stop offset="0" stop-color="#e6eff8"/><stop offset="1" stop-color="#dde8f5"/></linearGradient><linearGradient id="whiteBandBL" gradientUnits="userSpaceOnUse" x1="578.9" y1="1050.1" x2="112.4" y2="989.4"><stop offset="0" stop-color="#fdfdfe"/><stop offset="1" stop-color="#ecf3fb"/></linearGradient></defs>
+<g clip-path="url(#icon-clip)">
+<rect x="-10" y="-10" width="1274" height="1274" fill="#eaf2fa"/>
+<rect x="-10" y="-10" width="1274" height="302.95" fill="#e8f0f9"/>
+<polygon points="793.2,-6 961.74,-6 423.12,300 272.4,300" fill="#f8fafd"/>
+<polygon points="-6,-6 793.2,-6 272.4,300 130,300 95.25,300 -6,357.52" fill="url(#tlBlue)"/>
+<polygon points="100,940.68 622.63,944.68 297.08,1137.59 100,1137.59" fill="url(#whiteBandBL)"/>
+<polygon points="297.08,1137.59 622.63,944.68 902.23,944.68 422.05,1241.4" fill="url(#darkTri)"/>
+<polygon points="902.23,944.68 1260,944.68 1260,1260 391.94,1260" fill="url(#brBlue)"/>
+<path d="M111.66,292.95H1260V948.68H220.93A233.8,233.8 0 0 1 49.66,723.4V354.95A62.0,62.0 0 0 1 111.66,292.95Z" fill="#fefefe"/>
+<polygon points="895.37,-6 1260,-6 1260,378.2" fill="url(#trRed)"/>
+<polygon points="-6,888.37 295.74,1137.22 105.54,1260 -6,1260" fill="url(#blRed)"/>
+<polygon points="1032.04,637.75 1260,483.71 1260,979.23" fill="#ebf2fa"/>
+<path d="M95.44,330.89H320.1V708.72A56.78,56.78 0 0 0 433.67,708.72V330.89H566.33L539.29,354.06V907.5H522.81V874.6L518.91,873.5C460.13,916.64 410.51,924 338.5,924C305.12,924 272.51,922.38 240.5,913.79C159.52,892.06 95.44,820.18 95.44,737.5Z" fill="url(#blueLetters)"/>
+<path d="M562.88,352.81Q562.88,350.81 564.88,350.81L597.94,350.81Q599.94,350.81 599.94,352.81L599.94,436.96Q599.94,438.96 601.94,438.96L650.95,438.96Q652.95,438.96 652.95,440.96L652.95,466.06Q652.95,468.06 650.95,468.06L564.88,468.06Q562.88,468.06 562.88,466.06Z" fill="url(#blueLetters)"/>
+<path d="M562.86,634.79Q562.86,632.79 564.86,632.79L650.4,632.79Q652.4,632.79 652.4,634.79L652.4,661.05Q652.4,663.05 650.4,663.05L601.99,663.05Q599.99,663.05 599.99,665.05L599.99,681.55Q599.99,683.55 601.99,683.55L644.96,683.55Q646.96,683.55 646.96,685.55L646.96,709.41Q646.96,711.41 644.96,711.41L601.96,711.41Q599.96,711.41 599.96,713.41L599.96,753.7Q599.96,755.7 597.96,755.7L564.86,755.7Q562.86,755.7 562.86,753.7Z" fill="url(#blueLetters)"/>
+<path d="M562.87,774.78Q562.87,772.78 564.87,772.78L649.43,772.78Q651.43,772.78 651.43,774.78L651.43,799.47Q651.43,801.47 649.43,801.47L601.13,801.47Q599.13,801.47 599.13,803.47L599.13,818.95Q599.13,820.95 601.13,820.95L641.97,820.95Q643.97,820.95 643.97,822.95L643.97,845.62Q643.97,847.62 641.97,847.62L601.5,847.62Q599.5,847.62 599.5,849.62L599.5,868.78Q599.5,870.78 601.5,870.78L649.84,870.78Q651.84,870.78 651.84,872.78L651.84,900.85Q651.84,902.85 649.84,902.85L564.87,902.85Q562.87,902.85 562.87,900.85Z" fill="url(#blueLetters)"/>
+<path d="M588.15,494.7Q588.15,491.7 591.15,491.7L621.45,491.7Q624.45,491.7 624.45,494.7L624.45,611.71Q624.45,614.71 621.45,614.71L591.15,614.71Q588.15,614.71 588.15,611.71Z" fill="#f80112"/>
+<path d="M646.84,331.42L817.99,331.42Q819.99,331.42 819.99,333.42L819.99,519.45Q819.99,521.45 821.2,519.85L961.5,333.33Q962.7,331.73 964.7,331.73L1168.3,331.73Q1170.3,331.73 1169.05,333.3L957.18,599.64Q955.93,601.21 957.07,602.85L1168.78,909.77Q1169.92,911.42 1167.92,911.42L960.36,911.42Q958.36,911.42 957.27,909.75L820.84,702.33Q819.74,700.65 819.74,702.65L819.74,909.01Q819.74,911.01 817.74,911.01L678.11,911.01Q676.11,911.01 676.11,909.01L676.11,356.1Z" fill="url(#kRed)"/>
+</g>
 </svg>
