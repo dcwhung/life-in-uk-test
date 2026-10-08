@@ -163,6 +163,10 @@
   /* exam day: amber with a fine gold lattice */
   .sp-exam-pat, .sp-cell.sp-exam-pat { background-color: var(--sp-exam-bg); background-image: linear-gradient(45deg, var(--sp-exam-line) 1px, transparent 1px), linear-gradient(-45deg, var(--sp-exam-line) 1px, transparent 1px); background-size: 8px 8px; }
 
+  .sp-click { cursor: pointer; }
+  .sp-day.sp-click:hover { background: var(--selected-bg); margin: 0 -8px; padding-inline: 8px; border-radius: var(--radius-sm); }
+  .sp-cell.sp-click:hover { box-shadow: 0 0 0 2px var(--navy-light); }
+  .sp-cell.viewing { outline: 2.5px dashed var(--navy); outline-offset: 1px; }
   /* today */
   .sp-today-head { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 16px; align-items: center; }
   .sp-ring { width: 112px; height: 112px; }
@@ -407,26 +411,28 @@
           <button class="nav-btn secondary sp-small" data-goto="2">進度表</button>
         </div>
 
+        <h2 class="sp-h2" id="dayTitle">今日任務</h2>
         <div class="sp-card">
           <div class="sp-today-head">
             <svg class="sp-ring" viewBox="0 0 112 112" aria-hidden="true">
               <circle class="track" cx="56" cy="56" r="46"></circle>
               <circle class="prog" id="ringProg" cx="56" cy="56" r="46"></circle>
               <text x="56" y="58" text-anchor="middle" class="num" id="ringPct">0%</text>
-              <text x="56" y="76" text-anchor="middle" class="sub">今日完成度</text>
+              <text x="56" y="76" text-anchor="middle" class="sub" id="ringSub">今日完成度</text>
             </svg>
             <div style="display: grid; gap: 6px;">
               <span class="sp-pill" id="todayPhase" style="justify-self: start;"></span>
               <div style="font-size: var(--fs-md); font-weight: 700;" class="num" id="todayCount"></div>
-              <p class="sp-muted">完成度由 system 自動計：喺溫習／練習模式做咗嘅都計。練完一段題目，嗰段知識點當溫咗。</p>
+              <p class="sp-muted" id="dayHint"></p>
+              <button class="chip" id="backToday" data-viewday="today" style="justify-self: start;" hidden>← 返今日</button>
             </div>
           </div>
-          <div class="sp-done-banner" id="doneBanner" hidden>🎉 <b>今日任務全部完成！</b>聽日主頁會顯示新一日嘅任務。</div>
+          <div class="sp-done-banner" id="doneBanner" hidden>🎉 <b>呢日嘅任務全部完成！</b></div>
           <div style="display: grid; gap: 8px;" id="taskList"></div>
           <button class="mock-ff" data-reset="1">↺ 重設示範進度（mockup）</button>
         </div>
 
-        <div class="sp-alert"><span>⚠️</span><div><b>第 5 日仲有 1 項未完成。</b>已經自動加入今日，標住「補做」。如果連續 2 日落後，app 會建議調整進度表。</div></div>
+        <div class="sp-alert" id="carryAlert"><span>⚠️</span><div><b>第 5 日仲有 1 項未完成。</b>已經自動加入今日，標住「補做」。如果連續 2 日落後，app 會建議調整進度表。</div></div>
 
         <div class="sp-card">
           <div class="sp-row"><h3>每日完成度</h3><span class="study-progress num" id="streakPill"></span></div>
@@ -485,9 +491,15 @@ const BOOKMARK_PATH = 'M7.5 3.5h9A2.5 2.5 0 0 1 19 6v14.5l-7-5.1-7 5.1V6a2.5 2.5
 
 // ── sample content for the runner (real items from data/study.js + data/exams.js) ──
 const SAMPLE_FACTS = [
-  { id: 67, d: 3, src: ['E4·Q12', 'E15·Q5'], en: 'The First World War ended at 11am on 11th November 1918.', yue: '第一次世界大戰喺 1918 年 11 月 11 日上午 11 時結束。' },
-  { id: 68, d: 4, src: ['E2·Q4', 'E10·Q6'], en: 'In 1918 women over 30 were given the right to vote, in recognition of their contribution to the First World War.', yue: '1918 年 30 歲以上嘅女性有咗投票權，係表揚佢哋喺一戰嘅貢獻。' },
-  { id: 69, d: 4, src: ['E1·Q2', 'E9·Q6'], en: 'In 1928 women were given the right to vote at 21, the same age as men.', yue: '1928 年女性投票年齡降到 21 歲，同男性一樣。' },
+  { id: 67, d: 3, en: 'The First World War ended at 11am on 11th November 1918.', yue: '第一次世界大戰喺 1918 年 11 月 11 日上午 11 時結束。',
+    qs: [{ node: 'E4·Q13', ref: 'Exam 4 · Q13', q: 'When did the First World War end?', yue: '第一次世界大戰喺邊年結束？' },
+      { node: 'E15·Q6', ref: 'Exam 15 · Q6', q: 'When did the First World War end?', yue: '第一次世界大戰喺邊年結束？' }] },
+  { id: 68, d: 4, en: 'In 1918 women over 30 were given the right to vote, in recognition of their contribution to the First World War.', yue: '1918 年 30 歲以上嘅女性有咗投票權，係表揚佢哋喺一戰嘅貢獻。',
+    qs: [{ node: 'E2·Q5', ref: 'Exam 2 · Q5', q: 'Women over the age of 30 were given the right to vote because of their contribution to which war?', yue: '30歲以上嘅女性有投票權，係因為佢哋喺邊場戰爭有貢獻？' },
+      { node: 'E10·Q7', ref: 'Exam 10 · Q7', q: 'Why were women given the right to vote in 1918?', yue: '點解女性喺1918年得到投票權？' }] },
+  { id: 69, d: 4, en: 'In 1928 women were given the right to vote at 21, the same age as men.', yue: '1928 年女性投票年齡降到 21 歲，同男性一樣。',
+    qs: [{ node: 'E1·Q3', ref: 'Exam 1 · Q3', q: 'When were men and women given the right to vote at the age of 21?', yue: '邊年開始，男女都係21歲就可以投票？' },
+      { node: 'E9·Q7', ref: 'Exam 9 · Q7', q: "Why is 1928 an important year in women's voting history?", yue: '1928年喺女性投票史上有咩重要性？' }] },
 ];
 const SAMPLE_QS = [
   { d: 3, q: 'During the reign of Charles II, parts of London were destroyed by:', yue: '查理二世嗰陣，倫敦有部分地區被摧毀，原因係：', o: ['A war', 'A flood', 'A fire', 'An earthquake'], oy: ['一場戰爭', '水災', '火災', '地震'], a: 2, note: '1666年倫敦大火，包括聖保羅大教堂' },
@@ -550,7 +562,7 @@ const HEAT_STEPS = [75, 50];                  // % thresholds for heat colours h
 const RING_R = 46;
 const LS_KEY = 'mock.studyPlan.progress.v3';
 
-const state = { heatMonth: null, days: 21, mins: 120, rest: new Set([0]), level: 'none', start: startOfToday(), runner: null };
+const state = { viewDay: TODAY_INDEX, heatMonth: null, days: 21, mins: 120, rest: new Set([0]), level: 'none', start: startOfToday(), runner: null };
 
 function startOfToday() { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }
 function addDays(d, n) { const r = new Date(d); r.setDate(r.getDate() + n); return r; }
@@ -653,7 +665,7 @@ function learnTasks(chunk) {
 
 function drillTasks(chunk) {
   const tasks = chunk.groups.map(g => ({ type: 'practice', t: `再練 ${chLabel(g.ch)} 未 🏆 題目`, label: `Chapter ${g.ch}`, total: count(g), from: 1, unit: '題' }));
-  tasks.push({ type: 'read', t: '重溫答錯題目嘅知識點', label: '錯題知識點', total: REVIEW_SET_SIZE, from: 1, unit: '條' });
+  tasks.push({ type: 'read', t: '重溫答錯題目嘅知識點', label: '錯題知識點', total: REVIEW_SET_SIZE, from: 1, unit: '條', wrongFacts: true });
   return tasks;
 }
 
@@ -689,33 +701,42 @@ function buildPlan() {
   return { cal, split, studyDays: study.length, mocks: examCursor.n };
 }
 
-// ════════ today's progress (system-tracked) ════════
+// ════════ progress per day (system-tracked) ════════
 function sig() { return `${state.days}-${state.mins}-${state.level}-${[...state.rest].sort().join('')}`; }
 
-let todayCache = { tasks: [] };
+let cache = { plan: null, byDay: {} };
+function refresh() { cache = { plan: buildPlan(), byDay: {} }; return cache.plan; }
 
-function todayTasks(plan) {
-  const today = plan.cal[TODAY_INDEX] || plan.cal[plan.cal.length - 1];
-  const carryFrom = plan.cal[DEMO_CARRY_DAY - 1];
-  const carry = carryFrom && !carryFrom.rest ? [{ ...reviewTask(), t: '補做：重溫 + 清錯題', carry: true }] : [];
-  const tasks = [...carry, ...today.tasks];
-  tasks.forEach((t, i) => { t.id = `t${i}`; });
-  return { today, tasks };
+// demo seed: past days done up to their sample %, today part done, future untouched
+function seedTasks(tasks, i) {
+  if (i < TODAY_INDEX) {
+    let left = Math.round(tasks.reduce((s, t) => s + t.total, 0) * DEMO_PAST[i % DEMO_PAST.length] / PERCENT);
+    tasks.forEach(t => { t.seed = Math.min(t.total, left); left -= t.seed; });
+    return;
+  }
+  tasks.forEach(t => { t.seed = i === TODAY_INDEX && t.type === 'read' && !t.carry && t.pair ? Math.min(DEMO_READ_DONE, t.total) : 0; });
 }
 
-function refreshToday() { const plan = buildPlan(); todayCache = { plan, ...todayTasks(plan) }; return todayCache; }
-
-// seeded demo state until the viewer does something in this plan
-function seedDone(t) { return t.type === 'read' && !t.carry && t.pair ? Math.min(DEMO_READ_DONE, t.total) : 0; }
+function dayTasks(i) {
+  if (cache.byDay[i]) return cache.byDay[i];
+  const d = cache.plan.cal[i];
+  const carryFrom = cache.plan.cal[DEMO_CARRY_DAY - 1];
+  const carry = i === TODAY_INDEX && carryFrom && !carryFrom.rest ? [{ ...reviewTask(), t: '補做：重溫 + 清錯題', carry: true }] : [];
+  const tasks = d.rest ? [] : [...carry, ...d.tasks];
+  tasks.forEach((t, k) => { t.id = `d${i}-t${k}`; t.day = i; });
+  seedTasks(tasks, i);
+  cache.byDay[i] = tasks;
+  return tasks;
+}
 
 function doneRaw(t) {
   const p = readLS()[sig()];
-  return p ? (p[t.id] || 0) : seedDone(t);
+  return p && t.id in p ? p[t.id] : t.seed;
 }
 
 function setDone(t, n) {
   const all = readLS();
-  if (!all[sig()]) { all[sig()] = {}; todayCache.tasks.forEach(x => { all[sig()][x.id] = seedDone(x); }); }
+  all[sig()] = all[sig()] || {};
   all[sig()][t.id] = Math.min(t.total, n);
   writeLS(all);
 }
@@ -727,16 +748,15 @@ function effectiveDone(t) {
   return Math.max(own, Math.round(doneRaw(t.pair) / t.pair.total * t.total));
 }
 
-function todayPct(tasks) {
+function tasksPct(tasks) {
   const total = tasks.reduce((s, t) => s + t.total, 0) || 1;
   return Math.round(tasks.reduce((s, t) => s + effectiveDone(t), 0) / total * PERCENT);
 }
 
+// days up to today show their real completion; future days have none yet
 function dayPct(d) {
-  if (d.rest) return null;
-  if (d.i < TODAY_INDEX) return DEMO_PAST[d.i % DEMO_PAST.length];
-  if (d.i === TODAY_INDEX) return todayPct(todayCache.tasks);
-  return null;
+  if (d.rest || d.i > TODAY_INDEX) return null;
+  return tasksPct(dayTasks(d.i));
 }
 
 function nextTask(tasks) { return tasks.find(t => effectiveDone(t) < t.total); }
@@ -744,8 +764,10 @@ function heatClass(p) { return p >= PERCENT ? 'h4' : p >= HEAT_STEPS[0] ? 'h3' :
 
 // ════════ step 0 ════════
 function renderHome() {
-  const { tasks, today } = refreshToday();
-  const pct = todayPct(tasks);
+  const plan = refresh();
+  const today = plan.cal[TODAY_INDEX];
+  const tasks = dayTasks(TODAY_INDEX);
+  const pct = tasksPct(tasks);
   $('hDay').textContent = `Day ${today.i + 1} / ${state.days}`;
   $('hLeft').textContent = `距離考試 ${state.days - today.i} 日 · ${fmtDate(addDays(state.start, state.days))}`;
   $('hPct').textContent = `${pct}%`;
@@ -842,7 +864,7 @@ function statusPill(d) {
   if (d.rest) return '<span class="sp-pill mute">休息</span>';
   const p = dayPct(d);
   if (d.i === TODAY_INDEX) return `<span class="sp-pill now num">今日 ${p}%</span>`;
-  if (p === null) return '';
+  if (p === null) return '<span class="sp-pill mute">›</span>';
   return p >= PERCENT ? '<span class="sp-pill ok">✓ 完成</span>' : `<span class="sp-pill num ${heatClass(p)}">${p}%</span>`;
 }
 
@@ -853,7 +875,7 @@ function renderDayList(plan) {
     if (d.i % DAYS_PER_WEEK === 0) html += `<div class="sp-week">Week ${d.i / DAYS_PER_WEEK + 1}</div>`;
     const tasks = d.rest ? '<div class="t"><span>😴</span><span>休息日</span></div>' : d.tasks.map(t => `<div class="t"><span>${TASK_ICONS[t.type]}</span><span>${t.t}</span></div>`).join('');
     const when = d.i === TODAY_INDEX ? 'today' : d.i > TODAY_INDEX ? 'future' : '';
-    html += `<div class="sp-day ${d.rest ? 'rest' : d.phase} ${when}">
+    html += `<div class="sp-day sp-click ${d.rest ? 'rest' : d.phase} ${when}" data-day="${d.i}" role="button" tabindex="0" aria-label="Day ${d.i + 1} 任務">
       <div class="d num">${d.i + 1}<small>${fmtDate(d.date)} ${WEEKDAYS[d.date.getDay()]}</small></div>
       <div class="tasks">${tasks}</div><div>${statusPill(d)}</div></div>`;
   });
@@ -862,7 +884,7 @@ function renderDayList(plan) {
 }
 
 function renderPlan() {
-  const { plan } = refreshToday();
+  const plan = refresh();
   const exam = addDays(state.start, state.days);
   $('planSummary').textContent = `${fmtDate(state.start)} 開始 · ${fmtDate(exam)} 考試 · 每日最多 ${fmtMins(state.mins)} · ${LEVELS[state.level].label}`;
   const phaseDays = { learn: [], practice: [], mock: [] };
@@ -876,7 +898,7 @@ function renderPlan() {
 // ════════ step 3 ════════
 function taskStatus(t) {
   const own = doneRaw(t); const eff = effectiveDone(t);
-  if (eff >= t.total) return { go: '✓ 完成', st: eff > own ? '<b>✓ 練咗對應題目，自動當溫咗</b>' : `<b>✓ 已完成 ${t.total} ${t.unit}</b>` };
+  if (eff >= t.total) return { go: '✓ 重溫 ›', st: eff > own ? '<b>✓ 練咗對應題目，自動當溫咗</b>' : `<b>✓ 已完成 ${t.total} ${t.unit}</b>` };
   if (eff > 0) return { go: '繼續 ›', st: `已做 ${eff} / ${t.total} ${t.unit} · 由 #${t.from + eff} 繼續${eff > own ? '<span class="sp-tag auto">部份由練習自動計</span>' : ''}` };
   return { go: '開始 ›', st: `${t.total} ${t.unit} · ${TASK_MODES[t.type]}` };
 }
@@ -894,13 +916,14 @@ function renderTaskList(tasks) {
   }).join('');
 }
 
-function renderRing(tasks) {
-  const pct = todayPct(tasks);
+function renderRing(tasks, d) {
+  const pct = d.rest ? 0 : tasksPct(tasks);
   const c = 2 * Math.PI * RING_R;
   $('ringProg').style.strokeDasharray = c;
   $('ringProg').style.strokeDashoffset = c * (1 - pct / PERCENT);
   $('ringPct').textContent = `${pct}%`;
-  $('todayCount').textContent = `${tasks.filter(t => effectiveDone(t) >= t.total).length} / ${tasks.length} 項完成`;
+  $('ringSub').textContent = d.i === TODAY_INDEX ? '今日完成度' : '當日完成度';
+  $('todayCount').textContent = d.rest ? '休息日，冇任務' : `${tasks.filter(t => effectiveDone(t) >= t.total).length} / ${tasks.length} 項完成`;
 }
 
 function heatCell(date, plan) {
@@ -913,7 +936,8 @@ function heatCell(date, plan) {
   if (d.rest) cls += ' rest';
   else if (d.i > TODAY_INDEX) cls += ' future';
   else cls += ` ${heatClass(p)}${d.i === TODAY_INDEX ? ' today' : ''}`;
-  return `<span class="${cls} num" title="Day ${d.i + 1}${p === null ? '' : ` · ${p}%`}">${date.getDate()}</span>`;
+  const viewing = d.i === state.viewDay && d.i !== TODAY_INDEX ? ' viewing' : '';
+  return `<span class="${cls}${viewing} sp-click num" data-day="${d.i}" role="button" tabindex="0" title="Day ${d.i + 1}${p === null ? '' : ` · ${p}%`}">${date.getDate()}</span>`;
 }
 
 function monthGrid(year, month, plan) {
@@ -958,7 +982,7 @@ function renderHeat(plan) {
 function stepMonth(dir) {
   const months = planMonths();
   state.heatMonth = dir === 0 ? todayMonthIndex(months) : Math.min(months.length - 1, Math.max(0, state.heatMonth + dir));
-  renderHeat(todayCache.plan);
+  renderHeat(cache.plan);
 }
 
 function renderKpis(plan) {
@@ -980,55 +1004,111 @@ function renderKpis(plan) {
   }).join('');
 }
 
-function renderToday() {
-  const { plan, today, tasks } = refreshToday();
-  $('todayLabel').textContent = `Day ${today.i + 1} / ${state.days} · ${fmtDate(today.date)}（${WEEKDAYS[today.date.getDay()]}）`;
-  const phase = PHASES[today.phase];
+function dayStatusPill(d) {
   const pill = $('todayPhase');
+  const phase = PHASES[d.phase];
   pill.className = 'sp-pill';
   pill.style.background = phase ? `var(--sp-ph-${phase.cls}-bg)` : 'var(--bg)';
   pill.style.color = phase ? `var(--sp-ph-${phase.cls})` : 'var(--text-muted)';
-  pill.textContent = phase ? `${phase.name}階段` : '休息日';
-  renderRing(tasks);
+  const when = d.i < TODAY_INDEX ? ' · 已過' : d.i > TODAY_INDEX ? ' · 未到' : '';
+  pill.textContent = phase ? `${phase.name}階段${when}` : '休息日';
+}
+
+function renderToday() {
+  const plan = refresh();
+  const d = plan.cal[state.viewDay];
+  const tasks = dayTasks(d.i);
+  const isToday = d.i === TODAY_INDEX;
+  $('todayLabel').textContent = `Day ${d.i + 1} / ${state.days} · ${fmtDate(d.date)}（${WEEKDAYS[d.date.getDay()]}）`;
+  $('dayTitle').textContent = isToday ? '今日任務' : `Day ${d.i + 1} 任務`;
+  $('backToday').hidden = isToday;
+  $('dayHint').textContent = isToday ? '完成度由 system 自動計：喺溫習／練習模式做咗嘅都計。練完一段題目，嗰段知識點當溫咗。'
+    : d.i < TODAY_INDEX ? '已過嘅日子：未完成嘅可以喺度補做，完成度會即時更新。' : '未到嘅日子：可以預先睇內容，想提早做都得。';
+  dayStatusPill(d);
+  $('carryAlert').hidden = !isToday;
+  renderRing(tasks, d);
   renderTaskList(tasks);
-  $('doneBanner').hidden = todayPct(tasks) < PERCENT;
+  $('doneBanner').hidden = !tasks.length || tasksPct(tasks) < PERCENT;
   renderHeat(plan);
   renderKpis(plan);
 }
 
-// ════════ runner: same markup as the app's Practice (screenQuiz), Study (.fact) and Result screens ════════
+function viewDay(i) { state.viewDay = i; state.heatMonth = null; goto(3, true); }
+
+// ════════ runner: same markup as the app's Practice (screenQuiz), Study (.fact), Similar (.sqm) and Result screens ════════
 const RUN_BADGE = { read: '溫習', practice: '練習', review: '練習', mock: '模擬考試' };
 
+function runList() { return dayTasks(state.viewDay); }
+
+// a finished task opens in review mode: browse its content again, progress stays as it is
 function openRunner(i) {
-  const t = todayCache.tasks[i];
-  state.runner = { index: i, task: t, picked: null, yue: false, right: 0, wrong: 0, results: {}, startDone: effectiveDone(t) };
+  const t = runList()[i];
+  const done = effectiveDone(t);
+  state.runner = { index: i, task: t, picked: null, yue: false, right: 0, wrong: 0, results: {}, startDone: done,
+    review: done >= t.total, pos: 0 };
   show('runner');
   renderRunner();
 }
 
 function runHeader(t) {
+  const back = state.viewDay === TODAY_INDEX ? '今日任務' : `Day ${state.viewDay + 1} 任務`;
   return `<div class="quiz-header">
-      <button class="back-btn" data-goto="3">← 今日任務</button>
+      <button class="back-btn" data-goto="3">← ${back}</button>
       <div class="quiz-meta"><span class="quiz-label">${t.label}</span><span class="quiz-mode-badge">${RUN_BADGE[t.type]}</span></div>
     </div>`;
 }
 
 function renderRunner() {
-  const t = state.runner.task;
+  const r = state.runner; const t = r.task;
   const done = effectiveDone(t);
-  if (done >= t.total) { $('runner').innerHTML = runHeader(t) + taskDoneHtml(t); return; }
-  $('runner').innerHTML = runHeader(t) + (t.type === 'read' ? factRunHtml(t, done) : questionRunHtml(t, done));
+  let body;
+  if (r.review) body = `<p class="sp-note">✓ 呢項已完成 · 而家係重溫，唔會改變完成度。</p><div class="sp-run-gap"></div>` + contentHtml(t, r.pos, true);
+  else if (done >= t.total) body = taskDoneHtml(t);
+  else body = contentHtml(t, done, false);
+  $('runner').innerHTML = runHeader(t) + body;
 }
 
-// study: the real fact card (factCardHtml, variant full) + the quiz nav row
-function factRunHtml(t, done) {
-  const f = SAMPLE_FACTS[done % SAMPLE_FACTS.length];
-  const nodes = f.src.map(s => `<span class="sqm-node">${s}</span>`).join('');
-  return `<div class="sp-run-meta num"><span>${t.t}</span><span>${done} / ${t.total} 條</span></div>
-    <div class="sp-meter" style="height: 5px; margin-bottom: 14px;"><i style="width:${done / t.total * PERCENT}%; background: var(--green-light);"></i></div>
-    <div class="fact" data-fact-id="${f.id}">
+function contentHtml(t, pos, review) { return t.type === 'read' ? factRunHtml(t, pos, review) : questionRunHtml(t, pos, review); }
+
+// bottom nav: doing = next records progress; review = prev / next only browse, last one returns to the list
+function runNavHtml(t, pos, review, unit) {
+  if (!review) {
+    return `<div class="nav-row"><button class="nav-btn secondary" disabled>← 上一${unit}</button><button class="nav-btn" data-run="next">下一${unit} →</button></div>
+      <div class="sp-run-gap"></div><button class="mock-ff" data-run="skip">⏩ 快進完成呢項（mockup）</button>`;
+  }
+  const last = pos >= t.total - 1;
+  return `<div class="nav-row"><button class="nav-btn secondary" data-rev="-1" ${pos ? '' : 'disabled'}>← 上一${unit}</button>${last
+    ? '<button class="nav-btn" data-goto="3">完成 ✓</button>' : `<button class="nav-btn" data-rev="1">下一${unit} →</button>`}</div>`;
+}
+
+// the app's Similar panel (js/screens/similarPanel.js): core fact, where it appeared, the questions built from it
+function sqmHtml(f, chNo) {
+  const nodes = f.qs.map((q, k) => `<span class="sqm-node${k === 0 ? ' current' : ''}">${q.node}</span>`).join('');
+  const items = f.qs.map((q, k) => `<div class="sqm-item">
+      <div class="sqm-item-top"><span class="sqm-id">${q.ref}${k === 0 ? ' · 你答錯' : ''}</span><span class="sqm-streak">🔥 0/${MASTERY_STREAK}</span></div>
+      <div class="sqm-q" lang="en">${q.q}</div>
+      <div class="sqm-qy" lang="zh-HK">${q.yue}</div>
+    </div>`).join('');
+  return `<div class="sqm show">
+    <div class="sqm-head"><span class="sqm-icon">🗺️</span><span class="sqm-title"><b>答錯嘅題目</b><span>同一知識點，不同問法</span></span><span class="sqm-count">${f.qs.length}</span></div>
+    <div class="sqm-fact core">
+      <div class="sqm-fact-label">📌 核心知識 <span lang="en">Ch ${chNo} #${f.id}</span></div>
+      <div class="sqm-fact-en" lang="en">${f.en}</div>
+      <div class="sqm-fact-yue" lang="zh-HK">${f.yue}</div>
+    </div>
+    <div class="sqm-map"><span class="sqm-map-label">出現於：</span>${nodes}</div>
+    <div class="sqm-legend"><span><i class="lg-current"></i>你答錯</span><span><i class="lg-mastered"></i>🏆 已掌握</span><span><i class="lg-weak"></i>進行中</span><span><i class="lg-new"></i>🔥 0/3</span></div>
+    <div class="sqm-list">${items}</div>
+    <div class="sqm-cta"><button>▶ 練習這 ${f.qs.length} 題</button></div>
+  </div>`;
+}
+
+// the app's fact card (factCardHtml, variant full)
+function factCardHtml(f, num) {
+  const nodes = f.qs.map(q => `<span class="sqm-node">${q.node}</span>`).join('');
+  return `<div class="fact" data-fact-id="${f.id}">
       <div class="fact-top">
-        <div class="fact-meta"><span class="fact-id">#${t.from + done}</span>${starsHtml(f.d)}</div>
+        <div class="fact-meta"><span class="fact-id">#${num}</span>${starsHtml(f.d)}</div>
         <div class="fact-actions">
           <button class="fact-btn star" title="書籤" aria-label="書籤" aria-pressed="false">${bookmarkSvg()}</button>
           <button class="fact-btn tick" title="已掌握" aria-label="已掌握" aria-pressed="false">✓</button>
@@ -1036,21 +1116,23 @@ function factRunHtml(t, done) {
       </div>
       <div class="fact-en" lang="en">${f.en}</div>
       <div class="fact-yue" lang="zh-HK">${f.yue}</div>
-      <div class="fact-src">
-        <div class="fact-src-nodes"><span class="sqm-map-label">出現於：</span>${nodes}</div>
-      </div>
-    </div>
-    <div class="sp-run-gap"></div>
-    <div class="nav-row">
-      <button class="nav-btn secondary" disabled>← 上一條</button>
-      <button class="nav-btn" data-run="next">下一條 →</button>
-    </div>
-    <div class="sp-run-gap"></div>
-    <button class="mock-ff" data-run="skip">⏩ 快進完成呢項（mockup）</button>`;
+      <div class="fact-src"><div class="fact-src-nodes"><span class="sqm-map-label">出現於：</span>${nodes}</div></div>
+    </div>`;
 }
 
-function optionHtml(q, oi, revealed) {
-  const cls = !revealed ? 'opt' : 'opt disabled' + (oi === q.a ? ' correct' : oi === state.runner.picked ? ' wrong' : '');
+function factRunHtml(t, pos, review) {
+  const f = SAMPLE_FACTS[pos % SAMPLE_FACTS.length];
+  const shown = review ? pos + 1 : pos;
+  const card = t.wrongFacts ? sqmHtml(f, 3) : factCardHtml(f, t.from + pos);
+  return `<div class="sp-run-meta num"><span>${t.t}</span><span>${review ? `${pos + 1} / ${t.total}` : `${pos} / ${t.total}`} 條</span></div>
+    <div class="sp-meter" style="height: 5px; margin-bottom: 14px;"><i style="width:${shown / t.total * PERCENT}%; background: var(--green-light);"></i></div>
+    ${card}
+    <div class="sp-run-gap"></div>
+    ${runNavHtml(t, pos, review, '條')}`;
+}
+
+function optionHtml(q, oi, revealed, picked) {
+  const cls = !revealed ? 'opt' : 'opt disabled' + (oi === q.a ? ' correct' : oi === picked ? ' wrong' : '');
   const optYue = revealed ? `<span class="opt-yue" lang="zh-HK">${q.oy[oi]}</span>` : '';
   return `<button class="${cls}" data-opt="${oi}">
       <span class="opt-letter">${OPTION_LETTERS[oi]}</span>
@@ -1060,11 +1142,12 @@ function optionHtml(q, oi, revealed) {
 
 function noteRows(note) { return note.split('\n').map(line => `<div class="rv-note-line">${line}</div>`).join(''); }
 
-function answerBoxHtml(q, revealed) {
+function answerBoxHtml(q, revealed, picked, review) {
   if (!revealed) return '<div class="answer-box"></div>';
-  const correct = state.runner.picked === q.a;
+  const correct = picked === q.a;
+  const label = review ? '✓ 正確答案' : `${correct ? '✓ 正確！' : '✗ 錯誤'} · 🔥 ${correct ? 1 : 0}/${MASTERY_STREAK}`;
   return `<div class="answer-box show${correct ? '' : ' wrong-ans'}">
-      <div class="ans-label${correct ? '' : ' wrong'}">${correct ? '✓ 正確！' : '✗ 錯誤'} · 🔥 ${correct ? 1 : 0}/${MASTERY_STREAK}</div>
+      <div class="ans-label${correct ? '' : ' wrong'}">${label}</div>
       <div class="ans-en${correct ? '' : ' wrong'}" lang="en">${q.o[q.a]}</div>
       <div class="divider"></div>
       <div class="ans-yue" lang="zh-HK"><div class="ans-yue-title">【廣東話翻譯】</div>
@@ -1074,61 +1157,27 @@ function answerBoxHtml(q, revealed) {
     </div>`;
 }
 
-// practice: the screenQuiz layout (q-card, options, answer box, nav row); answers reveal on tap as in Practice mode
-function questionRunHtml(t, done) {
-  const q = SAMPLE_QS[done % SAMPLE_QS.length];
-  const revealed = state.runner.picked !== null;
-  const yueOn = revealed || state.runner.yue;
-  const paired = todayCache.tasks.some(x => x.pair === t);
-  const pairNote = paired ? '<p class="sp-note">練完呢段題目，對應嗰段知識點會自動當溫咗。</p><div class="sp-run-gap"></div>' : '';
-  const round = roundOf(t, done);
-  return `${round.count > 1 ? `<div class="round-row"><span class="round-note">第 ${round.n} 輪（共 ${round.count} 輪）</span></div>` : ''}
-    <div class="q-card">
-      <div class="nav-dots">${navDotsHtml(t, done, round)}</div>
-      <div class="dots-meta practice">${dotsMetaHtml(round)}</div>
-      <div class="q-num">
-        <span class="q-num-text"><span>第 ${done - round.start + 1} 題（共 ${round.size} 題）</span>${starsHtml(q.d)}</span>
-        <button class="flag-btn" title="標記待覆閱" aria-label="標記待覆閱">${bookmarkSvg()}</button>
-        <button class="yue-toggle ${revealed ? '' : 'visible'} ${yueOn ? 'on' : ''}" data-yue="1">${yueOn ? '隱藏翻譯' : '翻譯'}</button>
-        <span class="quick-nav ${revealed ? 'visible' : ''}">
-          <button class="quick-btn" disabled aria-label="上一題">←</button>
-          <button class="quick-btn primary" data-run="next" aria-label="下一題">→</button>
-        </span>
-      </div>
-      <div class="q-text" lang="en">${q.q}</div>
-      <div class="q-yue ${yueOn ? 'show' : ''}" lang="zh-HK">${q.yue}</div>
-    </div>
-    <div class="options" lang="en">${q.o.map((_, oi) => optionHtml(q, oi, revealed)).join('')}</div>
-    ${answerBoxHtml(q, revealed)}
-    ${pairNote}
-    <div class="nav-row">
-      <button class="nav-btn secondary" disabled>← 上一題</button>
-      <button class="nav-btn" data-run="next">下一題 →</button>
-    </div>
-    <div class="sp-run-gap"></div>
-    <button class="mock-ff" data-run="skip">⏩ 快進完成呢項（mockup）</button>`;
-}
-
 // a long task runs as rounds of up to PRACTICE_ROUND_MAX questions, like a practice round in the app
-function roundOf(t, done) {
+function roundOf(t, pos) {
   const count = Math.ceil(t.total / PRACTICE_ROUND_MAX);
-  const idx = Math.floor(done / PRACTICE_ROUND_MAX);
+  const idx = Math.floor(pos / PRACTICE_ROUND_MAX);
   const start = idx * PRACTICE_ROUND_MAX;
   return { n: idx + 1, count, start, size: Math.min(PRACTICE_ROUND_MAX, t.total - start) };
 }
 
 // same classes as navDotsHtml() / dotStateCls() in js/screens/examTools.js; earlier sessions count as answered
-function dotState(pos, done) {
-  const res = state.runner.results[pos];
-  if (res !== undefined) return res ? 'ok' : 'bad';
-  return pos < done && pos < state.runner.startDone ? 'ok' : '';
+function dotState(p) {
+  const r = state.runner;
+  if (r.review) return 'ok';
+  if (r.results[p] !== undefined) return r.results[p] ? 'ok' : 'bad';
+  return p < r.startDone ? 'ok' : '';
 }
 
-function navDotsHtml(t, done, round) {
+function navDotsHtml(pos, round) {
   let html = '';
   for (let k = 0; k < round.size; k++) {
-    const pos = round.start + k;
-    const cls = ['dot', dotState(pos, done), pos === done && 'current'].filter(Boolean).join(' ');
+    const p = round.start + k;
+    const cls = ['dot', dotState(p), p === pos && 'current'].filter(Boolean).join(' ');
     html += `<button class="${cls}" aria-label="第 ${k + 1} 題">${k + 1}</button>`;
   }
   return html;
@@ -1137,12 +1186,44 @@ function navDotsHtml(t, done, round) {
 function dotsMetaHtml(round) {
   let ok = 0; let bad = 0;
   for (let k = 0; k < round.size; k++) {
-    const st = dotState(round.start + k, effectiveDone(state.runner.task));
+    const st = dotState(round.start + k);
     if (st === 'ok') ok++; else if (st === 'bad') bad++;
   }
   const sep = ' <span class="sep">|</span> ';
   return [['lg-ok', '正確', ok], ['lg-bad', '錯誤', bad], ['lg-todo', '未作答', round.size - ok - bad], ['lg-flag', '已標記', 0]]
     .map(([cls, label, n]) => `<span><i class="${cls}"></i>${label} <b>${n}</b></span>`).join(sep);
+}
+
+// practice: the screenQuiz layout (q-card, options, answer box, nav row); answers reveal on tap as in Practice mode
+function questionRunHtml(t, pos, review) {
+  const q = SAMPLE_QS[pos % SAMPLE_QS.length];
+  const picked = review ? q.a : state.runner.picked;
+  const revealed = picked !== null;
+  const yueOn = revealed || state.runner.yue;
+  const round = roundOf(t, pos);
+  const paired = !review && runList().some(x => x.pair === t);
+  const pairNote = paired ? '<p class="sp-note">練完呢段題目，對應嗰段知識點會自動當溫咗。</p><div class="sp-run-gap"></div>' : '';
+  const quickNext = review ? (pos >= t.total - 1 ? 'data-goto="3"' : 'data-rev="1"') : 'data-run="next"';
+  return `${round.count > 1 ? `<div class="round-row"><span class="round-note">第 ${round.n} 輪（共 ${round.count} 輪）</span></div>` : ''}
+    <div class="q-card">
+      <div class="nav-dots">${navDotsHtml(pos, round)}</div>
+      <div class="dots-meta practice">${dotsMetaHtml(round)}</div>
+      <div class="q-num">
+        <span class="q-num-text"><span>第 ${pos - round.start + 1} 題（共 ${round.size} 題）</span>${starsHtml(q.d)}</span>
+        <button class="flag-btn" title="標記待覆閱" aria-label="標記待覆閱">${bookmarkSvg()}</button>
+        <button class="yue-toggle ${revealed ? '' : 'visible'} ${yueOn ? 'on' : ''}" data-yue="1">${yueOn ? '隱藏翻譯' : '翻譯'}</button>
+        <span class="quick-nav ${revealed ? 'visible' : ''}">
+          <button class="quick-btn" ${review && pos ? 'data-rev="-1"' : 'disabled'} aria-label="上一題">←</button>
+          <button class="quick-btn primary" ${quickNext} aria-label="下一題">→</button>
+        </span>
+      </div>
+      <div class="q-text" lang="en">${q.q}</div>
+      <div class="q-yue ${yueOn ? 'show' : ''}" lang="zh-HK">${q.yue}</div>
+    </div>
+    <div class="options" lang="en">${q.o.map((_, oi) => optionHtml(q, oi, revealed, picked)).join('')}</div>
+    ${answerBoxHtml(q, revealed, picked, review)}
+    ${pairNote}
+    ${runNavHtml(t, pos, review, '題')}`;
 }
 
 function sessionSummary(t) {
@@ -1154,28 +1235,31 @@ function sessionSummary(t) {
   return `今次答啱 ${r.right} 題，${wrongNote}。`;
 }
 
-// after a task: the Result screen card, then straight on to the next unfinished task (or the end-of-day card)
+// shown once, right after a task is finished: the Result card, then on to the next unfinished task
 function taskDoneHtml(t) {
-  const next = nextTask(todayCache.tasks);
-  const pct = todayPct(todayCache.tasks);
-  const pair = t.type === 'practice' && todayCache.tasks.find(x => x.pair === t);
+  const list = runList();
+  const next = nextTask(list);
+  const pct = tasksPct(list);
+  const isToday = state.viewDay === TODAY_INDEX;
+  const pair = t.type === 'practice' && list.find(x => x.pair === t);
   const pairLine = pair ? `<p class="sp-note">對應嘅「${pair.t}」已經自動當溫咗。</p><div class="sp-run-gap"></div>` : '';
+  const reviewBtn = `<button class="nav-btn secondary" data-review="1">重溫呢項內容</button>`;
   if (!next) {
     return `<div class="result-card"><div class="result-emoji">🎉</div><div class="result-score num">100<span>%</span></div>
-        <div class="result-label pass">今日任務全部完成！</div><div class="result-sub">聽日打開 app，主頁會顯示新一日嘅任務。</div></div>
+        <div class="result-label pass">${isToday ? '今日' : `Day ${state.viewDay + 1} `}任務全部完成！</div><div class="result-sub">${isToday ? '聽日打開 app，主頁會顯示新一日嘅任務。' : '進度表同完成度月曆已經更新。'}</div></div>
       ${pairLine}
-      <div class="nav-row"><button class="nav-btn secondary" data-goto="0">← 主頁</button><button class="nav-btn" data-goto="3">返回今日任務</button></div>`;
+      <div class="nav-row">${reviewBtn}<button class="nav-btn" data-goto="3">返回任務列表</button></div>`;
   }
   return `<div class="result-card"><div class="result-emoji">✅</div><div class="result-score num">${pct}<span>%</span></div>
-      <div class="result-label">呢項完成咗 · 今日完成度</div><div class="result-sub">${sessionSummary(t)}</div></div>
+      <div class="result-label">呢項完成咗 · ${isToday ? '今日' : '當日'}完成度</div><div class="result-sub">${sessionSummary(t)}</div></div>
     ${pairLine}
     <div class="sp-card" style="gap: 4px; margin-bottom: 14px;"><span class="section-title" style="margin: 0;">下一項</span><b>${TASK_ICONS[next.type]} ${next.t}</b><span class="sp-muted">${next.total} ${next.unit} · ${TASK_MODES[next.type]}</span></div>
-    <div class="nav-row"><button class="nav-btn secondary" data-goto="3">返回今日任務</button><button class="nav-btn" data-next="${todayCache.tasks.indexOf(next)}">開始下一項 →</button></div>`;
+    <div class="nav-row">${reviewBtn}<button class="nav-btn" data-next="${list.indexOf(next)}">開始下一項 →</button></div>`;
 }
 
 function pickOption(k) {
   const r = state.runner;
-  if (r.picked !== null) return;
+  if (r.review || r.picked !== null) return;
   r.picked = k;
   const done = effectiveDone(r.task);
   const q = SAMPLE_QS[done % SAMPLE_QS.length];
@@ -1189,8 +1273,15 @@ function runAction(kind) {
   setDone(t, kind === 'skip' ? t.total : effectiveDone(t) + 1);
   state.runner.picked = null;
   state.runner.yue = false;
-  refreshToday();
-  state.runner.task = todayCache.tasks[state.runner.index];
+  refresh();
+  state.runner.task = runList()[state.runner.index];
+  renderRunner();
+  window.scrollTo({ top: 0 });
+}
+
+function stepReview(dir) {
+  const r = state.runner;
+  r.pos = Math.min(r.task.total - 1, Math.max(0, r.pos + dir));
   renderRunner();
   window.scrollTo({ top: 0 });
 }
@@ -1204,18 +1295,22 @@ const RENDER = { 0: renderHome, 1: renderGoal, 2: renderPlan, 3: renderToday };
 // the app's screen switch: .screen + .active (css/base/layout.css)
 function show(id) { SCREENS.forEach(s => $(s).classList.toggle('active', s === id)); window.scrollTo({ top: 0 }); }
 
-function goto(step) {
+function goto(step, keepDay) {
+  if (step === 3 && !keepDay) state.viewDay = TODAY_INDEX;
   show(`step${step}`);
   document.querySelectorAll('.mock-tab').forEach(b => b.classList.toggle('on', +b.dataset.step === step));
   RENDER[step]();
 }
 
 document.addEventListener('click', e => {
+  const dayEl = e.target.closest('[data-day]');
+  if (dayEl) return viewDay(+dayEl.dataset.day);
   const b = e.target.closest('button');
   if (!b || b.disabled) return;
   const ds = b.dataset;
   if (ds.step) return goto(+ds.step);
-  if (ds.goto) return goto(+ds.goto);
+  if (ds.goto) return goto(+ds.goto, true);
+  if (ds.viewday) return viewDay(TODAY_INDEX);
   if (ds.days) { state.days = +ds.days; return renderGoal(); }
   if (ds.rest) { const r = +ds.rest; state.rest.has(r) ? state.rest.delete(r) : state.rest.add(r); return renderGoal(); }
   if (ds.level) { state.level = ds.level; return renderGoal(); }
@@ -1226,6 +1321,12 @@ document.addEventListener('click', e => {
   if (ds.reset) return resetDemo();
   if (ds.month) return stepMonth(+ds.month);
   if (ds.run) return runAction(ds.run);
+  if (ds.rev) return stepReview(+ds.rev);
+  if (ds.review) { state.runner.review = true; state.runner.pos = 0; renderRunner(); return window.scrollTo({ top: 0 }); }
+});
+document.addEventListener('keydown', e => {
+  const dayEl = e.target.closest && e.target.closest('[data-day]');
+  if (dayEl && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); viewDay(+dayEl.dataset.day); }
 });
 $('minsRange').addEventListener('input', e => { state.mins = +e.target.value; renderGoal(); });
 $('examDate').addEventListener('change', e => {
