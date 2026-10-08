@@ -176,6 +176,7 @@
 | T-339 | `plan-run-test`（第二部份）：讀卡 + CTA、Similar CTA、mock 合格 / 唔合格 / Leave、`page.clock` 計時；`similar-test` / `factsession-test` / `examresult-test` 預設行為不變 | test | frontend-developer | none-required | 1 | T-335–T-338 | P0 |
 
 **PR6b 驗收**：
+- [ ] 計劃模擬考「再考」用 `EXAM_MODE`，唔用主頁 `pendingMode`（`retryExam()`；PR2 review 觀察）
 - [ ] handoff §2.5 四類任務介面全部重用現有 component（`.fact`、`.sqm`、Exam mode 45 分鐘）
 - [ ] G10 合格先完成、分數記低；G11 Random Exam；G15 計時中關開關 / Leave = 唔交卷
 - [ ] 現有 Study / Similar / Exam 結果頁行為不變；UI-common
