@@ -141,6 +141,16 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(accent === await tokenRgb('--navy-light'), '--study-accent is navy-light');
   assert(await css('.tl-item:not(.war) .tl-year', 'color') === accent, 'timeline year is study accent');
   assert(await pg.$eval('.tl-item:not(.war) .tl-year', e => getComputedStyle(e, '::after').backgroundColor) === accent, 'timeline dot is study accent');
+  // v0.70: each dot's centre sits on the vertical middle of its year text, one line or two ("c. 3000 BC")
+  const dotOff = await pg.$$eval('.tl-year', els => els.map(e => {
+    const range = document.createRange(); range.selectNodeContents(e);
+    const lines = [...range.getClientRects()];
+    const mid = (Math.min(...lines.map(r => r.top)) + Math.max(...lines.map(r => r.bottom))) / 2;
+    const dot = e.getBoundingClientRect().top + parseFloat(getComputedStyle(e, '::after').top);
+    return { year: e.textContent, lines: new Set(lines.map(r => Math.round(r.top))).size, off: Math.abs(dot - mid) };
+  }));
+  const offCentre = dotOff.filter(d => d.off > 1);
+  assert(dotOff.some(d => d.lines > 1) && offCentre.length === 0, `timeline dots centred on the year text, incl. ${dotOff.filter(d => d.lines > 1).length} two-line years (off: ${JSON.stringify(offCentre.slice(0, 3))})`);
   assert(await css('.tl-item:not(.war) .fact', 'borderLeftColor') === accent, 'fact left border is study accent');
   assert(await css('.tl-item.war .tl-year', 'color') === await tokenRgb('--red'), 'war year stays red');
   await pg.click('.chip.war');

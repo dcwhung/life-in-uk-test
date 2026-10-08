@@ -42,13 +42,16 @@
 }
 .tl-era:first-child { margin-top: 4px; }
 .tl-item { display: grid; grid-template-columns: 74px 1fr; gap: 0 10px; position: relative; }
+/* the dot sits on the vertical middle of the year text, one line or two ("c. 3000 BC"): the label does not stretch
+   to the card's height (align-self), so 50% of it past the padding is the text's middle */
 .tl-year {
+  --tl-year-pad: 13px;
   font-size: var(--fs-sm); font-weight: 800; color: var(--study-accent-strong);
-  text-align: right; padding-top: 13px; line-height: 1.2;
-  position: relative;
+  text-align: right; padding-top: var(--tl-year-pad); line-height: 1.2;
+  position: relative; align-self: start;
 }
 .tl-year::after {
-  content: ''; position: absolute; right: -16px; top: 16px;
+  content: ''; position: absolute; right: -16px; top: calc(50% + var(--tl-year-pad) / 2); transform: translateY(-50%);
   width: 10px; height: 10px; border-radius: var(--radius-circle);
   background: var(--study-accent); border: 2px solid var(--card);
   box-shadow: 0 0 0 2px var(--study-accent);
