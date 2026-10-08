@@ -127,6 +127,8 @@
 | T-322 | `plan-ui-test` 進度表部份（次序、sticky、scroll 到今日、淡化、重設 = 刪除、改目標凍結過去）；`lang-switch-test` schedule | test | frontend-developer | none-required | 0.75 | T-319–T-321 | P0 |
 
 **PR4 驗收**：
+- [ ] PR3 S-110 / PR1 QA O-1：計劃正常但 log 壞咗時，進度表「↺ 重設計劃」可以清走壞 log 恢復（T-320）
+- [ ] G27 5 級色 token、階段色、考試日格紋、補做橙喺第一次用到嘅 PR 加（PR3 延後）
 - [ ] handoff §5「進度表」全部：次序、三階段、scroll 到今日、sticky WEEK、已過淡化、重設 = 刪除
 - [ ] 改目標：已過日子任務 + 完成度不變；Day 編號由原本 Day 1 計（G7）
 - [ ] 任務文字冇分鐘、「未掌握」用文字（handoff §2.3）
