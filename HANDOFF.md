@@ -604,8 +604,8 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 - `bookmarkSvg(cls)`（`js/components/icons.js`）輸出嘅 SVG path 冇 fill，新 class 一定要喺 CSS 設顏色（`css/components/buttons.css`），否則會係黑色（v0.55 / v0.56 踩過兩次）
 - `#reviewOrder` 係 Review filter chip 嘅容器，名係 v0.39 排序 chip 留低；測試用緊呢個 id，所以未改名
 - 124 條題目（408 − 284）冇類似題，因為佢哋嘅 fact 只有一個來源
-- **Review suggestion 狀態**（S-001…S-094；2026-10-08 final review 逐個核對，`.proj-docs/reviews/2026-10-08_review_s091-s092-final.md`）：全部已做，除咗下面決定唔改嘅 S-032（見「功能現況 › Study › 掌握規則」）、S-052（由 S-053 `check-batch-replay.js` 取代）、S-059、S-081、S-092 嘅 `\u{…}` 部分；S-013 / S-078 / S-079 從未發出
-    ◦ **S-081（v0.72 B5 已處理：spacing token 統一）**：Home UI 新加 spacing literal（6px、20px、1.2em）唔抽 token —— `tokens.css` 冇 spacing token，成個 codebase 都用 px literal，淨係呢幾行改會變兩套寫法；日後要就一次過加 `--space-*` 再遷移（S-087 要求記低）
+- **Review suggestion 狀態**（S-001…S-094；2026-10-08 final review 逐個核對，`.proj-docs/reviews/2026-10-08_review_s091-s092-final.md`）：全部已做，除咗下面決定唔改嘅 S-032（見「功能現況 › Study › 掌握規則」）、S-052（由 S-053 `check-batch-replay.js` 取代）、S-059、S-092 嘅 `\u{…}` 部分（S-081 v0.72 已處理，見下）；S-013 / S-078 / S-079 從未發出
+    ◦ **S-081（v0.68 決定唔改 → v0.72 B5 已處理）**：v0.68 Home UI 新加嘅 spacing literal（6px、20px、1.2em）當時冇抽 token，因為 `tokens.css` 未有 spacing token、淨係嗰幾行改會變兩套寫法（S-087 要求記低）。v0.72 一次過加 `--space-*` 再遷移晒（見「Design tokens」）；`1.2em` 係 em 值，唔喺 px 刻度，所以保留 literal
     ◦ **S-092（`\u{…}` 部分決定唔改）**：`structure-test` layering scanner 名以 `\u{…}` escape 結尾再接 `in` / `of`（`a\u{62}in / 2`）仍然當 keyword；喺 lookbehind 加 `}` 會整壞 `}return /x/`，而 `js/` 冇呢類寫法
     ◦ **S-059**：`d37eb26` 一個 commit 包 S-047 / S-048 / S-049（已 merge，唔改 history）
     ◦ **v066 `EXPECTED_ORACLE`** 寫死 `{ files: 8, records: 737, kept: 3 }`：加 batch 9 要跟住改
@@ -812,7 +812,7 @@ c10115b feat: randomise answer option order in Practice and Exam mode
 - [x] Track 2：data 廣東話口語化（v0.66，`claude/yue-colloquial`）
 - [x] v0.67 小批次：S-054、S-051 / S-053（/ S-052）（v0.68）
 - [x] CUI-0013 窄屏多選題 quick nav；CUI-0014 `lang` 收尾（v0.67）
-- [x] S-041…S-084 review suggestion（v0.68，除 S-081 決定唔改）
+- [x] S-041…S-084 review suggestion（v0.68；S-081 當時決定唔改，v0.72 B5 已處理）
 - [x] S-085 / S-086 / S-088 / S-089（PR #44，測試 only）
 - [x] S-090 / S-091 / S-092 `layerCode` `#private` / Unicode 名（PR #45；`\u{…}` escape 名決定唔改）
 - [x] Spacing token 統一（v0.72 B5：`--space-*`，0 視覺改動，S-081 後續）
