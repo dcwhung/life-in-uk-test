@@ -374,3 +374,75 @@ context: |
   非 learn 日改目標會重複釘 read 任務（246 read / 236 unique），今日 % 100 → 48；修法約 3 行，建議 PR4 前修。
   PR3 建立新計劃前要 clearStudyPlan()（舊 log 會影響新計劃）。報告未 commit。
 ```
+
+---
+
+# Round 4（commit 03d71a8，基於 704fde4）
+
+- 範圍：
+  - (1) `planTodayDoneTasks` 只釘喺今日**第一次**完成嘅 fact；
+  - (2) 新加 `planKeepTodayContents`：改目標之後，今日已經 materialise 咗嘅 task，如果新今日有同類型嘅 task，就保留原本內容。配對條件：review、wrongFacts 同類型就得；drill 要同 chapter；mock 要同 slot。
+- 驗證方法：重跑 `probe2` / `probe3`，新加 `probe4` 測 (2) 嘅副作用；`plan-test` 2645 checks × 3 TZ PASS、`structure-test` PASS（run-all 32/32 係 developer 自報）。跑完已還原 png，working tree clean。
+- 總評：**W-029 已修**；冇新缺陷。**98 / 100，pass**
+
+## 驗證
+
+| 情境 | 結果 |
+|---|---|
+| Round 3 repro：強化日已 100%，改做 90 分鐘 | 今日任務 = `drill ×3, wrongFacts`，冇再釘 read；read fact 總數 236 / unique 236；今日 **100 → 100**（24/24） |
+| W-028 連續改目標兩次 | 提早完成嘅 fact：重排 0 條；今日完成嘅 fact：只釘喺今日，其他日子 0 條（冇 regression） |
+| G9 review snapshot | 學習日已 materialise 嘅 review（`["3.12","1.0"]`）改目標後原封不動。新錯題唔會因為改目標而提早出現，符合 G9 |
+
+## (2) 副作用檢查
+
+| 情境 | 結果 | 判斷 |
+|---|---|---|
+| 強化日改目標，新今日 drill 嘅 chapter 少咗（舊 ch1/2/5 → 新 ch1/2） | ch1、ch2 保留原本題目；ch5 嗰個 drill 唔再喺今日 | ✅ 按 G7 用新目標；ch5 已答嘅仍然喺 log（只係唔計入今日 %） |
+| 新今日仍然係 drill，chapter 一樣 | 保留舊 `quota` + `qids`（例如 4/4、4/4、15/15），即係舊 quota 蓋過新 quota | ✅ 可以接受：內容同 quota 一致，parse 照過 |
+| 模擬考日改目標，新今日變咗強化日（冇 mock） | 舊 mock（Exam 1、2）冇保留；今日已合格嘅 attempt 仍然喺 log，但今日 % = 0；`planAssignedExams` 唔再包括 1、2，之後可以再揀 | ✅ 按 G7：新目標令今日唔再係模擬考日；冇資料損失 |
+| Mock slot 對唔上（舊 2 個 slot、新 1 個） | `planSameTask` 按 slot 配對：slot 0 保留，slot 1 被丟棄；由 code 推斷。我試過嘅組合改目標後今日都變咗強化日，所以冇實際砌到「今日仍然係模擬考日」嘅情境 | ✅ 邏輯正確 |
+| 新今日係休息日 / learn 日 | 冇同類型 task，乜都唔保留；parse 照過 | ✅ |
+
+**結論**：只有「同類型 + 同 chapter / slot」先會保留，唔會將 drill 塞入一個冇強化 task 嘅日子，所以唔會出現 phase 同 task 唔對應嘅情況。我同意 coordinator 嘅判斷：保留今日已 snapshot 嘅內容，比較符合 G7「已做嘅唔會消失」同 G9「snapshot 之後凍結」嘅意圖。
+
+> 測試覆蓋小建議（冇開 ID）：`plan-test` 可以加一個「改目標後今日唔再有同類 task → 唔保留」嘅 case，例如模擬考日變強化日。
+
+## 評分結果（Round 4）
+
+| 維度 | 得分 | 滿分 |
+|---|---|---|
+| 正確性 | 25 | 25 |
+| 安全性 | 20 | 20 |
+| 可維護性 | 20 | 20 |
+| 測試覆蓋 | 14 | 15 |
+| 性能 | 10 | 10 |
+| 代碼風格 | 9 | 10 |
+| **總分** | **98** | **100** |
+
+> 代碼風格扣 1 分：`planTodayDoneTasks` 入面 `earlier` 嗰行好長，而且喺 function 入面臨時砌一個 log 再傳入 `planFactsDoneSet`。可以抽一個 `planFactsDoneBefore(log, iso)` helper；唔影響正確性，冇開 ID。
+
+**結果：✅ pass**
+
+## HANDOFF_RECEIPT（Round 4）
+
+```
+HANDOFF_RECEIPT
+from: code-reviewer
+task: review PR #57 round 4 (commit 03d71a8: W-029 fix + planKeepTodayContents)
+status: pass
+score: 98
+hard_gates:
+  lint: n/a
+  type_check: n/a
+  tests: pass (plan-test 2645 checks × 3 TZ, structure-test PASS; run-all 32/32 self-reported)
+  coverage: n/a
+  no_critical: pass
+  security_scan: n/a
+findings: C=0 W=0 S=0 (no new IDs); W-029 verified fixed
+report: .proj-docs/reviews/2026-10-08_review_plan-pr1.md (Round 4 section)
+next_action: invoke_qa
+context: |
+  Round 3 repro：236 read / 236 unique，今日 100→100。planKeepTodayContents 只喺同 type
+  （drill 同 ch、mock 同 slot）先保留，冇 phase 錯配；新目標令今日轉 phase 時舊內容唔保留，
+  log 仍在（符合 G7）。review snapshot 保留（符合 G9）。PR1 全部 ID（W-026–W-029、S-108）已關。報告未 commit。
+```
