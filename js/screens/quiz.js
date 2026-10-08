@@ -124,8 +124,8 @@ function renderAnswerBox(q, idx, showAnswer) {
   byId('ansEn').className = 'ans-en' + (correct ? '' : ' wrong');
   byId('ansEn').textContent = q.a.map(ai => q.o[ai]).join(ANSWER_SEP);
   renderAnswerTranslation(q);
-  // .ans-note is pre-wrap: the note's own line breaks and indents show as written
-  byId('ansNote').innerHTML = q.note ? `<strong>${t('common.noteLabel')}</strong>\n<span class="ans-note-text" lang="zh-HK">${escapeHtml(q.note)}</span>` : '';
+  // v0.70: one row per note line (noteHtml), as on the Results review, so wrapped bullets keep a hanging indent
+  byId('ansNote').innerHTML = q.note ? `<strong>${t('common.noteLabel')}</strong><span class="ans-note-text" lang="zh-HK">${noteHtml(q.note)}</span>` : '';
 }
 // S-048: an answer with no Cantonese text (True / False / years) falls back to the English option, marked lang="en"
 const answerYueHtml = (q, ai) => (q.oy && q.oy[ai] ? escapeHtml(q.oy[ai]) : `<span lang="en">${escapeHtml(q.o[ai])}</span>`);

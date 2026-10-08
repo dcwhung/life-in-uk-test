@@ -149,14 +149,6 @@ function setReviewFilter(key) {
 function visibleReviewItems() {
   return reviewItems.filter(REVIEW_FILTERS.find(f => f.key === reviewFilter).keep);
 }
-// note text: one row per \n line; "•" / "→" start a bullet, leading spaces + "◦" a sub-bullet, blank = gap
-function noteHtml(note) {
-  return note.split('\n').map(line => {
-    if (!line.trim()) return '<div class="rv-note-gap"></div>';
-    const cls = /^\s{2,}/.test(line) ? ' sub' : /^\s*[•◦→]/.test(line) ? ' bullet' : '';
-    return `<div class="rv-note-line${cls}" lang="zh-HK">${escapeHtml(line.trim())}</div>`;
-  }).join('');
-}
 // S-047: the label follows the UI language, the chosen English option is lang="en"; "{answer}" is left in by t()
 // (no param) and swapped for the span after escaping, so no locale key changes. review.noAnswer is UI text: no span.
 function yourAnswerHtml(q, userAns) {

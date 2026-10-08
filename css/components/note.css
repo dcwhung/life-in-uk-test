@@ -1,0 +1,10 @@
+/* note text (noteHtml in js/components/tags.js): one row per note line, hanging indent for "•" / "→" bullets and
+   "◦" sub-items, so a wrapped line continues under its text. Practice answer box and Results review (v0.70) */
+.rv-note-line { margin-bottom: 6px; }
+.rv-note-line:last-child { margin-bottom: 0; }
+.rv-note-line.bullet { padding-left: var(--note-indent); text-indent: calc(-1 * var(--note-indent)); }
+.rv-note-line.sub { padding-left: calc(2 * var(--note-indent)); text-indent: calc(-1 * var(--note-indent)); }
+.rv-note-line { --note-indent: 1.1em; }
+/* the marker box is exactly one indent wide, so the text after it lines up with its own wrapped lines */
+.note-mark { display: inline-block; width: var(--note-indent); text-indent: 0; }
+.rv-note-gap { height: 6px; }
