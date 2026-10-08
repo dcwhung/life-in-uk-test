@@ -257,9 +257,9 @@ LOCALES.en = {
       need: 'Suggested',
       needSub: 'read + practise + mocks',
       hours: '{n}h',
-      okMsg: 'About {n} hours to spare: room for extra mock exams or the unexpected.',
+      okMsg: { one: 'About {n} hour to spare: room for extra mock exams or the unexpected.', other: 'About {n} hours to spare: room for extra mock exams or the unexpected.' },
       tightMsg: 'Just enough, with little room to miss a day. Try one rest day fewer, or {m} more minutes a day.',
-      shortMsg: "About {n} hours short. Move the exam later, add daily time or take fewer rest days. You can build it anyway: each day's tasks run longer so everything still gets covered.",
+      shortMsg: { one: "About {n} hour short. Move the exam later, add daily time or take fewer rest days. You can build it anyway: each day's tasks run longer so everything still gets covered.", other: "About {n} hours short. Move the exam later, add daily time or take fewer rest days. You can build it anyway: each day's tasks run longer so everything still gets covered." },
     },
   },
 

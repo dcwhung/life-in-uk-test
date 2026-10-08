@@ -260,6 +260,48 @@ async function checkKeepFocus(pg) {
   }
 }
 
+// CUI-0019: with the date field focused, one real click / tap on a chip or level card takes effect (leaving the
+// field commits it; the buttons must not be rebuilt under the pointer)
+async function checkClickAfterDate(pg) {
+  await setGoal(pg, { examDate: '2026-10-29', restDays: [0], level: 'none' });
+  await pg.focus('#planExamDate');
+  await pg.click('#planRestChips .chip >> nth=5');
+  assert(JSON.stringify((await goalDraft(pg)).restDays) === '[0,5]', 'CUI-0019: date focused → one click on Fri toggles it');
+  await pg.focus('#planExamDate');
+  await pg.click('#planDaysChips .chip >> nth=0');
+  assert((await goalDraft(pg)).examDate === '2026-10-22', 'CUI-0019: date focused → one click on 2 weeks applies');
+  await pg.focus('#planExamDate');
+  await pg.click('#planLevelGrid .mode-card >> nth=1');
+  assert((await goalDraft(pg)).level === 'some', 'CUI-0019: date focused → one click on a level card applies');
+  await pg.fill('#planExamDate', '2026-12-01');
+  await pg.click('#planRestChips .chip >> nth=5');
+  const d = await goalDraft(pg);
+  assert(d.examDate === '2026-12-01' && JSON.stringify(d.restDays) === '[0]', 'CUI-0019: a date typed then one click on a chip: both applied');
+}
+async function checkTapAfterDate(b) {
+  const ctx = await b.newContext({ viewport: { width: 375, height: 800 }, hasTouch: true, isMobile: true });
+  const pg = await ctx.newPage();
+  await pg.clock.setFixedTime(NOW);
+  await fresh(pg, '?preview=plan');
+  await pg.evaluate(() => openPlanGoal());
+  await pg.fill('#planExamDate', '2026-12-01');
+  await pg.tap('#planRestChips .chip >> nth=3');
+  const d = await goalDraft(pg);
+  assert(d.examDate === '2026-12-01' && JSON.stringify(d.restDays) === '[0,3]', 'CUI-0019: phone: date picked then one tap on Wed applies: ' + JSON.stringify(d));
+  await pg.tap('#planDaysChips .chip >> nth=2');
+  assert((await goalDraft(pg)).examDate === '2026-11-05', 'CUI-0019: phone: one tap on 4 weeks applies');
+  await ctx.close();
+}
+
+// CUI-0020: en hour counts follow the plural (1 hour, 2 hours); O-3: the CTA is at least 44px tall
+async function checkHourPluralAndCta(pg) {
+  const r = await pg.evaluate(() => ({ s1: t('plan.feas.shortMsg', { n: 1 }), s2: t('plan.feas.shortMsg', { n: 2 }), o1: t('plan.feas.okMsg', { n: 1 }), o2: t('plan.feas.okMsg', { n: 3 }) }));
+  assert(r.s1.startsWith('About 1 hour short') && r.s2.startsWith('About 2 hours short') && r.o1.startsWith('About 1 hour to spare') && r.o2.startsWith('About 3 hours to spare'),
+    'CUI-0020: en hour plural: ' + JSON.stringify(r));
+  const h = await pg.$eval('#planCreateBtn', e => e.getBoundingClientRect().height);
+  assert(h >= HIT_MIN_PX, `O-3: "Build my plan" CTA is at least ${HIT_MIN_PX}px tall (${h})`);
+}
+
 // S-111: a draft left open past midnight moves up to the new minimum instead of a silent disabled CTA
 async function checkMidnightClamp(pg) {
   await setGoal(pg, { examDate: '2026-10-14', restDays: [] });
@@ -360,9 +402,10 @@ async function main() {
   const errs = [];
   pg.on('pageerror', e => errs.push(e.message));
   await pg.clock.setFixedTime(NOW);
-  for (const check of [checkHidden, checkPreview, checkCreateCard, checkSwitch, checkSwitchOffElsewhere, checkSwitchInPlace, checkToast, checkGoalDefaults, checkGoalInputs, checkDateTyping, checkKeepFocus, checkFeasibility, checkMidnightClamp, checkCreate, checkWidths]) {
+  for (const check of [checkHidden, checkPreview, checkCreateCard, checkSwitch, checkSwitchOffElsewhere, checkSwitchInPlace, checkToast, checkGoalDefaults, checkGoalInputs, checkDateTyping, checkKeepFocus, checkClickAfterDate, checkHourPluralAndCta, checkFeasibility, checkMidnightClamp, checkCreate, checkWidths]) {
     await check(pg);
   }
+  await checkTapAfterDate(b);
   assert(errs.length === 0, 'no page errors: ' + errs.join(' | '));
   await b.close();
 }

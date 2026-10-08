@@ -10,7 +10,9 @@ const PLAN_SCREEN_IDS = ['screenPlanGoal'];
 
 // G19 / G31: hidden until release, except on a device that opened ?preview=plan (tests may override this)
 function planEntryReady() { return STUDY_PLAN_READY || isPlanPreviewOn(); }
-function planVisible() { return planEntryReady() && isStudyPlanEnabled(); }
+// CUI-0021: an older cached index.html lacks the plan screens, so the card would open nothing
+function planShellReady() { return !!byId('screenPlanGoal'); }
+function planVisible() { return planEntryReady() && planShellReady() && isStudyPlanEnabled(); }
 
 // G31: ?preview=plan / ?preview=off update the stored preview, then the param leaves the URL
 function applyPlanPreviewParam() {

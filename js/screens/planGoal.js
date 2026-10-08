@@ -37,13 +37,27 @@ function planHours(mins) { return Math.round(Math.abs(mins) / PLAN_MINUTES_PER_H
 function planPressed(on) { return `aria-pressed="${on ? 'true' : 'false'}"`; }
 
 // ── fields ──
+// CUI-0019: button groups are built once, then updated in place. Leaving the date field commits it on mousedown /
+// touchstart elsewhere; a group rebuilt then would take the press and lose the click (and keyboard focus, S-109).
+function planSyncGroup(groupId, items, buildHtml, update) {
+  const box = byId(groupId), btns = [...box.children];
+  const same = btns.length === items.length && btns.every((b, i) => b.dataset.arg === String(items[i].arg));
+  if (!same) { box.innerHTML = items.map(buildHtml).join(''); return; }
+  btns.forEach((b, i) => update(b, items[i]));
+}
+// items: { arg, on, label }
+function planSyncChips({ groupId, action, extraClass = '' }, items) {
+  planSyncGroup(groupId, items,
+    it => `<button type="button" class="chip${extraClass}${it.on ? ' active' : ''}" ${planPressed(it.on)} data-action="${action}" data-arg="${it.arg}">${it.label}</button>`,
+    (b, it) => { b.classList.toggle('active', it.on); b.setAttribute('aria-pressed', String(it.on)); b.textContent = it.label; });
+}
 function renderPlanDays(todayIso) {
   const days = isoDiffDays(todayIso, planGoalDraft.examDate);
   byId('planDaysVal').textContent = t('plan.goal.daysValue', { n: days });
-  byId('planDaysChips').innerHTML = PLAN_EXAM_DAY_PRESETS.map(n => {
+  planSyncChips({ groupId: 'planDaysChips', action: 'planSetDays' }, PLAN_EXAM_DAY_PRESETS.map(n => {
     const labelKey = PLAN_PRESET_LABEL_KEYS[n];
-    return `<button type="button" class="chip${n === days ? ' active' : ''}" ${planPressed(n === days)} data-action="planSetDays" data-arg="${n}">${t(labelKey)}</button>`;
-  }).join('');
+    return { arg: n, on: n === days, label: t(labelKey) };
+  }));
   renderPlanDateInput(todayIso);
 }
 // W-033: while the field has focus its half-typed segments are left alone (planCommitExamDate writes it back)
@@ -69,18 +83,23 @@ function renderPlanMins() {
   byId('planMinsTicks').innerHTML = ticks.join('');
 }
 function renderPlanRest() {
-  byId('planRestChips').innerHTML = Array.from({ length: PLAN_WEEK_DAYS }, (_, d) => {
-    const on = planGoalDraft.restDays.includes(d);
-    return `<button type="button" class="chip plan-rest${on ? ' active' : ''}" ${planPressed(on)} data-action="planToggleRest" data-arg="${d}">${t(`data.weekdays.${d}`)}</button>`;
-  }).join('');
+  planSyncChips({ groupId: 'planRestChips', action: 'planToggleRest', extraClass: ' plan-rest' }, Array.from({ length: PLAN_WEEK_DAYS }, (_, d) =>
+    ({ arg: d, on: planGoalDraft.restDays.includes(d), label: t(`data.weekdays.${d}`) })));
+}
+function planLevelCardHtml(it) {
+  return `<button type="button" class="mode-card${it.on ? ' selected' : ''}" ${planPressed(it.on)} data-action="planSetLevel" data-arg="${it.arg}">`
+    + `<div class="mode-icon" aria-hidden="true">${PLAN_LEVEL_ICONS[it.arg]}</div><div class="mode-title">${it.label}</div>`
+    + `<span class="plan-level-sub">${it.sub}</span></button>`;
 }
 function renderPlanLevels() {
-  byId('planLevelGrid').innerHTML = Object.keys(PLAN_LEVELS).map(k => {
-    const on = k === planGoalDraft.level;
-    return `<button type="button" class="mode-card${on ? ' selected' : ''}" ${planPressed(on)} data-action="planSetLevel" data-arg="${k}">`
-      + `<div class="mode-icon" aria-hidden="true">${PLAN_LEVEL_ICONS[k]}</div><div class="mode-title">${t(`data.planLevels.${k}.label`)}</div>`
-      + `<span class="plan-level-sub">${t(`data.planLevels.${k}.sub`)}</span></button>`;
-  }).join('');
+  const items = Object.keys(PLAN_LEVELS).map(k => ({ arg: k, on: k === planGoalDraft.level,
+    label: t(`data.planLevels.${k}.label`), sub: t(`data.planLevels.${k}.sub`) }));
+  planSyncGroup('planLevelGrid', items, planLevelCardHtml, (b, it) => {
+    b.classList.toggle('selected', it.on);
+    b.setAttribute('aria-pressed', String(it.on));
+    b.querySelector('.mode-title').textContent = it.label;
+    b.querySelector('.plan-level-sub').textContent = it.sub;
+  });
 }
 
 // ── feasibility + CTA ──
@@ -121,17 +140,10 @@ function renderPlanGoal() {
 }
 
 // ── inputs ──
-// S-109 (as S-102): a redrawn button group hands focus back to the button just chosen
-function planRenderKeepFocus(groupId, arg) {
-  const hadFocus = byId(groupId).contains(document.activeElement);
-  renderPlanGoal();
-  const btn = hadFocus && byId(groupId).querySelector(`[data-arg="${arg}"]`);
-  if (btn) btn.focus();
-}
 function planSetDays(n) {
   if (!PLAN_EXAM_DAY_PRESETS.includes(n)) return;
   planGoalDraft.examDate = isoAddDays(planTodayIso(), n);
-  planRenderKeepFocus('planDaysChips', n);
+  renderPlanGoal(); // S-109: the chips are updated in place, so focus stays on the one chosen
 }
 // W-033: Chromium fires input on every typed segment, and a half-typed date is often out of range, so input only
 // takes a complete in-range date and never rewrites the field. Leaving the field commits it: a date past the
@@ -142,11 +154,12 @@ function planSetExamDate(value) {
   planGoalDraft.examDate = value;
   renderPlanGoal();
 }
+// CUI-0019: usually input already took the date, so a commit that changes nothing only resets the field
 function planCommitExamDate(value) {
-  const range = planExamDateRange(planTodayIso());
+  const range = planExamDateRange(planTodayIso()), before = planGoalDraft.examDate;
   if (isoIsValid(value) && value > range.max) planGoalDraft.examDate = range.max;
   else if (isoIsValid(value) && value >= range.min) planGoalDraft.examDate = value;
-  renderPlanGoal();
+  if (planGoalDraft.examDate !== before) renderPlanGoal();
   byId('planExamDate').value = planGoalDraft.examDate;
 }
 function planSetMins(value) {
@@ -157,11 +170,11 @@ function planSetMins(value) {
 function planToggleRest(d) {
   const rest = planGoalDraft.restDays;
   planGoalDraft.restDays = rest.includes(d) ? rest.filter(x => x !== d) : [...rest, d].sort();
-  planRenderKeepFocus('planRestChips', d);
+  renderPlanGoal();
 }
 function planSetLevel(level) {
   if (planIsLevel(level)) planGoalDraft.level = level;
-  planRenderKeepFocus('planLevelGrid', level);
+  renderPlanGoal();
 }
 // O-2: a new plan never inherits the old log (or a corrupt one, O-1); the schedule screen is PR4, so Home for now
 function planCreate() {
