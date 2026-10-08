@@ -27,7 +27,9 @@
 .tag.war { background: var(--danger-bg); color: var(--red); }
 .tag.person { background: var(--person-bg); color: var(--navy-light); }
 /* --fact-actions-gap is shared with the hit rings below so they meet in the gap instead of overlapping (W-009);
-   --fact-btn-border / --fact-btn-ring size the buttons' invisible touch ring (O2, CUI-0009) */
+   --fact-btn-border / --fact-btn-ring size the buttons' invisible touch ring (O2, CUI-0009).
+   S-033 (accepted): Chromium paints the 1.5px border as 1px, so each ring reaches 0.5px further and the two
+   overlap by about 1px in the gap (the later ✓ button gets most of it); no visible area is covered */
 .fact-actions {
   --fact-actions-gap: 4px; --fact-btn-border: 1.5px; --fact-btn-ring: 6px;
   display: flex; gap: var(--fact-actions-gap); flex-shrink: 0;
