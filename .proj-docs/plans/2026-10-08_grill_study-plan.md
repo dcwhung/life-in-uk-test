@@ -40,6 +40,7 @@
 | G28 | Q-A6 最少溫習日 | **7 日**；少過 7 日「建立進度表」disabled + 提示減休息日 / 延後考試日（覆蓋 Architect 建議 3 日）|
 | G29 | Q-P1 連續紀錄 | 要「🔥 連續 n 日 100%」pill：休息日唔打斷；唔夠 100% 歸零；0 日唔顯示 |
 | G30 | 改目標時今日已揀好嘅題目 | **保留**：今日已 materialise 嘅清錯題（G9 snapshot）、同 chapter 強化、錯題知識點、同 slot 模擬考，改目標後維持原本內容，今日已做嘅唔會消失（用戶 2026-10-08 確認；`planKeepTodayContents`，PR1 W-029）|
+| G31 | 喺 GitHub Pages 預覽未推出功能 | PR3 加 **`?preview=plan`**：開咗記入 localStorage（per device），`?preview=off` 收返；`planVisible()` = `STUDY_PLAN_READY \|\| preview`；唔改 `APP_VERSION`。PR7 正式開入口時決定保留定拎走（用戶 2026-10-08 確認）|
 
 ---
 

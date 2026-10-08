@@ -108,6 +108,7 @@
 | T-318 | `tests/plan-ui-test.js`（第一部份）+ `run-all.sh`：switch、建立卡、目標全部欄位、360 / 375 / 400px、`[hidden]`；`lang-switch-test` goal screen | test | frontend-developer | none-required | 1 | T-315–T-317 | P0 |
 
 **PR3 驗收**：
+- [ ] G31：`?preview=plan` 令 `planVisible()` 為 true 並記住（localStorage），`?preview=off` 收返；冇 preview 時 `visual-diff` 0 diff；URL param 處理完要 `history.replaceState` 清走，唔留喺 URL
 - [ ] 建立新計劃之前先 `clearStudyPlan()`（舊 log 唔可以影響新計劃；PR1 review Round 3 / QA O-2）
 - [ ] 計劃 log 壞咗時（PR1 為咗唔覆寫，之後答題唔會記）要有恢復途徑或者提示，例如「↺ 重設計劃」可以清除壞資料（PR1 QA O-1）
 - [ ] handoff §5「ⓘ 開關」：預設開；關 → 主頁冇計劃項目、計劃畫面入唔到；開 → 原本進度（測試用 override 入）
