@@ -14,6 +14,7 @@ const FLAGGED_EXAM = 'flagged';
 const CHAPTER_PREFIX = 'ch';
 const DIFFICULTY_PREFIX = 'd';
 const FACT_PREFIX = 'f'; // + study fact id: that fact's source questions ('f21', a one-off session from Study)
+const PLAN_PREFIX = 'p'; // + plan Day n: a study plan task's side session ('p8'); PR2 wires it in
 
 // ── practice ──
 const MASTERY_STREAK = 3;
@@ -44,6 +45,10 @@ const OPTION_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 const LIST_SEP = ' · ';    // between parts of one line ("✓ Correct! · 🔥 1/3")
 const ANSWER_SEP = ' | ';  // between the options of a multi-answer question
 
+// ── study plan (js/domain/plan.js, planProgress.js) ──
+// G19: the entry points (ⓘ switch, home card) stay hidden until the release PR flips this; answer hooks ignore it
+const STUDY_PLAN_READY = false;
+
 // ── install banner (js/pwa/pwa.js) ──
 // touch-first devices only: PC Chrome / Edge fire beforeinstallprompt too, but desktop install is not the target
 const INSTALL_TOUCH_QUERY = '(pointer: coarse)';
@@ -62,6 +67,10 @@ const COMPLETED_LS = LS_PREFIX + 'completedExams';
 const HOME_PREFS_LS = LS_PREFIX + 'homePrefs';
 const UI_LANG_LS = LS_PREFIX + 'uiLang';   // v0.59: UI language (v0.65: header pill)
 const INSTALL_DISMISSED_LS = LS_PREFIX + 'installDismissed';   // v0.60: install banner closed with ✕ (never shown again)
+// study plan: the switch (no value = on), the stored schedule, the per-day answer log; new keys, so no legacy names
+const STUDY_PLAN_ENABLED_LS = LS_PREFIX + 'studyPlanEnabled';
+const STUDY_PLAN_LS = LS_PREFIX + 'studyPlan';
+const STUDY_PLAN_PROGRESS_LS = LS_PREFIX + 'studyPlanProgress';
 const STUDY_LS = {
   prefs: LS_PREFIX + 'studyPrefs',
   mastered: LS_PREFIX + 'studyMastered',
