@@ -43,6 +43,8 @@ const SHELL = [
   'js/domain/questions.js',
   'js/domain/mastery.js',
   'js/domain/similar.js',
+  'js/domain/plan.js',
+  'js/domain/planProgress.js',
   'js/components/icons.js',
   'js/components/dots.js',
   'js/components/tags.js',
