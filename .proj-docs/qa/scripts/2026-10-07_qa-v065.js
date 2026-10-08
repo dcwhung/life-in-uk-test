@@ -655,14 +655,16 @@ async function edges(b) {
     ok(errs.length === 0 && !warns.some(x => x.includes('[i18n]')), 'E1 — no page errors / i18n warnings ' + errs.concat(warns).join('|'));
     await ctx.close();
   }
-  // toggle while the confirm modal is open: keyboard (Tab to the pill) does nothing; mouse lands on the backdrop
+  // toggle while the confirm modal is open: Tab stays in the modal (v0.69 S-025); a pill focused anyway does nothing
+  // (R-002 guard); mouse lands on the backdrop
   {
     const { ctx, pg, errs } = await fresh(b, 390);
     await nav(pg, '#modeExam'); await nav(pg, '#examGrid [data-arg="1"]'); await tap(pg, '#opt0');
     await tap(pg, '#screenQuiz .back-btn');
-    let reached = false;
-    for (let i = 0; i < 40 && !reached; i++) { await pg.keyboard.press('Tab'); reached = await pg.evaluate(() => document.activeElement && document.activeElement.id === 'langBtn'); }
-    ok(reached, 'E2 Tab from the leave modal reaches the pill (no focus trap, known R-002)');
+    let escaped = false;
+    for (let i = 0; i < 40 && !escaped; i++) { await pg.keyboard.press('Tab'); escaped = await pg.evaluate(() => !byId('confirmModal').contains(document.activeElement)); }
+    ok(!escaped, 'E2 40 × Tab from the leave modal stays in the modal (S-025 focus trap; S-101)');
+    await pg.focus('#langBtn'); // bypass the trap to check the R-002 guard still holds
     const mBefore = await pg.evaluate(() => ({ t: byId('confirmTitle').textContent, o: byId('confirmOk').textContent, open: isConfirmOpen() }));
     await pg.keyboard.press('Enter'); await sleep(60); await pg.keyboard.press('Space'); await sleep(60);
     const mAfter = await pg.evaluate(() => ({ t: byId('confirmTitle').textContent, o: byId('confirmOk').textContent, open: isConfirmOpen() }));
