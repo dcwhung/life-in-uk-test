@@ -598,7 +598,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 - 124 條題目（408 − 284）冇類似題，因為佢哋嘅 fact 只有一個來源
 - **Review suggestion 已全部處理**（S-001…S-092；S-081 同 S-092 嘅 `\u{…}` 部分決定唔改，見下）
     ◦ **S-081（決定唔改）**：Home UI 新加 spacing literal（6px、20px、1.2em）唔抽 token —— `tokens.css` 冇 spacing token，成個 codebase 都用 px literal，淨係呢幾行改會變兩套寫法；日後要就一次過加 `--space-*` 再遷移（S-087 要求記低）
-- `structure-test` layering scanner 已知限制（S-092，決定唔改）：名以 `\u{…}` escape 結尾再接 `in` / `of`（`a\u{62}in / 2`）仍然當 keyword；喺 lookbehind 加 `}` 會整壞 `}return /x/`，而 `js/` 冇呢類寫法
+    ◦ **S-092（`\u{…}` 部分決定唔改）**：`structure-test` layering scanner 名以 `\u{…}` escape 結尾再接 `in` / `of`（`a\u{62}in / 2`）仍然當 keyword；喺 lookbehind 加 `}` 會整壞 `}return /x/`，而 `js/` 冇呢類寫法
     ◦ **S-059**：`d37eb26` 一個 commit 包 S-047 / S-048 / S-049（已 merge，唔改 history）
     ◦ **v066 `EXPECTED_ORACLE`** 寫死 `{ files: 8, records: 737, kept: 3 }`：加 batch 9 要跟住改
 - **用戶決定 / 接受嘅行為（唔係 bug，唔好再提案）**：
