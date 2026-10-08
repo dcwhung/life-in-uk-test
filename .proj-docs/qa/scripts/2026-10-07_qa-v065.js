@@ -180,12 +180,12 @@ const myReviewTiles = pg => pg.evaluate(() => Object.fromEntries(['tileWrong', '
   const el = document.getElementById(id), txt = sel => (el.querySelector(sel) || {}).textContent || '';
   return [id, { num: txt('.t-num'), title: txt('b'), sub: txt('.sub'), note: txt('.t-note') }];
 }).concat([['oldNote', !!document.getElementById('myReviewNote')]])));
-// wrong tile: n + 尚餘 n 題 + the note; flagged tile: n, title only
+// wrong tile: n + the note (v0.70: no 尚餘 n 題 line); flagged tile: n, title only
 async function expectMyReview(tag, pg, wrongN, flagN) {
   const t = await myReviewTiles(pg);
   const w = t.tileWrong, f = t.tileFlagged;
-  ok(w.num === String(wrongN) && w.title === '錯題' && w.sub === `尚餘 ${wrongN} 題` && w.note === G.myReviewNote,
-    `${tag}: wrong tile ${wrongN} · 尚餘 ${wrongN} 題 + note inside the tile ${JSON.stringify(w)}`);
+  ok(w.num === String(wrongN) && w.title === '錯題' && w.sub === '' && w.note === G.myReviewNote,
+    `${tag}: wrong tile ${wrongN}, no 尚餘 line (v0.70) + note inside the tile ${JSON.stringify(w)}`);
   ok(f.num === String(flagN) && f.title === '已標記' && f.sub === '' && f.note === '',
     `${tag}: flagged tile ${flagN}, no count line ${JSON.stringify(f)}`);
   ok(!t.oldNote, `${tag}: no separate #myReviewNote below the tiles`);
@@ -282,7 +282,7 @@ async function glossary(b) {
     const { ctx, pg, errs, warns } = await fresh(b, 390, {}, APP_URL, { 'lifeuk.wrongList': { '1.0': true, '1.1': true, '2.3': true }, 'lifeuk.practiceFlags': { '3.4': true, '6.7': true } });
     await pill(pg);
     await nav(pg, '#modePractice');
-    await expectTexts('Home practice › difficulty', pg, [...G.homeTop, ...G.practiceDesc, ...G.practiceHint, ...G.myReview, G.myReviewNote, '尚餘 3 題']);
+    await expectTexts('Home practice › difficulty', pg, [...G.homeTop, ...G.practiceDesc, ...G.practiceHint, ...G.myReview, G.myReviewNote]);
     const hintLis = await pg.$$eval('#practiceHint li', els => els.map(e => e.textContent));
     ok(JSON.stringify(hintLis) === JSON.stringify(G.practiceHint), `Home practice: hint is ${G.practiceHint.length} <li> in order ${JSON.stringify(hintLis)}`);
     await expectMyReview('Home practice › difficulty', pg, 3, 2);

@@ -487,13 +487,13 @@ async function offlineAndUpgrade(b) {
     const keep = ['lifeuk.practiceStreak', 'lifeuk.practiceFlags', 'lifeuk.wrongList', 'lifeuk.completedExams', 'lifeuk.studyBookmarks', 'lifeuk.studyMastered', 'lifeuk.uiLang'];
     ok(keep.every(k => after[k] === afterOldFlow[k] && after[k] === before[k]), `upgrade: progress / streaks / flags / wrong list / Study marks byte-identical ${keep.map(k => k.slice(7) + '=' + after[k]).join(' ')}`);
     await nav(pg, '#modePractice');
-    // v0.68 Home UI: no "已標記 n 題" line any more; each tile's count is its .t-num, the wrong tile adds 尚餘 n 題
+    // v0.68 Home UI: no "已標記 n 題" line any more; each tile's count is its .t-num (v0.70: no 尚餘 n 題 line either)
     const tiles = await pg.evaluate(() => ['tileWrong', 'tileFlagged'].map(id => {
       const el = document.getElementById(id), txt = sel => (el.querySelector(sel) || {}).textContent || '';
       return { num: txt('.t-num'), title: txt('b'), sub: txt('.sub') };
     }));
     const [wt, ft] = tiles;
-    ok(ft.num === '1' && ft.title === '已標記' && wt.num === '2' && wt.title === '錯題' && wt.sub === '尚餘 2 題',
+    ok(ft.num === '1' && ft.title === '已標記' && wt.num === '2' && wt.title === '錯題' && wt.sub === '',
       `upgrade: My Review shows flagged 1 + 2 wrong in zh-HK ${JSON.stringify(tiles)}`);
     await pg.goto(base); await sleep(200);
     const newYue = await translateYue(pg);
