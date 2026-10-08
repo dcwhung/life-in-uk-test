@@ -268,10 +268,14 @@ async function practiceSample(b) {
         right = !right;
         const box = await pg.evaluate(() => {
           const rows = [...document.querySelectorAll('#ansYue .ans-yue-row span')].map(s => s.textContent);
-          const n = byId('ansNote'); const span = n.querySelector('.ans-note-text');
-          return { show: byId('answerBox').classList.contains('show'), rows,
-            noteText: span ? span.textContent : '', noteVisible: n.innerText, kids: [...n.children].map(c => c.tagName), spanKids: span ? span.children.length : 0,
-            lineBoxes: span ? span.getClientRects().length : 0, ws: getComputedStyle(n).whiteSpace };
+          // v0.70 (S-106): the answer box draws the note like the Results review — one .rv-note-line / .rv-note-gap row per
+          // line, a leading "•" / "◦" / "→" in a .note-mark span
+          const n = byId('ansNote'); const body = n.querySelector('.ans-note-text');
+          const lines = body ? [...body.querySelectorAll('.rv-note-line, .rv-note-gap')].map(d => d.classList.contains('rv-note-gap') ? '' : d.textContent) : [];
+          const marksAtStart = body ? [...body.querySelectorAll('.note-mark')].every(m => m === m.parentElement.firstChild) : true;
+          return { show: byId('answerBox').classList.contains('show'), rows, lines, marksAtStart,
+            noteText: lines.join('\n'), noteVisible: n.innerText, kids: [...n.children].map(c => c.tagName),
+            foreign: body ? [...body.querySelectorAll('*')].filter(e => e.tagName !== 'DIV' && !(e.tagName === 'SPAN' && e.classList.contains('note-mark'))).map(e => e.tagName) : [] };
         });
         // multi-answer: the session's (shuffled) answer order decides the join order, so compare as a set
         const asSet = s => s.split(ANSWER_SEP).sort().join(ANSWER_SEP);
@@ -279,11 +283,10 @@ async function practiceSample(b) {
         box.rows[1] = box.rows[1] && asSet(box.rows[1]);
         ok(box.show && box.rows[0] === q.yue && box.rows[1] === expAns, `${tag} answer box yue + answer translation ${box.rows[1] === expAns ? '' : JSON.stringify({ got: box.rows, want: expAns })}`);
         if (q.note) {
-          const lines = q.note.split('\n');
-          const p = noteProblems({ text: box.noteVisible, foreign: box.kids.filter(t => !['STRONG', 'SPAN'].includes(t)).concat(box.spanKids ? ['span>child'] : []) });
-          const visLines = box.noteVisible.split('\n').slice(1); // first line = 💡 label
-          ok(box.noteText === q.note && p.length === 0 && box.ws === 'pre-wrap' && box.lineBoxes >= lines.filter(l => l.trim()).length
-            && visLines.length === lines.length, `${tag} answer box note = oracle${changed.note.has(k) ? ' (changed)' : ''}, ${lines.length} line(s) rendered as breaks (${box.lineBoxes} line boxes) ${p.join(';')}`);
+          const want = q.note.split('\n').map(l => l.trim());
+          const p = noteProblems({ text: box.noteVisible, foreign: box.kids.filter(t => !['STRONG', 'DIV'].includes(t)).concat(box.foreign) });
+          ok(JSON.stringify(box.lines) === JSON.stringify(want) && box.marksAtStart && p.length === 0,
+            `${tag} answer box note = oracle${changed.note.has(k) ? ' (changed)' : ''}, ${want.length} row(s), markers lead their rows ${p.join(';')} ${JSON.stringify(box.lines) === JSON.stringify(want) ? '' : JSON.stringify(box.lines).slice(0, 80)}`);
           renderedNotes.practice[lang + k] = box.noteText;
           stats.note++;
         } else ok(box.noteText === '' && box.kids.length === 0, `${tag} no note → answer box note empty`);
@@ -325,7 +328,7 @@ async function resultReview(b) {
         const yue = it.querySelector('.rv-yue'); const nt = it.querySelector('.rv-note');
         return { yue: yue.textContent, yueKids: yue.children.length,
           lines: nt ? [...nt.querySelectorAll('.rv-note-line, .rv-note-gap')].map(d => d.classList.contains('rv-note-gap') ? '' : d.textContent) : null,
-          noteVisible: nt ? nt.innerText : '', foreign: nt ? [...nt.querySelectorAll('*')].filter(e => e.tagName !== 'DIV').map(e => e.tagName) : [] };
+          noteVisible: nt ? nt.innerText : '', foreign: nt ? [...nt.querySelectorAll('*')].filter(e => e.tagName !== 'DIV' && !(e.tagName === 'SPAN' && e.classList.contains('note-mark') && e === e.parentElement.firstChild)).map(e => e.tagName) : [] };
       }));
       const yt = await pg.evaluate(() => t('common.yueTitle'));
       ok(items.length === 24 && keys.length === 24, `${lang} Exam ${exam} result: 24 review items`);
