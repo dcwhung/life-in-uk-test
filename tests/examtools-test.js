@@ -108,6 +108,13 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.evaluate(() => { examDeadline = Date.now() - 1; examTick(); });
   assert(await active('screenResult') && !(await modalOpen()), 'W-024: time up closes the open modal on the way to results');
   assert(await vis('#resultTimeUp'), "W-024: results keep the time-up note");
+  // S-098: same with the Leave prompt open — time up still submits, and a stray Enter does not go home
+  await pg.evaluate(() => { pendingMode = 'exam'; startExam(4); });
+  await pg.click('#screenQuiz .back-btn');
+  assert(await modalOpen() && /Leave the exam\?/.test(await modalText()), 'S-098: leave modal open before time up');
+  await pg.evaluate(() => { examDeadline = Date.now() - 1; examTick(); });
+  await pg.keyboard.press('Enter');
+  assert(await active('screenResult') && !(await modalOpen()) && await vis('#resultTimeUp'), 'S-098: time up over the leave modal lands on results and stays');
   // a normal submit has no time-up note; results "Choose Another" does not ask
   await pg.evaluate(() => { pendingMode = 'exam'; startExam(4); state.questions.forEach((q, i) => { state.answers[i] = [...q.a]; }); state.current = 23; renderQuestion(); });
   await pg.click('#nextBtn');
