@@ -54,6 +54,10 @@
   text-box: trim-both cap alphabetic;
   position: relative; align-self: start;
 }
+/* browsers without text-box keep the v0.69 text position (untrimmed line box, ~1px off centre) */
+@supports not (text-box: trim-both cap alphabetic) {
+  .tl-year { --tl-year-pad: 13px; }
+}
 .tl-year::after {
   content: ''; position: absolute; right: -16px; top: calc(50% + var(--tl-year-pad) / 2); transform: translateY(-50%);
   width: 10px; height: 10px; border-radius: var(--radius-circle);
