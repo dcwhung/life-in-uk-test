@@ -155,12 +155,12 @@
   .sp-day.exam .d small { color: var(--navy); font-weight: 700; }
   .sp-day.exam .tasks b { color: var(--navy); font-size: var(--fs-md); }
   .sp-day.today { background: var(--selected-bg); margin: 0 -8px; padding-inline: 8px; border-radius: var(--radius-sm); }
-  /* days not reached yet: light grey row, text and date box lighter */
-  .sp-day.future { background: var(--sp-future-row); margin: 0 -8px; padding-inline: 8px; }
-  .sp-day.future .tasks { color: var(--sp-future-text); }
-  .sp-day.future .tasks .t span:first-child { opacity: 0.55; }
-  .sp-day.future .d { opacity: 0.4; }
-  .sp-day.future .sp-pill { opacity: 0.5; }
+  /* days already gone: light grey row, text and date box dimmed; today and the days ahead stay bright */
+  .sp-day.past { background: var(--sp-future-row); margin: 0 -8px; padding-inline: 8px; }
+  .sp-day.past .tasks { color: var(--sp-future-text); }
+  .sp-day.past .tasks .t span:first-child { opacity: 0.55; }
+  .sp-day.past .d { opacity: 0.4; }
+  .sp-day.past .sp-pill { opacity: 0.6; }
   .sp-day .tasks { display: grid; gap: 3px; font-size: var(--fs-sm); line-height: 1.45; }
   .sp-day .tasks .t { display: flex; gap: 6px; }
   /* exam day: amber with a fine gold lattice */
@@ -943,7 +943,7 @@ function renderDayList(plan) {
   plan.cal.forEach(d => {
     if (d.i % DAYS_PER_WEEK === 0) html += `<div class="sp-week">Week ${d.i / DAYS_PER_WEEK + 1}</div>`;
     const tasks = d.rest ? '<div class="t"><span>😴</span><span>休息日</span></div>' : d.tasks.map(t => `<div class="t"><span>${TASK_ICONS[t.type]}</span><span>${t.t}</span></div>`).join('');
-    const when = d.i === TODAY_INDEX ? 'today' : d.i > TODAY_INDEX ? 'future' : '';
+    const when = d.i === TODAY_INDEX ? 'today' : d.i < TODAY_INDEX ? 'past' : '';
     html += `<div class="sp-day sp-click ${d.rest ? 'rest' : d.phase} ${when}" data-day="${d.i}" role="button" tabindex="0" aria-label="Day ${d.i + 1} 任務">
       <div class="d num">${d.i + 1}<small>${fmtDate(d.date)} ${WEEKDAYS[d.date.getDay()]}</small></div>
       <div class="tasks">${tasks}</div><div>${statusPill(d)}</div></div>`;
