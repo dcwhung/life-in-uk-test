@@ -34,6 +34,11 @@ function isFactExam(examNum) {
   return typeof examNum === 'string' && examNum.startsWith(FACT_PREFIX) && /^\d+$/.test(examNum.slice(FACT_PREFIX.length));
 }
 function factIdOf(examNum) { return Number(examNum.slice(FACT_PREFIX.length)); }
+// a study plan task session: 'p' + its Day n (like isFactExam, digits only)
+function isPlanExam(examNum) {
+  return typeof examNum === 'string' && examNum.startsWith(PLAN_PREFIX) && /^\d+$/.test(examNum.slice(PLAN_PREFIX.length));
+}
+function planDayOf(examNum) { return Number(examNum.slice(PLAN_PREFIX.length)); }
 // W-016: a fact set is named by its Study card's chapter number (chapterFactNumber), never the global id
 function factSetParams(examNum) {
   const id = factIdOf(examNum);
@@ -78,6 +83,7 @@ function examLabel(examNum) {
   if (examNum === ALL_EXAM) return t('common.allExams');
   if (isChapterExam(examNum)) return t('common.chapterN', { n: chapterOf(examNum) });
   if (isFactExam(examNum)) return t('common.factSet', factSetParams(examNum));
+  if (isPlanExam(examNum)) return t('plan.dayN', { n: planDayOf(examNum) });
   if (isDifficultyExam(examNum)) {
     const lv = difficultyOf(examNum);
     return '★'.repeat(lv) + ' ' + difficultyLabel(lv);

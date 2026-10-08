@@ -235,11 +235,12 @@ function planLightTasks() {
 // fromIso … examDate - 1: learn the given facts, then drill, then mock (shared by buildPlan and replanFrom)
 function buildPlanDays(fromIso, goal, factIds = PLAN_LEARN_ORDER) {
   const cal = planCalendar(fromIso, goal.examDate, goal.restDays);
-  const study = cal.filter(d => !d.rest);
-  const split = planSplitStudyDays(study.length - 1, goal, planLearnMinutes(goal.level, factIds));
+  // studyDays, not study: that name is the Study screen's global (structure-test plan layer guard)
+  const studyDays = cal.filter(d => !d.rest);
+  const split = planSplitStudyDays(studyDays.length - 1, goal, planLearnMinutes(goal.level, factIds));
   const learn = split.learn ? planChunkWeighted(planLearnItems(goal.level, factIds), split.learn) : [];
   const drill = split.drill ? planChunkWeighted(planDrillItems(goal.level), split.drill) : [];
-  const light = study[study.length - 1];
+  const light = studyDays[studyDays.length - 1];
   let s = 0;
   return cal.map(({ date, rest }) => {
     if (rest) return { date, phase: PLAN_PHASE.rest, tasks: [] };

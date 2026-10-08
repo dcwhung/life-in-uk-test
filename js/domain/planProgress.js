@@ -176,6 +176,12 @@ function planAttributeAnswer(plan, log, qid, todayIso, ctxIso) {
     .find(c => planTaskQids(c.task).includes(qid) && !planDayLog(log, c.date).ok[qid]);
   return carry ? carry.date : null;
 }
+// W-030: every key in keys that is the same question as key (G1: copies of one question text count once) —
+// a plan task asks the canonical copy, the wrong list holds whichever copy was answered
+function planSameQuestionKeys(keys, key) {
+  const canon = planCanonKey(key);
+  return keys.filter(k => planCanonKey(k) === canon);
+}
 // G10 / G23: a mock only counts on the day itself, and only on a day with a mock task (mocks are never carried)
 function planAttributeMock(plan, todayIso, ctxIso) {
   if (planStatus(plan, todayIso) !== PLAN_STATUS.active || (ctxIso && ctxIso !== todayIso)) return null;

@@ -201,6 +201,10 @@ LOCALES.en = {
     noteLabel: '💡 備注：',
   },
 
+  plan: {
+    dayN: 'Day {n}', // a plan task session's header (Day n stays English, as the mockup)
+  },
+
   // labels for the enum keys kept in data/*.js and the study screen (CHAPTERS, DIFF_LEVELS, ERAS, NATIONS, …)
   data: {
     chapters: {

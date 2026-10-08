@@ -44,6 +44,14 @@ function recordExamResults() {
   // practice adds wrong answers as it goes; exam adds the answered-but-wrong ones here (unanswered are not added)
   if (state.mode === EXAM_MODE) reviewItems.forEach(r => { if (r.userAns.length && !r.isCorrect) addWrong(r.q); });
   if (isNumberedExam(state.examNum)) markExamCompleted(state.examNum);
+  recordPlanExam();
+}
+// G10 / G22: a submitted Exam 1-17 or Random Exam in Exam mode is a mock attempt; its answers never count for
+// practice tasks. Leave never gets here (G15).
+function recordPlanExam() {
+  const isRealTest = state.mode === EXAM_MODE && (isNumberedExam(state.examNum) || isRandomExam(state.examNum));
+  const correct = reviewItems.filter(r => r.isCorrect).length;
+  recordPlanMock({ examNum: state.examNum, correct, total: reviewItems.length, isRealTest }, state.planDay || null);
 }
 
 // ── score card ──

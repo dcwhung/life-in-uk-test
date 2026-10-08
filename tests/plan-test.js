@@ -116,6 +116,10 @@ function checkHeadlineNumbers() {
   assert(STUDY.every(f => qidsOf(f).length >= 1) && Math.max(...STUDY.map(f => qidsOf(f).length)) === MAX_QIDS_PER_FACT && qidsOf(STUDY.find(f => f.id === 21)).length === MAX_QIDS_PER_FACT, 'every fact has 1–6 canonical questions (fact #21: 6)');
   assert(g("planCanonKey('4.14')") === '3.12' && g("planCanonKey('3.12')") === '3.12', 'a repeated question maps to its first appearance in exam order');
   assert(g("planCanonKey('99.99')") === '99.99', 'an unknown key maps to itself');
+  // W-030: every stored copy of one question, whichever copy is asked about
+  assert(same(g("planSameQuestionKeys(['1.0', '4.14', '3.12', '9.9'], '3.12')"), ['4.14', '3.12'])
+    && same(g("planSameQuestionKeys(['4.14'], '3.12')"), ['4.14']) && same(g("planSameQuestionKeys(['1.0'], '4.14')"), []),
+    'planSameQuestionKeys: every key that is the same question (4.14 = 3.12), none when absent');
   assert(same(g('PLAN_LEARN_ORDER'), STUDY_ORDER.flatMap(ch => STUDY.filter(f => f.ch === ch).map(f => f.id))), 'learn order = Ch 1, 2, 5, 4, 3, Study card order inside');
 }
 
@@ -693,7 +697,8 @@ function checkNamesAndLoading() {
   assert(lb.indexOf("'js/domain/plan.js'") > 0 && lb.indexOf("'js/domain/plan.js'") < lb.indexOf("'js/domain/planProgress.js'"), 'R1: LATE_BOOT_SCRIPTS loads plan.js then planProgress.js for old shells');
   const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
   assert(PLAN_FILES.every(f => sw.includes(`'${f}'`)), 'sw.js SHELL caches both plan files');
-  assert(g('APP_VERSION') === '1.0.0', 'APP_VERSION stays 1.0.0 in a middle PR (G19)');
+  // G19 (no version bump in a middle PR) is a review rule: unrelated PRs may bump APP_VERSION (CUI-0018)
+  assert(/^\d+\.\d+\.\d+$/.test(g('APP_VERSION')), 'APP_VERSION is MAJOR.MINOR.PATCH (SemVer)');
 }
 
 function runSuite() {

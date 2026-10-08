@@ -3,11 +3,15 @@
 // (back to the stashed quiz session) or a Study fact's source questions (back to Study).
 // Each question once, listed order; the last one offers "↩ Back" instead of results.
 // ════════════════════════════════════════
-const SESSION_RETURN_KIND = { quiz: 'quiz', study: 'study' };
+const SESSION_RETURN_KIND = { quiz: 'quiz', study: 'study', plan: 'plan' };
 // null | { kind: 'quiz', state } | { kind: 'study', scrollY, factId }
+//      | { kind: 'plan', date, taskIndex, type } — a study plan task: date = the plan day it counts for (G5), type = PLAN_TASK
 let sessionReturn = null;
 function isSideSession() { return sessionReturn !== null; }
 function clearSideSession() { sessionReturn = null; }
+function isPlanReturn(ret) { return ret !== null && ret.kind === SESSION_RETURN_KIND.plan; }
+// R9: the plan's "clear wrong answers" task clears the wrong list like the Wrong answers review does
+function isPlanReviewSession() { return isPlanReturn(sessionReturn) && sessionReturn.type === PLAN_TASK.review; }
 
 // every state field is set here (no spread of the previous session): review counters, the set pool, exam flags
 // and the mode would otherwise leak in. Always Practice, whatever Home's pendingMode says, and no exam timer.
@@ -27,11 +31,13 @@ function sideSessionState(examNum, questions) {
     cleared: 0,
     sessionCorrect: 0,
     sessionTotal: 0,
+    planDay: null,
   };
 }
 function startSideSession(examNum, questions, returnTo) {
   sessionReturn = returnTo;
   state = sideSessionState(examNum, questions);
+  if (isPlanReturn(returnTo)) state.planDay = returnTo.date;
   stopExamTimer();
   examTimeUp = false;
   showScreen('screenQuiz');
@@ -53,6 +59,8 @@ const SESSION_RETURNS = {
     window.scrollTo(0, ret.scrollY);
     flashStudyFact(ret.factId);
   },
+  // the plan task card is not built yet (PR6a): back to Home until then
+  [SESSION_RETURN_KIND.plan]: () => leaveToHome(),
 };
 function returnFromSideSession() {
   const ret = sessionReturn;

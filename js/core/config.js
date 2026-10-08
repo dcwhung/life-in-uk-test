@@ -14,7 +14,7 @@ const FLAGGED_EXAM = 'flagged';
 const CHAPTER_PREFIX = 'ch';
 const DIFFICULTY_PREFIX = 'd';
 const FACT_PREFIX = 'f'; // + study fact id: that fact's source questions ('f21', a one-off session from Study)
-const PLAN_PREFIX = 'p'; // + plan Day n: a study plan task's side session ('p8'); PR2 wires it in
+const PLAN_PREFIX = 'p'; // + plan Day n: a study plan task's side session ('p8', isPlanExam)
 
 // ── practice ──
 const MASTERY_STREAK = 3;

@@ -108,6 +108,7 @@
 | T-318 | `tests/plan-ui-test.js`（第一部份）+ `run-all.sh`：switch、建立卡、目標全部欄位、360 / 375 / 400px、`[hidden]`；`lang-switch-test` goal screen | test | frontend-developer | none-required | 1 | T-315–T-317 | P0 |
 
 **PR3 驗收**：
+- [ ] G31：`?preview=plan` 令 `planVisible()` 為 true 並記住（localStorage），`?preview=off` 收返；冇 preview 時 `visual-diff` 0 diff；URL param 處理完要 `history.replaceState` 清走，唔留喺 URL
 - [ ] 建立新計劃之前先 `clearStudyPlan()`（舊 log 唔可以影響新計劃；PR1 review Round 3 / QA O-2）
 - [ ] 計劃 log 壞咗時（PR1 為咗唔覆寫，之後答題唔會記）要有恢復途徑或者提示，例如「↺ 重設計劃」可以清除壞資料（PR1 QA O-1）
 - [ ] handoff §5「ⓘ 開關」：預設開；關 → 主頁冇計劃項目、計劃畫面入唔到；開 → 原本進度（測試用 override 入）
@@ -175,6 +176,7 @@
 | T-339 | `plan-run-test`（第二部份）：讀卡 + CTA、Similar CTA、mock 合格 / 唔合格 / Leave、`page.clock` 計時；`similar-test` / `factsession-test` / `examresult-test` 預設行為不變 | test | frontend-developer | none-required | 1 | T-335–T-338 | P0 |
 
 **PR6b 驗收**：
+- [ ] 計劃模擬考「再考」用 `EXAM_MODE`，唔用主頁 `pendingMode`（`retryExam()`；PR2 review 觀察）
 - [ ] handoff §2.5 四類任務介面全部重用現有 component（`.fact`、`.sqm`、Exam mode 45 分鐘）
 - [ ] G10 合格先完成、分數記低；G11 Random Exam；G15 計時中關開關 / Leave = 唔交卷
 - [ ] 現有 Study / Similar / Exam 結果頁行為不變；UI-common
