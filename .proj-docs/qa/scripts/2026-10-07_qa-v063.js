@@ -308,21 +308,22 @@ async function sourceRow(b) {
     const lay = await pg.$eval(card(21), e => {
       const r = e.getBoundingClientRect(); const btn = e.querySelector('.fact-practise').getBoundingClientRect();
       const nodes = [...e.querySelectorAll('.sqm-node')].map(n => n.getBoundingClientRect());
-      return { wrap: e.querySelector('.fact-src').classList.contains('wrap-btn'), cardL: r.left, cardR: r.right, btnW: btn.width, btnL: btn.left, btnR: btn.right, btnTop: btn.top,
+      return { cardL: r.left, cardR: r.right, btnW: btn.width, btnL: btn.left, btnR: btn.right, btnTop: btn.top,
         nodesMaxBottom: Math.max(...nodes.map(n => n.bottom)), nodeRows: new Set(nodes.map(n => Math.round(n.top))).size,
         overflow: nodes.some(n => n.right > r.right - 14 + 0.5 || n.left < r.left),
         overlap: nodes.some(n => n.right > btn.left && n.left < btn.right && n.bottom > btn.top && n.top < btn.bottom), btnInCard: btn.right <= r.right - 14 + 0.5, docW: document.documentElement.scrollWidth, btnH: btn.height };
     });
     note(`${w}: #21 layout`, JSON.stringify(lay));
-    ok(lay.wrap && !lay.overflow && !lay.overlap && lay.btnInCard && lay.docW <= w && (w > 480 || lay.btnTop >= lay.nodesMaxBottom),
-      `${w}: #21 8 nodes inside the card, no overlap with the button, no horizontal scroll${w <= 480 ? ', button on its own line below' : ''} (${lay.nodeRows} node rows)`);
-    if (w === 390) ok(Math.abs(lay.btnR - lay.btnL - (lay.cardR - lay.cardL - 4 - 28)) <= 1, `390: #21 Practise button full width of the card content (${lay.btnW})`);
-    else ok(lay.btnW < 200, `900: #21 Practise button not full width (${lay.btnW})`);
+    // v0.70: the button leaves the nodes' line once they wrap (any width) and is then full width
+    const fullW = Math.abs(lay.btnR - lay.btnL - (lay.cardR - lay.cardL - 4 - 28)) <= 1;
+    ok(!lay.overflow && !lay.overlap && lay.btnInCard && lay.docW <= w && (lay.nodeRows === 1 || (lay.btnTop >= lay.nodesMaxBottom && fullW)),
+      `${w}: #21 8 nodes inside the card, no overlap with the button, no horizontal scroll; wrapped nodes → full-width button on its own line (${lay.nodeRows} node rows, button ${lay.btnW}px)`);
     await pg.screenshot({ path: shot(`source-row-21-${w}`) });
     const one = await pg.evaluate(() => { const f = STUDY.find(x => x.src.length === 1); studySetChapter(f.ch); const e = document.querySelector(`#studyContent .fact[data-fact-id="${f.id}"]`);
       window.scrollTo(0, e.getBoundingClientRect().top + scrollY - 140);
-      return { id: f.id, text: e.querySelector('.fact-practise').textContent, wrap: e.querySelector('.fact-src').classList.contains('wrap-btn'), nodes: e.querySelectorAll('.sqm-node').length }; });
-    ok(one.text === '▶ Practise this one' && !one.wrap && one.nodes === 1, `${w}: one-source fact #${one.id}: "▶ Practise this one", inline (${JSON.stringify(one)})`);
+      const b = e.querySelector('.fact-practise').getBoundingClientRect(), n = e.querySelector('.sqm-node').getBoundingClientRect();
+      return { id: f.id, text: e.querySelector('.fact-practise').textContent, inline: b.top < n.bottom, nodes: e.querySelectorAll('.sqm-node').length }; });
+    ok(one.text === '▶ Practise this one' && one.inline && one.nodes === 1, `${w}: one-source fact #${one.id}: "▶ Practise this one", inline (${JSON.stringify(one)})`);
     await pg.waitForTimeout(100);
     await pg.screenshot({ path: shot(`source-row-one-${w}`) });
     ok(errs.length === 0, `${w}: source row — no page / console errors ` + errs.join('|'));

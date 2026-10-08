@@ -141,6 +141,34 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(accent === await tokenRgb('--navy-light'), '--study-accent is navy-light');
   assert(await css('.tl-item:not(.war) .tl-year', 'color') === accent, 'timeline year is study accent');
   assert(await pg.$eval('.tl-item:not(.war) .tl-year', e => getComputedStyle(e, '::after').backgroundColor) === accent, 'timeline dot is study accent');
+  // v0.70: each dot's centre sits on the vertical middle of its year text, one line or two ("c. 3000 BC"). The line
+  // boxes are trimmed to cap height / baseline (text-box), so the content box is the glyphs' box (digits and
+  // capitals); and the text keeps TL_YEAR_GAP_PX clear of the dot's ring
+  const TL_YEAR_GAP_PX = 6;
+  const dotOff = await pg.$$eval('.tl-year', els => els.map(e => {
+    const cs = getComputedStyle(e), a = getComputedStyle(e, '::after'), r = e.getBoundingClientRect();
+    const padTop = parseFloat(cs.paddingTop);
+    const contentMid = r.top + padTop + (r.height - padTop) / 2;
+    const dot = r.top + parseFloat(a.top);
+    const range = document.createRange(); range.selectNodeContents(e);
+    const textRight = Math.max(...[...range.getClientRects()].map(x => x.right));
+    const ring = parseFloat(a.boxShadow.split(' ').slice(-1)[0]);
+    const dotLeft = r.right - parseFloat(a.right) - parseFloat(a.width) - 2 * parseFloat(a.borderLeftWidth) - ring;
+    const lines = new Set([...range.getClientRects()].map(x => Math.round(x.top))).size;
+    // S-104: the label must hug its text (align-self: start), or the dot drifts to the middle of the card
+    const tall = r.height - padTop > lines * parseFloat(cs.lineHeight) + 1;
+    return { year: e.textContent, trim: cs.textBoxTrim, off: Math.abs(dot - contentMid), gap: dotLeft - textRight, lines, tall };
+  }));
+  const offCentre = dotOff.filter(d => d.trim !== 'trim-both' || d.off > 0.5 || d.gap < TL_YEAR_GAP_PX - 0.5 || d.tall);
+  assert(dotOff.some(d => d.lines > 1) && offCentre.length === 0, `timeline dots centred on the cap-trimmed year text and ${TL_YEAR_GAP_PX}px clear of it, incl. ${dotOff.filter(d => d.lines > 1).length} two-line years (bad: ${JSON.stringify(offCentre.slice(0, 3))})`);
+  // v0.70: the difficulty stars take a line of their own under the card's tags, at its left edge
+  const starsOff = await pg.$$eval('#studyContent .fact', cards => cards.map(c => {
+    const meta = c.querySelector('.fact-meta'), stars = meta.querySelector('.stars').getBoundingClientRect();
+    const others = [...meta.children].filter(e => !e.classList.contains('stars')).map(e => e.getBoundingClientRect());
+    const below = others.every(o => stars.top >= o.bottom - 0.5);
+    return below && Math.abs(stars.left - meta.getBoundingClientRect().left) <= 0.5 ? null : c.dataset.factId;
+  }).filter(Boolean));
+  assert(starsOff.length === 0, `timeline: stars on their own line under the tags (bad: ${starsOff.slice(0, 5).join(', ')})`);
   assert(await css('.tl-item:not(.war) .fact', 'borderLeftColor') === accent, 'fact left border is study accent');
   assert(await css('.tl-item.war .tl-year', 'color') === await tokenRgb('--red'), 'war year stays red');
   await pg.click('.chip.war');

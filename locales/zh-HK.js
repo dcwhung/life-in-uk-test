@@ -50,7 +50,6 @@ LOCALES['zh-HK'] = {
     resetCompleted: '↺ 重設已完成試卷',
     wrongTitle: '錯題',
     wrongEmpty: '暫時未有需要複習的題目',
-    wrongToClear: '尚餘 {n} 題',
     flaggedTitle: '已標記',
     flaggedEmptyHtml: '於題目按 {icon} 即可標記',
     myReviewNote: '來自練習及模擬考試，於此答對後便會清除。每輪最多 {max} 題。',

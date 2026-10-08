@@ -41,11 +41,6 @@
 .rv-yue { color: var(--purple); font-size: 12.5px; line-height: 1.6; }
 .rv-note { margin-top: 10px; color: var(--purple); font-size: 12.5px; line-height: 1.6; }
 .rv-note-label { color: var(--note-label); font-weight: 700; margin-bottom: 4px; }
-.rv-note-line { margin-bottom: 6px; }
-.rv-note-line:last-child { margin-bottom: 0; }
-.rv-note-line.bullet { padding-left: 1.1em; text-indent: -1.1em; }
-.rv-note-line.sub { padding-left: 2.2em; text-indent: -1.1em; }
-.rv-note-gap { height: 6px; }
 .review-item.hl { box-shadow: 0 0 0 3px var(--gold); }
 
 .result-timeup {

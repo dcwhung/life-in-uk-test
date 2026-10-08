@@ -180,12 +180,12 @@ const myReviewTiles = pg => pg.evaluate(() => Object.fromEntries(['tileWrong', '
   const el = document.getElementById(id), txt = sel => (el.querySelector(sel) || {}).textContent || '';
   return [id, { num: txt('.t-num'), title: txt('b'), sub: txt('.sub'), note: txt('.t-note') }];
 }).concat([['oldNote', !!document.getElementById('myReviewNote')]])));
-// wrong tile: n + 尚餘 n 題 + the note; flagged tile: n, title only
+// wrong tile: n + the note (v0.70: no 尚餘 n 題 line); flagged tile: n, title only
 async function expectMyReview(tag, pg, wrongN, flagN) {
   const t = await myReviewTiles(pg);
   const w = t.tileWrong, f = t.tileFlagged;
-  ok(w.num === String(wrongN) && w.title === '錯題' && w.sub === `尚餘 ${wrongN} 題` && w.note === G.myReviewNote,
-    `${tag}: wrong tile ${wrongN} · 尚餘 ${wrongN} 題 + note inside the tile ${JSON.stringify(w)}`);
+  ok(w.num === String(wrongN) && w.title === '錯題' && w.sub === '' && w.note === G.myReviewNote,
+    `${tag}: wrong tile ${wrongN}, no 尚餘 line (v0.70) + note inside the tile ${JSON.stringify(w)}`);
   ok(f.num === String(flagN) && f.title === '已標記' && f.sub === '' && f.note === '',
     `${tag}: flagged tile ${flagN}, no count line ${JSON.stringify(f)}`);
   ok(!t.oldNote, `${tag}: no separate #myReviewNote below the tiles`);
@@ -282,7 +282,7 @@ async function glossary(b) {
     const { ctx, pg, errs, warns } = await fresh(b, 390, {}, APP_URL, { 'lifeuk.wrongList': { '1.0': true, '1.1': true, '2.3': true }, 'lifeuk.practiceFlags': { '3.4': true, '6.7': true } });
     await pill(pg);
     await nav(pg, '#modePractice');
-    await expectTexts('Home practice › difficulty', pg, [...G.homeTop, ...G.practiceDesc, ...G.practiceHint, ...G.myReview, G.myReviewNote, '尚餘 3 題']);
+    await expectTexts('Home practice › difficulty', pg, [...G.homeTop, ...G.practiceDesc, ...G.practiceHint, ...G.myReview, G.myReviewNote]);
     const hintLis = await pg.$$eval('#practiceHint li', els => els.map(e => e.textContent));
     ok(JSON.stringify(hintLis) === JSON.stringify(G.practiceHint), `Home practice: hint is ${G.practiceHint.length} <li> in order ${JSON.stringify(hintLis)}`);
     await expectMyReview('Home practice › difficulty', pg, 3, 2);
@@ -655,14 +655,16 @@ async function edges(b) {
     ok(errs.length === 0 && !warns.some(x => x.includes('[i18n]')), 'E1 — no page errors / i18n warnings ' + errs.concat(warns).join('|'));
     await ctx.close();
   }
-  // toggle while the confirm modal is open: keyboard (Tab to the pill) does nothing; mouse lands on the backdrop
+  // toggle while the confirm modal is open: Tab stays in the modal (v0.69 S-025); a pill focused anyway does nothing
+  // (R-002 guard); mouse lands on the backdrop
   {
     const { ctx, pg, errs } = await fresh(b, 390);
     await nav(pg, '#modeExam'); await nav(pg, '#examGrid [data-arg="1"]'); await tap(pg, '#opt0');
     await tap(pg, '#screenQuiz .back-btn');
-    let reached = false;
-    for (let i = 0; i < 40 && !reached; i++) { await pg.keyboard.press('Tab'); reached = await pg.evaluate(() => document.activeElement && document.activeElement.id === 'langBtn'); }
-    ok(reached, 'E2 Tab from the leave modal reaches the pill (no focus trap, known R-002)');
+    let escaped = false;
+    for (let i = 0; i < 40 && !escaped; i++) { await pg.keyboard.press('Tab'); escaped = await pg.evaluate(() => !byId('confirmModal').contains(document.activeElement)); }
+    ok(!escaped, 'E2 40 × Tab from the leave modal stays in the modal (S-025 focus trap; S-101)');
+    await pg.focus('#langBtn'); // bypass the trap to check the R-002 guard still holds
     const mBefore = await pg.evaluate(() => ({ t: byId('confirmTitle').textContent, o: byId('confirmOk').textContent, open: isConfirmOpen() }));
     await pg.keyboard.press('Enter'); await sleep(60); await pg.keyboard.press('Space'); await sleep(60);
     const mAfter = await pg.evaluate(() => ({ t: byId('confirmTitle').textContent, o: byId('confirmOk').textContent, open: isConfirmOpen() }));

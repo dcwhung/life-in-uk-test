@@ -1,7 +1,7 @@
 // ════════════════════════════════════════
 // ACTIONS — event delegation instead of inline handlers.
 // Markup: <button data-action="name" data-arg="…">; inputs: <input data-input-action="name">.
-// One document-level click, input and keydown (Escape) listener each.
+// One document-level click, input and keydown (Escape; Tab inside the confirm modal) listener each.
 // ════════════════════════════════════════
 const numArg = el => Number(el.dataset.arg);
 // Exam 1–17 are numbers; 'all' and the other set ids stay strings (isNumberedExam checks the type)
@@ -10,8 +10,8 @@ const examArg = el => (/^\d+$/.test(el.dataset.arg) ? Number(el.dataset.arg) : e
 const ACTIONS = {
   // header + home
   toggleInfo: () => toggleInfo(),
-  // R-002: the confirm modal has no focus trap, so Tab reaches the pill; switching then would leave the modal's
-  // text in the old language, so the pill does nothing until the modal closes
+  // R-002: switching with the confirm modal open would leave its text in the old language, so the pill does nothing
+  // until the modal closes (since v0.69 / S-025 Tab cannot reach the pill; this guard stays as a backstop)
   toggleLang: () => { if (!isConfirmOpen()) setLang(getLang() === DEFAULT_LANG ? ZH_HK_LANG : DEFAULT_LANG); },
   install: () => promptInstall(),
   dismissInstall: () => dismissInstallBanner(),
@@ -106,6 +106,9 @@ document.addEventListener('input', e => {
   if (el) runAction(el.dataset.inputAction, el, e);
 });
 document.addEventListener('keydown', e => {
+  if (e.key === 'Tab' && isConfirmOpen()) trapConfirmTab(e);
+  // S-103: Enter held on the button that opened the prompt would auto-repeat onto the prompt's default button
+  if (e.key === 'Enter' && e.repeat && isConfirmOpen()) e.preventDefault();
   if (e.key !== 'Escape') return;
   if (isConfirmOpen()) closeConfirm();
   setInfoOpen(false);

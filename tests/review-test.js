@@ -68,7 +68,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
 
   // Wrong answers tile: starts a review round; a correct answer there clears the question
   await pg.evaluate(() => goHome());
-  assert((await text('#tileWrong .t-num')) === '2' && (await text('#tileWrong .sub')) === '2 to clear', 'Wrong tile: 2 to clear');
+  assert((await text('#tileWrong .t-num')) === '2' && !(await pg.$('#tileWrong .sub')), 'Wrong tile: count 2, no "to clear" line (v0.70)');
   await pg.click('#tileWrong');
   assert((await text('#quizLabel')) === 'Wrong answers' && await pg.evaluate(() => state.questions.length === 2), 'review round of the 2 wrong answers');
   assert(!(await vis('#roundNote')), 'no round note when everything fits in one round');
@@ -84,7 +84,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
 
   // more than 24 wrong: round of 24 with a note above the question card
   await pg.evaluate(() => { const w = {}; for (let i = 0; i < 30; i++) w['3.' + (i % 24)] = true; for (let i = 0; i < 6; i++) w['5.' + i] = true; localStorage.setItem('lifeuk.wrongList', JSON.stringify(w)); wrongList = w; goHome(); });
-  assert((await text('#tileWrong .sub')) === '30 to clear', 'tile remark: 30 to clear (no per round part)');
+  assert((await text('#tileWrong .t-num')) === '30' && !(await pg.$('#tileWrong .sub')), 'Wrong tile: count 30, no "to clear" line (v0.70)');
   await pg.click('#tileWrong');
   assert(await pg.evaluate(() => state.questions.length === 24), 'review round capped at 24');
   assert(await vis('#roundNote') && (await text('#roundNote')) === 'Round 1 of 2 · 24 of your 30 wrong answers', 'round note text');

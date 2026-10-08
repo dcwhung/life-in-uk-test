@@ -53,7 +53,6 @@ LOCALES.en = {
     resetCompleted: '↺ Reset completed exams',
     wrongTitle: 'Wrong answers',
     wrongEmpty: 'Nothing to review yet',
-    wrongToClear: '{n} to clear',
     flaggedTitle: 'Flagged',
     flaggedEmptyHtml: 'Tap {icon} on a question to flag it',
     myReviewNote: 'From Practice and Exam; cleared once you get them right here. Up to {max} per round.',

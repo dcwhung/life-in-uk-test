@@ -130,13 +130,13 @@
 .my-tile .t-num { font-size: 24px; font-weight: 900; color: var(--navy); line-height: 1; }
 .my-tile b { display: block; font-size: 13.5px; color: var(--navy); }
 .my-tile .sub, .my-tile .t-note { display: block; font-size: var(--fs-xs); color: var(--text-muted); margin-top: 2px; line-height: 1.4; }
-/* the wrong tile's note: same small text as .sub, set apart from the count line above it;
+/* the wrong tile's note (only while it has questions, v0.70): same small text as .sub, set apart from the title above;
    text-wrap: pretty stops a lone "題。" on the last line (S-084), browsers without it wrap as before */
 .my-tile .t-note { margin-top: 6px; text-wrap: pretty; }
-/* W-022: fade the empty tile's own parts, not the wrong answers note (it explains the tile, so it keeps full contrast at 0);
-   the grey left border and dropped shadow still mark the tile as empty */
+/* W-022: fade the empty tile's parts (since v0.70 / S-105 an empty tile has no note, so every part fades); the grey
+   left border and dropped shadow still mark the tile as empty */
 .my-tile.empty { cursor: default; border-left-color: var(--border); box-shadow: none; }
-.my-tile.empty > :not(.t-note) { opacity: 0.6; }
+.my-tile.empty > * { opacity: 0.6; }
 .bm-inline { width: 12px; height: 12px; vertical-align: -2px; }
 .bm-inline path { fill: none; stroke: var(--text-muted); stroke-width: 2; stroke-linejoin: round; }
 .practice-by-title { display: none; }

@@ -36,3 +36,18 @@ function setButtonHtml({ extraCls = '', action, arg, labelHtml, list }) {
       <span class="ch-count mastery${m.mastered ? '' : ' zero'}">${masteryText(m)}</span>${masteryBarHtml(m)}
     </button>`;
 }
+
+// v0.70: shared by the Practice answer box and the Results review, so a wrapped bullet keeps its hanging indent
+// in both (css/components/note.css)
+// note text: one row per \n line; "•" / "→" start a bullet, leading spaces + "◦" a sub-bullet, blank = gap.
+// The marker sits in a fixed-width .note-mark box, so the text (and its wrapped lines) start at the same indent
+const NOTE_MARK = /^([•◦→])\s*/;
+function noteLineHtml(line) {
+  const text = line.trim(), mark = text.match(NOTE_MARK);
+  const cls = /^\s{2,}/.test(line) ? ' sub' : mark ? ' bullet' : '';
+  const body = mark ? `<span class="note-mark">${mark[1]} </span>${escapeHtml(text.slice(mark[0].length))}` : escapeHtml(text);
+  return `<div class="rv-note-line${cls}" lang="zh-HK">${body}</div>`;
+}
+function noteHtml(note) {
+  return note.split('\n').map(line => (line.trim() ? noteLineHtml(line) : '<div class="rv-note-gap"></div>')).join('');
+}

@@ -156,7 +156,7 @@ const L = (lang, en, zh) => (lang === ZH ? zh : en);
     const w30 = [...keysRange(3, 0, 24), ...keysRange(5, 0, 6)];
     await pg.evaluate(w => { localStorage.setItem('lifeuk.wrongList', JSON.stringify(w)); localStorage.setItem('lifeuk.practiceFlags', '{}'); }, toMap(w30));
     await pg.reload(); await pg.waitForTimeout(150); await click(pg, '#modePractice');
-    ok(await text(pg, '#tileWrong .sub') === L(lang, '30 to clear', '尚餘 30 題'), `[${tag}] home: wrong tile sub "${await text(pg, '#tileWrong .sub')}" (no per-round part)`);
+    ok(await pg.$('#tileWrong .sub') === null && await text(pg, '#tileWrong .t-num') === '30', `[${tag}] home: wrong tile 30, no "to clear" line (v0.70)`);
     await click(pg, '#tileWrong');
     ok(await pg.evaluate(() => state.questions.length) === 24, `[${tag}] cui16 edge: 30 wrong → round of 24`);
     await playRound(pg, Array(24).fill(true));
@@ -375,18 +375,17 @@ const L = (lang, en, zh) => (lang === ZH ? zh : en);
             wTop: tw.querySelector('.t-top').getBoundingClientRect().top - tw.getBoundingClientRect().top };
         });
         const pfx = `[${tag}] home ${width}px ${st.name}:`;
-        ok(info.note === L(lang, 'From Practice and Exam; cleared once you get them right here. Up to 24 per round.', '來自練習及模擬考試，於此答對後便會清除。每輪最多 24 題。') && !info.oldNote, `${pfx} note inside wrong tile, old #myReviewNote gone`);
+        if (!st.name.startsWith('wrong0')) ok(info.note === L(lang, 'From Practice and Exam; cleared once you get them right here. Up to 24 per round.', '來自練習及模擬考試，於此答對後便會清除。每輪最多 24 題。'), `${pfx} note inside wrong tile`);
+        ok(!info.oldNote, `${pfx} old #myReviewNote gone`);
         ok(Math.abs(info.hW - info.hF) < 0.5, `${pfx} tiles same height (${info.hW} / ${info.hF})`);
         ok(Math.abs(info.wTop - info.fTop) < 0.5, `${pfx} tile content top-aligned`);
         ok(info.scrollW <= width && !info.overflow, `${pfx} no overflow (scrollWidth ${info.scrollW})`);
         if (st.name.startsWith('wrong0')) {
-          const noteOp = info.kids.find(k => k.cls === 't-note').op, others = info.kids.filter(k => k.cls !== 't-note');
-          ok(info.empty && info.tileOp === 1 && noteOp === 1 && others.every(k => k.op === 0.6), `${pfx} empty: note opacity 1, other parts 0.6 (${JSON.stringify(info.kids)})`);
+          // v0.70: no note at 0 wrong, only the empty line; every part fades
+          ok(info.empty && info.tileOp === 1 && info.note === undefined && info.kids.every(k => k.op === 0.6), `${pfx} empty: no note, parts 0.6 (${JSON.stringify(info.kids)})`);
           ok(info.sub === L(lang, 'Nothing to review yet', '暫時未有需要複習的題目'), `${pfx} empty sub "${info.sub}"`);
-          const noteColor = await pg.$eval('#tileWrong .t-note', e => getComputedStyle(e).color);
-          ok(noteColor === await cssVarRgb(pg, '--text-muted'), `${pfx} empty note colour = --text-muted (${noteColor})`);
         } else {
-          ok(info.sub === L(lang, '5 to clear', '尚餘 5 題'), `${pfx} sub "${info.sub}"`);
+          ok(info.sub === undefined, `${pfx} no "to clear" sub (v0.70): "${info.sub}"`);
           ok(info.kids.every(k => k.op === 1), `${pfx} non-empty tile parts full opacity`);
         }
         if (st.name.endsWith('flag2')) ok(info.fSub === null, `${pfx} flagged tile has no sub line`);
@@ -492,14 +491,14 @@ const L = (lang, en, zh) => (lang === ZH ? zh : en);
   // ══════════ 7. QA round 2 additions (2026-10-08, second QA after container restart) ══════════
   if (want('qa2')) for (const lang of LANGS) {
     const tag = lang === ZH ? 'zh' : 'en';
-    // QA2-1: wrong tile with exactly 1 left — sub copy, same height, no overflow at 390 / 320
+    // QA2-1: wrong tile with exactly 1 left — no sub line (v0.70), same height, no overflow at 390 / 320
     for (const width of [390, 320]) {
       const { pg, errs } = await newPage(b, lang, width, { wrongList: toMap(['4.0']), practiceFlags: toMap(['2.0']) });
       await click(pg, '#modePractice');
       const r = await pg.evaluate(() => { const tw = document.getElementById('tileWrong'), tf = document.getElementById('tileFlagged');
-        return { sub: tw.querySelector('.sub').textContent, hW: tw.getBoundingClientRect().height, hF: tf.getBoundingClientRect().height,
+        return { sub: tw.querySelector('.sub') && tw.querySelector('.sub').textContent, hW: tw.getBoundingClientRect().height, hF: tf.getBoundingClientRect().height,
           sw: document.documentElement.scrollWidth, num: tw.querySelector('.t-num').textContent }; });
-      ok(r.num === '1' && r.sub === L(lang, '1 to clear', '尚餘 1 題') && Math.abs(r.hW - r.hF) < 0.5 && r.sw <= width,
+      ok(r.num === '1' && r.sub === null && Math.abs(r.hW - r.hF) < 0.5 && r.sw <= width,
         `[${tag}] qa2 home ${width}px wrong1: sub "${r.sub}", heights ${r.hW}/${r.hF}, scrollWidth ${r.sw}`);
       if (width === 320) await pg.$eval('#myReview', e => window.scrollTo(0, e.getBoundingClientRect().top + window.scrollY - 140)).then(() => pg.screenshot({ path: shot(`qa2-${tag}-myreview-wrong1-320`) }));
       ok(errs.length === 0, `[${tag}] qa2 home ${width}px wrong1: no page errors ${errs.join('; ')}`);

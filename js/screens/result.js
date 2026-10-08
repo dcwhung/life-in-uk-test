@@ -16,6 +16,8 @@ let reviewFilter = 'all';
 
 function finishExam() {
   stopExamTimer();
+  // W-024: time up can land while Submit / Leave is asking; drop that prompt so it cannot cover or re-submit the results
+  if (isConfirmOpen()) closeConfirm();
   setShown('resultTimeUp', examTimeUp);
   examTimeUp = false;
   reviewItems = state.questions.map((q, idx) => {
@@ -138,19 +140,14 @@ function diffTableHtml() {
 
 // ── Review Answers ──
 function setReviewFilter(key) {
+  // S-102: the chips are redrawn, so a chip that had focus (keyboard use) hands it to the chip just chosen
+  const hadFocus = byId('reviewOrder').contains(document.activeElement);
   reviewFilter = key;
   renderReview();
+  if (hadFocus) byId('reviewOrder').querySelector(`[data-arg="${key}"]`).focus();
 }
 function visibleReviewItems() {
   return reviewItems.filter(REVIEW_FILTERS.find(f => f.key === reviewFilter).keep);
-}
-// note text: one row per \n line; "•" / "→" start a bullet, leading spaces + "◦" a sub-bullet, blank = gap
-function noteHtml(note) {
-  return note.split('\n').map(line => {
-    if (!line.trim()) return '<div class="rv-note-gap"></div>';
-    const cls = /^\s{2,}/.test(line) ? ' sub' : /^\s*[•◦→]/.test(line) ? ' bullet' : '';
-    return `<div class="rv-note-line${cls}" lang="zh-HK">${escapeHtml(line.trim())}</div>`;
-  }).join('');
 }
 // S-047: the label follows the UI language, the chosen English option is lang="en"; "{answer}" is left in by t()
 // (no param) and swapped for the span after escaping, so no locale key changes. review.noAnswer is UI text: no span.
