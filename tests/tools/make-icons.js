@@ -7,19 +7,19 @@ const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const ICON_DIR = path.join(ROOT, 'icons');
-// fill colour behind the artwork comes from the header navy token, so the icon never drifts from the app
-const NAVY = fs.readFileSync(path.join(ROOT, 'css/base/tokens.css'), 'utf8').match(/--navy:\s*(#[0-9a-f]{6})/i)[1];
+// full-bleed fill behind the artwork: the light base colour of icon.svg, so the edges blend into the artwork
+const ICON_BASE = '#eaf2fa';
 // maskable icons get cropped to a circle of 80% of the width: shrink the artwork into that safe zone
 const MASKABLE_SAFE_SCALE = 0.8;
 const FULL_SCALE = 1;
 const TRANSPARENT = 'transparent';
 
-// "any" icons keep the SVG's rounded corners; apple-touch (iOS rounds it itself) and maskable are full-bleed navy
+// "any" icons keep the SVG's rounded corners; apple-touch (iOS rounds it itself) and maskable are full-bleed ICON_BASE
 const VARIANTS = [
   { file: 'icon-192.png', size: 192, scale: FULL_SCALE, background: TRANSPARENT },
   { file: 'icon-512.png', size: 512, scale: FULL_SCALE, background: TRANSPARENT },
-  { file: 'icon-maskable-512.png', size: 512, scale: MASKABLE_SAFE_SCALE, background: NAVY },
-  { file: 'apple-touch-icon.png', size: 180, scale: FULL_SCALE, background: NAVY },
+  { file: 'icon-maskable-512.png', size: 512, scale: MASKABLE_SAFE_SCALE, background: ICON_BASE },
+  { file: 'apple-touch-icon.png', size: 180, scale: FULL_SCALE, background: ICON_BASE },
 ];
 
 function pageHtml(svgDataUri, { size, scale, background }) {
