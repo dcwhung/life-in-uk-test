@@ -50,7 +50,7 @@ const ACTIONS = {
   studyToggleMark: el => studyToggleMark(el.dataset.mark, numArg(el)),
   studySetSearch: el => studySetSearch(el.value),
   startFactPractice: el => startFactPractice(numArg(el)),
-  // study plan (entry hidden until planVisible: js/screens/planHome.js, planGoal.js, planSchedule.js)
+  // study plan (entry hidden until planVisible: js/screens/planHome.js, planGoal.js, planSchedule.js, planDay.js)
   togglePlanFeature: () => togglePlanFeature(),
   openPlanGoal: () => openPlanGoal(),
   planSetDays: el => planSetDays(numArg(el)),
@@ -63,6 +63,11 @@ const ACTIONS = {
   openPlanSchedule: () => openPlanSchedule(),
   planEditGoal: () => planEditGoal(),
   planAskReset: () => planAskReset(),
+  openPlanDay: el => openPlanDay(el.dataset.arg || null), // a schedule row names its day; the Home card means today
+  planShiftDay: el => planShiftDay(numArg(el)),
+  planShowToday: () => planShowToday(),
+  planShiftMonth: el => planShiftMonth(numArg(el)),
+  planOpenCalendarDay: el => planOpenDayFromCalendar(el.dataset.arg),
   // confirm modal
   confirmAccept: () => confirmAccept(),
   closeConfirm: () => closeConfirm(),

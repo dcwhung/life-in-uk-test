@@ -157,6 +157,31 @@ async function pr3Shell(b) {
   await pg.close();
 }
 
+// CUI-0021 (PR5): a PR4 shell has the goal + schedule screens but no day screen: its card's "Continue" and the
+// schedule rows would open nothing, so no card; a stored plan and its log are left exactly as they were
+const PR4_SHELL_REF = 'e7f41a9'; // main after the PR4 merge (#62)
+async function pr4Shell(b) {
+  const dir = tmpDir('pr4shell');
+  copyCurrent(dir);
+  fs.writeFileSync(path.join(dir, 'old.html'), execFileSync('git', ['-C', ROOT, 'show', `${PR4_SHELL_REF}:index.html`]));
+  const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
+  const errs = []; pg.on('pageerror', e => errs.push(e.message));
+  await pg.goto('file://' + path.join(dir, 'old.html'));
+  await seed(pg, { [P + 'studyPlanPreview']: 'true' });
+  await pg.evaluate(() => writeStudyPlan(buildPlan({ examDate: isoAddDays(planTodayIso(), 21), dailyMins: 60, restDays: [0], level: 'none' }, planTodayIso())));
+  await pg.reload();
+  await pg.waitForSelector('#examGrid .exam-btn', { state: 'attached' });
+  const stored = await pg.evaluate(() => localStorage.getItem(STUDY_PLAN_LS));
+  assert(await pg.evaluate(() => typeof openPlanDay === 'function' && typeof planWatchDay === 'function' && !!document.getElementById('screenPlanSchedule') && !document.getElementById('screenPlanDay')),
+    'PR4 shell: planDay.js late-loaded, schedule markup but no day screen');
+  assert(await pg.evaluate(() => !document.getElementById('planCard')), 'PR4 shell + preview + plan: no plan card (CUI-0021)');
+  await pg.evaluate(() => { openPlanDay(); openPlanSchedule(); });
+  assert(await pg.evaluate(() => document.querySelector('.screen.active').id) === 'screenHome', 'PR4 shell: plan screens stay closed');
+  assert(await pg.evaluate(() => localStorage.getItem(STUDY_PLAN_LS)) === stored, 'PR4 shell: the stored plan is not touched (G9 snapshot waits for the new shell)');
+  assert(errs.length === 0, 'PR4 shell + preview: no page errors: ' + errs.join(' | '));
+  await pg.close();
+}
+
 // 5. S-014: the old shell's locale fetch fails (file missing) — main.js reloads once, then shows its fallback text
 const I18N_BOOT_FALLBACK = fs.readFileSync(path.join(ROOT, 'js/main.js'), 'utf8').match(/const I18N_BOOT_FALLBACK_MSG =\s*'([^']+)'/);
 const BOOT_SETTLE_MS = 1000;
@@ -349,6 +374,7 @@ function checkV057Ref() {
   await mixedShell(b);
   await prePlanUiShell(b);
   await pr3Shell(b);
+  await pr4Shell(b);
   await oppositeMix(b);
   await swUpgrade(b);
   await v057UtilsMix(b);

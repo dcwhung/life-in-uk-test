@@ -3,7 +3,7 @@
 // strategy), the study order with its reasons, and the day list: its own scroller opened at today under a sticky
 // WEEK heading, past days dimmed, a status pill per day (✓ / G27 band / today n% / rest) and the exam day.
 // "Change goal" re-plans from today (planGoal.js, G7); "↺ Reset plan" deletes the plan and its log (S-110).
-// Day rows open the day screen once it exists (PR5); until then they are plain rows.
+// Each day row (and the exam day) is a button that opens that day (planDay.js); "View today's tasks →" below.
 // ════════════════════════════════════════
 const PLAN_ORDER_STEPS = [[1, 2], [5], [4], [3]]; // PLAN_STUDY_ORDER grouped as the order card shows it
 const PLAN_ORDER_WHY_KEYS = { 1: 'plan.order.whyWarmUp', 5: 'plan.order.whyGov', 4: 'plan.order.whySociety', 3: 'plan.order.whyHistory' };
@@ -17,6 +17,9 @@ const PLAN_LIGHT_ICON = '🔁';
 const PLAN_EXAM_ICON = '🎯';
 const PLAN_SAFE_IN_A_ROW = 3; // "3 in a row at 21 / 24 or more is safe"
 const PLAN_ORDER_BAR_MIN_PCT = 2; // the smallest chapter bar stays visible
+// PR4 QA O-1: rows further than this from today skip layout until scrolled near (content-visibility); the rows
+// around today are always laid out, so opening the list at today lands exactly
+const PLAN_NEAR_ROWS = 14;
 
 function openPlanSchedule() {
   if (!planVisible()) return;
@@ -37,11 +40,15 @@ function renderPlanSchedule() {
   renderPlanOrder();
   byId('planDayList').innerHTML = planDayListHtml(plan, log, planTodayIso());
 }
-// language switch: re-rendered in place, the day list stays where it was scrolled
+// language switch / new day: re-rendered in place, the day list stays where it was scrolled. It returns to the first
+// row in view (not the raw scrollTop): rows far from today have estimated heights until laid out (O-1)
 function rerenderPlanSchedule() {
-  const top = byId('planDayList').scrollTop;
+  const list = byId('planDayList');
+  const row = [...list.querySelectorAll('.plan-day')].find(r => r.offsetTop + r.offsetHeight > list.scrollTop);
+  const anchor = row ? { iso: row.dataset.arg, delta: list.scrollTop - row.offsetTop } : null;
   renderPlanSchedule();
-  planJumpList(top);
+  const again = anchor && list.querySelector(`.plan-day[data-arg="${anchor.iso}"]`);
+  planJumpList(again ? again.offsetTop + anchor.delta : 0);
 }
 
 // ── summary, phases, strategy ──
@@ -134,17 +141,17 @@ function planTaskText(task, day) {
   }
 }
 function planTaskLineHtml(icon, text) {
-  return `<div class="plan-day-t"><span class="plan-day-ic" aria-hidden="true">${icon}</span><span>${text}</span></div>`;
+  return `<span class="plan-day-t"><span class="plan-day-ic" aria-hidden="true">${icon}</span><span>${text}</span></span>`;
 }
 function planDayTasksHtml(day) {
   if (day.phase === PLAN_PHASE.rest) return planTaskLineHtml(PLAN_REST_ICON, t('plan.schedule.restDay'));
   if (day.light) return planTaskLineHtml(PLAN_LIGHT_ICON, t('plan.task.light'));
   return day.tasks.map(task => planTaskLineHtml(PLAN_TASK_ICONS[task.type], planTaskText(task, day))).join('');
 }
-// ✓ done / its G27 band (past), today n%, rest; days ahead show no pill until they can be opened (PR5)
+// ✓ done / its G27 band (past), today n%, rest; a day ahead shows › (it opens, as every row)
 function planDayPillHtml(day, dayLog, when) {
   if (day.phase === PLAN_PHASE.rest) return `<span class="plan-pill mute">${t('plan.status.rest')}</span>`;
-  if (when === PLAN_WHEN.ahead) return '';
+  if (when === PLAN_WHEN.ahead) return `<span class="plan-pill mute" aria-hidden="true">${t('plan.status.ahead')}</span>`;
   const pct = planDayCompletion(day, dayLog).pct || 0;
   if (when === PLAN_WHEN.today) return `<span class="plan-pill now plan-num">${t('plan.status.today', { n: pct })}</span>`;
   if (pct >= PERCENT) return `<span class="plan-pill ok">${t('plan.status.done')}</span>`;
@@ -156,26 +163,32 @@ function planWhen(iso, todayIso) {
 }
 function planDateBoxHtml(top, iso, extraClass = '') {
   const sub = `${planShortDate(iso)} ${t(`data.weekdays.${isoWeekday(iso)}`)}`;
-  return `<div class="plan-day-d plan-num${extraClass}">${top}<small>${sub}</small></div>`;
+  return `<span class="plan-day-d plan-num${extraClass}">${top}<small>${sub}</small></span>`;
 }
 function planWeekHtml(i) {
   return i % PLAN_WEEK_DAYS ? '' : `<div class="plan-week" lang="en">${t('plan.schedule.week', { n: i / PLAN_WEEK_DAYS + 1 })}</div>`;
 }
-function planDayRowHtml(day, i, log, todayIso) {
+// a row is a button (spans inside) that opens its day
+function planDayRowOpen(cls, iso) {
+  return `<button type="button" class="plan-day ${cls}" data-action="openPlanDay" data-arg="${iso}">`;
+}
+function planDayRowHtml(day, i, log, todayIso, todayIndex) {
   const when = planWhen(day.date, todayIso);
-  return planWeekHtml(i) + `<div class="plan-day ${day.phase}${when ? ' ' + when : ''}">${planDateBoxHtml(i + 1, day.date)}`
-    + `<div class="plan-day-tasks">${planDayTasksHtml(day)}</div><div>${planDayPillHtml(day, planDayLog(log, day.date), when)}</div></div>`;
+  const far = Math.abs(i - todayIndex) > PLAN_NEAR_ROWS ? ' plan-far' : '';
+  return planWeekHtml(i) + planDayRowOpen(day.phase + (when ? ' ' + when : '') + far, day.date) + planDateBoxHtml(i + 1, day.date)
+    + `<span class="plan-day-tasks">${planDayTasksHtml(day)}</span><span>${planDayPillHtml(day, planDayLog(log, day.date), when)}</span></button>`;
 }
 // G16: the exam day ends the list (amber lattice, 🎯), with what to bring
 function planExamRowHtml(plan, todayIso) {
   const iso = plan.goal.examDate, when = planWhen(iso, todayIso);
   const icon = `<span aria-hidden="true">${PLAN_EXAM_ICON}</span>`;
-  return planWeekHtml(plan.days.length) + `<div class="plan-day exam${when ? ' ' + when : ''}">${planDateBoxHtml(icon, iso, ' plan-exam-pat')}`
-    + `<div class="plan-day-tasks"><div class="plan-day-t"><b>${t('plan.schedule.examDay')}</b></div>`
-    + `<div class="plan-day-t"><span>${t('plan.schedule.examTip')}</span></div></div><div></div></div>`;
+  return planWeekHtml(plan.days.length) + planDayRowOpen('exam' + (when ? ' ' + when : ''), iso) + planDateBoxHtml(icon, iso, ' plan-exam-pat')
+    + `<span class="plan-day-tasks"><span class="plan-day-t"><b>${t('plan.schedule.examDay')}</b></span>`
+    + `<span class="plan-day-t"><span>${t('plan.schedule.examTip')}</span></span></span><span></span></button>`;
 }
 function planDayListHtml(plan, log, todayIso) {
-  return plan.days.map((day, i) => planDayRowHtml(day, i, log, todayIso)).join('') + planExamRowHtml(plan, todayIso);
+  const todayIndex = Math.min(plan.days.length, Math.max(0, planDayIndex(plan, todayIso))); // after the exam: its row
+  return plan.days.map((day, i) => planDayRowHtml(day, i, log, todayIso, todayIndex)).join('') + planExamRowHtml(plan, todayIso);
 }
 // opens the list at today, just below its sticky WEEK heading, without moving the page itself (G16: after the exam,
 // at the exam day); instant, not the list's smooth scrolling

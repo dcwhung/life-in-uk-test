@@ -333,6 +333,34 @@ async function checkPlanSchedule(pg, ctx) {
   await sp.close();
 }
 
+// PR5 day screen: a past day, its calendar month moved, in place; the shown day / month / storage stay the same
+async function checkPlanDay(pg, ctx) {
+  const sp = await pg.context().browser().newPage({ viewport: WIDE });
+  sp.on('pageerror', e => ctx.errs.push(e.message));
+  sp.on('console', m => { if (m.type() === 'warning') ctx.warns.push(m.text()); });
+  await sp.clock.setFixedTime(PLAN_SCHEDULE_NOW);
+  await sp.goto(APP_URL);
+  await sp.evaluate(() => {
+    window.planEntryReady = () => true;
+    writeStudyPlan(buildPlan({ examDate: '2026-10-19', dailyMins: 90, restDays: [0], level: 'some' }, '2026-09-28'));
+    openPlanDay('2026-09-30');
+    planShiftMonth(1);
+  });
+  const look = () => sp.evaluate(() => ({ title: byId('planDayTitle').textContent, cal: byId('planCalTitle').textContent,
+    task: document.querySelector('#planTaskList .plan-task-st').textContent,
+    store: JSON.stringify(Object.keys(localStorage).filter(k => k !== UI_LANG_LS).sort().map(k => [k, localStorage.getItem(k)])) }));
+  const en = await look();
+  await switchOn(sp, ctx, 'plan day', '#planDayHint');
+  const zh = await look();
+  assert(zh.title === 'Day 3 任務' && zh.cal === '2026 年 10 月' && /條知識點|題/.test(zh.task), 'plan day zh-HK: same day + month, re-rendered: ' + zh.title + ' | ' + zh.cal);
+  await switchOn(sp, ctx, 'plan day', '#planDayHint');
+  const back = await look();
+  assert(back.title === en.title && back.cal === 'October 2026' && back.task === en.task, 'plan day back in en: same day, month and text');
+  assert(back.store === en.store && zh.store === en.store, 'plan day: switching language writes nothing but the language');
+  await sp.evaluate(() => clearStudyPlan());
+  await sp.close();
+}
+
 // Study: tab + chip + typed search, then chapters / timeline / geography
 async function checkStudy(pg, ctx) {
   await pg.evaluate(() => { openStudy(); studySetTab('people'); studySetGroup('writer'); });
@@ -571,7 +599,7 @@ const hasCjkFont = pg => pg.evaluate(({ px, chars, baseline }) => {
 // run in order: each check starts from the screen / language the previous one left
 const CHECKS = [
   checkPill, checkHomeSwitch, checkHomePractice, checkQuizPractice, checkAnswerFallback, checkOptionYueLang,
-  checkSideSession, checkQuizExam, checkExamTimer, checkModal, checkResult, checkFlagged, checkStudy, checkPlanGoal, checkPlanSchedule, checkDoubleTap,
+  checkSideSession, checkQuizExam, checkExamTimer, checkModal, checkResult, checkFlagged, checkStudy, checkPlanGoal, checkPlanSchedule, checkPlanDay, checkDoubleTap,
   checkMyReviewTiles, checkExamDesc, checkPracticeHint, checkLeaveCancel,
 ];
 
