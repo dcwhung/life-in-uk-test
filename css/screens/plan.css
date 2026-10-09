@@ -104,10 +104,11 @@
 .plan-ord { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: var(--space-5); align-items: start; }
 .plan-ord-n { width: 26px; height: 26px; border-radius: var(--radius-circle); background: var(--navy); color: var(--text-inverse); display: grid; place-items: center; font-size: var(--fs-sm); font-weight: 800; }
 .plan-ord-body { display: grid; gap: var(--space-2); min-width: 0; }
-/* v1.0.2: the bar track has one fixed length on every row, with clear space before the count (150px; narrower
-   screens step down below so "91 facts · 161 Qs" still fits). Wide layout: the count column has one fixed width
-   (--plan-chw-count-w, the widest count "91 facts · 161 Qs" is ~99px at --fs-sm), so every bar starts at the same x */
-.plan-chw { --plan-chw-bar-w: 150px; --plan-chw-count-w: 112px; display: grid; grid-template-columns: minmax(0, 1fr) var(--plan-chw-bar-w) var(--plan-chw-count-w); column-gap: var(--space-6); row-gap: var(--space-2); align-items: center; font-size: var(--fs-sm); }
+/* v1.0.3 (user's layout, every width): name, why, then the bar row. The bar fills the row up to a fixed gap
+   (--plan-chw-gap) before a fixed-width count column (--plan-chw-count-w; the widest count "91 facts · 161 Qs" is
+   ~99px at --fs-sm), so every bar has the same length and left edge */
+.plan-ord-name { font-size: var(--fs-sm); }
+.plan-chw { --plan-chw-count-w: 112px; --plan-chw-gap: var(--space-6); display: grid; grid-template-columns: minmax(0, 1fr) var(--plan-chw-count-w); column-gap: var(--plan-chw-gap); align-items: center; font-size: var(--fs-sm); }
 .plan-chw-bar { height: 8px; background: var(--border); border-radius: var(--radius-pill); overflow: hidden; }
 .plan-chw-bar i { display: block; height: 100%; background: var(--navy-light); border-radius: var(--radius-pill); }
 .plan-chw-c { text-align: right; color: var(--text-muted); white-space: nowrap; }
@@ -123,15 +124,16 @@
 .plan-week { position: sticky; top: 0; z-index: 2; background: var(--card); margin-inline: calc(-1 * var(--space-4)); padding: var(--space-4) var(--space-4) var(--space-2); font-size: var(--fs-xs); font-weight: 800; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; }
 /* each row is a button (PR5: it opens its day) bleeding 8px each side, so today's tint and the hover reach the edge.
    v1.0.2: two columns: date box + status pill on the left (--plan-day-side-w, S-118), the tasks across the rest */
-.plan-day { --plan-day-side-w: 64px; display: grid; grid-template-columns: var(--plan-day-side-w) minmax(0, 1fr); gap: var(--space-5); align-items: start; width: calc(100% + 2 * var(--space-4)); margin-inline: calc(-1 * var(--space-4)); padding: var(--space-5) var(--space-4); border: 0; border-top: 1px solid var(--border); background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.plan-day { --plan-day-side-w: 72px; display: grid; grid-template-columns: var(--plan-day-side-w) minmax(0, 1fr); gap: var(--space-5); align-items: start; width: calc(100% + 2 * var(--space-4)); margin-inline: calc(-1 * var(--space-4)); padding: var(--space-5) var(--space-4); border: 0; border-top: 1px solid var(--border); background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
 .plan-day:hover { background: var(--selected-bg); border-radius: var(--radius-sm); }
 .plan-day:focus-visible { outline: 2px solid var(--navy); outline-offset: -2px; border-radius: var(--radius-sm); }
-/* PR4 QA O-1: rows far from today (a 6-month plan has 183) skip layout until scrolled near; 64px ≈ a two-line row */
-.plan-day.plan-far { content-visibility: auto; contain-intrinsic-size: auto 64px; }
+/* PR4 QA O-1: rows far from today (a 6-month plan has 183) skip layout until scrolled near; S-121: 96px ≈ a typical
+   v1.0.3 row at 390px (tasks + chapter list measure 78–210px, most ~99px), so the list scrolls without big jumps */
+.plan-day.plan-far { content-visibility: auto; contain-intrinsic-size: auto 96px; }
 .plan-day-side { display: grid; gap: var(--space-2); justify-items: center; min-width: 0; }
 .plan-day-side .plan-day-d { width: 100%; }
-/* S-117: --fs-xs with tight side padding keeps "Today 0%" / "今日 0%" on one line; a longer pill ("Today 100%")
-   wraps inside the column instead of overflowing it */
+/* S-117: --fs-xs with tight side padding keeps "Today 0%" / "今日 0%" on one line; v1.0.3: the 72px column fits
+   "Today 99%" also in the iPhone's wider SF; only "Today 100%" may wrap, inside the column, never overflowing it */
 .plan-day-side .plan-pill { max-width: 100%; justify-content: center; text-align: center; white-space: normal; font-size: var(--fs-xs); line-height: 1.25; padding: var(--space-1) var(--space-2); }
 .plan-day-d { display: block; text-align: center; border-radius: var(--radius-sm); padding: var(--space-2) 0; font-weight: 800; font-size: var(--fs-md); line-height: 1.15; }
 .plan-day-d small { display: block; font-size: var(--fs-2xs); font-weight: 600; color: var(--text-muted); }
@@ -151,7 +153,11 @@
 .plan-day.past .plan-day-d small { color: var(--plan-past-text); }
 .plan-day-tasks { display: grid; gap: 3px; font-size: var(--fs-sm); line-height: 1.45; min-width: 0; }
 .plan-day-t { display: flex; gap: var(--space-3); }
-.plan-day-chs { display: block; margin-top: var(--space-1); font-size: var(--fs-xs); color: var(--text-muted); line-height: 1.4; }
+/* v1.0.3 (user): the day's chapters, one compact bullet each, text and bullet in mud yellow (≥ 4.5:1 token) */
+.plan-day-chs { display: block; margin-top: var(--space-1); font-size: var(--fs-xs); color: var(--plan-day-chs-text); line-height: 1.35; }
+/* spans, not <ul> / <li> (the row is a button): each chapter on its own line with a bullet in its own colour */
+.plan-day-ch { display: block; position: relative; padding-left: 1.1em; }
+.plan-day-ch::before { content: '•'; content: '•' / ''; position: absolute; left: 0.3em; } /* decorative: no alt text */
 .plan-day.past .plan-day-chs { color: var(--plan-past-text); }
 .plan-exam-pat, .plan-cell.plan-exam-pat { background-color: var(--plan-exam-bg); background-image: linear-gradient(45deg, var(--plan-exam-line) 1px, transparent 1px), linear-gradient(-45deg, var(--plan-exam-line) 1px, transparent 1px); background-size: 8px 8px; }
 /* day status pills: ✓ done (.ok), G27 bands (dark text on every band for contrast), today, rest */
@@ -303,8 +309,6 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
   .plan-day-switch { gap: var(--space-2); }
 }
 @media (max-width: 480px) {
-  .plan-chw { grid-template-columns: var(--plan-chw-bar-w) minmax(0, 1fr); }
-  .plan-chw b { grid-column: 1 / -1; }
   .plan-stats { grid-template-columns: 1fr 1fr; }
   .plan-stats .plan-stat:last-child { grid-column: 1 / -1; }
   .plan-cta { grid-template-columns: 44px minmax(0, 1fr); }
@@ -312,9 +316,7 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
   .plan-today-head { grid-template-columns: 1fr; justify-items: center; text-align: center; }
   .plan-today-info { justify-items: center; }
 }
-/* the order bar steps down where 150px + gap + the widest count would run past the card */
-@media (max-width: 374px) { .plan-chw { --plan-chw-bar-w: 120px; } }
-@media (max-width: 339px) { .plan-chw { --plan-chw-bar-w: 96px; } }
-/* W-036: at 320px "1.5 months" needs the chip's full width to stay on one row with the other presets */
-@media (max-width: 340px) { .plan-presets .chip { padding-inline: 0; font-size: var(--fs-xs); } }
+/* W-036 / CUI-0023: below 360px "1.5 months" needs the chip's full width (no side padding, --fs-xs) to stay on one
+   row with the other presets; at 341–355px en it overflowed by 1–4px when this stopped at 340px */
+@media (max-width: 359px) { .plan-presets .chip { padding-inline: 0; font-size: var(--fs-xs); } }
 @media (prefers-reduced-motion: reduce) { .plan-day-scroll { scroll-behavior: auto; } .plan-ring-prog { transition: none; } }

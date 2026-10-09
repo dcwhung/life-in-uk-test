@@ -436,7 +436,7 @@ LOCALES.en = {
       startNext: 'Start next →',
       backToList: 'Back to the task list',
     },
-    status: { rest: 'Rest', today: 'Today {n}%', done: '✓ Done', pct: '{n}%', ahead: '›' },
+    status: { rest: 'Rest', today: 'Today {n}%', done: '✓ Done', pct: '{n}%' },
     feas: {
       title: 'Is there enough time?',
       ok: '✓ Plenty',

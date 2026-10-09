@@ -408,7 +408,7 @@ LOCALES['zh-HK'] = {
       startNext: '開始下一項 →',
       backToList: '返回任務列表',
     },
-    status: { rest: '休息', today: '今日 {n}%', done: '✓ 完成', pct: '{n}%', ahead: '›' },
+    status: { rest: '休息', today: '今日 {n}%', done: '✓ 完成', pct: '{n}%' },
     feas: {
       title: '時間是否足夠？',
       ok: '✓ 充裕',

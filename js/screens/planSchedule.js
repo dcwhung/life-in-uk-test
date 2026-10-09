@@ -2,8 +2,8 @@
 // STUDY PLAN · SCHEDULE — the plan at a glance (handoff §2.3; mockup step ②): summary, the three phases (bar +
 // strategy), the study order with its reasons, and the day list: its own scroller opened at today under a sticky
 // WEEK heading, past days dimmed, a status pill per day (✓ / G27 band / today n% / rest; v1.0.2: under the date box,
-// so the tasks get the rest of the row) and the exam day. v1.0.2: task lines say "Ch n"; a muted remarks line under
-// a study day's tasks names its chapters in full.
+// so the tasks get the rest of the row) and the exam day. v1.0.2: task lines say "Ch n"; a gold bullet list under
+// a study day's tasks names its chapters in full (v1.0.3).
 // "Change goal" re-plans from today (planGoal.js, G7); "↺ Reset plan" deletes the plan and its log (S-110).
 // Each day row (and the exam day) is a button that opens that day (planDay.js); "View today's tasks →" below.
 // ════════════════════════════════════════
@@ -106,10 +106,11 @@ function planOrderStepHtml(chs, i) {
   const qs = chs.reduce((s, ch) => s + PLAN_CHAPTER_QIDS[ch].length, 0);
   const whyKey = PLAN_ORDER_WHY_KEYS[chs[0]];
   const why = t(whyKey, { n: facts });
+  // v1.0.3: name, why, then the bar row (bar filling the row, a fixed gap, the count)
   return `<div class="plan-ord"><span class="plan-ord-n plan-num" aria-hidden="true">${i + 1}</span><div class="plan-ord-body">`
-    + `<div class="plan-chw"><b lang="en">${chs.map(planChapterText).join(' + ')}</b><span class="plan-chw-bar" aria-hidden="true"><i></i></span>`
-    + `<span class="plan-chw-c plan-num">${t('plan.schedule.orderCount', { facts, qs })}</span></div>`
-    + `<span class="plan-ord-why">${why}</span></div></div>`;
+    + `<b class="plan-ord-name" lang="en">${chs.map(planChapterText).join(' + ')}</b><span class="plan-ord-why">${why}</span>`
+    + `<div class="plan-chw"><span class="plan-chw-bar" aria-hidden="true"><i></i></span>`
+    + `<span class="plan-chw-c plan-num">${t('plan.schedule.orderCount', { facts, qs })}</span></div></div></div>`;
 }
 function renderPlanOrder() {
   const box = byId('planOrder');
@@ -145,20 +146,21 @@ function planTaskText(task, day, { fullCh = false } = {}) {
 function planTaskLineHtml(icon, text) {
   return `<span class="plan-day-t"><span class="plan-day-ic" aria-hidden="true">${icon}</span><span>${text}</span></span>`;
 }
-// the remarks line: the day's chapters in full, each once, in the order the tasks reach them ('' without any)
+// the remarks: the day's chapters in full, one bullet each, each once, in the order the tasks reach them ('' without any);
+// spans styled as a list, since the row is a button (phrasing content only)
 function planDayChaptersHtml(day) {
   const chs = [...new Set(day.tasks.filter(task => task.ch).map(task => task.ch))];
-  return chs.length ? `<span class="plan-day-chs" lang="en">${chs.map(planChapterText).join(LIST_SEP)}</span>` : ''; // a span: rows are buttons
+  return chs.length ? `<span class="plan-day-chs">${chs.map(ch => `<span class="plan-day-ch" lang="en">${planChapterText(ch)}</span>`).join('')}</span>` : '';
 }
 function planDayTasksHtml(day) {
   if (day.phase === PLAN_PHASE.rest) return planTaskLineHtml(PLAN_REST_ICON, t('plan.schedule.restDay'));
   if (day.light) return planTaskLineHtml(PLAN_LIGHT_ICON, t('plan.task.light'));
   return day.tasks.map(task => planTaskLineHtml(PLAN_TASK_ICONS[task.type], planTaskText(task, day))).join('') + planDayChaptersHtml(day);
 }
-// ✓ done / its G27 band (past), today n%, rest; a day ahead shows › (it opens, as every row)
+// ✓ done / its G27 band (past), today n%, rest; a day ahead has no pill (v1.0.3, user: the whole row opens it)
 function planDayPillHtml(day, dayLog, when) {
   if (day.phase === PLAN_PHASE.rest) return `<span class="plan-pill mute">${t('plan.status.rest')}</span>`;
-  if (when === PLAN_WHEN.ahead) return `<span class="plan-pill mute" aria-hidden="true">${t('plan.status.ahead')}</span>`;
+  if (when === PLAN_WHEN.ahead) return '';
   const pct = planDayCompletion(day, dayLog).pct || 0;
   if (when === PLAN_WHEN.today) return `<span class="plan-pill now plan-num">${t('plan.status.today', { n: pct })}</span>`;
   if (pct >= PERCENT) return `<span class="plan-pill ok">${t('plan.status.done')}</span>`;

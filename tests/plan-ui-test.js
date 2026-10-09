@@ -20,7 +20,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
 const TODAY = '2026-10-08';
 const PREVIEW_LS = 'lifeuk.studyPlanPreview';
 const NOW = new Date(TODAY + 'T09:00:00');
-const WIDTHS = [320, 360, 375, 390, 400];
+const WIDTHS = [320, 341, 344, 355, 360, 375, 390, 400]; // CUI-0023: 341–355 (344 = Galaxy Z Fold cover)
 const HIT_MIN_PX = 44;
 const TICKS_EN = ['30 min', '45 min', '1 hr', '15 min', '30 min', '45 min', '2 hr'];
 const TICKS_ZH = ['30 分鐘', '45 分鐘', '1 小時', '15 分', '30 分', '45 分', '2 小時'];
