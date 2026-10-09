@@ -3,7 +3,7 @@
 // steps through the plan (Day 1 … the exam day), completion ring + phase pill + n / m done, the day's task boxes
 // (not started / in progress / done; G8 carry-over on today, not counted in today's %), the completion calendar
 // (one month at a time) and the overall progress card. Completion is counted by the system from the answer log
-// (G2–G5); nobody ticks anything. The runner that opens a task is PR6, so the boxes are not buttons yet.
+// (G2–G5); nobody ticks anything. A box the runner can open (planRun.js; PR6a: question tasks) is a button.
 // ════════════════════════════════════════
 const PLAN_RING_EMPTY_BAND = 0;
 const PLAN_DAY_TYPE_CLASS = { read: 'read', wrongFacts: 'read', practice: 'practice', drill: 'practice', review: 'review', mock: 'mock' };
@@ -33,7 +33,7 @@ function planViewIso(plan) {
 function renderPlanDay() {
   const plan = planLoad();
   if (!plan) return;
-  const log = planLoadLog() || planEmptyLog(); // unreadable: shown as nothing answered (↺ Reset clears it)
+  const log = planLoadLogView() || planEmptyLog(); // unreadable: shown as nothing answered (↺ Reset clears it)
   const iso = planViewIso(plan), todayIso = planTodayIso();
   renderPlanDayHeader(plan, iso, todayIso);
   if (iso === plan.goal.examDate) renderPlanExamView(plan, iso, todayIso);
@@ -110,7 +110,7 @@ function renderPlanDayBody(plan, log, iso, todayIso) {
   const doneKey = iso === todayIso ? 'plan.day.doneToday' : 'plan.day.doneDay';
   byId('planDayDone').textContent = t(doneKey);
   setShown('planDayDone', comp.pct === PERCENT);
-  renderPlanTasks(plan, { ...day, tasks }, dayLog, when, carry, log);
+  renderPlanTasks(plan, { day, tasks, viewIso: iso === todayIso ? null : iso }, dayLog, when, carry, log);
   byId('planCarryText').textContent = t('plan.day.carryAlert', { n: carry.length });
   setShown('planCarryAlert', carry.length > 0);
 }
@@ -141,10 +141,14 @@ function renderPlanDayInfo(day, progress, when) {
 }
 
 // ── task boxes ──
-function renderPlanTasks(plan, day, dayLog, when, carry, log) {
-  const own = day.tasks.map(task => planTaskBoxHtml(task, day, dayLog, when, null));
+// shown = { day, tasks (the boxes listed), viewIso (null = today) }; a box knows its day and index for the runner
+function renderPlanTasks(plan, shown, dayLog, when, carry, log) {
+  const { day, viewIso } = shown;
+  const own = shown.tasks.map(task => planTaskBoxHtml(task, day, dayLog, when,
+    { date: day.date, taskIndex: day.tasks.indexOf(task), from: viewIso, carryDay: null }));
   // G8: a carry-over task shows (and counts) its own day's answers
-  const late = carry.map(c => planTaskBoxHtml(c.task, planDayAt(plan, c.date), planDayLog(log, c.date), PLAN_WHEN.past, c.dayNumber));
+  const late = carry.map(c => planTaskBoxHtml(c.task, planDayAt(plan, c.date), planDayLog(log, c.date), PLAN_WHEN.past,
+    { date: c.date, taskIndex: c.taskIndex, from: viewIso, carryDay: c.dayNumber }));
   const list = byId('planTaskList');
   list.innerHTML = [...own, ...late].join('');
   list.querySelectorAll('.plan-mini i').forEach(el => { el.style.width = el.dataset.pct + '%'; }); // as #progressFill
@@ -160,17 +164,21 @@ function planCanStart(task, p, when) {
   return when === PLAN_WHEN.today || task.type !== PLAN_TASK.mock;
 }
 const PLAN_GO_KEYS = { todo: 'plan.task.goStart', '': 'plan.task.goContinue', done: 'plan.task.goReview' };
-function planTaskBoxHtml(task, day, dayLog, when, carryDay) {
-  const p = planTaskProgress(task, dayLog), state = planTaskState(p), carry = carryDay !== null;
+// at = { date, taskIndex, from, carryDay }: a box the runner opens is a button inside the <li> (planOpenTask)
+function planTaskBoxHtml(task, day, dayLog, when, at) {
+  const p = planTaskProgress(task, dayLog), state = planTaskState(p), carry = at.carryDay !== null;
   const goKey = PLAN_GO_KEYS[state];
   const go = p.complete || planCanStart(task, p, when) ? `<span class="plan-task-go" aria-hidden="true">${t(goKey)}</span>` : '';
-  const tag = carry ? `<span class="plan-tag carry" lang="en">${t('plan.dayN', { n: carryDay })}</span>` : '';
+  const tag = carry ? `<span class="plan-tag carry" lang="en">${t('plan.dayN', { n: at.carryDay })}</span>` : '';
   const pct = p.complete ? PERCENT : percent(p.done, p.total);
-  return `<li class="plan-task ${PLAN_DAY_TYPE_CLASS[task.type]}${state ? ' ' + state : ''}${carry ? ' carry' : ''}">`
-    + `<span class="plan-task-ic" aria-hidden="true">${PLAN_TASK_ICONS[task.type]}</span>`
+  const cls = `plan-task ${PLAN_DAY_TYPE_CLASS[task.type]}${state ? ' ' + state : ''}${carry ? ' carry' : ''}`;
+  const inner = `<span class="plan-task-ic" aria-hidden="true">${PLAN_TASK_ICONS[task.type]}</span>`
     + `<span class="plan-task-body"><span class="plan-task-ttl">${planTaskText(task, day, { fullCh: true })}${tag}</span>`
     + `<span class="plan-task-st">${planTaskStatusHtml(task, p, dayLog)}</span>`
-    + `<span class="plan-mini" aria-hidden="true"><i class="h${planPctBand(pct)}" data-pct="${pct}"></i></span></span>${go}</li>`;
+    + `<span class="plan-mini" aria-hidden="true"><i class="h${planPctBand(pct)}" data-pct="${pct}"></i></span></span>${go}`;
+  if (!go || !planRunnable(task)) return `<li class="${cls}">${inner}</li>`;
+  return `<li class="plan-task-li"><button type="button" class="${cls} plan-task-btn" data-action="planOpenTask" data-arg="${at.date}"`
+    + ` data-task="${at.taskIndex}" data-from="${at.from || ''}">${inner}</button></li>`;
 }
 // the status line: no minutes (handoff §2.3); wrong answers count for nothing until answered right
 function planTaskStatusHtml(task, p, dayLog) {
@@ -185,11 +193,14 @@ function planReadStatusText(task, p, dayLog) {
   if (!p.done) return t('plan.task.readTodo', { n: p.total });
   return t('plan.task.readPart', { done: p.done, total: p.total, n: chapterFactNumber(planResumeAt(task, dayLog)) });
 }
+// G37: questions done by 🏆 alone say so ("✓ Mastered" when that is all of them)
 function planQuestionStatusHtml(task, p) {
-  if (p.complete) return t('plan.task.qDone', { n: p.total });
+  const mastered = p.mastered ? LIST_SEP + t('plan.task.qMasteredPart', { n: p.mastered }) : '';
+  if (p.complete && p.mastered === p.total) return t('plan.task.qMastered', { n: p.total });
+  if (p.complete) return t('plan.task.qDone', { n: p.total }) + mastered;
   const modeKey = PLAN_DAY_MODE_KEYS[task.type];
   if (!p.done && !p.bad) return t('plan.task.qTodo', { n: p.total, mode: t(modeKey) });
-  const right = `<span class="plan-ok">${t('plan.task.qPart', { done: p.done, total: p.total })}</span>`;
+  const right = `<span class="plan-ok">${t('plan.task.qPart', { done: p.done, total: p.total })}${mastered}</span>`;
   if (!p.bad) return right;
   return `${right}${LIST_SEP}<span class="plan-bad">${t('plan.task.qBad', { n: p.bad })}</span>`
     + `<span class="plan-tag wrong">${t('plan.task.wrongTag', { n: p.bad })}</span>`;
@@ -259,7 +270,7 @@ function planShiftMonth(step) {
   const at = planMonthIndex(months, from);
   if (at < 0) return;
   planCalMonth = months[Math.min(months.length - 1, Math.max(0, at + step))];
-  renderPlanCalendar(plan, planLoadLog() || planEmptyLog(), planViewIso(plan), planTodayIso());
+  renderPlanCalendar(plan, planLoadLogView() || planEmptyLog(), planViewIso(plan), planTodayIso());
   if (step) planKeepArrowFocus('planCalPrev', 'planCalNext', step);
   else planFocusEnabledArrow('planCalPrev', 'planCalNext'); // W-036: "Today" just disabled itself
 }
