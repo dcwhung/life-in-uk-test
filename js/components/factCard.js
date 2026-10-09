@@ -63,11 +63,17 @@ function factMarkButtonsHtml(f, marks) {
 }
 
 // T-206: the fact's source questions as display-only nodes (Similar panel colours) + "▶ Practise this one / these N",
-// a one-off session over them (js/screens/sideSession.js); replaces the old "Appears ×n" tag
-function factSourceRowHtml(f) {
+// a one-off session over them (js/screens/sideSession.js); replaces the old "Appears ×n" tag.
+// practise (arch §E.2): { action, n } runs another session instead (a study plan's, n = the questions it asks); false = none
+function factPractiseHtml(f, practise) {
+  if (practise === false) return '';
+  const { action, n } = practise || { action: 'startFactPractice', n: f.src.length };
+  return `<button class="fact-practise" aria-describedby="${factIdElId(f)}" data-action="${action}" data-arg="${escapeHtml(f.id)}">${t('similar.practise', { n })}</button>`;
+}
+function factSourceRowHtml(f, practise) {
   return `<div class="fact-src">
       <div class="fact-src-nodes"><span class="sqm-map-label">${t('similar.appearsIn')}</span>${f.src.map(questionNodeHtml).join('')}</div>
-      <button class="fact-practise" aria-describedby="${factIdElId(f)}" data-action="startFactPractice" data-arg="${escapeHtml(f.id)}">${t('similar.practise', { n: f.src.length })}</button>
+      ${factPractiseHtml(f, practise)}
     </div>`;
 }
 
@@ -78,7 +84,7 @@ function factMemoryHtml(f) {
 }
 
 // marks: { bookmarks, mastered (ticked by hand), derived (factMastery) } booleans for this fact;
-// opts: tag switches + title (People tab name line)
+// opts: tag switches + title (People tab name line) + practise (factPractiseHtml)
 function factFullHtml(f, { marks = {}, opts = {} }) {
   const mastered = marks.mastered || marks.derived;
   return `<div class="fact${f.w ? ' war' : ''}${mastered ? ' mastered' : ''}" data-fact-id="${escapeHtml(f.id)}">
@@ -92,7 +98,7 @@ function factFullHtml(f, { marks = {}, opts = {} }) {
     <div class="fact-en" lang="en">${escapeHtml(f.en)}</div>
     <div class="fact-yue" lang="zh-HK">${escapeHtml(f.yue)}</div>
     ${factMemoryHtml(f)}
-    ${factSourceRowHtml(f)}
+    ${factSourceRowHtml(f, opts.practise)}
   </div>`;
 }
 

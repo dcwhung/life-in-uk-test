@@ -25,9 +25,15 @@ function similarLegendHtml() {
       <span><i class="lg-new"></i>${streakText(0)}</span>
     </div>`;
 }
-// practise: false = no "Practise these N" (G26: a plan task session, which has nowhere to come back to after it)
-function similarPanelHtml(q, keys, { practise = true } = {}) {
-  const cta = practise ? `<div class="sqm-cta"><button data-action="startSimilarPractice">${t('similar.practise', { n: keys.length })}</button></div>` : '';
+// practise: false = no "Practise these N" (G26: a plan task session, which has nowhere to come back to after it);
+// cta (arch §E.3): { action, arg, n } another session for the button (a study plan's wrong fact), n = the questions it asks
+function similarCtaHtml(keys, cta) {
+  const { action, arg, n } = cta || { action: 'startSimilarPractice', n: keys.length };
+  const argAttr = arg === undefined ? '' : ` data-arg="${escapeHtml(arg)}"`;
+  return `<div class="sqm-cta"><button data-action="${action}"${argAttr}>${t('similar.practise', { n })}</button></div>`;
+}
+function similarPanelHtml(q, keys, { practise = true, cta = null } = {}) {
+  const ctaHtml = practise ? similarCtaHtml(keys, cta) : '';
   return `
     <div class="sqm-head">
       <span class="sqm-icon">🗺️</span>
@@ -38,7 +44,7 @@ function similarPanelHtml(q, keys, { practise = true } = {}) {
     ${similarMapHtml(q, keys)}
     ${similarLegendHtml()}
     <div class="sqm-list">${keys.map(similarItemHtml).join('')}</div>
-    ${cta}`;
+    ${ctaHtml}`;
 }
 function renderSimilar(q, revealed) {
   const box = byId('similarBox');

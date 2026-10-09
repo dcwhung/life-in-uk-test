@@ -86,7 +86,7 @@ function studyToggleMark(kind, id) {
   const marks = study[kind];
   if (marks[id]) delete marks[id]; else marks[id] = true;
   setLS(STUDY_MARK_LS[kind], marks);
-  renderStudy();
+  rerenderCurrentScreen(); // Study, or a study plan reading card (#screenPlanRun) with the same buttons
 }
 
 // mastered = ticked by hand OR every source question 🏆 in Practice (derived on each render, never stored)

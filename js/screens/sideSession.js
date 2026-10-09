@@ -7,7 +7,8 @@ const SESSION_RETURN_KIND = { quiz: 'quiz', study: 'study', plan: 'plan' };
 // null | { kind: 'quiz', state } | { kind: 'study', scrollY, factId }
 //      | { kind: 'plan', date, taskIndex, type, ch, from, … } — a study plan task (js/screens/planRun.js): date = the plan
 //        day it counts for (G5), type = PLAN_TASK, from = the day screen to go back to (null = today); a round adds
-//        retry / round / rounds, review mode (G17) review / page / pages / wrong
+//        retry / round / rounds, review mode (G17) review / page / pages / wrong; fact / pos = one fact of a reading or
+//        wrong-facts task (PR6b), back to that card when done
 let sessionReturn = null;
 function isSideSession() { return sessionReturn !== null; }
 function clearSideSession() { sessionReturn = null; }

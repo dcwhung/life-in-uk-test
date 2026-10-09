@@ -246,6 +246,9 @@
         <div class="rdots" id="resultDots"></div>
         <div class="rmeta" id="resultDotsMeta"></div>
       </div>
+      <!-- study plan mock exam (js/screens/planRun.js): task done / retake as a Random Exam; hidden otherwise.
+           Last in the card, so no other element of the page moves (visual-diff keys by position) -->
+      <div class="plan-result-row" id="resultPlanRow" hidden></div>
     </div>
 
     <div class="section-title" data-i18n="result.byDifficulty"></div>
@@ -428,7 +431,8 @@
     </div>
   </div>
 
-  <!-- ── STUDY PLAN · RUNNER (js/screens/planRun.js): a finished task's Result card (question tasks run on screenQuiz) ── -->
+  <!-- ── STUDY PLAN · RUNNER (js/screens/planRun.js): reading / wrong-fact cards and a finished task's Result card
+       (question tasks run on screenQuiz, mock exams in Exam mode) ── -->
   <div class="screen" id="screenPlanRun">
     <div class="quiz-header">
       <button class="back-btn plan-hit" id="planRunBack" data-action="planBackToDay"></button>

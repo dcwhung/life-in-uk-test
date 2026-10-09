@@ -35,6 +35,7 @@ function finishExam() {
 function renderResults() {
   renderScore(reviewItems.filter(r => r.isCorrect).length, reviewItems.length);
   renderResultActions();
+  renderResultPlanRow(); // a study plan mock: task done / retake as a Random Exam (js/screens/planRun.js)
   setExamLabel(byId('resultLabel'), state.examNum);
   byId('diffTable').innerHTML = diffTableHtml();
   renderResultDots();
@@ -187,5 +188,6 @@ function renderReview() {
 }
 
 function retryExam() {
+  if (isPlanMock()) { planRetryMock(); return; } // G11: Exam mode + Random Exam, never Home's pendingMode
   startExam(state.examNum);
 }

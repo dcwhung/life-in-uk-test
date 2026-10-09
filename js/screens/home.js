@@ -157,7 +157,7 @@ function goHome() {
   if (isPlanSession()) { planBackToDay(); return; } // the quiz header reads "← Today's tasks" in a plan task
   if (isExamRunning()) {
     showConfirm({ title: t('modal.leaveTitle'), message: t('modal.leaveMessage'),
-      okLabel: t('modal.leaveOk'), cancelLabel: t('modal.leaveCancel'), onOk: leaveToHome, focusCancel: true });
+      okLabel: t('modal.leaveOk'), cancelLabel: t('modal.leaveCancel'), onOk: isPlanMock() ? planLeaveMock : leaveToHome, focusCancel: true });
     return;
   }
   leaveToHome();

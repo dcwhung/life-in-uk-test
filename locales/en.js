@@ -437,6 +437,15 @@ LOCALES.en = {
       reviewThis: 'Review this task',
       startNext: 'Start next →',
       backToList: 'Back to the task list',
+      // PR6b: reading / facts behind wrong answers (#screenPlanRun), the mock exam's result row (G10 / G11)
+      factOf: 'Fact {n} of {total}',
+      practiseN: { one: 'Practise this one →', other: 'Practise these {n} →' },
+      wrongFactsLabel: 'Wrong-answer facts',
+      mockPassNote: '✓ Mock exam task done',
+      mockFailNote: 'Not passed (pass mark {pass} / {n}): retake as a Random Exam today.',
+      mockRetake: 'Retake: {exam}',
+      prevFact: '← Prev',
+      nextFact: 'Next →',
     },
     status: { rest: 'Rest', today: 'Today {n}%', done: '✓ Done', pct: '{n}%' },
     feas: {

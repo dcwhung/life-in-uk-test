@@ -302,6 +302,19 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
 .plan-run-next { gap: var(--space-2); }
 .plan-run-next .section-title { margin: 0; }
 .plan-run-body .nav-row .nav-btn { flex: 1; min-height: 44px; }
+/* PR6b reading / wrong facts (mockup #runner .sp-run-meta): task + "Fact n of m" above the card, a thin position bar */
+.plan-run-head { display: grid; gap: var(--space-3); }
+.plan-run-meta { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-4); font-size: var(--fs-sm); font-weight: 700; color: var(--text-muted); }
+.plan-run-meta > span:first-child { min-width: 0; }
+.plan-run-meta > .plan-num { flex: none; white-space: nowrap; }
+.plan-run-meter { height: 5px; }
+.plan-run-body .fact, .plan-run-body .sqm { margin: 0; }
+.plan-run-body .sqm-cta button { min-height: 44px; } /* the Similar panel's own CTA is 42px tall (unchanged there) */
+.plan-note.warn { color: var(--red); background: var(--danger-bg); }
+.plan-result-row { display: grid; gap: var(--space-5); margin-top: var(--space-8); }
+.plan-result-row .nav-row { margin: 0; }
+.plan-result-row .nav-btn { flex: 1 1 100%; min-height: 44px; } /* stacked: "Back to the task list" wraps beside a long retake label at 360px */
+.plan-result-row .nav-row { flex-wrap: wrap; }
 
 @media (max-width: 380px) {
   .plan-day-header { gap: var(--space-2); }
