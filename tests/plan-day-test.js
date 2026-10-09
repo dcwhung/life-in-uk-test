@@ -66,6 +66,13 @@ const hitOk = (pg, sel) => pg.evaluate(({ s, min }) => {
   const hit = (x, y) => { const h = document.elementFromPoint(x, y); return !!h && (h === e || e.contains(h)); };
   return hit(cx, cy - d) && hit(cx, cy + d) && hit(cx - d, cy) && hit(cx + d, cy);
 }, { s: sel, min: HIT_MIN_PX });
+// v1.0.4 (user): the hint paragraph is justified with its last line on the left, and spans the info column (not a
+// centred shrink-to-fit block), at every width
+const hintJustified = pg => pg.evaluate(() => {
+  const hint = byId('planDayHint'), s = getComputedStyle(hint);
+  const box = hint.getBoundingClientRect(), col = byId('planDayInfo').getBoundingClientRect();
+  return s.textAlign === 'justify' && s.textAlignLast === 'left' && Math.abs(box.left - col.left) < 1 && Math.abs(box.right - col.right) < 1;
+});
 // WCAG contrast of each element's text against the first opaque background behind it; no opacity on the way up
 const contrastOf = (pg, sel) => pg.evaluate(sel => {
   const rgb = s => (s.match(/[\d.]+/g) || []).map(Number);
@@ -144,6 +151,7 @@ async function checkToday(pg) {
   assert(r.pill === 'Read + practise phase', 'phase pill: ' + r.pill);
   assert(r.count === '1 / 3 done', 'n / m done (own tasks only): ' + r.count);
   assert(/automatically/.test(r.hint), 'today hint: completion is counted automatically: ' + r.hint);
+  assert(await hintJustified(pg), 'v1.0.4 (user): the hint under the count is justified, last line left, across the info column');
   assert(Array.isArray(r.review) && r.review.length === 0, 'G9: the first open fixed today\'s clear-wrong list (empty wrong list)');
   const [read, practice, review, ...carry] = r.tasks;
   assert(r.tasks.length === 3 + carry.length && carry.length > 0, 'own tasks, then carry-over tasks');
@@ -515,6 +523,7 @@ async function checkLayout(browser) {
       assert(await hitOk(pg, '#screenPlanDay .back-btn'), `S-117 ${lang} ${w}px: day header "← Home" has a ${HIT_MIN_PX}px tap area`);
       const shown = await pg.evaluate(() => [...document.querySelectorAll('#screenPlanDay [hidden]')].filter(e => getComputedStyle(e).display !== 'none').length);
       assert(shown === 0, `${lang} ${w}px: [hidden] never displayed`);
+      assert(await hintJustified(pg), `v1.0.4 ${lang} ${w}px: hint justified, last line left, full info width`);
       if (lang === 'zh-HK' && w === 375) {
         const t = await pg.evaluate(() => [byId('planDayTitle').textContent, byId('planDayCount').textContent, byId('planCalTitle').textContent, document.querySelector('#planTaskList .plan-tag').textContent]);
         assert(t[0] === '今日任務' && t[1] === '1 / 3 項完成' && t[2] === '2026 年 10 月' && t[3] === '1 題答錯，答對才計算', 'zh-HK (G21 written Chinese): ' + t.join(' | '));

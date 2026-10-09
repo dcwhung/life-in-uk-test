@@ -207,6 +207,9 @@
 .plan-today-head { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: var(--space-8); align-items: center; }
 .plan-today-info { display: grid; gap: var(--space-3); justify-items: start; min-width: 0; }
 .plan-day-count { font-size: var(--fs-md); font-weight: 700; }
+/* v1.0.4 (user): the hint spans the info column, justified with its last line on the left (also when the head
+   stacks and centres at ≤ 480px); en hyphenates so justified lines keep even word gaps, zh-HK spreads per character */
+.plan-day-hint { justify-self: stretch; text-align: justify; text-align-last: left; -webkit-hyphens: auto; hyphens: auto; }
 /* SVG ring: every part has an explicit fill / stroke (no SVG default black) */
 .plan-ring { width: 112px; height: 112px; }
 .plan-ring circle { fill: none; stroke-width: 10; }
