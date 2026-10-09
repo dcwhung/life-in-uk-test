@@ -360,6 +360,26 @@ async function checkResume(pg) {
   await pg.evaluate(() => leaveToHome());
 }
 
+// QA O-2: a task opened before midnight and finished after it: the Result card is about the task's day (its %,
+// "that day's progress", its list), and ← goes back to that day
+async function checkMidnight(pg) {
+  await fresh(pg, at(TODAY, '23:58:00'));
+  await seed(pg);
+  await openDay(pg);
+  const p = await plan(pg);
+  const i = taskIndexOf(p, TODAY, t => t.type === 'practice' && t.ch === 1);
+  await tap(pg, taskBox(TODAY, i));
+  await pg.clock.setFixedTime(at('2026-10-02', '00:01:00'));
+  for (;;) { const c = await cur(pg); await answer(pg, true); await tap(pg, '#nextBtn'); if (c.idx === c.n - 1) break; }
+  const r = await pg.evaluate(() => ({ score: document.querySelector('#planRunBody .result-score').textContent,
+    label: document.querySelector('#planRunBody .result-label').textContent, back: byId('planRunBack').textContent,
+    want: planDayCompletion(planLoad().days[0], planDayLog(planLoadLogView(), '2026-10-01')).pct }));
+  assert(r.score === `${r.want}%` && r.want > 0 && r.label === "Task done · that day's progress", `QA O-2: after midnight the card shows the task's day: ${r.score} · ${r.label}`);
+  assert(r.back === '← Day 1 tasks', 'QA O-2: ← names that day: ' + r.back);
+  await tap(pg, '#planRunBack');
+  assert(await text(pg, '#planDayTitle') === 'Day 1 tasks', 'QA O-2: ← goes back to that day');
+}
+
 // CUI-0011: a double tap on the last question's Next starts the new round once (the second tap is not an answer)
 async function checkDoubleTap(pg) {
   await fresh(pg);
@@ -488,6 +508,7 @@ async function main() {
   await checkClearWrong(pg);
   await checkContinueAndAllDone(pg);
   await checkResume(pg);
+  await checkMidnight(pg);
   await checkDoubleTap(pg);
   await checkSwitchOff(pg);
   await checkMastered(pg);

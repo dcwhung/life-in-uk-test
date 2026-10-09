@@ -30,9 +30,10 @@ function planRunAllowed(ctx, date) {
 }
 
 // ── entry: a task box, Home "Continue", the Result card's "Start next"; from = the day screen to go back to ──
-// date = the day the answers count for (G5: a past day = catch-up, a day ahead = early); from null = today
+// date = the day the answers count for (G5: a past day = catch-up, a day ahead = early); from null = today's list
 function planOpenTask(date, taskIndex, from = null) {
   if (!planVisible()) return;
+  from = from || planTodayIso(); // QA O-2: the list it came from stays that day, even after midnight
   const ctx = planRunContext(date, taskIndex);
   if (!ctx || !planRunnable(ctx.task) || !planRunAllowed(ctx, date)) { openPlanDay(from); return; }
   if (planTaskProgress(ctx.task, ctx.dayLog).complete) planStartReview(date, taskIndex, from, 0);
