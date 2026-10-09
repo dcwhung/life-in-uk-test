@@ -7,6 +7,8 @@
 // ════════════════════════════════════════
 const PLAN_ORDER_STEPS = [[1, 2], [5], [4], [3]]; // PLAN_STUDY_ORDER grouped as the order card shows it
 const PLAN_ORDER_WHY_KEYS = { 1: 'plan.order.whyWarmUp', 5: 'plan.order.whyGov', 4: 'plan.order.whySociety', 3: 'plan.order.whyHistory' };
+// S-113: where a day sits against today; each value is also its row's class (.plan-day.today / .past), '' = ahead
+const PLAN_WHEN = { today: 'today', past: 'past', ahead: '' };
 const PLAN_SHOWN_PHASES = [PLAN_PHASE.learn, PLAN_PHASE.drill, PLAN_PHASE.mock];
 const PLAN_PHASE_LABEL_KEYS = { learn: 'plan.phase.learn', drill: 'plan.phase.drill', mock: 'plan.phase.mock' };
 const PLAN_TASK_ICONS = { read: '📖', practice: '📝', drill: '📝', wrongFacts: '📖', review: '🔁', mock: '🎯' };
@@ -142,15 +144,15 @@ function planDayTasksHtml(day) {
 // ✓ done / its G27 band (past), today n%, rest; days ahead show no pill until they can be opened (PR5)
 function planDayPillHtml(day, dayLog, when) {
   if (day.phase === PLAN_PHASE.rest) return `<span class="plan-pill mute">${t('plan.status.rest')}</span>`;
-  if (!when) return '';
+  if (when === PLAN_WHEN.ahead) return '';
   const pct = planDayCompletion(day, dayLog).pct || 0;
-  if (when === 'today') return `<span class="plan-pill now plan-num">${t('plan.status.today', { n: pct })}</span>`;
+  if (when === PLAN_WHEN.today) return `<span class="plan-pill now plan-num">${t('plan.status.today', { n: pct })}</span>`;
   if (pct >= PERCENT) return `<span class="plan-pill ok">${t('plan.status.done')}</span>`;
   return `<span class="plan-pill plan-num h${planPctBand(pct)}">${t('plan.status.pct', { n: pct })}</span>`;
 }
 function planWhen(iso, todayIso) {
-  if (iso === todayIso) return 'today';
-  return iso < todayIso ? 'past' : '';
+  if (iso === todayIso) return PLAN_WHEN.today;
+  return iso < todayIso ? PLAN_WHEN.past : PLAN_WHEN.ahead;
 }
 function planDateBoxHtml(top, iso, extraClass = '') {
   const sub = `${planShortDate(iso)} ${t(`data.weekdays.${isoWeekday(iso)}`)}`;
@@ -179,7 +181,7 @@ function planDayListHtml(plan, log, todayIso) {
 // at the exam day); instant, not the list's smooth scrolling
 function planScrollToToday() {
   const list = byId('planDayList');
-  const row = list.querySelector('.plan-day.today') || (planTodayIso() > planLoad().goal.examDate ? list.querySelector('.plan-day.exam') : null);
+  const row = list.querySelector(`.plan-day.${PLAN_WHEN.today}`) || (planTodayIso() > planLoad().goal.examDate ? list.querySelector('.plan-day.exam') : null);
   const head = list.querySelector('.plan-week');
   planJumpList(row ? row.offsetTop - (head ? head.offsetHeight : 0) : 0);
 }
