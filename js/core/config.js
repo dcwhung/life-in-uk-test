@@ -2,7 +2,7 @@
 // CONFIG — app-wide constants. sw.js loads this file with importScripts() to name its cache,
 // so it must stay worker-safe: plain constants only, no DOM and no question data.
 // ════════════════════════════════════════
-const APP_VERSION = '1.0.3';
+const APP_VERSION = '1.0.4';
 
 // ── modes and special set ids (state.examNum is 1..EXAM_COUNT or one of these) ──
 const PRACTICE_MODE = 'practice';
@@ -72,6 +72,8 @@ const INSTALL_DISMISSED_LS = LS_PREFIX + 'installDismissed';   // v0.60: install
 const STUDY_PLAN_ENABLED_LS = LS_PREFIX + 'studyPlanEnabled';
 const STUDY_PLAN_LS = LS_PREFIX + 'studyPlan';
 const STUDY_PLAN_PROGRESS_LS = LS_PREFIX + 'studyPlanProgress';
+// v1.0.4: the plan identity (planIdentity) whose schedule was already opened once: later opens fold its cards
+const STUDY_PLAN_SEEN_LS = LS_PREFIX + 'studyPlanScheduleSeen';
 // G31: ?preview=plan shows the hidden entry on this device until ?preview=off (only written when a param asks)
 const STUDY_PLAN_PREVIEW_LS = LS_PREFIX + 'studyPlanPreview';
 const PLAN_PREVIEW_PARAM = 'preview';

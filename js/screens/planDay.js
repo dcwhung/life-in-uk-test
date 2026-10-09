@@ -138,6 +138,15 @@ function renderPlanDayInfo(day, progress, when) {
   byId('planDayCount').textContent = rest ? t('plan.day.restCount') : t('plan.day.count', { done, total: progress.length });
   byId('planDayHint').textContent = t(hintKey);
   setShown('planDayHint', !rest);
+  planShowRest(rest);
+}
+// v1.0.4 (user): a rest day shows a large 😴 (aria-hidden) instead of the ring; its "no tasks" line is only read out
+function planShowRest(rest) {
+  if (!byId('planRestEmoji')) return; // W-040: an old cached index.html (v1.0.3) keeps the ring and its count
+  byId('planRing').toggleAttribute('hidden', rest); // an <svg> has no .hidden property, so setShown would not apply
+  setShown('planRestEmoji', rest);
+  byId('planDayHead').classList.toggle('rest', rest); // the rest view's own spacing (plan.css .plan-today-head.rest)
+  byId('planDayCount').classList.toggle('plan-sr', rest);
 }
 
 // ── task boxes ──
@@ -213,7 +222,7 @@ function planMockStatusText(p) {
   return t('plan.task.qTodo', { n: REAL_TEST_SIZE, mode: t('plan.task.modeMock') });
 }
 
-// ── completion calendar: one month, ‹ Today › within the plan's months; each plan day (and the exam day) opens ──
+// ── completion calendar: one month, ‹ Today › within the plan's months (none for a one-month plan); each plan day (and the exam day) opens ──
 function planMonthIndex(months, iso) {
   const [year, month] = isoParts(iso);
   return months.findIndex(m => m.year === year && m.month === month);
@@ -226,6 +235,7 @@ function renderPlanCalendar(plan, log, iso, todayIso) {
   const { year, month } = planCalMonth;
   const at = planMonthIndex(months, `${year}-${pad2(month)}-01`), todayAt = planMonthIndex(months, todayIso);
   byId('planCalTitle').textContent = t('plan.calendar.month', { year, month: t(`data.months.${month}`) });
+  planShowMonthNav(months.length > 1); // S-128: before disabling: a focused button that gets disabled drops focus to <body>
   byId('planCalPrev').disabled = at === 0;
   byId('planCalNext').disabled = at === months.length - 1;
   byId('planCalToday').disabled = todayAt < 0 || at === todayAt;
@@ -236,6 +246,14 @@ function renderPlanCalendar(plan, log, iso, todayIso) {
   const streak = planStreakDays(plan, log, todayIso);
   byId('planStreak').textContent = t('plan.calendar.streak', { n: streak });
   setShown('planStreak', streak > 0); // G29: 0 days shows nothing
+}
+// v1.0.4 (user): a plan inside one month has nothing to page through, so ‹ Today › is not shown; a focused button
+// that hides (the plan changed under the open screen) hands focus to the day heading instead of <body>
+function planShowMonthNav(shown) {
+  const nav = byId('planCalBtns');
+  if (!nav) return; // W-040: an old cached index.html (v1.0.3) has no id on the month buttons: they stay shown
+  if (!shown && nav.contains(document.activeElement)) byId('planDayHeading').focus({ preventScroll: true });
+  nav.hidden = !shown;
 }
 // band / rest / ahead / outside / exam; days gone by take the lighter band colours (never opacity, W-034)
 function planCellClass(c) {

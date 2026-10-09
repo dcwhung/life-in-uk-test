@@ -339,16 +339,20 @@
         <p class="plan-muted" id="planSummary"></p>
       </div>
 
-      <div class="plan-card-box">
-        <h3 data-i18n="plan.schedule.phasesTitle"></h3>
-        <div class="plan-phase-bar" id="planPhaseBar" aria-hidden="true"></div>
+      <!-- v1.0.4: the phases / order cards fold (planSchedule.js planToggleFold); the whole title is the toggle -->
+      <div class="plan-card-box plan-fold">
+        <h3><button type="button" class="plan-fold-btn" id="planPhasesToggle" data-action="planToggleFold" data-arg="phases" aria-expanded="true" aria-controls="planStrategy"><span data-i18n="plan.schedule.phasesTitle"></span><span class="plan-fold-chev" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 6l4.5 4.5L12.5 6"></path></svg></span></button></h3>
+        <div class="plan-phase-bar" id="planPhaseBar" role="list" aria-hidden="true"></div>
         <div class="plan-strats" id="planStrategy"></div>
       </div>
 
-      <div class="plan-card-box">
-        <h3 data-i18n="plan.schedule.orderTitle"></h3>
-        <p class="plan-muted" data-i18n="plan.schedule.orderIntro"></p>
-        <div class="plan-order" id="planOrder"></div>
+      <div class="plan-card-box plan-fold">
+        <h3><button type="button" class="plan-fold-btn" id="planOrderToggle" data-action="planToggleFold" data-arg="order" aria-expanded="true" aria-controls="planOrderBody"><span data-i18n="plan.schedule.orderTitle"></span><span class="plan-fold-chev" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 6l4.5 4.5L12.5 6"></path></svg></span></button></h3>
+        <ol class="plan-ord-mini" id="planOrderMini" role="list" hidden></ol>
+        <div class="plan-fold-body" id="planOrderBody">
+          <p class="plan-muted" data-i18n="plan.schedule.orderIntro"></p>
+          <div class="plan-order" id="planOrder"></div>
+        </div>
       </div>
 
       <div class="plan-card-box">
@@ -382,6 +386,7 @@
 
       <div class="plan-card-box">
         <div class="plan-today-head" id="planDayHead">
+          <span class="plan-rest-emoji" id="planRestEmoji" aria-hidden="true" hidden>😴</span>
           <svg class="plan-ring" id="planRing" viewBox="0 0 112 112" role="img">
             <circle class="plan-ring-track" cx="56" cy="56" r="46"></circle>
             <circle class="plan-ring-prog" id="planRingProg" cx="56" cy="56" r="46" pathLength="100"></circle>
@@ -391,7 +396,7 @@
           <div class="plan-today-info" id="planDayInfo">
             <span class="plan-pill" id="planDayPhase"></span>
             <div class="plan-day-count plan-num" id="planDayCount"></div>
-            <p class="plan-muted" id="planDayHint"></p>
+            <p class="plan-muted plan-day-hint" id="planDayHint"></p>
             <button class="chip plan-hit" id="planBackToday" data-action="planShowToday" data-i18n="plan.day.backToday" hidden></button>
           </div>
         </div>
@@ -406,7 +411,7 @@
         <div class="plan-row"><h3 data-i18n="plan.calendar.title"></h3><span class="study-progress plan-num" id="planStreak" hidden></span></div>
         <div class="plan-cal-nav">
           <b class="plan-num" id="planCalTitle" aria-live="polite"></b>
-          <div class="plan-cal-btns">
+          <div class="plan-cal-btns" id="planCalBtns">
             <button class="quick-btn plan-hit-sq" id="planCalPrev" data-action="planShiftMonth" data-arg="-1" data-i18n-attr="aria-label:plan.calendar.prev">‹</button>
             <button class="chip plan-hit" id="planCalToday" data-action="planShiftMonth" data-arg="0" data-i18n="plan.calendar.today"></button>
             <button class="quick-btn plan-hit-sq" id="planCalNext" data-action="planShiftMonth" data-arg="1" data-i18n-attr="aria-label:plan.calendar.next">›</button>

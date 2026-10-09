@@ -43,11 +43,15 @@ function readPlanLog() {
   try { return { stored: true, value: JSON.parse(raw) }; } catch { return { stored: true, value: undefined }; }
 }
 function writePlanLog(log) { setLS(STUDY_PLAN_PROGRESS_LS, log); }
-// "↺ Reset plan" deletes the schedule and its log; practice records and the switch are kept
+// "↺ Reset plan" deletes the schedule and its log (and the schedule's "seen" marker); practice records and the switch are kept
 function clearStudyPlan() {
   removeLS(STUDY_PLAN_LS);
   removeLS(STUDY_PLAN_PROGRESS_LS);
+  removeLS(STUDY_PLAN_SEEN_LS);
 }
+// v1.0.4: the identity of the plan whose schedule was opened (null = never)
+function readPlanScheduleSeen() { return getLS(STUDY_PLAN_SEEN_LS); }
+function writePlanScheduleSeen(id) { setLS(STUDY_PLAN_SEEN_LS, id); }
 function isStudyPlanEnabled() { return getLS(STUDY_PLAN_ENABLED_LS) !== false; }
 function setStudyPlanEnabled(on) { setLS(STUDY_PLAN_ENABLED_LS, !!on); }
 function isPlanPreviewOn() { return getLS(STUDY_PLAN_PREVIEW_LS) === true; }
