@@ -147,6 +147,7 @@
 | T-328 | `plan-ui-test` 今日 / 月曆 / 主頁卡 + `plan-day-test`（`page.clock` 過午夜、返前台換日、HK → London `timezoneId`）；`lang-switch-test` day screen | test | frontend-developer | none-required | 1.25 | T-323–T-327 | P0 |
 
 **PR5 驗收**：
+- [ ] PR4 QA O-1：長計劃（183 日）進度表喺低階機轉語言慢（CPU ×4 0.55–1.0 s），考慮 `content-visibility: auto` 或者減 layout
 - [ ] PR4 S-115：跨午夜後撳「更新進度表 / 建立進度表」失敗時 re-render 表單 + 提示（唔可以冇反應）；加跨午夜 clock UI test
 - [ ] handoff §5「今日任務」（自動計完成度、練完當溫咗 G3、補做 G8、‹ › 轉日、已過補做 / 未到預覽）—— runner 未有，用 seed log 驗 UI
 - [ ] handoff §5「月曆」：一個月一版、selector、已過淡化、考試日
