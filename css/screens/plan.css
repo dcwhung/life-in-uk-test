@@ -290,6 +290,7 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
 .plan-task-btn:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
 .plan-note { font-size: var(--fs-xs); color: var(--green); background: var(--success-bg); border-radius: var(--radius-sm); padding: var(--space-4) var(--space-5); line-height: 1.5; }
 .plan-run-note { margin-bottom: var(--space-7); }
+#screenQuiz .back-btn.plan-hit, #planRunBack { white-space: nowrap; } /* "← Today's tasks" on one line at 360px */
 .plan-run-body { display: grid; gap: var(--space-7); }
 .plan-run-body .result-card { margin-bottom: 0; }
 .plan-run-next { gap: var(--space-2); }
