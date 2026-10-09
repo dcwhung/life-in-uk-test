@@ -142,6 +142,7 @@ function renderPlanDayInfo(day, progress, when) {
 }
 // v1.0.4 (user): a rest day shows a large 😴 (aria-hidden) instead of the ring; its "no tasks" line is only read out
 function planShowRest(rest) {
+  if (!byId('planRestEmoji')) return; // W-040: an old cached index.html (v1.0.3) keeps the ring and its count
   byId('planRing').toggleAttribute('hidden', rest); // an <svg> has no .hidden property, so setShown would not apply
   setShown('planRestEmoji', rest);
   byId('planDayHead').classList.toggle('rest', rest); // the rest view's own spacing (plan.css .plan-today-head.rest)
@@ -250,6 +251,7 @@ function renderPlanCalendar(plan, log, iso, todayIso) {
 // that hides (the plan changed under the open screen) hands focus to the day heading instead of <body>
 function planShowMonthNav(shown) {
   const nav = byId('planCalBtns');
+  if (!nav) return; // W-040: an old cached index.html (v1.0.3) has no id on the month buttons: they stay shown
   if (!shown && nav.contains(document.activeElement)) byId('planDayHeading').focus({ preventScroll: true });
   nav.hidden = !shown;
 }

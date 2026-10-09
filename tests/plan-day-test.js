@@ -535,6 +535,25 @@ async function checkMidnightCta(pg) {
   assert(!(await visible(pg, '#planGoalHint')), 'S-115: the notice goes once the form changes');
 }
 
+// W-040: an old cached v1.0.3 index.html (no #planRestEmoji / #planCalBtns) with v1.0.4 JS still renders the day screen:
+// today's tasks, a rest day with the ring and its count (the v1.0.3 look), the calendar
+async function checkOldShell(pg) {
+  await fresh(pg);
+  await seedPlan(pg);
+  const r = await pg.evaluate(() => {
+    byId('planRestEmoji').remove(); // v1.0.3 markup: no 😴, and the month buttons' wrapper has no id
+    byId('planCalBtns').removeAttribute('id');
+    const run = f => { try { f(); return 'ok'; } catch (e) { return e.message; } };
+    const today = run(() => openPlanDay());
+    const tasks = document.querySelectorAll('#planTaskList .plan-task').length;
+    const rest = run(() => openPlanDay('2026-10-04'));
+    return { today, tasks, rest, ring: byId('planRing').getClientRects().length > 0, count: byId('planDayCount').textContent,
+      cal: document.querySelectorAll('#planCal .plan-cell').length };
+  });
+  assert(r.today === 'ok' && r.tasks > 0 && r.cal > 0, 'W-040: old shell: today renders its tasks and calendar: ' + JSON.stringify(r));
+  assert(r.rest === 'ok' && r.ring && r.count === 'Rest day: no tasks', 'W-040: old shell: a rest day keeps the ring and its count (v1.0.3 look): ' + JSON.stringify(r));
+}
+
 // v1.0.4 (user): on a rest day the 😴 sits close above the "Rest day" pill (its box hugs the glyph, a small gap), and
 // "← Back to today" gets more room below the pill (the --space-8 token)
 const REST_EMOJI_GAP_MAX_PX = 16;
@@ -620,6 +639,7 @@ async function checkLayout(browser) {
     await checkMidnight(browser);
     await checkTimeZones(browser);
     await checkRestSpacing(browser);
+    await checkOldShell(pg);
     await checkLayout(browser);
     assert(errors.length === 0, 'no page errors: ' + errors.join(' | '));
     console.log('PLAN-DAY PASS');
