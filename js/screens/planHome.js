@@ -78,7 +78,7 @@ function planCreateCardHtml() {
 }
 // the navy card (handoff §2.1): top line, then today / the exam day / "plan finished", then the actions
 function planHomeCardHtml(plan, todayIso) {
-  const status = planStatus(plan, todayIso), stored = planLoadLog(), log = stored || planEmptyLog();
+  const status = planStatus(plan, todayIso), stored = planLoadLogView(), log = stored || planEmptyLog();
   let body;
   if (status === PLAN_STATUS.ended) body = planEndedHtml(plan, log, todayIso);
   else if (status === PLAN_STATUS.examDay) body = planExamDayHtml();

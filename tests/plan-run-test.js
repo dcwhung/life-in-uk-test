@@ -349,6 +349,55 @@ async function checkSwitchOff(pg) {
   assert(await activeScreen(pg) === 'screenHome' && await pg.evaluate(() => !isSideSession()), 'G15: switch off in a plan task → Home, session left');
 }
 
+// G37: Ch 1 all mastered (🏆) → "Practise Ch 1" is done ("✓ Mastered"), "Read Ch 1" read, live (nothing written);
+// its box opens review mode; a half-mastered task asks only the others; Home % agrees; no plan → no plan write
+async function checkMastered(pg) {
+  await fresh(pg);
+  const before = await pg.evaluate(() => {
+    const plan = buildPlan({ examDate: '2026-10-29', dailyMins: 120, restDays: [0], level: 'none' }, '2026-10-01');
+    const ch1 = plan.days[0].tasks.find(t => t.type === 'practice' && t.ch === 1).qids;
+    streaks = Object.fromEntries(ch1.map(k => [k, MASTERY_STREAK]));
+    setLS('practiceStreak', streaks);
+    leaveToHome();
+    const noPlan = JSON.stringify(Object.keys(localStorage).filter(k => k === 'lifeuk.studyPlan' || k === 'lifeuk.studyPlanProgress'));
+    writeStudyPlan(plan);
+    return noPlan;
+  });
+  assert(before === '[]', 'G37: mastered questions without a plan write no plan key');
+  await openDay(pg);
+  const p = await plan(pg);
+  const pi = taskIndexOf(p, TODAY, t => t.type === 'practice' && t.ch === 1), ri = taskIndexOf(p, TODAY, t => t.type === 'read' && t.ch === 1);
+  const n = p.days[0].tasks[pi].qids.length;
+  const box = await pg.evaluate(([pi, ri]) => {
+    const all = [...document.querySelectorAll('#planTaskList > li')];
+    const of = i => (all[i].matches('.plan-task') ? all[i] : all[i].querySelector('.plan-task'));
+    return { practice: [of(pi).className, of(pi).querySelector('.plan-task-st').textContent], read: [of(ri).className, of(ri).querySelector('.plan-task-st').textContent],
+      log: localStorage.getItem('lifeuk.studyPlanProgress') };
+  }, [pi, ri]);
+  assert(box.practice[0].includes('done') && box.practice[1] === `✓ Mastered (${n} questions)`, `G37: Practise Ch 1 done: ${box.practice[1]}`);
+  assert(box.read[0].includes('done') && box.read[1] === '✓ Practised its questions: counted as read', 'G37: Read Ch 1 counts as read (G3 / G4)');
+  assert(box.log === null || !box.log.includes('mastered'), 'G37: live, nothing migrated into the log');
+  await tap(pg, taskBox(TODAY, pi));
+  assert(await pg.evaluate(() => isPlanReviewMode()), 'G37: an all-mastered task opens in review mode');
+  // half of Ch 2 mastered: the runner asks only the rest
+  await pg.evaluate(() => leaveToHome());
+  const half = await pg.evaluate(() => {
+    const t = planLoad().days[0].tasks.find(x => x.type === 'practice' && x.ch === 2);
+    t.qids.slice(0, 5).forEach(k => { streaks[k] = MASTERY_STREAK; });
+    return t.qids.slice(0, 5);
+  });
+  await openDay(pg);
+  const p2 = taskIndexOf(p, TODAY, t => t.type === 'practice' && t.ch === 2);
+  assert((await text(pg, taskBox(TODAY, p2) + ' .plan-task-st')).includes('🏆 5 mastered'), 'G37: partly mastered: "🏆 5 mastered"');
+  await tap(pg, taskBox(TODAY, p2));
+  assert(await pg.evaluate(half => state.questions.every(q => !half.includes(qKey(q))) && state.questions.length === planLoad().days[0].tasks.find(x => x.type === 'practice' && x.ch === 2).qids.length - 5, half),
+    'G37: the runner asks only the questions not mastered');
+  await pg.evaluate(() => leaveToHome());
+  const home = await pg.evaluate(() => ({ card: byId('planCard').querySelector('.plan-home-pct').textContent,
+    want: planDayCompletion(planLoad().days[0], planDayLog(planLoadLogView(), '2026-10-01')).pct }));
+  assert(home.card === `${home.want}%` && home.want > 0, `G37: the Home card % (${home.card}) counts mastered questions too`);
+}
+
 async function checkLayout(b) {
   for (const lang of ['en', 'zh-HK']) {
     for (const w of WIDTHS) {
@@ -389,6 +438,7 @@ async function main() {
   await checkContinueAndAllDone(pg);
   await checkDoubleTap(pg);
   await checkSwitchOff(pg);
+  await checkMastered(pg);
   await checkLayout(b);
   assert(errs.length === 0, 'no page errors / i18n warnings: ' + errs.join(' | '));
   await b.close();

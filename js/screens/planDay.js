@@ -33,7 +33,7 @@ function planViewIso(plan) {
 function renderPlanDay() {
   const plan = planLoad();
   if (!plan) return;
-  const log = planLoadLog() || planEmptyLog(); // unreadable: shown as nothing answered (↺ Reset clears it)
+  const log = planLoadLogView() || planEmptyLog(); // unreadable: shown as nothing answered (↺ Reset clears it)
   const iso = planViewIso(plan), todayIso = planTodayIso();
   renderPlanDayHeader(plan, iso, todayIso);
   if (iso === plan.goal.examDate) renderPlanExamView(plan, iso, todayIso);
@@ -193,11 +193,14 @@ function planReadStatusText(task, p, dayLog) {
   if (!p.done) return t('plan.task.readTodo', { n: p.total });
   return t('plan.task.readPart', { done: p.done, total: p.total, n: chapterFactNumber(planResumeAt(task, dayLog)) });
 }
+// G37: questions done by 🏆 alone say so ("✓ Mastered" when that is all of them)
 function planQuestionStatusHtml(task, p) {
-  if (p.complete) return t('plan.task.qDone', { n: p.total });
+  const mastered = p.mastered ? LIST_SEP + t('plan.task.qMasteredPart', { n: p.mastered }) : '';
+  if (p.complete && p.mastered === p.total) return t('plan.task.qMastered', { n: p.total });
+  if (p.complete) return t('plan.task.qDone', { n: p.total }) + mastered;
   const modeKey = PLAN_DAY_MODE_KEYS[task.type];
   if (!p.done && !p.bad) return t('plan.task.qTodo', { n: p.total, mode: t(modeKey) });
-  const right = `<span class="plan-ok">${t('plan.task.qPart', { done: p.done, total: p.total })}</span>`;
+  const right = `<span class="plan-ok">${t('plan.task.qPart', { done: p.done, total: p.total })}${mastered}</span>`;
   if (!p.bad) return right;
   return `${right}${LIST_SEP}<span class="plan-bad">${t('plan.task.qBad', { n: p.bad })}</span>`
     + `<span class="plan-tag wrong">${t('plan.task.wrongTag', { n: p.bad })}</span>`;
@@ -267,7 +270,7 @@ function planShiftMonth(step) {
   const at = planMonthIndex(months, from);
   if (at < 0) return;
   planCalMonth = months[Math.min(months.length - 1, Math.max(0, at + step))];
-  renderPlanCalendar(plan, planLoadLog() || planEmptyLog(), planViewIso(plan), planTodayIso());
+  renderPlanCalendar(plan, planLoadLogView() || planEmptyLog(), planViewIso(plan), planTodayIso());
   if (step) planKeepArrowFocus('planCalPrev', 'planCalNext', step);
   else planFocusEnabledArrow('planCalPrev', 'planCalNext'); // W-036: "Today" just disabled itself
 }

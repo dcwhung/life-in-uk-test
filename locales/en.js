@@ -403,6 +403,8 @@ LOCALES.en = {
       qBad: '✗ {n}',
       wrongTag: '{n} wrong: only right answers count',
       qDone: { one: '✓ {n} question done', other: '✓ {n} questions done' },
+      qMastered: { one: '✓ Mastered ({n} question)', other: '✓ Mastered ({n} questions)' }, // G37: all done by 🏆
+      qMasteredPart: '🏆 {n} mastered',
       mockPassed: '✓ Passed · best {best} / {n}',
       mockBest: 'Best {best} / {n} · pass mark {pass}',
       goStart: 'Start ›',

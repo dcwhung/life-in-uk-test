@@ -16,7 +16,7 @@ function planRunContext(date, taskIndex) {
   const plan = planLoad();
   const day = plan && planDayAt(plan, date);
   const task = day && day.tasks[taskIndex];
-  const log = task ? planLoadLog() : null; // unreadable log: nothing would be recorded, so nothing runs
+  const log = task ? planLoadLogView() : null; // unreadable log: nothing would be recorded, so nothing runs
   if (!log) return null;
   return { plan, day, task, log, dayLog: planDayLog(log, date) };
 }
@@ -40,7 +40,7 @@ function planOpenTask(date, taskIndex, from = null) {
 }
 function planContinue() {
   const plan = ensurePlanToday();
-  const log = plan && planLoadLog();
+  const log = plan && planLoadLogView();
   const next = log ? planNextStep(plan, log, planTodayIso()) : { kind: PLAN_NEXT.done };
   if (next.kind === PLAN_NEXT.done) openPlanDay();
   else planOpenTask(next.date, next.taskIndex);
@@ -212,8 +212,9 @@ function planDoneCardHtml(ctx, isToday, next, pct) {
 // "n questions all right, k of them wrong at first and redone right" (the day's wrong answers on this task)
 function planDoneSummary(ctx) {
   const qids = planTaskQids(ctx.task);
+  const n = qids.length - planTaskProgress(ctx.task, ctx.dayLog).mastered; // G37: 🏆 ones were not asked
   const redone = qids.filter(k => ctx.dayLog.bad[k]).length;
-  return redone ? t('plan.run.sumRedone', { n: qids.length, k: redone }) : t('plan.run.sumFirst', { n: qids.length });
+  return redone ? t('plan.run.sumRedone', { n, k: redone }) : t('plan.run.sumFirst', { n });
 }
 // G3: practising a reading task's questions finishes the reading too
 function planDonePairHtml(ctx, taskIndex) {

@@ -376,6 +376,8 @@ LOCALES['zh-HK'] = {
       qBad: '✗ {n}',
       wrongTag: '{n} 題答錯，答對才計算',
       qDone: '✓ 已完成 {n} 題',
+      qMastered: '✓ 已掌握（{n} 題）',
+      qMasteredPart: '🏆 已掌握 {n} 題',
       mockPassed: '✓ 合格 · 最高 {best} / {n} 分',
       mockBest: '最高 {best} / {n} 分 · 合格需 {pass} 分',
       goStart: '開始 ›',

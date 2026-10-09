@@ -1,4 +1,4 @@
-# 溫習計劃 i18n key 對照（PR6a 新增，22 個）
+# 溫習計劃 i18n key 對照（PR6a 新增，22 + 2 個）
 
 > 由 PR6a developer 整理，留俾 PR7（G35）中英對照用。全部喺 `plan.run.*`（runner：練題目 / 清錯題 / 重溫模式 / 任務完成卡）。
 > 其他重用嘅現有 key：`common.chapterN`（runner 標題「Chapter n」）、`common.wrongSet`（清錯題標題「錯題」）、`common.practice`（模式 badge）、`quiz.finishButton`（「完成 ✓」）、`quiz.nextButton`（重溫下一頁）、`plan.dayN`、`plan.task.*`（下一項卡）、`plan.home.continue`（主頁「繼續今日任務 →」而家直接開 runner）。
@@ -28,3 +28,10 @@
 | `plan.run.reviewThis` | 重溫此項內容 | Review this task |
 | `plan.run.startNext` | 開始下一項 → | Start next → |
 | `plan.run.backToList` | 返回任務列表 | Back to the task list |
+
+## G37（已掌握即完成，2026-10-09）新增 2 個
+
+| Key | zh-HK | en |
+|---|---|---|
+| `plan.task.qMastered` | ✓ 已掌握（{n} 題） | one: ✓ Mastered ({n} question) / other: ✓ Mastered ({n} questions) |
+| `plan.task.qMasteredPart` | 🏆 已掌握 {n} 題 | 🏆 {n} mastered |
