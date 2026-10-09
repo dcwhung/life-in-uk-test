@@ -485,6 +485,11 @@ async function checkMyReviewNarrow(pg, check, lang, tag) {
 const MY_REVIEW_PORTRAIT = [{ width: 320, height: 640 }, { width: 390, height: 844 }, { width: 768, height: 1024 }];
 const MY_REVIEW_LANDSCAPE = [{ width: 844, height: 390 }, { width: 1024, height: 768 }];
 const MY_REVIEW_TOLERANCE_PX = 1;
+// both My Review lists emptied (storage and memory), back on Home
+const clearMyReview = pg => pg.evaluate(() => {
+  localStorage.removeItem('lifeuk.wrongList'); localStorage.removeItem('lifeuk.practiceFlags');
+  wrongList = {}; practiceFlags = {}; leaveToHome();
+});
 async function checkMyReviewOrientation(pg) {
   await seedMyReview(pg, MY_REVIEW_WRONG_N, MY_REVIEW_FLAG_N);
   const layout = () => pg.evaluate(() => {
@@ -511,10 +516,8 @@ async function checkMyReviewOrientation(pg) {
     }
   }
   await pg.setViewportSize(WIDE);
-  await pg.evaluate(() => {
-    localStorage.removeItem('lifeuk.wrongList'); localStorage.removeItem('lifeuk.practiceFlags');
-    wrongList = {}; practiceFlags = {}; setLang('en'); leaveToHome();
-  });
+  await pg.evaluate(() => setLang('en'));
+  await clearMyReview(pg);
 }
 async function checkMyReviewTiles(pg) {
   await pg.evaluate(lang => setLang(lang), EN);
@@ -538,10 +541,7 @@ async function checkMyReviewTiles(pg) {
   await checkMyReviewNarrow(pg, checkMyReviewEmptyIn, EN, 'My Review en 0 wrong 320px');
   await seedMyReview(pg, MY_REVIEW_WRONG_N, 0);
   assert((await textOf(pg, '#tileFlagged .sub')) === FLAGGED_EMPTY[EN], 'My Review en: 0 flagged keeps flaggedEmptyHtml');
-  await pg.evaluate(() => {
-    localStorage.removeItem('lifeuk.wrongList'); localStorage.removeItem('lifeuk.practiceFlags');
-    wrongList = {}; practiceFlags = {}; leaveToHome();
-  });
+  await clearMyReview(pg);
 }
 
 // 2026-10-07: the Exam mode description no longer ends with "pick an exam below" (the grid sits right under it)
