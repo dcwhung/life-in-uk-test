@@ -71,7 +71,12 @@
   --fs-lg: 15px;
 
   /* spacing scale (v0.72, B5): margin / padding / gap on these steps use the token (structure-test); the step number
-     is px / 2. Off-scale values (1, 3, 5, 7, 9, 11, 13, 18, 22px…) stay literal where they sit */
+     is px / 2. Off-scale values (1, 3, 5, 7, 9, 11, 13, 18, 22px…) stay literal where they sit.
+     S-114, study plan (css/screens/plan.css), kept off-scale to match the mockup's sp-* sizes (0 visual change):
+     3px = .plan-pill vertical padding, .plan-day-tasks line gap; 7px = .plan-cta-go / .nav-btn.plan-small vertical
+     padding (same 7px as .back-btn, so the header buttons line up). Not spacing, so not on this scale either:
+     .plan-phase-bar height 34px (fits one 11px label line with room), .plan-legend swatch radius 3px (a 12px swatch:
+     the smallest --radius-xs 6px would make it a circle) */
   --space-1: 2px;
   --space-2: 4px;
   --space-3: 6px;
