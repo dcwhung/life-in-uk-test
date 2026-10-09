@@ -215,8 +215,10 @@ function planDoneCardHtml(ctx, isToday, next, pct) {
   const subText = all ? t(subKey) : planDoneSummary(ctx);
   const day = `<span lang="en">${t('plan.dayN', { n: planDayNumber(ctx.plan, ctx.day.date) })}</span>`;
   return `<div class="result-card"><div class="result-emoji" aria-hidden="true">${all ? '🎉' : '✅'}</div>`
-    + `<div class="result-score plan-num">${pct}<span>%</span></div>`
-    + `<div class="result-label${all ? ' pass' : ''}" tabindex="-1">${t(labelKey, { day })}</div><div class="result-sub">${subText}</div></div>`;
+    + `<div class="result-score plan-num" id="planRunScore">${pct}<span>%</span></div>`
+    // S-121: focus lands on the result line; it is described by the % and the summary, so both are read out
+    + `<div class="result-label${all ? ' pass' : ''}" tabindex="-1" aria-describedby="planRunScore planRunSub">${t(labelKey, { day })}</div>`
+    + `<div class="result-sub" id="planRunSub">${subText}</div></div>`;
 }
 // "n questions all right, k of them wrong at first and redone right" (the day's wrong answers on this task)
 function planDoneSummary(ctx) {
