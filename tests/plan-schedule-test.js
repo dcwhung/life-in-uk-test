@@ -179,13 +179,23 @@ async function checkDayList(pg) {
       const chs = [...new Set(d.tasks.filter(t => t.ch).map(t => t.ch))];
       const note = rows[i].querySelector('.plan-day-chs');
       const tasks = [...rows[i].querySelectorAll('.plan-day-t')].map(e => e.textContent).join(' | ');
-      return { chs, note: note && note.textContent, lang: note && note.getAttribute('lang'), tasks, light: !!d.light, last: note && note === rows[i].querySelector('.plan-day-tasks').lastElementChild };
+      const lis = note ? [...note.children] : [];
+      return { chs, note: note && note.tagName, items: lis.map(li => li.textContent), langs: lis.map(li => li.getAttribute('lang')), tags: lis.map(li => li.tagName),
+        colors: lis.map(li => getComputedStyle(li).color), markers: lis.map(li => getComputedStyle(li, '::marker').color),
+        past: rows[i].classList.contains('past'), tasks, light: !!d.light, last: note && note === rows[i].querySelector('.plan-day-tasks').lastElementChild };
     });
   });
+  // v1.0.3 (user): one gold bullet per chapter (mud yellow --gold-text); past rows stay grey like the rest of the row
+  const tokenColor = name => pg.evaluate(n => { const e = document.createElement('span'); e.style.color = `var(${n})`; document.body.append(e); const c = getComputedStyle(e).color; e.remove(); return c; }, name);
+  const gold = await tokenColor('--gold-text'), grey = await tokenColor('--plan-past-text');
   const fullNames = await pg.evaluate(() => [1, 2, 3, 4, 5].map(ch => planChapterText(ch)));
   const withCh = notes.filter(n => n.chs.length && !n.light);
-  assert(withCh.length > 10 && withCh.every(n => n.note === n.chs.map(ch => fullNames[ch - 1]).join(' · ') && n.lang === 'en' && n.last),
-    'remarks: each study day lists its chapters in full, unique, in order, last line, lang="en": ' + JSON.stringify(withCh.slice(0, 3)));
+  assert(withCh.length > 10 && withCh.every(n => n.note === 'UL' && n.tags.every(t => t === 'LI') && JSON.stringify(n.items) === JSON.stringify(n.chs.map(ch => fullNames[ch - 1]))
+    && n.langs.every(l => l === 'en') && n.last), 'remarks: a list, one li per chapter in full, unique, in order, last, lang="en": ' + JSON.stringify(withCh.slice(0, 3)));
+  const want = n => (n.past ? grey : gold);
+  assert(withCh.every(n => n.colors.every(c => c === want(n)) && n.markers.every(c => c === want(n))),
+    `remarks: text + bullets ${gold} (--gold-text), past rows ${grey}: ` + JSON.stringify(withCh.map(n => [n.past, n.colors[0], n.markers[0]]).slice(8, 13)));
+  assert(withCh.some(n => n.past) && withCh.some(n => !n.past), 'remarks: both past and current rows checked');
   assert(notes.filter(n => !n.chs.length || n.light).every(n => n.note === null), 'remarks: none on rest / mock-only / light days');
   assert(notes.every(n => !fullNames.some(f => n.tasks.includes(f))), 'task lines show "Ch n" without the chapter name');
   assert(r.exam.cls.includes('exam') && r.exam.pat && r.exam.text.includes('🎯') && r.exam.text.includes('29/10 Thu') && r.exam.text.includes('Exam day'),
@@ -428,7 +438,9 @@ async function checkHiddenAttr(pg) {
   assert(shown.length === 0, '[hidden] elements are never displayed: ' + shown.join(', '));
 }
 // v1.0.2: phase labels unclipped, order bars equal, and every pill (also "Today 100%") fits the left column
-const DAY_SIDE_PX = 64; // S-117: the day list's left column (date box + pill)
+const DAY_SIDE_PX = 72; // the day list's left column (date box + pill): S-117 64px, v1.0.3 72px (SF fits "Today 99%")
+const WIDE_FONT = 'Arial, Helvetica, sans-serif'; // stands in for the iPhone's SF, which runs wider
+const WIDE_FONT_GROW = 1.1;
 async function checkScheduleFit(pg, where) {
   const r = await pg.evaluate(() => {
     const clipped = [...document.querySelectorAll('#planPhaseBar span')].filter(e => e.scrollWidth > e.clientWidth + 0.5).map(e => e.textContent);
@@ -450,6 +462,28 @@ async function checkScheduleFit(pg, where) {
   assert(r.clipped.length === 0, `${where}: phase bar labels not clipped: ` + r.clipped);
   assert(r.fits, `${where}: "${r.full}" pill fits the left column: ` + JSON.stringify(r));
   assert(r.zero.lines === 1 && r.zero.font === r.zero.xs && r.zero.col === DAY_SIDE_PX, `${where}: S-117 "Today 0%" on one line at --fs-xs in a ${DAY_SIDE_PX}px column: ` + JSON.stringify(r.zero));
+  // v1.0.3: an iPhone (SF) wrapped "Today 0%": "Today 0%"…"Today 99%" must fit one line also in a wider font
+  // (Arial / Helvetica + 10%); "Today 100%" may wrap but stays inside the column
+  const wide = await pg.evaluate(({ fonts, grow }) => {
+    const row = document.querySelector('#planDayList .plan-day.today'), pill = row.querySelector('.plan-pill'), col = row.querySelector('.plan-day-side');
+    const before = [pill.textContent, pill.style.fontFamily];
+    const out = [];
+    for (const font of fonts) {
+      pill.style.fontFamily = font;
+      for (const n of [0, 9, 99]) {
+        pill.textContent = t('plan.status.today', { n });
+        const range = document.createRange();
+        range.selectNodeContents(pill);
+        const cs = getComputedStyle(pill), text = range.getBoundingClientRect().width;
+        const need = text * grow + parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) + parseFloat(cs.borderLeftWidth) * 2;
+        const lines = new Set([...range.getClientRects()].map(q => Math.round(q.top))).size;
+        out.push({ font, n, lines, need: Math.round(need), col: Math.round(col.getBoundingClientRect().width) });
+      }
+    }
+    [pill.textContent, pill.style.fontFamily] = before;
+    return out;
+  }, { fonts: ['', WIDE_FONT], grow: WIDE_FONT_GROW });
+  assert(wide.every(x => x.lines === 1 && (x.font === '' || x.need <= x.col)), `${where}: "Today 0–99%" on one line, also in ${WIDE_FONT} +10%: ` + JSON.stringify(wide.filter(x => x.lines !== 1 || x.need > x.col)));
   await checkOrderBars(pg, where);
   // v1.0.3 (user): "↺ Reset plan" on its own row under the hint, across the box's full content width
   const reset = await pg.$eval('#screenPlanSchedule .plan-reset', row => {

@@ -123,11 +123,11 @@
 /* the week heading sticks while scrolling and spans the scroller's full width, so no row shows past its edges */
 .plan-week { position: sticky; top: 0; z-index: 2; background: var(--card); margin-inline: calc(-1 * var(--space-4)); padding: var(--space-4) var(--space-4) var(--space-2); font-size: var(--fs-xs); font-weight: 800; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; }
 /* v1.0.2: two columns: date box + status pill on the left (--plan-day-side-w, S-118), the tasks across the rest of the row */
-.plan-day { --plan-day-side-w: 64px; display: grid; grid-template-columns: var(--plan-day-side-w) minmax(0, 1fr); gap: var(--space-5); align-items: start; padding: var(--space-5) 0; border-top: 1px solid var(--border); }
+.plan-day { --plan-day-side-w: 72px; display: grid; grid-template-columns: var(--plan-day-side-w) minmax(0, 1fr); gap: var(--space-5); align-items: start; padding: var(--space-5) 0; border-top: 1px solid var(--border); }
 .plan-day-side { display: grid; gap: var(--space-2); justify-items: center; min-width: 0; }
 .plan-day-side .plan-day-d { width: 100%; }
-/* S-117: --fs-xs with tight side padding keeps "Today 0%" / "今日 0%" on one line; a longer pill ("Today 100%")
-   wraps inside the column instead of overflowing it */
+/* S-117: --fs-xs with tight side padding keeps "Today 0%" / "今日 0%" on one line; v1.0.3: the 72px column fits
+   "Today 99%" also in the iPhone's wider SF; only "Today 100%" may wrap, inside the column, never overflowing it */
 .plan-day-side .plan-pill { max-width: 100%; justify-content: center; text-align: center; white-space: normal; font-size: var(--fs-xs); line-height: 1.25; padding: var(--space-1) var(--space-2); }
 .plan-day-d { text-align: center; border-radius: var(--radius-sm); padding: var(--space-2) 0; font-weight: 800; font-size: var(--fs-md); line-height: 1.15; }
 .plan-day-d small { display: block; font-size: var(--fs-2xs); font-weight: 600; color: var(--text-muted); }
@@ -148,7 +148,8 @@
 .plan-day.past .plan-day-d small { color: var(--plan-past-text); }
 .plan-day-tasks { display: grid; gap: 3px; font-size: var(--fs-sm); line-height: 1.45; min-width: 0; }
 .plan-day-t { display: flex; gap: var(--space-3); }
-.plan-day-chs { margin-top: var(--space-1); font-size: var(--fs-xs); color: var(--text-muted); line-height: 1.4; }
+/* v1.0.3 (user): the day's chapters, one compact bullet each, text and bullet in mud yellow */
+.plan-day-chs { margin: var(--space-1) 0 0; padding-left: 1.1em; font-size: var(--fs-xs); color: var(--gold-text); line-height: 1.35; }
 .plan-day.past .plan-day-chs { color: var(--plan-past-text); }
 .plan-exam-pat { background-color: var(--plan-exam-bg); background-image: linear-gradient(45deg, var(--plan-exam-line) 1px, transparent 1px), linear-gradient(-45deg, var(--plan-exam-line) 1px, transparent 1px); background-size: 8px 8px; }
 /* day status pills: ✓ done (.ok), G27 bands (dark text on every band for contrast), today, rest */

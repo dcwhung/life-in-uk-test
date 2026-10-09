@@ -2,8 +2,8 @@
 // STUDY PLAN · SCHEDULE — the plan at a glance (handoff §2.3; mockup step ②): summary, the three phases (bar +
 // strategy), the study order with its reasons, and the day list: its own scroller opened at today under a sticky
 // WEEK heading, past days dimmed, a status pill per day (✓ / G27 band / today n% / rest; v1.0.2: under the date box,
-// so the tasks get the rest of the row) and the exam day. v1.0.2: task lines say "Ch n"; a muted remarks line under
-// a study day's tasks names its chapters in full.
+// so the tasks get the rest of the row) and the exam day. v1.0.2: task lines say "Ch n"; a gold bullet list under
+// a study day's tasks names its chapters in full (v1.0.3).
 // "Change goal" re-plans from today (planGoal.js, G7); "↺ Reset plan" deletes the plan and its log (S-110).
 // Day rows open the day screen once it exists (PR5); until then they are plain rows.
 // ════════════════════════════════════════
@@ -138,10 +138,10 @@ function planTaskText(task, day) {
 function planTaskLineHtml(icon, text) {
   return `<div class="plan-day-t"><span class="plan-day-ic" aria-hidden="true">${icon}</span><span>${text}</span></div>`;
 }
-// the remarks line: the day's chapters in full, each once, in the order the tasks reach them ('' without any)
+// the remarks: the day's chapters in full, one bullet each, each once, in the order the tasks reach them ('' without any)
 function planDayChaptersHtml(day) {
   const chs = [...new Set(day.tasks.filter(task => task.ch).map(task => task.ch))];
-  return chs.length ? `<div class="plan-day-chs" lang="en">${chs.map(planChapterText).join(LIST_SEP)}</div>` : '';
+  return chs.length ? `<ul class="plan-day-chs">${chs.map(ch => `<li lang="en">${planChapterText(ch)}</li>`).join('')}</ul>` : '';
 }
 function planDayTasksHtml(day) {
   if (day.phase === PLAN_PHASE.rest) return planTaskLineHtml(PLAN_REST_ICON, t('plan.schedule.restDay'));
