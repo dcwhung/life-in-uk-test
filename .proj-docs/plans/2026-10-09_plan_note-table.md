@@ -2,8 +2,8 @@
 
 - 日期：2026-10-09
 - 狀態：**設計已確認，未開始實作**
-- Mockup：`mockups/note-table.html`（顏色，Theme B）、`mockups/note-table-church.html`（格內備注，V4）
-- Design Origin：`mockup:mockups/note-table.html` + `mockup:mockups/note-table-church.html`
+- Mockup：`mockups/note-table.html`（顏色，Theme B）、`mockups/note-table-church.html`（格內備注，V4）、`mockups/note-table-all.html`（全部 10 組內容）
+- Design Origin：`mockup:mockups/note-table.html` + `mockup:mockups/note-table-church.html` + `mockup:mockups/note-table-all.html`
 
 ## 用戶已確認嘅決定
 
@@ -14,14 +14,13 @@
 | 顏色 | **Theme B：Minimal 線條**（冇底色，header 深藍字 + 2px `--navy` 底線，行之間 1px `--divider`，最後一行冇線，第一欄 `--navy` 粗體），跟住所在框嘅背景 |
 | 格內備注 | **V4**：格入面用 `<br>` 分開主文同備注；第一段 = 主文（正常字），之後每段 = 備注（`--fs-xs`、`--text-muted`，自己一行）；只有用咗 `<br>` 嘅格可以轉行，其他格 `nowrap` |
 | 混合行 | 同一個 note 入面 table 行同普通文字行（標題、• 列點）可以混合，非 `\|` 行照舊用 `noteLineHtml()` |
-| 第一批 | 英國 4 國聖人 / 日子（10 題）+ 國教 / 教會（5 題），見下面 |
-| 國花 | 由聖人組搬去首都組（用戶 2026-10-09 決定）：首都 / 國花合併成一個 table，見「候選」③ |
+| 第一批 | **10 組全部**（用戶 2026-10-09 決定）：① 聖人 / 日子、② 國教 / 教會、③ 首都 / 國花、④ 地方議會、⑤ 發明家、⑥ 節日、⑦ 英國重要戰役、⑧ 二戰、⑨ 國王 vs 國會、⑩ 名勝 / 地方（新組），見下面 |
+| 國花 | 由聖人組搬去首都組（用戶 2026-10-09 決定）：首都 / 國花合併成一個 table（③） |
+| 唔做 | 都鐸王朝、三層屬地、Magna Carta、選舉、戴卓爾夫人、陪審員：保持文字 |
 
-## 第一批 data
+## 第一批 data（10 組、99 題，用戶 2026-10-09 決定全部加入）
 
-### A. 聖人 / 日子（10 題）
-
-Header：國家 / 聖人 / 日子
+### ① 聖人 / 日子（10 題）
 
 ```
 記憶法：
@@ -32,11 +31,9 @@ Header：國家 / 聖人 / 日子
 | N. Ireland | Patrick | 17/3 |
 ```
 
-題目：Exam 1 Q5、2 Q16、10 Q1、11 Q10（patron saint）；Exam 5 Q22、7 Q16、8 Q5、8 Q23、13 Q1、14 Q1（St * Day）。Exam 5 Q14（X 形十字）唔改。國花 5 題（Exam 4 Q2、8 Q2、8 Q13、9 Q1、9 Q20）搬去首都 / 國花組。
+題目：Exam 1 Q5、2 Q16、10 Q1、11 Q10（patron saint）；Exam 5 Q22、7 Q16、8 Q5、8 Q23、13 Q1、14 Q1（St * Day）。Exam 5 Q14（X 形十字）唔改。
 
-### B. 國教 / 教會（5 題，V4）
-
-Header：國家 / 國教 / 教會（用戶原本寫「國教教會」，因為 Scotland 冇國教但有 Church of Scotland，mockup 改用「教會」）
+### ② 國教 / 教會（5 題）
 
 ```
 記憶法：
@@ -47,7 +44,131 @@ Header：國家 / 國教 / 教會（用戶原本寫「國教教會」，因為 S
 | N. Ireland | ✗ | ✗ |
 ```
 
-題目：Exam 3 Q2、Exam 3 Q16、Exam 5 Q7、Exam 6 Q5、Exam 10 Q3（而家 note 係 `a09aedb` 嘅箭咀文字版，做 table 時換成上面）。
+題目：Exam 3 Q2、3 Q16、5 Q7、6 Q5、10 Q3（而家係 `a09aedb` 箭咀文字版）。
+
+### ③ 首都 / 國花（11 題）
+
+```
+記憶法：
+| 國家 | 首都 | 國花 |
+| England | London | Tudor rose |
+| Scotland | Edinburgh | Thistle |
+| Wales | Cardiff | Daffodil |
+| N. Ireland | Belfast | Shamrock |
+```
+
+題目：首都：Exam 2 Q17、2 Q22、3 Q17、4 Q11、9 Q9、9 Q24；國花（由聖人組搬過嚟）：Exam 4 Q2、8 Q2、8 Q13、9 Q1、9 Q20。
+
+### ④ 地方議會（7 題）
+
+```
+記憶法：
+| 地區 | 議會 / 地點 | 議員 |
+| England | UK Parliament<br>Westminster | 650<br>全英國 MP |
+| Scotland | Scottish Parliament<br>Edinburgh | 129 |
+| Wales | Senedd<br>Cardiff | 60 |
+| N. Ireland | NI Assembly<br>Belfast | 90 |
+• England 冇自己嘅地方議會，由英國國會直接負責；
+• Senedd 議員：考試答 60（2026 年選舉起增至 96）；
+• Scotland / Wales / N. Ireland 三個議會用比例代表制（proportional representation）；
+• 英國國會用領先者當選制（first past the post）
+```
+
+題目：Exam 6 Q9、7 Q18、8 Q20、9 Q19、12 Q3、13 Q8、14 Q2。
+
+### ⑤ 發明家（6 題）
+
+```
+記憶法：
+| 年份 | 人物 / 發明 |
+| 17 世紀 | Isaac Newton<br>萬有引力、運動定律 |
+| 1876 | Alexander Graham Bell<br>電話（蘇格蘭裔） |
+| 1928 | Alexander Fleming<br>盤尼西林 penicillin（蘇格蘭人） |
+| 1930s | Frank Whittle<br>噴射引擎 jet engine |
+| 1953 | Francis Crick<br>DNA 結構（同 James Watson 一齊發現） |
+| 1989 | Tim Berners-Lee<br>萬維網 World Wide Web |
+```
+
+題目：Exam 1 Q21、6 Q10、8 Q7、8 Q12、9 Q11、14 Q8。
+
+### ⑥ 節日（按月份）（11 題）
+
+```
+記憶法：
+| 日期 | 節日 |
+| 25/1 | Burns Night<br>紀念蘇格蘭詩人 Robert Burns |
+| 31/10 | Halloween |
+| 5/11 | Bonfire Night<br>紀念 1605 年火藥陰謀（Gunpowder Plot）失敗 |
+| 11/11 | Remembrance Day<br>戴紅罌粟花 |
+| 26/12 | Boxing Day<br>聖誕節翌日 |
+| 31/12 | Hogmanay<br>蘇格蘭除夕 |
+```
+
+題目：Exam 2 Q15、2 Q18、6 Q17、7 Q2、9 Q8、9 Q12、10 Q5、11 Q23、12 Q20、14 Q21、16 Q18。
+
+### ⑩ 名勝 / 地方（17 題）
+
+```
+記憶法：
+| 名勝 | 國家 | 地點 |
+| Lake District<br>英格蘭最大國家公園 | England | National Park |
+| Stonehenge<br>約 5,000 年前建成 | England | Wiltshire |
+| Eden Project<br>巨型溫室生態館 | England | Cornwall |
+| Glastonbury<br>音樂節 | England | Somerset |
+| Tate<br>Tate Britain、Tate Modern | England | London |
+| Ben Nevis<br>英國最高山 | Scotland | Highlands |
+| Loch Lomond & Trossachs<br>蘇格蘭國家公園 | Scotland | National Park |
+| Edinburgh Castle<br>愛丁堡城堡 | Scotland | Edinburgh |
+| National Galleries of Scotland<br>蘇格蘭國家美術館 | Scotland | Edinburgh |
+| Snowdonia<br>Snowdon 係威爾斯最高山 | Wales | National Park |
+| Giant's Causeway<br>火山熔岩形成嘅玄武岩柱 | N. Ireland | County Antrim |
+```
+
+題目：Exam 9 Q4、13 Q2（Lake District）、14 Q19（Stonehenge）、4 Q19、5 Q3（Eden Project）、11 Q22、13 Q20（Glastonbury）、12 Q7（Tate）、4 Q9（Ben Nevis）、10 Q2（Loch Lomond）、11 Q20（Edinburgh Castle）、8 Q8（National Galleries）、3 Q13、4 Q15、7 Q11（Snowdonia / Snowdon）、7 Q19、16 Q2（Giant's Causeway）。而家呢 17 題冇記憶法（只有一句 note 或者冇 note）；有原有 note 嘅題目，原句保留做第一行，table 跟喺「記憶法：」後面。E6 Q4（National Parks 定義）同倫敦名勝唔放入。
+
+### ⑦ 英國重要戰役（15 題）
+
+```
+記憶法：
+| 年份 | 戰役 / 結果 |
+| 9 世紀 | Alfred the Great vs Vikings<br>統一盎格魯-撒克遜王國，打敗維京人 |
+| 1066 | Battle of Hastings vs Normandy<br>William 打敗 Harold → 諾曼征服 |
+| 1314 | Bannockburn vs Scotland<br>Robert the Bruce 打敗英格蘭 → 蘇格蘭保持獨立 |
+| 1588 | Spanish Armada vs Spain<br>Elizabeth I 年代英格蘭打敗西班牙 |
+| 1805 | Trafalgar vs France + Spain<br>Nelson 勝，但陣亡 |
+| 1815 | Waterloo vs France<br>Wellington 打敗 Napoleon，英法最後一戰 |
+| 1940 | Battle of Britain vs Germany<br>皇家空軍擊退德國空襲 → 阻止入侵 |
+```
+
+題目：Exam 1 Q12、2 Q11、4 Q1、4 Q18、6 Q12、6 Q19、7 Q6、9 Q2、9 Q21、11 Q7、12 Q4、14 Q6、16 Q13、16 Q21；Exam 17 Q13（記憶法前面有邱吉爾名句，保留喺 table 上面）。
+
+### ⑧ 二戰（9 題）
+
+```
+記憶法：
+| 年份 | 事件 |
+| 1939 | 德國入侵 Poland<br>英法宣戰 |
+| 1940 | Churchill 做首相<br>Dunkirk 大撤退、Battle of Britain |
+| 1940–41 | the Blitz<br>德國轟炸英國城市 |
+| 1944 | D-Day<br>諾曼第登陸 |
+| 1945 | 戰爭結束<br>VE Day 8/5、VJ Day 15/8 |
+```
+
+題目：Exam 2 Q9、2 Q24、3 Q19、4 Q23、6 Q23、8 Q1、14 Q13、15 Q23、16 Q7。
+
+### ⑨ 國王 vs 國會（8 題）
+
+```
+記憶法：
+| 年份 | 事件 |
+| 1628 | Petition of Right<br>國王要國會同意先可以加稅 |
+| 1642–51 | Civil War<br>Charles I vs 國會 |
+| 1649 | Charles I 被處決 → Commonwealth<br>Cromwell 做 Lord Protector，到 1658 |
+| 1660 | Restoration<br>Charles II 做國王 |
+| 1688 | Glorious Revolution<br>William of Orange 取代 James II → 君主立憲 |
+```
+
+題目：Exam 1 Q23、11 Q19、15 Q3、15 Q13、15 Q17、16 Q11；Exam 13 Q6（前綴「皇家橡樹」）、15 Q20（前綴克倫威爾一句），前綴保留喺 table 上面。
 
 ## 實作範圍
 
@@ -55,30 +176,16 @@ Header：國家 / 國教 / 教會（用戶原本寫「國教教會」，因為 S
 |------|------|
 | `js/components/tags.js` | `noteHtml()` 收集連續 `\|` 行 → `<div class="note-table-wrap"><table class="note-table">`（thead 第一行，tbody 其餘）；其他行照舊；格仔按 `<br>` 拆段（先拆後 `escapeHtml`，每段都 escape），有備注嘅格加 `class="multi"`、備注段 `<span class="note-cell-sub">` |
 | `css/components/note.css` | `.note-table*`（Theme B，只用現有 token）、`th` / `td` `nowrap` + `vertical-align: top`、`td.multi { white-space: normal }`、`.note-cell-sub`（block、`--fs-xs`、`font-weight: 400`（第一欄粗體都唔跟）、`--text-muted`）；wrap `overflow-x: auto` 做後備 |
-| `data/exams.js` | 上面 A（10 題）+ B（5 題）note |
+| `data/exams.js` | 上面 10 組 note（99 題）；有前綴句嘅題（E13 Q6、E15 Q20、E17 Q13 同 ⑩ 有原有 note 嘅題）保留前綴 |
 | `tests/` | `noteHtml` table render：header / body、escape（`<script>` 等）、`<br>` 備注拆段、混合文字行；3 個畫面（Study 溫習卡、Practice 答題後、Results review）390px 唔爆、唔使 scroll |
 
 唔受影響：`content-guard-test`（note 只比形狀）、`factMemoryText()`（Study 照刪「記憶法：」標題行）。
 
 ## 之後可以考慮（未決定）
 
-- 其他候選（preview：`mockups/note-table-all.html`，用戶未揀）：
-  - ③ 首都 / 國花（11 題 = 首都 6 + 國花 5）：`| 國家 | 首都 | 國花 |`，England London Tudor rose / Scotland Edinburgh Thistle / Wales Cardiff Daffodil / N. Ireland Belfast Shamrock
-  - ④ 地方議會（7），用戶 2026-10-09 定咗內容（加 England 行）：
-    ```
-    | 地區 | 議會 / 地點 | 議員 |
-    | England | UK Parliament<br>Westminster | 650<br>全英國 MP |
-    | Scotland | Scottish Parliament<br>Edinburgh | 129 |
-    | Wales | Senedd<br>Cardiff | 60 |
-    | N. Ireland | NI Assembly<br>Belfast | 90 |
-    • England 冇自己嘅地方議會，由英國國會直接負責；
-    • Senedd 議員：考試答 60（2026 年選舉起增至 96）；
-    • Scotland / Wales / N. Ireland 三個議會用比例代表制（proportional representation）；
-    • 英國國會用領先者當選制（first past the post）
-    ```
-  - ⑩ 名勝 / 地方（新組，17 題而家冇記憶法），格式 `| 名勝 | 國家 | 地點 |`（用戶定，名勝排先）：E9 Q4、E13 Q2（Lake District）、E14 Q19（Stonehenge）、E4 Q19、E5 Q3（Eden Project）、E11 Q22、E13 Q20（Glastonbury）、E12 Q7（Tate）、E4 Q9（Ben Nevis）、E10 Q2（Loch Lomond）、E11 Q20（Edinburgh Castle）、E8 Q8（National Galleries）、E3 Q13、E4 Q15、E7 Q11（Snowdonia / Snowdon）、E7 Q19、E16 Q2（Giant's Causeway）；E6 Q4（National Parks 統稱）同倫敦名勝唔放入。內容見 mockup
-  - ⑤ 發明家（6）、⑥ 節日（11）；時間線 ⑦ 戰役（15）、⑧ 二戰（9）、⑨ 國王 vs 國會（8）
-  - 唔建議：都鐸王朝、三層屬地、Magna Carta、選舉、戴卓爾夫人、陪審員（保持文字）
+- 用戶要逐組確認精簡咗嘅文字（轉 table 時刪咗部分中英對照、縮短句子）
+- ⑩ 3 個題庫冇嘅地點（Lake District 寫 National Park、Ben Nevis 寫 Highlands、Giant's Causeway 寫 County Antrim）要唔要保留
+- E4 Q21、E5 Q23（National Assembly for Wales）要唔要都用 ④
 - Exam 9 Q20「patron flower of Ireland」字眼（用戶未決定）
 - `APP_VERSION` bump（令已安裝 PWA 攞到新 note）
 - 實作完之後 mockup 處理：跟 repo 慣例（v0.65 刪咗已確認嘅 mockup）
