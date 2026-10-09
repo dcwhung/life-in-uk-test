@@ -10,7 +10,7 @@ function setInfoOpen(open) {
   btn.classList.toggle('open', open);
   btn.setAttribute('aria-expanded', String(open));
 }
-// v1.0.4: the popover spans the width, so its arrow follows the ⓘ (header name length / language / screen width)
+// v1.0.5: the popover spans the width, so its arrow follows the ⓘ (header name length / language / screen width)
 function pointArrowAt(pop, btn) {
   const btnBox = btn.getBoundingClientRect();
   const x = btnBox.left + btnBox.width / 2 - pop.getBoundingClientRect().left;
@@ -24,7 +24,7 @@ function fillInfoCounts() {
   byId('infoTitle').textContent = t('app.infoTitle', { n: EXAM_COUNT });
   byId('infoIntro').textContent = t('app.infoIntro', { n: TOTAL_QUESTIONS });
   byId('infoExamCount').textContent = t('app.infoExams', { n: EXAM_COUNT });
-  const chapterBadge = byId('infoChapterCount'); // a pre-v1.0.4 shell has no chapter badge
+  const chapterBadge = byId('infoChapterCount'); // a pre-v1.0.5 shell has no chapter badge
   if (chapterBadge) chapterBadge.textContent = t('app.infoChapters', { n: CHAPTER_NUMBERS.length });
   const questionBadge = byId('infoQuestionCount');
   questionBadge.textContent = t('app.infoQuestions', { n: TOTAL_QUESTIONS });

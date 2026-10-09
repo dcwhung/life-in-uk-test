@@ -4,7 +4,7 @@ const path = require('path');
 // <html lang> and lifeuk.uiLang, and re-renders the current screen in place: on every screen the plan's
 // state list (current question, answers, reveal, translation, flags, exam deadline, review filter, Study
 // tab / chips / search text, side session) is unchanged, no key is missing, nothing is recorded twice,
-// and zh-HK fits a 320px screen. A confirm modal blocks the switch; <title> follows the language (v1.0.4).
+// and zh-HK fits a 320px screen. A confirm modal blocks the switch; <title> follows the language (v1.0.5).
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
 const launchOpts = { args: ['--no-sandbox'] };
 if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_PATH;
@@ -15,7 +15,7 @@ const ZH_HK = 'zh-HK';
 const PILL = '#langBtn';
 const WIDE = { width: 390, height: 844 };
 const NARROW = { width: 320, height: 640 };
-const TITLE = { [EN]: 'Life in the UK Test · Exam Practice', [ZH_HK]: 'Life in the UK Test · 應試練習' }; // v1.0.4: <title> follows the language
+const TITLE = { [EN]: 'Life in the UK Test · Exam Practice', [ZH_HK]: 'Life in the UK Test · 應試練習' }; // v1.0.5: <title> follows the language
 const CJK = /[\u3000-\u303f\u3400-\u9fff\uff00-\uffef]/;
 // S-043: the wait clears the double tap guard window, read from config.js SCREEN_CHANGE_CLICK_GUARD_MS on the page
 const GUARD_MARGIN_MS = 50;

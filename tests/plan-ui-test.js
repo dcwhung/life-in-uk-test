@@ -181,7 +181,7 @@ async function checkSwitchOffElsewhere(pg) {
   assert(!(await visible(pg, '#planCard')), 'W-031: the Home plan card is gone');
 }
 
-// v1.0.4 (user): the Features row reads "🗓️ Study plan" then an On (green) / Off (red) pill; the note below has no On: / Off: prefix
+// v1.0.5 (user): the Features row reads "🗓️ Study plan" then an On (green) / Off (red) pill; the note below has no On: / Off: prefix
 async function checkFeaturePill(pg) {
   await fresh(pg, '?preview=plan');
   await pg.click('#infoBtn');

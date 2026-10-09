@@ -9,7 +9,7 @@
 .info-btn:hover, .info-btn.open { color: var(--gold-light); }
 .info-pop {
   display: none;
-  /* v1.0.4 (user): the full width less a 16px gutter; wide screens line up with the 780px main column. 50% is of the
+  /* v1.0.5 (user): the full width less a 16px gutter; wide screens line up with the 780px main column. 50% is of the
      header (S-125: 100vw would count a classic scrollbar and shift the popover off main) */
   --info-pop-max-w: 780px;
   --info-pop-side: max(var(--space-8), calc(50% - var(--info-pop-max-w) / 2));

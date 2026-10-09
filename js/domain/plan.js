@@ -289,6 +289,10 @@ function buildPlan(goal, todayIso, mode = PLAN_GOAL_MODE.create) {
   };
 }
 
+// v1.0.4: one value per plan and goal: a new plan (created that day) or a changed goal (goalHistory grows) gives a new
+// one, so the schedule's first open after either shows its cards expanded
+function planIdentity(plan) { return `${plan.createdAt}#${(plan.goalHistory || []).length}`; }
+
 // ── stored plan shape check: anything off → null (treated as no plan, never overwritten; arch §B.6) ──
 function planIsObject(v) { return !!v && typeof v === 'object' && !Array.isArray(v); }
 function planValidGoalShape(goal) {

@@ -2,7 +2,7 @@
 // LOCALE: zh-HK — Traditional Chinese (Hong Kong), written style. Same keys as locales/en.js (tests/i18n-test.js
 // checks parity, {params} and the tags in …Html values). Wording: plan appendix A glossary (HANDOFF.md › i18n).
 // Kept from en: app.description / shortName / installName / installShortName (meta and the manifest stay English;
-// <title> follows the language since v1.0.4), numbered labels (Exam {n}, Chapter {n}, Ch {n}, E{exam}·Q{n}) and chapter names.
+// <title> follows the language since v1.0.5), numbered labels (Exam {n}, Chapter {n}, Ch {n}, E{exam}·Q{n}) and chapter names.
 // Plurals: Intl.PluralRules('zh-HK') only returns "other", so a plain string is enough.
 // ════════════════════════════════════════
 LOCALES['zh-HK'] = {

@@ -50,7 +50,7 @@ function renderPlanSettings() {
   byId('infoPlanSwitch').innerHTML = switchHtml({ id: 'planFeatureSwitch', on, action: 'togglePlanFeature',
     labelKey: 'app.planSwitchLabel', describedBy: 'infoPlanStatus' });
 }
-// v1.0.4: On (green) / Off (red) pill after "Study plan" (a pre-v1.0.4 shell has no #infoPlanPill)
+// v1.0.5: On (green) / Off (red) pill after "Study plan" (a pre-v1.0.5 shell has no #infoPlanPill)
 function renderPlanPill(on) {
   const pill = byId('infoPlanPill');
   if (!pill) return;
