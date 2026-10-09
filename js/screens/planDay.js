@@ -202,7 +202,7 @@ function planMockStatusText(p) {
   return t('plan.task.qTodo', { n: REAL_TEST_SIZE, mode: t('plan.task.modeMock') });
 }
 
-// ── completion calendar: one month, ‹ Today › within the plan's months; each plan day (and the exam day) opens ──
+// ── completion calendar: one month, ‹ Today › within the plan's months (none for a one-month plan); each plan day (and the exam day) opens ──
 function planMonthIndex(months, iso) {
   const [year, month] = isoParts(iso);
   return months.findIndex(m => m.year === year && m.month === month);
@@ -218,6 +218,7 @@ function renderPlanCalendar(plan, log, iso, todayIso) {
   byId('planCalPrev').disabled = at === 0;
   byId('planCalNext').disabled = at === months.length - 1;
   byId('planCalToday').disabled = todayAt < 0 || at === todayAt;
+  planShowMonthNav(months.length > 1);
   const grid = planMonthGrid(plan, log, year, month, todayIso);
   const dow = Array.from({ length: PLAN_WEEK_DAYS }, (_, d) => `<span class="plan-dow">${t(`data.weekdays.${d}`)}</span>`);
   const lead = Array.from({ length: grid.lead }, () => '<span class="plan-cal-lead"></span>');
@@ -225,6 +226,13 @@ function renderPlanCalendar(plan, log, iso, todayIso) {
   const streak = planStreakDays(plan, log, todayIso);
   byId('planStreak').textContent = t('plan.calendar.streak', { n: streak });
   setShown('planStreak', streak > 0); // G29: 0 days shows nothing
+}
+// v1.0.4 (user): a plan inside one month has nothing to page through, so ‹ Today › is not shown; a focused button
+// that hides (the plan changed under the open screen) hands focus to the day heading instead of <body>
+function planShowMonthNav(shown) {
+  const nav = byId('planCalBtns');
+  if (!shown && nav.contains(document.activeElement)) byId('planDayHeading').focus({ preventScroll: true });
+  nav.hidden = !shown;
 }
 // band / rest / ahead / outside / exam; days gone by take the lighter band colours (never opacity, W-034)
 function planCellClass(c) {

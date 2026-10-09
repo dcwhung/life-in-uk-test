@@ -9,7 +9,7 @@ const path = require('path');
 // - task boxes: not started (dashed) / in progress (solid) / done (green) / carry-over (orange + Day n tag,
 //   not counted in today's %: G8); "k wrong: only right answers count"; reading done by practice (G3);
 //   no wrong answers (G9 empty); ahead days: clear-wrong / drill decided on the day (G23); mock best score (G25)
-// - calendar: one month, ‹ Today › within the plan's months, past / today / ahead / rest / outside / exam cells,
+// - calendar: one month, ‹ Today › within the plan's months (v1.0.4: not shown for a one-month plan), past / today / ahead / rest / outside / exam cells,
 //   cells open their day; 🔥 n days at 100% (G29); overall progress (plan %, average, days left + 3 bars)
 // - Home card: Day n / N, days to the exam, today % + bar, next step, continue / view today; exam day and
 //   ended (G16: summary + new plan / change goal); unreadable log hint
@@ -68,6 +68,8 @@ const hitOk = (pg, sel) => pg.evaluate(({ s, min }) => {
 }, { s: sel, min: HIT_MIN_PX });
 // v1.0.4 (user): the hint paragraph is justified with its last line on the left, and spans the info column (not a
 // centred shrink-to-fit block), at every width
+// the month navigation: ‹ Today › all rendered (none in a hidden ancestor)
+const calNavShown = pg => pg.evaluate(() => ['planCalPrev', 'planCalToday', 'planCalNext'].every(id => byId(id).getClientRects().length > 0));
 const hintJustified = pg => pg.evaluate(() => {
   const hint = byId('planDayHint'), s = getComputedStyle(hint);
   const box = hint.getBoundingClientRect(), col = byId('planDayInfo').getBoundingClientRect();
@@ -338,6 +340,7 @@ async function checkCalendar(pg) {
   assert(r.out.includes('out') && r.outTag === 'SPAN' && r.btn === 'BUTTON', 'outside the plan: plain number; plan days are buttons');
   assert(r.label === 'Day 4 · 1/10 · 26%' || /^Day 4 · 1\/10 · \d+%$/.test(r.label), 'cell label: ' + r.label);
   assert(r.prev === false && r.next === true && r.todayBtn === true, '‹ to September, › last month, "Today" on today\'s month');
+  assert(await calNavShown(pg), 'v1.0.4: a plan across two months (Sep–Oct) keeps the month navigation ‹ Today ›');
   assert(r.streak === '', 'G29: Day 3 below 100% breaks the run (0 days: no pill): ' + r.streak);
   await pg.click('#planCalPrev');
   const sep = await pg.evaluate(() => ({ title: byId('planCalTitle').textContent, past: document.querySelector('#planCal [data-iso="2026-09-29"]').className,
@@ -355,6 +358,18 @@ async function checkCalendar(pg) {
   const low = (await contrastOf(pg, '#planCal .plan-cell, #planCal .plan-dow, #planCalTitle')).filter(c => c.ratio < MIN_CONTRAST || !c.opaque);
   assert(low.length === 0, `calendar numbers ≥ ${MIN_CONTRAST}:1 (past cells lighter, never opacity): ` + JSON.stringify(low));
   for (const s of ['#planCalPrev', '#planCalNext', '#planCalToday']) assert(await hitOk(pg, s), `${s}: ${HIT_MIN_PX}px`);
+}
+
+// v1.0.4 (user): a plan inside one calendar month has nothing to page through, so ‹ Today › is not shown
+async function checkSingleMonthCalendar(pg) {
+  await fresh(pg);
+  await pg.evaluate(goal => writeStudyPlan(buildPlan(goal, '2026-10-01')), GOAL);
+  await openDay(pg);
+  assert(await text(pg, '#planCalTitle') === 'October 2026' && !(await calNavShown(pg)), 'v1.0.4: plan 1–29 Oct: month title, no ‹ Today ›');
+  await pg.click('#planCal [data-iso="2026-10-05"]');
+  assert(!(await calNavShown(pg)) && await pg.evaluate(() => document.activeElement.id) === 'planDayHeading', 'v1.0.4: still hidden after opening a day; focus on the heading');
+  await pg.evaluate(() => { writeStudyPlan(buildPlan({ examDate: '2026-11-03', dailyMins: 120, restDays: [0], level: 'none' }, '2026-10-01')); renderPlanDay(); });
+  assert(await calNavShown(pg), 'v1.0.4: the same screen re-rendered for a plan into November shows ‹ Today › again');
 }
 
 async function checkKpis(pg) {
@@ -549,6 +564,7 @@ async function checkLayout(browser) {
     await checkExamDayAndEnded(pg);
     await checkHomeCard(pg);
     await checkCalendar(pg);
+    await checkSingleMonthCalendar(pg);
     await checkKpis(pg);
     await checkScheduleRows(pg);
     await checkLongSchedule(pg);
