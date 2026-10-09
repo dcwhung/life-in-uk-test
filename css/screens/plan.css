@@ -127,8 +127,9 @@
 .plan-day { --plan-day-side-w: 72px; display: grid; grid-template-columns: var(--plan-day-side-w) minmax(0, 1fr); gap: var(--space-5); align-items: start; width: calc(100% + 2 * var(--space-4)); margin-inline: calc(-1 * var(--space-4)); padding: var(--space-5) var(--space-4); border: 0; border-top: 1px solid var(--border); background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
 .plan-day:hover { background: var(--selected-bg); border-radius: var(--radius-sm); }
 .plan-day:focus-visible { outline: 2px solid var(--navy); outline-offset: -2px; border-radius: var(--radius-sm); }
-/* PR4 QA O-1: rows far from today (a 6-month plan has 183) skip layout until scrolled near; 64px ≈ a two-line row */
-.plan-day.plan-far { content-visibility: auto; contain-intrinsic-size: auto 64px; }
+/* PR4 QA O-1: rows far from today (a 6-month plan has 183) skip layout until scrolled near; S-121: 96px ≈ a typical
+   v1.0.3 row at 390px (tasks + chapter list measure 78–210px, most ~99px), so the list scrolls without big jumps */
+.plan-day.plan-far { content-visibility: auto; contain-intrinsic-size: auto 96px; }
 .plan-day-side { display: grid; gap: var(--space-2); justify-items: center; min-width: 0; }
 .plan-day-side .plan-day-d { width: 100%; }
 /* S-117: --fs-xs with tight side padding keeps "Today 0%" / "今日 0%" on one line; v1.0.3: the 72px column fits
