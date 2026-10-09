@@ -163,8 +163,12 @@ async function checkRead(pg) {
   const log = await dayLog(pg, TODAY);
   assert(s.want.every(k => log.ok[k]), 'the fact\'s questions are right for today');
   assert(!(await visible(pg, '#planRunBody .fact-practise')), 'a fact already practised right today has no ▶ Practise');
-  // jump to the last fact: "Practise these n →" opens the paired practice task
-  await pg.evaluate(n => { planRunView.pos = n - 1; renderPlanRun(); }, n);
+  // W-043: Next on the last-but-one fact (keyboard): focus lands on the last fact's main button, not "← Prev"
+  await pg.evaluate(n => { planRunView.pos = n - 2; renderPlanRun(); }, n);
+  await pg.focus('#planRunBody .plan-run-nav [data-arg="1"]');
+  await pg.keyboard.press('Enter');
+  assert(await pg.evaluate(() => document.activeElement.matches('#planRunBody .plan-run-nav .nav-btn:last-child[data-action="planOpenTask"]')),
+    'W-043: on the last fact, focus is on "Practise these n →"');
   v = await runView(pg);
   const pair = p.days[0].tasks[task.pair];
   const left = pair.qids.filter(k => !log.ok[k]).length;

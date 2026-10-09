@@ -247,11 +247,13 @@ function planRunFocusKey() {
   const attr = name => (el.dataset[name] === undefined ? '' : `[data-${name}="${el.dataset[name]}"]`);
   return `[data-action="${el.dataset.action}"]${attr('arg')}${attr('mark')}`;
 }
-// the control gone or disabled (the first / last fact): the nav-row's enabled button
+// the control gone or disabled (the first / last fact): the nav-row's main (last) button, else any enabled one —
+// two queries, as a selector list would return "← Prev" first in document order (W-043)
 function planRunRestoreFocus(key) {
   if (!key) return;
   const body = byId('planRunBody'), el = body.querySelector(key);
-  const target = el && !el.disabled ? el : body.querySelector('.plan-run-nav .nav-btn:not([disabled]):last-child, .plan-run-nav .nav-btn:not([disabled])');
+  const target = el && !el.disabled ? el : body.querySelector('.plan-run-nav .nav-btn:not([disabled]):last-child')
+    || body.querySelector('.plan-run-nav .nav-btn:not([disabled])');
   if (target) target.focus({ preventScroll: true });
 }
 function planDoneCardHtml(ctx, isToday, next, pct) {
