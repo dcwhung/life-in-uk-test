@@ -138,6 +138,13 @@ function renderPlanDayInfo(day, progress, when) {
   byId('planDayCount').textContent = rest ? t('plan.day.restCount') : t('plan.day.count', { done, total: progress.length });
   byId('planDayHint').textContent = t(hintKey);
   setShown('planDayHint', !rest);
+  planShowRest(rest);
+}
+// v1.0.4 (user): a rest day shows a large 😴 (aria-hidden) instead of the ring; its "no tasks" line is only read out
+function planShowRest(rest) {
+  byId('planRing').toggleAttribute('hidden', rest); // an <svg> has no .hidden property, so setShown would not apply
+  setShown('planRestEmoji', rest);
+  byId('planDayCount').classList.toggle('plan-sr', rest);
 }
 
 // ── task boxes ──

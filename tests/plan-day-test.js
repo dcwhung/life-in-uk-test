@@ -5,7 +5,8 @@ const path = require('path');
 // Home plan card. The runner is PR6a / PR6b, so completion comes from a seeded answer log, and task boxes
 // cannot be opened yet. The entry stays hidden (STUDY_PLAN_READY = false) unless ?preview=plan (G31).
 // - header ← Home | ‹ title / date · n/N › | Schedule; ‹ › step through the plan; "back to today"
-// - ring (G27 band), phase pill (past / ahead), n / m done, hint per day kind; done banner
+// - ring (G27 band), phase pill (past / ahead), n / m done, hint per day kind; done banner; v1.0.4: a rest day
+//   shows a large 😴 instead of the ring and no visible "no tasks" line (kept for screen readers)
 // - task boxes: not started (dashed) / in progress (solid) / done (green) / carry-over (orange + Day n tag,
 //   not counted in today's %: G8); "k wrong: only right answers count"; reading done by practice (G3);
 //   no wrong answers (G9 empty); ahead days: clear-wrong / drill decided on the day (G23); mock best score (G25)
@@ -30,6 +31,7 @@ const GOAL = { examDate: '2026-10-29', dailyMins: 120, restDays: [0], level: 'no
 const WIDTHS = [360, 375, 400];
 const HIT_MIN_PX = 44;
 const MIN_CONTRAST = 4.5;
+const REST_EMOJI_MIN_PX = 48;
 
 const activeScreen = pg => pg.evaluate(() => document.querySelector('.screen.active').id);
 const text = (pg, sel) => pg.$eval(sel, e => e.textContent.replace(/\s+/g, ' ').trim());
@@ -68,6 +70,13 @@ const hitOk = (pg, sel) => pg.evaluate(({ s, min }) => {
 }, { s: sel, min: HIT_MIN_PX });
 // v1.0.4 (user): the hint paragraph is justified with its last line on the left, and spans the info column (not a
 // centred shrink-to-fit block), at every width
+// the rest day look: ring / 😴 / count (visually hidden = rendered but clipped to ≤ 1px, still in the a11y tree)
+const restLook = pg => pg.evaluate(() => {
+  const emoji = byId('planRestEmoji'), count = byId('planDayCount'), box = count.getBoundingClientRect();
+  return { ring: byId('planRing').getClientRects().length > 0, emoji: emoji.textContent, emojiShown: emoji.getClientRects().length > 0,
+    emojiHidden: emoji.getAttribute('aria-hidden') === 'true', emojiPx: parseFloat(getComputedStyle(emoji).fontSize),
+    count: count.textContent, countSrOnly: count.getClientRects().length > 0 && box.width <= 1 && box.height <= 1, pill: byId('planDayPhase').textContent };
+});
 // the month navigation: ‹ Today › all rendered (none in a hidden ancestor)
 const calNavShown = pg => pg.evaluate(() => ['planCalPrev', 'planCalToday', 'planCalNext'].every(id => byId(id).getClientRects().length > 0));
 const hintJustified = pg => pg.evaluate(() => {
@@ -240,8 +249,15 @@ async function checkPastAndAhead(pg) {
   await pg.click('#planBackToday');
   assert(await text(pg, '#planDayTitle') === "Today's tasks" && await visible(pg, '#planDayHead') && !(await visible(pg, '#planBackToday')), 'O-1: back to today from the exam day');
   await openDay(pg, '2026-10-04');
-  assert(await text(pg, '#planDayCount') === 'Rest day: no tasks' && await text(pg, '#planRingPct') === '–' && await text(pg, '#planDayPhase') === 'Rest day', 'rest day: no tasks, ring –');
+  const rest = await restLook(pg);
+  assert(!rest.ring && rest.emoji === '😴' && rest.emojiShown && rest.emojiHidden, 'v1.0.4 (user): rest day: no ring, a large 😴 (aria-hidden) in its place: ' + JSON.stringify(rest));
+  assert(rest.count === 'Rest day: no tasks' && rest.countSrOnly, 'v1.0.4: "Rest day: no tasks" is not shown but stays for screen readers: ' + JSON.stringify(rest));
+  assert(rest.pill === 'Rest day' && await visible(pg, '#planBackToday') && await hitOk(pg, '#planBackToday'), 'v1.0.4: rest day keeps the "Rest day" pill and "← Back to today"');
+  assert(rest.emojiPx >= REST_EMOJI_MIN_PX, `v1.0.4: the 😴 is large (≥ ${REST_EMOJI_MIN_PX}px): ${rest.emojiPx}`);
   assert(await pg.$$eval('#planTaskList .plan-task', els => els.length) === 0, 'rest day: no task boxes');
+  await pg.click('#planDayNext');
+  const study = await restLook(pg);
+  assert(study.ring && !study.emojiShown && !study.countSrOnly && /^0 \/ \d+ done$/.test(study.count), 'v1.0.4: the next study day shows the ring and the count again: ' + JSON.stringify(study));
 }
 
 async function checkMockDay(pg) {
@@ -525,7 +541,7 @@ async function checkLayout(browser) {
       await fresh(pg);
       await pg.evaluate(l => setLang(l), lang);
       await seedPlan(pg);
-      for (const open of [() => leaveToHome(), () => openPlanDay(), () => openPlanDay('2026-10-29'), () => openPlanSchedule()]) {
+      for (const open of [() => leaveToHome(), () => openPlanDay(), () => openPlanDay('2026-10-04'), () => openPlanDay('2026-10-29'), () => openPlanSchedule()]) {
         await pg.evaluate(open);
         const over = await pg.evaluate(() => {
           const vw = document.documentElement.clientWidth;

@@ -222,6 +222,10 @@
 .plan-ring-prog.h4 { stroke: var(--plan-heat-4); }
 .plan-ring-pct { fill: var(--text); stroke: none; font-size: 22px; font-weight: 800; }
 .plan-ring-sub { fill: var(--text-muted); stroke: none; font-size: var(--fs-2xs); font-weight: 700; }
+/* v1.0.4 (user): a rest day shows a large 😴 in the ring's place (decorative: the count line, visually hidden with
+   .plan-sr, still reads "Rest day: no tasks" to screen readers) */
+.plan-rest-emoji { width: 112px; height: 112px; display: grid; place-items: center; font-size: 72px; line-height: 1; }
+.plan-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .plan-phase-pill.learn { background: var(--plan-ph-learn-bg); color: var(--plan-ph-learn); }
 .plan-phase-pill.drill { background: var(--plan-ph-drill-bg); color: var(--plan-ph-drill); }
 .plan-phase-pill.mock { background: var(--plan-ph-mock-bg); color: var(--plan-orange-text); }
