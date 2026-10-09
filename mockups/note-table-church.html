@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Church Note Table</title>
+<!-- real app styles; .note-table = confirmed Theme B (Minimal lines) from mockups/note-table.html -->
+<link rel="stylesheet" href="../css/base/tokens.css">
+<link rel="stylesheet" href="../css/components/note.css">
+<link rel="stylesheet" href="../css/components/fact.css">
+<link rel="stylesheet" href="../css/screens/quiz.css">
+<link rel="stylesheet" href="../css/screens/results.css">
+<style>
+  /* ════════ PROPOSED css/components/note.css additions (Theme B) ════════ */
+  .note-table-wrap { margin: var(--space-2) 0 var(--space-3); overflow-x: auto; }
+  .note-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: var(--fs-sm); line-height: 1.4; color: var(--text); }
+  .note-table th, .note-table td { padding: var(--space-3) var(--space-4); text-align: left; vertical-align: top; white-space: nowrap; }
+  .note-table th { font-weight: 700; color: var(--navy); border-bottom: 2px solid var(--navy); }
+  .note-table td { border-bottom: 1px solid var(--divider); }
+  .note-table tr:last-child td { border-bottom: 0; }
+  .note-table td:first-child { font-weight: 700; color: var(--navy); }
+  /* V4: a cell split by <br> = main text + remark lines (small, muted); that column may wrap */
+  .note-table td.multi { white-space: normal; }
+  .note-cell-sub { display: block; margin-top: var(--space-1); font-size: var(--fs-xs); font-weight: 400; color: var(--text-muted); line-height: 1.45; }
+  /* V2 only: the last column may wrap (long Cantonese remark) */
+  .wrapLast .note-table td:last-child { white-space: normal; }
+
+  /* ════════ mockup chrome only ════════ */
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: #e4e7ef; color: var(--text); }
+  .brief { max-width: 1260px; margin: 16px; background: #fffbea; border: 1.5px solid #e8d48a; border-radius: 10px; padding: 12px 14px; font-size: 13px; line-height: 1.6; }
+  .brief h1 { font-size: 16px; margin: 0 0 6px; }
+  .brief pre { background: #fff; border: 1px solid #e8d48a; border-radius: 6px; padding: 8px; font-size: 11.5px; overflow-x: auto; margin: 6px 0; }
+  .pres { display: flex; gap: 12px; flex-wrap: wrap; }
+  .pres > div { flex: 1 1 380px; }
+  .cols { display: flex; gap: 24px; flex-wrap: wrap; padding: 0 16px 24px; }
+  .phone { width: 390px; background: var(--bg); border-radius: 18px; padding: 16px; box-shadow: var(--shadow); }
+  .phone h2 { font-size: 14px; margin: 0 0 4px; color: var(--navy); }
+  .phone .sub { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+  .ctx { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin: 14px 0 6px; }
+  .answer-box { display: block; }
+</style>
+</head>
+<body>
+
+<div class="brief">
+  <h1>國教記憶法 table preview（Theme B）</h1>
+  英國 4 國（現有 note 用緊 → 文字）轉 table。「君主係最高領袖…」呢類長句放唔落一行，所以有 4 個寫法：
+  <div class="pres">
+    <div><b>V1：3 欄 + 表下補充</b><pre>記憶法：
+| 國家 | 國教 | 教會 |
+| England | ✓ | Church of England |
+| Scotland | ✗ | Church of Scotland |
+| Wales | ✗ | ✗ |
+| N. Ireland | ✗ | ✗ |
+• England：君主係最高領袖，坎特伯雷大主教係精神領袖；
+• Scotland：Presbyterian（長老會），係國家教會，唔係國教。</pre></div>
+    <div><b>V2：4 欄，備注欄可以轉行</b><pre>記憶法：
+| 國家 | 國教 | 教會 | 備注 |
+| England | ✓ | Church of England | 君主係最高領袖，坎特伯雷大主教係精神領袖 |
+| Scotland | ✗ | Church of Scotland | Presbyterian（長老會），國家教會 |
+| Wales | ✗ | ✗ | |
+| N. Ireland | ✗ | ✗ | |</pre></div>
+    <div><b>V4：備注放入「教會」格（用 &lt;br&gt; 分行）</b><pre>記憶法：
+| 國家 | 國教 | 教會 |
+| England | ✓ | Church of England&lt;br&gt;君主係最高領袖，坎特伯雷大主教係精神領袖 |
+| Scotland | ✗ | Church of Scotland&lt;br&gt;Presbyterian（長老會），國家教會，唔係國教 |
+| Wales | ✗ | ✗ |
+| N. Ireland | ✗ | ✗ |</pre></div>
+    <div><b>V3：而家嘅文字（對照）</b><pre>記憶法：
+England → ✓ 國教 → Church of England → 君主係最高領袖，…；
+Scotland → ✗ 國教 → Church of Scotland → Presbyterian（長老會），…；
+Wales → ✗ 國教 → ✗ 冇國教教會；
+N. Ireland → ✗ 國教 → ✗ 冇國教教會。</pre></div>
+  </div>
+</div>
+
+<div class="cols" id="cols"></div>
+
+<script>
+const V1 = '記憶法：\n| 國家 | 國教 | 教會 |\n| England | ✓ | Church of England |\n| Scotland | ✗ | Church of Scotland |\n| Wales | ✗ | ✗ |\n| N. Ireland | ✗ | ✗ |\n• England：君主係最高領袖，坎特伯雷大主教係精神領袖；\n• Scotland：Presbyterian（長老會），係國家教會，唔係國教。';
+const V2 = '記憶法：\n| 國家 | 國教 | 教會 | 備注 |\n| England | ✓ | Church of England | 君主係最高領袖，坎特伯雷大主教係精神領袖 |\n| Scotland | ✗ | Church of Scotland | Presbyterian（長老會），國家教會 |\n| Wales | ✗ | ✗ |  |\n| N. Ireland | ✗ | ✗ |  |';
+const V3 = '記憶法：\nEngland → ✓ 國教 → Church of England → 君主係最高領袖，坎特伯雷大主教係精神領袖；\nScotland → ✗ 國教 → Church of Scotland → Presbyterian（長老會），係國家教會，唔係國教；\nWales → ✗ 國教 → ✗ 冇國教教會；\nN. Ireland → ✗ 國教 → ✗ 冇國教教會。';
+const V4 = '記憶法：\n| 國家 | 國教 | 教會 |\n| England | ✓ | Church of England<br>君主係最高領袖，坎特伯雷大主教係精神領袖 |\n| Scotland | ✗ | Church of Scotland<br>Presbyterian（長老會），國家教會，唔係國教 |\n| Wales | ✗ | ✗ |\n| N. Ireland | ✗ | ✗ |';
+const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const cells = line => line.trim().replace(/^\||\|$/g, '').split('|').map(c => c.trim());
+function tableHtml(rows) {
+  const [head, ...body] = rows.map(cells);
+  return `<div class="note-table-wrap"><table class="note-table"><thead><tr>${head.map(c => `<th>${esc(c)}</th>`).join('')}</tr></thead>`
+    + `<tbody>${body.map(r => `<tr>${r.map(cellHtml).join('')}</tr>`).join('')}</tbody></table></div>`;
+}
+// a cell: '<br>' splits main text from remark lines (each part escaped)
+function cellHtml(c) {
+  const [main, ...subs] = c.split('<br>');
+  return subs.length ? `<td class="multi">${esc(main)}${subs.map(x => `<span class="note-cell-sub">${esc(x)}</span>`).join('')}</td>` : `<td>${esc(c)}</td>`;
+}
+// same line rules as js/components/tags.js noteLineHtml ("•" bullet with hanging indent), plus the table branch
+function lineHtml(line) {
+  const t = line.trim(), m = t.match(/^([•◦→])\s*/);
+  return m ? `<div class="rv-note-line bullet"><span class="note-mark">${m[1]} </span>${esc(t.slice(m[0].length))}</div>` : `<div class="rv-note-line">${esc(t)}</div>`;
+}
+function noteHtml(note) {
+  const out = []; let rows = [];
+  const flush = () => { if (rows.length) out.push(tableHtml(rows)); rows = []; };
+  for (const line of note.split('\n')) {
+    if (line.trim().startsWith('|')) { rows.push(line); continue; }
+    flush();
+    out.push(line.trim() ? lineHtml(line) : '<div class="rv-note-gap"></div>');
+  }
+  flush();
+  return out.join('');
+}
+const phone = (cls, title, sub, note) => `<div class="phone ${cls}"><h2>${title}</h2><div class="sub">${sub}</div>
+  <div class="ctx">① Study 溫習卡</div>
+  <div class="fact"><div class="fact-name">Church of Scotland</div><div class="fact-en">The Church of Scotland is a Presbyterian church.</div>
+    <details class="fact-mem" open><summary>💡 記憶法</summary><div class="fact-mem-body" lang="zh-HK">${noteHtml(note.split('\n').slice(1).join('\n'))}</div></details></div>
+  <div class="ctx">② Practice 答題後</div>
+  <div class="answer-box"><div class="ans-label">✓ Correct</div><div class="ans-en">Presbyterian</div>
+    <div class="ans-note" lang="zh-HK"><strong>💡 備注：</strong><div class="ans-note-text">${noteHtml(note)}</div></div></div>
+</div>`;
+document.getElementById('cols').innerHTML =
+  phone('', 'V4：備注放入教會格', '主文一行，備注細字喺下面', V4) +
+  phone('', 'V1：3 欄 + 表下補充', '建議：table 一行放得晒，長句用列點', V1) +
+  phone('wrapLast', 'V2：4 欄，備注欄轉行', '所有嘢喺 table 入面；備注欄窄，轉好多行', V2) +
+  phone('', 'V3：而家嘅文字（對照）', '未做 table 之前嘅樣', V3);
+</script>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Note Table Mockup</title>
+<!-- real app styles, so the cards match production; only the .note-table blocks below are new -->
+<link rel="stylesheet" href="../css/base/tokens.css">
+<link rel="stylesheet" href="../css/components/note.css">
+<link rel="stylesheet" href="../css/components/fact.css">
+<link rel="stylesheet" href="../css/screens/quiz.css">
+<link rel="stylesheet" href="../css/screens/results.css">
+<style>
+  /* ════════ PROPOSED css/components/note.css additions (shared shape) ════════ */
+  .note-table-wrap { margin: var(--space-2) 0 var(--space-3); overflow-x: auto; }
+  .note-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: var(--fs-sm); line-height: 1.4; }
+  .note-table th, .note-table td { padding: var(--space-3) var(--space-4); text-align: left; white-space: nowrap; }
+  .note-table th { font-weight: 700; }
+  .note-table td:first-child { font-weight: 700; }
+
+  /* ── Theme A: Navy header (app header colour) ── */
+  .tA .note-table { border: 1px solid var(--border); border-radius: var(--radius-xs); overflow: hidden; background: var(--card); color: var(--text); }
+  .tA .note-table th { background: var(--navy); color: var(--text-inverse); }
+  .tA .note-table td { border-top: 1px solid var(--border); }
+  .tA .note-table td:first-child { color: var(--navy); }
+
+  /* ── Theme B: Minimal lines (no fill, takes the box's background) ── */
+  .tB .note-table { color: var(--text); }
+  .tB .note-table th { color: var(--navy); border-bottom: 2px solid var(--navy); }
+  .tB .note-table td { border-bottom: 1px solid var(--divider); }
+  .tB .note-table tr:last-child td { border-bottom: 0; }
+  .tB .note-table td:first-child { color: var(--navy); }
+
+  /* ── Theme C: Purple (Cantonese / yue accent) ── */
+  .tC .note-table { border: 1px solid var(--yue-bg); border-radius: var(--radius-xs); overflow: hidden; background: var(--card); color: var(--text); }
+  .tC .note-table th { background: var(--yue-bg); color: var(--purple); }
+  .tC .note-table td { border-top: 1px solid var(--yue-bg); }
+  .tC .note-table td:first-child { color: var(--purple); }
+
+  /* ── Theme D: Study blue, zebra rows ── */
+  .tD .note-table { border-radius: var(--radius-xs); overflow: hidden; background: var(--card); color: var(--text); box-shadow: var(--shadow-sm); }
+  .tD .note-table th { background: var(--navy-light); color: var(--text-inverse); }
+  .tD .note-table tbody tr:nth-child(even) td { background: var(--selected-bg); }
+  .tD .note-table td:first-child { color: var(--navy-light); }
+
+  /* ════════ mockup chrome only ════════ */
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: #e4e7ef; color: var(--text); }
+  .brief { max-width: 1680px; margin: 16px; background: #fffbea; border: 1.5px solid #e8d48a; border-radius: 10px; padding: 12px 14px; font-size: 13px; line-height: 1.6; }
+  .brief h1 { font-size: 16px; margin: 0 0 6px; }
+  .brief pre { background: #fff; border: 1px solid #e8d48a; border-radius: 6px; padding: 8px; font-size: 11.5px; overflow-x: auto; margin: 6px 0; max-width: 520px; }
+  .cols { display: flex; gap: 24px; flex-wrap: wrap; padding: 0 16px 24px; }
+  .phone { width: 390px; background: var(--bg); border-radius: 18px; padding: 16px; box-shadow: var(--shadow); }
+  .phone h2 { font-size: 14px; margin: 0 0 4px; color: var(--navy); }
+  .phone .sub { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+  .ctx { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin: 14px 0 6px; }
+  .answer-box { display: block; }
+</style>
+</head>
+<body>
+
+<div class="brief">
+  <h1>記憶法 table mockup：揀顏色</h1>
+  note 入面連續以 <code>|</code> 開頭嘅行會 render 成 table，第一行係 header。全部英文，390px 一行放得晒，唔使 scroll。下面 4 套顏色，每套都喺 3 個畫面（金色 / 綠色 / 白色背景）睇效果。
+  <pre>記憶法：
+| 國家 | 聖人 | 日子 | 國花 |
+| England | George | 23/4 | Tudor rose |
+| Scotland | Andrew | 30/11 | Thistle |
+| Wales | David | 1/3 | Daffodil |
+| N. Ireland | Patrick | 17/3 | Shamrock |</pre>
+</div>
+
+<div class="cols" id="cols"></div>
+
+<script>
+// mockup data: the proposed note text, rendered by a copy of the proposed noteHtml() table branch
+const NOTE = '記憶法：\n| 國家 | 聖人 | 日子 | 國花 |\n| England | George | 23/4 | Tudor rose |\n| Scotland | Andrew | 30/11 | Thistle |\n| Wales | David | 1/3 | Daffodil |\n| N. Ireland | Patrick | 17/3 | Shamrock |';
+const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const cells = line => line.trim().replace(/^\||\|$/g, '').split('|').map(c => c.trim());
+function tableHtml(rows) {
+  const [head, ...body] = rows.map(cells);
+  return `<div class="note-table-wrap"><table class="note-table"><thead><tr>${head.map(c => `<th>${esc(c)}</th>`).join('')}</tr></thead>`
+    + `<tbody>${body.map(r => `<tr>${r.map(c => `<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+}
+function noteHtml(note) {
+  const out = []; let rows = [];
+  const flush = () => { if (rows.length) out.push(tableHtml(rows)); rows = []; };
+  for (const line of note.split('\n')) {
+    if (line.trim().startsWith('|')) { rows.push(line); continue; }
+    flush();
+    out.push(line.trim() ? `<div class="rv-note-line" lang="zh-HK">${esc(line.trim())}</div>` : '<div class="rv-note-gap"></div>');
+  }
+  flush();
+  return out.join('');
+}
+const memBody = noteHtml(NOTE.split('\n').slice(1).join('\n')); // Study card drops the 記憶法 heading line
+const phone = (cls, title, sub) => `<div class="phone ${cls}"><h2>${title}</h2><div class="sub">${sub}</div>
+  <div class="ctx">① Study 溫習卡</div>
+  <div class="fact"><div class="fact-name">St George's Day</div><div class="fact-en">St George's Day is on 23 April.</div>
+    <details class="fact-mem" open><summary>💡 記憶法</summary><div class="fact-mem-body" lang="zh-HK">${memBody}</div></details></div>
+  <div class="ctx">② Practice 答題後</div>
+  <div class="answer-box"><div class="ans-label">✓ Correct</div><div class="ans-en">23rd April</div>
+    <div class="ans-note" lang="zh-HK"><strong>💡 備注：</strong><div class="ans-note-text">${noteHtml(NOTE)}</div></div></div>
+  <div class="ctx">③ Results review</div>
+  <div class="review-item rv-correct"><div class="rv-q">When is St George's Day?</div><div class="rv-correct-ans">✓ 23rd April</div>
+    <div class="rv-note" lang="zh-HK"><div class="rv-note-label">💡 備注：</div>${noteHtml(NOTE)}</div></div>
+</div>`;
+document.getElementById('cols').innerHTML =
+  phone('tA', 'A：Navy header', '同 app 頂部 header 一樣深藍，對比最強') +
+  phone('tB', 'B：Minimal 線條', '冇底色，只有分隔線；跟住所在框嘅背景色') +
+  phone('tC', 'C：紫色', '同廣東話翻譯嘅紫色一套') +
+  phone('tD', 'D：Study 藍 + 斑馬紋', '藍色 header，雙數行淺藍底');
+</script>
+</body>
+</html>
