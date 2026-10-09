@@ -26,7 +26,7 @@ const TODAY = '2026-10-08'; // a Thursday
 const NOW = new Date(TODAY + 'T09:00:00');
 const START = '2026-09-28'; // the seeded plan began 10 days ago: today is Day 11
 const GOAL = { examDate: '2026-10-29', dailyMins: 120, restDays: [0], level: 'none' };
-const WIDTHS = [320, 360, 375, 390, 400, 600]; // 600: the wide (> 480px) study order layout
+const WIDTHS = [320, 340, 360, 375, 390, 400, 600]; // 600: the wide (> 480px) study order layout
 const HIT_MIN_PX = 44;
 
 const activeScreen = pg => pg.evaluate(() => document.querySelector('.screen.active').id);
@@ -124,9 +124,9 @@ async function checkOverview(pg) {
 }
 
 // v1.0.2: every chapter bar track has the same length and leaves a clear gap before its count; the user's choice:
-// 150px, 120px at ≤ 374px, 96px at ≤ 339px, so the count is never pushed past the card edge
+// 150px, 120px at ≤ 374px, 96px at ≤ 340px (S-120), so the count is never pushed past the card edge
 const ORDER_BAR_GAP_MIN_PX = 12;
-const ORDER_BAR_STEPS = [[375, 150], [340, 120], [0, 96]]; // [from viewport width, bar px]
+const ORDER_BAR_STEPS = [[375, 150], [341, 120], [0, 96]]; // [from viewport width, bar px]; S-120: 96px at ≤ 340px like the presets
 async function checkOrderBars(pg, where) {
   const vw = await pg.evaluate(() => document.documentElement.clientWidth);
   const want = ORDER_BAR_STEPS.find(([from]) => vw >= from)[1];

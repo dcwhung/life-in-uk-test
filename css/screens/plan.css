@@ -174,7 +174,11 @@
 }
 /* the order bar steps down where 150px + gap + the widest count would run past the card */
 @media (max-width: 374px) { .plan-chw { --plan-chw-bar-w: 120px; } }
-@media (max-width: 339px) { .plan-chw { --plan-chw-bar-w: 96px; } }
-/* W-036: at 320px "1.5 months" needs the chip's full width to stay on one row with the other presets */
-@media (max-width: 340px) { .plan-presets .chip { padding-inline: 0; font-size: var(--fs-xs); } }
+/* S-120: one narrow-phone breakpoint (340px) for the plan screens; keep these two rules in step.
+   - the order bar's last step: 96px
+   - W-036: at 320px "1.5 months" needs the chip's full width to stay on one row with the other presets */
+@media (max-width: 340px) {
+  .plan-chw { --plan-chw-bar-w: 96px; }
+  .plan-presets .chip { padding-inline: 0; font-size: var(--fs-xs); }
+}
 @media (prefers-reduced-motion: reduce) { .plan-day-scroll { scroll-behavior: auto; } }
