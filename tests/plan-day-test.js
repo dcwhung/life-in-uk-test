@@ -368,8 +368,9 @@ async function checkScheduleRows(pg) {
   await pg.evaluate(() => openPlanSchedule());
   const rows = await pg.$$eval('#planDayList .plan-day', els => els.map(e => [e.tagName, e.dataset.action, e.dataset.arg]));
   assert(rows.every(r => r[0] === 'BUTTON' && r[1] === 'openPlanDay'), 'schedule: every row is a button that opens its day');
-  const ahead = await pg.evaluate(() => document.querySelectorAll('#planDayList .plan-day:not(.past):not(.today):not(.rest):not(.exam) .plan-pill.mute').length);
-  assert(ahead > 0, 'ahead rows show a › pill (mockup)');
+  // v1.0.3 (user): no › pill on days ahead; the whole row still opens the day
+  const ahead = await pg.evaluate(() => [...document.querySelectorAll('#planDayList .plan-day:not(.past):not(.today):not(.rest):not(.exam)')].map(e => e.querySelectorAll('.plan-pill').length));
+  assert(ahead.length > 0 && ahead.every(n => n === 0), 'ahead rows show no pill (no ›): ' + JSON.stringify(ahead));
   await pg.click('#planDayList [data-arg="2026-09-29"]');
   assert(await activeScreen(pg) === 'screenPlanDay' && await text(pg, '#planDayTitle') === 'Day 2 tasks', 'a row opens its day');
   await pg.evaluate(() => openPlanSchedule());

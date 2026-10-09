@@ -424,7 +424,8 @@ const myReviewView = pg => pg.evaluate(() => {
     };
   };
   const outside = [...byId('myReview').querySelectorAll('.t-note, .my-note, #myReviewNote')].filter(e => !e.closest('.my-tile'));
-  return { wrong: tile('tileWrong'), flagged: tile('tileFlagged'), outside: outside.map(squash) };
+  const stacked = byId('tileFlagged').getBoundingClientRect().top >= byId('tileWrong').getBoundingClientRect().bottom;
+  return { wrong: tile('tileWrong'), flagged: tile('tileFlagged'), outside: outside.map(squash), stacked };
 });
 async function checkMyReviewIn(pg, lang, tag) {
   assert((await langOf(pg)).lang === lang, `${tag}: page in ${lang}`);
@@ -433,7 +434,8 @@ async function checkMyReviewIn(pg, lang, tag) {
   assert(v.outside.length === 0, `${tag}: no note outside the tiles: ` + JSON.stringify(v.outside));
   assert(v.wrong.sub === null, `${tag}: 30 wrong → no "to clear" line under the title (v0.70): ${v.wrong.sub}`);
   assert(!v.flagged.text.includes(FLAGGED_8[lang]) && !v.flagged.subVisible, `${tag}: 8 flagged → no "${FLAGGED_8[lang]}", no visible .sub: ${v.flagged.text}`);
-  assert(v.wrong.height === v.flagged.height, `${tag}: tiles are the same height (${v.wrong.height} / ${v.flagged.height})`);
+  // v1.0.3: side by side (landscape) the tiles match heights; stacked (portrait) each keeps its own
+  assert(v.stacked || v.wrong.height === v.flagged.height, `${tag}: side-by-side tiles are the same height (${v.wrong.height} / ${v.flagged.height})`);
 }
 async function checkMyReviewEmptyIn(pg, lang, tag) {
   assert((await langOf(pg)).lang === lang, `${tag}: page in ${lang}`);
@@ -441,7 +443,7 @@ async function checkMyReviewEmptyIn(pg, lang, tag) {
   // v0.70: no note at 0, only "Nothing to review yet"
   assert(v.wrong.note === null && v.wrong.sub === WRONG_EMPTY[lang], `${tag}: 0 wrong → "${WRONG_EMPTY[lang]}", no note: ${JSON.stringify(v.wrong)}`);
   assert(v.outside.length === 0, `${tag}: 0 wrong → no note outside the tiles: ` + JSON.stringify(v.outside));
-  assert(v.wrong.height === v.flagged.height, `${tag}: 0 wrong → tiles the same height (${v.wrong.height} / ${v.flagged.height})`);
+  assert(v.stacked || v.wrong.height === v.flagged.height, `${tag}: 0 wrong → side-by-side tiles the same height (${v.wrong.height} / ${v.flagged.height})`);
   // W-022: the empty tile fades its own parts (opacity multiplies down the tree)
   const fade = await effectiveOpacities(pg, '#tileWrong', ['.t-icon', '.t-num', 'b', '.sub']);
   assert(Object.values(fade).every(o => o < 1), `${tag}: 0 wrong → icon, count, title, sub fade: ` + JSON.stringify(fade));
@@ -479,6 +481,44 @@ async function checkMyReviewNarrow(pg, check, lang, tag) {
     await pg.setViewportSize(WIDE);
   }
 }
+// v1.0.3 (user): portrait stacks the two tiles, each the grid's full width; landscape keeps them side by side
+const MY_REVIEW_PORTRAIT = [{ width: 320, height: 640 }, { width: 390, height: 844 }, { width: 768, height: 1024 }];
+const MY_REVIEW_LANDSCAPE = [{ width: 844, height: 390 }, { width: 1024, height: 768 }];
+const MY_REVIEW_TOLERANCE_PX = 1;
+// both My Review lists emptied (storage and memory), back on Home
+const clearMyReview = pg => pg.evaluate(() => {
+  localStorage.removeItem('lifeuk.wrongList'); localStorage.removeItem('lifeuk.practiceFlags');
+  wrongList = {}; practiceFlags = {}; leaveToHome();
+});
+async function checkMyReviewOrientation(pg) {
+  await seedMyReview(pg, MY_REVIEW_WRONG_N, MY_REVIEW_FLAG_N);
+  const layout = () => pg.evaluate(() => {
+    const r = id => byId(id).getBoundingClientRect(), grid = document.querySelector('#myReview .my-grid').getBoundingClientRect();
+    const w = r('tileWrong'), f = r('tileFlagged');
+    return { grid: Math.round(grid.width), w: [Math.round(w.left), Math.round(w.width), Math.round(w.bottom)], f: [Math.round(f.left), Math.round(f.width), Math.round(f.top)], sameTop: Math.round(w.top) === Math.round(f.top) };
+  });
+  const tol = MY_REVIEW_TOLERANCE_PX;
+  for (const lang of [EN, ZH_HK]) {
+    await pg.evaluate(l => { setLang(l); leaveToHome(); startMode('practice'); }, lang);
+    for (const vp of MY_REVIEW_PORTRAIT) {
+      await pg.setViewportSize(vp);
+      const l = await layout();
+      assert(l.f[2] >= l.w[2] && Math.abs(l.w[1] - l.grid) <= tol && Math.abs(l.f[1] - l.grid) <= tol,
+        `My Review ${lang} ${vp.width}×${vp.height} portrait: tiles stacked, each the grid's full width: ` + JSON.stringify(l));
+    }
+    for (const vp of MY_REVIEW_LANDSCAPE) {
+      await pg.setViewportSize(vp);
+      const l = await layout();
+      assert(l.sameTop && l.f[0] > l.w[0] && Math.abs(l.w[1] - l.f[1]) <= tol && l.w[1] < l.grid / 2,
+        `My Review ${lang} ${vp.width}×${vp.height} landscape: tiles side by side, equal widths: ` + JSON.stringify(l));
+      const v = await myReviewView(pg);
+      assert(v.wrong.height === v.flagged.height, `My Review ${lang} ${vp.width}×${vp.height} landscape: same height`);
+    }
+  }
+  await pg.setViewportSize(WIDE);
+  await pg.evaluate(() => setLang('en'));
+  await clearMyReview(pg);
+}
 async function checkMyReviewTiles(pg) {
   await pg.evaluate(lang => setLang(lang), EN);
   await seedMyReview(pg, MY_REVIEW_WRONG_N, MY_REVIEW_FLAG_N);
@@ -501,10 +541,7 @@ async function checkMyReviewTiles(pg) {
   await checkMyReviewNarrow(pg, checkMyReviewEmptyIn, EN, 'My Review en 0 wrong 320px');
   await seedMyReview(pg, MY_REVIEW_WRONG_N, 0);
   assert((await textOf(pg, '#tileFlagged .sub')) === FLAGGED_EMPTY[EN], 'My Review en: 0 flagged keeps flaggedEmptyHtml');
-  await pg.evaluate(() => {
-    localStorage.removeItem('lifeuk.wrongList'); localStorage.removeItem('lifeuk.practiceFlags');
-    wrongList = {}; practiceFlags = {}; leaveToHome();
-  });
+  await clearMyReview(pg);
 }
 
 // 2026-10-07: the Exam mode description no longer ends with "pick an exam below" (the grid sits right under it)
@@ -551,12 +588,33 @@ async function checkPracticeHintIn(pg, lang, tag) {
   assert(JSON.stringify(hint.items) === JSON.stringify(PRACTICE_HINT_ITEMS[lang]), `${tag}: 4 points, text and order exact: ` + JSON.stringify(hint.items));
   assert(hint.items.length === 4 && hint.items.every(s => !POINT_END_STOP.test(s)), `${tag}: no point ends with 。 or .`);
   assert(JSON.stringify(hint.bold) === JSON.stringify(PRACTICE_HINT_BOLD[lang]), `${tag}: both bold parts, numbers filled in: ` + JSON.stringify(hint.bold));
-  const btn = await pg.evaluate(() => {
-    const row = byId('practiceReset').getBoundingClientRect(), b = byId('practiceReset').querySelector('.reset-btn').getBoundingClientRect();
-    const h = byId('practiceHint').getBoundingClientRect();
-    return { rightGap: Math.round(row.right - b.right), rightOfHint: b.left >= h.right - 1 };
+  await checkResetBelow(pg, '#practiceReset', tag);
+}
+// v1.0.3 (user): a reset box shows its hint, then its button on its own row across the box's full content width
+const RESET_TOLERANCE_PX = 1;
+async function checkResetBelow(pg, sel, tag) {
+  const r = await pg.$eval(sel, row => {
+    const cs = getComputedStyle(row), b = row.querySelector('.reset-btn').getBoundingClientRect(), h = row.querySelector('.reset-hint').getBoundingClientRect();
+    const content = row.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    return { below: b.top >= h.bottom - 0.5, w: Math.round(b.width), content: Math.round(content), shown: cs.display !== 'none' };
   });
-  assert(btn.rightOfHint, `${tag}: reset button sits right of the list: ` + JSON.stringify(btn));
+  assert(r.shown && r.below && Math.abs(r.w - r.content) <= RESET_TOLERANCE_PX, `${tag}: ${sel} button on its own full-width row under the hint: ` + JSON.stringify(r));
+}
+const RESET_WIDTHS = [320, 390, 600];
+async function checkResetRows(pg) {
+  for (const lang of [EN, ZH_HK]) {
+    for (const w of RESET_WIDTHS) {
+      await pg.setViewportSize({ width: w, height: WIDE.height });
+      await pg.evaluate(l => { setLang(l); leaveToHome(); startMode('practice'); }, lang);
+      await checkResetBelow(pg, '#practiceReset', `${lang} ${w}px Practice`);
+      assert(await pg.$eval('#examReset', e => getComputedStyle(e).display === 'none'), `${lang} ${w}px: the exam reset box stays hidden in Practice`);
+      await pg.evaluate(() => startMode('exam'));
+      await checkResetBelow(pg, '#examReset', `${lang} ${w}px Exam`);
+      assert(await pg.$eval('#practiceReset', e => getComputedStyle(e).display === 'none'), `${lang} ${w}px: the practice reset box stays hidden in Exam`);
+    }
+  }
+  await pg.setViewportSize(WIDE);
+  await pg.evaluate(l => { setLang(l); leaveToHome(); }, EN);
 }
 async function checkPracticeHint(pg) {
   await pg.evaluate(lang => { setLang(lang); leaveToHome(); startMode('practice'); }, EN);
@@ -600,7 +658,7 @@ const hasCjkFont = pg => pg.evaluate(({ px, chars, baseline }) => {
 const CHECKS = [
   checkPill, checkHomeSwitch, checkHomePractice, checkQuizPractice, checkAnswerFallback, checkOptionYueLang,
   checkSideSession, checkQuizExam, checkExamTimer, checkModal, checkResult, checkFlagged, checkStudy, checkPlanGoal, checkPlanSchedule, checkPlanDay, checkDoubleTap,
-  checkMyReviewTiles, checkExamDesc, checkPracticeHint, checkLeaveCancel,
+  checkMyReviewTiles, checkMyReviewOrientation, checkExamDesc, checkPracticeHint, checkResetRows, checkLeaveCancel,
 ];
 
 async function main() {
