@@ -140,6 +140,12 @@ function planTaskProgress(task, dayLog) {
   const done = items.filter(x => (byFact ? planFactDone(x, dayLog) : dayLog.ok[x])).length;
   return planProgressOf(done, items.length, bad);
 }
+// G24 / CUI-0022: a past day never opened has no clear-wrong task (its review was never filled: it weighs nothing
+// and is never carried), so the day screen neither lists nor counts it; today and days ahead keep theirs (G23)
+function planVisibleTasks(day, todayIso) {
+  if (day.date >= todayIso) return day.tasks;
+  return day.tasks.filter(t => t.type !== PLAN_TASK.review || planIsMaterialized(t));
+}
 // G8: only the day's own tasks (carry-over done today counts for its own day)
 function planDayCompletion(day, dayLog) {
   const tasks = day.tasks.map(t => planTaskProgress(t, dayLog));

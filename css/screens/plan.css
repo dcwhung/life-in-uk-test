@@ -121,14 +121,19 @@
 .plan-day-scroll:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
 /* the week heading sticks while scrolling and spans the scroller's full width, so no row shows past its edges */
 .plan-week { position: sticky; top: 0; z-index: 2; background: var(--card); margin-inline: calc(-1 * var(--space-4)); padding: var(--space-4) var(--space-4) var(--space-2); font-size: var(--fs-xs); font-weight: 800; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; }
-/* v1.0.2: two columns: date box + status pill on the left (--plan-day-side-w, S-118), the tasks across the rest of the row */
-.plan-day { --plan-day-side-w: 64px; display: grid; grid-template-columns: var(--plan-day-side-w) minmax(0, 1fr); gap: var(--space-5); align-items: start; padding: var(--space-5) 0; border-top: 1px solid var(--border); }
+/* each row is a button (PR5: it opens its day) bleeding 8px each side, so today's tint and the hover reach the edge.
+   v1.0.2: two columns: date box + status pill on the left (--plan-day-side-w, S-118), the tasks across the rest */
+.plan-day { --plan-day-side-w: 64px; display: grid; grid-template-columns: var(--plan-day-side-w) minmax(0, 1fr); gap: var(--space-5); align-items: start; width: calc(100% + 2 * var(--space-4)); margin-inline: calc(-1 * var(--space-4)); padding: var(--space-5) var(--space-4); border: 0; border-top: 1px solid var(--border); background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.plan-day:hover { background: var(--selected-bg); border-radius: var(--radius-sm); }
+.plan-day:focus-visible { outline: 2px solid var(--navy); outline-offset: -2px; border-radius: var(--radius-sm); }
+/* PR4 QA O-1: rows far from today (a 6-month plan has 183) skip layout until scrolled near; 64px ≈ a two-line row */
+.plan-day.plan-far { content-visibility: auto; contain-intrinsic-size: auto 64px; }
 .plan-day-side { display: grid; gap: var(--space-2); justify-items: center; min-width: 0; }
 .plan-day-side .plan-day-d { width: 100%; }
 /* S-117: --fs-xs with tight side padding keeps "Today 0%" / "今日 0%" on one line; a longer pill ("Today 100%")
    wraps inside the column instead of overflowing it */
 .plan-day-side .plan-pill { max-width: 100%; justify-content: center; text-align: center; white-space: normal; font-size: var(--fs-xs); line-height: 1.25; padding: var(--space-1) var(--space-2); }
-.plan-day-d { text-align: center; border-radius: var(--radius-sm); padding: var(--space-2) 0; font-weight: 800; font-size: var(--fs-md); line-height: 1.15; }
+.plan-day-d { display: block; text-align: center; border-radius: var(--radius-sm); padding: var(--space-2) 0; font-weight: 800; font-size: var(--fs-md); line-height: 1.15; }
 .plan-day-d small { display: block; font-size: var(--fs-2xs); font-weight: 600; color: var(--text-muted); }
 .plan-day.learn .plan-day-d { background: var(--plan-ph-learn-bg); color: var(--plan-ph-learn); }
 .plan-day.drill .plan-day-d { background: var(--plan-ph-drill-bg); color: var(--plan-ph-drill); }
@@ -136,7 +141,6 @@
 .plan-day.rest .plan-day-d { background: var(--bg); color: var(--text-muted); }
 .plan-day.exam .plan-day-d, .plan-day.exam .plan-day-d small { color: var(--navy); }
 .plan-day.exam .plan-day-tasks b { color: var(--navy); font-size: var(--fs-md); }
-.plan-day.today, .plan-day.past { margin-inline: calc(-1 * var(--space-4)); padding-inline: var(--space-4); }
 .plan-day.today { background: var(--selected-bg); border-radius: var(--radius-sm); }
 /* days already gone: grey row, grey text and a grey date box without its phase colour; today and the days ahead
    stay bright. W-034: no opacity on text, so dates and completion stay ≥ 4.5:1 (only the decorative icon fades) */
@@ -147,9 +151,9 @@
 .plan-day.past .plan-day-d small { color: var(--plan-past-text); }
 .plan-day-tasks { display: grid; gap: 3px; font-size: var(--fs-sm); line-height: 1.45; min-width: 0; }
 .plan-day-t { display: flex; gap: var(--space-3); }
-.plan-day-chs { margin-top: var(--space-1); font-size: var(--fs-xs); color: var(--text-muted); line-height: 1.4; }
+.plan-day-chs { display: block; margin-top: var(--space-1); font-size: var(--fs-xs); color: var(--text-muted); line-height: 1.4; }
 .plan-day.past .plan-day-chs { color: var(--plan-past-text); }
-.plan-exam-pat { background-color: var(--plan-exam-bg); background-image: linear-gradient(45deg, var(--plan-exam-line) 1px, transparent 1px), linear-gradient(-45deg, var(--plan-exam-line) 1px, transparent 1px); background-size: 8px 8px; }
+.plan-exam-pat, .plan-cell.plan-exam-pat { background-color: var(--plan-exam-bg); background-image: linear-gradient(45deg, var(--plan-exam-line) 1px, transparent 1px), linear-gradient(-45deg, var(--plan-exam-line) 1px, transparent 1px); background-size: 8px 8px; }
 /* day status pills: ✓ done (.ok), G27 bands (dark text on every band for contrast), today, rest */
 .plan-pill.mute { background: var(--bg); color: var(--text-muted); }
 .plan-pill.now { background: var(--navy); color: var(--text-inverse); }
@@ -157,13 +161,133 @@
 .plan-pill.h1 { background: var(--plan-heat-1); color: var(--text); }
 .plan-pill.h2 { background: var(--plan-heat-2); color: var(--text); }
 .plan-pill.h3 { background: var(--plan-heat-3); color: var(--text); }
+.plan-pill.h4 { background: var(--plan-heat-4); color: var(--text); }
 .plan-reset { margin-bottom: 0; }
-/* Home plan card: link to the schedule (the full card with "continue today" is PR5) */
+/* Home plan card (handoff §2.1): today's % + bar, next step, continue / schedule; exam day; plan finished (G16) */
+.plan-home-row { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-4); font-size: var(--fs-sm); }
+.plan-home-pct { font-size: var(--fs-md); }
+.plan-home-bar { height: 8px; border-radius: var(--radius-pill); background: var(--plan-home-track); overflow: hidden; }
+.plan-home-bar i { display: block; height: 100%; border-radius: var(--radius-pill); }
+.plan-home-next { font-size: var(--fs-sm); color: var(--text-inverse-strong); line-height: 1.5; }
+.plan-home-next b { color: var(--text-inverse); }
+.plan-home-warn { font-size: var(--fs-sm); color: var(--gold-light); line-height: 1.5; }
+.plan-btn-gold { min-height: 44px; background: var(--gold); color: var(--navy); border: 0; border-radius: var(--radius-md); padding: var(--space-5) var(--space-8); font-size: var(--fs-md); font-weight: 800; cursor: pointer; }
+.plan-btn-gold:hover { background: var(--gold-light); }
+.plan-btn-gold:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 2px; }
 .plan-home-acts { display: flex; gap: var(--space-4); flex-wrap: wrap; }
 .plan-btn-line { min-height: 44px; background: transparent; color: var(--text-inverse); border: 1.5px solid var(--text-inverse-faint); border-radius: var(--radius-md); padding: var(--space-5) var(--space-7); font-size: var(--fs-sm); font-weight: 700; cursor: pointer; }
 .plan-btn-line:hover { border-color: var(--text-inverse); }
 .plan-btn-line:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 2px; }
 
+/* G27 bands on every bar (task mini bars, overall progress, Home card) and the ring */
+.plan-mini i.h0, .plan-meter-fill.h0, .plan-home-bar i.h0, .plan-swatch.h0 { background: var(--plan-heat-0); }
+.plan-mini i.h1, .plan-meter-fill.h1, .plan-home-bar i.h1, .plan-swatch.h1 { background: var(--plan-heat-1); }
+.plan-mini i.h2, .plan-meter-fill.h2, .plan-home-bar i.h2, .plan-swatch.h2 { background: var(--plan-heat-2); }
+.plan-mini i.h3, .plan-meter-fill.h3, .plan-home-bar i.h3, .plan-swatch.h3 { background: var(--plan-heat-3); }
+.plan-mini i.h4, .plan-meter-fill.h4, .plan-home-bar i.h4, .plan-swatch.h4 { background: var(--plan-heat-4); }
+
+/* day screen (mockup step ③): header ‹ title ›, ring + phase pill, task boxes */
+.plan-day-header { gap: var(--space-4); margin-bottom: 0; }
+.plan-day-switch { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; gap: var(--space-3); }
+.plan-day-switch .quick-btn { flex-shrink: 0; }
+/* a 32px round button keeps its look while its tap area is 44 × 44px (WCAG 2.5.5) */
+.plan-hit-sq { position: relative; }
+.plan-hit-sq::before { content: ''; position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; transform: translate(-50%, -50%); }
+.plan-day-title { display: grid; min-width: 0; text-align: center; line-height: 1.2; font-size: var(--fs-lg); }
+.plan-day-title > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.plan-day-title > span + span { font-size: var(--fs-xs); font-weight: 600; color: var(--text-muted); }
+.plan-day-title:focus { outline: none; }
+.plan-day-title:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; border-radius: var(--radius-xs); }
+.plan-today-head { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: var(--space-8); align-items: center; }
+.plan-today-info { display: grid; gap: var(--space-3); justify-items: start; min-width: 0; }
+.plan-day-count { font-size: var(--fs-md); font-weight: 700; }
+/* SVG ring: every part has an explicit fill / stroke (no SVG default black) */
+.plan-ring { width: 112px; height: 112px; }
+.plan-ring circle { fill: none; stroke-width: 10; }
+.plan-ring-track { stroke: var(--border); }
+.plan-ring-prog { stroke: var(--plan-heat-0); stroke-linecap: round; stroke-dasharray: 100; transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset 0.4s; }
+.plan-ring-prog.empty { visibility: hidden; } /* 0 %: a round cap would still draw a dot */
+.plan-ring-prog.h1 { stroke: var(--plan-heat-1); }
+.plan-ring-prog.h2 { stroke: var(--plan-heat-2); }
+.plan-ring-prog.h3 { stroke: var(--plan-heat-3); }
+.plan-ring-prog.h4 { stroke: var(--plan-heat-4); }
+.plan-ring-pct { fill: var(--text); stroke: none; font-size: 22px; font-weight: 800; }
+.plan-ring-sub { fill: var(--text-muted); stroke: none; font-size: var(--fs-2xs); font-weight: 700; }
+.plan-phase-pill.learn { background: var(--plan-ph-learn-bg); color: var(--plan-ph-learn); }
+.plan-phase-pill.drill { background: var(--plan-ph-drill-bg); color: var(--plan-ph-drill); }
+.plan-phase-pill.mock { background: var(--plan-ph-mock-bg); color: var(--plan-orange-text); }
+.plan-phase-pill.rest { background: var(--bg); color: var(--text-muted); }
+.plan-exam-banner { display: grid; gap: var(--space-4); justify-items: start; border-radius: var(--radius-md); padding: var(--space-7); color: var(--navy); font-size: var(--fs-md); line-height: 1.5; }
+.plan-exam-text { display: grid; gap: var(--space-2); }
+.plan-done-banner { background: var(--success-bg); color: var(--green); border-radius: var(--radius-md); padding: var(--space-6) var(--space-7); font-size: var(--fs-md); font-weight: 700; line-height: 1.5; }
+.plan-tasks { list-style: none; display: grid; gap: var(--space-4); margin: 0; padding: 0; }
+/* not started = dashed, in progress = solid, done = green, carry-over = orange (+ its Day n tag) */
+.plan-task { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: var(--space-6); align-items: center; padding: var(--space-6); border-radius: var(--radius-md); border: 1.5px solid var(--border); background: var(--card); }
+.plan-task-ic { width: 40px; height: 40px; border-radius: var(--radius-md); display: grid; place-items: center; font-size: 19px; }
+.plan-task.read .plan-task-ic { background: var(--fact-bg); }
+.plan-task.practice .plan-task-ic { background: var(--selected-bg); }
+.plan-task.review .plan-task-ic { background: var(--danger-bg); }
+.plan-task.mock .plan-task-ic { background: var(--flag-bg); }
+.plan-task-body { min-width: 0; }
+.plan-task-ttl { display: block; font-size: var(--fs-md); font-weight: 700; line-height: 1.35; }
+.plan-task-st { display: block; margin-top: var(--space-1); font-size: var(--fs-xs); color: var(--text-muted); line-height: 1.5; }
+.plan-mini { display: block; height: 5px; margin-top: var(--space-3); background: var(--border); border-radius: var(--radius-pill); overflow: hidden; }
+.plan-mini i { display: block; height: 100%; border-radius: var(--radius-pill); }
+.plan-task-go { font-size: var(--fs-sm); font-weight: 800; color: var(--navy-light); white-space: nowrap; }
+.plan-task.done { background: var(--success-bg); border-color: var(--green-light); }
+.plan-task.done .plan-task-go { color: var(--green); }
+.plan-task.todo { border-style: dashed; border-color: var(--plan-task-todo-border); }
+.plan-task.carry { border-color: var(--plan-carry); }
+.plan-tag { display: inline-block; margin-left: var(--space-3); padding: 1px 7px; border-radius: var(--radius-pill); font-size: var(--fs-2xs); font-weight: 800; vertical-align: 1px; }
+.plan-tag.carry { background: var(--flag-bg); color: var(--plan-orange-text); }
+.plan-tag.wrong { background: var(--danger-bg); color: var(--red); }
+.plan-ok { color: var(--green); font-weight: 800; }
+.plan-bad { color: var(--red); font-weight: 800; }
+.plan-alert { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: var(--space-4); background: var(--flag-bg); border-radius: var(--radius-md); padding: var(--space-5) var(--space-6); font-size: var(--fs-sm); line-height: 1.55; }
+
+/* completion calendar: weeks from Sunday; numbers stay navy / muted on every cell (≥ 4.5:1), days gone by take the
+   lighter band colours instead of the mockup's opacity (W-034) */
+.plan-cal-nav { display: flex; justify-content: space-between; align-items: center; gap: var(--space-4); }
+.plan-cal-nav b { font-size: var(--fs-lg); }
+.plan-cal-btns { display: flex; gap: var(--space-3); align-items: center; }
+.plan-cal-btns .chip { padding: var(--space-3) var(--space-7); }
+.plan-cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--space-3); }
+.plan-dow { font-size: var(--fs-2xs); color: var(--text-muted); text-align: center; font-weight: 700; }
+.plan-cell { position: relative; aspect-ratio: 1; min-width: 0; padding: 0; border: 0; border-radius: var(--radius-sm); display: grid; place-items: center; background: var(--plan-heat-0); color: var(--text); font: inherit; font-size: var(--fs-xs); font-weight: 800; }
+button.plan-cell { cursor: pointer; }
+button.plan-cell:hover { box-shadow: 0 0 0 2px var(--navy-light); }
+button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offset: 1px; }
+.plan-cell.h1 { background: var(--plan-heat-1); }
+.plan-cell.h2 { background: var(--plan-heat-2); }
+.plan-cell.h3 { background: var(--plan-heat-3); }
+.plan-cell.h4 { background: var(--plan-heat-4); }
+.plan-cell.past.h0 { background: var(--plan-heat-0-past); }
+.plan-cell.past.h1 { background: var(--plan-heat-1-past); }
+.plan-cell.past.h2 { background: var(--plan-heat-2-past); }
+.plan-cell.past.h3 { background: var(--plan-heat-3-past); }
+.plan-cell.past.h4 { background: var(--plan-heat-4-past); }
+.plan-cell.past { font-weight: 600; }
+.plan-cell.rest { background: repeating-linear-gradient(45deg, var(--bg), var(--bg) 4px, var(--plan-rest-line) 4px, var(--plan-rest-line) 6px); color: var(--text-muted); }
+.plan-cell.future { background: var(--card); border: 1.5px dashed var(--border); color: var(--text-muted); }
+.plan-cell.out { background: transparent; color: var(--text-muted); font-weight: 600; }
+.plan-cell.today { outline: 2.5px solid var(--navy); outline-offset: 1px; }
+.plan-cell.viewing { outline: 2.5px dashed var(--navy); outline-offset: 1px; }
+.plan-cell.exam { color: var(--navy); }
+/* 9px: "🎯 考試日" under the number fits a 37px cell at 360px (mockup size; below the --fs-2xs scale) */
+.plan-cell.exam small { position: absolute; left: 0; right: 0; top: calc(50% + 0.75em); text-align: center; font-size: 9px; font-weight: 800; white-space: nowrap; }
+.plan-legend .plan-swatch.plan-exam-pat { background-size: 4px 4px; }
+
+/* overall progress */
+.plan-prog-rows { display: grid; gap: var(--space-5); }
+.plan-pr { display: grid; gap: var(--space-2); }
+.plan-pr-top { display: flex; justify-content: space-between; gap: var(--space-4); font-size: var(--fs-sm); font-weight: 700; }
+.plan-pr-v { color: var(--text-muted); white-space: nowrap; }
+
+@media (max-width: 380px) {
+  .plan-day-header { gap: var(--space-2); }
+  .plan-day-header .back-btn, .plan-day-header .plan-small { padding: var(--space-3) var(--space-4); font-size: var(--fs-sm); }
+  .plan-day-switch { gap: var(--space-2); }
+}
 @media (max-width: 480px) {
   .plan-chw { grid-template-columns: var(--plan-chw-bar-w) minmax(0, 1fr); }
   .plan-chw b { grid-column: 1 / -1; }
@@ -171,10 +295,12 @@
   .plan-stats .plan-stat:last-child { grid-column: 1 / -1; }
   .plan-cta { grid-template-columns: 44px minmax(0, 1fr); }
   .plan-cta-go { grid-column: 1 / -1; text-align: center; }
+  .plan-today-head { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+  .plan-today-info { justify-items: center; }
 }
 /* the order bar steps down where 150px + gap + the widest count would run past the card */
 @media (max-width: 374px) { .plan-chw { --plan-chw-bar-w: 120px; } }
 @media (max-width: 339px) { .plan-chw { --plan-chw-bar-w: 96px; } }
 /* W-036: at 320px "1.5 months" needs the chip's full width to stay on one row with the other presets */
 @media (max-width: 340px) { .plan-presets .chip { padding-inline: 0; font-size: var(--fs-xs); } }
-@media (prefers-reduced-motion: reduce) { .plan-day-scroll { scroll-behavior: auto; } }
+@media (prefers-reduced-motion: reduce) { .plan-day-scroll { scroll-behavior: auto; } .plan-ring-prog { transition: none; } }

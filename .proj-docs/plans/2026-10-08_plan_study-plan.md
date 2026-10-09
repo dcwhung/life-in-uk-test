@@ -198,6 +198,7 @@
 | T-343 | Merge 後 git tag `v1.1.0` | chore | devops-engineer | none-required | 0.1 | T-342 | P0 |
 
 **PR7 驗收**：
+- [ ] zh-HK「今日完成，明天再來」今日 / 明天混用（PR5 review）
 - [ ] 改目標模式 ✕ 提示「仍可照樣建立」改配合「更新進度表」；俾用戶睇剩 1 / 2 個溫習日嘅排法（PR4 review Round 2）
 - [ ] HANDOFF「data-action 慣例」加 PR3 新 `data-blur-action`（`focusout` delegation）同 toast component
 - [ ] 用戶已確認對照表（T-340，PR 開之前）
