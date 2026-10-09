@@ -10,6 +10,8 @@ const PLAN_CARD_ID = 'planCard';
 // W-031 / G15: switching off leaves only these screens (PR5+: add each plan screen; plan-ui-test pins the list)
 const PLAN_SCREEN_IDS = ['screenPlanGoal', 'screenPlanSchedule', 'screenPlanDay', 'screenPlanRun'];
 const PLAN_MIDNIGHT_SLACK_S = 1; // the day check runs 1 s after local midnight
+const FEATURE_PILL_ON_CLASS = 'on'; // ⓘ Features row pill colour (css/screens/plan.css .feature-pill)
+const FEATURE_PILL_OFF_CLASS = 'off';
 
 // G19 / G31: hidden until release, except on a device that opened ?preview=plan (tests may override this)
 function planEntryReady() { return STUDY_PLAN_READY || isPlanPreviewOn(); }
@@ -37,6 +39,7 @@ function renderPlanSettings() {
   const on = isStudyPlanEnabled();
   const noteKey = on ? 'app.planOnNote' : 'app.planOffNote';
   byId('infoPlanStatus').textContent = t(noteKey);
+  renderPlanPill(on);
   // W-032: built once, then updated in place (a replaced button would close the popover and drop focus)
   const sw = byId('planFeatureSwitch');
   if (sw) {
@@ -46,6 +49,15 @@ function renderPlanSettings() {
   }
   byId('infoPlanSwitch').innerHTML = switchHtml({ id: 'planFeatureSwitch', on, action: 'togglePlanFeature',
     labelKey: 'app.planSwitchLabel', describedBy: 'infoPlanStatus' });
+}
+// v1.0.5: On (green) / Off (red) pill after "Study plan" (a pre-v1.0.5 shell has no #infoPlanPill)
+function renderPlanPill(on) {
+  const pill = byId('infoPlanPill');
+  if (!pill) return;
+  const pillKey = on ? 'app.planOnPill' : 'app.planOffPill';
+  pill.textContent = t(pillKey);
+  pill.classList.toggle(FEATURE_PILL_ON_CLASS, on);
+  pill.classList.toggle(FEATURE_PILL_OFF_CLASS, !on);
 }
 function isOnPlanScreen() {
   const active = document.querySelector('.screen.active');

@@ -9,8 +9,13 @@
 .info-btn:hover, .info-btn.open { color: var(--gold-light); }
 .info-pop {
   display: none;
-  position: absolute; left: 16px; top: 64px;
-  width: min(360px, calc(100vw - 32px));
+  /* v1.0.5 (user): the full width less a 16px gutter; wide screens line up with the 780px main column. 50% is of the
+     header (S-125: 100vw would count a classic scrollbar and shift the popover off main) */
+  --info-pop-max-w: 780px;
+  --info-pop-side: max(var(--space-8), calc(50% - var(--info-pop-max-w) / 2));
+  position: absolute; left: var(--info-pop-side); right: var(--info-pop-side); top: 64px;
+  --info-arrow-x: 150px; /* until js/components/popover.js pointArrowAt measures ⓘ */
+  --info-arrow-size: 12px;
   background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
   color: var(--text-inverse);
   border: 1px solid var(--gold-border);
@@ -21,14 +26,14 @@
 }
 .info-pop.show { display: block; }
 .info-pop::after {
-  content: ''; position: absolute; left: 150px; top: -7px;
-  width: 12px; height: 12px;
+  /* centred under ⓘ: js/components/popover.js pointArrowAt sets --info-arrow-x on open */
+  content: ''; position: absolute; left: calc(var(--info-arrow-x) - var(--info-arrow-size) / 2); top: -7px;
+  width: var(--info-arrow-size); height: var(--info-arrow-size);
   background: var(--navy); border-left: 1px solid var(--gold-border); border-top: 1px solid var(--gold-border);
   transform: rotate(45deg);
 }
 .info-pop h2 { font-size: 17px; font-weight: 800; margin-bottom: var(--space-3); }
 .info-pop p { font-size: var(--fs-base); color: var(--text-inverse-strong); line-height: 1.5; }
-@media (min-width: 812px) { .info-pop { left: calc((100vw - 780px) / 2); } }
 
 /* info popover badges */
 .hero-meta {

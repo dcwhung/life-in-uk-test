@@ -1,25 +1,27 @@
 // ════════════════════════════════════════
 // LOCALE: zh-HK — Traditional Chinese (Hong Kong), written style. Same keys as locales/en.js (tests/i18n-test.js
 // checks parity, {params} and the tags in …Html values). Wording: plan appendix A glossary (HANDOFF.md › i18n).
-// Kept from en: app.title / description / shortName / installName / installShortName (<title>, meta and the
-// manifest stay English), numbered labels (Exam {n}, Chapter {n}, Ch {n}, E{exam}·Q{n}) and chapter names.
+// Kept from en: app.description / shortName / installName / installShortName (meta and the manifest stay English;
+// <title> follows the language since v1.0.5), numbered labels (Exam {n}, Chapter {n}, Ch {n}, E{exam}·Q{n}) and chapter names.
 // Plurals: Intl.PluralRules('zh-HK') only returns "other", so a plain string is enough.
 // ════════════════════════════════════════
 LOCALES['zh-HK'] = {
   app: {
-    title: 'Life in the UK · Exam Practice',
+    title: 'Life in the UK Test · 應試練習',
     description: 'Life in the UK Test — Exam 1–{n} Practice App',
     shortName: 'Life in UK',
     installName: 'Life in the UK Test',
     installShortName: 'Life in UK',
-    name: 'Life in the UK',
-    sub: '考試練習',
+    name: 'Life in the UK Test',
+    sub: '應試練習',
     about: '關於本程式',
     infoTitle: 'Exam 1–{n} 練習',
     infoIntro: '收錄 {n} 條 lifeintheuktestweb.co.uk 官方風格題目，附廣東話翻譯及備注。',
     infoExams: '📋 {n} 份試卷',
-    infoQuestions: '❓ {n} 條題目',
-    infoOffline: '🔒 支援離線使用',
+    infoChapters: '📚 {n} 個章節',
+    infoQuestions: '❓ {n} 題',
+    infoQuestionsLabel: '{n} 條題目',
+    infoOffline: '🔒 支援離線',
     installTitle: '安裝以便離線使用',
     installText: '加至主畫面，無需網絡亦可溫習',
     installButton: '安裝',
@@ -28,8 +30,10 @@ LOCALES['zh-HK'] = {
     langSwitchLabel: '切換至英文',
     features: '功能',
     planFeature: '🗓️ 溫習計劃',
-    planOnNote: '已開啟：主頁顯示溫習計劃',
-    planOffNote: '已關閉：所有溫習計劃項目已隱藏',
+    planOnPill: '已開啟',
+    planOffPill: '已關閉',
+    planOnNote: '主頁顯示溫習計劃',
+    planOffNote: '所有溫習計劃項目已隱藏',
     planSwitchLabel: '溫習計劃功能',
   },
 

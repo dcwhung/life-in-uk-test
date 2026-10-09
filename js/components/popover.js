@@ -1,11 +1,20 @@
 // ════════════════════════════════════════
 // HEADER INFO POPOVER — ⓘ toggles it; any click outside it or Escape closes it (see core/actions.js)
 // ════════════════════════════════════════
+const INFO_ARROW_X_VAR = '--info-arrow-x'; // css/components/popover.css .info-pop::after
 function setInfoOpen(open) {
-  byId('infoPop').classList.toggle('show', open);
+  const pop = byId('infoPop');
+  pop.classList.toggle('show', open);
   const btn = byId('infoBtn');
+  if (open) pointArrowAt(pop, btn);
   btn.classList.toggle('open', open);
   btn.setAttribute('aria-expanded', String(open));
+}
+// v1.0.5: the popover spans the width, so its arrow follows the ⓘ (header name length / language / screen width)
+function pointArrowAt(pop, btn) {
+  const btnBox = btn.getBoundingClientRect();
+  const x = btnBox.left + btnBox.width / 2 - pop.getBoundingClientRect().left;
+  pop.style.setProperty(INFO_ARROW_X_VAR, `${Math.round(x)}px`);
 }
 function toggleInfo() {
   setInfoOpen(!byId('infoPop').classList.contains('show'));
@@ -15,5 +24,14 @@ function fillInfoCounts() {
   byId('infoTitle').textContent = t('app.infoTitle', { n: EXAM_COUNT });
   byId('infoIntro').textContent = t('app.infoIntro', { n: TOTAL_QUESTIONS });
   byId('infoExamCount').textContent = t('app.infoExams', { n: EXAM_COUNT });
-  byId('infoQuestionCount').textContent = t('app.infoQuestions', { n: TOTAL_QUESTIONS });
+  const chapterBadge = byId('infoChapterCount'); // a pre-v1.0.5 shell has no chapter badge
+  if (chapterBadge) chapterBadge.textContent = t('app.infoChapters', { n: CHAPTER_NUMBERS.length });
+  const questionBadge = byId('infoQuestionCount');
+  questionBadge.textContent = t('app.infoQuestions', { n: TOTAL_QUESTIONS });
+  questionBadge.setAttribute('aria-label', t('app.infoQuestionsLabel', { n: TOTAL_QUESTIONS })); // role="img": read as full words
 }
+// a rotation / resize with the popover open moves ⓘ relative to it
+window.addEventListener('resize', () => {
+  const pop = byId('infoPop');
+  if (pop.classList.contains('show')) pointArrowAt(pop, byId('infoBtn'));
+});
