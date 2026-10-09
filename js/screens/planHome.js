@@ -8,7 +8,7 @@
 // ════════════════════════════════════════
 const PLAN_CARD_ID = 'planCard';
 // W-031 / G15: switching off leaves only these screens (PR5+: add each plan screen; plan-ui-test pins the list)
-const PLAN_SCREEN_IDS = ['screenPlanGoal', 'screenPlanSchedule', 'screenPlanDay'];
+const PLAN_SCREEN_IDS = ['screenPlanGoal', 'screenPlanSchedule', 'screenPlanDay', 'screenPlanRun'];
 const PLAN_MIDNIGHT_SLACK_S = 1; // the day check runs 1 s after local midnight
 
 // G19 / G31: hidden until release, except on a device that opened ?preview=plan (tests may override this)
@@ -49,7 +49,7 @@ function renderPlanSettings() {
 }
 function isOnPlanScreen() {
   const active = document.querySelector('.screen.active');
-  return !!active && PLAN_SCREEN_IDS.includes(active.id);
+  return (!!active && PLAN_SCREEN_IDS.includes(active.id)) || isOnPlanSession(); // a plan task on the Practice screen too
 }
 // off hides every plan item (plan and progress stay stored) and leaves a plan screen (G15); elsewhere the current
 // screen stays (W-031: an exam keeps running); on needs no confirm
@@ -101,15 +101,17 @@ function planHomeBtn(action, labelText, gold = false) {
   return `<button type="button" class="${gold ? 'plan-btn-gold' : 'plan-btn-line'}" data-action="${action}">${labelText}</button>`;
 }
 function planHomeActsHtml(...btns) { return `<div class="plan-home-acts">${btns.join('')}</div>`; }
+// "Continue" opens the next task itself (planRun.js; PR6a: question tasks, the others open the day screen until PR6b)
+const PLAN_HOME_GO = { done: { action: 'openPlanDay', labelKey: 'plan.home.viewToday' }, next: { action: 'planContinue', labelKey: 'plan.home.continue' } };
 function planActiveHtml(plan, log, todayIso) {
   const day = planDayAt(plan, todayIso);
   const schedule = planHomeBtn('openPlanSchedule', t('plan.schedule.name'));
   if (!day) return `<p class="plan-home-next">${t('plan.home.notStarted', { date: planShortDate(plan.start) })}</p>${planHomeActsHtml(schedule)}`;
   const pct = planDayCompletion(day, planDayLog(log, todayIso)).pct;
   const next = planNextStep(plan, log, todayIso);
-  const goKey = next.kind === PLAN_NEXT.done ? 'plan.home.viewToday' : 'plan.home.continue';
+  const go = next.kind === PLAN_NEXT.done ? PLAN_HOME_GO.done : PLAN_HOME_GO.next;
   return planHomePctHtml(pct) + `<p class="plan-home-next">${planNextHtml(plan, log, next)}</p>`
-    + planHomeActsHtml(planHomeBtn('openPlanDay', t(goKey), true), schedule);
+    + planHomeActsHtml(planHomeBtn(go.action, t(go.labelKey), true), schedule);
 }
 // today's own % (G8: carry-over not counted) + a G27 bar; a rest day has none
 function planHomePctHtml(pct) {
@@ -195,4 +197,5 @@ const PLAN_NEW_DAY_RENDER = {
   screenPlanDay: () => { ensurePlanToday(); renderPlanDay(); }, // a day being looked at stays; "today" moves on
   screenPlanSchedule: () => rerenderPlanSchedule(),
   screenPlanGoal: () => renderPlanGoal(), // S-111: the date limits move with the day
+  screenPlanRun: () => renderPlanRun(), // a Result card of "today" lists the new day's next task
 };

@@ -68,6 +68,7 @@ const SHELL = [
   'js/screens/planGoal.js',
   'js/screens/planSchedule.js',
   'js/screens/planDay.js',
+  'js/screens/planRun.js',
   'js/core/actions.js',
   'js/pwa/pwa.js',
   'js/main.js',

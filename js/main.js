@@ -26,6 +26,8 @@ const LATE_BOOT_SCRIPTS = [
   { src: 'js/screens/planSchedule.js', ready: () => typeof openPlanSchedule === 'function' },
   // PR5: the Home card and schedule rows open the day screen
   { src: 'js/screens/planDay.js', ready: () => typeof openPlanDay === 'function' },
+  // PR6a: every Practice render asks planRun.js about a plan task session (header, notes, last button)
+  { src: 'js/screens/planRun.js', ready: () => typeof renderPlanRunNotes === 'function' },
 ];
 // shown when the scripts still fail after one reload; t() is not available then, so it cannot be a locale key
 const I18N_BOOT_FALLBACK_MSG = 'The app could not finish loading. Please check your connection and reload the page.';

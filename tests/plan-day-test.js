@@ -2,8 +2,8 @@ const { chromium } = require('playwright-core');
 const path = require('path');
 // Study plan PR5 (T-323–T-328; handoff §2.1 / §2.4, grill G2–G9 / G14 / G16 / G21 / G23–G25 / G27 / G29; PR4 S-115):
 // the day screen ("Today's tasks" / Day n), the completion calendar, the overall progress card and the full
-// Home plan card. The runner is PR6a / PR6b, so completion comes from a seeded answer log, and task boxes
-// cannot be opened yet. The entry stays hidden (STUDY_PLAN_READY = false) unless ?preview=plan (G31).
+// Home plan card. Completion comes from a seeded answer log here; opening a task (the runner) is
+// tests/plan-run-test.js (PR6a). The entry stays hidden (STUDY_PLAN_READY = false) unless ?preview=plan (G31).
 // - header ← Home | ‹ title / date · n/N › | Schedule; ‹ › step through the plan; "back to today"
 // - ring (G27 band), phase pill (past / ahead), n / m done, hint per day kind; done banner
 // - task boxes: not started (dashed) / in progress (solid) / done (green) / carry-over (orange + Day n tag,
@@ -94,8 +94,8 @@ async function checkHeader(pg) {
   await fresh(pg);
   await seedPlan(pg);
   await pg.evaluate(() => leaveToHome());
-  await pg.click('#planCard [data-action="openPlanDay"]');
-  assert(await activeScreen(pg) === 'screenPlanDay', 'Home card "Continue" opens the day screen');
+  await pg.click('#planCard [data-action="planContinue"]');
+  assert(await activeScreen(pg) === 'screenPlanDay', 'Home card "Continue": the next task is reading (PR6b), so the day screen opens');
   assert(await text(pg, '#planDayTitle') === "Today's tasks", 'title: Today\'s tasks');
   assert(await text(pg, '#planDaySub') === '1/10 Thu · 4/31', 'sub: date weekday · Day n / N: ' + await text(pg, '#planDaySub'));
   assert(await pg.$eval('#planDaySub [lang="en"]', e => e.textContent) === '4/31', 'n/N carries lang="en"');
@@ -133,7 +133,7 @@ async function checkToday(pg) {
     const tasks = [...document.querySelectorAll('#planTaskList .plan-task')].map(e => ({
       cls: e.className, ttl: e.querySelector('.plan-task-ttl').textContent, st: e.querySelector('.plan-task-st').textContent,
       go: (e.querySelector('.plan-task-go') || { textContent: '' }).textContent, tag: (e.querySelector('.plan-tag') || { textContent: '' }).textContent,
-      bar: e.querySelector('.plan-mini i').style.width, action: e.matches('button, [data-action], [tabindex]'),
+      bar: e.querySelector('.plan-mini i').style.width, action: e.matches('button[data-action="planOpenTask"]'),
     }));
     return { own, tasks, ring: byId('planRingPct').textContent, ringCls: byId('planRingProg').getAttribute('class'),
       count: byId('planDayCount').textContent, pill: byId('planDayPhase').textContent, hint: byId('planDayHint').textContent,
@@ -155,7 +155,9 @@ async function checkToday(pg) {
   assert(review.bar === '100%' && /^\d+%$/.test(practice.bar), 'mini bars sized from JS');
   assert(carry.every(c => c.cls.includes('carry') && c.tag === 'Day 3'), 'carry-over: orange box + Day 3 tag');
   assert(r.alert.includes('carried over'), 'carry-over alert: ' + r.alert);
-  assert(r.tasks.every(t => !t.action), 'PR5: task boxes cannot be opened yet (runner is PR6)');
+  // PR6a: question tasks open the runner (plan-run-test); reading / an empty clear-wrong task stay plain boxes
+  assert(!read.action && practice.action && !review.action, 'PR6a: the practice box is a button; reading (PR6b) and "No wrong answers" are not');
+  assert(carry.every(c => c.action === /^Practise/.test(c.ttl)), 'PR6a: carry-over practice boxes are buttons, carry-over reading is not');
   assert(r.done === true, 'no done banner while today is not complete');
   // the task box colours (dashed / solid / green / orange)
   const look = await pg.$$eval('#planTaskList .plan-task', els => els.map(e => [getComputedStyle(e).borderTopStyle, getComputedStyle(e).borderTopColor]));
@@ -287,14 +289,14 @@ async function checkHomeCard(pg) {
   const r = await pg.evaluate(() => ({
     ttl: byId('planCard').querySelector('.plan-home-ttl').textContent, cd: byId('planCard').querySelector('.plan-home-cd').textContent,
     pct: byId('planCard').querySelector('.plan-home-pct').textContent, bar: byId('planCard').querySelector('.plan-home-bar i').style.width,
-    next: byId('planCard').querySelector('.plan-home-next').textContent, go: byId('planCard').querySelector('[data-action="openPlanDay"]').textContent,
+    next: byId('planCard').querySelector('.plan-home-next').textContent, go: byId('planCard').querySelector('[data-action="planContinue"]').textContent,
     want: planDayCompletion(planLoad().days[3], planDayLog(planLoadLog(), '2026-10-01')).pct,
   }));
   assert(r.ttl === '🗓️ Study plan · Day 4 / 31' && r.cd === '28 days to the exam · 29/10', 'Home card: Day n / N + countdown: ' + r.ttl + ' | ' + r.cd);
   assert(r.pct === `${r.want}%` && r.bar === `${r.want}%`, `Home card: today ${r.want}% + bar`);
   assert(/^Next: Read Ch 4 Modern society facts #\d+–\d+ \(continue from #\d+\)$/.test(r.next), 'Home card: next step, continue from #n: ' + r.next);
   assert(r.go === "Continue today's tasks →", 'Home card: continue button');
-  assert(await hitOk(pg, '#planCard [data-action="openPlanDay"]') && await hitOk(pg, '#planCard [data-action="openPlanSchedule"]'), `Home card buttons: ${HIT_MIN_PX}px`);
+  assert(await hitOk(pg, '#planCard [data-action="planContinue"]') && await hitOk(pg, '#planCard [data-action="openPlanSchedule"]'), `Home card buttons: ${HIT_MIN_PX}px`);
   const low = (await contrastOf(pg, '#planCard .plan-home *')).filter(c => c.ratio < MIN_CONTRAST || !c.opaque);
   assert(low.length === 0, `Home card text ≥ ${MIN_CONTRAST}:1: ` + JSON.stringify(low));
   // unreadable log: the card says so and points to ↺ Reset
@@ -461,7 +463,7 @@ async function checkReviewSnapshot(pg) {
   await pg.evaluate(() => { wrongList['7.3'] = true; setLS(WRONG_LS, wrongList); openPlanDay(); });
   const again = await pg.evaluate(() => planLoad().days[3].tasks[2].qids);
   assert(JSON.stringify(again) === JSON.stringify(first), 'G9: a later wrong answer is not added today');
-  assert(await pg.$eval('#planTaskList .plan-task:nth-child(3) .plan-task-st', e => e.textContent) === '2 questions · Wrong answers', 'clear wrong answers: 2 questions: ');
+  assert(await pg.$eval('#planTaskList > li:nth-child(3) .plan-task-st', e => e.textContent) === '2 questions · Wrong answers', 'clear wrong answers: 2 questions: ');
 }
 
 // S-115: past midnight, "Build / Update" re-renders the form with the moved date and a notice

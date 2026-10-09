@@ -126,16 +126,18 @@ async function checkPlanSession(pg, days) {
   const ids = await pg.evaluate(() => ({ p3: isPlanExam('p3'), bare: isPlanExam('p'), word: isPlanExam('pa'), num: isPlanExam(3) }));
   assert(ids.p3 && !ids.bare && !ids.word && !ids.num, "isPlanExam: 'p' + digits only");
   await pg.evaluate(({ qid, ret }) => startSideSession(PLAN_PREFIX + 3, [questionByKey(qid)].map(toQuestionItem), ret),
-    { qid, ret: { kind: 'plan', date: day.date, taskIndex, type: 'practice' } });
+    { qid, ret: { kind: 'plan', date: day.date, taskIndex, type: 'practice', ch: day.tasks[taskIndex].ch, from: null } });
   const head = await pg.evaluate(() => ({ label: byId('quizLabel').textContent, planDay: state.planDay, mode: state.mode }));
-  assert(head.label === 'Day 3' && head.planDay === day.date && head.mode === 'practice',
-    'plan side session: Practice, header "Day 3", planDay = its date');
+  assert(head.label === `Chapter ${day.tasks[taskIndex].ch}` && head.planDay === day.date && head.mode === 'practice',
+    'plan side session: Practice, header names the task (PR6a: "Chapter n", as the mockup), planDay = its date');
   await answerQid(pg, qid, true);
   assert((await dayLog(pg, day.date)).ok[qid] === 1 && !(await dayLog(pg, TODAY)).ok[qid],
     'plan side session: a right answer counts for its own day, not today (G5)');
   await pg.evaluate(() => runNextAction());
-  const back = await pg.evaluate(() => ({ screen: document.querySelector('.screen.active').id, side: isSideSession() }));
-  assert(back.screen === 'screenHome' && !back.side, 'plan side session: ↩ Back goes Home (task card comes in PR6a)');
+  const back = await pg.evaluate(qid => ({ screen: document.querySelector('.screen.active').id, plan: isPlanSession(),
+    asked: state.questions.map(qKey).includes(qid), n: state.questions.length }), qid);
+  assert(back.screen === 'screenQuiz' && back.plan && !back.asked && back.n > 0,
+    'plan side session: the last question\'s Next starts the task\'s next round, without the question answered right (PR6a)');
   await pg.evaluate(() => startExam(1));
   assert(await pg.evaluate(() => state.planDay === null), 'startExam after a plan session: planDay null');
   await pg.evaluate(() => leaveToHome());

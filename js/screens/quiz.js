@@ -87,6 +87,7 @@ function renderQuizHeader(q, idx, total) {
   const label = byId('quizLabel');
   if (state.examNum === ALL_EXAM && !isRandomExam(state.examNum)) label.textContent = t('quiz.allShuffled');
   else setExamLabel(label, state.examNum);
+  renderPlanQuizHeader(); // a plan task: its own label, "← Today's tasks"
   byId('modeBadge').textContent = state.mode === PRACTICE_MODE ? t('common.practice') : t('common.exam');
   // progress: the question card's top border
   byId('progressFill').style.width = percent(idx + 1, total) + '%';
@@ -120,10 +121,13 @@ function optionHtml(q, oi, view) {
 function renderAnswerBox(q, idx, showAnswer) {
   const box = byId('answerBox');
   if (!showAnswer) { box.className = 'answer-box'; return; }
-  const correct = isCorrectAnswer(q, state.answers[idx]);
+  // G17: plan review mode shows the correct answer, marked when it was answered wrong that day
+  const review = isPlanReviewMode();
+  const correct = review ? !planReviewWasWrong(idx) : isCorrectAnswer(q, state.answers[idx]);
   box.className = 'answer-box show' + (correct ? '' : ' wrong-ans');
   byId('ansLabel').className = 'ans-label' + (correct ? '' : ' wrong');
-  byId('ansLabel').textContent = (correct ? t('quiz.correct') : t('quiz.wrong')) + LIST_SEP + streakLabel(q);
+  const reviewKey = correct ? 'plan.run.reviewCorrect' : 'plan.run.reviewWasWrong';
+  byId('ansLabel').textContent = review ? t(reviewKey) : (correct ? t('quiz.correct') : t('quiz.wrong')) + LIST_SEP + streakLabel(q);
   byId('ansEn').className = 'ans-en' + (correct ? '' : ' wrong');
   byId('ansEn').textContent = q.a.map(ai => q.o[ai]).join(ANSWER_SEP);
   renderAnswerTranslation(q);
@@ -153,6 +157,8 @@ function renderNavButtons(idx, total, revealed) {
 }
 // review sets bigger than one round: "Round 1 of N · 24 of your T wrong answers" above the question card
 function renderRoundNote() {
+  renderPlanRunNotes(); // a plan task: its own notes (review / redo / round n of N)
+  if (isPlanSession()) return;
   const total = state.reviewTotal || 0;
   const show = state.mode === PRACTICE_MODE && total > PRACTICE_ROUND_MAX && !isSideSession();
   setShown('roundRow', show);
@@ -167,6 +173,7 @@ function renderRoundNote() {
 // label = bottom button, symbol + title = quick button in the question header
 function nextAction(idx, total) {
   if (idx < total - 1) return { label: t('quiz.nextButton'), symbol: '→', title: t('quiz.next'), run: nextQ };
+  if (isPlanSession()) return planNextAction();
   if (isSideSession()) return { label: t('quiz.backButton'), symbol: '↩', title: t('quiz.back'), run: returnFromSideSession };
   if (state.mode === EXAM_MODE) return { label: t('exam.submit'), symbol: '✓', title: t('exam.submit'), run: submitExam };
   return { label: t('quiz.finishButton'), symbol: '✓', title: t('quiz.finish'), run: finishExam };

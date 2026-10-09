@@ -179,6 +179,8 @@
       </div>
     </div>
 
+    <!-- study plan task (js/screens/planRun.js): "✅ done · reviewing" note (G17) -->
+    <p class="plan-note plan-run-note" id="planRunNote" role="status" hidden></p>
     <div class="round-row" id="roundRow" hidden><span class="round-note" id="roundNote"></span></div>
     <div class="q-card">
       <div class="q-progress"><div class="q-progress-fill" id="progressFill" style="width:0%"></div></div>
@@ -213,6 +215,8 @@
       <div class="ans-note" id="ansNote" lang="zh-HK"></div>
     </div>
 
+    <!-- study plan practice task: its questions also finish the matching reading task (G3) -->
+    <p class="plan-note plan-run-note" id="planPairNote" hidden></p>
 
     <div class="nav-row">
       <button class="nav-btn secondary" id="prevBtn" data-action="prevQ" data-i18n="quiz.prevButton"></button>
@@ -424,6 +428,18 @@
     </div>
   </div>
 
+  <!-- ── STUDY PLAN · RUNNER (js/screens/planRun.js): a finished task's Result card (question tasks run on screenQuiz) ── -->
+  <div class="screen" id="screenPlanRun">
+    <div class="quiz-header">
+      <button class="back-btn plan-hit" id="planRunBack" data-action="planBackToDay"></button>
+      <div class="quiz-meta">
+        <span class="quiz-label" id="planRunLabel"></span>
+        <span class="quiz-mode-badge" id="planRunBadge"></span>
+      </div>
+    </div>
+    <div class="plan-run-body" id="planRunBody"></div>
+  </div>
+
 </main>
 
 <!-- in-app confirm modal -->
@@ -473,6 +489,7 @@
 <script src="js/screens/planGoal.js"></script>
 <script src="js/screens/planSchedule.js"></script>
 <script src="js/screens/planDay.js"></script>
+<script src="js/screens/planRun.js"></script>
 <script src="js/core/actions.js"></script>
 <script src="js/pwa/pwa.js"></script>
 <script src="js/main.js"></script>

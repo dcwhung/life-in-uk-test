@@ -5,11 +5,14 @@
 // ════════════════════════════════════════
 const SESSION_RETURN_KIND = { quiz: 'quiz', study: 'study', plan: 'plan' };
 // null | { kind: 'quiz', state } | { kind: 'study', scrollY, factId }
-//      | { kind: 'plan', date, taskIndex, type } — a study plan task: date = the plan day it counts for (G5), type = PLAN_TASK
+//      | { kind: 'plan', date, taskIndex, type, ch, from, … } — a study plan task (js/screens/planRun.js): date = the plan
+//        day it counts for (G5), type = PLAN_TASK, from = the day screen to go back to (null = today); a round adds
+//        retry / round / rounds, review mode (G17) review / page / pages / wrong
 let sessionReturn = null;
 function isSideSession() { return sessionReturn !== null; }
 function clearSideSession() { sessionReturn = null; }
 function isPlanReturn(ret) { return ret !== null && ret.kind === SESSION_RETURN_KIND.plan; }
+function isPlanSession() { return isPlanReturn(sessionReturn); }
 // R9: the plan's "clear wrong answers" task clears the wrong list like the Wrong answers review does
 function isPlanReviewSession() { return isPlanReturn(sessionReturn) && sessionReturn.type === PLAN_TASK.review; }
 
@@ -38,6 +41,7 @@ function startSideSession(examNum, questions, returnTo) {
   sessionReturn = returnTo;
   state = sideSessionState(examNum, questions);
   if (isPlanReturn(returnTo)) state.planDay = returnTo.date;
+  if (isPlanReturn(returnTo) && returnTo.review) planFillReview(returnTo); // G17: answered + revealed, nothing recorded
   stopExamTimer();
   examTimeUp = false;
   showScreen('screenQuiz');
@@ -59,8 +63,8 @@ const SESSION_RETURNS = {
     window.scrollTo(0, ret.scrollY);
     flashStudyFact(ret.factId);
   },
-  // the plan task card is not built yet (PR6a): back to Home until then
-  [SESSION_RETURN_KIND.plan]: () => leaveToHome(),
+  // a plan task goes back to the day screen it was opened from (its last question normally offers the next round)
+  [SESSION_RETURN_KIND.plan]: ret => { sessionReturn = ret; planBackToDay(); },
 };
 function returnFromSideSession() {
   const ret = sessionReturn;
