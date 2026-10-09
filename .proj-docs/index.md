@@ -42,6 +42,7 @@
 
 ## QA
 
+- [2026-10-09_qa_plan-pr7.md](qa/2026-10-09_qa_plan-pr7.md) — 溫習計劃 PR7 zh-HK / en 字眼（pass；run-all 40/40，browser 98/98，冇 ticket）
 - [2026-10-09_qa_v106.md](qa/2026-10-09_qa_v106.md)
 - [2026-10-09_qa_v105-ui.md](qa/2026-10-09_qa_v105-ui.md)
 - [2026-10-09_qa_v104.md](qa/2026-10-09_qa_v104.md)
