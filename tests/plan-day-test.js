@@ -304,7 +304,7 @@ async function checkExamDayAndEnded(pg) {
   await seedPlan(pg);
   await pg.evaluate(() => leaveToHome());
   const ended = await text(pg, '#planCard');
-  assert(ended.includes('Plan finished') && /Average \d+%/.test(ended) && ended.includes('/ 236 facts'), 'G16 ended: summary: ' + ended);
+  assert(ended.includes('Plan complete. Well done for all your hard work!') && /Average \d+%/.test(ended) && ended.includes('/ 236 facts'), 'G16 ended: summary: ' + ended);
   assert(await visible(pg, '#planCard [data-action="openPlanGoal"]') && await visible(pg, '#planCard [data-action="planEditGoal"]'), 'ended: "New plan" + "Change goal"');
   assert(ended.includes('0 mocks at 21/24 or more'), 'ended: 0 mocks (plural)');
   await pg.evaluate(() => { const log = planLoadLog(); log.days['2026-10-22'] = { ok: {}, bad: {}, mock: [{ exam: 1, correct: 22, total: 24 }] }; writePlanLog(log); leaveToHome(); });

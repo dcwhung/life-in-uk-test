@@ -89,7 +89,7 @@ async function checkOverview(pg) {
   await seedPlan(pg);
   await pg.evaluate(() => openPlanSchedule());
   const sum = await text(pg, '#planSummary');
-  assert(sum === 'Starts 28/9 · exam 29/10 · up to 2 hr a day · Starting fresh', 'summary: start, exam, daily limit, level: ' + sum);
+  assert(sum === 'Starts 28/9 · exam 29/10 · up to 2 hr a day · Beginner', 'summary: start, exam, daily limit, level: ' + sum);
   const r = await pg.evaluate(() => {
     const plan = parseStoredPlan(readStudyPlan());
     const count = ph => plan.days.filter(d => d.phase === ph).length;
@@ -410,7 +410,7 @@ async function checkChangeGoalLastWeek(pg) {
   await pg.click('#screenPlanSchedule [data-action="planEditGoal"]');
   await pg.click('#planRestChips .chip >> nth=4');
   const zh = await pg.evaluate(() => ({ note: byId('planDateNote').textContent, hint: byId('planGoalHint').textContent }));
-  assert(zh.note === '改目標時，考試日期最早可選明天。' && zh.hint === '考試前最少需要 1 個溫習日，未能更新進度表。請減少休息日或延後考試日期。', 'G36 zh-HK: note + hint: ' + JSON.stringify(zh));
+  assert(zh.note === '更改目標時，考試日期最早可選為明日。' && zh.hint === '考試前最少需要 1 個溫習日，未能更新進度表。請減少休息日或延後考試日期。', 'G36 zh-HK: note + hint: ' + JSON.stringify(zh));
   await pg.evaluate(() => setLang('en'));
 }
 
