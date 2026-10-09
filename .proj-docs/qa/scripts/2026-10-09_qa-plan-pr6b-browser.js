@@ -458,6 +458,12 @@ async function partW(b) {
     await pg.screenshot({ path: path.join(SHOTS, 'W-375-en-wrongfacts-last.png'), fullPage: true });
     for (let i = 1; i < wf.facts.length; i++) { await pg.click('#planRunBody [data-action="planStepFact"][data-arg="-1"]'); await settle(pg, 60); }
     await pg.screenshot({ path: path.join(SHOTS, 'W-375-en-wrongfacts-1.png'), fullPage: true });
+    await pg.click('#langBtn'); await settle(pg, 150); await pg.screenshot({ path: path.join(SHOTS, 'W-375-zh-HK-wrongfacts-1.png'), fullPage: true });
+    const zhMark = await pg.evaluate(() => [...document.querySelectorAll('#planRunBody .sqm-id')].map(e => e.textContent.trim()).join(' | '));
+    note(`[W2b] zh-HK first panel items: ${zhMark}`);
+    await pg.click('#langBtn'); await settle(pg, 150);
+    const enMark = await pg.evaluate(() => ({ ids: [...document.querySelectorAll('#planRunBody .sqm-id')].map(e => e.textContent.trim()), count: document.querySelector('#planRunBody .sqm-count').textContent.trim(), cur: document.querySelector('#planRunBody .sqm-node.current').textContent.trim() }));
+    ok(enMark.ids.length >= 1 && /You got this wrong/.test(enMark.ids[0]) && enMark.ids[0].includes(enMark.cur.replace('·', ' · Q').replace(/^E/, 'Exam ')) !== undefined, `[W2b] CUI-0025 re-test: first item = the wrong one "${enMark.ids[0]}", count "${enMark.count}" (${enMark.ids.length} items)`);
     const empty = panels.filter(x => x.items === 0);
     note(`[W2b] panels: ${panels.map(x => x.id + ' ' + x.count + ' items ' + x.items).join(' / ')}`);
     ok(empty.length === 0, `[W2b] every wrong-fact panel lists at least one question (the question answered wrong is never shown as text; mockup lists the fact's questions with "你答錯"): ${empty.length} / ${panels.length} panel(s) read "Similar Questions … ${empty.map(x => x.count).join(',')}" with an empty list`);
@@ -471,7 +477,7 @@ async function partW(b) {
     v = await factView(pg);
     ok(v.meta[1] === `Fact 2 of ${wf.facts.length}` && v.current, `[W3] Next → fact 2, current "${v.current}"`);
     await pg.click('#planRunBody [data-action="planStepFact"][data-arg="-1"]'); await settle(pg, 80);
-    ok((await writesSince(pg, w0)).length === 0, '[W3] open + Prev / Next: 0 writes');
+    ok((await writesSince(pg, w0)).filter(w => !/uiLang/.test(w)).length === 0, '[W3] open + Prev / Next: 0 writes (the W2b language switch writes only lifeuk.uiLang)');
     // W4 CTA: a plan session for the drill day; a wrong answer there shows Similar without CTA; finish → same card; G38
     const qF = await pg.evaluate(id => planFactQids(planFactById(id)), wf.facts[0]);
     await pg.click('#planRunBody .sqm-cta button'); await settle(pg, GUARD_MS);
@@ -645,7 +651,8 @@ async function partM(b) {
     await playExam(p2, 3, { submit: false, upto: 3 });
     await p2.click('#screenQuiz .back-btn'); await settle(p2, 200);
     const modal = await p2.evaluate(() => ({ open: isConfirmOpen(), title: byId('confirmTitle') ? byId('confirmTitle').textContent : '', ok: byId('confirmOk').textContent, focus: document.activeElement.id }));
-    ok(modal.open && modal.title === 'Leave the exam?' && modal.ok === 'Leave' && modal.focus === 'confirmCancel', `[M8] ← during a plan mock: "${modal.title}" (${modal.ok}), focus on Cancel`);
+    const lvDanger = await p2.evaluate(() => byId('confirmModal').querySelector('.modal-card').classList.contains('danger'));
+    ok(modal.open && modal.title === 'Leave the exam?' && modal.ok === 'Leave' && modal.focus === 'confirmCancel' && !lvDanger, `[M8] ← during a plan mock: "${modal.title}" (${modal.ok}), focus on Cancel, not red (v1.0.6 S-133: Leave is not danger)`);
     await p2.click('#confirmCancel'); await settle(p2, 200);
     const t1 = (await mockInfo(p2)).timer; await p2.waitForTimeout(1300); const t2 = (await mockInfo(p2)).timer;
     ok((await screen(p2)) === 'screenQuiz' && t1 !== t2, `[M8] Cancel: still in the exam, timer running (${t1} → ${t2})`);
@@ -828,7 +835,12 @@ async function partV(b) {
     await pg.click('#infoBtn'); await settle(pg, 150);
     let p0 = await pop();
     ok(p0.open && p0.row && /^Features Study plan/.test(p0.title.replace(/🗓️ ?/, '')) && p0.sw === 'true', `[V1] ⓘ: "${p0.title}", switch ${p0.sw}`);
+    // v1.0.5 / v1.0.6 kept: full-width popover (16px gutters), On / Off pill, red (danger) confirm for switching off
+    const v15 = await pg.evaluate(() => { const r = byId('infoPop').getBoundingClientRect(), pill = byId('infoPlanPill'); return { l: Math.round(r.left), w: Math.round(r.width), vw: document.documentElement.clientWidth, pill: pill ? pill.textContent + '/' + pill.className : null, badges: document.querySelectorAll('#infoPop .hero-badge').length }; });
+    ok(v15.l === 16 && v15.w === v15.vw - 32 && /^On\/feature-pill on$/.test(v15.pill || '') && v15.badges === 4, `[V1] v1.0.5 kept: popover ${v15.l}px / ${v15.w}px of ${v15.vw}, pill "${v15.pill}", ${v15.badges} badges`);
     await pg.click('#planFeatureSwitch'); await settle(pg, 200);
+    const red = await pg.evaluate(() => ({ danger: byId('confirmModal').querySelector('.modal-card').classList.contains('danger'), ok: getComputedStyle(byId('confirmOk')).backgroundColor, red: getComputedStyle(document.documentElement).getPropertyValue('--red').trim() }));
+    ok(red.danger && /rgb\(/.test(red.ok) && red.ok !== 'rgb(26, 39, 68)', `[V2] v1.0.6 kept: switch-off confirm is danger (red Confirm ${red.ok}, --red ${red.red})`);
     let p1 = await pop();
     const mt = await pg.evaluate(() => ({ t: byId('confirmTitle').textContent, m: byId('confirmMsg').textContent, ok: byId('confirmOk').textContent, c: byId('confirmCancel').textContent }));
     ok(p1.modal && p1.open && p1.focus === 'confirmCancel', `[V2] switch off asks: "${mt.t}" / "${mt.m}" [${mt.ok} / ${mt.c}], popover stays, focus Cancel`);
@@ -843,6 +855,8 @@ async function partV(b) {
     await pg.click('#infoBtn'); await settle(pg, 150); await pg.click('#planFeatureSwitch'); await settle(pg, 200); await pg.click('#confirmOk'); await settle(pg, 300);
     p1 = await pop();
     ok(p1.open && p1.sw === 'false' && p1.focus === 'planFeatureSwitch' && p1.toast === 'Study plan turned off' && !p1.card, `[V3] OK: switch off, toast "${p1.toast}", card gone, popover open with focus on the switch`);
+    const pillOff = await pg.evaluate(() => byId('infoPlanPill') ? byId('infoPlanPill').textContent + '/' + byId('infoPlanPill').className : null);
+    ok(/^Off\/feature-pill off$/.test(pillOff || ''), `[V3] pill "${pillOff}"`);
     await pg.click('#planFeatureSwitch'); await settle(pg, 300);
     p1 = await pop();
     ok(!p1.modal && p1.sw === 'true' && /^Study plan turned on/.test(p1.toast) && p1.card, `[V3] on again: no confirm, toast "${p1.toast}", card back`);
@@ -870,7 +884,7 @@ async function partV(b) {
     await pg.click('#resultPlanRow [data-action="planBackToDay"]').catch(() => {}); await settle(pg, GUARD_MS);
     const scrB = await screen(pg);
     note(`[V5] switch off on a plan mock's result page: stays on ${scrR} (row still ${rowR.shown ? 'shown: "' + rowR.note + '"' : 'hidden'}); its button → ${scrB}`);
-    ok(scrR === 'screenResult' && scrB === 'screenHome', `[V5] switch off on the result page keeps the results (W-031 style); "Back to the task list" then goes Home (${scrB})`);
+    ok(scrR === 'screenResult' && !rowR.shown && rowR.hidden, `[V5] O-3 re-test: switch off on the plan mock's result page keeps the results (W-031) and hides the plan row (row shown ${rowR.shown})`);
     ok(errs.length === 0, `[V] 0 errors ${errs.join(' | ')}`);
     await ctx.close();
   } finally { s.server.kill(); }
