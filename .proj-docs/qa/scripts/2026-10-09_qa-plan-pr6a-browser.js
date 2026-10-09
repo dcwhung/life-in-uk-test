@@ -14,6 +14,8 @@
 // P. performance: 183-day plan, open the runner / Result card / language (CPU ×1 and ×4)
 // L. 360 / 375 / 400 × en / zh-HK (touch): runner, Similar, review mode, Result card: overflow, 44px, contrast, zh-HK
 // U. upgrade: v1.0.2 and PR5 (origin/main) SW → PR tree; planRun.js in cache; offline runner; mixed old shell + new js
+// Re-test (f24cec2): CUI-0024 rounds on re-entry (E2 / E2b), O-2 Result card after midnight (E3 / E8), O-3 quick-nav
+// title (E6), G38 any plan runner clears the wrong list on a right answer, plain Practice does not (F3 / F9 / G8).
 // QA_ONLY=HFGEPLU picks parts.
 const { chromium } = require('playwright-core');
 const { execSync } = require('child_process');
@@ -276,6 +278,8 @@ async function partF(b) {
     await answer(pg, true); r = await run(pg);
     ok(r.next === 'Finish ✓', `[F3] right: "${r.next}"`);
     await pg.click('#nextBtn'); await settle(pg, GUARD_MS);
+    const wlF3 = JSON.parse(await ls(pg, 'lifeuk.wrongList'));
+    ok(!wlF3[wrongK], `[F3] G38: the one answered wrong, then redone right in the practise task, left the wrong list (${wrongK})`);
     let cd = await cardInfo(pg);
     const pct1 = await domainPct(pg, TODAY);
     ok(cd.scr === 'screenPlanRun' && cd.emoji === '✅' && cd.score === `${pct1}%` && cd.result === "Task done · today's progress" && cd.sub === 'All 9 questions right, 1 of them after a redo.', `[F4] Result card: ${cd.emoji} ${cd.score} "${cd.result}" "${cd.sub}"`);
@@ -342,7 +346,7 @@ async function partF(b) {
     const wl0 = JSON.parse(await ls(pg, 'lifeuk.wrongList'));
     const lgR = await dayLog(pg, TODAY);
     ok(snapT.length === 2 && snapT.includes('1.3') && snapT.includes('3.12') && !snapT.includes('4.14'), `[F9] G9: the snapshot taken at Home = 1.3, 3.12 (+ copy 4.14 once), not today's ${Object.keys(wl0).length - 3} new wrong answers`);
-    note(`[F9] 1.3 was answered right in Practise Ch 1 today (log ok ${lgR.ok['1.3'] || 0}) → the clear-wrong task counts it (G2) and asks only ${snapQ.join(',')}; 1.3 stays in the wrong list: ${!!wl0['1.3']}`);
+    ok((lgR.ok['1.3'] ? !wl0['1.3'] : true) && snapQ.join() === '3.12', `[F9] G38: 1.3 answered right in Practise Ch 1 (log ok ${lgR.ok['1.3'] || 0}) left the wrong list (${!wl0['1.3']}); the clear-wrong task counts it (G2), asks only ${snapQ.join(',')}`);
     const rr = await playRound(pg, { wrong: ['3.12'] });
     const wl1 = JSON.parse(await ls(pg, 'lifeuk.wrongList'));
     ok(wl1['3.12'] && wl1['4.14'] && rr.last.next === '🔁 Redo the wrong answer (1 left)', `[F9] wrong on 3.12: stays (with its copy); "${rr.last.next}"`);
@@ -388,7 +392,7 @@ async function partF(b) {
     await pg.click('#planDayPrev'); await settle(pg, 150);
     await pg.click(boxSel('2026-10-09', cBox.task)); await settle(pg, GUARD_MS);
     r = await run(pg);
-    ok(r.back === '← Day 2 tasks' && r.planDay === '2026-10-09' && r.round === 'Round 1 of 3' && r.n === 24, `[F11] past day box → "${r.back}", "${r.round}" (${r.n}; 3 of 51 answered before)`);
+    ok(r.back === '← Day 2 tasks' && r.planDay === '2026-10-09' && r.round === 'Round 2 of 3' && r.n === 24, `[F11] (CUI-0024: 3 answered before = round 1 begun) past day box → "${r.back}", "${r.round}" (${r.n}; 3 of 51 answered before)`);
     await finishTask(pg);
     cd = await cardInfo(pg);
     const p2 = await domainPct(pg, '2026-10-09');
@@ -520,7 +524,7 @@ async function partG(b) {
       await p2.click('#screenQuiz .back-btn'); await settle(p2, GUARD_MS);
       await p2.click(boxSel(TODAY, 5)); await settle(p2, GUARD_MS);
       x = await run(p2);
-      ok(x.n === 1 && x.round === 'Round 2 of 2', `[G4] back in after 28 of 29: ${x.n} left, "${x.round}"`);
+      ok(x.n === 1 && x.round === 'Round 3 of 3', `[G4] back in after 28 of 29 (mid round 2): ${x.n} left, "${x.round}" (CUI-0024: a begun round counts as one; the last is N of N)`);
       ok(e2.length === 0, `[G4] 0 errors ${e2.join(' | ')}`); await c2.close();
     }
     // G5 later Practice mastering: a Day 5 (ahead) question at streak 2, answered right in plain Practice → done there
@@ -578,6 +582,23 @@ async function partG(b) {
     await p4.click(boxSel('2026-10-16', di.i)); await settle(p4, GUARD_MS);
     x4 = await run(p4);
     ok(di && x4.plan && !x4.review && x4.n === Math.min(24, di.n) && mastered1 > 0, `[G7] Day 9 drill Ch 1 (${di.n} questions, ${mastered1} 🏆) asks them all: ${x4.n} in round 1, "${x4.label}" (G5: drill again)`);
+    // G8 / G38: a right answer in the drill clears it from the wrong list (with its copies); plain Chapter Practice does not
+    const dq = await p4.evaluate(() => state.questions.map(qKey));
+    await p4.evaluate(k => addWrong(questionByKey(k)), dq[1]); // as if answered wrong elsewhere earlier
+    await answer(p4, true); await p4.click('#nextBtn'); await settle(p4, 40); await answer(p4, true);
+    const wlD = await p4.evaluate(() => ({ ...wrongList }));
+    ok(!wlD[dq[1]], `[G8] G38: right in a drill task clears ${dq[1]} from the wrong list`);
+    await p4.click('#screenQuiz .back-btn'); await settle(p4, GUARD_MS); await p4.click('#screenPlanDay .back-btn'); await settle(p4, GUARD_MS);
+    const wk = dq[2];
+    await p4.evaluate(k => addWrong(questionByKey(k)), wk);
+    await p4.click('#modePractice'); await settle(p4, 100); await p4.click('#ptabChapter'); await settle(p4, 100);
+    await p4.click('#chapterGrid [data-action="startChapter"][data-arg="1"]'); await settle(p4, GUARD_MS);
+    let found = false; for (let i = 0; i < 80; i++) { const c = await run(p4); if (c.key === wk) { found = true; break; } if (c.idx === c.n - 1) break; await p4.click('#nextBtn'); await settle(p4, 25); }
+    if (!found) note(`[G8] ${wk} not in this Chapter 1 session (Practice skips 🏆 ones: streak ${await p4.evaluate(k => streaks[k], wk)})`);
+    if (found) { await answer(p4, true); }
+    const wlC = await p4.evaluate(() => ({ ...wrongList, plan: isPlanSession() }));
+    ok(found && wlC[wk] && !wlC.plan, `[G8] plain Chapter Practice: right on ${wk} keeps it in the wrong list (as before)`);
+    await p4.click('#screenQuiz .back-btn'); await settle(p4, GUARD_MS);
     ok(e4.length === 0, `[G7] 0 errors ${e4.join(' | ')}`); await ctx4.close();
     ok(errs.length === 0, `[G] 0 errors ${errs.join(' | ')}`);
     await ctx.close();
@@ -621,7 +642,7 @@ async function partE(b) {
       const seq = [];
       for (let i = 0; i < 6; i++) { const c = await run(pg); if (c.scr !== 'screenQuiz') break; seq.push(`${c.n} Qs "${c.round}"`); await playRound(pg); }
       note(`[E2b] 51 questions: first entry "${s0.round}" (${s0.n}); left after 10, back in: ${seq.join(' → ')} → ${await screen(pg)}`);
-      ok(seq.length === 2 && /of 2"$/.test(seq[seq.length - 1]) && /Round 2 of/.test(seq[1]), `[E2b] after an interruption the rounds left add up: ${seq.join(' → ')} (2 rounds left, the last one says so)`);
+      ok(seq.length === 2 && seq[0] === '24 Qs "Round 2 of 3"' && seq[1] === '17 Qs "Round 3 of 3"', `[E2b] after an interruption the rounds left add up: ${seq.join(' → ')} (2 rounds left, the last one says so)`);
       ok(errs.length === 0, '[E2] 0 errors'); await ctx.close(); }
     // E3 midnight inside the runner: answers keep counting for the day it was opened for; Result card after midnight
     { const { ctx, pg, errs } = await mk({ now: at(TODAY, '23:58:30') }); await createViaUi(pg);
@@ -636,10 +657,11 @@ async function partE(b) {
       const cd = await cardInfo(pg);
       ok(Object.keys(l8.ok).length === 9 && Object.keys(l9.ok).length === 0, `[E3] all 9 answers count for 8/10 (opened then), 0 for 9/10`);
       note(`[E3] Result card after midnight: ${cd.score} "${cd.result}" back "${cd.back}" next "${cd.next}"`);
-      ok(cd.scr === 'screenPlanRun' && errs.length === 0, `[E3] Result card shown after midnight; 0 errors ${errs.join(' | ')}`);
+      const p8 = await domainPct(pg, TODAY);
+      ok(cd.scr === 'screenPlanRun' && cd.score === `${p8}%` && cd.result === "Task done · that day's progress" && cd.back === '← Day 1 tasks' && errs.length === 0, `[E3] O-2: Result card after midnight is about 8/10: ${cd.score} (= ${p8}%) "${cd.result}" "${cd.back}"; 0 errors ${errs.join(' | ')}`);
       await pg.click('#planRunBack'); await settle(pg, GUARD_MS);
       const t = await pg.evaluate(() => [byId('planDayTitle').textContent, byId('planDaySub').textContent]);
-      note(`[E3] ← after midnight → "${t.join(' / ')}"`);
+      ok(t[0] === 'Day 1 tasks', `[E3] ← after midnight → "${t.join(' / ')}" (the list it came from)`);
       await ctx.close(); }
     // E4 plan deleted in another tab while the runner is open; another tab's answers kept (R17)
     { const { ctx, pg, errs } = await mk(); await createViaUi(pg);
@@ -686,7 +708,8 @@ async function partE(b) {
         const t = await pg.evaluate(() => { const e = document.querySelector('#screenQuiz [data-action="next"]:not(#nextBtn)'); return e.title || e.getAttribute('aria-label'); });
         await pg.click('#screenQuiz [data-action="next"]:not(#nextBtn)'); await settle(pg, GUARD_MS);
         ok((await screen(pg)) === 'screenPlanRun', `[E6] quick-nav (title "${t}") on the last question → Result card`);
-        note(`[E6] quick-nav title in a plan task = the bottom label with its symbol ("${last.title}" / "${t}"); plain Practice uses "Next" / "Finish"`);
+        const aria = await pg.evaluate(() => byId('quickNext').getAttribute('aria-label'));
+        ok(last.title === 'Next round' && t === 'Finish', `[E6] O-3: quick-nav title / aria-label in plain words ("${last.title}" / "${t}")`);
       }
       ok(errs.length === 0, `[E6] 0 errors ${errs.join(' | ')}`); await ctx.close(); }
     // E7 keyboard only: Tab to the box, Enter, answer by keyboard?, Result card focus + Tab order
@@ -715,7 +738,7 @@ async function partE(b) {
       await pg.clock.runFor(4 * 60 * 1000); await settle(pg, 400);
       const mid = await cardInfo(pg);
       note(`[E8] Result card across midnight: before ${en.score} "${en.result}" next "${en.next}" → after ${mid.score} "${mid.result}" next "${mid.next}" (${await pg.evaluate(() => planTodayIso())})`);
-      ok(mid.scr === 'screenPlanRun' && errs.length === 0, `[E8] Result card re-renders on the new day, 0 errors ${errs.join(' | ')}`);
+      ok(mid.scr === 'screenPlanRun' && mid.score === en.score && mid.result === "Task done · that day's progress" && mid.back === '← Day 1 tasks' && errs.length === 0, `[E8] O-2: Result card shown across midnight keeps 8/10: ${en.score} → ${mid.score} "${mid.result}" "${mid.back}", 0 errors ${errs.join(' | ')}`);
       await ctx.close(); }
     // E9 Home "Continue" opens the runner directly when the next step is a question task (drill day)
     { const { ctx, pg, errs } = await mk(); await createViaUi(pg);
@@ -971,9 +994,9 @@ async function mixed(b, ref, label) {
 }
 async function partU(b) {
   await upgradeFrom(b, V102, 'v102');
-  await upgradeFrom(b, BASE, 'pr5');
+  await upgradeFrom(b, BASE, 'pr5');  // origin/main = PR5 + v1.0.3
   await mixed(b, V102, 'v102');
-  await mixed(b, BASE, 'pr5');
+  await mixed(b, BASE, 'pr5');  // origin/main = PR5 + v1.0.3
 }
 
 (async () => {
