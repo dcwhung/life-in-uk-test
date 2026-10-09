@@ -279,7 +279,10 @@ async function partF(b) {
     const lightTxt = d.tasks.map(t => t.ttl).join(' / ');
     await goDay(pg, 1); d = await dayInfo(pg);
     ok(d.title === 'Exam day' && d.sub === '29/10 Thu · 🎯' && d.nextDis && !d.head && /🎯 Exam day/.test(d.exam) && /early/.test(d.exam) && d.tasks.length === 0 && await active(pg) === 'planDayPrev', `[F5] › to the exam day: "${d.exam}", › disabled, focus handed to ‹ (Day 21: ${lightTxt})`);
-    note(`[F5] exam-day view (ahead) hides #planDayHead, so "← Back to today" is not offered there (calendar today cell / ‹ still work): backToday=${d.backToday}`);
+    ok(d.backToday && await hitOf(pg, '#planBackToday').then(h => h && h.hit44), `[F5] O-1 re-test: the exam-day view (ahead) offers "← Back to today" (44px hit area)`);
+    await pg.click('#planBackToday'); await settle(pg, 150);
+    { const r = await dayInfo(pg); ok(r.title === "Today's tasks" && r.head && !r.exam && !r.backToday && await active(pg) === 'planDayHeading' && await pg.evaluate(() => byId('planBackToday').parentElement.id) === 'planDayInfo', `[F5] O-1: from the exam day "← Back to today" → today, button back under the hint, focus on the heading`); }
+    await pg.click(`#planCal [data-iso="2026-10-29"]`); await settle(pg, 200); d = await dayInfo(pg);
     await pg.screenshot({ path: path.join(SHOTS, 'F-375-en-exam-ahead.png'), fullPage: true });
     // calendar: today cell → today, page top, focus heading
     await pg.click(`#planCal [data-iso="${TODAY}"]`); await settle(pg, 200);
@@ -429,7 +432,7 @@ async function partF(b) {
     await pg.click('#planCard .plan-btn-gold'); await settle(pg, 250);
     d = await dayInfo(pg);
     ok(d.title === 'Exam day' && /It's exam day today, good luck!/.test(d.exam) && !d.carry && d.tasks.length === 0 && d.nextDis && !d.prevDis && cell(d, '2026-10-29').cur === 'date', `[F11] exam day screen "${d.exam}", no tasks, no carry; exam cell "${cell(d, '2026-10-29').cls}" aria-current ${cell(d, '2026-10-29').cur}`);
-    if (!/today/.test(cell(d, '2026-10-29').cls)) note(`[F11] on the exam day its calendar cell has no "today" class (lattice only, aria-current=date): "${cell(d, '2026-10-29').cls}"`);
+    ok(/today/.test(cell(d, '2026-10-29').cls) && /exam/.test(cell(d, '2026-10-29').cls), `[F11] O-2 re-test: on the exam day its cell has the today outline too: "${cell(d, '2026-10-29').cls}" outline ${await pg.$eval('#planCal [data-iso="2026-10-29"]', e => getComputedStyle(e).outlineStyle + ' ' + getComputedStyle(e).boxShadow)}`);
     await pg.screenshot({ path: path.join(SHOTS, 'F-375-en-examday-calendar.png'), clip: await pg.$eval('#planCal', e => { e.scrollIntoView({ block: 'center' }); const r = e.getBoundingClientRect(); return { x: r.left, y: r.top, width: r.width, height: r.height }; }) });
     await pg.screenshot({ path: path.join(SHOTS, 'F-375-en-examday.png'), fullPage: true });
     await goDay(pg, -1); d = await dayInfo(pg);
@@ -593,22 +596,39 @@ async function partE(b) {
       await pg.click('#planDayNext'); await settle(pg, 200);
       ok(await screen(pg) === 'screenHome' && /Build|study plan/i.test(await cardText(pg) || ''), `[E7] plan deleted in another tab, then › → Home create card`);
       ok(errs.length === 0, `[E7] 0 errors ${errs.join(' | ')}`); await ctx.close(); }
-    // E9 G24: a past day never opened (its clear-wrong was never fixed): not counted, so not shown as a task to do
-    { const { ctx, pg, errs } = await mk();
-      await boot(pg, s.base, NOW, { install: true });
+    // E9 G24 (CUI-0022 re-test) + O-1 / O-2 screenshots, 375 en / zh-HK: a past day never opened has no clear-wrong task
+    for (const lang of ['en', 'zh-HK']) { const { ctx, pg, errs } = await mk();
+      await boot(pg, s.base, NOW, { install: true, lang });
       await createViaUi(pg);
       await pg.evaluate(() => { const plan = planLoad(); const d2 = plan.days[1]; // Day 2 read + practice all right (e.g. via Practice that day, app not opened)
         const ok = Object.fromEntries(d2.tasks.filter(t => t.type !== 'review').flatMap(planTaskQids).map(k => [k, 1])); writePlanLog({ v: 1, days: { [d2.date]: { ok } } }); });
       await pg.clock.setSystemTime(at('2026-10-13')); await pg.reload(); await settle(pg, 300);
       await pg.click('#planCard .plan-btn-gold'); await settle(pg, 200);
+      const today = await dayInfo(pg);
       await pg.click('#planCal [data-iso="2026-10-09"]'); await settle(pg, 200);
       const d = await dayInfo(pg);
-      await pg.screenshot({ path: path.join(SHOTS, 'E-375-en-g24-past-unopened.png'), fullPage: true });
+      await pg.screenshot({ path: path.join(SHOTS, `E-375-${lang}-g24-past-unopened.png`), fullPage: true });
       const rv = d.tasks.find(t => /review/.test(t.cls));
-      note(`[E9] Day 2 (past, never opened): ring ${d.ringPct}, "${d.count}", banner "${d.done}", clear-wrong box ${rv ? rv.cls + ' "' + rv.st + '"' : 'none'}`);
-      ok(d.ringPct === '100%' && d.done === '🎉 All done for this day!', '[E9] G24: the unopened clear-wrong weighs nothing: Day 2 100% + done banner');
-      ok(d.count === '2 / 2 done' || (!!rv && !/Decided on the day/.test(rv.st) && !/todo/.test(rv.cls)), `[E9] G24 "as if the item did not exist": count / box agree with 100% — got "${d.count}" + clear-wrong ${rv && rv.cls} "${rv && rv.st}" (CUI-0022)`);
-      ok(errs.length === 0, `[E9] 0 errors ${errs.join(' | ')}`); await ctx.close(); }
+      const want = lang === 'en' ? ['100%', '2 / 2 done', '🎉 All done for this day!'] : ['100%', '2 / 2 項完成', '🎉 這日的任務全部完成！'];
+      ok(d.ringPct === want[0] && d.count === want[1] && d.done === want[2] && !rv && d.tasks.length === 2, `[E9] ${lang} G24 / CUI-0022: never-opened Day 2: ring ${d.ringPct}, "${d.count}", "${d.done}", ${d.tasks.length} boxes, clear-wrong ${rv ? 'shown' : 'not shown'}`);
+      ok(today.tasks.some(t => /review/.test(t.cls)), `[E9] ${lang}: today keeps its clear-wrong task (${today.count})`);
+      await pg.click('#planCal [data-iso="2026-10-14"]'); await settle(pg, 150); const a2 = await dayInfo(pg);
+      ok(a2.tasks.some(t => /review/.test(t.cls) && /Decided on the day|到時按錯題簿決定/.test(t.st)), `[E9] ${lang}: a day ahead keeps its clear-wrong "decided on the day" (G23) "${a2.count}"`);
+      // O-1: exam-day view ahead with "back to today"
+      await pg.click('#planCal [data-iso="2026-10-29"]'); await settle(pg, 200);
+      const ex = await dayInfo(pg);
+      ok(!ex.head && ex.backToday, `[E9] ${lang} O-1: exam-day view (ahead) shows "back to today": "${ex.exam}"`);
+      await pg.evaluate(() => scrollTo(0, 0));
+      await pg.screenshot({ path: path.join(SHOTS, `R-375-${lang}-exam-ahead.png`), fullPage: true });
+      await pg.click('#screenPlanDay .back-btn'); await settle(pg, 150);
+      // O-2: on the exam day itself
+      await pg.clock.setSystemTime(at('2026-10-29')); await pg.reload(); await settle(pg, 300);
+      await pg.click('#planCard .plan-btn-gold'); await settle(pg, 250);
+      const ed = await dayInfo(pg);
+      ok(/today/.test(cell(ed, '2026-10-29').cls) && cell(ed, '2026-10-29').cur === 'date' && !ed.backToday, `[E9] ${lang} O-2: exam day today: cell "${cell(ed, '2026-10-29').cls}", no back-to-today`);
+      await pg.screenshot({ path: path.join(SHOTS, `R-375-${lang}-examday.png`), fullPage: true });
+      await pg.screenshot({ path: path.join(SHOTS, `R-375-${lang}-examday-calendar.png`), clip: await pg.$eval('#planCal', e => { e.scrollIntoView({ block: 'center' }); const r = e.getBoundingClientRect(); return { x: r.left, y: r.top, width: r.width, height: r.height }; }) });
+      ok(errs.length === 0, `[E9] ${lang} 0 errors ${errs.join(' | ')}`); await ctx.close(); }
     // E8 HK vs London: same instant, different local day
     { for (const [tz, want] of [['Europe/London', '8/10 Thu · 1/21'], ['Asia/Hong_Kong', '9/10 Fri · 2/21']]) {
       const { ctx, pg, errs } = await mk({ timezoneId: tz });
