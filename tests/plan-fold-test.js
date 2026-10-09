@@ -68,6 +68,9 @@ async function checkReopenCollapsed(pg) {
   const line = await pg.evaluate(() => { const lis = [...document.querySelectorAll('#planOrderMini li')]; const dot = li => li.querySelector('.plan-ord-n').getBoundingClientRect();
     return lis.map(dot).every((r, i, a) => !i || (r.left > a[i - 1].right && Math.abs(r.top - a[0].top) < 1)); });
   assert(line, 'stepper: the dots sit on one horizontal line, left to right');
+  const mid = await pg.evaluate(() => { const li = document.querySelectorAll('#planOrderMini li')[1], b = getComputedStyle(li, '::before'), dot = li.querySelector('.plan-ord-n');
+    return Math.abs(parseFloat(b.top) + parseFloat(b.height) / 2 - (dot.offsetTop + dot.offsetHeight / 2)); });
+  assert(mid < 0.5, 'S-126: the joining line runs through the dots\' centres: ' + mid);
 }
 
 const HIT_TOLERANCE = 1;
