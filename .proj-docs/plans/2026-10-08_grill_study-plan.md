@@ -49,6 +49,7 @@
 | G37 | 以前嘅 Practice 記錄 | **已掌握（🏆，`isMastered`）嘅題即時當完成**：「讀 + 練」階段嘅練習任務入面已掌握嘅題自動「✓ 已掌握」，對應知識點當已溫（G3 / G4）；**即時計、唔 migrate 資料**，計劃照排，已建立嘅計劃打開即更新，之後喺 Practice 掌握嘅題都即時反映（包括已過日子同補做）。強化 / 清錯題 / 模擬考唔受影響（G5 強化要再答啱）；runner 只出未掌握 / 未答啱嘅題（用戶 2026-10-09，部份覆蓋 G2 / G5）|
 | G38 | 計劃入面答啱錯題 | 喺溫習計劃**任何 runner**（練題目 / 強化 / 清錯題）答啱錯題簿入面嘅題，就清走錯題簿同一題（連 copy，W-030 `planSameQuestionKeys`）；平時 Practice 行為唔變（用戶 2026-10-09，PR6a QA O-1）|
 | G39 | 模擬考合格後再試 | 計劃模擬考已合格之後，結果頁「再試」= **普通重考，唔計入計劃**（唔寫 mock attempt，唔影響下一個 slot）；下一份模擬考照舊由任務框開（用戶 2026-10-09，PR6b review S-133）|
+| G40 | 不同試卷內文字相同的題目（17 條知識點、多出 19 個 key） | **一條題目文字 = 一條題目**（用戶 2026-10-09 確認，睇過 preview）：①列出知識點來源嘅地方（Study 知識點卡「出現於」行、Similar panel 題目地圖）將相同文字嘅 copy **合併成一粒 node**，用「 = 」連住（例如「出現於：E10·Q1  E7·Q16 = E13·Q1」，copy 按試卷次序，同 canonical key 一樣）；答緊 / 答完嗰題本身有 copy 就併入「current」node（答 E13·Q1 → 「E13·Q1 = E7·Q16」）；Similar panel 題目列表每條不同題目一張卡，ref 一樣用「 = 」連（「Exam 7 · Q16 = Exam 13 · Q1」），「+N」= 唔計 current（連佢嘅 copy）嘅不同題目數，「練習這 N 題」= 不同題目數，session 每條只問一次；Study 卡預設掣 N = 不同題目數，`startFactPractice` 每條只問一次；溫習計劃 runner 本身已去重，題數不變。②**同步連勝**：答任何一個 copy，所有 copy 寫同一個新連勝（答啱 = min(3, copy 之中最高 + 1)、答錯 = 0）；唔 migrate 舊資料，舊資料 copy 之間唔同就讀最高嗰個（node 顏色、`isMastered`、`factMastery`、試卷 / 章節掌握 %、G37 都一致）；Exam 7 同 Exam 13 嘅 copy 同步後一齊算已掌握（用戶接受）；計劃以外錯題簿行為不變（G38 照舊）。③zh-HK 完成訊息統一加「已」：`plan.run.allDoneToday`「今日任務已全部完成！」、`allDoneDayHtml`「{day} 任務已全部完成！」；en 不變。v1.0.7（PR7b，`.proj-docs/plans/2026-10-09_dup-questions-pr7b.md`）|
 
 ---
 
