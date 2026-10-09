@@ -5,11 +5,12 @@ const path = require('path');
 // Home plan card. Completion comes from a seeded answer log here; opening a task (the runner) is
 // tests/plan-run-test.js (PR6a). The entry stays hidden (STUDY_PLAN_READY = false) unless ?preview=plan (G31).
 // - header ← Home | ‹ title / date · n/N › | Schedule; ‹ › step through the plan; "back to today"
-// - ring (G27 band), phase pill (past / ahead), n / m done, hint per day kind; done banner
+// - ring (G27 band), phase pill (past / ahead), n / m done, hint per day kind; done banner; v1.0.4: a rest day
+//   shows a large 😴 instead of the ring and no visible "no tasks" line (kept for screen readers)
 // - task boxes: not started (dashed) / in progress (solid) / done (green) / carry-over (orange + Day n tag,
 //   not counted in today's %: G8); "k wrong: only right answers count"; reading done by practice (G3);
 //   no wrong answers (G9 empty); ahead days: clear-wrong / drill decided on the day (G23); mock best score (G25)
-// - calendar: one month, ‹ Today › within the plan's months, past / today / ahead / rest / outside / exam cells,
+// - calendar: one month, ‹ Today › within the plan's months (v1.0.4: not shown for a one-month plan), past / today / ahead / rest / outside / exam cells,
 //   cells open their day; 🔥 n days at 100% (G29); overall progress (plan %, average, days left + 3 bars)
 // - Home card: Day n / N, days to the exam, today % + bar, next step, continue / view today; exam day and
 //   ended (G16: summary + new plan / change goal); unreadable log hint
@@ -30,6 +31,7 @@ const GOAL = { examDate: '2026-10-29', dailyMins: 120, restDays: [0], level: 'no
 const WIDTHS = [360, 375, 400];
 const HIT_MIN_PX = 44;
 const MIN_CONTRAST = 4.5;
+const REST_EMOJI_MIN_PX = 48;
 
 const activeScreen = pg => pg.evaluate(() => document.querySelector('.screen.active').id);
 const text = (pg, sel) => pg.$eval(sel, e => e.textContent.replace(/\s+/g, ' ').trim());
@@ -66,6 +68,22 @@ const hitOk = (pg, sel) => pg.evaluate(({ s, min }) => {
   const hit = (x, y) => { const h = document.elementFromPoint(x, y); return !!h && (h === e || e.contains(h)); };
   return hit(cx, cy - d) && hit(cx, cy + d) && hit(cx - d, cy) && hit(cx + d, cy);
 }, { s: sel, min: HIT_MIN_PX });
+// the rest day look: ring / 😴 / count (visually hidden = rendered but clipped to ≤ 1px, still in the a11y tree)
+const restLook = pg => pg.evaluate(() => {
+  const emoji = byId('planRestEmoji'), count = byId('planDayCount'), box = count.getBoundingClientRect();
+  return { ring: byId('planRing').getClientRects().length > 0, emoji: emoji.textContent, emojiShown: emoji.getClientRects().length > 0,
+    emojiHidden: emoji.getAttribute('aria-hidden') === 'true', emojiPx: parseFloat(getComputedStyle(emoji).fontSize),
+    count: count.textContent, countSrOnly: count.getClientRects().length > 0 && box.width <= 1 && box.height <= 1, pill: byId('planDayPhase').textContent };
+});
+// the month navigation: ‹ Today › all rendered (none in a hidden ancestor)
+const calNavShown = pg => pg.evaluate(() => ['planCalPrev', 'planCalToday', 'planCalNext'].every(id => byId(id).getClientRects().length > 0));
+// v1.0.4 (user): the hint paragraph is justified with its last line on the left, and spans the info column (not a
+// centred shrink-to-fit block), at every width
+const hintJustified = pg => pg.evaluate(() => {
+  const hint = byId('planDayHint'), s = getComputedStyle(hint);
+  const box = hint.getBoundingClientRect(), col = byId('planDayInfo').getBoundingClientRect();
+  return s.textAlign === 'justify' && s.textAlignLast === 'left' && Math.abs(box.left - col.left) < 1 && Math.abs(box.right - col.right) < 1;
+});
 // WCAG contrast of each element's text against the first opaque background behind it; no opacity on the way up
 const contrastOf = (pg, sel) => pg.evaluate(sel => {
   const rgb = s => (s.match(/[\d.]+/g) || []).map(Number);
@@ -147,6 +165,7 @@ async function checkToday(pg) {
   assert(r.pill === 'Read + practise phase', 'phase pill: ' + r.pill);
   assert(r.count === '1 / 3 done', 'n / m done (own tasks only): ' + r.count);
   assert(/automatically/.test(r.hint), 'today hint: completion is counted automatically: ' + r.hint);
+  assert(await hintJustified(pg), 'v1.0.4 (user): the hint under the count is justified, last line left, across the info column');
   assert(Array.isArray(r.review) && r.review.length === 0, 'G9: the first open fixed today\'s clear-wrong list (empty wrong list)');
   const [read, practice, review, ...carry] = r.tasks;
   assert(r.tasks.length === 3 + carry.length && carry.length > 0, 'own tasks, then carry-over tasks');
@@ -219,6 +238,11 @@ async function checkPastAndAhead(pg) {
   assert(d2.boxes.length === 2 && !d2.boxes.some(c => c.includes('review')) && !d2.text.includes('Decided on the day'), 'CUI-0022: no clear-wrong box on it');
   assert(await pg.evaluate(() => planVisibleTasks(planLoad().days[2], '2026-10-01').length) === 4 && await pg.evaluate(() => planVisibleTasks(planLoad().days[4], '2026-10-01').length) === 5,
     'planVisibleTasks: a past unopened review is dropped; an ahead day keeps it (G23)');
+}
+// ahead days (G23) and the exam day ahead (QA O-1)
+async function checkAheadDays(pg) {
+  await fresh(pg);
+  await seedPlan(pg);
   // ahead: a drill day (G23: decided on the day), a rest day, a mock day
   await openDay(pg, '2026-10-06');
   assert(await text(pg, '#planDayPhase') === 'Drill phase · ahead' && (await text(pg, '#planDayHint')).includes('early'), 'ahead day: pill · ahead + early hint');
@@ -234,9 +258,21 @@ async function checkPastAndAhead(pg) {
   assert(await hitOk(pg, '#planBackToday'), `O-1: "back to today" on the exam day: ${HIT_MIN_PX}px`);
   await pg.click('#planBackToday');
   assert(await text(pg, '#planDayTitle') === "Today's tasks" && await visible(pg, '#planDayHead') && !(await visible(pg, '#planBackToday')), 'O-1: back to today from the exam day');
+}
+// v1.0.4 (user): a rest day shows a large 😴 instead of the ring; the next study day shows the ring again
+async function checkRestDayLook(pg) {
+  await fresh(pg);
+  await seedPlan(pg);
   await openDay(pg, '2026-10-04');
-  assert(await text(pg, '#planDayCount') === 'Rest day: no tasks' && await text(pg, '#planRingPct') === '–' && await text(pg, '#planDayPhase') === 'Rest day', 'rest day: no tasks, ring –');
+  const rest = await restLook(pg);
+  assert(!rest.ring && rest.emoji === '😴' && rest.emojiShown && rest.emojiHidden, 'v1.0.4 (user): rest day: no ring, a large 😴 (aria-hidden) in its place: ' + JSON.stringify(rest));
+  assert(rest.count === 'Rest day: no tasks' && rest.countSrOnly, 'v1.0.4: "Rest day: no tasks" is not shown but stays for screen readers: ' + JSON.stringify(rest));
+  assert(rest.pill === 'Rest day' && await visible(pg, '#planBackToday') && await hitOk(pg, '#planBackToday'), 'v1.0.4: rest day keeps the "Rest day" pill and "← Back to today"');
+  assert(rest.emojiPx >= REST_EMOJI_MIN_PX, `v1.0.4: the 😴 is large (≥ ${REST_EMOJI_MIN_PX}px): ${rest.emojiPx}`);
   assert(await pg.$$eval('#planTaskList .plan-task', els => els.length) === 0, 'rest day: no task boxes');
+  await pg.click('#planDayNext');
+  const study = await restLook(pg);
+  assert(study.ring && !study.emojiShown && !study.countSrOnly && /^0 \/ \d+ done$/.test(study.count), 'v1.0.4: the next study day shows the ring and the count again: ' + JSON.stringify(study));
 }
 
 async function checkMockDay(pg) {
@@ -335,6 +371,7 @@ async function checkCalendar(pg) {
   assert(r.out.includes('out') && r.outTag === 'SPAN' && r.btn === 'BUTTON', 'outside the plan: plain number; plan days are buttons');
   assert(r.label === 'Day 4 · 1/10 · 26%' || /^Day 4 · 1\/10 · \d+%$/.test(r.label), 'cell label: ' + r.label);
   assert(r.prev === false && r.next === true && r.todayBtn === true, '‹ to September, › last month, "Today" on today\'s month');
+  assert(await calNavShown(pg), 'v1.0.4: a plan across two months (Sep–Oct) keeps the month navigation ‹ Today ›');
   assert(r.streak === '', 'G29: Day 3 below 100% breaks the run (0 days: no pill): ' + r.streak);
   await pg.click('#planCalPrev');
   const sep = await pg.evaluate(() => ({ title: byId('planCalTitle').textContent, past: document.querySelector('#planCal [data-iso="2026-09-29"]').className,
@@ -352,6 +389,23 @@ async function checkCalendar(pg) {
   const low = (await contrastOf(pg, '#planCal .plan-cell, #planCal .plan-dow, #planCalTitle')).filter(c => c.ratio < MIN_CONTRAST || !c.opaque);
   assert(low.length === 0, `calendar numbers ≥ ${MIN_CONTRAST}:1 (past cells lighter, never opacity): ` + JSON.stringify(low));
   for (const s of ['#planCalPrev', '#planCalNext', '#planCalToday']) assert(await hitOk(pg, s), `${s}: ${HIT_MIN_PX}px`);
+}
+
+// v1.0.4 (user): a plan inside one calendar month has nothing to page through, so ‹ Today › is not shown
+async function checkSingleMonthCalendar(pg) {
+  await fresh(pg);
+  await pg.evaluate(goal => writeStudyPlan(buildPlan(goal, '2026-10-01')), GOAL);
+  await openDay(pg);
+  assert(await text(pg, '#planCalTitle') === 'October 2026' && !(await calNavShown(pg)), 'v1.0.4: plan 1–29 Oct: month title, no ‹ Today ›');
+  await pg.click('#planCal [data-iso="2026-10-05"]');
+  assert(!(await calNavShown(pg)), 'v1.0.4: still hidden after opening a day');
+  await pg.evaluate(() => { writeStudyPlan(buildPlan({ examDate: '2026-11-03', dailyMins: 120, restDays: [0], level: 'none' }, '2026-10-01')); renderPlanDay(); });
+  assert(await calNavShown(pg), 'v1.0.4: the same screen re-rendered for a plan into November shows ‹ Today › again');
+  // S-128: focus on a month button that gets hidden (the plan shrinks to one month) moves to the day heading, not <body>
+  await pg.focus('#planCalNext');
+  await pg.evaluate(goal => { writeStudyPlan(buildPlan(goal, '2026-10-01')); renderPlanDay(); }, GOAL);
+  const focus = await pg.evaluate(() => document.activeElement.id || document.activeElement.tagName);
+  assert(!(await calNavShown(pg)) && focus === 'planDayHeading', 'S-128: hiding ‹ Today › hands the focus to the day heading: ' + focus);
 }
 
 async function checkKpis(pg) {
@@ -499,6 +553,62 @@ async function checkMidnightCta(pg) {
   assert(!(await visible(pg, '#planGoalHint')), 'S-115: the notice goes once the form changes');
 }
 
+// W-040: an old cached v1.0.3 index.html (no #planRestEmoji / #planCalBtns) with v1.0.4 JS still renders the day screen:
+// today's tasks, a rest day with the ring and its count (the v1.0.3 look), the calendar
+async function checkOldShell(pg) {
+  await fresh(pg);
+  await seedPlan(pg);
+  const r = await pg.evaluate(() => {
+    byId('planRestEmoji').remove(); // v1.0.3 markup: no 😴, and the month buttons' wrapper has no id
+    byId('planCalBtns').removeAttribute('id');
+    const run = f => { try { f(); return 'ok'; } catch (e) { return e.message; } };
+    const today = run(() => openPlanDay());
+    const tasks = document.querySelectorAll('#planTaskList .plan-task').length;
+    const rest = run(() => openPlanDay('2026-10-04'));
+    return { today, tasks, rest, ring: byId('planRing').getClientRects().length > 0, count: byId('planDayCount').textContent,
+      cal: document.querySelectorAll('#planCal .plan-cell').length };
+  });
+  assert(r.today === 'ok' && r.tasks > 0 && r.cal > 0, 'W-040: old shell: today renders its tasks and calendar: ' + JSON.stringify(r));
+  assert(r.rest === 'ok' && r.ring && r.count === 'Rest day: no tasks', 'W-040: old shell: a rest day keeps the ring and its count (v1.0.3 look): ' + JSON.stringify(r));
+}
+
+// v1.0.4 (user): on a rest day the 😴 sits close above the "Rest day" pill (its box hugs the glyph, a small gap), and
+// "← Back to today" gets more room below the pill (the --space-8 token)
+const REST_EMOJI_GAP_MAX_PX = 16;
+const REST_BACK_GAP_TOKEN = '--space-8';
+const restGaps = pg => pg.evaluate(token => {
+  const r = id => byId(id).getBoundingClientRect();
+  const emoji = r('planRestEmoji'), pill = r('planDayPhase'), back = r('planBackToday');
+  const glyphPx = parseFloat(getComputedStyle(byId('planRestEmoji')).fontSize);
+  const px = parseFloat(getComputedStyle(document.documentElement).getPropertyValue(token));
+  // the glyph's empty margin inside its box counts as gap too
+  return { emojiToPill: pill.top - emoji.bottom + Math.max(0, (emoji.height - glyphPx) / 2), pillToBack: back.top - pill.bottom, token: px };
+}, REST_BACK_GAP_TOKEN);
+async function checkRestSpacing(browser) {
+  for (const lang of ['en', 'zh-HK']) {
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    const pg = await ctx.newPage();
+    await fresh(pg);
+    await pg.evaluate(l => setLang(l), lang);
+    await seedPlan(pg);
+    await openDay(pg, '2026-10-04');
+    const g = await restGaps(pg);
+    assert(g.emojiToPill <= REST_EMOJI_GAP_MAX_PX, `v1.0.4 ${lang} 390px rest day: 😴 → pill gap ≤ ${REST_EMOJI_GAP_MAX_PX}px: ` + JSON.stringify(g));
+    assert(g.token > 0 && g.pillToBack >= g.token - 0.5, `v1.0.4 ${lang} 390px rest day: pill → "Back to today" gap ≥ ${REST_BACK_GAP_TOKEN}: ` + JSON.stringify(g));
+    await pg.click('#planDayNext');
+    assert(!(await pg.evaluate(() => byId('planDayHead').classList.contains('rest'))), `v1.0.4 ${lang}: a study day drops the rest spacing`);
+    await ctx.close();
+  }
+}
+
+// no element of the active screen reaches past the viewport, no horizontal page scroll
+const layoutOverflow = pg => pg.evaluate(() => {
+  const vw = document.documentElement.clientWidth;
+  const bad = [...document.querySelectorAll('.screen.active *')].filter(e => { const r = e.getBoundingClientRect(); return r.width && (r.right > vw + 0.5 || r.left < -0.5); });
+  return { scroll: document.documentElement.scrollWidth > vw, bad: bad.slice(0, 3).map(e => e.className || e.tagName) };
+});
+// LAYOUT_OPENS: Home, today, a rest day, the exam day, the schedule
+const LAYOUT_OPENS = [() => leaveToHome(), () => openPlanDay(), () => openPlanDay('2026-10-04'), () => openPlanDay('2026-10-29'), () => openPlanSchedule()];
 async function checkLayout(browser) {
   for (const lang of ['en', 'zh-HK']) {
     for (const w of WIDTHS) {
@@ -507,26 +617,25 @@ async function checkLayout(browser) {
       await fresh(pg);
       await pg.evaluate(l => setLang(l), lang);
       await seedPlan(pg);
-      for (const open of [() => leaveToHome(), () => openPlanDay(), () => openPlanDay('2026-10-29'), () => openPlanSchedule()]) {
+      for (const open of LAYOUT_OPENS) {
         await pg.evaluate(open);
-        const over = await pg.evaluate(() => {
-          const vw = document.documentElement.clientWidth;
-          const bad = [...document.querySelectorAll('.screen.active *')].filter(e => { const r = e.getBoundingClientRect(); return r.width && (r.right > vw + 0.5 || r.left < -0.5); });
-          return { scroll: document.documentElement.scrollWidth > vw, bad: bad.slice(0, 3).map(e => e.className || e.tagName) };
-        });
+        const over = await layoutOverflow(pg);
         assert(!over.scroll && over.bad.length === 0, `${lang} ${w}px ${await activeScreen(pg)}: no horizontal overflow ` + JSON.stringify(over));
       }
-      await pg.evaluate(() => openPlanDay());
-      assert(await hitOk(pg, '#screenPlanDay .back-btn'), `S-117 ${lang} ${w}px: day header "← Home" has a ${HIT_MIN_PX}px tap area`);
-      const shown = await pg.evaluate(() => [...document.querySelectorAll('#screenPlanDay [hidden]')].filter(e => getComputedStyle(e).display !== 'none').length);
-      assert(shown === 0, `${lang} ${w}px: [hidden] never displayed`);
-      if (lang === 'zh-HK' && w === 375) {
-        const t = await pg.evaluate(() => [byId('planDayTitle').textContent, byId('planDayCount').textContent, byId('planCalTitle').textContent, document.querySelector('#planTaskList .plan-tag').textContent]);
-        assert(t[0] === '今日任務' && t[1] === '1 / 3 項完成' && t[2] === '2026 年 10 月' && t[3] === '1 題答錯，答對才計算', 'zh-HK (G21 written Chinese): ' + t.join(' | '));
-      }
+      await checkTodayLayout(pg, lang, w);
       await ctx.close();
     }
   }
+}
+async function checkTodayLayout(pg, lang, w) {
+  await pg.evaluate(() => openPlanDay());
+  assert(await hitOk(pg, '#screenPlanDay .back-btn'), `S-117 ${lang} ${w}px: day header "← Home" has a ${HIT_MIN_PX}px tap area`);
+  const shown = await pg.evaluate(() => [...document.querySelectorAll('#screenPlanDay [hidden]')].filter(e => getComputedStyle(e).display !== 'none').length);
+  assert(shown === 0, `${lang} ${w}px: [hidden] never displayed`);
+  assert(await hintJustified(pg), `v1.0.4 ${lang} ${w}px: hint justified, last line left, full info width`);
+  if (lang !== 'zh-HK' || w !== 375) return;
+  const t = await pg.evaluate(() => [byId('planDayTitle').textContent, byId('planDayCount').textContent, byId('planCalTitle').textContent, document.querySelector('#planTaskList .plan-tag').textContent]);
+  assert(t[0] === '今日任務' && t[1] === '1 / 3 項完成' && t[2] === '2026 年 10 月' && t[3] === '1 題答錯，答對才計算', 'zh-HK (G21 written Chinese): ' + t.join(' | '));
 }
 
 (async () => {
@@ -541,10 +650,13 @@ async function checkLayout(browser) {
     await checkCarryNotCounted(pg);
     await checkAllDone(pg);
     await checkPastAndAhead(pg);
+    await checkAheadDays(pg);
+    await checkRestDayLook(pg);
     await checkMockDay(pg);
     await checkExamDayAndEnded(pg);
     await checkHomeCard(pg);
     await checkCalendar(pg);
+    await checkSingleMonthCalendar(pg);
     await checkKpis(pg);
     await checkScheduleRows(pg);
     await checkLongSchedule(pg);
@@ -552,6 +664,8 @@ async function checkLayout(browser) {
     await checkMidnightCta(pg);
     await checkMidnight(browser);
     await checkTimeZones(browser);
+    await checkRestSpacing(browser);
+    await checkOldShell(pg);
     await checkLayout(browser);
     assert(errors.length === 0, 'no page errors: ' + errors.join(' | '));
     console.log('PLAN-DAY PASS');

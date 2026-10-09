@@ -6,6 +6,8 @@
 // a study day's tasks names its chapters in full (v1.0.3).
 // "Change goal" re-plans from today (planGoal.js, G7); "↺ Reset plan" deletes the plan and its log (S-110).
 // Each day row (and the exam day) is a button that opens that day (planDay.js); "View today's tasks →" below.
+// v1.0.4: "Three phases" and "Study order" fold: expanded on the first open after a new plan / changed goal, collapsed on
+// every later open (the bar then shows each phase's Day range; the order a stepper of numbered dots)
 // ════════════════════════════════════════
 const PLAN_ORDER_STEPS = [[1, 2], [5], [4], [3]]; // PLAN_STUDY_ORDER grouped as the order card shows it
 const PLAN_ORDER_WHY_KEYS = { 1: 'plan.order.whyWarmUp', 5: 'plan.order.whyGov', 4: 'plan.order.whySociety', 3: 'plan.order.whyHistory' };
@@ -22,10 +24,15 @@ const PLAN_ORDER_BAR_MIN_PCT = 2; // the smallest chapter bar stays visible
 // PR4 QA O-1: rows further than this from today skip layout until scrolled near (content-visibility); the rows
 // around today are always laid out, so opening the list at today lands exactly
 const PLAN_NEAR_ROWS = 14;
+// v1.0.4: each folding card's toggle (a button in its h3; aria-controls names the part it hides)
+const PLAN_FOLD_TOGGLES = { phases: 'planPhasesToggle', order: 'planOrderToggle' };
+let planFoldOpen = { phases: true, order: true }; // this visit's state: a re-render (language, new day) keeps it, never saved
 
 function openPlanSchedule() {
   if (!planVisible()) return;
-  if (!planLoad()) { leaveToHome(); return; } // reset in another tab, or unreadable: Home shows the create card
+  const plan = planLoad();
+  if (!plan) { leaveToHome(); return; } // reset in another tab, or unreadable: Home shows the create card
+  planInitFolds(plan);
   showScreen('screenPlanSchedule');
   window.scrollTo(0, 0);
   renderPlanSchedule();
@@ -40,6 +47,7 @@ function renderPlanSchedule() {
   renderPlanPhaseBar(phases);
   renderPlanStrategy(plan, phases);
   renderPlanOrder();
+  Object.keys(PLAN_FOLD_TOGGLES).forEach(applyPlanFold);
   byId('planDayList').innerHTML = planDayListHtml(plan, log, planTodayIso());
 }
 // language switch / new day: re-rendered in place, the day list stays where it was scrolled. It returns to the first
@@ -51,6 +59,34 @@ function rerenderPlanSchedule() {
   renderPlanSchedule();
   const again = anchor && list.querySelector(`.plan-day[data-arg="${anchor.iso}"]`);
   planJumpList(again ? again.offsetTop + anchor.delta : 0);
+}
+
+// ── folding cards ──
+// the first open of this plan (or of its changed goal) shows both cards expanded and stores the marker; later opens fold them
+function planInitFolds(plan) {
+  const id = planIdentity(plan);
+  const first = readPlanScheduleSeen() !== id;
+  if (first) writePlanScheduleSeen(id);
+  planFoldOpen = { phases: first, order: first };
+}
+function planToggleFold(name) {
+  if (!Object.prototype.hasOwnProperty.call(PLAN_FOLD_TOGGLES, name)) return;
+  planFoldOpen[name] = !planFoldOpen[name];
+  applyPlanFold(name);
+}
+// collapsed: the hidden part gets [hidden]; the phase bar, then the card's only content, is read by screen readers
+// (expanded, the strategy boxes say the same, so it stays aria-hidden); the order card shows its stepper instead
+function applyPlanFold(name) {
+  const btn = byId(PLAN_FOLD_TOGGLES[name]);
+  if (!btn) return; // an old cached index.html without the toggles: the cards stay expanded, as before
+  const open = planFoldOpen[name];
+  btn.setAttribute('aria-expanded', String(open));
+  byId(btn.getAttribute('aria-controls')).hidden = !open;
+  btn.closest('.plan-fold').classList.toggle('collapsed', !open);
+  if (name !== 'phases') { byId('planOrderMini').hidden = open; return; }
+  const bar = byId('planPhaseBar');
+  if (open) bar.setAttribute('aria-hidden', 'true');
+  else bar.removeAttribute('aria-hidden');
 }
 
 // ── summary, phases, strategy ──
@@ -67,18 +103,20 @@ function planPhaseDays(plan) {
 }
 function planShownPhases(phases) { return PLAN_SHOWN_PHASES.filter(k => phases[k].length); }
 // v1.0.2: three equal segments, the name over its day count; a name too long for its segment wraps (W-037, plan.css)
+// v1.0.4: each also carries its Day range, shown instead of the count while the card is collapsed (plan.css .collapsed)
 function renderPlanPhaseBar(phases) {
   byId('planPhaseBar').innerHTML = planShownPhases(phases).map(k => {
     const nameKey = PLAN_PHASE_LABEL_KEYS[k];
-    return `<div class="plan-bg-${k}"><span class="plan-ph-name">${t(nameKey)}</span>`
-      + `<span class="plan-ph-days plan-num">${t('plan.schedule.phaseDaysN', { n: phases[k].length })}</span></div>`;
+    return `<div class="plan-bg-${k}" role="listitem"><span class="plan-ph-name">${t(nameKey)}</span>`
+      + `<span class="plan-ph-days plan-num">${t('plan.schedule.phaseDaysN', { n: phases[k].length })}</span>`
+      + `<span class="plan-ph-range plan-num" lang="en">${planDayRangeText(phases[k])}</span></div>`;
   }).join('');
 }
-function planDayRangeHtml(days) {
+function planDayRangeText(days) {
   const from = days[0], to = days[days.length - 1];
-  const text = from === to ? t('plan.dayN', { n: from }) : t('plan.schedule.dayRange', { from, to });
-  return `<span class="plan-strat-days" lang="en">${text}</span>`;
+  return from === to ? t('plan.dayN', { n: from }) : t('plan.schedule.dayRange', { from, to });
 }
+function planDayRangeHtml(days) { return `<span class="plan-strat-days" lang="en">${planDayRangeText(days)}</span>`; }
 function planStrategyItems(plan, phase) {
   const passScore = Math.ceil(REAL_TEST_SIZE * PASS_RATIO);
   const mocks = plan.days.flatMap(d => d.tasks).filter(task => task.type === PLAN_TASK.mock).length;
@@ -112,7 +150,17 @@ function planOrderStepHtml(chs, i) {
     + `<div class="plan-chw"><span class="plan-chw-bar" aria-hidden="true"><i></i></span>`
     + `<span class="plan-chw-c plan-num">${t('plan.schedule.orderCount', { facts, qs })}</span></div></div></div>`;
 }
+// v1.0.4: the collapsed card's stepper: a numbered dot per step, a short label ("Ch 1 + 2") under it; screen readers get
+// the full chapter names instead
+function planOrderMiniHtml(chs, i) {
+  const short = [t('common.chapterShort', { n: chs[0] }), ...chs.slice(1)].join(' + ');
+  return `<li><span class="plan-ord-n plan-num" aria-hidden="true">${i + 1}</span>`
+    + `<span class="plan-ord-mini-name" lang="en" aria-hidden="true">${short}</span>`
+    + `<span class="plan-sr" lang="en">${chs.map(planChapterText).join(' + ')}</span></li>`;
+}
 function renderPlanOrder() {
+  const mini = byId('planOrderMini');
+  if (mini) mini.innerHTML = PLAN_ORDER_STEPS.map(planOrderMiniHtml).join('');
   const box = byId('planOrder');
   box.innerHTML = PLAN_ORDER_STEPS.map(planOrderStepHtml).join('');
   const sizes = PLAN_ORDER_STEPS.map(chs => chs.reduce((s, ch) => s + planChapterFacts(ch), 0));

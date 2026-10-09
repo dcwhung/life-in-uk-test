@@ -63,6 +63,7 @@ const ACTIONS = {
   openPlanSchedule: () => openPlanSchedule(),
   planEditGoal: () => planEditGoal(),
   planAskReset: () => planAskReset(),
+  planToggleFold: el => planToggleFold(el.dataset.arg),
   openPlanDay: el => openPlanDay(el.dataset.arg || null), // a schedule row names its day; the Home card means today
   planShiftDay: el => planShiftDay(numArg(el)),
   planShowToday: () => planShowToday(),
