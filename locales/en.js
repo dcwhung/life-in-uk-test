@@ -417,7 +417,9 @@ LOCALES.en = {
       backDayHtml: '← {day} tasks',
       roundOf: 'Round {n} of {rounds}',
       nextRound: 'Next round →',
+      nextRoundTitle: 'Next round', // QA O-3: the quick button's title / aria-label, no symbol
       retryWrong: { one: '🔁 Redo the wrong answer ({n} left)', other: '🔁 Redo wrong answers ({n} left)' },
+      retryWrongTitle: { one: 'Redo the wrong answer ({n} left)', other: 'Redo wrong answers ({n} left)' },
       pairNote: 'Once these questions are right, the matching facts count as read.',
       reviewNote: '✅ This task is done · reviewing it does not change your progress.',
       reviewCorrect: '✓ Correct answer',

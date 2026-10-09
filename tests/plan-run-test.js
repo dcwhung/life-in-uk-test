@@ -145,6 +145,10 @@ async function checkRounds(pg) {
   assert(r1.last.next === 'Next round →', 'round 1 last question: "Next round →": ' + r1.last.next);
   const c2 = await cur(pg);
   assert(c2.plan && c2.n === qids.length - 24 + 2 && c2.note === 'Round 2 of 2', `round 2: the ${qids.length - 24} new ones, the skipped one, the wrong one (${c2.n}); Round 2 of 2`);
+  const t2 = await pg.evaluate(() => { const keep = state.current; state.current = state.questions.length - 1; renderQuestion();
+    const r = [byId('quickNext').title, byId('quickNext').getAttribute('aria-label')]; state.current = keep; renderQuestion(); return r; });
+  assert(t2[0] === 'Redo the wrong answer (1 left)' || t2[0] === 'Next round', 'QA O-3: quick-nav title without → / 🔁: ' + t2);
+  assert(t2.every(x => !/[→✓🔁]/u.test(x)), 'QA O-3: title / aria-label carry no symbol: ' + t2);
   const order = await pg.evaluate(() => state.questions.map(qKey));
   assert(order[order.length - 2] === skipKey && order[order.length - 1] === wrongKey, 'order: new questions, then the skipped one, then the wrong one');
   const r2 = await playRound(pg, { wrongKeys: [wrongKey] });
@@ -155,6 +159,8 @@ async function checkRounds(pg) {
   assert(c3.n === 1 && c3.key === wrongKey, 'redo round: only the wrong one');
   await answer(pg, true);
   assert((await cur(pg)).next === 'Finish ✓', 'all right: "Finish ✓"');
+  const t3 = await pg.evaluate(() => [byId('quickNext').textContent, byId('quickNext').title, byId('quickNext').getAttribute('aria-label')]);
+  assert(t3.join('|') === '✓|Finish|Finish', 'QA O-3: the quick ✓ button is titled "Finish" (no symbol): ' + t3);
   log = await dayLog(pg, TODAY);
   assert(qids.every(k => log.ok[k]), 'every question of the task is right for today');
   await tap(pg, '#nextBtn');
