@@ -48,18 +48,21 @@ function planContinue() {
 function planRunReturn(ctx, date, taskIndex, from) {
   return { kind: SESSION_RETURN_KIND.plan, date, taskIndex, type: ctx.task.type, ch: ctx.task.ch || null, from };
 }
-// skipped: this round's unanswered questions, asked after the other unanswered ones; round: the round number
-// (the next one after a round; on entry counted from the questions already answered that day)
-function planStartRound(date, taskIndex, from, skipped, round = null) {
+// skipped: this round's unanswered questions, asked after the other unanswered ones; prev: the round just done
+// ({ round, rounds }). CUI-0024: on entry the round number comes from the questions already answered (any = at least
+// one round begun), and N = the rounds behind + the rounds the questions not yet right still need, so the last is N of N
+function planStartRound(date, taskIndex, from, skipped, prev = null) {
   const ctx = planRunContext(date, taskIndex);
   if (!ctx) { openPlanDay(from); return; }
   const qids = planNextRound(ctx.task, ctx.dayLog, skipped);
   if (!qids.length) { planShowTaskDone(date, taskIndex, from); return; }
   const all = planAskableQids(ctx.task, ctx.dayLog); // W-038: rounds of the questions actually asked
   const seen = all.filter(k => ctx.dayLog.ok[k] || ctx.dayLog.bad[k]).length;
-  const n = round || Math.floor(seen / PRACTICE_ROUND_MAX) + 1;
-  const ret = { ...planRunReturn(ctx, date, taskIndex, from), retry: qids.filter(k => ctx.dayLog.bad[k]),
-    round: n, rounds: Math.max(n, Math.ceil(all.length / PRACTICE_ROUND_MAX)) };
+  const left = all.filter(k => !ctx.dayLog.ok[k]).length;
+  const after = prev && prev.round > 0;
+  const n = after ? prev.round + 1 : (seen ? Math.ceil(seen / PRACTICE_ROUND_MAX) + 1 : 1);
+  const rounds = Math.max(after ? prev.rounds : 0, n - 1 + Math.ceil(left / PRACTICE_ROUND_MAX));
+  const ret = { ...planRunReturn(ctx, date, taskIndex, from), retry: qids.filter(k => ctx.dayLog.bad[k]), round: n, rounds };
   startSideSession(PLAN_PREFIX + planDayNumber(ctx.plan, date), qids.map(questionByKey).map(toQuestionItem), ret);
 }
 // G17: every question of the task, a page of PRACTICE_ROUND_MAX at a time, answered and revealed (planFillReview)
@@ -136,7 +139,7 @@ function planNextAction() {
   const ret = sessionReturn;
   if (ret.review) return planReviewNextAction(ret);
   const skipped = state.questions.filter((_, i) => !(i in state.revealed)).map(qKey);
-  const run = () => planStartRound(ret.date, ret.taskIndex, ret.from, skipped, ret.round + 1);
+  const run = () => planStartRound(ret.date, ret.taskIndex, ret.from, skipped, { round: ret.round, rounds: ret.rounds });
   const ctx = planRunContext(ret.date, ret.taskIndex);
   const next = ctx ? planNextRound(ctx.task, ctx.dayLog, skipped) : [];
   if (!next.length) return planAction(t('quiz.finishButton'), PLAN_RUN_SYMBOL.finish, run);

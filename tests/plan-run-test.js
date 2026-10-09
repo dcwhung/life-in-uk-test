@@ -322,6 +322,44 @@ async function checkContinueAndAllDone(pg) {
   assert(await activeScreen(pg) === 'screenPlanDay' && await visible(pg, '#planDayDone'), '"Back to the task list" → the day, done banner');
 }
 
+// CUI-0024: a task left half way and opened again counts its rounds from what was answered: the last round is N of N
+async function checkResume(pg) {
+  await fresh(pg);
+  await seed(pg, { start: START });
+  await openDay(pg);
+  const p = await plan(pg);
+  const i = taskIndexOf(p, TODAY, t => t.type === 'practice' && t.qids.length === 51);
+  assert(i >= 0, 'today has a 51-question practice task');
+  await tap(pg, taskBox(TODAY, i));
+  for (let k = 0; k < 10; k++) { await answer(pg, true); await tap(pg, '#nextBtn'); }
+  await tap(pg, '#screenQuiz .back-btn');
+  await tap(pg, taskBox(TODAY, i));
+  const r2 = await cur(pg);
+  assert(r2.note === 'Round 2 of 3' && r2.n === 24, `CUI-0024: 51 Qs, 10 answered, opened again: Round 2 of 3 (24): ${r2.note} (${r2.n})`);
+  await playRound(pg);
+  const r3 = await cur(pg);
+  assert(r3.note === 'Round 3 of 3' && r3.n === 17, `CUI-0024: then Round 3 of 3 (17): ${r3.note} (${r3.n})`);
+  await playRound(pg);
+  assert(await activeScreen(pg) === 'screenPlanRun', 'CUI-0024: …then the Result card');
+  // 39 Qs: 23 right + 1 skipped → Round 2 of 2 (16); left and opened again: still Round 2 of 2
+  await fresh(pg);
+  await seed(pg);
+  await openDay(pg);
+  const p2 = await plan(pg);
+  const j = taskIndexOf(p2, TODAY, t => t.type === 'practice' && t.qids.length === 39);
+  assert(j >= 0, 'today has a 39-question practice task');
+  await tap(pg, taskBox(TODAY, j));
+  const skip = await pg.evaluate(() => qKey(state.questions[23]));
+  await playRound(pg, { skipKeys: [skip] });
+  const a = await cur(pg);
+  await tap(pg, '#screenQuiz .back-btn');
+  await tap(pg, taskBox(TODAY, j));
+  const b = await cur(pg);
+  assert(a.note === 'Round 2 of 2' && a.n === 16 && b.note === 'Round 2 of 2' && b.n === 16,
+    `CUI-0024: 39 Qs, 23 right + 1 skipped: Round 2 of 2 (16) before and after leaving: ${a.note} (${a.n}) / ${b.note} (${b.n})`);
+  await pg.evaluate(() => leaveToHome());
+}
+
 // CUI-0011: a double tap on the last question's Next starts the new round once (the second tap is not an answer)
 async function checkDoubleTap(pg) {
   await fresh(pg);
@@ -449,6 +487,7 @@ async function main() {
   await checkDays(pg);
   await checkClearWrong(pg);
   await checkContinueAndAllDone(pg);
+  await checkResume(pg);
   await checkDoubleTap(pg);
   await checkSwitchOff(pg);
   await checkMastered(pg);
