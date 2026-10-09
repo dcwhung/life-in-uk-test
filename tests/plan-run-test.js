@@ -179,7 +179,7 @@ async function checkResultCard(pg, { i, qids }) {
     want: planDayCompletion(planLoad().days[0], planDayLog(planLoadLog(), '2026-10-01')).pct, side: isSideSession() }));
   assert(r.emoji === '✅' && r.score === `${r.want}%` && r.label === "Task done · today's progress", `Result card: ✅ ${r.want}% · Task done · today's progress`);
   assert(r.sub === `All ${qids.length} questions right, 1 of them after a redo.`, 'summary: ' + r.sub);
-  assert(/^The matching “Read Ch \d .+” now counts as read\.$/.test(r.note), 'G3: the matching reading task now counts as read: ' + r.note);
+  assert(/^The matching “Read Ch \d .+” now counts as read automatically\.$/.test(r.note), 'G3: the matching reading task now counts as read: ' + r.note);
   assert(r.next.startsWith('Next') && r.acts[0][1] === 'planReviewTask' && r.acts[1][0] === 'Start next →', 'next task card + "Review this task" / "Start next →": ' + r.next);
   assert(await pg.evaluate(() => document.activeElement === document.querySelector('#planRunBody .result-label') && document.activeElement.tabIndex === -1),
     'S-121: the Result card takes focus on its result line (screen readers read it)');
@@ -208,10 +208,10 @@ async function checkReviewMode(pg, qids, before) {
     n: state.questions.length, revealed: Object.keys(state.revealed).length, opts: [...document.querySelectorAll('#optionsContainer .opt')].map(o => o.className),
     label: byId('ansLabel').textContent, yue: byId('yueToggle').classList.contains('visible'),
     labels: state.questions.map((q, i) => { state.current = i; renderQuestion(); return byId('ansLabel').textContent; }) }));
-  assert(v.note === '✅ This task is done · reviewing it does not change your progress.' && v.round, 'review: the done note, no round note');
+  assert(v.note === "✅ This task is done · you're reviewing it now, so your progress won't be affected." && v.round, 'review: the done note, no round note');
   assert(v.n === Math.min(24, qids.length) && v.revealed === v.n && !v.yue, 'review: every question answered + revealed, no Translate');
   assert(v.opts.some(c => c.includes('correct')) && !v.opts.some(c => c.includes('wrong')), 'review: the correct option marked, no wrong pick');
-  assert(v.labels.filter(l => l === '✗ You got this wrong · correct answer').length === 1 && v.labels.filter(l => l === '✓ Correct answer').length === v.n - 1,
+  assert(v.labels.filter(l => l === 'Correct answer (✗ you got this wrong before)').length === 1 && v.labels.filter(l => l === '✓ Correct answer').length === v.n - 1,
     'G17: "✗ You got this wrong" on the one answered wrong, "✓ Correct answer" on the others');
   await pg.evaluate(() => { state.current = 0; renderQuestion(); });
   await tap(pg, '#opt0');
@@ -326,7 +326,7 @@ async function checkContinueAndAllDone(pg) {
     label: document.querySelector('#planRunBody .result-label').className + '|' + document.querySelector('#planRunBody .result-label').textContent,
     sub: document.querySelector('#planRunBody .result-sub').textContent, acts: [...document.querySelectorAll('#planRunBody .nav-btn')].map(b => b.dataset.action) }));
   assert(r.emoji === '🎉' && r.score === '100%' && r.label === "result-label pass|All of today's tasks are done!", 'all done: 🎉 100% · All of today\'s tasks are done!');
-  assert(r.sub === "Open the app tomorrow: Home shows the next day's tasks." && r.acts.join() === 'planReviewTask,planBackToDay', 'all done: tomorrow hint; "Review this task" / "Back to the task list"');
+  assert(r.sub === "The next day's tasks will appear on Home tomorrow." && r.acts.join() === 'planReviewTask,planBackToDay', 'all done: tomorrow hint; "Review this task" / "Back to the task list"');
   await tap(pg, '#planRunBody [data-action="planBackToDay"]');
   assert(await activeScreen(pg) === 'screenPlanDay' && await visible(pg, '#planDayDone'), '"Back to the task list" → the day, done banner');
 }

@@ -203,7 +203,7 @@ async function checkReadReview(pg) {
   const before = await storage(pg);
   await tap(pg, taskBox(TODAY, ri));
   let v = await runView(pg);
-  assert(v.note === '✅ This task is done · reviewing it does not change your progress.' && !(await visible(pg, '#planRunBody .fact-practise')),
+  assert(v.note === "✅ This task is done · you're reviewing it now, so your progress won't be affected." && !(await visible(pg, '#planRunBody .fact-practise')),
     'review: the done note, no ▶ Practise');
   await pg.evaluate(() => { planRunView.pos = planLoad().days[0].tasks.find(x => x.type === 'read').facts.length - 1; renderPlanRun(); });
   v = await runView(pg);

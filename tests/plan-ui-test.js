@@ -194,21 +194,21 @@ async function checkFeaturePill(pg) {
       note: byId('infoPlanStatus').textContent };
   });
   const on = await pill();
-  assert(on.text === 'On' && on.on && !on.off && on.afterLabel && on.sameLine && on.greenish && on.round && on.note === 'Your study plan shows on the home screen',
+  assert(on.text === 'On' && on.on && !on.off && on.afterLabel && on.sameLine && on.greenish && on.round && on.note === 'Now showing on the home screen',
     'pill: on → green "On" pill after the label, note without prefix: ' + JSON.stringify(on));
   await pg.click('#planFeatureSwitch');
   await pg.click('#confirmOk');
   const off = await pill();
-  assert(off.text === 'Off' && off.off && !off.on && off.redish && off.round && off.note === 'Every study plan item is hidden',
+  assert(off.text === 'Off' && off.off && !off.on && off.redish && off.round && off.note === 'All plan items are now hidden',
     'pill: off → red "Off" pill, note without prefix: ' + JSON.stringify(off));
   await pg.keyboard.press('Escape'); // the language pill sits outside the popover: a click there closes it first
   await pg.evaluate(() => setLang('zh-HK'));
   await pg.click('#infoBtn');
   const zhOff = await pill();
-  assert(zhOff.text === '已關閉' && zhOff.off && zhOff.note === '所有溫習計劃項目已隱藏', 'pill: zh-HK off → 已關閉: ' + JSON.stringify(zhOff));
+  assert(zhOff.text === '已關閉' && zhOff.off && zhOff.note === '所有計劃項目已隱藏', 'pill: zh-HK off → 已關閉: ' + JSON.stringify(zhOff));
   await pg.click('#planFeatureSwitch');
   const zhOn = await pill();
-  assert(zhOn.text === '已開啟' && zhOn.on && zhOn.note === '主頁顯示溫習計劃', 'pill: zh-HK on → 已開啟: ' + JSON.stringify(zhOn));
+  assert(zhOn.text === '已開啟' && zhOn.on && zhOn.note === '已在主頁顯示', 'pill: zh-HK on → 已開啟: ' + JSON.stringify(zhOn));
   await pg.evaluate(() => setLang('en'));
   await pg.keyboard.press('Escape');
 }
@@ -248,7 +248,7 @@ async function checkSwitchInPlace(pg) {
   await pg.click('#planFeatureSwitch');
   const r = await pg.evaluate(() => ({ open: byId('infoPop').classList.contains('show'), focus: document.activeElement.id,
     on: byId('planFeatureSwitch').getAttribute('aria-checked'), note: byId('infoPlanStatus').textContent }));
-  assert(r.open && r.focus === 'planFeatureSwitch' && r.on === 'true' && r.note === 'Your study plan shows on the home screen', 'W-032: switch on by click: popover open, focus kept: ' + JSON.stringify(r));
+  assert(r.open && r.focus === 'planFeatureSwitch' && r.on === 'true' && r.note === 'Now showing on the home screen', 'W-032: switch on by click: popover open, focus kept: ' + JSON.stringify(r));
   await pg.click('#infoBtn');
   await pg.click('#infoBtn');
   await pg.evaluate(() => setStudyPlanEnabled(false));
