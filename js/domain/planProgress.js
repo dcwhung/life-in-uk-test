@@ -24,9 +24,19 @@ function planStatus(plan, todayIso) {
 
 // ── answer log { v, days: { iso: { ok, bad, mock } } } ──
 function planEmptyLog() { return { v: PLAN_SCHEMA_VERSION, days: {} }; }
+// a view log (planWithMastered) also hands each day the mastered set (G37); a stored log has none
 function planDayLog(log, iso) {
   const d = (log && log.days[iso]) || {};
-  return { ok: d.ok || {}, bad: d.bad || {}, mock: d.mock || [] };
+  const day = { ok: d.ok || {}, bad: d.bad || {}, mock: d.mock || [] };
+  return log && log.mastered ? { ...day, mastered: log.mastered } : day;
+}
+// G37: mastered (🏆) questions count as done in reading + practice tasks, live: the screens read the log through
+// this (mastered = canonical keys, planMasteredKeys); never stored, so nothing is migrated and drills still ask again
+const PLAN_NO_MASTERED = new Set();
+const PLAN_MASTERY_TYPES = [PLAN_TASK.read, PLAN_TASK.practice];
+function planWithMastered(log, mastered) { return log && { ...log, mastered: mastered || PLAN_NO_MASTERED }; }
+function planTaskMastered(task, dayLog) {
+  return PLAN_MASTERY_TYPES.includes(task.type) && dayLog.mastered ? dayLog.mastered : PLAN_NO_MASTERED;
 }
 function planValidLogDay(iso, d) {
   return isoIsValid(iso) && planIsObject(d) && (d.ok === undefined || planIsObject(d.ok))
@@ -115,9 +125,9 @@ function materializePlanDay(day, ctx) {
 function planProgressOf(done, total, bad, extra = {}) {
   return { done, total, bad, pct: percent(done, total), complete: total > 0 && done >= total, pending: false, ...extra };
 }
-function planFactDone(id, dayLog) {
+function planFactDone(id, dayLog, mastered = PLAN_NO_MASTERED) {
   const qids = planFactQids(planFactById(id));
-  return qids.length > 0 && qids.every(k => dayLog.ok[k]);
+  return qids.length > 0 && qids.every(k => dayLog.ok[k] || mastered.has(k));
 }
 function planMockPassed(a) { return !!a && a.total > 0 && a.correct / a.total >= PASS_RATIO; }
 // a mock is REAL_TEST_SIZE units, all of them once the day has one more pass than the slots before it
@@ -135,10 +145,12 @@ function planTaskProgress(task, dayLog) {
   if (!planIsMaterialized(task)) return planPendingProgress(task);
   const byFact = !Array.isArray(task.qids);
   const items = byFact ? task.facts : task.qids;
-  const bad = planTaskQids(task).filter(k => dayLog.bad[k] && !dayLog.ok[k]).length;
+  const m = planTaskMastered(task, dayLog);
+  const bad = planTaskQids(task).filter(k => dayLog.bad[k] && !dayLog.ok[k] && !m.has(k)).length;
   if (!items.length) return planProgressOf(1, 1, 0);
-  const done = items.filter(x => (byFact ? planFactDone(x, dayLog) : dayLog.ok[x])).length;
-  return planProgressOf(done, items.length, bad);
+  const done = items.filter(x => (byFact ? planFactDone(x, dayLog, m) : dayLog.ok[x] || m.has(x))).length;
+  const mastered = byFact ? 0 : items.filter(k => !dayLog.ok[k] && m.has(k)).length; // done by 🏆 alone
+  return planProgressOf(done, items.length, bad, { mastered });
 }
 // G24 / CUI-0022: a past day never opened has no clear-wrong task (its review was never filled: it weighs nothing
 // and is never carried), so the day screen neither lists nor counts it; today and days ahead keep theirs (G23)
@@ -195,28 +207,39 @@ function planAttributeMock(plan, todayIso, ctxIso) {
   return day && day.tasks.some(t => t.type === PLAN_TASK.mock) ? todayIso : null;
 }
 // right once = done for that day (a later wrong answer takes nothing away); wrong answers only feed the tallies
+// the stored shape only ({ v, days: { ok, bad, mock } }): a view log's mastered set is never written (G37)
+function planStoredDay(log, iso) {
+  const { ok, bad, mock } = planDayLog(log, iso);
+  return { ok, bad, mock };
+}
 function planApplyAnswer(log, iso, qid, correct) {
-  const day = planDayLog(log, iso);
+  const day = planStoredDay(log, iso);
   const next = correct ? { ...day, ok: { ...day.ok, [qid]: 1 } } : { ...day, bad: { ...day.bad, [qid]: 1 } };
-  return { ...log, days: { ...log.days, [iso]: next } };
+  return { v: log.v, days: { ...log.days, [iso]: next } };
 }
 function planApplyMock(log, iso, attempt) {
-  const day = planDayLog(log, iso);
+  const day = planStoredDay(log, iso);
   const mock = [...day.mock, { exam: attempt.exam, correct: attempt.correct, total: attempt.total }];
-  return { ...log, days: { ...log.days, [iso]: { ...day, mock } } };
+  return { v: log.v, days: { ...log.days, [iso]: { ...day, mock } } };
 }
 
 // ── runner queue: unanswered first (skipped ones last), then wrong-not-yet-right; one round ≤ PRACTICE_ROUND_MAX ──
+// the questions a runner still asks: G37 / W-038: 🏆 ones of a practice task are done already
+function planAskableQids(task, dayLog) {
+  const m = planTaskMastered(task, dayLog);
+  return planTaskQids(task).filter(k => !m.has(k));
+}
 function planNextRound(task, dayLog, skipped = []) {
-  const qids = planTaskQids(task);
+  const qids = planAskableQids(task, dayLog);
   const fresh = qids.filter(k => !dayLog.ok[k] && !dayLog.bad[k]);
   const retry = qids.filter(k => dayLog.bad[k] && !dayLog.ok[k]);
   const order = [...fresh.filter(k => !skipped.includes(k)), ...fresh.filter(k => skipped.includes(k)), ...retry];
   return order.slice(0, PRACTICE_ROUND_MAX);
 }
-function planRetryLeft(task, dayLog) { return planTaskQids(task).filter(k => dayLog.bad[k] && !dayLog.ok[k]).length; }
+function planRetryLeft(task, dayLog) { return planAskableQids(task, dayLog).filter(k => dayLog.bad[k] && !dayLog.ok[k]).length; }
 function planResumeAt(task, dayLog) {
-  if (!Array.isArray(task.qids) && Array.isArray(task.facts)) return task.facts.find(id => !planFactDone(id, dayLog)) || null;
+  const m = planTaskMastered(task, dayLog);
+  if (!Array.isArray(task.qids) && Array.isArray(task.facts)) return task.facts.find(id => !planFactDone(id, dayLog, m)) || null;
   return planNextRound(task, dayLog)[0] || null;
 }
 // home card "continue from …": today's first unfinished task, else the oldest carry task
@@ -240,7 +263,7 @@ function planAveragePct(plan, log, todayIso) {
   return pcts.length ? Math.round(pcts.reduce((s, p) => s + p, 0) / pcts.length) : 0;
 }
 function planKpis(plan, log, todayIso) {
-  const right = planEverKeys(log, PLAN_LOG_OK);
+  const right = new Set([...planEverKeys(log, PLAN_LOG_OK), ...(log.mastered || PLAN_NO_MASTERED)]); // G37: 🏆 = practised
   const totalDays = plan.days.length;
   const dayNumber = Math.min(totalDays, Math.max(1, planDayNumber(plan, todayIso)));
   const attempts = Object.values(log.days).flatMap(d => d.mock || []);
@@ -363,6 +386,8 @@ function planLoadLog() {
   if (!stored.stored) return planEmptyLog();
   return stored.value === undefined ? null : parsePlanLog(stored.value);
 }
+// the log as the screens show it: mastered questions count (G37); null = unreadable; never written back as is
+function planLoadLogView() { return planWithMastered(planLoadLog(), planMasteredKeys(streaks)); }
 // key = "exam.idx" of any copy of the question; read-modify-write so another tab's answers survive (R17).
 // No plan / unreadable log / no matching day → nothing is written (R3). Returns the day written or null.
 function recordPlanAnswer(key, correct, ctxIso = null, now = new Date()) {

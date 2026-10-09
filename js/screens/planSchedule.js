@@ -41,7 +41,7 @@ function openPlanSchedule() {
 function renderPlanSchedule() {
   const plan = planLoad();
   if (!plan) return;
-  const log = planLoadLog() || planEmptyLog(); // an unreadable log shows as nothing answered (↺ Reset clears it)
+  const log = planLoadLogView() || planEmptyLog(); // an unreadable log shows as nothing answered (↺ Reset clears it)
   const phases = planPhaseDays(plan);
   byId('planSummary').textContent = planSummaryText(plan);
   renderPlanPhaseBar(phases);

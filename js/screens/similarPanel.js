@@ -25,7 +25,9 @@ function similarLegendHtml() {
       <span><i class="lg-new"></i>${streakText(0)}</span>
     </div>`;
 }
-function similarPanelHtml(q, keys) {
+// practise: false = no "Practise these N" (G26: a plan task session, which has nowhere to come back to after it)
+function similarPanelHtml(q, keys, { practise = true } = {}) {
+  const cta = practise ? `<div class="sqm-cta"><button data-action="startSimilarPractice">${t('similar.practise', { n: keys.length })}</button></div>` : '';
   return `
     <div class="sqm-head">
       <span class="sqm-icon">🗺️</span>
@@ -36,14 +38,15 @@ function similarPanelHtml(q, keys) {
     ${similarMapHtml(q, keys)}
     ${similarLegendHtml()}
     <div class="sqm-list">${keys.map(similarItemHtml).join('')}</div>
-    <div class="sqm-cta"><button data-action="startSimilarPractice">${t('similar.practise', { n: keys.length })}</button></div>`;
+    ${cta}`;
 }
 function renderSimilar(q, revealed) {
   const box = byId('similarBox');
-  const show = state.mode === PRACTICE_MODE && revealed && !isSideSession();
+  // G26: a plan task session shows the panel too, without its own side session
+  const show = state.mode === PRACTICE_MODE && revealed && (!isSideSession() || isPlanSession());
   const keys = show ? similarKeys(q) : [];
   box.classList.toggle('show', keys.length > 0);
-  box.innerHTML = keys.length ? similarPanelHtml(q, keys) : '';
+  box.innerHTML = keys.length ? similarPanelHtml(q, keys, { practise: !isPlanSession() }) : '';
 }
 
 // one-off side session over the similar questions (js/screens/sideSession.js); the original session

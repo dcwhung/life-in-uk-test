@@ -321,6 +321,38 @@ function checkProgress() {
   assert(g('planDayCompletion')(plan.days[3], g('planDayLog')(emptyLog(), plan.days[3].date)).pct === null, 'a rest day has no %');
 }
 
+// G37: mastered (🏆) questions count as done in reading + practice tasks, counted live from a mastered set passed in
+// (planWithMastered; the stored log never holds it): practice / read only, never drill / review / wrong facts / mocks
+function checkMastered() {
+  const plan = g('buildPlan')(goalFor(21), TODAY);
+  const day = plan.days[0];
+  const practice = day.tasks.find(t => t.type === 'practice' && t.ch === 1), read = day.tasks.find(t => t.type === 'read' && t.ch === 1);
+  const all = new Set(practice.qids), half = new Set(practice.qids.slice(0, 4));
+  const view = (log, m) => g('planWithMastered')(log, m);
+  const prog = (task, log, m) => g('planTaskProgress')(task, g('planDayLog')(view(log, m), TODAY));
+  assert(prog(practice, emptyLog(), all).complete && prog(practice, emptyLog(), all).mastered === practice.qids.length, 'G37: Ch 1 all mastered → practice complete, n mastered');
+  assert(prog(read, emptyLog(), all).complete, 'G37: …and its reading counts as read (G3 / G4)');
+  const p = prog(practice, logWith(TODAY, [practice.qids[5]], [practice.qids[0]]), half);
+  assert(p.done === 5 && p.mastered === 4 && p.bad === 0, 'G37: 4 mastered + 1 right = 5 done; a mastered question is not "wrong"');
+  const roundOf = (log, m) => g('planNextRound')(practice, g('planDayLog')(view(log, m), TODAY), []);
+  assert(roundOf(emptyLog(), half).every(k => !half.has(k)) && roundOf(emptyLog(), half).length === practice.qids.length - 4, 'G37: the runner asks only questions not mastered');
+  const askable = g('planAskableQids')(practice, g('planDayLog')(view(emptyLog(), half), TODAY));
+  assert(askable.length === practice.qids.length - 4 && askable.every(k => !half.has(k)), 'W-038: planAskableQids leaves the mastered questions out');
+  const drill = { type: 'drill', ch: 1, quota: 9, qids: practice.qids };
+  assert(prog(drill, emptyLog(), all).done === 0 && g('planNextRound')(drill, g('planDayLog')(view(emptyLog(), all), TODAY), []).length === 9, 'G37: drill is not affected (G5: right again)');
+  const review = { type: 'review', qids: practice.qids.slice(0, 2) };
+  assert(prog(review, emptyLog(), all).done === 0, 'G37: clear wrong answers is not affected');
+  const wf = { type: 'wrongFacts', facts: read.facts, anchor: {} };
+  assert(prog(wf, emptyLog(), all).done === 0, 'G37: wrong facts are not affected');
+  assert(prog(practice, emptyLog(), new Set()).done === 0 && prog(practice, emptyLog()).done === 0, 'G37: without a mastered set nothing changes');
+  const stored = view(logWith(TODAY, ['1.0']), all);
+  assert(JSON.stringify(g('planApplyAnswer')(stored, TODAY, '1.1', true)).indexOf('mastered') === -1, 'G37: a log written back never carries the mastered set');
+  const k = g('planKpis')(plan, view(emptyLog(), all), TODAY);
+  assert(k.qidsDone === practice.qids.length && k.factsDone === read.facts.length, 'G37: KPIs count mastered questions as practised, their facts as read');
+  const carry = g('planCarryTasks')(plan, view(emptyLog(), all), isoAddDays(TODAY, 1));
+  assert(!carry.some(c => c.task === practice || c.task === read) && carry.length > 0, 'G37: a mastered task is never carried over');
+}
+
 function checkStatusAndCarry() {
   const plan = g('buildPlan')(goalFor(21), TODAY);
   const st = iso => g('planStatus')(plan, iso);
@@ -781,6 +813,7 @@ function runSuite() {
   checkBuildPlan();
   checkParse();
   checkProgress();
+  checkMastered();
   checkStatusAndCarry();
   checkAttribution();
   checkRounds();

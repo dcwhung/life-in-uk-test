@@ -104,6 +104,7 @@ const SCREEN_RERENDER = {
   screenPlanGoal: () => renderPlanGoal(),
   screenPlanSchedule: () => rerenderPlanSchedule(), // keeps the day list where it was scrolled
   screenPlanDay: () => renderPlanDay(), // keeps the shown day and calendar month
+  screenPlanRun: () => renderPlanRun(), // the task's Result card
 };
 function rerenderCurrentScreen() {
   const active = document.querySelector('.screen.active');

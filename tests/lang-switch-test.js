@@ -361,6 +361,34 @@ async function checkPlanDay(pg, ctx) {
   await sp.close();
 }
 
+// PR6a runner: a past day's practice task on the Practice screen (one answer wrong), then its Result card; the
+// session (sessionReturn: day, task, round), the answers and storage stay; header / notes / buttons re-render
+async function checkPlanRun(pg, ctx) {
+  const sp = await pg.context().browser().newPage({ viewport: WIDE });
+  sp.on('pageerror', e => ctx.errs.push(e.message));
+  sp.on('console', m => { if (m.type() === 'warning') ctx.warns.push(m.text()); });
+  await sp.clock.setFixedTime(PLAN_SCHEDULE_NOW);
+  await sp.goto(APP_URL);
+  const i = await sp.evaluate(() => {
+    window.planEntryReady = () => true;
+    writeStudyPlan(buildPlan({ examDate: '2026-10-19', dailyMins: 90, restDays: [0], level: 'some' }, '2026-09-28'));
+    const k = planLoad().days[2].tasks.findIndex(t => t.type === 'practice');
+    planOpenTask('2026-09-30', k, '2026-09-30');
+    const q = state.questions[0];
+    selectOption(q.o.findIndex((_, o) => !q.a.includes(o)));
+    if (!(0 in state.revealed)) selectOption(q.o.findIndex((_, o) => !q.a.includes(o) && !state.answers[0].includes(o)));
+    return k;
+  });
+  await switchOn(sp, ctx, 'plan runner', '#screenQuiz .back-btn');
+  assert(await textOf(sp, '#screenQuiz .back-btn') === '← Day 3 任務' && await textOf(sp, '#ansLabel') === '✗ 錯誤 · 🔥 0/3', 'plan runner zh-HK: ← Day 3 任務, answer box re-rendered');
+  await switchOn(sp, ctx, 'plan runner', '#screenQuiz .back-btn');
+  await sp.evaluate(k => planShowTaskDone('2026-09-30', k, '2026-09-30'), i);
+  await switchOn(sp, ctx, 'plan Result card', '#planRunBody .result-label');
+  assert((await textOf(sp, '#planRunBody .nav-row')).includes('重溫此項內容'), 'plan Result card zh-HK: buttons re-rendered');
+  await switchOn(sp, ctx, 'plan Result card', '#planRunBody .result-label');
+  await sp.close();
+}
+
 // Study: tab + chip + typed search, then chapters / timeline / geography
 async function checkStudy(pg, ctx) {
   await pg.evaluate(() => { openStudy(); studySetTab('people'); studySetGroup('writer'); });
@@ -657,7 +685,7 @@ const hasCjkFont = pg => pg.evaluate(({ px, chars, baseline }) => {
 // run in order: each check starts from the screen / language the previous one left
 const CHECKS = [
   checkPill, checkHomeSwitch, checkHomePractice, checkQuizPractice, checkAnswerFallback, checkOptionYueLang,
-  checkSideSession, checkQuizExam, checkExamTimer, checkModal, checkResult, checkFlagged, checkStudy, checkPlanGoal, checkPlanSchedule, checkPlanDay, checkDoubleTap,
+  checkSideSession, checkQuizExam, checkExamTimer, checkModal, checkResult, checkFlagged, checkStudy, checkPlanGoal, checkPlanSchedule, checkPlanDay, checkPlanRun, checkDoubleTap,
   checkMyReviewTiles, checkMyReviewOrientation, checkExamDesc, checkPracticeHint, checkResetRows, checkLeaveCancel,
 ];
 

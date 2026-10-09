@@ -331,6 +331,20 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
 .plan-pr-top { display: flex; justify-content: space-between; gap: var(--space-4); font-size: var(--fs-sm); font-weight: 700; }
 .plan-pr-v { color: var(--text-muted); white-space: nowrap; }
 
+/* runner (js/screens/planRun.js): task boxes it opens, the green note (mockup .sp-note), the Result card's next task */
+.plan-task-li { display: block; }
+.plan-task-btn { width: 100%; font: inherit; color: var(--text); text-align: left; cursor: pointer; }
+.plan-task-btn:hover { border-color: var(--navy-light); }
+.plan-task-btn:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+.plan-note { font-size: var(--fs-xs); color: var(--green); background: var(--success-bg); border-radius: var(--radius-sm); padding: var(--space-4) var(--space-5); line-height: 1.5; }
+.plan-run-note { margin-bottom: var(--space-7); }
+#screenQuiz .back-btn.plan-hit, #planRunBack { white-space: nowrap; } /* "← Today's tasks" on one line at 360px */
+.plan-run-body { display: grid; gap: var(--space-7); }
+.plan-run-body .result-card { margin-bottom: 0; }
+.plan-run-next { gap: var(--space-2); }
+.plan-run-next .section-title { margin: 0; }
+.plan-run-body .nav-row .nav-btn { flex: 1; min-height: 44px; }
+
 @media (max-width: 380px) {
   .plan-day-header { gap: var(--space-2); }
   .plan-day-header .back-btn, .plan-day-header .plan-small { padding: var(--space-3) var(--space-4); font-size: var(--fs-sm); }
