@@ -157,10 +157,10 @@ function planDayTasksHtml(day) {
   if (day.light) return planTaskLineHtml(PLAN_LIGHT_ICON, t('plan.task.light'));
   return day.tasks.map(task => planTaskLineHtml(PLAN_TASK_ICONS[task.type], planTaskText(task, day))).join('') + planDayChaptersHtml(day);
 }
-// ✓ done / its G27 band (past), today n%, rest; a day ahead shows › (it opens, as every row)
+// ✓ done / its G27 band (past), today n%, rest; a day ahead has no pill (v1.0.3, user: the whole row opens it)
 function planDayPillHtml(day, dayLog, when) {
   if (day.phase === PLAN_PHASE.rest) return `<span class="plan-pill mute">${t('plan.status.rest')}</span>`;
-  if (when === PLAN_WHEN.ahead) return `<span class="plan-pill mute" aria-hidden="true">${t('plan.status.ahead')}</span>`;
+  if (when === PLAN_WHEN.ahead) return '';
   const pct = planDayCompletion(day, dayLog).pct || 0;
   if (when === PLAN_WHEN.today) return `<span class="plan-pill now plan-num">${t('plan.status.today', { n: pct })}</span>`;
   if (pct >= PERCENT) return `<span class="plan-pill ok">${t('plan.status.done')}</span>`;

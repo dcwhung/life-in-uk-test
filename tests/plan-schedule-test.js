@@ -242,7 +242,7 @@ async function checkPills(pg) {
   assert(pills.d1[1] === '0%' && pills.d1[0].includes('h0'), 'pill: a past day with nothing done: 0% (band 0)');
   assert(pills.rest[1] === 'Rest' && pills.rest[0].includes('mute'), 'pill: rest');
   assert(pills.today[1] === `Today ${pills.todayPct}%` && pills.today[0].includes('now'), 'pill: today n%: ' + pills.today);
-  assert(pills.future && pills.future[1] === '›' && pills.future[0].includes('mute'), 'PR5: a day ahead shows a › pill (it opens): ' + pills.future);
+  assert(pills.future === null, 'v1.0.3 (user): a day ahead shows no pill (no ›; the row itself opens the day): ' + pills.future);
   // v1.0.2: the pill sits under the date box in the left column; the tasks take the rest of the row
   const lay = await pg.evaluate(() => [...document.querySelectorAll('#planDayList .plan-day')].map(row => {
     const pill = row.querySelector('.plan-pill'), side = row.querySelector('.plan-day-side'), box = row.querySelector('.plan-day-d');
