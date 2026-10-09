@@ -122,7 +122,7 @@ function planNextHtml(plan, log, next) {
   if (next.kind === PLAN_NEXT.done) return t('plan.home.doneHtml');
   const day = planDayAt(plan, next.date), task = day.tasks[next.taskIndex];
   const p = planTaskProgress(task, planDayLog(log, next.date));
-  const params = { task: planTaskText(task, day), more: planResumeText(task, p, next.resumeAt) };
+  const params = { task: planTaskText(task, day, { fullCh: true }), more: planResumeText(task, p, next.resumeAt) };
   if (next.kind === PLAN_NEXT.today) return t('plan.home.nextHtml', params);
   return t('plan.home.nextCarryHtml', { ...params, day: `<span lang="en">${t('plan.dayN', { n: planDayNumber(plan, next.date) })}</span>` });
 }

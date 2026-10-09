@@ -168,7 +168,7 @@ function planTaskBoxHtml(task, day, dayLog, when, carryDay) {
   const pct = p.complete ? PERCENT : percent(p.done, p.total);
   return `<li class="plan-task ${PLAN_DAY_TYPE_CLASS[task.type]}${state ? ' ' + state : ''}${carry ? ' carry' : ''}">`
     + `<span class="plan-task-ic" aria-hidden="true">${PLAN_TASK_ICONS[task.type]}</span>`
-    + `<span class="plan-task-body"><span class="plan-task-ttl">${planTaskText(task, day)}${tag}</span>`
+    + `<span class="plan-task-body"><span class="plan-task-ttl">${planTaskText(task, day, { fullCh: true })}${tag}</span>`
     + `<span class="plan-task-st">${planTaskStatusHtml(task, p, dayLog)}</span>`
     + `<span class="plan-mini" aria-hidden="true"><i class="h${planPctBand(pct)}" data-pct="${pct}"></i></span></span>${go}</li>`;
 }

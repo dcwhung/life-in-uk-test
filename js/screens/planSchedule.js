@@ -1,7 +1,9 @@
 // ════════════════════════════════════════
 // STUDY PLAN · SCHEDULE — the plan at a glance (handoff §2.3; mockup step ②): summary, the three phases (bar +
 // strategy), the study order with its reasons, and the day list: its own scroller opened at today under a sticky
-// WEEK heading, past days dimmed, a status pill per day (✓ / G27 band / today n% / rest) and the exam day.
+// WEEK heading, past days dimmed, a status pill per day (✓ / G27 band / today n% / rest; v1.0.2: under the date box,
+// so the tasks get the rest of the row) and the exam day. v1.0.2: task lines say "Ch n"; a muted remarks line under
+// a study day's tasks names its chapters in full.
 // "Change goal" re-plans from today (planGoal.js, G7); "↺ Reset plan" deletes the plan and its log (S-110).
 // Each day row (and the exam day) is a button that opens that day (planDay.js); "View today's tasks →" below.
 // ════════════════════════════════════════
@@ -64,15 +66,13 @@ function planPhaseDays(plan) {
   return out;
 }
 function planShownPhases(phases) { return PLAN_SHOWN_PHASES.filter(k => phases[k].length); }
+// v1.0.2: three equal segments, the name over its day count; a name too long for its segment wraps (W-037, plan.css)
 function renderPlanPhaseBar(phases) {
-  const shown = planShownPhases(phases);
-  const bar = byId('planPhaseBar');
-  bar.innerHTML = shown.map(k => {
+  byId('planPhaseBar').innerHTML = planShownPhases(phases).map(k => {
     const nameKey = PLAN_PHASE_LABEL_KEYS[k];
-    return `<div class="plan-bg-${k}"><span>${t('plan.schedule.phaseDays', { name: t(nameKey), n: phases[k].length })}</span></div>`;
+    return `<div class="plan-bg-${k}"><span class="plan-ph-name">${t(nameKey)}</span>`
+      + `<span class="plan-ph-days plan-num">${t('plan.schedule.phaseDaysN', { n: phases[k].length })}</span></div>`;
   }).join('');
-  // each segment as wide as its share of the study days (width from JS, as #progressFill)
-  [...bar.children].forEach((el, i) => { el.style.flexGrow = phases[shown[i]].length; });
 }
 function planDayRangeHtml(days) {
   const from = days[0], to = days[days.length - 1];
@@ -122,15 +122,17 @@ function renderPlanOrder() {
 }
 
 // ── day list ──
-function planChapterHtml(ch) { return `<span lang="en">${planChapterText(ch)}</span>`; }
+// task lines name the chapter by number only; planDayChaptersHtml spells the names out once per day
+function planChapterHtml(ch) { return `<span lang="en">${t('common.chapterShort', { n: ch })}</span>`; }
 function planFactRange(ids) {
   const nums = ids.map(chapterFactNumber);
   const from = Math.min(...nums), to = Math.max(...nums);
   return t('study.factId', { n: from }) + (to > from ? '–' + to : '');
 }
 // one task line's text: no minutes, mastery in words (handoff §2.3); a mock shows its exam once it is picked
-function planTaskText(task, day) {
-  const ch = task.ch && planChapterHtml(task.ch);
+// fullCh: the day screen / Home card name the chapter in full (they have no remarks line); the schedule says "Ch n"
+function planTaskText(task, day, { fullCh = false } = {}) {
+  const ch = task.ch && (fullCh ? `<span lang="en">${planChapterText(task.ch)}</span>` : planChapterHtml(task.ch));
   switch (task.type) {
     case PLAN_TASK.read: return t('plan.task.read', { ch, range: planFactRange(task.facts) });
     case PLAN_TASK.practice: return t('plan.task.practice', { ch, n: task.qids.length });
@@ -143,10 +145,15 @@ function planTaskText(task, day) {
 function planTaskLineHtml(icon, text) {
   return `<span class="plan-day-t"><span class="plan-day-ic" aria-hidden="true">${icon}</span><span>${text}</span></span>`;
 }
+// the remarks line: the day's chapters in full, each once, in the order the tasks reach them ('' without any)
+function planDayChaptersHtml(day) {
+  const chs = [...new Set(day.tasks.filter(task => task.ch).map(task => task.ch))];
+  return chs.length ? `<span class="plan-day-chs" lang="en">${chs.map(planChapterText).join(LIST_SEP)}</span>` : ''; // a span: rows are buttons
+}
 function planDayTasksHtml(day) {
   if (day.phase === PLAN_PHASE.rest) return planTaskLineHtml(PLAN_REST_ICON, t('plan.schedule.restDay'));
   if (day.light) return planTaskLineHtml(PLAN_LIGHT_ICON, t('plan.task.light'));
-  return day.tasks.map(task => planTaskLineHtml(PLAN_TASK_ICONS[task.type], planTaskText(task, day))).join('');
+  return day.tasks.map(task => planTaskLineHtml(PLAN_TASK_ICONS[task.type], planTaskText(task, day))).join('') + planDayChaptersHtml(day);
 }
 // ✓ done / its G27 band (past), today n%, rest; a day ahead shows › (it opens, as every row)
 function planDayPillHtml(day, dayLog, when) {
@@ -161,9 +168,10 @@ function planWhen(iso, todayIso) {
   if (iso === todayIso) return PLAN_WHEN.today;
   return iso < todayIso ? PLAN_WHEN.past : PLAN_WHEN.ahead;
 }
-function planDateBoxHtml(top, iso, extraClass = '') {
+// the row's left column: the date box with the day's status pill under it (pillHtml may be '')
+function planDateBoxHtml(top, iso, { extraClass = '', pillHtml = '' } = {}) {
   const sub = `${planShortDate(iso)} ${t(`data.weekdays.${isoWeekday(iso)}`)}`;
-  return `<span class="plan-day-d plan-num${extraClass}">${top}<small>${sub}</small></span>`;
+  return `<span class="plan-day-side"><span class="plan-day-d plan-num${extraClass}">${top}<small>${sub}</small></span>${pillHtml}</span>`;
 }
 function planWeekHtml(i) {
   return i % PLAN_WEEK_DAYS ? '' : `<div class="plan-week" lang="en">${t('plan.schedule.week', { n: i / PLAN_WEEK_DAYS + 1 })}</div>`;
@@ -175,16 +183,17 @@ function planDayRowOpen(cls, iso) {
 function planDayRowHtml(day, i, log, todayIso, todayIndex) {
   const when = planWhen(day.date, todayIso);
   const far = Math.abs(i - todayIndex) > PLAN_NEAR_ROWS ? ' plan-far' : '';
-  return planWeekHtml(i) + planDayRowOpen(day.phase + (when ? ' ' + when : '') + far, day.date) + planDateBoxHtml(i + 1, day.date)
-    + `<span class="plan-day-tasks">${planDayTasksHtml(day)}</span><span>${planDayPillHtml(day, planDayLog(log, day.date), when)}</span></button>`;
+  const pillHtml = planDayPillHtml(day, planDayLog(log, day.date), when);
+  return planWeekHtml(i) + planDayRowOpen(day.phase + (when ? ' ' + when : '') + far, day.date) + planDateBoxHtml(i + 1, day.date, { pillHtml })
+    + `<span class="plan-day-tasks">${planDayTasksHtml(day)}</span></button>`;
 }
 // G16: the exam day ends the list (amber lattice, 🎯), with what to bring
 function planExamRowHtml(plan, todayIso) {
   const iso = plan.goal.examDate, when = planWhen(iso, todayIso);
   const icon = `<span aria-hidden="true">${PLAN_EXAM_ICON}</span>`;
-  return planWeekHtml(plan.days.length) + planDayRowOpen('exam' + (when ? ' ' + when : ''), iso) + planDateBoxHtml(icon, iso, ' plan-exam-pat')
+  return planWeekHtml(plan.days.length) + planDayRowOpen('exam' + (when ? ' ' + when : ''), iso) + planDateBoxHtml(icon, iso, { extraClass: ' plan-exam-pat' })
     + `<span class="plan-day-tasks"><span class="plan-day-t"><b>${t('plan.schedule.examDay')}</b></span>`
-    + `<span class="plan-day-t"><span>${t('plan.schedule.examTip')}</span></span></span><span></span></button>`;
+    + `<span class="plan-day-t"><span>${t('plan.schedule.examTip')}</span></span></span></button>`;
 }
 function planDayListHtml(plan, log, todayIso) {
   const todayIndex = Math.min(plan.days.length, Math.max(0, planDayIndex(plan, todayIso))); // after the exam: its row

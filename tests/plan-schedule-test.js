@@ -14,7 +14,9 @@ const path = require('path');
 // - Reset: app modal (Confirm), plan + log deleted, practice records + switch kept, toast, Home create card;
 //   a corrupt log is cleared the same way (S-110 / O-1)
 // - S-112: Cancel / Confirm / Esc on the switch-off modal keep the ⓘ popover open with focus on the switch
-// - 44px tap areas, 360 / 375 / 400px en + zh-HK without horizontal scroll, [hidden] never displayed
+// - 44px tap areas, 320 / 360 / 375 / 390 / 400px en + zh-HK without horizontal scroll, [hidden] never displayed
+// - v1.0.2: equal phase segments (name / days on two lines), equal study order bars with a gap before the count,
+//   task lines "Ch n" + a remarks line of full chapter names, the pill under the date box ("Today 100%" fits)
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
 const launchOpts = { args: ['--no-sandbox'] };
 if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_PATH;
@@ -24,7 +26,7 @@ const TODAY = '2026-10-08'; // a Thursday
 const NOW = new Date(TODAY + 'T09:00:00');
 const START = '2026-09-28'; // the seeded plan began 10 days ago: today is Day 11
 const GOAL = { examDate: '2026-10-29', dailyMins: 120, restDays: [0], level: 'none' };
-const WIDTHS = [360, 375, 400];
+const WIDTHS = [320, 360, 375, 390, 400, 600]; // 600: the wide (> 480px) study order layout
 const HIT_MIN_PX = 44;
 
 const activeScreen = pg => pg.evaluate(() => document.querySelector('.screen.active').id);
@@ -91,24 +93,54 @@ async function checkOverview(pg) {
     const count = ph => plan.days.filter(d => d.phase === ph).length;
     return {
       want: ['learn', 'drill', 'mock'].map(count),
-      bar: [...document.querySelectorAll('#planPhaseBar > div')].map(e => [e.className, e.textContent, Number(getComputedStyle(e).flexGrow)]),
+      bar: [...document.querySelectorAll('#planPhaseBar > div')].map(e => {
+        const name = e.querySelector('.plan-ph-name'), days = e.querySelector('.plan-ph-days');
+        return { cls: e.className, name: name && name.textContent, days: days && days.textContent, w: e.getBoundingClientRect().width,
+          below: !!name && !!days && days.getBoundingClientRect().top >= name.getBoundingClientRect().bottom - 1 };
+      }),
       strat: [...document.querySelectorAll('#planStrategy .plan-strat')].map(e => [e.className, e.querySelector('h4').textContent, e.querySelector('[lang="en"]').textContent]),
       mocks: plan.days.flatMap(d => d.tasks).filter(t => t.type === 'mock').length,
     };
   });
-  assert(JSON.stringify(r.bar.map(b => b[2])) === JSON.stringify(r.want), 'phase bar: one segment per phase, sized by its days: ' + JSON.stringify(r.bar));
-  assert(r.bar[0][1] === `Read + practise ${r.want[0]} days` && r.bar[2][1] === `Mocks ${r.want[2]} days` && r.bar[0][0].includes('plan-bg-learn'), 'phase bar: names + day count');
+  // v1.0.2: three equal segments, the phase name on line 1 and its day count on line 2
+  assert(r.bar.length === 3 && r.bar.every(b => Math.abs(b.w - r.bar[0].w) <= 1), 'phase bar: three segments of equal width: ' + JSON.stringify(r.bar));
+  assert(r.bar.map(b => b.name).join() === 'Read + practise,Drill,Mocks' && r.bar[0].cls.includes('plan-bg-learn'), 'phase bar: phase names: ' + JSON.stringify(r.bar));
+  assert(JSON.stringify(r.bar.map(b => b.days)) === JSON.stringify(r.want.map(n => `${n} days`)), 'phase bar: "n days" per phase: ' + JSON.stringify(r.bar));
+  assert(r.bar.every(b => b.below), 'phase bar: the day count sits on a second line under the name');
   assert(r.strat.length === 3 && r.strat.map(s => s[0].split(' ')[1]).join() === 'learn,drill,mock', 'strategy: three phases in order');
   assert(r.strat[0][2].startsWith('Day 1–') && r.strat[2][1].includes(`${r.mocks} timed exams`), 'strategy: day range + mock count: ' + JSON.stringify(r.strat));
   const stratText = await text(pg, '#planStrategy');
-  assert(stratText.includes('236 facts') && stratText.includes('389 questions') && stratText.includes('18/24'), 'strategy: facts / questions totals and the pass mark');
+  assert(stratText.includes('(236 facts · 389 Qs)') && stratText.includes('24 Qs, 45 minutes') && stratText.includes('18/24'), 'strategy: facts / Qs totals and the pass mark');
+  // S-116: a question count next to a number reads "Qs" in English; prose ("redo questions") keeps the word
+  assert(!/\d+ questions/.test(stratText) && stratText.includes('questions straight after reading'), 'strategy: counts use "Qs", prose keeps "questions": ' + stratText);
   const order = await pg.$$eval('#planOrder .plan-ord', els => els.map(e => [e.querySelector('b').textContent, e.querySelector('.plan-ord-why').textContent, e.querySelector('.plan-chw-c').textContent]));
   assert(JSON.stringify(order.map(o => o[0])) === JSON.stringify(['Ch 1 Values & principles + Ch 2 What is the UK?', 'Ch 5 Government & law', 'Ch 4 Modern society', 'Ch 3 History']),
     'order card: Ch1–2 → Ch5 → Ch4 → Ch3: ' + JSON.stringify(order.map(o => o[0])));
   assert(order.every(o => o[1].length > 10), 'order card: every step says why');
-  assert(order[0][2] === '6 facts · 20 questions' && order[3][2].startsWith('91 facts'), 'order card: facts / questions per step: ' + order.map(o => o[2]));
+  assert(order[0][2] === '6 facts · 20 Qs' && order[3][2].startsWith('91 facts'), 'order card: facts / Qs per step: ' + order.map(o => o[2]));
+  await checkOrderBars(pg, 'en 390px');
   assert(await pg.evaluate(() => PLAN_ORDER_STEPS.flat().join() === PLAN_STUDY_ORDER.join()), 'order card steps follow PLAN_STUDY_ORDER');
   assert(await pg.$$eval('#planOrder b', els => els.every(e => e.closest('[lang="en"]'))), 'chapter names are English: lang="en"');
+}
+
+// v1.0.2: every chapter bar track has the same length and leaves a clear gap before its count; the user's choice:
+// 150px, 120px at ≤ 374px, 96px at ≤ 339px, so the count is never pushed past the card edge
+const ORDER_BAR_GAP_MIN_PX = 12;
+const ORDER_BAR_STEPS = [[375, 150], [340, 120], [0, 96]]; // [from viewport width, bar px]
+async function checkOrderBars(pg, where) {
+  const vw = await pg.evaluate(() => document.documentElement.clientWidth);
+  const want = ORDER_BAR_STEPS.find(([from]) => vw >= from)[1];
+  const r = await pg.$$eval('#planOrder .plan-chw', els => els.map(e => {
+    const bar = e.querySelector('.plan-chw-bar').getBoundingClientRect(), c = e.querySelector('.plan-chw-c');
+    const range = document.createRange();
+    range.selectNodeContents(c);
+    const rects = [...range.getClientRects()], row = e.getBoundingClientRect();
+    const left = Math.min(...rects.map(q => q.left)), right = Math.max(...rects.map(q => q.right));
+    return { x: Math.round(bar.left), w: Math.round(bar.width), gap: Math.round(left - bar.right), over: Math.round(right - row.right), fit: c.scrollWidth <= Math.ceil(c.getBoundingClientRect().width) };
+  }));
+  assert(r.every(x => x.w === want), `${where}: study order bar tracks all ${want}px: ` + JSON.stringify(r));
+  assert(r.every(x => x.x === r[0].x), `${where}: every study order bar starts at the same x: ` + JSON.stringify(r.map(x => x.x)));
+  assert(r.every(x => x.gap >= ORDER_BAR_GAP_MIN_PX && x.over <= 0 && x.fit), `${where}: ≥ ${ORDER_BAR_GAP_MIN_PX}px between bar and count, count inside the card: ` + JSON.stringify(r));
 }
 
 async function checkDayList(pg) {
@@ -132,7 +164,25 @@ async function checkDayList(pg) {
   assert(r.today === 10 && r.past === 10, 'today = Day 11, the 10 days before are past');
   assert(r.rest.length > 0 && r.rest.every(s => s.includes('Rest day')), 'rest days say so');
   assert(!/\bmin\b|minute|🏆/.test(r.text), 'task text has no minutes and no 🏆 (handoff §2.3)');
-  assert(r.text.includes('Read Ch 5 Government & law facts #') && r.text.includes('not yet mastered'), 'task text: read range, "not yet mastered" in words');
+  assert(r.text.includes('Read Ch 5 facts #') && r.text.includes('not yet mastered'), 'task text: read range, "not yet mastered" in words');
+  assert(/Practise Ch \d: \d+ Qs/.test(r.text) && !/questions/.test(r.text), 'task text: practice / drill counts in "Qs"');
+  // v1.0.2: task lines name the chapter number only; a muted line under the tasks names each chapter in full
+  const notes = await pg.evaluate(() => {
+    const plan = parseStoredPlan(readStudyPlan());
+    const rows = [...document.querySelectorAll('#planDayList .plan-day')];
+    return plan.days.map((d, i) => {
+      const chs = [...new Set(d.tasks.filter(t => t.ch).map(t => t.ch))];
+      const note = rows[i].querySelector('.plan-day-chs');
+      const tasks = [...rows[i].querySelectorAll('.plan-day-t')].map(e => e.textContent).join(' | ');
+      return { chs, note: note && note.textContent, lang: note && note.getAttribute('lang'), tasks, light: !!d.light, last: note && note === rows[i].querySelector('.plan-day-tasks').lastElementChild };
+    });
+  });
+  const fullNames = await pg.evaluate(() => [1, 2, 3, 4, 5].map(ch => planChapterText(ch)));
+  const withCh = notes.filter(n => n.chs.length && !n.light);
+  assert(withCh.length > 10 && withCh.every(n => n.note === n.chs.map(ch => fullNames[ch - 1]).join(' · ') && n.lang === 'en' && n.last),
+    'remarks: each study day lists its chapters in full, unique, in order, last line, lang="en": ' + JSON.stringify(withCh.slice(0, 3)));
+  assert(notes.filter(n => !n.chs.length || n.light).every(n => n.note === null), 'remarks: none on rest / mock-only / light days');
+  assert(notes.every(n => !fullNames.some(f => n.tasks.includes(f))), 'task lines show "Ch n" without the chapter name');
   assert(r.exam.cls.includes('exam') && r.exam.pat && r.exam.text.includes('🎯') && r.exam.text.includes('29/10 Thu') && r.exam.text.includes('Exam day'),
     'exam day row: lattice, 🎯, date + weekday: ' + r.exam.text);
   assert(r.opens === r.rows, 'PR5: every row (the exam day too) is a button that opens its day');
@@ -170,6 +220,19 @@ async function checkPills(pg) {
   assert(pills.rest[1] === 'Rest' && pills.rest[0].includes('mute'), 'pill: rest');
   assert(pills.today[1] === `Today ${pills.todayPct}%` && pills.today[0].includes('now'), 'pill: today n%: ' + pills.today);
   assert(pills.future && pills.future[1] === '›' && pills.future[0].includes('mute'), 'PR5: a day ahead shows a › pill (it opens): ' + pills.future);
+  // v1.0.2: the pill sits under the date box in the left column; the tasks take the rest of the row
+  const lay = await pg.evaluate(() => [...document.querySelectorAll('#planDayList .plan-day')].map(row => {
+    const pill = row.querySelector('.plan-pill'), side = row.querySelector('.plan-day-side'), box = row.querySelector('.plan-day-d');
+    const tasks = row.querySelector('.plan-day-tasks').getBoundingClientRect(), rr = row.getBoundingClientRect();
+    const cols = getComputedStyle(row).gridTemplateColumns.split(' ').length;
+    if (!pill) return { cols, pill: false, tasksToEnd: Math.round(rr.right - tasks.right) - parseFloat(getComputedStyle(row).paddingRight) };
+    const p = pill.getBoundingClientRect(), b = box.getBoundingClientRect(), s = side && side.getBoundingClientRect();
+    return { cols, pill: true, inSide: !!side && side.contains(pill), below: p.top >= b.bottom - 1, fits: !!s && p.left >= s.left - 0.5 && p.right <= s.right + 0.5,
+      tasksToEnd: Math.round(rr.right - tasks.right) - parseFloat(getComputedStyle(row).paddingRight) };
+  }));
+  assert(lay.every(l => l.cols === 2), 'day rows: two columns (date + pill | tasks): ' + JSON.stringify(lay.map(l => l.cols)));
+  assert(lay.filter(l => l.pill).every(l => l.inSide && l.below && l.fits), 'pill: inside the left column, under the date box, within its width: ' + JSON.stringify(lay.filter(l => l.pill)));
+  assert(lay.every(l => Math.abs(l.tasksToEnd) <= 1), 'tasks reach the right edge of the row (no pill column): ' + JSON.stringify(lay.map(l => l.tasksToEnd)));
   const colours = await pg.evaluate(() => [0, 1, 2, 3].map(n => { const e = document.createElement('span'); e.className = 'plan-pill h' + n; document.body.append(e); const c = getComputedStyle(e).backgroundColor; e.remove(); return c; }));
   assert(new Set(colours).size === 4 && colours.every(c => c !== 'rgba(0, 0, 0, 0)'), 'G27: heat bands 0–3 each have their own token colour: ' + colours);
 }
@@ -359,6 +422,31 @@ async function checkHiddenAttr(pg) {
     .filter(e => getComputedStyle(e).display !== 'none').map(e => e.id || e.className));
   assert(shown.length === 0, '[hidden] elements are never displayed: ' + shown.join(', '));
 }
+// v1.0.2: phase labels unclipped, order bars equal, and every pill (also "Today 100%") fits the left column
+const DAY_SIDE_PX = 64; // S-117: the day list's left column (date box + pill)
+async function checkScheduleFit(pg, where) {
+  const r = await pg.evaluate(() => {
+    const clipped = [...document.querySelectorAll('#planPhaseBar span')].filter(e => e.scrollWidth > e.clientWidth + 0.5).map(e => e.textContent);
+    const row = document.querySelector('#planDayList .plan-day.today'), pill = row.querySelector('.plan-pill');
+    const before = pill.textContent;
+    // S-117: the pill keeps --fs-xs and "Today 0%" / "今日 0%" stays on one line in the 64px column
+    pill.textContent = t('plan.status.today', { n: 0 });
+    const range = document.createRange();
+    range.selectNodeContents(pill);
+    const lines = new Set([...range.getClientRects()].map(q => Math.round(q.top))).size;
+    const zero = { lines, font: getComputedStyle(pill).fontSize, xs: getComputedStyle(document.documentElement).getPropertyValue('--fs-xs').trim(),
+      col: Math.round(row.querySelector('.plan-day-side').getBoundingClientRect().width) };
+    pill.textContent = t('plan.status.today', { n: PERCENT });
+    const side = row.querySelector('.plan-day-side').getBoundingClientRect(), p = pill.getBoundingClientRect();
+    const out = { zero, clipped, full: pill.textContent, fits: p.left >= side.left - 0.5 && p.right <= side.right + 0.5, p: [p.left, p.right], side: [side.left, side.right] };
+    pill.textContent = before;
+    return out;
+  });
+  assert(r.clipped.length === 0, `${where}: phase bar labels not clipped: ` + r.clipped);
+  assert(r.fits, `${where}: "${r.full}" pill fits the left column: ` + JSON.stringify(r));
+  assert(r.zero.lines === 1 && r.zero.font === r.zero.xs && r.zero.col === DAY_SIDE_PX, `${where}: S-117 "Today 0%" on one line at --fs-xs in a ${DAY_SIDE_PX}px column: ` + JSON.stringify(r.zero));
+  await checkOrderBars(pg, where);
+}
 async function checkWidths(pg) {
   await fresh(pg);
   await seedPlan(pg);
@@ -372,6 +460,7 @@ async function checkWidths(pg) {
           list: (() => { const l = byId('planDayList'); return l.scrollWidth - l.clientWidth; })(),
           bar: (() => { const e = byId('planPhaseBar'); return e.getClientRects().length ? e.scrollWidth - e.clientWidth : 0; })() }));
         assert(fit.bar <= 0, `${lang} ${w}px ${fit.s}: every phase bar label shows in full (${fit.bar})`);
+        if (fit.s === 'screenPlanSchedule') await checkScheduleFit(pg, `${lang} ${w}px`);
         assert(fit.sw <= fit.cw && fit.list <= 0, `${lang} ${w}px ${fit.s}: no horizontal scroll (${fit.sw} <= ${fit.cw}, list ${fit.list})`);
         await checkHiddenAttr(pg);
       }

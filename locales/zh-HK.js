@@ -319,7 +319,7 @@ LOCALES['zh-HK'] = {
       title: '你的進度表',
       summary: '{start} 開始 · {exam} 考試 · 每日最多 {mins} · {level}',
       phasesTitle: '三個階段',
-      phaseDays: '{name} {n} 日',
+      phaseDaysN: '{n} 日',
       dayRange: 'Day {from}–{to}',
       orderTitle: '溫習次序：由易到難，History 放在最後',
       orderIntro: '每章的時間按知識點數量分配；次序按難度排列，最難記的 History 放在最後，考試前仍然記憶猶新。',
