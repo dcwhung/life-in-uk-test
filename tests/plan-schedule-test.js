@@ -176,7 +176,9 @@ async function checkPills(pg) {
 // opens at today: below the sticky WEEK heading, the page itself not scrolled; the heading spans the full width
 async function checkScrollToToday(pg) {
   await pg.evaluate(() => openPlanSchedule());
-  await pg.waitForTimeout(100);
+  // the jump to today is instant (no smooth scroll); wait for the list to settle on it instead of a fixed delay
+  await pg.waitForFunction(() => { const l = byId('planDayList'), row = l.querySelector('.plan-day.today'), head = l.querySelector('.plan-week');
+    return !!row && Math.abs(l.scrollTop - (row.offsetTop - head.offsetHeight)) <= 1; });
   const r = await pg.evaluate(() => {
     const list = byId('planDayList'), row = list.querySelector('.plan-day.today');
     const page = scrollY, scrolled = list.scrollTop;
