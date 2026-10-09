@@ -284,9 +284,10 @@ async function checkClearWrong(pg) {
   assert(await activeScreen(pg) === 'screenPlanRun' && !(await pg.evaluate(() => wrongList['1.0'])), 'redone right: cleared, Result card');
   assert(await text(pg, '#planRunBody .result-sub') === 'All 2 questions right, 1 of them after a redo.',
     'summary counts the redone one: ' + await text(pg, '#planRunBody .result-sub'));
-  // the next task is reading (PR6b): "Start next →" opens the day screen for now
+  // the next task is reading: "Start next →" opens its card (PR6b)
   await tap(pg, '#planRunBody [data-action="planOpenTask"]');
-  assert(await activeScreen(pg) === 'screenPlanDay', 'PR6b types: "Start next →" opens the day screen');
+  assert(await activeScreen(pg) === 'screenPlanRun' && await pg.evaluate(() => planRunView.kind === 'facts' && !!document.querySelector('#planRunBody .fact')),
+    'PR6b: "Start next →" opens the next task of any type (reading: its card)');
   // an empty wrong list: "✓ No wrong answers", not a button
   await fresh(pg);
   await seed(pg);

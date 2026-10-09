@@ -3,7 +3,7 @@
 // steps through the plan (Day 1 … the exam day), completion ring + phase pill + n / m done, the day's task boxes
 // (not started / in progress / done; G8 carry-over on today, not counted in today's %), the completion calendar
 // (one month at a time) and the overall progress card. Completion is counted by the system from the answer log
-// (G2–G5); nobody ticks anything. A box the runner can open (planRun.js; PR6a: question tasks) is a button.
+// (G2–G5); nobody ticks anything. A box the runner can open (planRun.js planRunnable: every type with contents) is a button.
 // ════════════════════════════════════════
 const PLAN_RING_EMPTY_BAND = 0;
 const PLAN_DAY_TYPE_CLASS = { read: 'read', wrongFacts: 'read', practice: 'practice', drill: 'practice', review: 'review', mock: 'mock' };

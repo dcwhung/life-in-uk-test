@@ -136,6 +136,13 @@ function planMockProgress(task, dayLog) {
   const scores = dayLog.mock.map(a => a && a.correct).filter(Number.isFinite);
   return planProgressOf(passes > task.slot ? REAL_TEST_SIZE : 0, REAL_TEST_SIZE, 0, { best: scores.length ? Math.max(...scores) : null });
 }
+// G11 / W-044: slot k is sat after k passes, so it is a retake (Random Exam) only while the day has exactly k passes and
+// its last attempt failed; otherwise the slot opens its own exam (earlier failed retakes of other slots do not count)
+function planMockRetake(dayLog, slot) {
+  const passes = dayLog.mock.filter(planMockPassed).length;
+  const last = dayLog.mock[dayLog.mock.length - 1];
+  return passes === slot && !!last && !planMockPassed(last);
+}
 // G24: an unopened review weighs nothing; other unopened tasks count their quota as not done
 function planPendingProgress(task) {
   return { ...planProgressOf(0, task.type === PLAN_TASK.review ? 0 : task.quota || 0, 0), pending: true };

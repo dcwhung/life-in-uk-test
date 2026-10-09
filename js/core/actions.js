@@ -74,6 +74,10 @@ const ACTIONS = {
   planContinue: () => planContinue(),
   planReviewTask: () => planReviewTask(),
   planBackToDay: () => planBackToDay(),
+  planStepFact: el => planStepFact(numArg(el)),
+  planPractiseFact: el => planPractiseFact(numArg(el)),
+  planPractiseTask: () => planPractiseTask(),
+  planRetryMock: () => planRetryMock(),
   // confirm modal
   confirmAccept: () => confirmAccept(),
   closeConfirm: () => closeConfirm(),

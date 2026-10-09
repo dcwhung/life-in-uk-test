@@ -113,7 +113,10 @@ async function checkHeader(pg) {
   await seedPlan(pg);
   await pg.evaluate(() => leaveToHome());
   await pg.click('#planCard [data-action="planContinue"]');
-  assert(await activeScreen(pg) === 'screenPlanDay', 'Home card "Continue": the next task is reading (PR6b), so the day screen opens');
+  assert(await activeScreen(pg) === 'screenPlanRun' && await pg.evaluate(() => planRunView.kind === 'facts'), 'Home card "Continue": the next task is reading, its card opens (PR6b)');
+  await pg.click('#planRunBack');
+  await pg.evaluate(() => { clickGuard = null; }); // CUI-0011: fixed clock, so the next tap near ← would count as a double tap
+  assert(await activeScreen(pg) === 'screenPlanDay', '← Today\'s tasks: the day screen');
   assert(await text(pg, '#planDayTitle') === "Today's tasks", 'title: Today\'s tasks');
   assert(await text(pg, '#planDaySub') === '1/10 Thu · 4/31', 'sub: date weekday · Day n / N: ' + await text(pg, '#planDaySub'));
   assert(await pg.$eval('#planDaySub [lang="en"]', e => e.textContent) === '4/31', 'n/N carries lang="en"');
@@ -174,9 +177,9 @@ async function checkToday(pg) {
   assert(review.bar === '100%' && /^\d+%$/.test(practice.bar), 'mini bars sized from JS');
   assert(carry.every(c => c.cls.includes('carry') && c.tag === 'Day 3'), 'carry-over: orange box + Day 3 tag');
   assert(r.alert.includes('carried over'), 'carry-over alert: ' + r.alert);
-  // PR6a: question tasks open the runner (plan-run-test); reading / an empty clear-wrong task stay plain boxes
-  assert(!read.action && practice.action && !review.action, 'PR6a: the practice box is a button; reading (PR6b) and "No wrong answers" are not');
-  assert(carry.every(c => c.action === /^Practise/.test(c.ttl)), 'PR6a: carry-over practice boxes are buttons, carry-over reading is not');
+  // PR6a / PR6b: every task with something to run opens the runner (plan-run-test / plan-run2-test); an empty clear-wrong task stays a plain box
+  assert(read.action && practice.action && !review.action, 'PR6b: the reading and practice boxes are buttons; "No wrong answers" is not');
+  assert(carry.every(c => c.action), 'PR6b: carry-over practice and reading boxes are buttons');
   assert(r.done === true, 'no done banner while today is not complete');
   // the task box colours (dashed / solid / green / orange)
   const look = await pg.$$eval('#planTaskList .plan-task', els => els.map(e => [getComputedStyle(e).borderTopStyle, getComputedStyle(e).borderTopColor]));

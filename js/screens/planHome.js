@@ -74,6 +74,7 @@ function setPlanFeature(on) {
   setStudyPlanEnabled(on);
   renderPlanSettings();
   renderPlanCard();
+  renderResultPlanRow(); // QA O-3: a plan mock's result page stays (W-031), its plan row follows the switch
   const toastKey = on ? 'plan.toastOn' : 'plan.toastOff';
   showToast(t(toastKey));
 }
@@ -113,7 +114,7 @@ function planHomeBtn(action, labelText, gold = false) {
   return `<button type="button" class="${gold ? 'plan-btn-gold' : 'plan-btn-line'}" data-action="${action}">${labelText}</button>`;
 }
 function planHomeActsHtml(...btns) { return `<div class="plan-home-acts">${btns.join('')}</div>`; }
-// "Continue" opens the next task itself (planRun.js; PR6a: question tasks, the others open the day screen until PR6b)
+// "Continue" opens the next task itself, whatever its type (planRun.js planOpenTask)
 const PLAN_HOME_GO = { done: { action: 'openPlanDay', labelKey: 'plan.home.viewToday' }, next: { action: 'planContinue', labelKey: 'plan.home.continue' } };
 function planActiveHtml(plan, log, todayIso) {
   const day = planDayAt(plan, todayIso);

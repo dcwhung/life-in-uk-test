@@ -35,6 +35,7 @@ function finishExam() {
 function renderResults() {
   renderScore(reviewItems.filter(r => r.isCorrect).length, reviewItems.length);
   renderResultActions();
+  renderResultPlanRow(); // a study plan mock: task done / retake as a Random Exam (js/screens/planRun.js)
   setExamLabel(byId('resultLabel'), state.examNum);
   byId('diffTable').innerHTML = diffTableHtml();
   renderResultDots();
@@ -49,9 +50,10 @@ function recordExamResults() {
 // G10 / G22: a submitted Exam 1-17 or Random Exam in Exam mode is a mock attempt; its answers never count for
 // practice tasks. Leave never gets here (G15).
 function recordPlanExam() {
+  if (isPlanPlainRetake()) return; // G39: Retry after a passed plan mock is a plain retake, never a plan attempt
   const isRealTest = state.mode === EXAM_MODE && (isNumberedExam(state.examNum) || isRandomExam(state.examNum));
   const correct = reviewItems.filter(r => r.isCorrect).length;
-  recordPlanMock({ examNum: state.examNum, correct, total: reviewItems.length, isRealTest }, state.planDay || null);
+  planNoteMockRecorded(recordPlanMock({ examNum: state.examNum, correct, total: reviewItems.length, isRealTest }, state.planDay || null));
 }
 
 // ── score card ──
@@ -187,5 +189,6 @@ function renderReview() {
 }
 
 function retryExam() {
+  if (isPlanMock() || isPlanPlainRetake()) { planRetryMock(); return; } // G11 / G39: Exam mode, never Home's pendingMode
   startExam(state.examNum);
 }

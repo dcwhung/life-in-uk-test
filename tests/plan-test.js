@@ -315,6 +315,17 @@ function checkProgress() {
   assert(prog(mock(0), logWith(TODAY, [], [], [fail])).done === 0 && prog(mock(0), logWith(TODAY, [], [], [fail, pass])).done === 24, 'G10 / G25: a mock is 24 units once passed (18 / 24)');
   assert(!prog(mock(1), logWith(TODAY, [], [], [pass])).complete && prog(mock(1), logWith(TODAY, [], [], [pass, pass])).complete, 'the second mock slot needs a second pass');
   assert(prog(mock(0), logWith(TODAY, [], [], [fail, pass])).best === 18, 'the best score is kept for the card');
+  // W-044: a slot is retaken as a Random Exam only when the passes so far are exactly its slot and the last attempt failed
+  const retake = (slot, attempts) => g('planMockRetake')(g('planDayLog')(logWith(TODAY, [], [], attempts), TODAY), slot);
+  [
+    [0, [], false, 'slot 0, no attempt: its own exam'],
+    [0, [fail], true, 'slot 0 failed: Random Exam'],
+    [1, [pass], false, 'slot 0 passed first time: slot 1 opens its own exam'],
+    [1, [fail, pass], false, 'slot 0 failed then passed: slot 1 still opens its own exam'],
+    [1, [fail, pass, fail], true, 'slot 1 failed: Random Exam'],
+    [1, [fail], false, 'slot 1 opened before slot 0 passed: its own exam'],
+    [0, [fail, pass], false, 'slot 0 passed: done, not a retake'],
+  ].forEach(([slot, attempts, want, label]) => assert(retake(slot, attempts) === want, 'W-044: ' + label));
   const dc = g('planDayCompletion')(day, g('planDayLog')(logWith(TODAY, practice.qids.slice(0, 1)), TODAY));
   const weights = day.tasks.filter(t => t.type !== 'review').reduce((s, t) => s + (t.qids || t.facts).length, 0);
   assert(dc.total === weights && dc.pct > 0 && dc.pct < 100, 'day % = done / total units, the unopened review left out');

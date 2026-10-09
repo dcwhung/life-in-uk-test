@@ -2,11 +2,12 @@
 // SIMILAR PANEL — practice only, once answered: other questions of the same STUDY fact,
 // plus a one-off "Practise these N" session (hidden inside that session)
 // ════════════════════════════════════════
-function similarItemHtml(k) {
+// mark: text after the ref (a study plan's wrong answer: "· You got this wrong"); none by default
+function similarItemHtml(k, mark = '') {
   const item = questionByKey(k);
   return `<div class="sqm-item">
       <div class="sqm-item-top">
-        <span class="sqm-id">${questionRefText(item)}</span>
+        <span class="sqm-id">${questionRefText(item)}${mark ? LIST_SEP + escapeHtml(mark) : ''}</span>
         <span class="sqm-streak${isMastered(item) ? ' done' : ''}">${streakLabel(item)}</span>
       </div>
       <div class="sqm-q" lang="en">${escapeHtml(item.q.q)}</div>
@@ -25,20 +26,30 @@ function similarLegendHtml() {
       <span><i class="lg-new"></i>${streakText(0)}</span>
     </div>`;
 }
-// practise: false = no "Practise these N" (G26: a plan task session, which has nowhere to come back to after it)
-function similarPanelHtml(q, keys, { practise = true } = {}) {
-  const cta = practise ? `<div class="sqm-cta"><button data-action="startSimilarPractice">${t('similar.practise', { n: keys.length })}</button></div>` : '';
+// practise: false = no "Practise these N" (G26: a plan task session, which has nowhere to come back to after it);
+// cta (arch §E.3): { action, arg, n } another session for the button (a study plan's wrong fact), n = the questions it asks;
+// currentMark (CUI-0025): the panel stands alone (no question card above it), so q itself is listed first with this
+// mark and the count is every question of the fact (no "+")
+function similarCtaHtml(keys, cta) {
+  const { action, arg, n } = cta || { action: 'startSimilarPractice', n: keys.length };
+  const argAttr = arg === undefined ? '' : ` data-arg="${escapeHtml(arg)}"`;
+  return `<div class="sqm-cta"><button data-action="${action}"${argAttr}>${t('similar.practise', { n })}</button></div>`;
+}
+function similarPanelHtml(q, keys, { practise = true, cta = null, currentMark = '' } = {}) {
+  const ctaHtml = practise ? similarCtaHtml(keys, cta) : '';
+  const items = (currentMark ? [similarItemHtml(qKey(q), currentMark)] : []).concat(keys.map(k => similarItemHtml(k)));
+  const count = currentMark ? keys.length + 1 : `+${keys.length}`;
   return `
     <div class="sqm-head">
       <span class="sqm-icon">🗺️</span>
       <span class="sqm-title"><b>${t('similar.title')}</b><span>${t('similar.subtitle')}</span></span>
-      <span class="sqm-count">+${keys.length}</span>
+      <span class="sqm-count">${count}</span>
     </div>
     ${factCardHtml(factOf(q), { variant: FACT_VARIANT.core })}
     ${similarMapHtml(q, keys)}
     ${similarLegendHtml()}
-    <div class="sqm-list">${keys.map(similarItemHtml).join('')}</div>
-    ${cta}`;
+    <div class="sqm-list">${items.join('')}</div>
+    ${ctaHtml}`;
 }
 function renderSimilar(q, revealed) {
   const box = byId('similarBox');
