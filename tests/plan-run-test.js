@@ -212,7 +212,7 @@ async function checkReviewMode(pg, qids, before) {
   assert(v.n === Math.min(24, qids.length) && v.revealed === v.n && !v.yue, 'review: every question answered + revealed, no Translate');
   assert(v.opts.some(c => c.includes('correct')) && !v.opts.some(c => c.includes('wrong')), 'review: the correct option marked, no wrong pick');
   assert(v.labels.filter(l => l === 'Correct answer (✗ you got this wrong before)').length === 1 && v.labels.filter(l => l === '✓ Correct answer').length === v.n - 1,
-    'G17: "✗ You got this wrong" on the one answered wrong, "✓ Correct answer" on the others');
+    'G17: "Correct answer (✗ you got this wrong before)" on the one answered wrong, "✓ Correct answer" on the others');
   await pg.evaluate(() => { state.current = 0; renderQuestion(); });
   await tap(pg, '#opt0');
   await tap(pg, '#opt1');

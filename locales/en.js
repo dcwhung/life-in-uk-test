@@ -269,7 +269,7 @@ LOCALES.en = {
       pillAhead: '{phase} phase · ahead',
       count: '{done} / {total} done',
       restCount: 'Rest day: no tasks',
-      hintToday: 'Completion is counted automatically: everything you have done in Study and Practice counts. Once you have practised all the questions for a set of facts, those facts count as read too.',
+      hintToday: 'Completion is counted automatically: everything you have done in Study and Practice counts. Once you have answered all the questions for a set of facts correctly, those facts count as read too.',
       hintPast: 'A day gone by: catch up on anything unfinished here, and its completion updates at once.',
       hintAhead: 'A day ahead: see what is coming. Reading and practice can be done early; redoing wrong answers and drills are decided on the day.',
       doneToday: '🎉 All done for today!',
@@ -423,7 +423,7 @@ LOCALES.en = {
       nextRoundTitle: 'Next round', // QA O-3: the quick button's title / aria-label, no symbol
       retryWrong: { one: '🔁 Redo the wrong answer ({n} left)', other: '🔁 Redo wrong answers ({n} left)' },
       retryWrongTitle: { one: 'Redo the wrong answer ({n} left)', other: 'Redo wrong answers ({n} left)' },
-      pairNote: 'Once you have practised these questions, the matching facts count as read automatically.',
+      pairNote: 'Once you have answered these questions correctly, the matching facts count as read automatically.',
       reviewNote: "✅ This task is done · you're reviewing it now, so your progress won't be affected.",
       reviewCorrect: '✓ Correct answer',
       reviewWasWrong: 'Correct answer (✗ you got this wrong before)',
