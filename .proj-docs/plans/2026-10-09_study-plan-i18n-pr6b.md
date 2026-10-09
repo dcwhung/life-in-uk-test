@@ -1,4 +1,4 @@
-# 溫習計劃 i18n key 對照（PR6b 新增，8 個）
+# 溫習計劃 i18n key 對照（PR6b 新增，9 個）
 
 > 由 PR6b developer 整理，留俾 PR7（G35）中英對照用。全部喺 `plan.run.*`（讀知識點 / 重溫答錯題目的知識點 / 模擬考結果）。
 > 其他重用嘅現有 key：`home.modeStudy`（讀知識點 badge「溫習」）、`common.practice` / `common.exam`（badge）、`common.chapterN` / `common.examN`（標題）、`common.factSet`（知識點練習 session 標題「Fact Ch c #n」，經 `setExamLabel`）、`common.randomExam`（「隨機試卷」）、`similar.practise`（卡 / panel 嘅「▶ 練習這 n 題」，n = 呢條知識點今日仲要答嘅題數）、`similar.*`（panel 全部字）、`quiz.finishButton`（「完成 ✓」）、`plan.run.reviewNote`、`plan.run.backToList`、`plan.task.mockPassed`（模擬考完成卡小結）、`plan.task.*`（頂部任務名）。
@@ -12,8 +12,11 @@
 | `plan.run.mockPassNote` | ✓ 模擬考試任務完成 | ✓ Mock exam task done |
 | `plan.run.mockFailNote` | 未合格（合格需 {pass} / {n} 分），可即日再考隨機試卷。 | Not passed (pass mark {pass} / {n}): retake as a Random Exam today. |
 | `plan.run.mockRetake` | 再考{exam} | Retake: {exam} |
+| `plan.run.mockNotCounted` | 過了午夜才交卷，這次不計入當日計劃。 | Submitted after midnight: this attempt does not count for that day. |
 | `plan.run.prevFact` | ← 上一條 | ← Prev |
 | `plan.run.nextFact` | 下一條 → | Next → |
 
 - `{exam}` = `common.randomExam`（zh-HK「隨機試卷」→「再考隨機試卷」；en「Retake: Random Exam」）。
 - `{pass}` = `PASS_MARK`（18）、`{n}` = `REAL_TEST_SIZE`（24）。
+
+- `mockNotCounted`（review S-131）：計劃模擬考交卷時冇寫入 log（例如 23:50 開考、00:10 交卷），結果行唔出「任務完成」/「再考」，只出呢句 + 返回任務列表。

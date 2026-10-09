@@ -397,7 +397,7 @@ function planStartMockExam(at, examNum) {
   planRunView = null;
   startExam(examNum, EXAM_MODE);
   state.planDay = at.date; // after startExam, which clears it (arch §D)
-  planMockRun = at;
+  planMockRun = { date: at.date, taskIndex: at.taskIndex, from: at.from, recorded: null }; // recorded: planNoteMockRecorded
   renderPlanQuizHeader();
 }
 // result page "Retake" and Retry (retryExam): a Random Exam in Exam mode; with the feature off, an ordinary retry
@@ -412,6 +412,8 @@ function planLeaveMock() {
   stopExamTimer();
   planBackToDay();
 }
+// S-131: the day the submitted plan mock was written to (null = not recorded, e.g. submitted after midnight)
+function planNoteMockRecorded(iso) { if (planMockRun) planMockRun.recorded = iso; }
 // #resultPlanRow under the score (hidden unless a plan mock was just submitted): passed = the task is done (G10),
 // not passed = retake as a Random Exam the same day (G11)
 function renderResultPlanRow() {
@@ -421,10 +423,12 @@ function renderResultPlanRow() {
   row.innerHTML = row.hidden ? '' : planResultRowHtml(reviewItems.filter(r => r.isCorrect).length, reviewItems.length);
 }
 function planResultRowHtml(correct, total) {
+  const back = (cls = '') => `<button type="button" class="nav-btn${cls} plan-hit" data-action="planBackToDay">${t('plan.run.backToList')}</button>`;
+  // S-131: the row follows the log: an attempt not recorded is neither "task done" nor worth a retake that day
+  if (!planMockRun.recorded) return `<p class="plan-note warn" role="status">${t('plan.run.mockNotCounted')}</p><div class="nav-row">${back()}</div>`;
   const passed = planMockPassed({ correct, total });
   const note = passed ? t('plan.run.mockPassNote') : t('plan.run.mockFailNote', { pass: PASS_MARK, n: REAL_TEST_SIZE });
-  const back = `<button type="button" class="nav-btn${passed ? '' : ' secondary'} plan-hit" data-action="planBackToDay">${t('plan.run.backToList')}</button>`;
   const retake = passed ? ''
     : `<button type="button" class="nav-btn plan-hit" data-action="planRetryMock">${t('plan.run.mockRetake', { exam: t('common.randomExam') })}</button>`;
-  return `<p class="plan-note${passed ? '' : ' warn'}" role="status">${note}</p><div class="nav-row">${retake}${back}</div>`;
+  return `<p class="plan-note${passed ? '' : ' warn'}" role="status">${note}</p><div class="nav-row">${retake}${back(passed ? '' : ' secondary')}</div>`;
 }

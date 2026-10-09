@@ -52,7 +52,7 @@ function recordExamResults() {
 function recordPlanExam() {
   const isRealTest = state.mode === EXAM_MODE && (isNumberedExam(state.examNum) || isRandomExam(state.examNum));
   const correct = reviewItems.filter(r => r.isCorrect).length;
-  recordPlanMock({ examNum: state.examNum, correct, total: reviewItems.length, isRealTest }, state.planDay || null);
+  planNoteMockRecorded(recordPlanMock({ examNum: state.examNum, correct, total: reviewItems.length, isRealTest }, state.planDay || null));
 }
 
 // ── score card ──

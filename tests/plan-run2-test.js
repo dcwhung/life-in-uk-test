@@ -386,6 +386,24 @@ async function checkMockTimer(pg) {
   assert(r.up && r.note.includes('✓ Mock exam task done') && r.log.length === 1 && r.log[0].correct === 18, 'time up submits: 18 / 24 passes the task');
 }
 
+// S-131: started 23:50, submitted 00:10: the log has no attempt for that day, so the row says it does not count
+async function checkMockMidnight(pg) {
+  const iso = await mockDay(pg);
+  await fresh(pg, at(iso, '23:50:00'));
+  await seed(pg, { start: START });
+  await openDay(pg);
+  const p = await plan(pg);
+  await tap(pg, taskBox(iso, taskIndexOf(p, iso, t => t.type === 'mock')));
+  await fillExam(pg, 24);
+  await pg.clock.setFixedTime(new Date(at(iso, '23:50:00').getTime() + 20 * 60 * 1000));
+  await tap(pg, '#nextBtn');
+  const r = await pg.evaluate(iso => ({ screen: document.querySelector('.screen.active').id, note: byId('resultPlanRow').querySelector('.plan-note').textContent,
+    acts: [...byId('resultPlanRow').querySelectorAll('.nav-btn')].map(b => b.dataset.action), log: planDayLog(planLoadLog(), iso).mock }), iso);
+  assert(r.screen === 'screenResult' && r.log.length === 0, 'S-131: submitted after midnight: nothing recorded for that day');
+  assert(r.note === 'Submitted after midnight: this attempt does not count for that day.' && r.acts.join() === 'planBackToDay',
+    'S-131: the row says so (no "task done", no retake): ' + r.note);
+}
+
 // Home "Continue" and "Start next →" open reading / mock too (not only question tasks)
 async function checkContinue(pg) {
   await fresh(pg);
@@ -465,6 +483,7 @@ async function main() {
   await checkWrongFacts(pg);
   await checkMock(pg);
   await checkMockTimer(pg);
+  await checkMockMidnight(pg);
   await checkContinue(pg);
   await checkLayout(b);
   await shotMock(b);

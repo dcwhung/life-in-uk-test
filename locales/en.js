@@ -444,6 +444,7 @@ LOCALES.en = {
       mockPassNote: '✓ Mock exam task done',
       mockFailNote: 'Not passed (pass mark {pass} / {n}): retake as a Random Exam today.',
       mockRetake: 'Retake: {exam}',
+      mockNotCounted: 'Submitted after midnight: this attempt does not count for that day.',
       prevFact: '← Prev',
       nextFact: 'Next →',
     },
