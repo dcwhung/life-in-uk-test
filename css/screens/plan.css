@@ -167,4 +167,6 @@
   .plan-cta { grid-template-columns: 44px minmax(0, 1fr); }
   .plan-cta-go { grid-column: 1 / -1; text-align: center; }
 }
+/* W-036: at 320px "1.5 months" needs the chip's full width to stay on one row with the other presets */
+@media (max-width: 340px) { .plan-presets .chip { padding-inline: 0; font-size: var(--fs-xs); } }
 @media (prefers-reduced-motion: reduce) { .plan-day-scroll { scroll-behavior: auto; } }
