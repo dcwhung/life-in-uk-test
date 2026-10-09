@@ -64,7 +64,20 @@ Header：國家 / 國教 / 教會（用戶原本寫「國教教會」，因為 S
 
 - 其他候選（preview：`mockups/note-table-all.html`，用戶未揀）：
   - ③ 首都 / 國花（11 題 = 首都 6 + 國花 5）：`| 國家 | 首都 | 國花 |`，England London Tudor rose / Scotland Edinburgh Thistle / Wales Cardiff Daffodil / N. Ireland Belfast Shamrock
-  - ④ 地方議會（7）、⑤ 發明家（6）、⑥ 節日（11）；時間線 ⑦ 戰役（15）、⑧ 二戰（9）、⑨ 國王 vs 國會（8）
+  - ④ 地方議會（7），用戶 2026-10-09 定咗內容（加 England 行）：
+    ```
+    | 地區 | 議會 / 地點 | 議員 |
+    | England | UK Parliament<br>Westminster | 650<br>全英國 MP |
+    | Scotland | Scottish Parliament<br>Edinburgh | 129 |
+    | Wales | Senedd<br>Cardiff | 60 |
+    | N. Ireland | NI Assembly<br>Belfast | 90 |
+    • England 冇自己嘅地方議會，由英國國會直接負責；
+    • Senedd 議員：考試答 60（2026 年選舉起增至 96）；
+    • Scotland / Wales / N. Ireland 三個議會用比例代表制（proportional representation）；
+    • 英國國會用領先者當選制（first past the post）
+    ```
+  - ⑩ 名勝 / 地方（新組，17 題而家冇記憶法），格式 `| 國家 | 地點 | 名勝 |`（用戶定）：E9 Q4、E13 Q2（Lake District）、E14 Q19（Stonehenge）、E4 Q19、E5 Q3（Eden Project）、E11 Q22、E13 Q20（Glastonbury）、E12 Q7（Tate）、E4 Q9（Ben Nevis）、E10 Q2（Loch Lomond）、E11 Q20（Edinburgh Castle）、E8 Q8（National Galleries）、E3 Q13、E4 Q15、E7 Q11（Snowdonia / Snowdon）、E7 Q19、E16 Q2（Giant's Causeway）；E6 Q4（National Parks 統稱）同倫敦名勝唔放入。內容見 mockup
+  - ⑤ 發明家（6）、⑥ 節日（11）；時間線 ⑦ 戰役（15）、⑧ 二戰（9）、⑨ 國王 vs 國會（8）
   - 唔建議：都鐸王朝、三層屬地、Magna Carta、選舉、戴卓爾夫人、陪審員（保持文字）
 - Exam 9 Q20「patron flower of Ireland」字眼（用戶未決定）
 - `APP_VERSION` bump（令已安裝 PWA 攞到新 note）

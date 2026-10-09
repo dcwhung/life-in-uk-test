@@ -47,7 +47,7 @@
   <table>
     <tr><th>類別</th><th>組數</th><th>題數</th><th>記憶法</th></tr>
     <tr><td>✅ 已計劃</td><td>2</td><td>15</td><td>①聖人 / 日子（10）、②國教 / 教會（5）</td></tr>
-    <tr><td>🟦 A 好適合（每行同一組欄位）</td><td>4</td><td>35</td><td>③首都 / 國花（11）、④地方議會（7）、⑤發明家（6）、⑥節日（11）</td></tr>
+    <tr><td>🟦 A 好適合（每行同一組欄位）</td><td>5</td><td>52</td><td>③首都 / 國花（11）、④地方議會（7）、⑤發明家（6）、⑥節日（11）、⑩名勝 / 地方（17，新組）</td></tr>
     <tr><td>🟪 B 時間線（年份 + 事件）</td><td>3</td><td>32</td><td>⑦英國重要戰役（15）、⑧二戰（9）、⑨國王 vs 國會（8）</td></tr>
     <tr><td>⬜ C 唔建議（保持文字）</td><td>6</td><td>34</td><td>都鐸王朝（9，有分層列點）、三層屬地（7，分類 + 陷阱）、Magna Carta（8）、選舉（4）、戴卓爾夫人（3）、陪審員（3）：一兩行事實，table 冇加分</td></tr>
   </table>
@@ -69,9 +69,10 @@ const GROUPS = {
   ],
   groupA: [
     ['③ 首都 / 國花', 11, 'new', '| 國家 | 首都 | 國花 |\n| England | London | Tudor rose |\n| Scotland | Edinburgh | Thistle |\n| Wales | Cardiff | Daffodil |\n| N. Ireland | Belfast | Shamrock |'],
-    ['④ 地方議會', 7, 'new', '| 地區 | 議會 / 地點 | 議員 |\n| Scotland | Scottish Parliament<br>Edinburgh | 129 |\n| Wales | Senedd<br>Cardiff | 60 |\n| N. Ireland | NI Assembly<br>Belfast | 90 |\n• Senedd 議員：考試答 60（2026 年選舉起增至 96）；\n• 三個議會都用比例代表制（proportional representation），同英國國會嘅領先者當選制唔同。'],
+    ['④ 地方議會', 7, 'new', '| 地區 | 議會 / 地點 | 議員 |\n| England | UK Parliament<br>Westminster | 650<br>全英國 MP |\n| Scotland | Scottish Parliament<br>Edinburgh | 129 |\n| Wales | Senedd<br>Cardiff | 60 |\n| N. Ireland | NI Assembly<br>Belfast | 90 |\n• England 冇自己嘅地方議會，由英國國會直接負責；\n• Senedd 議員：考試答 60（2026 年選舉起增至 96）；\n• Scotland / Wales / N. Ireland 三個議會用比例代表制（proportional representation）；\n• 英國國會用領先者當選制（first past the post）'],
     ['⑤ 發明家', 6, 'new', '| 年份 | 人物 / 發明 |\n| 17 世紀 | Isaac Newton<br>萬有引力、運動定律 |\n| 1876 | Alexander Graham Bell<br>電話（蘇格蘭裔） |\n| 1928 | Alexander Fleming<br>盤尼西林 penicillin（蘇格蘭人） |\n| 1930s | Frank Whittle<br>噴射引擎 jet engine |\n| 1953 | Francis Crick<br>DNA 結構（同 James Watson 一齊發現） |\n| 1989 | Tim Berners-Lee<br>萬維網 World Wide Web |'],
     ['⑥ 節日（按月份）', 11, 'new', '| 日期 | 節日 |\n| 25/1 | Burns Night<br>紀念蘇格蘭詩人 Robert Burns |\n| 31/10 | Halloween |\n| 5/11 | Bonfire Night<br>紀念 1605 年火藥陰謀（Gunpowder Plot）失敗 |\n| 11/11 | Remembrance Day<br>戴紅罌粟花 |\n| 26/12 | Boxing Day<br>聖誕節翌日 |\n| 31/12 | Hogmanay<br>蘇格蘭除夕 |'],
+    ['⑩ 名勝 / 地方', 17, 'new', '| 國家 | 地點 | 名勝 |\n| England | National Park | Lake District<br>英格蘭最大國家公園 |\n| England | Wiltshire | Stonehenge<br>約 5,000 年前建成 |\n| England | Cornwall | Eden Project<br>巨型溫室生態館 |\n| England | Somerset | Glastonbury<br>音樂節 |\n| England | London | Tate<br>Tate Britain、Tate Modern |\n| Scotland | Highlands | Ben Nevis<br>英國最高山 |\n| Scotland | National Park | Loch Lomond & Trossachs<br>蘇格蘭國家公園 |\n| Scotland | Edinburgh | Edinburgh Castle<br>愛丁堡城堡 |\n| Scotland | Edinburgh | National Galleries of Scotland<br>蘇格蘭國家美術館 |\n| Wales | National Park | Snowdonia<br>Snowdon 係威爾斯最高山 |\n| N. Ireland | County Antrim | Giant\'s Causeway<br>火山熔岩形成嘅玄武岩柱 |'],
   ],
   groupB: [
     ['⑦ 英國重要戰役', 15, 'tl', '| 年份 | 戰役 / 結果 |\n| 9 世紀 | Alfred the Great vs Vikings<br>統一盎格魯-撒克遜王國，打敗維京人 |\n| 1066 | Battle of Hastings vs Normandy<br>William 打敗 Harold → 諾曼征服 |\n| 1314 | Bannockburn vs Scotland<br>Robert the Bruce 打敗英格蘭 → 蘇格蘭保持獨立 |\n| 1588 | Spanish Armada vs Spain<br>Elizabeth I 年代英格蘭打敗西班牙 |\n| 1805 | Trafalgar vs France + Spain<br>Nelson 勝，但陣亡 |\n| 1815 | Waterloo vs France<br>Wellington 打敗 Napoleon，英法最後一戰 |\n| 1940 | Battle of Britain vs Germany<br>皇家空軍擊退德國空襲 → 阻止入侵 |'],
