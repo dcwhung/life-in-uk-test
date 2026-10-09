@@ -44,10 +44,10 @@
   note 入面連續以 <code>|</code> 開頭嘅行會 render 成 table，第一行係 header，其他行照舊。格仔入面 <code>（…）</code> 嘅中文會自動分開顯示（Option 1 放第二行，Option 2 同一行）。
   <pre>記憶法：
 | 國家 | 聖人 | 日子 | 國花 |
-| England（英格蘭） | George | 23/4 | Tudor rose（都鐸玫瑰） |
-| Scotland（蘇格蘭） | Andrew | 30/11 | Thistle（薊花） |
-| Wales（威爾斯） | David | 1/3 | Daffodil（水仙花） |
-| N. Ireland（北愛爾蘭） | Patrick | 17/3 | Shamrock（三葉草） |</pre>
+| England | George | 23/4 | Tudor rose（都鐸玫瑰） |
+| Scotland | Andrew | 30/11 | Thistle（薊花） |
+| Wales | David | 1/3 | Daffodil（水仙花） |
+| N. Ireland | Patrick | 17/3 | Shamrock（三葉草） |</pre>
   兩個 option 都喺 390px 闊（iPhone）下面顯示 3 個會出現記憶法嘅畫面。請揀 Option 1 或 2。
 </div>
 
@@ -55,7 +55,7 @@
 
 <script>
 // mockup data: the proposed note text, rendered by a copy of the proposed noteHtml() table branch
-const NOTE = '記憶法：\n| 國家 | 聖人 | 日子 | 國花 |\n| England（英格蘭） | George | 23/4 | Tudor rose（都鐸玫瑰） |\n| Scotland（蘇格蘭） | Andrew | 30/11 | Thistle（薊花） |\n| Wales（威爾斯） | David | 1/3 | Daffodil（水仙花） |\n| N. Ireland（北愛爾蘭） | Patrick | 17/3 | Shamrock（三葉草） |';
+const NOTE = '記憶法：\n| 國家 | 聖人 | 日子 | 國花 |\n| England | George | 23/4 | Tudor rose（都鐸玫瑰） |\n| Scotland | Andrew | 30/11 | Thistle（薊花） |\n| Wales | David | 1/3 | Daffodil（水仙花） |\n| N. Ireland | Patrick | 17/3 | Shamrock（三葉草） |';
 const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 const cells = line => line.trim().replace(/^\||\|$/g, '').split('|').map(c => c.trim());
 const cellHtml = c => { const at = c.indexOf('（'); return at > 0 ? `${esc(c.slice(0, at))}<span class="note-cell-yue">${esc(c.slice(at))}</span>` : esc(c); };
