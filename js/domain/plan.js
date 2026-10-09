@@ -123,9 +123,10 @@ function planDrillItems(level) {
     return Array.from({ length: n }, (_, i) => ({ ch, id: i + 1, w }));
   });
 }
-function planNeedMinutes(level) {
+// factIds: the facts still to learn (W-035: a changed goal only re-plans these); drill + mocks stay whole-syllabus
+function planNeedMinutes(level, factIds = PLAN_LEARN_ORDER) {
   const drill = PLAN_TOTAL_QIDS * PLAN_SECOND_PASS_RATIO * PLAN_LEVELS[level].minPerQ;
-  return Math.round(planLearnMinutes(level) + drill + PLAN_MIN_MOCKS * PLAN_MOCK_BLOCK_MINS);
+  return Math.round(planLearnMinutes(level, factIds) + drill + PLAN_MIN_MOCKS * PLAN_MOCK_BLOCK_MINS);
 }
 
 // split ordered weighted items into dayCount chunks of about equal weight, never leaving a day empty while items
@@ -166,13 +167,14 @@ function planFeasStatus(ratio) {
   if (ratio >= PLAN_FEAS_OK) return PLAN_FEAS.ok;
   return ratio >= PLAN_FEAS_TIGHT ? PLAN_FEAS.tight : PLAN_FEAS.short;
 }
-function planFeasibility(goal, todayIso) {
+// factIds as planNeedMinutes: a new plan learns everything, a changed goal what planFactsLeft leaves
+function planFeasibility(goal, todayIso, factIds = PLAN_LEARN_ORDER) {
   const cal = planCalendar(todayIso, goal.examDate, goal.restDays);
   const studyDays = cal.filter(d => !d.rest).length;
   const availMins = studyDays * goal.dailyMins;
-  const needMins = planNeedMinutes(goal.level);
+  const needMins = planNeedMinutes(goal.level, factIds);
   const ratio = needMins ? availMins / needMins : 0;
-  const split = planSplitStudyDays(Math.max(0, studyDays - 1), goal, planLearnMinutes(goal.level));
+  const split = planSplitStudyDays(Math.max(0, studyDays - 1), goal, planLearnMinutes(goal.level, factIds));
   return {
     studyDays, restCount: cal.length - studyDays, availMins, needMins, ratio,
     status: planFeasStatus(ratio), diffMins: availMins - needMins, overload: split.overload,

@@ -111,7 +111,9 @@ function renderPlanLevels() {
 const PLAN_FEAS_LABEL_KEYS = { ok: 'plan.feas.ok', tight: 'plan.feas.tight', short: 'plan.feas.short' };
 const PLAN_FEAS_MSG_KEYS = { ok: 'plan.feas.okMsg', tight: 'plan.feas.tightMsg', short: 'plan.feas.shortMsg' };
 function renderPlanFeasibility(todayIso) {
-  const f = planFeasibility(planGoalDraft, todayIso);
+  // W-035: a changed goal re-plans only the facts still to learn (replanFrom), so the estimate counts those
+  const factIds = planGoalEditing ? planFactsLeft(planLoadLog() || planEmptyLog()) : PLAN_LEARN_ORDER;
+  const f = planFeasibility(planGoalDraft, todayIso, factIds);
   const labelKey = PLAN_FEAS_LABEL_KEYS[f.status], msgKey = PLAN_FEAS_MSG_KEYS[f.status];
   byId('planFeasPill').className = 'plan-pill ' + f.status;
   byId('planFeasPill').textContent = t(labelKey);

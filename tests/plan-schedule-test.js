@@ -227,6 +227,25 @@ async function checkChangeGoal(pg) {
   assert(!create.steps && create.step === 'New plan · 1 / 2' && create.cta === 'Build my plan →', 'a new plan opens the goal screen in create mode again');
 }
 
+// W-035: Change goal measures the time against the facts still to learn (review case: 21 days at 60 min, 12 days in,
+// 44 facts left, no rest days → not ✕)
+async function checkChangeGoalFeasibility(pg) {
+  await fresh(pg);
+  const r = await pg.evaluate(() => {
+    const start = isoAddDays(planTodayIso(), -12);
+    writeStudyPlan(buildPlan({ examDate: isoAddDays(start, 21), dailyMins: 60, restDays: [], level: 'none' }, start));
+    const done = PLAN_LEARN_ORDER.slice(0, PLAN_LEARN_ORDER.length - 44);
+    writePlanLog({ v: 1, days: { [isoAddDays(start, 1)]: { ok: Object.fromEntries(done.flatMap(id => planFactQids(planFactById(id))).map(k => [k, 1])) } } });
+    openPlanSchedule();
+    return { left: planFactsLeft(planLoadLog()).length, whole: planFeasibility(planLoad().goal, planTodayIso()).status };
+  });
+  await pg.click('#screenPlanSchedule [data-action="planEditGoal"]');
+  const pill = await pg.$eval('#planFeasPill', e => e.className);
+  assert(r.left === 44 && r.whole === 'short' && !pill.includes('short'), 'W-035: Change goal with 44 facts left is not "✕ Not enough": ' + pill);
+  await pg.evaluate(() => { openPlanGoal(); Object.assign(planGoalDraft, planCopyGoal(planLoad().goal)); renderPlanGoal(); });
+  assert((await pg.$eval('#planFeasPill', e => e.className)).includes('short'), 'W-035: the same goal as a new plan still measures the whole syllabus (✕)');
+}
+
 async function checkReset(pg, { corruptLog = false } = {}) {
   await fresh(pg);
   await seedPlan(pg);
@@ -340,7 +359,7 @@ async function main() {
   const errs = [];
   pg.on('pageerror', e => errs.push(e.message));
   await pg.clock.setFixedTime(NOW);
-  for (const check of [checkHidden, checkCreateOpensSchedule, checkOverview, checkDayList, checkPills, checkScrollToToday, checkChangeGoal,
+  for (const check of [checkHidden, checkCreateOpensSchedule, checkOverview, checkDayList, checkPills, checkScrollToToday, checkChangeGoal, checkChangeGoalFeasibility,
     checkReset, pg2 => checkReset(pg2, { corruptLog: true }), checkSwitchModalKeepsPopover, checkEnded, checkWidths, checkLangKeepsScroll]) {
     await check(pg);
   }

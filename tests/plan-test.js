@@ -168,6 +168,18 @@ function checkFeasibility() {
   assert(f(60).diffMins === 18 * 60 - need, 'diffMins = available - needed');
   const nf = l => g('planNeedMinutes')(l);
   assert(nf('none') > nf('some') && nf('some') > nf('exam'), 'need minutes shrink with the level');
+  checkFeasibilityFactsLeft();
+}
+// W-035: a goal changed mid-plan is measured against the facts still to learn (what replanFrom schedules), not the
+// whole syllabus. Review case: a 21-day plan at 60 min / day, 12 days in, 44 facts left → 9 days left is not short
+function checkFeasibilityFactsLeft() {
+  const order = g('PLAN_LEARN_ORDER'), left = order.slice(order.length - 44);
+  const goal = goalFor(9, 60, []);
+  const all = g('planFeasibility')(goal, TODAY), part = g('planFeasibility')(goal, TODAY, left);
+  assert(all.status === 'short' && part.status !== 'short', `W-035: 9 days × 60 min: whole syllabus ${all.status}, 44 facts left ${part.status}`);
+  const drillAndMocks = all.needMins - Math.round(g('planLearnMinutes')('none'));
+  assert(Math.abs(part.needMins - Math.round(g('planLearnMinutes')('none', left)) - drillAndMocks) <= 1, 'W-035: only the learn part shrinks (drill + mocks estimate unchanged)');
+  assert(JSON.stringify(g('planFeasibility')(goal, TODAY, order)) === JSON.stringify(all), 'W-035: the default is the whole learn order');
 }
 
 function checkChunkAndSplit() {
