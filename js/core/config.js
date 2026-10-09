@@ -44,6 +44,7 @@ const DOUBLE_TAP_SLOP_PX = 40; // ...and only near the point of that click (the 
 const OPTION_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 const LIST_SEP = ' · ';    // between parts of one line ("✓ Correct! · 🔥 1/3")
 const ANSWER_SEP = ' | ';  // between the options of a multi-answer question
+const TOAST_MS = 2400; // how long a toast stays on screen (js/components/toast.js)
 
 // ── study plan (js/domain/plan.js, planProgress.js) ──
 // G19: the entry points (ⓘ switch, home card) stay hidden until the release PR flips this; answer hooks ignore it
@@ -71,6 +72,11 @@ const INSTALL_DISMISSED_LS = LS_PREFIX + 'installDismissed';   // v0.60: install
 const STUDY_PLAN_ENABLED_LS = LS_PREFIX + 'studyPlanEnabled';
 const STUDY_PLAN_LS = LS_PREFIX + 'studyPlan';
 const STUDY_PLAN_PROGRESS_LS = LS_PREFIX + 'studyPlanProgress';
+// G31: ?preview=plan shows the hidden entry on this device until ?preview=off (only written when a param asks)
+const STUDY_PLAN_PREVIEW_LS = LS_PREFIX + 'studyPlanPreview';
+const PLAN_PREVIEW_PARAM = 'preview';
+const PLAN_PREVIEW_ON = 'plan';
+const PLAN_PREVIEW_OFF = 'off';
 const STUDY_LS = {
   prefs: LS_PREFIX + 'studyPrefs',
   mastered: LS_PREFIX + 'studyMastered',

@@ -16,6 +16,12 @@ const LATE_BOOT_SCRIPTS = [
   // study plan (PR2 answer hooks call recordPlanAnswer from mastery.js / result.js): plan.js before planProgress.js
   { src: 'js/domain/plan.js', ready: () => typeof buildPlan === 'function' },
   { src: 'js/domain/planProgress.js', ready: () => typeof recordPlanAnswer === 'function' },
+  // study plan PR3: Home (renderModeSelection → renderPlanCard) and startApp call planHome.js, which renders the
+  // ⓘ switch; the create card opens planGoal.js
+  { src: 'js/components/switch.js', ready: () => typeof switchHtml === 'function' },
+  { src: 'js/components/toast.js', ready: () => typeof showToast === 'function' },
+  { src: 'js/screens/planHome.js', ready: () => typeof renderPlanCard === 'function' },
+  { src: 'js/screens/planGoal.js', ready: () => typeof openPlanGoal === 'function' },
 ];
 // shown when the scripts still fail after one reload; t() is not available then, so it cannot be a locale key
 const I18N_BOOT_FALLBACK_MSG = 'The app could not finish loading. Please check your connection and reload the page.';
@@ -42,6 +48,8 @@ function startApp() {
   applyLanguage(); // <html lang>, data-i18n markup, <title> / meta, ⓘ popover counts
   byId('flagBtn').innerHTML = bookmarkSvg('', { decorative: true });
   loadHomePrefs();
+  applyPlanPreviewParam(); // G31: before the first Home render
+  renderPlanSettings();
   buildExamGrid();
   renderModeSelection();
   registerSW();
@@ -69,7 +77,7 @@ function clearI18nBootRetry() {
 
 // Same cutover for styles: v0.63 moved the .fact* / .sqm-fact* rules out of study.css / quiz.css into fact.css,
 // which an older cached index.html never links — add the <link> so Study and the Similar Core Fact keep their look
-const LATE_BOOT_STYLES = ['css/components/fact.css'];
+const LATE_BOOT_STYLES = ['css/components/fact.css', 'css/components/switch.css', 'css/components/toast.css', 'css/screens/plan.css'];
 function addMissingBootStyles() {
   LATE_BOOT_STYLES.filter(href => !document.querySelector(`link[rel="stylesheet"][href="${href}"]`)).forEach(href => {
     const el = document.createElement('link');

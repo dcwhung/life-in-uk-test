@@ -117,6 +117,26 @@ async function mixedShell(b) {
   await pg.close();
 }
 
+// CUI-0021: a pre-PR3 cached index.html (no #screenPlanGoal / #infoPlanRow / #appToast) + current js with the
+// study plan preview on: no create card (it would open a screen the shell lacks), no ⓘ row, no page error
+const PRE_PLAN_UI_REF = '4dc89b2';
+async function prePlanUiShell(b) {
+  const dir = tmpDir('preplanui');
+  copyCurrent(dir);
+  fs.writeFileSync(path.join(dir, 'old.html'), execFileSync('git', ['-C', ROOT, 'show', `${PRE_PLAN_UI_REF}:index.html`]));
+  const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
+  const errs = []; pg.on('pageerror', e => errs.push(e.message));
+  await pg.goto('file://' + path.join(dir, 'old.html'));
+  await seed(pg, { [P + 'studyPlanPreview']: 'true' });
+  await pg.waitForSelector('#examGrid .exam-btn', { state: 'attached' });
+  assert(await pg.evaluate(() => typeof renderPlanCard === 'function' && !document.getElementById('screenPlanGoal')), 'pre-PR3 shell: planHome.js loaded, no goal screen markup');
+  assert(await pg.evaluate(() => !document.getElementById('planCard')), 'pre-PR3 shell + preview: no create card (CUI-0021)');
+  await pg.evaluate(() => { openPlanGoal(); document.getElementById('infoBtn').click(); });
+  assert(await pg.evaluate(() => document.querySelector('.screen.active').id) === 'screenHome', 'pre-PR3 shell: openPlanGoal() stays on Home');
+  assert(errs.length === 0, 'pre-PR3 shell + preview: no page errors: ' + errs.join(' | '));
+  await pg.close();
+}
+
 // 5. S-014: the old shell's locale fetch fails (file missing) — main.js reloads once, then shows its fallback text
 const I18N_BOOT_FALLBACK = fs.readFileSync(path.join(ROOT, 'js/main.js'), 'utf8').match(/const I18N_BOOT_FALLBACK_MSG =\s*'([^']+)'/);
 const BOOT_SETTLE_MS = 1000;
@@ -307,6 +327,7 @@ function checkV057Ref() {
   checkV057Ref();
   const b = await chromium.launch(launchOpts);
   await mixedShell(b);
+  await prePlanUiShell(b);
   await oppositeMix(b);
   await swUpgrade(b);
   await v057UtilsMix(b);

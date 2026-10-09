@@ -26,6 +26,11 @@ LOCALES['zh-HK'] = {
     installDismiss: '關閉',
     langSwitch: 'EN',
     langSwitchLabel: '切換至英文',
+    features: '功能',
+    planFeature: '🗓️ 溫習計劃',
+    planOnNote: '已開啟：主頁顯示溫習計劃',
+    planOffNote: '已關閉：所有溫習計劃項目已隱藏',
+    planSwitchLabel: '溫習計劃功能',
   },
 
   home: {
@@ -166,6 +171,10 @@ LOCALES['zh-HK'] = {
     resetCompletedMessage: '所有 ✓ 完成標示將會清除。',
     resetOk: '重設',
     resetCancel: '保留',
+    planOffTitle: '關閉溫習計劃？',
+    planOffMessage: '主頁計劃卡、進度表及今日任務將會隱藏，並會離開溫習計劃畫面。你的計劃及進度會保留，重新開啟後可從原本進度繼續。',
+    planOffOk: '確定',
+    planOffCancel: '取消',
   },
 
   common: {
@@ -199,6 +208,51 @@ LOCALES['zh-HK'] = {
 
   plan: {
     dayN: 'Day {n}', // a plan task session's header (Day n stays English, as the mockup)
+    createTitle: '建立溫習計劃',
+    createText: '告訴我們考試日期及每日可用時間，為你編排每日要溫習及練習的內容。',
+    createGo: '建立 →',
+    cardTitle: '🗓️ 溫習計劃',
+    toastOff: '已關閉溫習計劃',
+    toastOn: '已開啟溫習計劃，可從原本進度繼續',
+    dayOf: 'Day {n} / {total}',
+    daysLeft: '距離考試 {n} 日 · {date}',
+    goal: {
+      step: '建立計劃 · 1 / 2',
+      title: '訂立目標',
+      intro: '回答 4 條問題，為你編排一份可行的進度表。',
+      daysLabel: '多久之後考試？',
+      daysValue: '{n} 日',
+      preset2w: '2 星期',
+      preset3w: '3 星期',
+      preset4w: '4 星期',
+      preset6w: '一個半月',
+      orDate: '或考試日期',
+      minsLabel: '每日最多可溫習多久？',
+      mins: '{m} 分鐘',
+      hours: '{h} 小時',
+      hoursMins: '{h} 小時 {m} 分鐘',
+      tickMins: '{m} 分',
+      restLabel: '休息日（不安排任務）',
+      levelLabel: '你目前的程度',
+      minStudyDays: '溫習日少於 {n} 日，未能建立進度表。請減少休息日或延後考試日期。',
+      create: '建立進度表 →',
+    },
+    feas: {
+      title: '時間是否足夠？',
+      ok: '✓ 充裕',
+      tight: '△ 剛好',
+      short: '✕ 不足',
+      studyDays: '溫習日',
+      studyDaysSub: '共 {total} 日，休息 {rest} 日',
+      avail: '可用時間',
+      availSub: '每日上限 × 溫習日',
+      need: '建議需要',
+      needSub: '閱讀 + 練習 + 模擬考試',
+      hours: '{n} 小時',
+      okMsg: '約有 {n} 小時緩衝，可多做幾份模擬考試或應付突發情況。',
+      tightMsg: '時間剛好，沒有太多空間錯過任何一日。建議減少一日休息，或每日增加 {m} 分鐘。',
+      shortMsg: '尚欠約 {n} 小時。可延後考試日期、增加每日時間或減少休息日。仍可照樣建立：每日任務會較長，以確保溫習全部內容。',
+    },
   },
 
   // chapter names stay English (plan Q10); nation labels and eras read Chinese (English), nation chips
@@ -252,6 +306,12 @@ LOCALES['zh-HK'] = {
       artist: { label: '🎨 藝術家、建築師及作曲家', chip: '🎨 藝術家' },
       sport: { label: '🏅 體育及探險', chip: '🏅 體育' },
       reformer: { label: '✊ 改革者及其他', chip: '✊ 改革者' },
+    },
+    weekdays: { 0: '日', 1: '一', 2: '二', 3: '三', 4: '四', 5: '五', 6: '六' },
+    planLevels: {
+      none: { label: '一片空白', sub: '從未閱讀或溫習' },
+      some: { label: '做過一些練習', sub: '看過部分內容、做過部分題目' },
+      exam: { label: '做過模擬考試', sub: '曾嘗試模擬考試' },
     },
   },
 };

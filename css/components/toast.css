@@ -1,0 +1,18 @@
+/* ── TOAST (js/components/toast.js; mockup .sp-toast): navy pill, bottom centre, above the modal ── */
+/* the live region itself draws nothing (display: contents), so an idle toast leaves the page layout untouched */
+.toast-region { display: contents; }
+.toast {
+  position: fixed; left: 50%; bottom: calc(var(--space-12) + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 400;
+  width: max-content; max-width: calc(100vw - 32px);
+  background: var(--navy); color: var(--text-inverse);
+  border-radius: var(--radius-pill);
+  padding: var(--space-5) 18px;
+  font-size: var(--fs-md); font-weight: 700; line-height: 1.4; text-align: center;
+  box-shadow: var(--shadow);
+  pointer-events: none;
+  animation: toastIn 0.18s ease-out;
+}
+@keyframes toastIn { from { opacity: 0; transform: translate(-50%, 8px); } to { opacity: 1; transform: translate(-50%, 0); } }
+@media (prefers-reduced-motion: reduce) { .toast { animation: none; } }

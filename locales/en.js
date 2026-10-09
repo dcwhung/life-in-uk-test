@@ -29,6 +29,12 @@ LOCALES.en = {
     // header pill: names the language it switches to (the CJK 中 is whitelisted in tests/i18n-test.js)
     langSwitch: '中',
     langSwitchLabel: 'Switch to Chinese',
+    // ⓘ popover "Features" section: the study plan switch
+    features: 'Features',
+    planFeature: '🗓️ Study plan',
+    planOnNote: 'On: your study plan shows on the home screen',
+    planOffNote: 'Off: every study plan item is hidden',
+    planSwitchLabel: 'Study plan feature',
   },
 
   home: {
@@ -169,6 +175,11 @@ LOCALES.en = {
     resetCompletedMessage: 'All ✓ completed marks will be cleared.',
     resetOk: 'Reset',
     resetCancel: 'Keep',
+    // G15: turning the study plan off leaves its screens; the plan and progress stay
+    planOffTitle: 'Turn off the study plan?',
+    planOffMessage: "The plan card, schedule and today's tasks will be hidden, and you'll leave the study plan screens. Your plan and progress are kept: turn it back on to carry on where you left off.",
+    planOffOk: 'Confirm',
+    planOffCancel: 'Cancel',
   },
 
   common: {
@@ -203,6 +214,53 @@ LOCALES.en = {
 
   plan: {
     dayN: 'Day {n}', // a plan task session's header (Day n stays English, as the mockup)
+    // Home: the dashed "create" card (no plan) and the plan card (Day n / N stays English: lang="en")
+    createTitle: 'Create a study plan',
+    createText: "Tell us your exam date and how much time you have each day, and we'll plan what to study and practise each day.",
+    createGo: 'Create →',
+    cardTitle: '🗓️ Study plan',
+    // toast after the ⓘ switch
+    toastOff: 'Study plan turned off',
+    toastOn: 'Study plan turned on: carry on where you left off',
+    dayOf: 'Day {n} / {total}',
+    daysLeft: { one: '{n} day to the exam · {date}', other: '{n} days to the exam · {date}' },
+    goal: {
+      step: 'New plan · 1 / 2',
+      title: 'Set your goal',
+      intro: "Answer 4 questions and we'll work out a plan you can keep to.",
+      daysLabel: 'When is your exam?',
+      daysValue: { one: '{n} day', other: '{n} days' },
+      preset2w: '2 weeks',
+      preset3w: '3 weeks',
+      preset4w: '4 weeks',
+      preset6w: '1.5 months',
+      orDate: 'or exam date',
+      minsLabel: 'Most time you can study a day',
+      mins: '{m} min',
+      hours: '{h} hr',
+      hoursMins: '{h} hr {m} min',
+      tickMins: '{m} min', // slider ticks past the first hour show only the minutes
+      restLabel: 'Rest days (no tasks)',
+      levelLabel: 'Where are you now?',
+      minStudyDays: "Fewer than {n} study days, so the plan can't be built. Choose fewer rest days or a later exam date.",
+      create: 'Build my plan →',
+    },
+    feas: {
+      title: 'Is there enough time?',
+      ok: '✓ Plenty',
+      tight: '△ Just enough',
+      short: '✕ Not enough',
+      studyDays: 'Study days',
+      studyDaysSub: '{total} days, {rest} rest',
+      avail: 'Available',
+      availSub: 'daily limit × study days',
+      need: 'Suggested',
+      needSub: 'read + practise + mocks',
+      hours: '{n}h',
+      okMsg: { one: 'About {n} hour to spare: room for extra mock exams or the unexpected.', other: 'About {n} hours to spare: room for extra mock exams or the unexpected.' },
+      tightMsg: 'Just enough, with little room to miss a day. Try one rest day fewer, or {m} more minutes a day.',
+      shortMsg: { one: "About {n} hour short. Move the exam later, add daily time or take fewer rest days. You can build it anyway: each day's tasks run longer so everything still gets covered.", other: "About {n} hours short. Move the exam later, add daily time or take fewer rest days. You can build it anyway: each day's tasks run longer so everything still gets covered." },
+    },
   },
 
   // labels for the enum keys kept in data/*.js and the study screen (CHAPTERS, DIFF_LEVELS, ERAS, NATIONS, …)
@@ -255,6 +313,13 @@ LOCALES.en = {
       artist: { label: '🎨 Artists, architects & composers', chip: '🎨 Artists' },
       sport: { label: '🏅 Sport & exploration', chip: '🏅 Sport' },
       reformer: { label: '✊ Reformers & others', chip: '✊ Reformers' },
+    },
+    // study plan: rest-day chips (0 = Sunday, as Date.getDay) and the level cards (PLAN_LEVELS keys)
+    weekdays: { 0: 'Sun', 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat' },
+    planLevels: {
+      none: { label: 'Starting fresh', sub: "Haven't read or studied anything yet" },
+      some: { label: 'Done some practice', sub: 'Read a little, tried some questions' },
+      exam: { label: 'Tried an exam', sub: 'Have done a mock exam' },
     },
   },
 };

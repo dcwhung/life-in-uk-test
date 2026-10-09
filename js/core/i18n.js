@@ -101,6 +101,7 @@ const SCREEN_RERENDER = {
   screenResult: () => renderResults(),
   screenFlagged: () => openFlagged(),
   screenStudy: () => renderStudy(),
+  screenPlanGoal: () => renderPlanGoal(),
 };
 function rerenderCurrentScreen() {
   const active = document.querySelector('.screen.active');

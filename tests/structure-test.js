@@ -40,7 +40,7 @@ function actionNames() {
   const names = new Set();
   sources.forEach(f => {
     const src = fs.readFileSync(f, 'utf8').split('\n').filter(l => !/^\s*\/\//.test(l)).join('\n'); // skip comments
-    for (const m of src.matchAll(/data-(?:input-)?action="(\w+)"/g)) names.add(m[1]);
+    for (const m of src.matchAll(/data-(?:input-|blur-)?action="(\w+)"/g)) names.add(m[1]);
     for (const m of src.matchAll(/\baction: '(\w+)'/g)) names.add(m[1]);
     for (const m of src.matchAll(/(?:dotButtonHtml|subChipRowHtml)\((.*)/g)) {
       for (const q of m[1].matchAll(/'(\w+)'/g)) names.add(q[1]);

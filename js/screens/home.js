@@ -87,6 +87,7 @@ function renderModeSelection() {
   byId('practiceTabs').classList.toggle('show', isPractice);
   byId('practiceByTitle').classList.toggle('show', isPractice);
   renderMyReview();
+  renderPlanCard(); // study plan entry above "Choose Mode" (only while planVisible)
   renderPracticeViews(isPractice);
   renderResetRows(isPractice);
 }
