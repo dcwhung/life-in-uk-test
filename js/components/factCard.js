@@ -64,15 +64,16 @@ function factMarkButtonsHtml(f, marks) {
 
 // T-206: the fact's source questions as display-only nodes (Similar panel colours) + "▶ Practise this one / these N",
 // a one-off session over them (js/screens/sideSession.js); replaces the old "Appears ×n" tag.
-// practise (arch §E.2): { action, n } runs another session instead (a study plan's, n = the questions it asks); false = none
+// practise (arch §E.2): { action, n } runs another session instead (a study plan's, n = the questions it asks); false = none.
+// G40: copies of one question text are one node ("E7·Q16 = E13·Q1") and one question to practise
 function factPractiseHtml(f, practise) {
   if (practise === false) return '';
-  const { action, n } = practise || { action: 'startFactPractice', n: f.src.length };
+  const { action, n } = practise || { action: 'startFactPractice', n: questionGroups(f.src).length };
   return `<button class="fact-practise" aria-describedby="${factIdElId(f)}" data-action="${action}" data-arg="${escapeHtml(f.id)}">${t('similar.practise', { n })}</button>`;
 }
 function factSourceRowHtml(f, practise) {
   return `<div class="fact-src">
-      <div class="fact-src-nodes"><span class="sqm-map-label">${t('similar.appearsIn')}</span>${f.src.map(questionNodeHtml).join('')}</div>
+      <div class="fact-src-nodes"><span class="sqm-map-label">${t('similar.appearsIn')}</span>${questionGroups(f.src).map(questionNodeHtml).join('')}</div>
       ${factPractiseHtml(f, practise)}
     </div>`;
 }

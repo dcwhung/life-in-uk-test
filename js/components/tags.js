@@ -14,12 +14,15 @@ function questionRefText({ examNum, origIdx }) { return t('common.questionRef', 
 // question map node "E9·Q15" (1-based, like the "Exam 9 · Q15" refs) — shared by the Similar panel's map and the
 // fact card's source row; here (not in screens/similarPanel.js) because components load before screens (S-031)
 function questionNodeClass(k) {
-  const st = streakOf(questionByKey(k));
+  const st = streakOf(questionByKey(k)); // G40: the copies' max streak
   return st >= MASTERY_STREAK ? ' mastered' : st > 0 ? ' weak' : '';
 }
 function questionNodeText({ examNum, origIdx }) { return t('similar.node', { exam: examNum, n: origIdx + 1 }); }
-// one display-only node coloured by its mastery
-function questionNodeHtml(k) { return `<span class="sqm-node${questionNodeClass(k)}">${questionNodeText(questionByKey(k))}</span>`; }
+// G40: copies of one question text (questionGroups / currentCopies) are one node / ref, "E7·Q16 = E13·Q1"
+function copiesNodeText(keys) { return keys.map(k => questionNodeText(questionByKey(k))).join(COPY_SEP); }
+function copiesRefText(keys) { return keys.map(k => questionRefText(questionByKey(k))).join(COPY_SEP); }
+// one display-only node for a question and its copies, coloured by its mastery
+function questionNodeHtml(keys) { return `<span class="sqm-node${questionNodeClass(keys[0])}">${copiesNodeText(keys)}</span>`; }
 
 function masteryBarHtml(m) { return `<span class="mastery-bar" style="width:${m.pct}%"></span>`; }
 

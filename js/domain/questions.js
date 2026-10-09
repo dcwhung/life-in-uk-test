@@ -24,6 +24,29 @@ function questionByKey(k) {
   return { q: EXAMS[examNum][origIdx], examNum, origIdx };
 }
 
+// ── copies: the same English question text in several exams is one question (plan G4, G40) ──
+// Single source for the plan's canonical keys, the merged source nodes and the streak sync (js/domain/mastery.js).
+// A copy never crosses facts (tests/plan-test.js checks it), so a fact's src holds every copy of its questions.
+function buildQuestionCopies() {
+  const byText = {}, canon = {};
+  allQuestions().forEach(({ q, examNum, origIdx }) => {
+    const text = q.q.trim().toLowerCase(), key = examNum + '.' + origIdx;
+    (byText[text] = byText[text] || []).push(key); // exam order
+    canon[key] = byText[text][0];
+  });
+  const copies = Object.fromEntries(Object.values(byText).map(keys => [keys[0], keys]));
+  return { canon, copies };
+}
+const QUESTION_COPIES = buildQuestionCopies(); // { canon: "exam.idx" → first copy in exam order, copies: first → all }
+function canonQuestionKey(k) { return QUESTION_COPIES.canon[k] || k; }
+// every copy of k's question, k included, in exam order
+function questionCopies(k) { return QUESTION_COPIES.copies[canonQuestionKey(k)] || [k]; }
+// keys → one group per distinct question, in first-appearance order; a group holds its copies from keys, exam order
+function questionGroups(keys) {
+  const inKeys = new Set(keys);
+  return [...new Set(keys.map(canonQuestionKey))].map(c => questionCopies(c).filter(k => inKeys.has(k)));
+}
+
 // ── set ids ──
 function isChapterExam(examNum) { return typeof examNum === 'string' && examNum.startsWith(CHAPTER_PREFIX); }
 function chapterOf(examNum) { return Number(examNum.slice(CHAPTER_PREFIX.length)); }

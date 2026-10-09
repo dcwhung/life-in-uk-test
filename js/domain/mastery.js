@@ -2,12 +2,15 @@
 // MASTERY — consecutive correct answers per question (practice mode only)
 // ════════════════════════════════════════
 const qKey = q => q.examNum + '.' + q.origIdx;
-function streakOf(q) { return streaks[qKey(q)] || 0; }
+// G40: copies of one question text share a streak; old data may still differ, so a copy reads the copies' max
+function keyStreak(k) { return Math.max(...questionCopies(k).map(c => streaks[c] || 0)); }
+function streakOf(q) { return keyStreak(qKey(q)); }
 function isMastered(q) { return streakOf(q) >= MASTERY_STREAK; }
 // planDay: the study plan day the session was opened from (null outside a plan task); the plan log decides the day (G2 / G5)
 function recordPracticeAnswer(q, correct, planDay = null) {
   const k = qKey(q);
-  streaks[k] = correct ? Math.min(MASTERY_STREAK, (streaks[k] || 0) + 1) : 0;
+  const next = correct ? Math.min(MASTERY_STREAK, keyStreak(k) + 1) : 0;
+  questionCopies(k).forEach(c => { streaks[c] = next; }); // G40: every copy moves together
   saveStreaks();
   recordPlanAnswer(k, correct, planDay); // no plan stored → writes nothing (R3)
 }

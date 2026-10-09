@@ -40,21 +40,25 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(await pg.evaluate(() => state.questions.length === 24), 'round 1: 24 answers, length unchanged');
   assert((await distinct()) === 24, 'round 1: 24 distinct questions');
   await pg.evaluate((r1) => r1.forEach(k => { streaks[k] = MASTERY_STREAK; }), round1);
-  assert(await pg.evaluate(() => masteryOf(chapterQuestions(3)).mastered === 24), 'Ch3: 24 mastered');
+  // G40 (v1.0.7): copies of one question text share a streak, so a mastered copy masters its twins too
+  const covered = await pg.evaluate(r1 => chapterQuestions(3).filter(q => questionCopies(qKey(q)).some(c => r1.includes(c))).length, round1);
+  assert(covered >= 24 && await pg.evaluate(n => masteryOf(chapterQuestions(3)).mastered === n, covered), `Ch3: the 24 + their copies mastered (${covered})`);
   // round 2: next 24 drawn from the unmastered pool only
   await start('practice', 'ch3');
   assert(await pg.evaluate((r1) => state.questions.length === 24 && state.questions.every(q => !r1.includes(qKey(q))), round1), 'round 2: 24 new unmastered questions');
   // last round: fewer than 24 left -> only those
-  await pg.evaluate(() => {
-    chapterQuestions(3).slice(0, 160).forEach(q => { streaks[qKey(q)] = MASTERY_STREAK; });
-    chapterQuestions(3).slice(160).forEach(q => { delete streaks[qKey(q)]; });
-  });
+  // the last 7 of the chapter with no copy (G40: answering a copy also moves its twin, so twins master sooner)
+  const LEFT = 7;
+  await pg.evaluate(n => {
+    const keys = new Set(chapterQuestions(3).map(qKey).filter(k => questionCopies(k).length === 1).slice(-n));
+    chapterQuestions(3).forEach(q => { if (keys.has(qKey(q))) delete streaks[qKey(q)]; else streaks[qKey(q)] = MASTERY_STREAK; });
+  }, LEFT);
   await start('practice', 'ch3');
-  assert(await pg.evaluate(() => state.questions.length === 7), 'last round: only the 7 unmastered left');
+  assert(await pg.evaluate(n => state.questions.length === n, LEFT), `last round: only the ${LEFT} unmastered left`);
   // the same 7 come back each round until mastered (3 correct rounds)
   for (let r = 0; r < MASTERY_ROUNDS; r++) {
     if (r) await start('practice', 'ch3');
-    assert(await pg.evaluate(() => state.questions.length === 7), `last 7 asked again in round ${r + 1}`);
+    assert(await pg.evaluate(n => state.questions.length === n, LEFT), `last ${LEFT} asked again in round ${r + 1}`);
     await answerSession();
   }
   // whole set mastered -> review round, still capped at 24

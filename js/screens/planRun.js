@@ -349,7 +349,7 @@ function planFactCardHtml(ctx, f, review) {
   const practise = n ? { action: 'planPractiseFact', arg: f.id, n } : false;
   if (ctx.task.type === PLAN_TASK.read) return factCardHtml(f, { variant: FACT_VARIANT.full, marks: factMarks(f), opts: { practise } });
   const anchor = questionByKey((ctx.task.anchor || {})[f.id] || planFactQids(f)[0]);
-  return `<div class="sqm show">${similarPanelHtml(anchor, similarKeys(anchor), { practise: !!practise, cta: practise || null, currentMark: t('plan.run.youGotWrong') })}</div>`;
+  return `<div class="sqm show">${similarPanelHtml(anchor, similarGroups(anchor), { practise: !!practise, cta: practise || null, currentMark: t('plan.run.youGotWrong') })}</div>`;
 }
 function planFactNavHtml(view, ctx) {
   const last = view.pos >= ctx.task.facts.length - 1;

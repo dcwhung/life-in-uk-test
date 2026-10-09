@@ -2,7 +2,7 @@
 // CONFIG — app-wide constants. sw.js loads this file with importScripts() to name its cache,
 // so it must stay worker-safe: plain constants only, no DOM and no question data.
 // ════════════════════════════════════════
-const APP_VERSION = '1.0.6';
+const APP_VERSION = '1.0.7';
 
 // ── modes and special set ids (state.examNum is 1..EXAM_COUNT or one of these) ──
 const PRACTICE_MODE = 'practice';
@@ -44,6 +44,7 @@ const DOUBLE_TAP_SLOP_PX = 40; // ...and only near the point of that click (the 
 const OPTION_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 const LIST_SEP = ' · ';    // between parts of one line ("✓ Correct! · 🔥 1/3")
 const ANSWER_SEP = ' | ';  // between the options of a multi-answer question
+const COPY_SEP = ' = ';    // G40: between the copies of one question text ("E7·Q16 = E13·Q1")
 const TOAST_MS = 2400; // how long a toast stays on screen (js/components/toast.js)
 
 // ── study plan (js/domain/plan.js, planProgress.js) ──

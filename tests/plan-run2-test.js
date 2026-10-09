@@ -236,7 +236,8 @@ async function checkWrongFacts(pg) {
   for (let k = 0; k < task.facts.length; k++) {
     const list = await pg.evaluate(() => ({ count: document.querySelector('#planRunBody .sqm-count').textContent,
       ids: [...document.querySelectorAll('#planRunBody .sqm-item .sqm-id')].map(e => e.textContent) }));
-    const f = await pg.evaluate(id => ({ src: STUDY.find(x => x.id === id).src.length }), task.facts[k]);
+    // G40: copies of one question text are one card, counted once
+    const f = await pg.evaluate(id => ({ src: questionGroups(STUDY.find(x => x.id === id).src).length }), task.facts[k]);
     const [e, q] = task.anchor[task.facts[k]].split('.').map(Number);
     assert(list.count === String(f.src) && list.ids.length === f.src && list.ids[0] === `Exam ${e} · Q${q + 1} · You got this wrong`,
       `CUI-0025 fact ${k + 1}: ${f.src} questions listed, the wrong one first, count ${list.count} (no "+")`);

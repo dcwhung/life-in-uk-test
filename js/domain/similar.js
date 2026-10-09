@@ -5,9 +5,17 @@
 const FACT_BY_QKEY = {};
 STUDY.forEach(f => f.src.forEach(k => { FACT_BY_QKEY[k] = f; }));
 function factOf(q) { return FACT_BY_QKEY[qKey(q)]; }
-function similarKeys(q) {
-  const f = factOf(q);
-  return f ? f.src.filter(k => k !== qKey(q)) : [];
+// G40: the fact's other distinct questions as copy groups (questionGroups); q's own copies are not "other"
+function similarGroups(q) {
+  const f = factOf(q), k = qKey(q);
+  return f ? questionGroups(f.src).filter(g => !g.includes(k)) : [];
+}
+// one key per other distinct question (its first copy), for a session that asks each once
+function similarKeys(q) { return similarGroups(q).map(g => g[0]); }
+// q and its copies, q first: the "current" node / item of the Similar panel
+function currentCopies(q) {
+  const k = qKey(q);
+  return [k, ...questionCopies(k).filter(c => c !== k)];
 }
 
 // ── chapter fact number: a fact's 1-based position among the STUDY facts of its chapter ("Ch 3 #1") ──
