@@ -777,13 +777,16 @@ const NEWFILES = ['js/screens/planDay.js', 'js/screens/planHome.js', 'js/screens
 async function upgradeFrom(b, ref, label) {
   const dir = path.join(WORK, 'pr5-up-' + label); archive(ref, dir);
   const { base, server } = await startPagesServer(dir);
-  const CACHE = 'lifeuk-v1.0.1';
+  // cache names follow APP_VERSION (sw.js): the base tree's, then the PR tree's (same name = refilled in place)
+  const verOf = src => src.match(/APP_VERSION = '([^']+)'/)[1];
+  const OLD_CACHE = 'lifeuk-v' + verOf(fs.readFileSync(path.join(dir, 'js/core/config.js'), 'utf8'));
+  const CACHE = 'lifeuk-v' + verOf(fs.readFileSync(path.join(ROOT, 'js/core/config.js'), 'utf8'));
   try {
     const ctx = await b.newContext({ viewport: { width: 375, height: 812 } });
     const pg = await ctx.newPage(); const errs = watch(pg);
     await pg.clock.setFixedTime(NOW);
     await pg.goto(base); await pg.evaluate(() => navigator.serviceWorker.ready);
-    await pg.evaluate(async c => { for (let i = 0; i < 75; i++) { if ((await caches.keys()).includes(c)) return; await new Promise(r => setTimeout(r, 200)); } }, CACHE);
+    await pg.evaluate(async c => { for (let i = 0; i < 75; i++) { if ((await caches.keys()).includes(c)) return; await new Promise(r => setTimeout(r, 200)); } }, OLD_CACHE);
     await pg.reload(); await pg.waitForFunction(() => !!navigator.serviceWorker.controller);
     await pg.evaluate(() => localStorage.setItem('lifeuk.wrongList', '{"1.0":true}'));
     let oldPlan = null;
@@ -800,9 +803,10 @@ async function upgradeFrom(b, ref, label) {
       for (let i = 0; i < 100; i++) { const ch = await caches.open(CACHE); const have = await Promise.all(NEWFILES.map(p => ch.match(new URL(p, location.href).href)));
         const idx = await ch.match(new URL('index.html', location.href).href); const idxTxt = idx ? await idx.text() : '';
         const js = have[1] && await (await ch.match(new URL('js/screens/planHome.js', location.href).href)).text();
-        if (have.every(Boolean) && /screenPlanDay/.test(idxTxt) && /planWatchDay/.test(js || '') && !reg.installing && !reg.waiting) return { ok: true, keys: (await caches.keys()).filter(k => k.startsWith('lifeuk')) };
+        const keys = (await caches.keys()).filter(k => k.startsWith('lifeuk'));
+        if (have.every(Boolean) && /screenPlanDay/.test(idxTxt) && /planWatchDay/.test(js || '') && !reg.installing && !reg.waiting && keys.length === 1) return { ok: true, keys };
         if (!reg.installing && !reg.waiting) await reg.update().catch(() => {}); await new Promise(r => setTimeout(r, 200)); } return { ok: false }; }, { NEWFILES, CACHE });
-    ok(up.ok && up.keys.length === 1, `[U-${label}] new SW refilled ${CACHE}: planDay.js + new planHome / plan.css / tokens / locales / index.html (screenPlanDay) ${JSON.stringify(up)}`);
+    ok(up.ok && up.keys.length === 1 && up.keys[0] === CACHE, `[U-${label}] new SW (${OLD_CACHE} → ${CACHE}, old cache removed): planDay.js + new planHome / plan.css / tokens / locales / index.html (screenPlanDay) ${JSON.stringify(up)}`);
     await pg.goto(base); await settle(pg, 500);
     const after = await pg.evaluate(() => ({ day: typeof openPlanDay, wrong: localStorage.getItem('lifeuk.wrongList'), card: byId('planCard') ? byId('planCard').innerText.replace(/\s+/g, ' ') : null, plan: localStorage.getItem('lifeuk.studyPlan') }));
     if (label === 'pr4') {
