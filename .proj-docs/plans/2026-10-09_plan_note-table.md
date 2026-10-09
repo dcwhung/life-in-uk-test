@@ -14,24 +14,25 @@
 | 顏色 | **Theme B：Minimal 線條**（冇底色，header 深藍字 + 2px `--navy` 底線，行之間 1px `--divider`，最後一行冇線，第一欄 `--navy` 粗體），跟住所在框嘅背景 |
 | 格內備注 | **V4**：格入面用 `<br>` 分開主文同備注；第一段 = 主文（正常字），之後每段 = 備注（`--fs-xs`、`--text-muted`，自己一行）；只有用咗 `<br>` 嘅格可以轉行，其他格 `nowrap` |
 | 混合行 | 同一個 note 入面 table 行同普通文字行（標題、• 列點）可以混合，非 `\|` 行照舊用 `noteLineHtml()` |
-| 第一批 | 英國 4 國聖人 / 日子 / 國花（15 題）+ 國教 / 教會（5 題），見下面 |
+| 第一批 | 英國 4 國聖人 / 日子（10 題）+ 國教 / 教會（5 題），見下面 |
+| 國花 | 由聖人組搬去首都組（用戶 2026-10-09 決定）：首都 / 國花合併成一個 table，見「候選」③ |
 
 ## 第一批 data
 
-### A. 聖人 / 日子 / 國花（15 題）
+### A. 聖人 / 日子（10 題）
 
-Header：國家 / 聖人 / 日子 / 國花（mockup 用呢個，用戶冇反對；實作前可再確認）
+Header：國家 / 聖人 / 日子
 
 ```
 記憶法：
-| 國家 | 聖人 | 日子 | 國花 |
-| England | George | 23/4 | Tudor rose |
-| Scotland | Andrew | 30/11 | Thistle |
-| Wales | David | 1/3 | Daffodil |
-| N. Ireland | Patrick | 17/3 | Shamrock |
+| 國家 | 聖人 | 日子 |
+| England | George | 23/4 |
+| Scotland | Andrew | 30/11 |
+| Wales | David | 1/3 |
+| N. Ireland | Patrick | 17/3 |
 ```
 
-題目：Exam 1 Q5、2 Q16、10 Q1、11 Q10（patron saint）；Exam 5 Q22、7 Q16、8 Q5、8 Q23、13 Q1、14 Q1（St * Day）；Exam 4 Q2、8 Q2、8 Q13、9 Q1、9 Q20（national flower）。Exam 5 Q14（X 形十字）唔改。
+題目：Exam 1 Q5、2 Q16、10 Q1、11 Q10（patron saint）；Exam 5 Q22、7 Q16、8 Q5、8 Q23、13 Q1、14 Q1（St * Day）。Exam 5 Q14（X 形十字）唔改。國花 5 題（Exam 4 Q2、8 Q2、8 Q13、9 Q1、9 Q20）搬去首都 / 國花組。
 
 ### B. 國教 / 教會（5 題，V4）
 
@@ -61,7 +62,10 @@ Header：國家 / 國教 / 教會（用戶原本寫「國教教會」，因為 S
 
 ## 之後可以考慮（未決定）
 
-- 同樣格式嘅記憶法：發明家 / 科學家（6 題）、地方議會（7 題）
+- 其他候選（preview：`mockups/note-table-all.html`，用戶未揀）：
+  - ③ 首都 / 國花（11 題 = 首都 6 + 國花 5）：`| 國家 | 首都 | 國花 |`，England London Tudor rose / Scotland Edinburgh Thistle / Wales Cardiff Daffodil / N. Ireland Belfast Shamrock
+  - ④ 地方議會（7）、⑤ 發明家（6）、⑥ 節日（11）；時間線 ⑦ 戰役（15）、⑧ 二戰（9）、⑨ 國王 vs 國會（8）
+  - 唔建議：都鐸王朝、三層屬地、Magna Carta、選舉、戴卓爾夫人、陪審員（保持文字）
 - Exam 9 Q20「patron flower of Ireland」字眼（用戶未決定）
 - `APP_VERSION` bump（令已安裝 PWA 攞到新 note）
 - 實作完之後 mockup 處理：跟 repo 慣例（v0.65 刪咗已確認嘅 mockup）
