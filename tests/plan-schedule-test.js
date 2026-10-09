@@ -175,13 +175,17 @@ async function checkDayList(pg) {
   const notes = await pg.evaluate(() => {
     const plan = parseStoredPlan(readStudyPlan());
     const rows = [...document.querySelectorAll('#planDayList .plan-day')];
+    const PHRASING = ['SPAN', 'B', 'SMALL', 'I', 'SVG', 'PATH'];
     return plan.days.map((d, i) => {
       const chs = [...new Set(d.tasks.filter(t => t.ch).map(t => t.ch))];
       const note = rows[i].querySelector('.plan-day-chs');
       const tasks = [...rows[i].querySelectorAll('.plan-day-t')].map(e => e.textContent).join(' | ');
       const lis = note ? [...note.children] : [];
       return { chs, note: note && note.tagName, items: lis.map(li => li.textContent), langs: lis.map(li => li.getAttribute('lang')), tags: lis.map(li => li.tagName),
-        colors: lis.map(li => getComputedStyle(li).color), markers: lis.map(li => getComputedStyle(li, '::marker').color),
+        colors: lis.map(li => getComputedStyle(li).color), markers: lis.map(li => getComputedStyle(li, '::before').color),
+        bullets: lis.map(li => getComputedStyle(li, '::before').content), cls: lis.map(li => li.className),
+        ownLines: lis.every((li, k) => !k || li.getBoundingClientRect().top >= lis[k - 1].getBoundingClientRect().bottom - 0.5),
+        phrasing: [...rows[i].querySelectorAll('*')].every(e => PHRASING.includes(e.tagName)),
         past: rows[i].classList.contains('past'), tasks, light: !!d.light, last: note && note === rows[i].querySelector('.plan-day-tasks').lastElementChild };
     });
   });
@@ -190,8 +194,12 @@ async function checkDayList(pg) {
   const gold = await tokenColor('--gold-text'), grey = await tokenColor('--plan-past-text');
   const fullNames = await pg.evaluate(() => [1, 2, 3, 4, 5].map(ch => planChapterText(ch)));
   const withCh = notes.filter(n => n.chs.length && !n.light);
-  assert(withCh.length > 10 && withCh.every(n => n.note === 'UL' && n.tags.every(t => t === 'LI') && JSON.stringify(n.items) === JSON.stringify(n.chs.map(ch => fullNames[ch - 1]))
-    && n.langs.every(l => l === 'en') && n.last), 'remarks: a list, one li per chapter in full, unique, in order, last, lang="en": ' + JSON.stringify(withCh.slice(0, 3)));
+  // PR5: rows are buttons, so the list is spans (phrasing content): one .plan-day-ch per chapter, each on its own line
+  assert(notes.every(n => n.phrasing), 'day rows hold phrasing content only (they are buttons)');
+  assert(withCh.length > 10 && withCh.every(n => n.note === 'SPAN' && n.tags.every(t => t === 'SPAN') && n.cls.every(c => c === 'plan-day-ch')
+    && JSON.stringify(n.items) === JSON.stringify(n.chs.map(ch => fullNames[ch - 1])) && n.langs.every(l => l === 'en') && n.last && n.ownLines),
+  'remarks: one .plan-day-ch per chapter in full, unique, in order, own lines, last, lang="en": ' + JSON.stringify(withCh.slice(0, 2)));
+  assert(withCh.every(n => n.bullets.every(c => c.includes('•'))), 'remarks: each chapter has a bullet: ' + JSON.stringify(withCh[0].bullets));
   const want = n => (n.past ? grey : gold);
   assert(withCh.every(n => n.colors.every(c => c === want(n)) && n.markers.every(c => c === want(n))),
     `remarks: text + bullets ${gold} (--gold-text), past rows ${grey}: ` + JSON.stringify(withCh.map(n => [n.past, n.colors[0], n.markers[0]]).slice(8, 13)));

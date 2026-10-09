@@ -146,10 +146,11 @@ function planTaskText(task, day, { fullCh = false } = {}) {
 function planTaskLineHtml(icon, text) {
   return `<span class="plan-day-t"><span class="plan-day-ic" aria-hidden="true">${icon}</span><span>${text}</span></span>`;
 }
-// the remarks: the day's chapters in full, one bullet each, each once, in the order the tasks reach them ('' without any)
+// the remarks: the day's chapters in full, one bullet each, each once, in the order the tasks reach them ('' without any);
+// spans styled as a list, since the row is a button (phrasing content only)
 function planDayChaptersHtml(day) {
   const chs = [...new Set(day.tasks.filter(task => task.ch).map(task => task.ch))];
-  return chs.length ? `<ul class="plan-day-chs">${chs.map(ch => `<li lang="en">${planChapterText(ch)}</li>`).join('')}</ul>` : '';
+  return chs.length ? `<span class="plan-day-chs">${chs.map(ch => `<span class="plan-day-ch" lang="en">${planChapterText(ch)}</span>`).join('')}</span>` : '';
 }
 function planDayTasksHtml(day) {
   if (day.phase === PLAN_PHASE.rest) return planTaskLineHtml(PLAN_REST_ICON, t('plan.schedule.restDay'));

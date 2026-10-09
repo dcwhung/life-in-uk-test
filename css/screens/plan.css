@@ -153,7 +153,10 @@
 .plan-day-tasks { display: grid; gap: 3px; font-size: var(--fs-sm); line-height: 1.45; min-width: 0; }
 .plan-day-t { display: flex; gap: var(--space-3); }
 /* v1.0.3 (user): the day's chapters, one compact bullet each, text and bullet in mud yellow */
-.plan-day-chs { margin: var(--space-1) 0 0; padding-left: 1.1em; font-size: var(--fs-xs); color: var(--gold-text); line-height: 1.35; }
+.plan-day-chs { display: block; margin-top: var(--space-1); font-size: var(--fs-xs); color: var(--gold-text); line-height: 1.35; }
+/* spans, not <ul> / <li> (the row is a button): each chapter on its own line with a bullet in its own colour */
+.plan-day-ch { display: block; position: relative; padding-left: 1.1em; }
+.plan-day-ch::before { content: '•'; content: '•' / ''; position: absolute; left: 0.3em; } /* decorative: no alt text */
 .plan-day.past .plan-day-chs { color: var(--plan-past-text); }
 .plan-exam-pat, .plan-cell.plan-exam-pat { background-color: var(--plan-exam-bg); background-image: linear-gradient(45deg, var(--plan-exam-line) 1px, transparent 1px), linear-gradient(-45deg, var(--plan-exam-line) 1px, transparent 1px); background-size: 8px 8px; }
 /* day status pills: ✓ done (.ok), G27 bands (dark text on every band for contrast), today, rest */
