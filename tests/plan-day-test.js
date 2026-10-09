@@ -533,6 +533,35 @@ async function checkMidnightCta(pg) {
   assert(!(await visible(pg, '#planGoalHint')), 'S-115: the notice goes once the form changes');
 }
 
+// v1.0.4 (user): on a rest day the 😴 sits close above the "Rest day" pill (its box hugs the glyph, a small gap), and
+// "← Back to today" gets more room below the pill (the --space-8 token)
+const REST_EMOJI_GAP_MAX_PX = 16;
+const REST_BACK_GAP_TOKEN = '--space-8';
+const restGaps = pg => pg.evaluate(token => {
+  const r = id => byId(id).getBoundingClientRect();
+  const emoji = r('planRestEmoji'), pill = r('planDayPhase'), back = r('planBackToday');
+  const glyphPx = parseFloat(getComputedStyle(byId('planRestEmoji')).fontSize);
+  const px = parseFloat(getComputedStyle(document.documentElement).getPropertyValue(token));
+  // the glyph's empty margin inside its box counts as gap too
+  return { emojiToPill: pill.top - emoji.bottom + Math.max(0, (emoji.height - glyphPx) / 2), pillToBack: back.top - pill.bottom, token: px };
+}, REST_BACK_GAP_TOKEN);
+async function checkRestSpacing(browser) {
+  for (const lang of ['en', 'zh-HK']) {
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    const pg = await ctx.newPage();
+    await fresh(pg);
+    await pg.evaluate(l => setLang(l), lang);
+    await seedPlan(pg);
+    await openDay(pg, '2026-10-04');
+    const g = await restGaps(pg);
+    assert(g.emojiToPill <= REST_EMOJI_GAP_MAX_PX, `v1.0.4 ${lang} 390px rest day: 😴 → pill gap ≤ ${REST_EMOJI_GAP_MAX_PX}px: ` + JSON.stringify(g));
+    assert(g.token > 0 && g.pillToBack >= g.token - 0.5, `v1.0.4 ${lang} 390px rest day: pill → "Back to today" gap ≥ ${REST_BACK_GAP_TOKEN}: ` + JSON.stringify(g));
+    await pg.click('#planDayNext');
+    assert(!(await pg.evaluate(() => byId('planDayHead').classList.contains('rest'))), `v1.0.4 ${lang}: a study day drops the rest spacing`);
+    await ctx.close();
+  }
+}
+
 async function checkLayout(browser) {
   for (const lang of ['en', 'zh-HK']) {
     for (const w of WIDTHS) {
@@ -588,6 +617,7 @@ async function checkLayout(browser) {
     await checkMidnightCta(pg);
     await checkMidnight(browser);
     await checkTimeZones(browser);
+    await checkRestSpacing(browser);
     await checkLayout(browser);
     assert(errors.length === 0, 'no page errors: ' + errors.join(' | '));
     console.log('PLAN-DAY PASS');

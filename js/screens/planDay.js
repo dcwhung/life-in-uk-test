@@ -144,6 +144,7 @@ function renderPlanDayInfo(day, progress, when) {
 function planShowRest(rest) {
   byId('planRing').toggleAttribute('hidden', rest); // an <svg> has no .hidden property, so setShown would not apply
   setShown('planRestEmoji', rest);
+  byId('planDayHead').classList.toggle('rest', rest); // the rest view's own spacing (plan.css .plan-today-head.rest)
   byId('planDayCount').classList.toggle('plan-sr', rest);
 }
 
