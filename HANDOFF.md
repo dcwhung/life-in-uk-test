@@ -808,7 +808,7 @@ c10115b feat: randomise answer option order in Practice and Exam mode
 
 ## Follow-up 候選（未做）
 
-- [ ] **記憶法 table display**：設計已確認（方案 A 明確 `|` 語法、全英文主文、Theme B Minimal 線條、V4 格內 `<br>` 備注），未實作。第一批 = 10 組、99 題（聖人 / 日子、國教 / 教會、首都 / 國花、地方議會、發明家、節日、戰役、二戰、國王 vs 國會、名勝 / 地方）。詳情同每組 data 見 `.proj-docs/plans/2026-10-09_plan_note-table.md`，mockup `mockups/note-table.html`、`mockups/note-table-church.html`、`mockups/note-table-all.html`
+- [ ] **記憶法 table display**：設計已確認（方案 A 明確 `|` 語法、全英文主文、Theme B Minimal 線條、V4 格內 `<br>` 備注），未實作。第一批 = 10 組、99 題（聖人 / 日子、國教 / 教會、首都 / 國花、地方議會、發明家、節日、戰役、二戰、國王 vs 國會、名勝 / 地方）。**下一個開發任務**：handoff 見 `.proj-docs/plans/2026-10-09_handoff_note-table.md`（由 `/feature` 開始），詳情同每組 data 見 `.proj-docs/plans/2026-10-09_plan_note-table.md`，mockup `mockups/note-table.html`、`mockups/note-table-church.html`、`mockups/note-table-all.html`
 - [ ] **溫習計劃（Study Plan）**：mockup 已確認（`mockups/study-plan-flow.html`），**下一個開發任務**。規格、建議模組、LS key、未決定事項同驗收清單見 `.proj-docs/plans/2026-10-08_handoff_study-plan.md`；建議由 `/plan` 開始
 - [x] 1.19、14.3 備注改成分行列點（v0.70 B1，batch 9；Crown dependency 記憶法同組 7 題一齊改）
 - [x] 其他可整合記憶法嘅題組（v0.71 B2，batch 10）：Magna Carta、國王 vs 國會、二戰、都鐸王朝；諾曼征服（M5）用戶決定唔做
