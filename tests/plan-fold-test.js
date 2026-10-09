@@ -63,6 +63,7 @@ async function checkReopenCollapsed(pg) {
   assert(await pg.$$eval('#planPhaseBar .plan-ph-range', els => els.every(e => e.getAttribute('lang') === 'en')), 'collapsed bar: Day ranges are lang="en"');
   assert(s.order.expanded === 'false' && !s.order.bodyShown && s.order.bodyHidden && s.order.stepper, 'reopen: Study order collapsed to the stepper');
   assert(JSON.stringify(s.order.dots) === JSON.stringify([['1', 'Ch 1 + 2'], ['2', 'Ch 5'], ['3', 'Ch 4'], ['4', 'Ch 3']]), 'stepper: 4 numbered dots, Ch 1 + 2 > Ch 5 > Ch 4 > Ch 3: ' + JSON.stringify(s.order.dots));
+  assert(await pg.$eval('#planOrderMini', e => e.tagName === 'OL' && e.getAttribute('role') === 'list'), 'S-125: the stepper keeps its list semantics in WebKit (role="list" with list-style: none)');
   assert(s.order.sr[0] === 'Ch 1 Values & principles + Ch 2 What is the UK?' && s.order.sr[3] === 'Ch 3 History', 'stepper: full chapter names for screen readers');
   const line = await pg.evaluate(() => { const lis = [...document.querySelectorAll('#planOrderMini li')]; const dot = li => li.querySelector('.plan-ord-n').getBoundingClientRect();
     return lis.map(dot).every((r, i, a) => !i || (r.left > a[i - 1].right && Math.abs(r.top - a[0].top) < 1)); });
