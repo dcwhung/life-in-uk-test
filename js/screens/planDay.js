@@ -77,7 +77,13 @@ function planKeepArrowFocus(prevId, nextId, step) {
   const [own, other] = step < 0 ? [prevId, nextId] : [nextId, prevId];
   if (byId(own).disabled && document.activeElement === document.body) byId(other).focus();
 }
-function planShowToday() { planDayView = null; planCalMonth = null; renderPlanDay(); }
+// W-036: the button hides itself once today shows, so focus moves to the day heading instead of <body>
+function planShowToday() {
+  planDayView = null;
+  planCalMonth = null;
+  renderPlanDay();
+  byId('planDayHeading').focus({ preventScroll: true });
+}
 
 // G16: the exam day has no tasks; today it wishes good luck
 function renderPlanExamView(plan, iso, todayIso) {
@@ -252,6 +258,12 @@ function planShiftMonth(step) {
   planCalMonth = months[Math.min(months.length - 1, Math.max(0, at + step))];
   renderPlanCalendar(plan, planLoadLog() || planEmptyLog(), planViewIso(plan), planTodayIso());
   if (step) planKeepArrowFocus('planCalPrev', 'planCalNext', step);
+  else planFocusEnabledArrow('planCalPrev', 'planCalNext'); // W-036: "Today" just disabled itself
+}
+function planFocusEnabledArrow(prevId, nextId) {
+  if (document.activeElement !== document.body) return;
+  const target = [prevId, nextId].map(byId).find(b => !b.disabled);
+  if (target) target.focus();
 }
 
 // ── overall progress: plan %, average of the days gone by, days to the exam; facts / questions / safe mocks bars ──

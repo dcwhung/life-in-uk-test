@@ -114,6 +114,7 @@ async function checkHeader(pg) {
   assert(await pg.evaluate(() => document.activeElement.id) === 'planDayNext', 'Day 1: focus moves from the disabled ‹ to ›');
   await pg.click('#planBackToday');
   assert(await text(pg, '#planDayTitle') === "Today's tasks", '"back to today"');
+  assert(await pg.evaluate(() => document.activeElement.id) === 'planDayHeading', 'W-036: "back to today" hides itself, focus goes to the day heading (not <body>)');
   await pg.click('#screenPlanDay [data-action="openPlanSchedule"]');
   assert(await activeScreen(pg) === 'screenPlanSchedule', 'header "Schedule"');
   await pg.click('#screenPlanSchedule .back-btn');
@@ -315,6 +316,8 @@ async function checkCalendar(pg) {
   assert(sep.prev && sep.focus === 'planCalNext', '‹ disabled on the first month; focus moves to › instead of <body>');
   await pg.click('#planCalToday');
   assert(await text(pg, '#planCalTitle') === 'October 2026', '"Today" back to today\'s month');
+  const calFocus = await pg.evaluate(() => ({ id: document.activeElement.id, disabled: document.activeElement.disabled }));
+  assert(calFocus.id === 'planCalPrev' && !calFocus.disabled, 'W-036: "Today" disables itself, focus goes to the arrow still enabled: ' + JSON.stringify(calFocus));
   // a cell opens its day; the viewed day is marked
   await pg.click('#planCal [data-iso="2026-10-02"]');
   assert(await text(pg, '#planDayTitle') === 'Day 5 tasks' && await pg.$eval('#planCal [data-iso="2026-10-02"]', e => e.className.includes('viewing')), 'cell opens its day, marked as viewing');
