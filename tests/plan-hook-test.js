@@ -152,7 +152,7 @@ async function checkPlanReviewClearsWrong(pg, days) {
   }, { qid, ret: { kind: 'plan', date: TODAY, taskIndex: reviewIndex, type } });
   await run(qa, 'practice');
   await answerQid(pg, qa, true);
-  assert(await pg.evaluate(qid => !!wrongList[qid], qa), 'plan practice session: a right answer keeps the wrong list entry');
+  assert(await pg.evaluate(qid => !wrongList[qid], qa), 'G38: a plan practice session clears a right answer from the wrong list too');
   await run(qb, 'review');
   await answerQid(pg, qb, true);
   assert(await pg.evaluate(qid => !wrongList[qid] && state.cleared === 1, qb), 'plan review session: a right answer clears the wrong list entry (R9)');

@@ -213,12 +213,12 @@ function revealAnswer() {
 function recordPracticeResult(q, correct) {
   // session length stays fixed; unmastered ones return next session
   recordPracticeAnswer(q, correct, state.planDay || null);
-  // wrong answers join the review list; only a correct answer inside the review (or a plan review task, R9) clears one
+  // wrong answers join the review list; only a correct answer inside the review (or any plan task, R9 / G38) clears one
   if (!correct) addWrong(q);
-  else if (isPlanReviewSession()) clearPlanReviewWrong(q);
+  else if (isPlanSession()) clearPlanReviewWrong(q);
   else if (state.examNum === WRONG_EXAM && wrongList[qKey(q)]) { clearWrong(q); state.cleared++; }
 }
-// W-030: the plan task asks the canonical copy; clear every copy of that question the wrong list holds, counted once
+// W-030 / G38: a plan task (practise / drill / clear wrong answers) asks the canonical copy; clear every copy of that question the wrong list holds, counted once
 function clearPlanReviewWrong(q) {
   const keys = planSameQuestionKeys(keysOf(wrongList), qKey(q));
   keys.forEach(k => clearWrong(questionByKey(k)));

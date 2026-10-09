@@ -13,8 +13,6 @@ function isSideSession() { return sessionReturn !== null; }
 function clearSideSession() { sessionReturn = null; }
 function isPlanReturn(ret) { return ret !== null && ret.kind === SESSION_RETURN_KIND.plan; }
 function isPlanSession() { return isPlanReturn(sessionReturn); }
-// R9: the plan's "clear wrong answers" task clears the wrong list like the Wrong answers review does
-function isPlanReviewSession() { return isPlanReturn(sessionReturn) && sessionReturn.type === PLAN_TASK.review; }
 
 // every state field is set here (no spread of the previous session): review counters, the set pool, exam flags
 // and the mode would otherwise leak in. Always Practice, whatever Home's pendingMode says, and no exam timer.

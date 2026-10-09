@@ -388,6 +388,38 @@ async function checkMidnight(pg) {
   assert(await text(pg, '#planDayTitle') === 'Day 1 tasks', 'QA O-2: ← goes back to that day');
 }
 
+// G38: any plan runner (here: practise) clears a right answer's question from the wrong list, every copy, cleared +1;
+// a plain Chapter Practice right answer does not
+async function checkPracticeClearsWrong(pg) {
+  await fresh(pg);
+  await seed(pg);
+  await openDay(pg);
+  const p = await plan(pg);
+  const i = taskIndexOf(p, TODAY, t => t.type === 'practice' && t.ch === 1);
+  const k = p.days[0].tasks[i].qids[0];
+  await pg.evaluate(k => { addWrong(questionByKey(k)); if (k !== '1.0') addWrong(questionByKey('1.0')); }, k);
+  await tap(pg, taskBox(TODAY, i));
+  await pg.evaluate(k => { state.current = state.questions.findIndex(q => qKey(q) === k); renderQuestion(); }, k);
+  await answer(pg, true);
+  const r = await pg.evaluate(k => ({ gone: !wrongList[k], cleared: state.cleared }), k);
+  assert(r.gone && r.cleared === 1, `G38: a right answer in a plan practice task clears ${k} from the wrong list, cleared +1`);
+  await pg.evaluate(() => leaveToHome());
+  // plain Chapter Practice: unchanged
+  const plain = await pg.evaluate(() => {
+    const key = '3.12';
+    addWrong(questionByKey(key));
+    pendingMode = PRACTICE_MODE;
+    startChapter(questionByKey(key).q.ch);
+    state.questions = [toQuestionItem(questionByKey(key))];
+    state.current = 0;
+    const q = state.questions[0];
+    q.a.forEach(a => selectOption(a));
+    return { kept: !!wrongList[key], plan: isPlanSession() };
+  });
+  assert(plain.kept && !plain.plan, 'G38: a right answer in plain Chapter Practice keeps the wrong list entry');
+  await pg.evaluate(() => leaveToHome());
+}
+
 // CUI-0011: a double tap on the last question's Next starts the new round once (the second tap is not an answer)
 async function checkDoubleTap(pg) {
   await fresh(pg);
@@ -517,6 +549,7 @@ async function main() {
   await checkContinueAndAllDone(pg);
   await checkResume(pg);
   await checkMidnight(pg);
+  await checkPracticeClearsWrong(pg);
   await checkDoubleTap(pg);
   await checkSwitchOff(pg);
   await checkMastered(pg);
