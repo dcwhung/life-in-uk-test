@@ -10,7 +10,8 @@ const path = require('path');
 //   states (G13: short still builds), fewer than 7 study days disables the CTA with a hint (G28)
 // - create: clears the old plan + log first (PR1 O-2; O-1: a corrupt plan shows the create card again), then the
 //   schedule opens (PR4: tests/plan-schedule-test.js covers it)
-// - 360 / 375 / 400px en + zh-HK: no horizontal scroll; [hidden] is never shown by a component display rule
+// - 360 / 375 / 390 / 400px en + zh-HK: no horizontal scroll; [hidden] is never shown by a component display rule;
+//   v1.0.2: presets share the card width, the date picker on its own row, the 7 rest day chips on one row
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
 const launchOpts = { args: ['--no-sandbox'] };
 if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_PATH;
@@ -19,7 +20,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
 const TODAY = '2026-10-08';
 const PREVIEW_LS = 'lifeuk.studyPlanPreview';
 const NOW = new Date(TODAY + 'T09:00:00');
-const WIDTHS = [360, 375, 400];
+const WIDTHS = [360, 375, 390, 400];
 const HIT_MIN_PX = 44;
 const TICKS_EN = ['30 min', '45 min', '1 hr', '15 min', '30 min', '45 min', '2 hr'];
 const TICKS_ZH = ['30 分鐘', '45 分鐘', '1 小時', '15 分', '30 分', '45 分', '2 小時'];
@@ -364,6 +365,26 @@ async function checkHiddenAttr(pg) {
     .filter(e => getComputedStyle(e).display !== 'none').map(e => e.id || e.className));
   assert(shown.length === 0, '[hidden] elements are never displayed: ' + shown.join(', '));
 }
+// v1.0.2: the 4 presets share the card width equally, the date picker has its own row below them, and the 7 rest
+// day chips stay on one row
+const LAYOUT_TOLERANCE_PX = 1;
+async function checkGoalLayout(pg, where) {
+  const r = await pg.evaluate(() => {
+    const rect = e => e.getBoundingClientRect();
+    const presets = [...document.querySelectorAll('#planDaysChips .chip')].map(rect), rest = [...document.querySelectorAll('#planRestChips .chip')].map(rect);
+    const field = rect(byId('planDaysChips').closest('.plan-field')), pick = rect(document.querySelector('.plan-date-pick'));
+    const clipped = [...document.querySelectorAll('#planDaysChips .chip, #planRestChips .chip')].filter(e => e.scrollWidth > e.clientWidth + 0.5).map(e => e.textContent);
+    return { widths: presets.map(p => p.width), tops: presets.map(p => p.top), left: presets[0].left - field.left, right: field.right - presets[3].right,
+      pickBelow: pick.top >= Math.max(...presets.map(p => p.bottom)) - 0.5, restTops: rest.map(p => Math.round(p.top)), restRight: field.right - rest[6].right, clipped };
+  });
+  const tol = LAYOUT_TOLERANCE_PX;
+  assert(r.widths.length === 4 && r.widths.every(x => Math.abs(x - r.widths[0]) <= tol) && r.tops.every(x => Math.abs(x - r.tops[0]) <= tol),
+    `${where}: 4 preset chips of equal width on one row: ` + JSON.stringify(r));
+  assert(Math.abs(r.left) <= tol && Math.abs(r.right) <= tol, `${where}: presets span the full card width: ` + JSON.stringify([r.left, r.right]));
+  assert(r.pickBelow, `${where}: "or exam date" has its own row below the presets`);
+  assert(r.restTops.length === 7 && new Set(r.restTops).size === 1 && r.restRight >= -tol, `${where}: all 7 rest day chips on one row: ` + JSON.stringify(r.restTops));
+  assert(r.clipped.length === 0, `${where}: chip labels not clipped: ` + r.clipped);
+}
 async function checkWidths(pg) {
   await fresh(pg, '?preview=plan');
   for (const lang of ['en', 'zh-HK']) {
@@ -375,6 +396,7 @@ async function checkWidths(pg) {
         const fit = await pg.evaluate(() => ({ sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth, s: document.querySelector('.screen.active').id }));
         assert(fit.sw <= fit.cw, `${lang} ${w}px ${fit.s}: no horizontal scroll (${fit.sw} <= ${fit.cw})`);
         await checkHiddenAttr(pg);
+        if (fit.s === 'screenPlanGoal') await checkGoalLayout(pg, `${lang} ${w}px`);
       }
     }
   }

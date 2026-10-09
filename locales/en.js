@@ -267,11 +267,11 @@ LOCALES.en = {
       title: 'Your study schedule',
       summary: 'Starts {start} · exam {exam} · up to {mins} a day · {level}',
       phasesTitle: 'Three phases',
-      phaseDays: { one: '{name} {n} day', other: '{name} {n} days' },
+      phaseDaysN: { one: '{n} day', other: '{n} days' }, // phase bar line 2, under the phase name
       dayRange: 'Day {from}–{to}',
       orderTitle: 'Study order: easy to hard, History last',
       orderIntro: "Each chapter's time follows its number of facts. The order goes by difficulty, with History, the hardest to remember, last so it is still fresh on exam day.",
-      orderCount: '{facts} facts · {qs} questions',
+      orderCount: '{facts} facts · {qs} Qs',
       listTitle: 'Daily tasks',
       week: 'Week {n}',
       restDay: 'Rest day',
@@ -301,11 +301,12 @@ LOCALES.en = {
       whySociety: 'Festivals, sport and culture: easier to remember than history',
       whyHistory: 'The most dates, names and places, the hardest to remember: last, so it is fresh on exam day',
     },
-    // day list task lines ({ch} = "Ch 3 History", lang="en"); no minutes, "not yet mastered" in words (handoff §2.3)
+    // day list task lines ({ch} = "Ch 3", lang="en"; the day's remarks line names the chapters in full); no minutes,
+    // "not yet mastered" in words (handoff §2.3)
     task: {
       read: 'Read {ch} facts {range}',
-      practice: { one: 'Practise {ch}: {n} question', other: 'Practise {ch}: {n} questions' },
-      drill: { one: 'Practise {ch} again: {n} question not yet mastered', other: 'Practise {ch} again: {n} questions not yet mastered' },
+      practice: { one: 'Practise {ch}: {n} Q', other: 'Practise {ch}: {n} Qs' },
+      drill: { one: 'Practise {ch} again: {n} Q not yet mastered', other: 'Practise {ch} again: {n} Qs not yet mastered' },
       wrongFacts: 'Review the facts behind wrong answers',
       review: 'Clear your wrong answers',
       reviewMock: 'Redo your mock exam mistakes',
