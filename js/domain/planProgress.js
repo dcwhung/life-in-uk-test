@@ -224,19 +224,19 @@ function planApplyMock(log, iso, attempt) {
 }
 
 // ── runner queue: unanswered first (skipped ones last), then wrong-not-yet-right; one round ≤ PRACTICE_ROUND_MAX ──
-// G37: mastered questions of a practice task are done already, so they are not asked
-function planNextRound(task, dayLog, skipped = []) {
+// the questions a runner still asks: G37 / W-038: 🏆 ones of a practice task are done already
+function planAskableQids(task, dayLog) {
   const m = planTaskMastered(task, dayLog);
-  const qids = planTaskQids(task).filter(k => !m.has(k));
+  return planTaskQids(task).filter(k => !m.has(k));
+}
+function planNextRound(task, dayLog, skipped = []) {
+  const qids = planAskableQids(task, dayLog);
   const fresh = qids.filter(k => !dayLog.ok[k] && !dayLog.bad[k]);
   const retry = qids.filter(k => dayLog.bad[k] && !dayLog.ok[k]);
   const order = [...fresh.filter(k => !skipped.includes(k)), ...fresh.filter(k => skipped.includes(k)), ...retry];
   return order.slice(0, PRACTICE_ROUND_MAX);
 }
-function planRetryLeft(task, dayLog) {
-  const m = planTaskMastered(task, dayLog);
-  return planTaskQids(task).filter(k => dayLog.bad[k] && !dayLog.ok[k] && !m.has(k)).length;
-}
+function planRetryLeft(task, dayLog) { return planAskableQids(task, dayLog).filter(k => dayLog.bad[k] && !dayLog.ok[k]).length; }
 function planResumeAt(task, dayLog) {
   const m = planTaskMastered(task, dayLog);
   if (!Array.isArray(task.qids) && Array.isArray(task.facts)) return task.facts.find(id => !planFactDone(id, dayLog, m)) || null;

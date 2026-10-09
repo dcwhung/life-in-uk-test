@@ -392,6 +392,17 @@ async function checkMastered(pg) {
   await tap(pg, taskBox(TODAY, p2));
   assert(await pg.evaluate(half => state.questions.every(q => !half.includes(qKey(q))) && state.questions.length === planLoad().days[0].tasks.find(x => x.type === 'practice' && x.ch === 2).qids.length - 5, half),
     'G37: the runner asks only the questions not mastered');
+  // W-038: rounds count only the questions asked: a 39-question task with 20 mastered is one round, no "Round 1 of 2"
+  await pg.evaluate(() => leaveToHome());
+  const big = await pg.evaluate(() => {
+    const tasks = planLoad().days[0].tasks, i = tasks.findIndex(x => x.type === 'practice' && x.qids.length > 24);
+    tasks[i].qids.slice(0, 20).forEach(k => { streaks[k] = MASTERY_STREAK; });
+    return { n: tasks[i].qids.length - 20, i };
+  });
+  await openDay(pg);
+  await tap(pg, taskBox(TODAY, big.i));
+  const one = await cur(pg);
+  assert(one.n === big.n && one.note === '' && await pg.evaluate(() => sessionReturn.rounds) === 1, `W-038: ${big.n} questions left to ask = one round, no "Round 1 of 2": "${one.note}"`);
   await pg.evaluate(() => leaveToHome());
   const home = await pg.evaluate(() => ({ card: byId('planCard').querySelector('.plan-home-pct').textContent,
     want: planDayCompletion(planLoad().days[0], planDayLog(planLoadLogView(), '2026-10-01')).pct }));

@@ -55,7 +55,7 @@ function planStartRound(date, taskIndex, from, skipped, round = null) {
   if (!ctx) { openPlanDay(from); return; }
   const qids = planNextRound(ctx.task, ctx.dayLog, skipped);
   if (!qids.length) { planShowTaskDone(date, taskIndex, from); return; }
-  const all = planTaskQids(ctx.task);
+  const all = planAskableQids(ctx.task, ctx.dayLog); // W-038: rounds of the questions actually asked
   const seen = all.filter(k => ctx.dayLog.ok[k] || ctx.dayLog.bad[k]).length;
   const n = round || Math.floor(seen / PRACTICE_ROUND_MAX) + 1;
   const ret = { ...planRunReturn(ctx, date, taskIndex, from), retry: qids.filter(k => ctx.dayLog.bad[k]),

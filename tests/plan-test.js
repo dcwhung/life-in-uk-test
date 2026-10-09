@@ -336,6 +336,8 @@ function checkMastered() {
   assert(p.done === 5 && p.mastered === 4 && p.bad === 0, 'G37: 4 mastered + 1 right = 5 done; a mastered question is not "wrong"');
   const roundOf = (log, m) => g('planNextRound')(practice, g('planDayLog')(view(log, m), TODAY), []);
   assert(roundOf(emptyLog(), half).every(k => !half.has(k)) && roundOf(emptyLog(), half).length === practice.qids.length - 4, 'G37: the runner asks only questions not mastered');
+  const askable = g('planAskableQids')(practice, g('planDayLog')(view(emptyLog(), half), TODAY));
+  assert(askable.length === practice.qids.length - 4 && askable.every(k => !half.has(k)), 'W-038: planAskableQids leaves the mastered questions out');
   const drill = { type: 'drill', ch: 1, quota: 9, qids: practice.qids };
   assert(prog(drill, emptyLog(), all).done === 0 && g('planNextRound')(drill, g('planDayLog')(view(emptyLog(), all), TODAY), []).length === 9, 'G37: drill is not affected (G5: right again)');
   const review = { type: 'review', qids: practice.qids.slice(0, 2) };
