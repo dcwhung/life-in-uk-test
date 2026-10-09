@@ -8,19 +8,20 @@ const LOCALES = {};
 
 LOCALES.en = {
   app: {
-    title: 'Life in the UK · Exam Practice',
+    title: 'Life in the UK Test · Exam Practice',
     description: 'Life in the UK Test — Exam 1–{n} Practice App',
     shortName: 'Life in UK',
     // manifest.webmanifest is static JSON: these mirror its name / short_name (tests/pwa-test.js keeps them equal)
     installName: 'Life in the UK Test',
     installShortName: 'Life in UK',
-    name: 'Life in the UK',
+    name: 'Life in the UK Test',
     sub: 'Exam Practice',
     about: 'About this app',
     infoTitle: 'Exam 1–{n} Practice',
     infoIntro: '{n} official-style questions from lifeintheuktestweb.co.uk, with Cantonese translations and notes.',
     infoExams: { one: '📋 {n} Exam', other: '📋 {n} Exams' },
-    infoQuestions: { one: '❓ {n} Question', other: '❓ {n} Questions' },
+    infoChapters: { one: '📚 {n} Chapter', other: '📚 {n} Chapters' },
+    infoQuestions: { one: '❓ {n} Q', other: '❓ {n} Qs' },
     infoOffline: '🔒 Works Offline',
     installTitle: 'Install for offline use',
     installText: 'Add to home screen to study without internet',
@@ -29,11 +30,13 @@ LOCALES.en = {
     // header pill: names the language it switches to (the CJK 中 is whitelisted in tests/i18n-test.js)
     langSwitch: '中',
     langSwitchLabel: 'Switch to Chinese',
-    // ⓘ popover "Features" section: the study plan switch
+    // ⓘ popover "Features" section: the study plan switch, an On / Off pill after its name, then the note
     features: 'Features',
     planFeature: '🗓️ Study plan',
-    planOnNote: 'On: your study plan shows on the home screen',
-    planOffNote: 'Off: every study plan item is hidden',
+    planOnPill: 'On',
+    planOffPill: 'Off',
+    planOnNote: 'Your study plan shows on the home screen',
+    planOffNote: 'Every study plan item is hidden',
     planSwitchLabel: 'Study plan feature',
   },
 

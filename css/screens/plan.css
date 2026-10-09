@@ -17,8 +17,12 @@
 .plan-settings { margin-top: var(--space-8); padding-top: var(--space-6); border-top: 1px solid var(--gold-border); display: grid; gap: var(--space-4); }
 .plan-settings-title { font-size: var(--fs-xs); font-weight: 800; letter-spacing: 0.08em; color: var(--gold-light); }
 .plan-setting-row { display: flex; justify-content: space-between; align-items: center; gap: var(--space-6); }
-.plan-setting-row b { display: block; font-size: var(--fs-md); }
-.plan-setting-note { display: block; font-size: var(--fs-sm); color: var(--text-inverse-strong); line-height: 1.45; }
+.plan-setting-row b { display: inline; font-size: var(--fs-md); }
+/* v1.0.4 (user): On (green) / Off (red) pill on the same line, after "Study plan" (js/screens/planHome.js renderPlanPill) */
+.feature-pill { display: inline-block; margin-left: var(--space-3); vertical-align: 2px; font-size: var(--fs-xs); font-weight: 800; line-height: 1.4; border-radius: var(--radius-pill); padding: 1px var(--space-4); white-space: nowrap; }
+.feature-pill.on { background: var(--green-light); color: var(--navy); }
+.feature-pill.off { background: var(--red); color: var(--text-inverse); } /* white on --red 8.1:1 (on --red-light only 3.8:1); navy on --green-light 6.0:1 */
+.plan-setting-note { display: block; margin-top: var(--space-1); font-size: var(--fs-sm); color: var(--text-inverse-strong); line-height: 1.45; }
 .plan-setting-row .switch { background: var(--switch-track-inverse); }
 .plan-setting-row .switch[aria-checked="true"] { background: var(--green-light); }
 
