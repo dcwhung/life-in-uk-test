@@ -22,6 +22,7 @@ LOCALES.en = {
     infoExams: { one: '📋 {n} Exam', other: '📋 {n} Exams' },
     infoChapters: { one: '📚 {n} Chapter', other: '📚 {n} Chapters' },
     infoQuestions: { one: '❓ {n} Q', other: '❓ {n} Qs' },
+    infoQuestionsLabel: { one: '{n} question', other: '{n} questions' }, // what a screen reader says for the short "Qs" badge
     infoOffline: '🔒 Works Offline',
     installTitle: 'Install for offline use',
     installText: 'Add to home screen to study without internet',

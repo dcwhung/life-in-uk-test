@@ -20,6 +20,7 @@ LOCALES['zh-HK'] = {
     infoExams: '📋 {n} 份試卷',
     infoChapters: '📚 {n} 個章節',
     infoQuestions: '❓ {n} 題',
+    infoQuestionsLabel: '{n} 條題目',
     infoOffline: '🔒 支援離線',
     installTitle: '安裝以便離線使用',
     installText: '加至主畫面，無需網絡亦可溫習',

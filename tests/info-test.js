@@ -22,6 +22,14 @@ const MAIN_MAX_PX = 780; // css/base/layout.css main max-width
   const badges = await pg.$$eval('#infoPop .hero-badge', els => els.map(e => e.textContent));
   assert(JSON.stringify(badges) === JSON.stringify(['📋 17 Exams', '📚 5 Chapters', '❓ 408 Qs', '🔒 Works Offline']), 'four badges: Exams | Chapters | Qs | Offline: ' + badges.join(' | '));
   assert(await pg.$eval('#infoBtn', e => e.getAttribute('aria-expanded') === 'true'), 'aria-expanded true');
+  // the "❓ 408 Qs" badge reads as full words (user): role=img makes screen readers use its aria-label
+  const qLabel = () => pg.$eval('#infoQuestionCount', e => ({ role: e.getAttribute('role'), label: e.getAttribute('aria-label') }));
+  const qEn = await qLabel();
+  assert(qEn.role === 'img' && qEn.label === '408 questions', 'Qs badge is read as "408 questions": ' + JSON.stringify(qEn));
+  await pg.evaluate(() => setLang('zh-HK'));
+  const qZh = await qLabel();
+  assert(qZh.role === 'img' && qZh.label === '408 條題目', 'zh-HK Qs badge is read as "408 條題目": ' + JSON.stringify(qZh));
+  await pg.evaluate(() => setLang('en'));
   const arrowUnderInfo = () => pg.evaluate(tol => {
     const pop = byId('infoPop'), arrow = getComputedStyle(pop, '::after'), btn = byId('infoBtn').getBoundingClientRect();
     const arrowX = pop.getBoundingClientRect().left + parseFloat(arrow.left) + parseFloat(arrow.width) / 2;

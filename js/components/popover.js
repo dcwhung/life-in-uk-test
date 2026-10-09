@@ -26,7 +26,9 @@ function fillInfoCounts() {
   byId('infoExamCount').textContent = t('app.infoExams', { n: EXAM_COUNT });
   const chapterBadge = byId('infoChapterCount'); // a pre-v1.0.4 shell has no chapter badge
   if (chapterBadge) chapterBadge.textContent = t('app.infoChapters', { n: CHAPTER_NUMBERS.length });
-  byId('infoQuestionCount').textContent = t('app.infoQuestions', { n: TOTAL_QUESTIONS });
+  const questionBadge = byId('infoQuestionCount');
+  questionBadge.textContent = t('app.infoQuestions', { n: TOTAL_QUESTIONS });
+  questionBadge.setAttribute('aria-label', t('app.infoQuestionsLabel', { n: TOTAL_QUESTIONS })); // role="img": read as full words
 }
 // a rotation / resize with the popover open moves ⓘ relative to it
 window.addEventListener('resize', () => {
