@@ -33,6 +33,7 @@ const MAIN_MAX_PX = 780; // css/base/layout.css main max-width
   assert(box.left === POP_GUTTER_PX && box.right === 390 - POP_GUTTER_PX, `popover uses the full width less a ${POP_GUTTER_PX}px gutter: ` + JSON.stringify(box));
   // wide screen: the popover lines up with the 780px main column
   await pg.setViewportSize({ width: WIDE_PX, height: 844 });
+  await pg.waitForFunction(w => innerWidth === w && new Promise(r => requestAnimationFrame(() => r(true))), WIDE_PX); // the resize handler re-points the arrow a frame later
   const wide = await pg.$eval('#infoPop', e => e.getBoundingClientRect());
   const mainBox = await pg.$eval('main', e => e.getBoundingClientRect());
   assert(Math.round(wide.width) === MAIN_MAX_PX && Math.round(wide.left) === Math.round(mainBox.left), `wide screen: popover ${MAIN_MAX_PX}px, aligned with main: ` + JSON.stringify(wide));
