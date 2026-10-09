@@ -414,19 +414,28 @@ async function checkHiddenAttr(pg) {
   assert(shown.length === 0, '[hidden] elements are never displayed: ' + shown.join(', '));
 }
 // v1.0.2: phase labels unclipped, order bars equal, and every pill (also "Today 100%") fits the left column
+const DAY_SIDE_PX = 64; // S-117: the day list's left column (date box + pill)
 async function checkScheduleFit(pg, where) {
   const r = await pg.evaluate(() => {
     const clipped = [...document.querySelectorAll('#planPhaseBar span')].filter(e => e.scrollWidth > e.clientWidth + 0.5).map(e => e.textContent);
     const row = document.querySelector('#planDayList .plan-day.today'), pill = row.querySelector('.plan-pill');
     const before = pill.textContent;
+    // S-117: the pill keeps --fs-xs and "Today 0%" / "今日 0%" stays on one line in the 64px column
+    pill.textContent = t('plan.status.today', { n: 0 });
+    const range = document.createRange();
+    range.selectNodeContents(pill);
+    const lines = new Set([...range.getClientRects()].map(q => Math.round(q.top))).size;
+    const zero = { lines, font: getComputedStyle(pill).fontSize, xs: getComputedStyle(document.documentElement).getPropertyValue('--fs-xs').trim(),
+      col: Math.round(row.querySelector('.plan-day-side').getBoundingClientRect().width) };
     pill.textContent = t('plan.status.today', { n: PERCENT });
     const side = row.querySelector('.plan-day-side').getBoundingClientRect(), p = pill.getBoundingClientRect();
-    const out = { clipped, full: pill.textContent, fits: p.left >= side.left - 0.5 && p.right <= side.right + 0.5, p: [p.left, p.right], side: [side.left, side.right] };
+    const out = { zero, clipped, full: pill.textContent, fits: p.left >= side.left - 0.5 && p.right <= side.right + 0.5, p: [p.left, p.right], side: [side.left, side.right] };
     pill.textContent = before;
     return out;
   });
   assert(r.clipped.length === 0, `${where}: phase bar labels not clipped: ` + r.clipped);
   assert(r.fits, `${where}: "${r.full}" pill fits the left column: ` + JSON.stringify(r));
+  assert(r.zero.lines === 1 && r.zero.font === r.zero.xs && r.zero.col === DAY_SIDE_PX, `${where}: S-117 "Today 0%" on one line at --fs-xs in a ${DAY_SIDE_PX}px column: ` + JSON.stringify(r.zero));
   await checkOrderBars(pg, where);
 }
 async function checkWidths(pg) {
