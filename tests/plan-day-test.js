@@ -68,8 +68,6 @@ const hitOk = (pg, sel) => pg.evaluate(({ s, min }) => {
   const hit = (x, y) => { const h = document.elementFromPoint(x, y); return !!h && (h === e || e.contains(h)); };
   return hit(cx, cy - d) && hit(cx, cy + d) && hit(cx - d, cy) && hit(cx + d, cy);
 }, { s: sel, min: HIT_MIN_PX });
-// v1.0.4 (user): the hint paragraph is justified with its last line on the left, and spans the info column (not a
-// centred shrink-to-fit block), at every width
 // the rest day look: ring / 😴 / count (visually hidden = rendered but clipped to ≤ 1px, still in the a11y tree)
 const restLook = pg => pg.evaluate(() => {
   const emoji = byId('planRestEmoji'), count = byId('planDayCount'), box = count.getBoundingClientRect();
@@ -79,6 +77,8 @@ const restLook = pg => pg.evaluate(() => {
 });
 // the month navigation: ‹ Today › all rendered (none in a hidden ancestor)
 const calNavShown = pg => pg.evaluate(() => ['planCalPrev', 'planCalToday', 'planCalNext'].every(id => byId(id).getClientRects().length > 0));
+// v1.0.4 (user): the hint paragraph is justified with its last line on the left, and spans the info column (not a
+// centred shrink-to-fit block), at every width
 const hintJustified = pg => pg.evaluate(() => {
   const hint = byId('planDayHint'), s = getComputedStyle(hint);
   const box = hint.getBoundingClientRect(), col = byId('planDayInfo').getBoundingClientRect();
