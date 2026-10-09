@@ -15,7 +15,8 @@ const PLAN_RUN_SYMBOL = { next: '→', finish: '✓' };
 const PLAN_RUN_VIEW = { done: 'done', facts: 'facts' };
 const PLAN_RUN_BADGE_KEYS = { [PLAN_TASK.read]: 'home.modeStudy', [PLAN_TASK.mock]: 'common.exam' }; // others: Practice
 let planRunView = null; // #screenPlanRun: { kind, date, taskIndex, from } (+ facts: pos, review)
-let planMockRun = null; // the plan mock exam running or just submitted: { date, taskIndex, from }
+let planMockRun = null; // the plan mock exam running or just submitted: { date, taskIndex, from, recorded }
+let planPlainRetake = null; // G39: the question list of a plain retake started from a plan mock's result page
 
 // ── context: the task as stored, its day's log; null when the plan, the day or the task is gone ──
 // fact: a fact task narrowed to that one fact (its "▶ Practise" session); whole = the task as stored
@@ -400,13 +401,19 @@ function planStartMockExam(at, examNum) {
   planMockRun = { date: at.date, taskIndex: at.taskIndex, from: at.from, recorded: null }; // recorded: planNoteMockRecorded
   renderPlanQuizHeader();
 }
-// result page "Retake" and Retry (retryExam): a Random Exam in Exam mode; with the feature off, an ordinary retry
+// result page "Retake" and Retry (retryExam): after a recorded fail, a Random Exam for the plan (G11); otherwise (passed,
+// G39; not recorded; the feature off) a plain retake of the same set in Exam mode that the plan never records
 function planRetryMock() {
-  if (!isPlanMock()) return;
-  if (planVisible()) { planStartMockExam(planMockRun, ALL_EXAM); return; }
-  planMockRun = null;
+  if (!isPlanMock() && !isPlanPlainRetake()) return;
+  const correct = reviewItems.filter(r => r.isCorrect).length;
+  const failed = isPlanMock() && !!planMockRun.recorded && !planMockPassed({ correct, total: reviewItems.length });
+  if (planVisible() && failed) { planStartMockExam(planMockRun, ALL_EXAM); return; }
+  planMockRun = null; // a plain retake's Retry is plain again (Exam mode, never Home's pendingMode)
   startExam(state.examNum, EXAM_MODE);
+  planPlainRetake = state.questions;
 }
+// G39: this exam session (its question list) is a plain retake after a plan mock: recordPlanExam skips the plan
+function isPlanPlainRetake() { return planPlainRetake !== null && planPlainRetake === state.questions; }
 // G15: Leave = not submitted; back to the day the mock was opened from
 function planLeaveMock() {
   stopExamTimer();

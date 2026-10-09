@@ -402,6 +402,21 @@ async function checkMockTimer(pg) {
     'O-3: switch off on the result page: the result stays, the plan row is hidden');
   await pg.evaluate(() => setPlanFeature(true));
   assert(await pg.evaluate(() => !byId('resultPlanRow').hidden), 'O-3: switch on again: the plan row is back');
+  // G39: after a passed plan mock, Retry is a plain retake: not recorded, the next slot keeps its own exam
+  for (const right of [10, 24]) {
+    await tap(pg, '#screenResult .result-actions .retry-btn');
+    const m = await mockState(pg);
+    assert(m.screen === 'screenQuiz' && m.mode === 'exam' && m.day === null && m.timer && m.back === '← Home', `G39: Retry after a pass: a plain Exam-mode retake (${right} right next)`);
+    await fillExam(pg, right);
+    await tap(pg, '#nextBtn');
+    const res = await pg.evaluate(() => ({ row: byId('resultPlanRow').hidden, log: planDayLog(planLoadLog(), planTodayIso()).mock.length }));
+    assert(res.row && res.log === 1, `G39: the retake (${right} / 24) writes no mock attempt, no plan row`);
+  }
+  await openDay(pg);
+  const s1 = taskIndexOf(p, iso, t => t.type === 'mock' && t.slot === 1);
+  await tap(pg, taskBox(iso, s1));
+  const m1 = await mockState(pg);
+  assert(m1.exam === p.days.find(d => d.date === iso).tasks[s1].exam && m1.day === iso, 'G39: the next mock still opens from its box with its own exam');
 }
 
 // S-131: started 23:50, submitted 00:10: the log has no attempt for that day, so the row says it does not count
