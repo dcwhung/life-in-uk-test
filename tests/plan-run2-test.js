@@ -345,6 +345,15 @@ async function checkMock(pg) {
   assert(card.screen === 'screenPlanRun' && card.sub === '✓ Passed · best 20 / 24' && !card.review && card.badge === 'Exam' && card.label === `Exam ${exam}`,
     'a passed mock: its Result card, best score, no "Review this task"');
   await tap(pg, '#planRunBack');
+  // W-044: slot 0 failed then passed as a Random Exam: slot 1 opens its own exam, not a Random Exam
+  const mi2 = taskIndexOf(p, iso, t => t.type === 'mock' && t.slot === 1);
+  assert(mi2 >= 0, 'the mock day has a second mock slot');
+  const exam2 = p.days.find(d => d.date === iso).tasks[mi2].exam;
+  await tap(pg, taskBox(iso, mi2));
+  m = await mockState(pg);
+  assert(m.exam === exam2 && !m.random, `W-044: slot 1 opens its own Exam ${exam2} after slot 0's retake passed`);
+  await tap(pg, '#screenQuiz .back-btn');
+  await tap(pg, '#confirmOk');
 }
 
 // G15: the switch off while timed = Leave (not submitted); time up submits (page.clock)

@@ -384,11 +384,11 @@ function planPractiseTask() {
 
 // ── mock exam (arch §E.5, G10 / G11 / G15 / G32): Exam mode itself, whatever Home's mode (pendingMode untouched) ──
 function isPlanMock() { return planMockRun !== null && !!state.planDay && state.mode === EXAM_MODE && !isSideSession(); }
-// G11: once the day has an attempt for this slot (not passed, or the task would be done), it is retaken as a Random Exam
+// G11: a slot whose own exam was just failed is retaken as a Random Exam (planMockRetake, W-044)
 function startPlanMock(at) {
   const ctx = planRunContext(at.date, at.taskIndex);
   if (!ctx) { openPlanDay(at.from); return; }
-  planStartMockExam(at, ctx.dayLog.mock.length > ctx.task.slot ? ALL_EXAM : ctx.task.exam);
+  planStartMockExam(at, planMockRetake(ctx.dayLog, ctx.task.slot) ? ALL_EXAM : ctx.task.exam);
 }
 function planStartMockExam(at, examNum) {
   clearSideSession();
