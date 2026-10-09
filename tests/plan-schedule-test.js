@@ -123,23 +123,28 @@ async function checkOverview(pg) {
   assert(await pg.$$eval('#planOrder b', els => els.every(e => e.closest('[lang="en"]'))), 'chapter names are English: lang="en"');
 }
 
-// v1.0.2: every chapter bar track has the same length and leaves a clear gap before its count; the user's choice:
-// 150px, 120px at ≤ 374px, 96px at ≤ 340px (S-120), so the count is never pushed past the card edge
+// v1.0.3 (user's layout): each step reads name, then why, then a bar row; the bar fills the row up to a fixed
+// gap before a fixed-width count column, so every bar has the same length and left edge, at every width
 const ORDER_BAR_GAP_MIN_PX = 12;
-const ORDER_BAR_STEPS = [[375, 150], [341, 120], [0, 96]]; // [from viewport width, bar px]; S-120: 96px at ≤ 340px like the presets
+const ORDER_TOLERANCE_PX = 1;
 async function checkOrderBars(pg, where) {
-  const vw = await pg.evaluate(() => document.documentElement.clientWidth);
-  const want = ORDER_BAR_STEPS.find(([from]) => vw >= from)[1];
-  const r = await pg.$$eval('#planOrder .plan-chw', els => els.map(e => {
-    const bar = e.querySelector('.plan-chw-bar').getBoundingClientRect(), c = e.querySelector('.plan-chw-c');
+  const r = await pg.$$eval('#planOrder .plan-ord-body', els => els.map(body => {
+    const rect = sel => body.querySelector(sel).getBoundingClientRect();
+    const name = rect('.plan-ord-name'), why = rect('.plan-ord-why'), row = rect('.plan-chw'), bar = rect('.plan-chw-bar'), cEl = rect('.plan-chw-c');
+    const c = body.querySelector('.plan-chw-c'), card = body.closest('.plan-card-box');
     const range = document.createRange();
     range.selectNodeContents(c);
-    const rects = [...range.getClientRects()], row = e.getBoundingClientRect();
+    const rects = [...range.getClientRects()];
     const left = Math.min(...rects.map(q => q.left)), right = Math.max(...rects.map(q => q.right));
-    return { x: Math.round(bar.left), w: Math.round(bar.width), gap: Math.round(left - bar.right), over: Math.round(right - row.right), fit: c.scrollWidth <= Math.ceil(c.getBoundingClientRect().width) };
+    const cardRight = card.getBoundingClientRect().right - parseFloat(getComputedStyle(card).paddingRight);
+    return { order: name.bottom <= why.top + 0.5 && why.bottom <= row.top + 0.5, x: Math.round(bar.left), w: Math.round(bar.width),
+      fromLeft: Math.round(bar.left - body.getBoundingClientRect().left), colGap: parseFloat(getComputedStyle(body.querySelector('.plan-chw')).columnGap),
+      fill: Math.round(cEl.left - bar.right), gap: Math.round(left - bar.right), over: Math.round(right - cardRight), fit: c.scrollWidth <= Math.ceil(cEl.width) };
   }));
-  assert(r.every(x => x.w === want), `${where}: study order bar tracks all ${want}px: ` + JSON.stringify(r));
-  assert(r.every(x => x.x === r[0].x), `${where}: every study order bar starts at the same x: ` + JSON.stringify(r.map(x => x.x)));
+  const tol = ORDER_TOLERANCE_PX;
+  assert(r.length === 4 && r.every(x => x.order), `${where}: each study order step reads name, why, then the bar row`);
+  assert(r.every(x => x.w === r[0].w && x.x === r[0].x && Math.abs(x.fromLeft) <= tol), `${where}: bars equal length, same left x, from the row start: ` + JSON.stringify(r));
+  assert(r.every(x => x.colGap >= ORDER_BAR_GAP_MIN_PX && Math.abs(x.fill - x.colGap) <= tol), `${where}: each bar fills the row up to the gap before the count: ` + JSON.stringify(r));
   assert(r.every(x => x.gap >= ORDER_BAR_GAP_MIN_PX && x.over <= 0 && x.fit), `${where}: ≥ ${ORDER_BAR_GAP_MIN_PX}px between bar and count, count inside the card: ` + JSON.stringify(r));
 }
 

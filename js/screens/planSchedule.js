@@ -99,10 +99,11 @@ function planOrderStepHtml(chs, i) {
   const qs = chs.reduce((s, ch) => s + PLAN_CHAPTER_QIDS[ch].length, 0);
   const whyKey = PLAN_ORDER_WHY_KEYS[chs[0]];
   const why = t(whyKey, { n: facts });
+  // v1.0.3: name, why, then the bar row (bar filling the row, a fixed gap, the count)
   return `<div class="plan-ord"><span class="plan-ord-n plan-num" aria-hidden="true">${i + 1}</span><div class="plan-ord-body">`
-    + `<div class="plan-chw"><b lang="en">${chs.map(planChapterText).join(' + ')}</b><span class="plan-chw-bar" aria-hidden="true"><i></i></span>`
-    + `<span class="plan-chw-c plan-num">${t('plan.schedule.orderCount', { facts, qs })}</span></div>`
-    + `<span class="plan-ord-why">${why}</span></div></div>`;
+    + `<b class="plan-ord-name" lang="en">${chs.map(planChapterText).join(' + ')}</b><span class="plan-ord-why">${why}</span>`
+    + `<div class="plan-chw"><span class="plan-chw-bar" aria-hidden="true"><i></i></span>`
+    + `<span class="plan-chw-c plan-num">${t('plan.schedule.orderCount', { facts, qs })}</span></div></div></div>`;
 }
 function renderPlanOrder() {
   const box = byId('planOrder');
