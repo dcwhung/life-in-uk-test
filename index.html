@@ -384,14 +384,14 @@
             <text class="plan-ring-pct plan-num" id="planRingPct" x="56" y="58" text-anchor="middle"></text>
             <text class="plan-ring-sub" id="planRingSub" x="56" y="76" text-anchor="middle"></text>
           </svg>
-          <div class="plan-today-info">
+          <div class="plan-today-info" id="planDayInfo">
             <span class="plan-pill" id="planDayPhase"></span>
             <div class="plan-day-count plan-num" id="planDayCount"></div>
             <p class="plan-muted" id="planDayHint"></p>
             <button class="chip plan-hit" id="planBackToday" data-action="planShowToday" data-i18n="plan.day.backToday" hidden></button>
           </div>
         </div>
-        <div class="plan-exam-banner plan-exam-pat" id="planDayExam" hidden></div>
+        <div class="plan-exam-banner plan-exam-pat" id="planDayExam" hidden><div class="plan-exam-text" id="planDayExamText"></div></div>
         <div class="plan-done-banner" id="planDayDone" role="status" hidden></div>
         <ul class="plan-tasks" id="planTaskList"></ul>
       </div>

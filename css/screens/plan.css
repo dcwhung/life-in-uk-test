@@ -197,7 +197,8 @@
 .plan-phase-pill.drill { background: var(--plan-ph-drill-bg); color: var(--plan-ph-drill); }
 .plan-phase-pill.mock { background: var(--plan-ph-mock-bg); color: var(--plan-orange-text); }
 .plan-phase-pill.rest { background: var(--bg); color: var(--text-muted); }
-.plan-exam-banner { display: grid; gap: var(--space-2); border-radius: var(--radius-md); padding: var(--space-7); color: var(--navy); font-size: var(--fs-md); line-height: 1.5; }
+.plan-exam-banner { display: grid; gap: var(--space-4); justify-items: start; border-radius: var(--radius-md); padding: var(--space-7); color: var(--navy); font-size: var(--fs-md); line-height: 1.5; }
+.plan-exam-text { display: grid; gap: var(--space-2); }
 .plan-done-banner { background: var(--success-bg); color: var(--green); border-radius: var(--radius-md); padding: var(--space-6) var(--space-7); font-size: var(--fs-md); font-weight: 700; line-height: 1.5; }
 .plan-tasks { list-style: none; display: grid; gap: var(--space-4); margin: 0; padding: 0; }
 /* not started = dashed, in progress = solid, done = green, carry-over = orange (+ its Day n tag) */

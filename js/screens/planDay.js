@@ -88,7 +88,8 @@ function planShowToday() {
 // G16: the exam day has no tasks; today it wishes good luck
 function renderPlanExamView(plan, iso, todayIso) {
   const headKey = iso === todayIso ? 'plan.home.examDayText' : 'plan.day.examAhead';
-  byId('planDayExam').innerHTML = `<b>${t(headKey)}</b><span>${t('plan.schedule.examTip')}</span>`;
+  byId('planDayExamText').innerHTML = `<b>${t(headKey)}</b><span>${t('plan.schedule.examTip')}</span>`;
+  byId('planDayExam').appendChild(byId('planBackToday')); // QA O-1: the exam day ahead offers "back to today" too
   setShown('planDayExam', true);
   setShown('planDayHead', false);
   setShown('planDayDone', false);
@@ -102,6 +103,7 @@ function renderPlanDayBody(plan, log, iso, todayIso) {
   const carry = iso === todayIso ? planCarryTasks(plan, log, todayIso) : [];
   setShown('planDayExam', false);
   setShown('planDayHead', true);
+  byId('planDayInfo').appendChild(byId('planBackToday')); // back under the hint (it moves into the exam banner)
   const tasks = planVisibleTasks(day, todayIso); // CUI-0022: one list for the boxes and for n / m
   renderPlanRing(comp.pct, iso === todayIso);
   renderPlanDayInfo(day, tasks.map(task => planTaskProgress(task, dayLog)), when);

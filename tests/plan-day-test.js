@@ -223,6 +223,12 @@ async function checkPastAndAhead(pg) {
   const ahead = await pg.$$eval('#planTaskList .plan-task', els => els.map(e => [e.querySelector('.plan-task-st').textContent, (e.querySelector('.plan-task-go') || { textContent: '' }).textContent]));
   assert(ahead[0][0] === '7 facts · Study' && ahead[0][1] === 'Start ›' && /^9 questions · Practice$/.test(ahead[1][0]), 'G23: read + practise ahead can start early: ' + JSON.stringify(ahead));
   assert(ahead[ahead.length - 1][0] === 'Decided on the day from your wrong answers', 'G23: clear wrong answers ahead: decided on the day');
+  // QA O-1: the exam day ahead is a non-today view too, so it offers "back to today"
+  await openDay(pg, '2026-10-29');
+  assert(await visible(pg, '#planDayExam') && await visible(pg, '#planBackToday'), 'O-1: exam day ahead: "← Back to today" shows');
+  assert(await hitOk(pg, '#planBackToday'), `O-1: "back to today" on the exam day: ${HIT_MIN_PX}px`);
+  await pg.click('#planBackToday');
+  assert(await text(pg, '#planDayTitle') === "Today's tasks" && await visible(pg, '#planDayHead') && !(await visible(pg, '#planBackToday')), 'O-1: back to today from the exam day');
   await openDay(pg, '2026-10-04');
   assert(await text(pg, '#planDayCount') === 'Rest day: no tasks' && await text(pg, '#planRingPct') === '–' && await text(pg, '#planDayPhase') === 'Rest day', 'rest day: no tasks, ring –');
   assert(await pg.$$eval('#planTaskList .plan-task', els => els.length) === 0, 'rest day: no task boxes');
