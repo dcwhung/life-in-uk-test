@@ -235,6 +235,11 @@ async function checkPastAndAhead(pg) {
   assert(d2.boxes.length === 2 && !d2.boxes.some(c => c.includes('review')) && !d2.text.includes('Decided on the day'), 'CUI-0022: no clear-wrong box on it');
   assert(await pg.evaluate(() => planVisibleTasks(planLoad().days[2], '2026-10-01').length) === 4 && await pg.evaluate(() => planVisibleTasks(planLoad().days[4], '2026-10-01').length) === 5,
     'planVisibleTasks: a past unopened review is dropped; an ahead day keeps it (G23)');
+}
+// ahead days (G23) and the exam day ahead (QA O-1)
+async function checkAheadDays(pg) {
+  await fresh(pg);
+  await seedPlan(pg);
   // ahead: a drill day (G23: decided on the day), a rest day, a mock day
   await openDay(pg, '2026-10-06');
   assert(await text(pg, '#planDayPhase') === 'Drill phase · ahead' && (await text(pg, '#planDayHint')).includes('early'), 'ahead day: pill · ahead + early hint');
@@ -250,6 +255,11 @@ async function checkPastAndAhead(pg) {
   assert(await hitOk(pg, '#planBackToday'), `O-1: "back to today" on the exam day: ${HIT_MIN_PX}px`);
   await pg.click('#planBackToday');
   assert(await text(pg, '#planDayTitle') === "Today's tasks" && await visible(pg, '#planDayHead') && !(await visible(pg, '#planBackToday')), 'O-1: back to today from the exam day');
+}
+// v1.0.4 (user): a rest day shows a large 😴 instead of the ring; the next study day shows the ring again
+async function checkRestDayLook(pg) {
+  await fresh(pg);
+  await seedPlan(pg);
   await openDay(pg, '2026-10-04');
   const rest = await restLook(pg);
   assert(!rest.ring && rest.emoji === '😴' && rest.emojiShown && rest.emojiHidden, 'v1.0.4 (user): rest day: no ring, a large 😴 (aria-hidden) in its place: ' + JSON.stringify(rest));
@@ -583,6 +593,14 @@ async function checkRestSpacing(browser) {
   }
 }
 
+// no element of the active screen reaches past the viewport, no horizontal page scroll
+const layoutOverflow = pg => pg.evaluate(() => {
+  const vw = document.documentElement.clientWidth;
+  const bad = [...document.querySelectorAll('.screen.active *')].filter(e => { const r = e.getBoundingClientRect(); return r.width && (r.right > vw + 0.5 || r.left < -0.5); });
+  return { scroll: document.documentElement.scrollWidth > vw, bad: bad.slice(0, 3).map(e => e.className || e.tagName) };
+});
+// LAYOUT_OPENS: Home, today, a rest day, the exam day, the schedule
+const LAYOUT_OPENS = [() => leaveToHome(), () => openPlanDay(), () => openPlanDay('2026-10-04'), () => openPlanDay('2026-10-29'), () => openPlanSchedule()];
 async function checkLayout(browser) {
   for (const lang of ['en', 'zh-HK']) {
     for (const w of WIDTHS) {
@@ -591,27 +609,25 @@ async function checkLayout(browser) {
       await fresh(pg);
       await pg.evaluate(l => setLang(l), lang);
       await seedPlan(pg);
-      for (const open of [() => leaveToHome(), () => openPlanDay(), () => openPlanDay('2026-10-04'), () => openPlanDay('2026-10-29'), () => openPlanSchedule()]) {
+      for (const open of LAYOUT_OPENS) {
         await pg.evaluate(open);
-        const over = await pg.evaluate(() => {
-          const vw = document.documentElement.clientWidth;
-          const bad = [...document.querySelectorAll('.screen.active *')].filter(e => { const r = e.getBoundingClientRect(); return r.width && (r.right > vw + 0.5 || r.left < -0.5); });
-          return { scroll: document.documentElement.scrollWidth > vw, bad: bad.slice(0, 3).map(e => e.className || e.tagName) };
-        });
+        const over = await layoutOverflow(pg);
         assert(!over.scroll && over.bad.length === 0, `${lang} ${w}px ${await activeScreen(pg)}: no horizontal overflow ` + JSON.stringify(over));
       }
-      await pg.evaluate(() => openPlanDay());
-      assert(await hitOk(pg, '#screenPlanDay .back-btn'), `S-117 ${lang} ${w}px: day header "← Home" has a ${HIT_MIN_PX}px tap area`);
-      const shown = await pg.evaluate(() => [...document.querySelectorAll('#screenPlanDay [hidden]')].filter(e => getComputedStyle(e).display !== 'none').length);
-      assert(shown === 0, `${lang} ${w}px: [hidden] never displayed`);
-      assert(await hintJustified(pg), `v1.0.4 ${lang} ${w}px: hint justified, last line left, full info width`);
-      if (lang === 'zh-HK' && w === 375) {
-        const t = await pg.evaluate(() => [byId('planDayTitle').textContent, byId('planDayCount').textContent, byId('planCalTitle').textContent, document.querySelector('#planTaskList .plan-tag').textContent]);
-        assert(t[0] === '今日任務' && t[1] === '1 / 3 項完成' && t[2] === '2026 年 10 月' && t[3] === '1 題答錯，答對才計算', 'zh-HK (G21 written Chinese): ' + t.join(' | '));
-      }
+      await checkTodayLayout(pg, lang, w);
       await ctx.close();
     }
   }
+}
+async function checkTodayLayout(pg, lang, w) {
+  await pg.evaluate(() => openPlanDay());
+  assert(await hitOk(pg, '#screenPlanDay .back-btn'), `S-117 ${lang} ${w}px: day header "← Home" has a ${HIT_MIN_PX}px tap area`);
+  const shown = await pg.evaluate(() => [...document.querySelectorAll('#screenPlanDay [hidden]')].filter(e => getComputedStyle(e).display !== 'none').length);
+  assert(shown === 0, `${lang} ${w}px: [hidden] never displayed`);
+  assert(await hintJustified(pg), `v1.0.4 ${lang} ${w}px: hint justified, last line left, full info width`);
+  if (lang !== 'zh-HK' || w !== 375) return;
+  const t = await pg.evaluate(() => [byId('planDayTitle').textContent, byId('planDayCount').textContent, byId('planCalTitle').textContent, document.querySelector('#planTaskList .plan-tag').textContent]);
+  assert(t[0] === '今日任務' && t[1] === '1 / 3 項完成' && t[2] === '2026 年 10 月' && t[3] === '1 題答錯，答對才計算', 'zh-HK (G21 written Chinese): ' + t.join(' | '));
 }
 
 (async () => {
@@ -626,6 +642,8 @@ async function checkLayout(browser) {
     await checkCarryNotCounted(pg);
     await checkAllDone(pg);
     await checkPastAndAhead(pg);
+    await checkAheadDays(pg);
+    await checkRestDayLook(pg);
     await checkMockDay(pg);
     await checkExamDayAndEnded(pg);
     await checkHomeCard(pg);
