@@ -241,7 +241,7 @@ async function partF(b) {
         const n = planHours(f.diffMins); const k = f.status + ':' + (n <= 1 ? n : 'n'); if (!seen[k]) seen[k] = { days, mins, level, rest, diff: f.diffMins, msg: t(f.status === 'ok' ? 'plan.feas.okMsg' : 'plan.feas.shortMsg', { n, m: 15 }) }; }
       return seen; });
     const bad = Object.entries(msgs).filter(([k]) => /:(0|1)$/.test(k));
-    if (bad.length) note('feasibility message with n = 0 / 1 reachable: ' + bad.map(([k, v]) => `${k} (${v.days}d ${v.mins}min ${v.level} rest ${v.rest}) "${v.msg.slice(0, 40)}…"`).join(' ; '));
+    ok(bad.every(([k, v]) => !/\b1 hours\b|\b0 hours\b/.test(v.msg)), '[F14] CUI-0020: n = 0 / 1 messages read singular: ' + bad.map(([k, v]) => `${k} "${v.msg.slice(0, 30)}…"`).join(' ; '));
     ok(true, `[F14] feasibility message n buckets reachable: ${Object.keys(msgs).join(', ')}`);
     // F15 create (with an old plan + log stored) → Home simplified card
     await pg.evaluate(() => { localStorage.setItem('lifeuk.studyPlan', '{"v":1,"old":true}'); localStorage.setItem('lifeuk.studyPlanProgress', '{"2026-10-01":{"ok":{"1.0":1}}}'); });
@@ -482,7 +482,7 @@ async function partL(b) {
       // the standalone .nav-btn CTA is 41–42px (paired .nav-btn rows stretch to 45px) → reported, see O-3
       ok(!small.some(t => /plan-cta|mode-card/.test(t.id)), `[L] ${tag}: create card + level cards ≥ 44px high (switch hit area: F3)`);
       const cta = goalT.find(t => t.id === 'planCreateBtn');
-      if (cta && cta.h < 44) note(`${tag}: Build CTA ${cta.w}×${cta.h}`);
+      ok(cta && cta.h >= 44, `[L] ${tag}: Build CTA ${cta && cta.w}×${cta && cta.h} ≥ 44px (O-3)`);
       if (lang === 'zh-HK') {
         const all = texts.join('\n'); const hits = [...new Set((all.match(new RegExp(COLLOQUIAL.source, 'g')) || []))];
         ok(hits.length === 0, `[L] ${tag}: plan UI text has no colloquial characters ${hits.join('')}`);
@@ -575,7 +575,7 @@ async function partU(b) {
       const label = preview ? 'preview on' : 'no preview';
       ok(r.fns === 'function,function,function,function' && r.css && r.grid > 0 && quizOk, `[U6] mixed old shell + new js (${label}): late boot loaded switch / toast / planHome / planGoal + 3 css, Home + ⓘ + language + Exam OK ${JSON.stringify(r)}`);
       if (!preview) ok(errs.length === 0 && !r.card, `[U6] mixed (no preview): no card, 0 errors ${errs.join(' | ')}`);
-      else note(`mixed old shell + preview on: card shown = ${r.card}, create card tap → ${goal || 'n/a'}; errors: ${errs.join(' | ') || 'none'}`);
+      else ok(!r.card && errs.length === 0, `[U6] mixed + preview on (CUI-0021): no create card on the old shell, 0 errors ${goal} ${errs.join(' | ')}`);
       await ctx.close();
     }
   } finally { s2.server.kill(); fs.rmSync(mix, { recursive: true, force: true }); }

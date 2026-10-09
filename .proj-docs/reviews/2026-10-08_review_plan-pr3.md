@@ -305,3 +305,60 @@ next_agent: quality-assurance
 branch: "claude/charming-hopper-48ypzp"
 context: "PR3 Round 2 @bdcd90e: W-031/W-032/W-033/S-109/S-110/S-111/U-1 verified by re-running Round 1 probes; run-all 34/34, visual-diff 76 identical; data-blur-action convention OK (doc in HANDOFF at T-341); toast tokens + a11y OK (AX role=status polite). New S-112 (modal Cancel/OK/Esc returns focus to switch inside the now-closed popover) suggested, non-blocking"
 ```
+
+---
+
+# Round 3 — QA 修正 code review（commit 0042e39）
+
+- 日期：2026-10-08
+- 範圍：CUI-0019（chip / 休息日 / 程度卡改原位更新 `planSyncGroup` / `planSyncChips`、date commit 冇變唔 re-render、刪 S-109 focus helper）；CUI-0020（en `okMsg` / `shortMsg` `{ one, other }`）；CUI-0021（`planShellReady()` guard + `upgrade-test` prePlanUiShell）；O-3（CTA `min-height: 44px`）
+- 方式：只做 code review + scratchpad `git archive 0042e39` copy 跑 probe；**冇跑 run-all、冇寫 `tests/*.png`**（QA 同時跑緊），probe 完已刪 copy
+- 結果：**冇新問題，100 / 100，pass**（S-112 已經喺 Round 2 移去 PR4，唔計）
+
+## 核對
+
+| 項目 | 結果 | 證據 |
+|---|---|---|
+| 原位更新：class 同 `aria-pressed` 一致 | ✅ | update 同 build 都由同一個 `it.on` 出；probe 掃晒 3 組 18 粒掣，`active` / `selected` ⇔ `aria-pressed="true"`，操作後、切語言後、重開畫面後都一致 |
+| 語言切換 | ✅ | `SCREEN_RERENDER.screenPlanGoal` → `renderPlanGoal` → update 路徑改 `textContent`（chip label、程度卡 `.mode-title` / `.plan-level-sub`）；probe：zh-HK `2 星期…一個半月`、`日一二…六`、`一片空白`，返 en `…1.5 months`；按鈕 node 冇換（同一個 element） |
+| 前置值 / 重開 | ✅ | `openPlanGoal` 重設 draft → 同一套 update 路徑；probe 重開 pressed = `21` / `0` / `none`。PR4「改目標」預填 draft 之後行同一條路，唔使改 |
+| 結構唔同先重建 | ✅ | `planSyncGroup` 用數量 + 逐粒 `data-arg` 比較；第一次（空）或者 preset list 變咗先 `innerHTML`，否則原位更新 |
+| 刪 focus helper 後 S-109 | ✅ 仍然成立 | 按鈕唔再被換，focus 自然留低；probe：preset Enter → `14`、休息日 Space → `3`、程度卡 Enter → `exam`、mouse click 休息日 → focus 喺同一粒（同一個 node） |
+| CUI-0019 | ✅ | focus date field → 撳「1.5 months」chip：draft = `2026-11-19`、focus 喺 chip `42`（focusout commit 冇變就唔 re-render，就算有變都只係原位更新，唔會換走被撳嘅掣） |
+| `planCommitExamDate` | ✅ | 冇變唔 render，但照樣寫返 field（無效 / 早過 min 嘅值會彈返）；> max clamp 照舊 |
+| CUI-0020 | ✅ | plural object 兩個 form 都有 `{n}`；zh-HK 保持單一字串（plan 規定 plural 只寫 `other`，`i18n-test` parity 檢查 form 嘅 param） |
+| CUI-0021 | ✅ | `planShellReady()` 加喺 `planVisible()`，主頁卡、`openPlanGoal`、`SCREEN_RERENDER` 入口一齊受保護；ⓘ 行本身有 `#infoPlanRow` guard |
+| O-3 | ✅ | `min-height: 44px` 只喺 `.nav-btn.plan-block`；尺寸屬 HANDOFF v0.72 唔計 token 嘅類別 |
+| 函數長度 / inline style | ✅ | 新 function 最長 `renderPlanLevels` 9 行、`planSyncGroup` 6 行；`index.html` 冇改；冇新 `style=` / `.style.` |
+| Probe page error | ✅ | 0 |
+
+## 評分（Round 3）
+
+| 維度 | 得分 | 滿分 |
+|------|------|------|
+| 正確性 | 25 | 25 |
+| 安全性 | 20 | 20 |
+| 可維護性 | 20 | 20 |
+| 測試覆蓋 | 15 | 15 |
+| 性能 | 10 | 10 |
+| 代碼風格 | 10 | 10 |
+| **總分** | **100** | **100** |
+
+**結果：✅ pass**
+
+## Handoff receipt（Round 3）
+
+```handoff-receipt
+protocol: 1
+status: pass
+score: 100/100
+hard_gates:
+  lint: n/a
+  type_check: n/a
+  tests: n/a
+  coverage: n/a
+next_action: invoke_qa
+next_agent: quality-assurance
+branch: "claude/charming-hopper-48ypzp"
+context: "PR3 Round 3 @0042e39 code review only (QA re-running browser tests; reviewer did not run run-all or touch tests/*.png): in-place sync keeps class/aria-pressed consistent across actions, language switch and reopen; S-109 still holds without the helper; CUI-0019/0020/0021 and O-3 verified by probe on an archive copy; no new findings"
+```
