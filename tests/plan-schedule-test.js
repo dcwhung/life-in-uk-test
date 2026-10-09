@@ -123,15 +123,23 @@ async function checkOverview(pg) {
   assert(await pg.$$eval('#planOrder b', els => els.every(e => e.closest('[lang="en"]'))), 'chapter names are English: lang="en"');
 }
 
-// v1.0.2: every chapter bar track has the same length and leaves a clear gap before its count
-const ORDER_BAR_GAP_MIN_PX = 8;
+// v1.0.2: every chapter bar track has the same length and leaves a clear gap before its count; the user's choice:
+// 150px, 120px at ≤ 374px, 96px at ≤ 339px, so the count is never pushed past the card edge
+const ORDER_BAR_GAP_MIN_PX = 12;
+const ORDER_BAR_STEPS = [[375, 150], [340, 120], [0, 96]]; // [from viewport width, bar px]
 async function checkOrderBars(pg, where) {
+  const vw = await pg.evaluate(() => document.documentElement.clientWidth);
+  const want = ORDER_BAR_STEPS.find(([from]) => vw >= from)[1];
   const r = await pg.$$eval('#planOrder .plan-chw', els => els.map(e => {
-    const bar = e.querySelector('.plan-chw-bar').getBoundingClientRect(), c = e.querySelector('.plan-chw-c').getBoundingClientRect();
-    return { w: Math.round(bar.width), gap: Math.round(c.left - bar.right), fit: e.querySelector('.plan-chw-c').scrollWidth <= Math.ceil(c.width) };
+    const bar = e.querySelector('.plan-chw-bar').getBoundingClientRect(), c = e.querySelector('.plan-chw-c');
+    const range = document.createRange();
+    range.selectNodeContents(c);
+    const rects = [...range.getClientRects()], row = e.getBoundingClientRect();
+    const left = Math.min(...rects.map(q => q.left)), right = Math.max(...rects.map(q => q.right));
+    return { w: Math.round(bar.width), gap: Math.round(left - bar.right), over: Math.round(right - row.right), fit: c.scrollWidth <= Math.ceil(c.getBoundingClientRect().width) };
   }));
-  assert(r.every(x => x.w === r[0].w && x.w > 0), `${where}: study order bar tracks all the same length: ` + JSON.stringify(r));
-  assert(r.every(x => x.gap >= ORDER_BAR_GAP_MIN_PX && x.fit), `${where}: ≥ ${ORDER_BAR_GAP_MIN_PX}px between bar and count, count not clipped: ` + JSON.stringify(r));
+  assert(r.every(x => x.w === want), `${where}: study order bar tracks all ${want}px: ` + JSON.stringify(r));
+  assert(r.every(x => x.gap >= ORDER_BAR_GAP_MIN_PX && x.over <= 0 && x.fit), `${where}: ≥ ${ORDER_BAR_GAP_MIN_PX}px between bar and count, count inside the card: ` + JSON.stringify(r));
 }
 
 async function checkDayList(pg) {
