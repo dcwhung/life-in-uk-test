@@ -105,8 +105,9 @@
 .plan-ord-n { width: 26px; height: 26px; border-radius: var(--radius-circle); background: var(--navy); color: var(--text-inverse); display: grid; place-items: center; font-size: var(--fs-sm); font-weight: 800; }
 .plan-ord-body { display: grid; gap: var(--space-2); min-width: 0; }
 /* v1.0.2: the bar track has one fixed length on every row, with clear space before the count (150px; narrower
-   screens step down below so "91 facts · 161 Qs" still fits) */
-.plan-chw { --plan-chw-bar-w: 150px; display: grid; grid-template-columns: minmax(0, 1fr) var(--plan-chw-bar-w) auto; column-gap: var(--space-6); row-gap: var(--space-2); align-items: center; font-size: var(--fs-sm); }
+   screens step down below so "91 facts · 161 Qs" still fits). Wide layout: the count column has one fixed width
+   (--plan-chw-count-w, the widest count "91 facts · 161 Qs" is ~99px at --fs-sm), so every bar starts at the same x */
+.plan-chw { --plan-chw-bar-w: 150px; --plan-chw-count-w: 112px; display: grid; grid-template-columns: minmax(0, 1fr) var(--plan-chw-bar-w) var(--plan-chw-count-w); column-gap: var(--space-6); row-gap: var(--space-2); align-items: center; font-size: var(--fs-sm); }
 .plan-chw-bar { height: 8px; background: var(--border); border-radius: var(--radius-pill); overflow: hidden; }
 .plan-chw-bar i { display: block; height: 100%; background: var(--navy-light); border-radius: var(--radius-pill); }
 .plan-chw-c { text-align: right; color: var(--text-muted); white-space: nowrap; }

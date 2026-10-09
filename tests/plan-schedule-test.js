@@ -26,7 +26,7 @@ const TODAY = '2026-10-08'; // a Thursday
 const NOW = new Date(TODAY + 'T09:00:00');
 const START = '2026-09-28'; // the seeded plan began 10 days ago: today is Day 11
 const GOAL = { examDate: '2026-10-29', dailyMins: 120, restDays: [0], level: 'none' };
-const WIDTHS = [320, 360, 375, 390, 400];
+const WIDTHS = [320, 360, 375, 390, 400, 600]; // 600: the wide (> 480px) study order layout
 const HIT_MIN_PX = 44;
 
 const activeScreen = pg => pg.evaluate(() => document.querySelector('.screen.active').id);
@@ -136,9 +136,10 @@ async function checkOrderBars(pg, where) {
     range.selectNodeContents(c);
     const rects = [...range.getClientRects()], row = e.getBoundingClientRect();
     const left = Math.min(...rects.map(q => q.left)), right = Math.max(...rects.map(q => q.right));
-    return { w: Math.round(bar.width), gap: Math.round(left - bar.right), over: Math.round(right - row.right), fit: c.scrollWidth <= Math.ceil(c.getBoundingClientRect().width) };
+    return { x: Math.round(bar.left), w: Math.round(bar.width), gap: Math.round(left - bar.right), over: Math.round(right - row.right), fit: c.scrollWidth <= Math.ceil(c.getBoundingClientRect().width) };
   }));
   assert(r.every(x => x.w === want), `${where}: study order bar tracks all ${want}px: ` + JSON.stringify(r));
+  assert(r.every(x => x.x === r[0].x), `${where}: every study order bar starts at the same x: ` + JSON.stringify(r.map(x => x.x)));
   assert(r.every(x => x.gap >= ORDER_BAR_GAP_MIN_PX && x.over <= 0 && x.fit), `${where}: ≥ ${ORDER_BAR_GAP_MIN_PX}px between bar and count, count inside the card: ` + JSON.stringify(r));
 }
 
