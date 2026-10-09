@@ -171,3 +171,65 @@ blockers:
   - "W-044 startPlanMock uses dayLog.mock.length > slot; failed attempts of earlier slots make slot 1 skip its assigned exam"
   - "W-043 planRunRestoreFocus selector-list fallback picks ← Prev (document order) when Next becomes the last fact's button"
 ```
+
+---
+
+## Round 2（2026-10-09，HEAD 5b70a09）
+
+- 範圍：1f5c087（merge origin/main v1.0.4，只有 `run-all.sh` 衝突）、f1ba8d6 W-044、4b32102 W-043、a911c18 S-131、5b70a09 S-132。只做 code review，冇跑 run-all，冇寫 `tests/*.png`（QA 同時跑 browser test）。
+
+### Merge 檢查
+- `git diff origin/main HEAD --stat` 得 20 個 file，全部係 PR6b 自己嘅 file。v1.0.4 改過嘅 `planDay.js`（😴 / 月曆 selector）、`planSchedule.js`（進度表 fold）同 W-040 相關 code，同 origin/main 逐字一樣，冇被蓋走。
+- `run-all.sh` 衝突已解決：保留 main 嘅 `plan-fold-test`，再加 `plan-run2-test`。
+- `plan.css` 對 main 嘅 diff 只係 PR6b 新加嘅 12 行。
+
+### 修正核對
+
+| ID | 結論 | 備注 |
+|---|---|---|
+| W-044 | ✅ 已修 | `planMockRetake(dayLog, slot)` = `passes === slot && 最後一次 attempt 唔合格`，同 Round 1 方案 A 一樣。逐個 case 推過：slot 0 冇 attempt → 開自己份卷；`[F]` / `[F,F]`（多次唔合格）→ Random；slot 1 `[P]` / `[F,P]` → 開自己份卷；`[F,P,F]` → Random；先開 slot 1 `[F]` → 開自己份卷。plan-test 有 7 條 table case，plan-run2-test 有 UI case |
+| W-043 | ✅ 已修 | 分兩步 query，先 `:last-child` 再 fallback；plan-run2-test 用鍵盤由倒數第二條撳 Enter，焦點落喺「Practise these n →」|
+| S-131 | ✅ 已修 | `recordPlanExam` 將 `recordPlanMock` 回傳嘅日子交俾 `planNoteMockRecorded`。state 重建冇漏：每次 `planStartMockExam` 會將 `recorded` 重設做 null（Retake / Retry / 由框開都經呢度）；語言切換時 `renderResults` 讀返同一個 `planMockRun.recorded`；普通 Exam 交卷時就算有殘留嘅 `planMockRun` 被寫 `recorded`，因為 `isPlanMock()` = false，結果行仍然 hidden，冇影響。`planResultRowHtml` 只會喺 `isPlanMock()`（`planMockRun` 非 null）時 call，冇 null deref。新 key `plan.run.mockNotCounted` en / zh-HK 齊，zh-HK 係書面語（「過了午夜才交卷，這次不計入當日計劃。」）|
+| S-132 | ✅ 已修 | 兩條 rule 合併咗 |
+
+### 新發現
+
+#### S-133 · 已合格之後撳「再試」，會影響同日 slot 1
+
+- 位置：`js/screens/result.js` `retryExam` → `planRetryMock`；`js/domain/planProgress.js` `planMockRetake` / `planMockProgress`
+- 描述：slot 0 合格之後，結果頁通用嘅「Retry」掣仍然會開一份計劃 Random Exam，而且會記錄落當日 log。
+  - 呢次唔合格（`[P,F]`）：開 slot 1 時 `planMockRetake` = true，slot 1 開 Random Exam，佢自己份卷又冇考到（同 W-044 一樣嘅症狀，只係由自願再考觸發）。
+  - 呢次合格（`[P,P]`）：`passes 2 > 1`，slot 1 未考過已經當完成。
+- 影響：要用戶自己喺已合格之後再考先會遇到，頻率低。
+- 方案 A：已合格（當日 passes > 呢個 slot）時，`retryExam` 行普通重考（`startExam(state.examNum, EXAM_MODE)` 而且唔帶 `planDay`），唔記入計劃。
+- 方案 B：接受「多一次合格 = 多完成一個 slot」嘅語意，交 PM 喺 G10 / G11 寫低。
+- 推薦：A，或者交 PM 決定。唔阻 merge。
+
+### Round 2 評分
+
+| 維度 | 得分 | 滿分 | 備注 |
+|------|------|------|------|
+| 正確性 | 24 | 25 | S-133 |
+| 安全性 | 20 | 20 | |
+| 可維護性 | 20 | 20 | |
+| 測試覆蓋 | 15 | 15 | 每個修正都有對應 test |
+| 性能 | 10 | 10 | |
+| 代碼風格 | 10 | 10 | |
+| **總分** | **99** | **100** | |
+
+**結果：pass**（0 Critical、0 Warning；hard gates 嘅 test 結果以 QA 同時跑嘅 browser test 為準）
+
+```handoff-receipt
+protocol: 1
+status: pass
+score: 99/100
+hard_gates:
+  lint: n/a
+  type_check: n/a
+  tests: n/a
+  coverage: n/a
+next_action: merge_develop
+next_agent: quality-assurance
+branch: "claude/charming-hopper-48ypzp"
+context: "PR6b Round 2 code-only review 99 pass: W-044/W-043/S-131/S-132 fixed with tests; v1.0.4 merge intact (only PR6b files differ from origin/main); new S-133 (voluntary Retry after a pass feeds slot 1) optional/PM; tests not run here, QA browser run is the gate"
+```
