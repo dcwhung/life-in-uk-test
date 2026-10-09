@@ -232,6 +232,17 @@ async function checkWrongFacts(pg) {
   const anchor = task.anchor[task.facts[0]];
   const want = anchor.split('.').map(Number);
   assert(panel.current === `E${want[0]}·Q${want[1] + 1}` && panel.core && panel.legend && panel.items > 0, `current node = the wrong answer (${panel.current}), core fact, legend, list`);
+  // CUI-0025: every fact's panel lists all its questions, the wrong one first ("· You got this wrong"); the count is all of them
+  for (let k = 0; k < task.facts.length; k++) {
+    const list = await pg.evaluate(() => ({ count: document.querySelector('#planRunBody .sqm-count').textContent,
+      ids: [...document.querySelectorAll('#planRunBody .sqm-item .sqm-id')].map(e => e.textContent) }));
+    const f = await pg.evaluate(id => ({ src: STUDY.find(x => x.id === id).src.length }), task.facts[k]);
+    const [e, q] = task.anchor[task.facts[k]].split('.').map(Number);
+    assert(list.count === String(f.src) && list.ids.length === f.src && list.ids[0] === `Exam ${e} · Q${q + 1} · You got this wrong`,
+      `CUI-0025 fact ${k + 1}: ${f.src} questions listed, the wrong one first, count ${list.count} (no "+")`);
+    if (k < task.facts.length - 1) await tap(pg, '#planRunBody .plan-run-nav [data-arg="1"]');
+  }
+  for (let k = 1; k < task.facts.length; k++) await tap(pg, '#planRunBody .plan-run-nav [data-arg="-1"]');
   const cta = await pg.evaluate(() => { const b = document.querySelector('#planRunBody .sqm-cta button'); return [b.dataset.action, b.dataset.arg, b.textContent]; });
   const n0 = await pg.evaluate(id => planFactQids(planFactById(id)).length, task.facts[0]);
   assert(cta[0] === 'planPractiseFact' && Number(cta[1]) === task.facts[0], 'CTA practises the fact for the plan (not a Similar session)');

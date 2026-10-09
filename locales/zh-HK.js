@@ -420,6 +420,7 @@ LOCALES['zh-HK'] = {
       mockFailNote: '未合格（合格需 {pass} / {n} 分），可即日再考隨機試卷。',
       mockRetake: '再考{exam}',
       mockNotCounted: '過了午夜才交卷，這次不計入當日計劃。',
+      youGotWrong: '你答錯了',
       prevFact: '← 上一條',
       nextFact: '下一條 →',
     },
