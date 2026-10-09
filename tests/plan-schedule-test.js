@@ -14,7 +14,7 @@ const path = require('path');
 // - Reset: app modal (Confirm), plan + log deleted, practice records + switch kept, toast, Home create card;
 //   a corrupt log is cleared the same way (S-110 / O-1)
 // - S-112: Cancel / Confirm / Esc on the switch-off modal keep the ⓘ popover open with focus on the switch
-// - 44px tap areas, 360 / 375 / 390 / 400px en + zh-HK without horizontal scroll, [hidden] never displayed
+// - 44px tap areas, 320 / 360 / 375 / 390 / 400px en + zh-HK without horizontal scroll, [hidden] never displayed
 // - v1.0.2: equal phase segments (name / days on two lines), equal study order bars with a gap before the count,
 //   task lines "Ch n" + a remarks line of full chapter names, the pill under the date box ("Today 100%" fits)
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
@@ -26,7 +26,7 @@ const TODAY = '2026-10-08'; // a Thursday
 const NOW = new Date(TODAY + 'T09:00:00');
 const START = '2026-09-28'; // the seeded plan began 10 days ago: today is Day 11
 const GOAL = { examDate: '2026-10-29', dailyMins: 120, restDays: [0], level: 'none' };
-const WIDTHS = [360, 375, 390, 400];
+const WIDTHS = [320, 360, 375, 390, 400];
 const HIT_MIN_PX = 44;
 
 const activeScreen = pg => pg.evaluate(() => document.querySelector('.screen.active').id);

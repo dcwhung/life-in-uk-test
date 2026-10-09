@@ -59,7 +59,7 @@ function planPhaseDays(plan) {
   return out;
 }
 function planShownPhases(phases) { return PLAN_SHOWN_PHASES.filter(k => phases[k].length); }
-// v1.0.2: equal segments (a short phase still reads in full), the name over its day count
+// v1.0.2: three equal segments, the name over its day count; a name too long for its segment wraps (W-037, plan.css)
 function renderPlanPhaseBar(phases) {
   byId('planPhaseBar').innerHTML = planShownPhases(phases).map(k => {
     const nameKey = PLAN_PHASE_LABEL_KEYS[k];

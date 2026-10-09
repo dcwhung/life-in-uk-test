@@ -83,6 +83,8 @@
 .plan-phase-bar > div { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1 1 0; min-width: 0; padding: var(--space-3) var(--space-2); text-align: center; }
 .plan-phase-bar span { max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .plan-ph-days { font-weight: 600; }
+/* W-037: a name too long for its third (en "Read + practise" at 320px) wraps at a word instead of being clipped */
+.plan-phase-bar .plan-ph-name { white-space: normal; overflow-wrap: anywhere; }
 .plan-bg-learn { background: var(--plan-ph-learn); }
 .plan-bg-drill { background: var(--plan-ph-drill); }
 .plan-bg-mock { background: var(--plan-ph-mock); color: var(--text); }
