@@ -523,12 +523,33 @@ async function checkPracticeHintIn(pg, lang, tag) {
   assert(JSON.stringify(hint.items) === JSON.stringify(PRACTICE_HINT_ITEMS[lang]), `${tag}: 4 points, text and order exact: ` + JSON.stringify(hint.items));
   assert(hint.items.length === 4 && hint.items.every(s => !POINT_END_STOP.test(s)), `${tag}: no point ends with 。 or .`);
   assert(JSON.stringify(hint.bold) === JSON.stringify(PRACTICE_HINT_BOLD[lang]), `${tag}: both bold parts, numbers filled in: ` + JSON.stringify(hint.bold));
-  const btn = await pg.evaluate(() => {
-    const row = byId('practiceReset').getBoundingClientRect(), b = byId('practiceReset').querySelector('.reset-btn').getBoundingClientRect();
-    const h = byId('practiceHint').getBoundingClientRect();
-    return { rightGap: Math.round(row.right - b.right), rightOfHint: b.left >= h.right - 1 };
+  await checkResetBelow(pg, '#practiceReset', tag);
+}
+// v1.0.3 (user): a reset box shows its hint, then its button on its own row across the box's full content width
+const RESET_TOLERANCE_PX = 1;
+async function checkResetBelow(pg, sel, tag) {
+  const r = await pg.$eval(sel, row => {
+    const cs = getComputedStyle(row), b = row.querySelector('.reset-btn').getBoundingClientRect(), h = row.querySelector('.reset-hint').getBoundingClientRect();
+    const content = row.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    return { below: b.top >= h.bottom - 0.5, w: Math.round(b.width), content: Math.round(content), shown: cs.display !== 'none' };
   });
-  assert(btn.rightOfHint, `${tag}: reset button sits right of the list: ` + JSON.stringify(btn));
+  assert(r.shown && r.below && Math.abs(r.w - r.content) <= RESET_TOLERANCE_PX, `${tag}: ${sel} button on its own full-width row under the hint: ` + JSON.stringify(r));
+}
+const RESET_WIDTHS = [320, 390, 600];
+async function checkResetRows(pg) {
+  for (const lang of [EN, ZH_HK]) {
+    for (const w of RESET_WIDTHS) {
+      await pg.setViewportSize({ width: w, height: WIDE.height });
+      await pg.evaluate(l => { setLang(l); leaveToHome(); startMode('practice'); }, lang);
+      await checkResetBelow(pg, '#practiceReset', `${lang} ${w}px Practice`);
+      assert(await pg.$eval('#examReset', e => getComputedStyle(e).display === 'none'), `${lang} ${w}px: the exam reset box stays hidden in Practice`);
+      await pg.evaluate(() => startMode('exam'));
+      await checkResetBelow(pg, '#examReset', `${lang} ${w}px Exam`);
+      assert(await pg.$eval('#practiceReset', e => getComputedStyle(e).display === 'none'), `${lang} ${w}px: the practice reset box stays hidden in Exam`);
+    }
+  }
+  await pg.setViewportSize(WIDE);
+  await pg.evaluate(l => { setLang(l); leaveToHome(); }, EN);
 }
 async function checkPracticeHint(pg) {
   await pg.evaluate(lang => { setLang(lang); leaveToHome(); startMode('practice'); }, EN);
@@ -572,7 +593,7 @@ const hasCjkFont = pg => pg.evaluate(({ px, chars, baseline }) => {
 const CHECKS = [
   checkPill, checkHomeSwitch, checkHomePractice, checkQuizPractice, checkAnswerFallback, checkOptionYueLang,
   checkSideSession, checkQuizExam, checkExamTimer, checkModal, checkResult, checkFlagged, checkStudy, checkPlanGoal, checkPlanSchedule, checkDoubleTap,
-  checkMyReviewTiles, checkExamDesc, checkPracticeHint, checkLeaveCancel,
+  checkMyReviewTiles, checkExamDesc, checkPracticeHint, checkResetRows, checkLeaveCancel,
 ];
 
 async function main() {

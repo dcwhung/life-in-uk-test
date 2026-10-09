@@ -451,6 +451,12 @@ async function checkScheduleFit(pg, where) {
   assert(r.fits, `${where}: "${r.full}" pill fits the left column: ` + JSON.stringify(r));
   assert(r.zero.lines === 1 && r.zero.font === r.zero.xs && r.zero.col === DAY_SIDE_PX, `${where}: S-117 "Today 0%" on one line at --fs-xs in a ${DAY_SIDE_PX}px column: ` + JSON.stringify(r.zero));
   await checkOrderBars(pg, where);
+  // v1.0.3 (user): "↺ Reset plan" on its own row under the hint, across the box's full content width
+  const reset = await pg.$eval('#screenPlanSchedule .plan-reset', row => {
+    const cs = getComputedStyle(row), b = row.querySelector('.reset-btn').getBoundingClientRect(), h = row.querySelector('.reset-hint').getBoundingClientRect();
+    return { below: b.top >= h.bottom - 0.5, w: Math.round(b.width), content: Math.round(row.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)) };
+  });
+  assert(reset.below && Math.abs(reset.w - reset.content) <= ORDER_TOLERANCE_PX, `${where}: "↺ Reset plan" on its own full-width row under the hint: ` + JSON.stringify(reset));
 }
 async function checkWidths(pg) {
   await fresh(pg);

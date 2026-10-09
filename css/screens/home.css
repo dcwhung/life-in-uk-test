@@ -17,7 +17,7 @@
 .exam-select-section.hidden { display: none; }
 .reset-row {
   display: none;
-  align-items: center; gap: var(--space-6); flex-wrap: wrap;
+  gap: var(--space-5);
   background: var(--card);
   border: 1.5px dashed var(--border);
   border-radius: var(--radius-md);
@@ -25,12 +25,11 @@
   margin-bottom: var(--space-12);
   font-size: var(--fs-sm); color: var(--text-muted); line-height: 1.5;
 }
-.reset-row.show { display: flex; }
-.reset-hint { flex: 1; min-width: 180px; }
+/* v1.0.3 (user): the hint, then the button on its own row across the box's full width (grid items stretch) */
+.reset-row.show { display: grid; }
+.reset-hint { min-width: 0; }
 .reset-hint b { color: var(--navy); }
-/* the Practice hint is a short bullet list (home.practiceHintHtml): it may shrink below the 180px wrap
-   point so the reset button stays on its right even at 320px; the list sits tight inside the dashed row */
-.reset-hint-list { min-width: 0; }
+/* the Practice hint is a short bullet list (home.practiceHintHtml) that sits tight inside the dashed row */
 .reset-hint-list ul { margin: 0; padding-left: 1.2em; }
 .reset-btn {
   background: var(--card);
