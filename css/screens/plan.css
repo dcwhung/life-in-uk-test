@@ -302,6 +302,7 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
   .plan-today-head { grid-template-columns: 1fr; justify-items: center; text-align: center; }
   .plan-today-info { justify-items: center; }
 }
-/* W-036: at 320px "1.5 months" needs the chip's full width to stay on one row with the other presets */
-@media (max-width: 340px) { .plan-presets .chip { padding-inline: 0; font-size: var(--fs-xs); } }
+/* W-036 / CUI-0023: below 360px "1.5 months" needs the chip's full width (no side padding, --fs-xs) to stay on one
+   row with the other presets; at 341–355px en it overflowed by 1–4px when this stopped at 340px */
+@media (max-width: 359px) { .plan-presets .chip { padding-inline: 0; font-size: var(--fs-xs); } }
 @media (prefers-reduced-motion: reduce) { .plan-day-scroll { scroll-behavior: auto; } .plan-ring-prog { transition: none; } }
