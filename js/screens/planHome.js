@@ -68,7 +68,7 @@ function isOnPlanScreen() {
 function togglePlanFeature() {
   if (!isStudyPlanEnabled()) { setPlanFeature(true); return; }
   showConfirm({ title: t('modal.planOffTitle'), message: t('modal.planOffMessage'), okLabel: t('modal.planOffOk'),
-    cancelLabel: t('modal.planOffCancel'), onOk: () => { setPlanFeature(false); if (isOnPlanScreen()) leaveToHome(); }, focusCancel: true });
+    cancelLabel: t('modal.planOffCancel'), onOk: () => { setPlanFeature(false); if (isOnPlanScreen()) leaveToHome(); }, focusCancel: true, danger: true });
 }
 function setPlanFeature(on) {
   setStudyPlanEnabled(on);

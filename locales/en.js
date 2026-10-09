@@ -17,7 +17,6 @@ LOCALES.en = {
     name: 'Life in the UK Test',
     sub: 'Exam Practice',
     about: 'About this app',
-    infoTitle: 'Exam 1–{n} Practice',
     infoIntro: '{n} official-style questions from lifeintheuktestweb.co.uk, with Cantonese translations and notes.',
     infoExams: { one: '📋 {n} Exam', other: '📋 {n} Exams' },
     infoChapters: { one: '📚 {n} Chapter', other: '📚 {n} Chapters' },

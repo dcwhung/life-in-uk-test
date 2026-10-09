@@ -1,11 +1,14 @@
 // ════════════════════════════════════════
 // MODAL — in-app confirm (no browser alert / confirm boxes during an exam)
 // ════════════════════════════════════════
+const MODAL_DANGER_CLASS = 'danger';
 let confirmOnOk = null;
 let confirmReturnFocus = null; // S-025: the element focused before the modal opened
 // focusCancel: destructive confirms (reset, leave the exam) start on the safe button so a stray Enter
 // or Space does not wipe anything; Submit keeps the default focus on OK
-function showConfirm({ title, message, okLabel, cancelLabel, onOk, focusCancel = false }) {
+// danger: a destructive confirm (reset / turn off) draws in red (css/components/modal.css .modal-card.danger)
+function showConfirm({ title, message, okLabel, cancelLabel, onOk, focusCancel = false, danger = false }) {
+  byId('confirmModal').querySelector('.modal-card').classList.toggle(MODAL_DANGER_CLASS, danger);
   byId('confirmTitle').textContent = title;
   byId('confirmMsg').textContent = message;
   byId('confirmOk').textContent = okLabel;

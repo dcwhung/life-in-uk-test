@@ -15,7 +15,6 @@ LOCALES['zh-HK'] = {
     name: 'Life in the UK Test',
     sub: '應試練習',
     about: '關於本程式',
-    infoTitle: 'Exam 1–{n} 練習',
     infoIntro: '收錄 {n} 條 lifeintheuktestweb.co.uk 官方風格題目，附廣東話翻譯及備注。',
     infoExams: '📋 {n} 份試卷',
     infoChapters: '📚 {n} 個章節',

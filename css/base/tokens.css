@@ -11,6 +11,7 @@
   --green-light: #52b788;
   --red: #922b21;
   --red-light: #e74c3c;
+  --red-dark: #7a241b; /* hover on a --red fill (red confirm button) */
   --purple: #6b3fa0;
   --purple-light: #9b6dca;
 
