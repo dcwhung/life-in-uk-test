@@ -356,9 +356,8 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
 .plan-run-body .sqm-cta button { min-height: 44px; } /* the Similar panel's own CTA is 42px tall (unchanged there) */
 .plan-note.warn { color: var(--red); background: var(--danger-bg); }
 .plan-result-row { display: grid; gap: var(--space-5); margin-top: var(--space-8); }
-.plan-result-row .nav-row { margin: 0; }
+.plan-result-row .nav-row { margin: 0; flex-wrap: wrap; }
 .plan-result-row .nav-btn { flex: 1 1 100%; min-height: 44px; } /* stacked: "Back to the task list" wraps beside a long retake label at 360px */
-.plan-result-row .nav-row { flex-wrap: wrap; }
 
 @media (max-width: 380px) {
   .plan-day-header { gap: var(--space-2); }
