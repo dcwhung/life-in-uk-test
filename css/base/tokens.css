@@ -104,6 +104,7 @@
   --plan-exam-bg: #f2a93b;
   --plan-exam-line: rgba(255,214,120,0.75);
   --plan-past-row: #f6f7fa;
+  --plan-past-text: var(--text-muted); /* W-034: 5.1:1 on the past row, 4.9:1 on its --bg date box */
 
   /* shadows and overlays */
   --shadow: 0 4px 24px rgba(26,39,68,0.10);

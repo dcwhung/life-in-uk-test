@@ -135,13 +135,23 @@ async function checkDayList(pg) {
   assert(r.exam.cls.includes('exam') && r.exam.pat && r.exam.text.includes('🎯') && r.exam.text.includes('29/10 Thu') && r.exam.text.includes('Exam day'),
     'exam day row: lattice, 🎯, date + weekday: ' + r.exam.text);
   assert(r.interactive === 0, 'rows are not interactive yet (the day screen is PR5)');
+  // W-034: past days are dimmed by grey colours, not opacity: every text in them stays ≥ 4.5:1 (WCAG 1.4.3)
   const look = await pg.evaluate(() => {
     const rows = [...document.querySelectorAll('#planDayList .plan-day')];
-    const op = e => Number(getComputedStyle(e.querySelector('.plan-day-d')).opacity);
+    const rgb = c => c.match(/[\d.]+/g).map(Number);
+    const lum = c => { const v = rgb(c).slice(0, 3).map(x => x / 255).map(x => (x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4)); return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2]; };
+    const bgOf = e => { for (let n = e; n; n = n.parentElement) { const c = getComputedStyle(n).backgroundColor; if (rgb(c)[3] !== 0) return c; } return 'rgb(255, 255, 255)'; };
+    const opaque = e => { for (let n = e; n; n = n.parentElement) if (Number(getComputedStyle(n).opacity) < 1) return false; return true; };
+    const ratio = e => { const a = lum(getComputedStyle(e).color), b = lum(bgOf(e)); return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05); };
+    const texts = rows.filter(r => r.classList.contains('past'))
+      .flatMap(r => [...r.querySelectorAll('.plan-day-d, .plan-day-d small, .plan-pill, .plan-day-tasks span:not(.plan-day-ic)')]);
+    const bad = texts.filter(e => !opaque(e) || ratio(e) < 4.5).map(e => `${e.className || e.tagName} "${e.textContent.slice(0, 12)}" ${ratio(e).toFixed(2)} op${opaque(e) ? 1 : '<1'}`);
+    const dColor = i => getComputedStyle(rows[i].querySelector('.plan-day-d')).color;
     const exam = rows[rows.length - 1].querySelector('.plan-exam-pat');
-    return { past: op(rows[2]), today: op(rows[10]), future: op(rows[12]), examBg: getComputedStyle(exam).backgroundImage, scroll: getComputedStyle(byId('planDayList')).overflowY };
+    return { n: texts.length, bad, past: dColor(2), today: dColor(10), future: dColor(12), examBg: getComputedStyle(exam).backgroundImage, scroll: getComputedStyle(byId('planDayList')).overflowY };
   });
-  assert(look.past < 1 && look.today === 1 && look.future === 1, 'past days dimmed; today and later bright: ' + JSON.stringify(look));
+  assert(look.n > 20 && look.bad.length === 0, `W-034: past-day texts (${look.n}) have no opacity and ≥ 4.5:1 contrast: ` + look.bad.join(' | '));
+  assert(look.past !== look.today && look.today === look.future, 'past days dimmed (grey date box); today and later keep their phase colour: ' + JSON.stringify([look.past, look.today, look.future]));
   assert(look.examBg.includes('linear-gradient') && look.scroll === 'auto', 'exam day lattice; the list scrolls on its own');
 }
 

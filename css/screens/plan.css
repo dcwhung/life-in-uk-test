@@ -120,12 +120,13 @@
 .plan-day.exam .plan-day-tasks b { color: var(--navy); font-size: var(--fs-md); }
 .plan-day.today, .plan-day.past { margin-inline: calc(-1 * var(--space-4)); padding-inline: var(--space-4); }
 .plan-day.today { background: var(--selected-bg); border-radius: var(--radius-sm); }
-/* days already gone: lighter row, muted text, dimmed date box and pill; today and the days ahead stay bright */
+/* days already gone: grey row, grey text and a grey date box without its phase colour; today and the days ahead
+   stay bright. W-034: no opacity on text, so dates and completion stay ≥ 4.5:1 (only the decorative icon fades) */
 .plan-day.past { background: var(--plan-past-row); }
-.plan-day.past .plan-day-tasks { color: var(--text-muted); }
+.plan-day.past .plan-day-tasks { color: var(--plan-past-text); }
 .plan-day.past .plan-day-ic { opacity: 0.55; }
-.plan-day.past .plan-day-d { opacity: 0.4; }
-.plan-day.past .plan-pill { opacity: 0.6; }
+.plan-day.past .plan-day-d { background: var(--bg); color: var(--plan-past-text); }
+.plan-day.past .plan-day-d small { color: var(--plan-past-text); }
 .plan-day-tasks { display: grid; gap: 3px; font-size: var(--fs-sm); line-height: 1.45; min-width: 0; }
 .plan-day-t { display: flex; gap: var(--space-3); }
 .plan-exam-pat { background-color: var(--plan-exam-bg); background-image: linear-gradient(45deg, var(--plan-exam-line) 1px, transparent 1px), linear-gradient(-45deg, var(--plan-exam-line) 1px, transparent 1px); background-size: 8px 8px; }
