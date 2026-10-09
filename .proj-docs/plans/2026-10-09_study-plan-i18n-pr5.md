@@ -1,8 +1,9 @@
-# 溫習計劃 i18n key 對照（PR5 新增，90 個）
+# 溫習計劃 i18n key 對照（PR5 新增，91 個；S-116 加 `plan.home.endedMocks`）
 
 > 由 PR5 developer 整理，留俾 PR7（G35）中英對照用。PR3 / PR4 嘅 key 見各自 review / PR description。
 
-90
+| Key | zh-HK | en |
+|---|---|---|
 | `plan.home.pctLabel` | 今日完成度 | Today's progress |
 | `plan.home.nextHtml` | 下一步：<b>{task}</b>{more} | Next: <b>{task}</b>{more} |
 | `plan.home.nextCarryHtml` | 下一步（補做 {day}）：<b>{task}</b>{more} | Next (catch-up, {day}): <b>{task}</b>{more} |
@@ -16,7 +17,8 @@
 | `plan.home.notStarted` | 計劃由 {date} 開始 | The plan starts on {date} |
 | `plan.home.examDayText` | 🎯 今日考試，加油！ | 🎯 It's exam day today, good luck! |
 | `plan.home.endedTitle` | 計劃已完結 | Plan finished |
-| `plan.home.endedSummary` | 平均完成度 {avg}% · 知識點 {facts} / {factsTotal} 條 · 題目 {qs} / {qsTotal} 題 · 模擬考試達 {safe}/{n} 或以上 {mocks} 次 | Average {avg}% · {facts} / {factsTotal} facts · {qs} / {qsTotal} questions · {mocks} mocks at {safe}/{n} or more |
+| `plan.home.endedSummary` | 平均完成度 {avg}% · 知識點 {facts} / {factsTotal} 條 · 題目 {qs} / {qsTotal} 題 · {mocks} | Average {avg}% · {facts} / {factsTotal} facts · {qs} / {qsTotal} questions · {mocks} |
+| `plan.home.endedMocks`（S-116） | 模擬考試達 {safe}/{total} 或以上 {n} 次 | one: {n} mock at {safe}/{total} or more / other: {n} mocks at {safe}/{total} or more |
 | `plan.home.newPlan` | 建立新計劃 | New plan |
 | `plan.home.logBroken` | 無法讀取進度記錄，可在進度表按「↺ 重設計劃」清除。 | Your progress record can't be read. ↺ Reset plan on the schedule clears it. |
 | `plan.day.today` | 今日任務 | Today's tasks |

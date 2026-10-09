@@ -138,8 +138,9 @@ function planExamDayHtml() {
 // G16: after the exam: a summary, then a new plan / change goal; the schedule and calendar stay readable
 function planEndedHtml(plan, log, todayIso) {
   const k = planKpis(plan, log, todayIso);
+  const mocks = t('plan.home.endedMocks', { n: k.safeMocks, safe: PLAN_SAFE_SCORE, total: REAL_TEST_SIZE }); // S-116
   const summary = t('plan.home.endedSummary', { avg: k.avgPct, facts: k.factsDone, factsTotal: k.factsTotal,
-    qs: k.qidsDone, qsTotal: k.qidsTotal, mocks: k.safeMocks, safe: PLAN_SAFE_SCORE, n: REAL_TEST_SIZE });
+    qs: k.qidsDone, qsTotal: k.qidsTotal, mocks });
   return `<p class="plan-home-next">${summary}</p>` + planHomeActsHtml(planHomeBtn('openPlanGoal', t('plan.home.newPlan'), true),
     planHomeBtn('planEditGoal', t('plan.schedule.editGoal')), planHomeBtn('openPlanSchedule', t('plan.schedule.name')));
 }

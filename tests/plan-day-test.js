@@ -247,6 +247,10 @@ async function checkExamDayAndEnded(pg) {
   const ended = await text(pg, '#planCard');
   assert(ended.includes('Plan finished') && /Average \d+%/.test(ended) && ended.includes('/ 236 facts'), 'G16 ended: summary: ' + ended);
   assert(await visible(pg, '#planCard [data-action="openPlanGoal"]') && await visible(pg, '#planCard [data-action="planEditGoal"]'), 'ended: "New plan" + "Change goal"');
+  assert(ended.includes('0 mocks at 21/24 or more'), 'ended: 0 mocks (plural)');
+  await pg.evaluate(() => { const log = planLoadLog(); log.days['2026-10-22'] = { ok: {}, bad: {}, mock: [{ exam: 1, correct: 22, total: 24 }] }; writePlanLog(log); leaveToHome(); });
+  const one = await text(pg, '#planCard');
+  assert(one.includes('1 mock at 21/24 or more') && !one.includes('1 mocks'), 'S-116: one safe mock reads "1 mock": ' + one);
   for (const s of ['#planCard [data-action="openPlanGoal"]', '#planCard [data-action="planEditGoal"]', '#planCard [data-action="openPlanSchedule"]']) assert(await hitOk(pg, s), `${s}: ${HIT_MIN_PX}px`);
   await pg.click('#planCard [data-action="openPlanGoal"]');
   assert(await activeScreen(pg) === 'screenPlanGoal' && (await text(pg, '#planCreateBtn')).startsWith('Build'), '"New plan" opens the goal form for a new plan');

@@ -245,7 +245,9 @@ LOCALES.en = {
       notStarted: 'The plan starts on {date}',
       examDayText: "🎯 It's exam day today, good luck!",
       endedTitle: 'Plan finished',
-      endedSummary: 'Average {avg}% · {facts} / {factsTotal} facts · {qs} / {qsTotal} questions · {mocks} mocks at {safe}/{n} or more',
+      endedSummary: 'Average {avg}% · {facts} / {factsTotal} facts · {qs} / {qsTotal} questions · {mocks}',
+      // S-116: its own key, so the count picks one / other (t() reads params.n)
+      endedMocks: { one: '{n} mock at {safe}/{total} or more', other: '{n} mocks at {safe}/{total} or more' },
       newPlan: 'New plan',
       logBroken: "Your progress record can't be read. ↺ Reset plan on the schedule clears it.",
     },
