@@ -253,6 +253,12 @@ LOCALES.en = {
       // "Change goal" from the schedule: the same form, prefilled; the plan is re-planned from today (G7)
       editStep: 'Change goal',
       update: 'Update my plan →',
+      // G36: a changed goal may move the exam up to tomorrow and keep a single study day
+      editDateNote: 'When you change your goal, the exam date can be as soon as tomorrow.',
+      editMinStudyDays: {
+        one: "At least {n} study day is needed before the exam, so the plan can't be updated. Choose fewer rest days or a later exam date.",
+        other: "At least {n} study days are needed before the exam, so the plan can't be updated. Choose fewer rest days or a later exam date.",
+      },
     },
     // schedule screen (handoff §2.3; mockup step ②); Day n / Week n stay English (lang="en")
     schedule: {
@@ -314,7 +320,7 @@ LOCALES.en = {
       tight: '△ Just enough',
       short: '✕ Not enough',
       studyDays: 'Study days',
-      studyDaysSub: '{total} days, {rest} rest',
+      studyDaysSub: { one: '{n} day, {rest} rest', other: '{n} days, {rest} rest' }, // n: all days to the exam (G36: can be 1)
       avail: 'Available',
       availSub: 'daily limit × study days',
       need: 'Suggested',

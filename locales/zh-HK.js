@@ -243,6 +243,8 @@ LOCALES['zh-HK'] = {
       create: '建立進度表 →',
       editStep: '改目標',
       update: '更新進度表 →',
+      editDateNote: '改目標時，考試日期最早可選明天。',
+      editMinStudyDays: '考試前最少需要 {n} 個溫習日，未能更新進度表。請減少休息日或延後考試日期。',
     },
     schedule: {
       name: '進度表',
@@ -301,7 +303,7 @@ LOCALES['zh-HK'] = {
       tight: '△ 剛好',
       short: '✕ 不足',
       studyDays: '溫習日',
-      studyDaysSub: '共 {total} 日，休息 {rest} 日',
+      studyDaysSub: '共 {n} 日，休息 {rest} 日',
       avail: '可用時間',
       availSub: '每日上限 × 溫習日',
       need: '建議需要',
