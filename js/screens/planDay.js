@@ -235,10 +235,10 @@ function renderPlanCalendar(plan, log, iso, todayIso) {
   const { year, month } = planCalMonth;
   const at = planMonthIndex(months, `${year}-${pad2(month)}-01`), todayAt = planMonthIndex(months, todayIso);
   byId('planCalTitle').textContent = t('plan.calendar.month', { year, month: t(`data.months.${month}`) });
+  planShowMonthNav(months.length > 1); // S-128: before disabling: a focused button that gets disabled drops focus to <body>
   byId('planCalPrev').disabled = at === 0;
   byId('planCalNext').disabled = at === months.length - 1;
   byId('planCalToday').disabled = todayAt < 0 || at === todayAt;
-  planShowMonthNav(months.length > 1);
   const grid = planMonthGrid(plan, log, year, month, todayIso);
   const dow = Array.from({ length: PLAN_WEEK_DAYS }, (_, d) => `<span class="plan-dow">${t(`data.weekdays.${d}`)}</span>`);
   const lead = Array.from({ length: grid.lead }, () => '<span class="plan-cal-lead"></span>');

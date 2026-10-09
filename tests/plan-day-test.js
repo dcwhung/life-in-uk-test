@@ -395,9 +395,14 @@ async function checkSingleMonthCalendar(pg) {
   await openDay(pg);
   assert(await text(pg, '#planCalTitle') === 'October 2026' && !(await calNavShown(pg)), 'v1.0.4: plan 1–29 Oct: month title, no ‹ Today ›');
   await pg.click('#planCal [data-iso="2026-10-05"]');
-  assert(!(await calNavShown(pg)) && await pg.evaluate(() => document.activeElement.id) === 'planDayHeading', 'v1.0.4: still hidden after opening a day; focus on the heading');
+  assert(!(await calNavShown(pg)), 'v1.0.4: still hidden after opening a day');
   await pg.evaluate(() => { writeStudyPlan(buildPlan({ examDate: '2026-11-03', dailyMins: 120, restDays: [0], level: 'none' }, '2026-10-01')); renderPlanDay(); });
   assert(await calNavShown(pg), 'v1.0.4: the same screen re-rendered for a plan into November shows ‹ Today › again');
+  // S-128: focus on a month button that gets hidden (the plan shrinks to one month) moves to the day heading, not <body>
+  await pg.focus('#planCalNext');
+  await pg.evaluate(goal => { writeStudyPlan(buildPlan(goal, '2026-10-01')); renderPlanDay(); }, GOAL);
+  const focus = await pg.evaluate(() => document.activeElement.id || document.activeElement.tagName);
+  assert(!(await calNavShown(pg)) && focus === 'planDayHeading', 'S-128: hiding ‹ Today › hands the focus to the day heading: ' + focus);
 }
 
 async function checkKpis(pg) {
