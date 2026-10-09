@@ -1,12 +1,13 @@
 # .proj-docs index
 
-文件索引（同一日內按檔名倒序）。Review item ID：C / W / S 全局遞增，賦號前要 grep `.proj-docs/reviews/`。溫習計劃序列最新到 W-045、S-139（2026-10-09 plan PR7）；W-375 屬於另一個 session，唔好接住佢嘅號碼。
+文件索引（同一日內按檔名倒序）。Review item ID：C / W / S 全局遞增，賦號前要 grep `.proj-docs/reviews/`。溫習計劃序列最新到 W-046、S-144（2026-10-09 plan PR7b）；W-375 屬於另一個 session，唔好接住佢嘅號碼。
 
 ## Reviews
 
 - [2026-10-09_review_v104.md](reviews/2026-10-09_review_v104.md)
 - [2026-10-09_review_v103.md](reviews/2026-10-09_review_v103.md)
 - [2026-10-09_review_v102.md](reviews/2026-10-09_review_v102.md)
+- [2026-10-09_review_plan-pr7b.md](reviews/2026-10-09_review_plan-pr7b.md) — 溫習計劃 PR7b 相同文字題目合併 + 連勝同步（G40，v1.0.7；warn 89；W-046、S-140–S-144）
 - [2026-10-09_review_plan-pr7.md](reviews/2026-10-09_review_plan-pr7.md) — 溫習計劃 PR7 zh-HK / en 字眼（warn 89；W-045、S-134–S-139）
 - [2026-10-09_review_plan-pr6b.md](reviews/2026-10-09_review_plan-pr6b.md)
 - [2026-10-09_review_plan-pr6a.md](reviews/2026-10-09_review_plan-pr6a.md)
