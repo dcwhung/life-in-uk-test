@@ -335,16 +335,20 @@
         <p class="plan-muted" id="planSummary"></p>
       </div>
 
-      <div class="plan-card-box">
-        <h3 data-i18n="plan.schedule.phasesTitle"></h3>
-        <div class="plan-phase-bar" id="planPhaseBar" aria-hidden="true"></div>
+      <!-- v1.0.4: the phases / order cards fold (planSchedule.js planToggleFold); the whole title is the toggle -->
+      <div class="plan-card-box plan-fold">
+        <h3><button type="button" class="plan-fold-btn" id="planPhasesToggle" data-action="planToggleFold" data-arg="phases" aria-expanded="true" aria-controls="planStrategy"><span data-i18n="plan.schedule.phasesTitle"></span><span class="plan-fold-chev" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 6l4.5 4.5L12.5 6"></path></svg></span></button></h3>
+        <div class="plan-phase-bar" id="planPhaseBar" role="list" aria-hidden="true"></div>
         <div class="plan-strats" id="planStrategy"></div>
       </div>
 
-      <div class="plan-card-box">
-        <h3 data-i18n="plan.schedule.orderTitle"></h3>
-        <p class="plan-muted" data-i18n="plan.schedule.orderIntro"></p>
-        <div class="plan-order" id="planOrder"></div>
+      <div class="plan-card-box plan-fold">
+        <h3><button type="button" class="plan-fold-btn" id="planOrderToggle" data-action="planToggleFold" data-arg="order" aria-expanded="true" aria-controls="planOrderBody"><span data-i18n="plan.schedule.orderTitle"></span><span class="plan-fold-chev" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 6l4.5 4.5L12.5 6"></path></svg></span></button></h3>
+        <ol class="plan-ord-mini" id="planOrderMini" hidden></ol>
+        <div class="plan-fold-body" id="planOrderBody">
+          <p class="plan-muted" data-i18n="plan.schedule.orderIntro"></p>
+          <div class="plan-order" id="planOrder"></div>
+        </div>
       </div>
 
       <div class="plan-card-box">

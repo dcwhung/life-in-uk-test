@@ -113,6 +113,37 @@
 .plan-chw-bar i { display: block; height: 100%; background: var(--navy-light); border-radius: var(--radius-pill); }
 .plan-chw-c { text-align: right; color: var(--text-muted); white-space: nowrap; }
 .plan-ord-why { font-size: var(--fs-xs); color: var(--text-muted); line-height: 1.5; }
+/* v1.0.4: "Three phases" / "Study order" fold (planSchedule.js applyPlanFold; preview scratchpad collapse/mockup.html).
+   The whole title is the toggle; its tap area grows to 44px (and a little sideways) via ::before, as .plan-hit, so the
+   card keeps its rhythm. The chevron points down when collapsed and turns up when expanded. */
+.plan-fold-btn {
+  position: relative; display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-6);
+  width: 100%; padding: 0; border: 0; background: none; color: inherit; font: inherit;
+  text-align: left; text-wrap: balance; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.plan-fold-btn::before { content: ''; position: absolute; left: calc(-1 * var(--space-4)); right: calc(-1 * var(--space-4));
+  top: 50%; height: max(100% + var(--space-4), 44px); transform: translateY(-50%); }
+.plan-fold-btn:focus-visible { outline: 2px solid var(--navy-light); outline-offset: 4px; border-radius: var(--radius-xs); }
+.plan-fold-chev {
+  flex: none; display: grid; place-items: center; width: 28px; height: 28px; margin: calc(-1 * var(--space-2)) 0;
+  border-radius: var(--radius-circle); background: var(--bg); color: var(--text-muted);
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+.plan-fold-chev svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.plan-fold-btn:hover .plan-fold-chev { background: var(--border); }
+.plan-fold-btn[aria-expanded="true"] .plan-fold-chev { transform: rotate(180deg); }
+@media (prefers-reduced-motion: reduce) { .plan-fold-chev { transition: none; } }
+.plan-fold-body { display: grid; gap: var(--space-6); }
+/* collapsed phase bar: line 2 is the phase's Day range instead of its day count */
+.plan-phase-bar .plan-ph-range { display: none; font-weight: 600; }
+.plan-fold.collapsed .plan-phase-bar .plan-ph-days { display: none; }
+.plan-fold.collapsed .plan-phase-bar .plan-ph-range { display: block; }
+/* collapsed study order: numbered dots joined by a line (behind the dots), a short label under each */
+.plan-ord-mini { list-style: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding-top: var(--space-1); }
+.plan-ord-mini li { position: relative; display: grid; justify-items: center; gap: var(--space-3); min-width: 0; text-align: center; }
+.plan-ord-mini li + li::before { content: ''; position: absolute; z-index: 0; top: 10px; right: 50%; width: 100%; height: 2px; background: var(--plan-task-todo-border); }
+.plan-ord-mini .plan-ord-n { position: relative; z-index: 1; width: 22px; height: 22px; font-size: var(--fs-xs); box-shadow: 0 0 0 3px var(--card); }
+.plan-ord-mini-name { font-size: var(--fs-sm); font-weight: 700; white-space: nowrap; }
 .plan-legend { display: flex; gap: var(--space-2); align-items: center; font-size: var(--fs-2xs); color: var(--text-muted); flex-wrap: wrap; }
 .plan-legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
 .plan-legend span + i { margin-left: var(--space-2); }

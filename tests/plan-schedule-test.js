@@ -550,7 +550,9 @@ async function checkWidths(pg) {
     await pg.evaluate(l => setLang(l), lang);
     for (const w of WIDTHS) {
       await pg.setViewportSize({ width: w, height: 800 });
-      for (const open of [() => leaveToHome(), () => openPlanSchedule()]) {
+      // v1.0.4: a reopened schedule starts its phases / order cards folded; expanded here, as their full layout is
+      // what this checks (the folded one: plan-fold-test)
+      for (const open of [() => leaveToHome(), () => { openPlanSchedule(); document.querySelectorAll('.plan-fold-btn[aria-expanded="false"]').forEach(b => b.click()); }]) {
         await pg.evaluate(open);
         const fit = await pg.evaluate(() => ({ sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth, s: document.querySelector('.screen.active').id,
           list: (() => { const l = byId('planDayList'); return l.scrollWidth - l.clientWidth; })(),
