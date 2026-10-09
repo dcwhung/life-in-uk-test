@@ -100,11 +100,29 @@
   --plan-ph-mock: var(--orange);
   --plan-ph-mock-bg: var(--flag-bg);
   --plan-ph-mock-text: var(--note-label);
-  /* G27: completion bands 0 / 1–49 / 50–74 / 75–99 % (planPctBand h0–h3; the 100 % band h4 comes with the ring + calendar, PR5) */
+  /* G27: completion bands 0 / 1–49 / 50–74 / 75–99 / 100 % (planPctBand h0–h4; text on every band stays navy:
+     white on them is below 4.5:1) */
   --plan-heat-0: #e3e7f1;
   --plan-heat-1: #e8735f;
   --plan-heat-2: #f0a54a;
   --plan-heat-3: #c9cf4f;
+  --plan-heat-4: var(--green-light);
+  /* calendar days already gone: the same bands mixed 45 % into white (the mockup's opacity 0.45, but as colours, so
+     the navy day numbers keep ≥ 9:1, W-034) */
+  --plan-heat-0-past: #f2f4f9;
+  --plan-heat-1-past: #f5c0b7;
+  --plan-heat-2-past: #f8d7ae;
+  --plan-heat-3-past: #e7e9b0;
+  --plan-heat-4-past: #b1dfc9;
+  /* calendar rest days: --bg hatched with a light line (muted numbers ≥ 4.6:1 on both) */
+  --plan-rest-line: #eaedf4;
+  /* day screen task boxes: not started = dashed light border; carry-over = orange box (3.7:1 on white, WCAG 1.4.11)
+     with its Day n tag in a darker orange (5.3:1 on --flag-bg; also the mock phase pill text) */
+  --plan-task-todo-border: #bcc5dc;
+  --plan-carry: #c46f1c;
+  --plan-orange-text: #9a5408;
+  /* Home plan card (navy-light): the progress bar track */
+  --plan-home-track: rgba(255,255,255,0.18);
   /* exam day: amber with a fine gold lattice; days already gone sit on a lighter grey row */
   --plan-exam-bg: #f2a93b;
   --plan-exam-line: rgba(255,214,120,0.75);

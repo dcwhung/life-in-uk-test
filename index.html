@@ -322,7 +322,7 @@
     </div>
   </div>
 
-  <!-- ── STUDY PLAN · SCHEDULE (js/screens/planSchedule.js; day rows open the day screen in PR5) ── -->
+  <!-- ── STUDY PLAN · SCHEDULE (js/screens/planSchedule.js; each day row opens the day screen) ── -->
   <div class="screen" id="screenPlanSchedule">
     <div class="plan-stack">
       <div class="quiz-header">
@@ -355,9 +355,71 @@
         <div class="plan-day-scroll" id="planDayList" tabindex="0" role="region" aria-labelledby="planDayListTitle"></div>
       </div>
 
+      <button class="nav-btn plan-block" data-action="openPlanDay" data-i18n="plan.schedule.viewToday"></button>
       <div class="reset-row show plan-reset">
         <span class="reset-hint" data-i18n="plan.schedule.resetHint"></span>
         <button class="reset-btn plan-hit" data-action="planAskReset" data-i18n="plan.schedule.reset"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STUDY PLAN · DAY (js/screens/planDay.js): today's / Day n tasks, completion calendar, overall progress ── -->
+  <div class="screen" id="screenPlanDay">
+    <div class="plan-stack">
+      <div class="quiz-header plan-day-header">
+        <button class="back-btn plan-hit" data-action="goHome" data-i18n="common.home"></button>
+        <div class="plan-day-switch">
+          <button class="quick-btn plan-hit-sq" id="planDayPrev" data-action="planShiftDay" data-arg="-1" data-i18n-attr="aria-label:plan.day.prev">‹</button>
+          <h2 class="plan-day-title" id="planDayHeading" tabindex="-1"><span id="planDayTitle"></span><span class="plan-num" id="planDaySub"></span></h2>
+          <button class="quick-btn plan-hit-sq" id="planDayNext" data-action="planShiftDay" data-arg="1" data-i18n-attr="aria-label:plan.day.next">›</button>
+        </div>
+        <button class="nav-btn secondary plan-small plan-hit" data-action="openPlanSchedule" data-i18n="plan.schedule.name"></button>
+      </div>
+
+      <div class="plan-card-box">
+        <div class="plan-today-head" id="planDayHead">
+          <svg class="plan-ring" id="planRing" viewBox="0 0 112 112" role="img">
+            <circle class="plan-ring-track" cx="56" cy="56" r="46"></circle>
+            <circle class="plan-ring-prog" id="planRingProg" cx="56" cy="56" r="46" pathLength="100"></circle>
+            <text class="plan-ring-pct plan-num" id="planRingPct" x="56" y="58" text-anchor="middle"></text>
+            <text class="plan-ring-sub" id="planRingSub" x="56" y="76" text-anchor="middle"></text>
+          </svg>
+          <div class="plan-today-info" id="planDayInfo">
+            <span class="plan-pill" id="planDayPhase"></span>
+            <div class="plan-day-count plan-num" id="planDayCount"></div>
+            <p class="plan-muted" id="planDayHint"></p>
+            <button class="chip plan-hit" id="planBackToday" data-action="planShowToday" data-i18n="plan.day.backToday" hidden></button>
+          </div>
+        </div>
+        <div class="plan-exam-banner plan-exam-pat" id="planDayExam" hidden><div class="plan-exam-text" id="planDayExamText"></div></div>
+        <div class="plan-done-banner" id="planDayDone" role="status" hidden></div>
+        <ul class="plan-tasks" id="planTaskList"></ul>
+      </div>
+
+      <div class="plan-alert" id="planCarryAlert" hidden><span aria-hidden="true">⚠️</span><div id="planCarryText"></div></div>
+
+      <div class="plan-card-box">
+        <div class="plan-row"><h3 data-i18n="plan.calendar.title"></h3><span class="study-progress plan-num" id="planStreak" hidden></span></div>
+        <div class="plan-cal-nav">
+          <b class="plan-num" id="planCalTitle" aria-live="polite"></b>
+          <div class="plan-cal-btns">
+            <button class="quick-btn plan-hit-sq" id="planCalPrev" data-action="planShiftMonth" data-arg="-1" data-i18n-attr="aria-label:plan.calendar.prev">‹</button>
+            <button class="chip plan-hit" id="planCalToday" data-action="planShiftMonth" data-arg="0" data-i18n="plan.calendar.today"></button>
+            <button class="quick-btn plan-hit-sq" id="planCalNext" data-action="planShiftMonth" data-arg="1" data-i18n-attr="aria-label:plan.calendar.next">›</button>
+          </div>
+        </div>
+        <div class="plan-cal plan-num" id="planCal"></div>
+        <div class="plan-legend" aria-hidden="true"><span data-i18n="plan.calendar.legendLow"></span><i class="plan-swatch h1"></i><i class="plan-swatch h2"></i><i class="plan-swatch h3"></i><i class="plan-swatch h4"></i><span data-i18n="plan.calendar.legendHigh"></span><i class="plan-swatch plan-exam-pat"></i><span data-i18n="plan.schedule.examDay"></span></div>
+      </div>
+
+      <div class="plan-card-box">
+        <h3 data-i18n="plan.kpi.title"></h3>
+        <div class="plan-stats">
+          <div class="plan-stat"><span class="k" data-i18n="plan.kpi.plan"></span><span class="v plan-num" id="planKpiPlan"></span><span class="s plan-num" id="planKpiPlanSub" lang="en"></span></div>
+          <div class="plan-stat"><span class="k" data-i18n="plan.kpi.avg"></span><span class="v plan-num" id="planKpiAvg"></span><span class="s" data-i18n="plan.kpi.avgSub"></span></div>
+          <div class="plan-stat"><span class="k" data-i18n="plan.kpi.left"></span><span class="v plan-num" id="planKpiLeft"></span><span class="s" data-i18n="plan.kpi.leftSub"></span></div>
+        </div>
+        <div class="plan-prog-rows" id="planKpiRows"></div>
       </div>
     </div>
   </div>
@@ -410,6 +472,7 @@
 <script src="js/screens/planHome.js"></script>
 <script src="js/screens/planGoal.js"></script>
 <script src="js/screens/planSchedule.js"></script>
+<script src="js/screens/planDay.js"></script>
 <script src="js/core/actions.js"></script>
 <script src="js/pwa/pwa.js"></script>
 <script src="js/main.js"></script>

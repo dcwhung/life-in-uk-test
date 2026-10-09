@@ -15,6 +15,7 @@ const PLAN_FEAS_METER_SCALE = 1.5; // the meter is full at 150% of the time need
 const PLAN_PERCENT = 100;
 let planGoalDraft = null; // { examDate, dailyMins, restDays, level } being edited
 let planGoalEditing = false; // true: changing the stored plan's goal; false: a new plan
+let planGoalNotice = false; // S-115: the last Build / Update failed because the day changed; cleared by any edit
 // G36: which limits the date field and the CTA follow
 function planGoalMode() { return planGoalEditing ? PLAN_GOAL_MODE.edit : PLAN_GOAL_MODE.create; }
 
@@ -26,6 +27,7 @@ function planDefaultDraft(todayIso) {
 function openPlanGoal(goal = null) {
   if (!planVisible()) return;
   planGoalEditing = !!goal;
+  planGoalNotice = false;
   planGoalDraft = goal ? planCopyGoal(goal) : planDefaultDraft(planTodayIso());
   showScreen('screenPlanGoal');
   renderPlanGoal();
@@ -134,8 +136,10 @@ function renderPlanCta(todayIso) {
   byId('planCreateBtn').disabled = !check.ok;
   const fewDays = check.errors.includes(PLAN_GOAL_ERROR.studyDays);
   const hintKey = planGoalEditing ? 'plan.goal.editMinStudyDays' : 'plan.goal.minStudyDays';
-  byId('planGoalHint').textContent = fewDays ? t(hintKey, { n: planGoalLimits(mode).minStudyDays }) : '';
-  setShown('planGoalHint', fewDays);
+  const notice = planGoalNotice && !fewDays;
+  if (fewDays) byId('planGoalHint').textContent = t(hintKey, { n: planGoalLimits(mode).minStudyDays });
+  else byId('planGoalHint').textContent = notice ? t('plan.goal.dateMoved') : '';
+  setShown('planGoalHint', fewDays || notice);
   setShown('planFeasMsg', !fewDays); // its "build anyway" advice (G13) does not apply while the CTA is disabled
 }
 function renderPlanGoal() {
@@ -159,6 +163,7 @@ function renderPlanGoal() {
 function planSetDays(n) {
   if (!PLAN_EXAM_DAY_PRESETS.includes(n)) return;
   planGoalDraft.examDate = isoAddDays(planTodayIso(), n);
+  planGoalNotice = false;
   renderPlanGoal(); // S-109: the chips are updated in place, so focus stays on the one chosen
 }
 // W-033: Chromium fires input on every typed segment, and a half-typed date is often out of range, so input only
@@ -168,6 +173,7 @@ function planSetExamDate(value) {
   const range = planExamDateRange(planTodayIso(), planGoalMode());
   if (!isoIsValid(value) || value < range.min || value > range.max) return;
   planGoalDraft.examDate = value;
+  planGoalNotice = false;
   renderPlanGoal();
 }
 // CUI-0019: usually input already took the date, so a commit that changes nothing only resets the field
@@ -181,27 +187,34 @@ function planCommitExamDate(value) {
 function planSetMins(value) {
   const m = Number(value);
   if (planValidMins(m)) planGoalDraft.dailyMins = m;
+  planGoalNotice = false;
   renderPlanGoal();
 }
 function planToggleRest(d) {
   const rest = planGoalDraft.restDays;
   planGoalDraft.restDays = rest.includes(d) ? rest.filter(x => x !== d) : [...rest, d].sort();
+  planGoalNotice = false;
   renderPlanGoal();
 }
 function planSetLevel(level) {
   if (planIsLevel(level)) planGoalDraft.level = level;
+  planGoalNotice = false;
   renderPlanGoal();
 }
 // O-2: a new plan never inherits the old log (or a corrupt one, O-1). A changed goal keeps the log (G7): an
 // unreadable log re-plans as if nothing were answered and stays as it is (↺ Reset clears it, S-110).
 // A plan deleted meanwhile (another tab) makes the edit a new plan; a goal only a change allows (G36) then
 // shows the form in create mode with its limits instead of doing nothing.
+// S-115: any other failure means the day changed while the form was open (its date limits moved): the form
+// re-renders (the date moves up to the new earliest one, S-111) with a notice to check it and press again.
 function planCreate() {
   const todayIso = planTodayIso();
   const old = planGoalEditing ? planLoad() : null;
   const plan = old ? replanFrom(old, planGoalDraft, todayIso, planLoadLog() || planEmptyLog()) : buildPlan(planGoalDraft, todayIso);
   if (!plan) {
-    if (planGoalEditing && !old) { planGoalEditing = false; renderPlanGoal(); }
+    if (planGoalEditing && !old) planGoalEditing = false;
+    else planGoalNotice = true;
+    renderPlanGoal();
     return;
   }
   if (!old) clearStudyPlan();

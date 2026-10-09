@@ -26,6 +26,7 @@ const DYNAMIC_PREFIXES = [
   'data.chapters.', 'data.chapterShort.', 'data.difficulty.', 'data.eras.',
   'data.nations.', 'data.geoTypes.', 'data.people.',
   'data.weekdays.', 'data.planLevels.', // study plan: rest-day chips, level cards
+  'data.months.', // study plan: the calendar's month title
 ];
 // G21 (study plan, arch R10): plan UI text in zh-HK is written Chinese, not the mockup's Cantonese; these keys
 // are scanned for colloquial words (question data yue / oy / note stays Cantonese and is not a locale key)

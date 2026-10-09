@@ -24,6 +24,8 @@ const LATE_BOOT_SCRIPTS = [
   { src: 'js/screens/planGoal.js', ready: () => typeof openPlanGoal === 'function' },
   // PR4: creating / changing a plan opens the schedule
   { src: 'js/screens/planSchedule.js', ready: () => typeof openPlanSchedule === 'function' },
+  // PR5: the Home card and schedule rows open the day screen
+  { src: 'js/screens/planDay.js', ready: () => typeof openPlanDay === 'function' },
 ];
 // shown when the scripts still fail after one reload; t() is not available then, so it cannot be a locale key
 const I18N_BOOT_FALLBACK_MSG = 'The app could not finish loading. Please check your connection and reload the page.';
@@ -52,6 +54,7 @@ function startApp() {
   loadHomePrefs();
   applyPlanPreviewParam(); // G31: before the first Home render
   renderPlanSettings();
+  planWatchDay(); // G6: the plan's "today" follows local midnight
   buildExamGrid();
   renderModeSelection();
   registerSW();

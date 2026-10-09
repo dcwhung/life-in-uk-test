@@ -8,7 +8,7 @@ const path = require('path');
 // - summary, phase bar + strategy (three phases), study order card (Ch1–2 → Ch5 → Ch4 → Ch3 with reasons)
 // - day list: its own scroller opened at today (below the sticky full-width WEEK heading, the page not moved),
 //   past days dimmed, status pills (✓ / heat band / today n% / rest), task text without minutes or 🏆,
-//   exam day row with the amber lattice; rows are not interactive until the day screen (PR5)
+//   exam day row with the amber lattice; every row is a button that opens its day (PR5, plan-day-test)
 // - Change goal: the goal screen is prefilled; past days (tasks + completion) unchanged; Day 1 unchanged (G7)
 // - G36: Change goal takes an exam from tomorrow with 1 study day (note + edit hint); a new plan keeps today + 7 / 7
 // - Reset: app modal (Confirm), plan + log deleted, practice records + switch kept, toast, Home create card;
@@ -160,7 +160,7 @@ async function checkDayList(pg) {
       rest: rows.filter(e => e.classList.contains('rest')).map(e => e.querySelector('.plan-day-tasks').textContent.trim()),
       text: rows.filter(e => !e.classList.contains('exam')).map(e => e.textContent).join(' | '), // the exam day's tip names an arrival time
       exam: (() => { const e = rows[rows.length - 1]; return { cls: e.className, pat: !!e.querySelector('.plan-exam-pat'), text: e.textContent }; })(),
-      interactive: rows.filter(e => e.matches('[role="button"], [tabindex], [data-action]')).length,
+      opens: rows.filter(e => e.tagName === 'BUTTON' && e.dataset.action === 'openPlanDay' && e.dataset.arg).length,
     };
   });
   assert(r.rows === r.days + 1, `day list: one row per plan day + the exam day (${r.rows})`);
@@ -200,7 +200,7 @@ async function checkDayList(pg) {
   assert(notes.every(n => !fullNames.some(f => n.tasks.includes(f))), 'task lines show "Ch n" without the chapter name');
   assert(r.exam.cls.includes('exam') && r.exam.pat && r.exam.text.includes('🎯') && r.exam.text.includes('29/10 Thu') && r.exam.text.includes('Exam day'),
     'exam day row: lattice, 🎯, date + weekday: ' + r.exam.text);
-  assert(r.interactive === 0, 'rows are not interactive yet (the day screen is PR5)');
+  assert(r.opens === r.rows, 'PR5: every row (the exam day too) is a button that opens its day');
   // W-034: past days are dimmed by grey colours, not opacity: every text in them stays ≥ 4.5:1 (WCAG 1.4.3)
   const look = await pg.evaluate(() => {
     const rows = [...document.querySelectorAll('#planDayList .plan-day')];
@@ -234,7 +234,7 @@ async function checkPills(pg) {
   assert(pills.d1[1] === '0%' && pills.d1[0].includes('h0'), 'pill: a past day with nothing done: 0% (band 0)');
   assert(pills.rest[1] === 'Rest' && pills.rest[0].includes('mute'), 'pill: rest');
   assert(pills.today[1] === `Today ${pills.todayPct}%` && pills.today[0].includes('now'), 'pill: today n%: ' + pills.today);
-  assert(pills.future === null, 'future days have no pill yet');
+  assert(pills.future && pills.future[1] === '›' && pills.future[0].includes('mute'), 'PR5: a day ahead shows a › pill (it opens): ' + pills.future);
   // v1.0.2: the pill sits under the date box in the left column; the tasks take the rest of the row
   const lay = await pg.evaluate(() => [...document.querySelectorAll('#planDayList .plan-day')].map(row => {
     const pill = row.querySelector('.plan-pill'), side = row.querySelector('.plan-day-side'), box = row.querySelector('.plan-day-d');
