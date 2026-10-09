@@ -4,7 +4,7 @@ const path = require('path');
 // <html lang> and lifeuk.uiLang, and re-renders the current screen in place: on every screen the plan's
 // state list (current question, answers, reveal, translation, flags, exam deadline, review filter, Study
 // tab / chips / search text, side session) is unchanged, no key is missing, nothing is recorded twice,
-// and zh-HK fits a 320px screen. A confirm modal blocks the switch; <title> stays English.
+// and zh-HK fits a 320px screen. A confirm modal blocks the switch; <title> follows the language (v1.0.5).
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
 const launchOpts = { args: ['--no-sandbox'] };
 if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_PATH;
@@ -15,7 +15,7 @@ const ZH_HK = 'zh-HK';
 const PILL = '#langBtn';
 const WIDE = { width: 390, height: 844 };
 const NARROW = { width: 320, height: 640 };
-const TITLE = 'Life in the UK · Exam Practice';
+const TITLE = { [EN]: 'Life in the UK Test · Exam Practice', [ZH_HK]: 'Life in the UK Test · 應試練習' }; // v1.0.5: <title> follows the language
 const CJK = /[\u3000-\u303f\u3400-\u9fff\uff00-\uffef]/;
 // S-043: the wait clears the double tap guard window, read from config.js SCREEN_CHANGE_CLICK_GUARD_MS on the page
 const GUARD_MARGIN_MS = 50;
@@ -62,7 +62,7 @@ async function switchOn(pg, ctx, tag, expectCjkSel) {
   assert(ctx.warns.filter(w => w.includes('[i18n]')).length === 0, `${tag}: no [i18n] warnings: ` + ctx.warns.join(' | '));
   const after = await snapState(pg);
   assert(after === before, `${tag}: state unchanged` + (after === before ? '' : `\n  before ${before}\n  after  ${after}`));
-  assert((await pg.title()) === TITLE, `${tag}: <title> stays English`);
+  assert((await pg.title()) === TITLE[to], `${tag}: <title> in ${to}`);
   if (expectCjkSel) {
     const shown = await textOf(pg, expectCjkSel);
     assert(CJK.test(shown) === (to === ZH_HK), `${tag}: ${expectCjkSel} re-rendered in ${to}: ${shown.slice(0, 60)}`);
@@ -142,7 +142,7 @@ async function checkHomeSwitch(pg, ctx) {
   assert(await pg.evaluate(() => localStorage.getItem('lifeuk.uiLang')) === JSON.stringify(ZH_HK), 'lifeuk.uiLang = zh-HK');
   await pg.reload();
   assert((await langOf(pg)).html === ZH_HK && (await pillOf(pg)).text === 'EN', 'reload: zh-HK restored, pill EN');
-  assert(CJK.test(await textOf(pg, '#modeDesc')) && (await pg.title()) === TITLE, 'reload: zh-HK Home, English <title>');
+  assert(CJK.test(await textOf(pg, '#modeDesc')) && (await pg.title()) === TITLE[ZH_HK], 'reload: zh-HK Home, zh-HK <title>');
   await switchOn(pg, ctx, 'home', '#modeDesc');
   assert((await pillOf(pg)).text === '中' && await pg.evaluate(() => localStorage.getItem('lifeuk.uiLang')) === JSON.stringify(EN), 'back to en: pill 中, uiLang en');
 }

@@ -181,6 +181,38 @@ async function checkSwitchOffElsewhere(pg) {
   assert(!(await visible(pg, '#planCard')), 'W-031: the Home plan card is gone');
 }
 
+// v1.0.5 (user): the Features row reads "🗓️ Study plan" then an On (green) / Off (red) pill; the note below has no On: / Off: prefix
+async function checkFeaturePill(pg) {
+  await fresh(pg, '?preview=plan');
+  await pg.click('#infoBtn');
+  const pill = () => pg.evaluate(() => {
+    const e = byId('infoPlanPill'), label = e.previousElementSibling, cs = getComputedStyle(e);
+    const rgb = cs.backgroundColor.match(/\d+/g).map(Number);
+    return { text: e.textContent, on: e.classList.contains('on'), off: e.classList.contains('off'), afterLabel: !!label && label.matches('b[data-i18n="app.planFeature"]'),
+      sameLine: Math.abs(e.getBoundingClientRect().top - label.getBoundingClientRect().top) < label.getBoundingClientRect().height,
+      greenish: rgb[1] > rgb[0], redish: rgb[0] > rgb[1], round: parseFloat(cs.borderTopLeftRadius) >= e.getBoundingClientRect().height / 2,
+      note: byId('infoPlanStatus').textContent };
+  });
+  const on = await pill();
+  assert(on.text === 'On' && on.on && !on.off && on.afterLabel && on.sameLine && on.greenish && on.round && on.note === 'Your study plan shows on the home screen',
+    'pill: on → green "On" pill after the label, note without prefix: ' + JSON.stringify(on));
+  await pg.click('#planFeatureSwitch');
+  await pg.click('#confirmOk');
+  const off = await pill();
+  assert(off.text === 'Off' && off.off && !off.on && off.redish && off.round && off.note === 'Every study plan item is hidden',
+    'pill: off → red "Off" pill, note without prefix: ' + JSON.stringify(off));
+  await pg.keyboard.press('Escape'); // the language pill sits outside the popover: a click there closes it first
+  await pg.evaluate(() => setLang('zh-HK'));
+  await pg.click('#infoBtn');
+  const zhOff = await pill();
+  assert(zhOff.text === '已關閉' && zhOff.off && zhOff.note === '所有溫習計劃項目已隱藏', 'pill: zh-HK off → 已關閉: ' + JSON.stringify(zhOff));
+  await pg.click('#planFeatureSwitch');
+  const zhOn = await pill();
+  assert(zhOn.text === '已開啟' && zhOn.on && zhOn.note === '主頁顯示溫習計劃', 'pill: zh-HK on → 已開啟: ' + JSON.stringify(zhOn));
+  await pg.evaluate(() => setLang('en'));
+  await pg.keyboard.press('Escape');
+}
+
 // toast (mockup .sp-toast): switching off / on says so at the bottom, for TOAST_MS, without taking focus
 async function checkToast(pg) {
   await fresh(pg, '?preview=plan');
@@ -216,7 +248,7 @@ async function checkSwitchInPlace(pg) {
   await pg.click('#planFeatureSwitch');
   const r = await pg.evaluate(() => ({ open: byId('infoPop').classList.contains('show'), focus: document.activeElement.id,
     on: byId('planFeatureSwitch').getAttribute('aria-checked'), note: byId('infoPlanStatus').textContent }));
-  assert(r.open && r.focus === 'planFeatureSwitch' && r.on === 'true' && r.note.startsWith('On'), 'W-032: switch on by click: popover open, focus kept: ' + JSON.stringify(r));
+  assert(r.open && r.focus === 'planFeatureSwitch' && r.on === 'true' && r.note === 'Your study plan shows on the home screen', 'W-032: switch on by click: popover open, focus kept: ' + JSON.stringify(r));
   await pg.click('#infoBtn');
   await pg.click('#infoBtn');
   await pg.evaluate(() => setStudyPlanEnabled(false));
@@ -423,7 +455,7 @@ async function main() {
   const errs = [];
   pg.on('pageerror', e => errs.push(e.message));
   await pg.clock.setFixedTime(NOW);
-  for (const check of [checkHidden, checkPreview, checkCreateCard, checkSwitch, checkSwitchOffElsewhere, checkSwitchInPlace, checkToast, checkGoalDefaults, checkGoalInputs, checkDateTyping, checkKeepFocus, checkClickAfterDate, checkHourPluralAndCta, checkFeasibility, checkMidnightClamp, checkCreate, checkWidths]) {
+  for (const check of [checkHidden, checkPreview, checkCreateCard, checkSwitch, checkSwitchOffElsewhere, checkSwitchInPlace, checkFeaturePill, checkToast, checkGoalDefaults, checkGoalInputs, checkDateTyping, checkKeepFocus, checkClickAfterDate, checkHourPluralAndCta, checkFeasibility, checkMidnightClamp, checkCreate, checkWidths]) {
     await check(pg);
   }
   await checkTapAfterDate(b);
