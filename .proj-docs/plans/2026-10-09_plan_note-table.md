@@ -54,7 +54,7 @@ Header：國家 / 國教 / 教會（用戶原本寫「國教教會」，因為 S
 | 檔案 | 改動 |
 |------|------|
 | `js/components/tags.js` | `noteHtml()` 收集連續 `\|` 行 → `<div class="note-table-wrap"><table class="note-table">`（thead 第一行，tbody 其餘）；其他行照舊；格仔按 `<br>` 拆段（先拆後 `escapeHtml`，每段都 escape），有備注嘅格加 `class="multi"`、備注段 `<span class="note-cell-sub">` |
-| `css/components/note.css` | `.note-table*`（Theme B，只用現有 token）、`th` / `td` `nowrap` + `vertical-align: top`、`td.multi { white-space: normal }`、`.note-cell-sub`（block、`--fs-xs`、`--text-muted`）；wrap `overflow-x: auto` 做後備 |
+| `css/components/note.css` | `.note-table*`（Theme B，只用現有 token）、`th` / `td` `nowrap` + `vertical-align: top`、`td.multi { white-space: normal }`、`.note-cell-sub`（block、`--fs-xs`、`font-weight: 400`（第一欄粗體都唔跟）、`--text-muted`）；wrap `overflow-x: auto` 做後備 |
 | `data/exams.js` | 上面 A（10 題）+ B（5 題）note |
 | `tests/` | `noteHtml` table render：header / body、escape（`<script>` 等）、`<br>` 備注拆段、混合文字行；3 個畫面（Study 溫習卡、Practice 答題後、Results review）390px 唔爆、唔使 scroll |
 
@@ -76,7 +76,7 @@ Header：國家 / 國教 / 教會（用戶原本寫「國教教會」，因為 S
     • Scotland / Wales / N. Ireland 三個議會用比例代表制（proportional representation）；
     • 英國國會用領先者當選制（first past the post）
     ```
-  - ⑩ 名勝 / 地方（新組，17 題而家冇記憶法），格式 `| 國家 | 地點 | 名勝 |`（用戶定）：E9 Q4、E13 Q2（Lake District）、E14 Q19（Stonehenge）、E4 Q19、E5 Q3（Eden Project）、E11 Q22、E13 Q20（Glastonbury）、E12 Q7（Tate）、E4 Q9（Ben Nevis）、E10 Q2（Loch Lomond）、E11 Q20（Edinburgh Castle）、E8 Q8（National Galleries）、E3 Q13、E4 Q15、E7 Q11（Snowdonia / Snowdon）、E7 Q19、E16 Q2（Giant's Causeway）；E6 Q4（National Parks 統稱）同倫敦名勝唔放入。內容見 mockup
+  - ⑩ 名勝 / 地方（新組，17 題而家冇記憶法），格式 `| 名勝 | 國家 | 地點 |`（用戶定，名勝排先）：E9 Q4、E13 Q2（Lake District）、E14 Q19（Stonehenge）、E4 Q19、E5 Q3（Eden Project）、E11 Q22、E13 Q20（Glastonbury）、E12 Q7（Tate）、E4 Q9（Ben Nevis）、E10 Q2（Loch Lomond）、E11 Q20（Edinburgh Castle）、E8 Q8（National Galleries）、E3 Q13、E4 Q15、E7 Q11（Snowdonia / Snowdon）、E7 Q19、E16 Q2（Giant's Causeway）；E6 Q4（National Parks 統稱）同倫敦名勝唔放入。內容見 mockup
   - ⑤ 發明家（6）、⑥ 節日（11）；時間線 ⑦ 戰役（15）、⑧ 二戰（9）、⑨ 國王 vs 國會（8）
   - 唔建議：都鐸王朝、三層屬地、Magna Carta、選舉、戴卓爾夫人、陪審員（保持文字）
 - Exam 9 Q20「patron flower of Ireland」字眼（用戶未決定）

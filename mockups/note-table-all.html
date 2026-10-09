@@ -18,7 +18,7 @@
   .note-table tr:last-child td { border-bottom: 0; }
   .note-table td:first-child { font-weight: 700; color: var(--navy); }
   .note-table td.multi { white-space: normal; }
-  .note-cell-sub { display: block; margin-top: var(--space-1); font-size: var(--fs-xs); color: var(--text-muted); line-height: 1.45; }
+  .note-cell-sub { display: block; margin-top: var(--space-1); font-size: var(--fs-xs); font-weight: 400; color: var(--text-muted); line-height: 1.45; }
 
   /* ════════ mockup chrome only ════════ */
   * { box-sizing: border-box; }
@@ -72,7 +72,7 @@ const GROUPS = {
     ['④ 地方議會', 7, 'new', '| 地區 | 議會 / 地點 | 議員 |\n| England | UK Parliament<br>Westminster | 650<br>全英國 MP |\n| Scotland | Scottish Parliament<br>Edinburgh | 129 |\n| Wales | Senedd<br>Cardiff | 60 |\n| N. Ireland | NI Assembly<br>Belfast | 90 |\n• England 冇自己嘅地方議會，由英國國會直接負責；\n• Senedd 議員：考試答 60（2026 年選舉起增至 96）；\n• Scotland / Wales / N. Ireland 三個議會用比例代表制（proportional representation）；\n• 英國國會用領先者當選制（first past the post）'],
     ['⑤ 發明家', 6, 'new', '| 年份 | 人物 / 發明 |\n| 17 世紀 | Isaac Newton<br>萬有引力、運動定律 |\n| 1876 | Alexander Graham Bell<br>電話（蘇格蘭裔） |\n| 1928 | Alexander Fleming<br>盤尼西林 penicillin（蘇格蘭人） |\n| 1930s | Frank Whittle<br>噴射引擎 jet engine |\n| 1953 | Francis Crick<br>DNA 結構（同 James Watson 一齊發現） |\n| 1989 | Tim Berners-Lee<br>萬維網 World Wide Web |'],
     ['⑥ 節日（按月份）', 11, 'new', '| 日期 | 節日 |\n| 25/1 | Burns Night<br>紀念蘇格蘭詩人 Robert Burns |\n| 31/10 | Halloween |\n| 5/11 | Bonfire Night<br>紀念 1605 年火藥陰謀（Gunpowder Plot）失敗 |\n| 11/11 | Remembrance Day<br>戴紅罌粟花 |\n| 26/12 | Boxing Day<br>聖誕節翌日 |\n| 31/12 | Hogmanay<br>蘇格蘭除夕 |'],
-    ['⑩ 名勝 / 地方', 17, 'new', '| 國家 | 地點 | 名勝 |\n| England | National Park | Lake District<br>英格蘭最大國家公園 |\n| England | Wiltshire | Stonehenge<br>約 5,000 年前建成 |\n| England | Cornwall | Eden Project<br>巨型溫室生態館 |\n| England | Somerset | Glastonbury<br>音樂節 |\n| England | London | Tate<br>Tate Britain、Tate Modern |\n| Scotland | Highlands | Ben Nevis<br>英國最高山 |\n| Scotland | National Park | Loch Lomond & Trossachs<br>蘇格蘭國家公園 |\n| Scotland | Edinburgh | Edinburgh Castle<br>愛丁堡城堡 |\n| Scotland | Edinburgh | National Galleries of Scotland<br>蘇格蘭國家美術館 |\n| Wales | National Park | Snowdonia<br>Snowdon 係威爾斯最高山 |\n| N. Ireland | County Antrim | Giant\'s Causeway<br>火山熔岩形成嘅玄武岩柱 |'],
+    ['⑩ 名勝 / 地方', 17, 'new', '| 名勝 | 國家 | 地點 |\n| Lake District<br>英格蘭最大國家公園 | England | National Park |\n| Stonehenge<br>約 5,000 年前建成 | England | Wiltshire |\n| Eden Project<br>巨型溫室生態館 | England | Cornwall |\n| Glastonbury<br>音樂節 | England | Somerset |\n| Tate<br>Tate Britain、Tate Modern | England | London |\n| Ben Nevis<br>英國最高山 | Scotland | Highlands |\n| Loch Lomond & Trossachs<br>蘇格蘭國家公園 | Scotland | National Park |\n| Edinburgh Castle<br>愛丁堡城堡 | Scotland | Edinburgh |\n| National Galleries of Scotland<br>蘇格蘭國家美術館 | Scotland | Edinburgh |\n| Snowdonia<br>Snowdon 係威爾斯最高山 | Wales | National Park |\n| Giant\'s Causeway<br>火山熔岩形成嘅玄武岩柱 | N. Ireland | County Antrim |'],
   ],
   groupB: [
     ['⑦ 英國重要戰役', 15, 'tl', '| 年份 | 戰役 / 結果 |\n| 9 世紀 | Alfred the Great vs Vikings<br>統一盎格魯-撒克遜王國，打敗維京人 |\n| 1066 | Battle of Hastings vs Normandy<br>William 打敗 Harold → 諾曼征服 |\n| 1314 | Bannockburn vs Scotland<br>Robert the Bruce 打敗英格蘭 → 蘇格蘭保持獨立 |\n| 1588 | Spanish Armada vs Spain<br>Elizabeth I 年代英格蘭打敗西班牙 |\n| 1805 | Trafalgar vs France + Spain<br>Nelson 勝，但陣亡 |\n| 1815 | Waterloo vs France<br>Wellington 打敗 Napoleon，英法最後一戰 |\n| 1940 | Battle of Britain vs Germany<br>皇家空軍擊退德國空襲 → 阻止入侵 |'],
