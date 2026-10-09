@@ -20,7 +20,10 @@ function questionNodeClass(k) {
 function questionNodeText({ examNum, origIdx }) { return t('similar.node', { exam: examNum, n: origIdx + 1 }); }
 // G40: copies of one question text (questionGroups / currentCopies) are one node / ref, "E7·Q16 = E13·Q1"
 function copiesNodeText(keys) { return keys.map(k => questionNodeText(questionByKey(k))).join(COPY_SEP); }
-function copiesRefText(keys) { return keys.map(k => questionRefText(questionByKey(k))).join(COPY_SEP); }
+// S-140: each ref is nowrap (.sqm-ref), so a merged ref breaks only at " = ", never inside "Exam 12 · Q24"
+function copiesRefText(keys) {
+  return keys.map(k => `<span class="sqm-ref">${questionRefText(questionByKey(k))}</span>`).join(COPY_SEP);
+}
 // one display-only node for a question and its copies, coloured by its mastery
 function questionNodeHtml(keys) { return `<span class="sqm-node${questionNodeClass(keys[0])}">${copiesNodeText(keys)}</span>`; }
 

@@ -99,9 +99,9 @@ function practiceResultNote() {
     return t('result.clearedNote', { n: state.cleared, left: keysOf(wrongList).length });
   }
   if (state.examNum === SIMILAR_EXAM || !state.setPool) return '';
-  const m = masteryOf(state.setPool);
+  const m = masteryOf(state.setPool), asked = masteryOf(state.questions).mastered; // n: asked this round only
   return t('result.masteredNote', {
-    n: Math.max(0, m.mastered - state.masteredBefore), mastered: m.mastered, total: m.total, set: examLabel(state.examNum),
+    n: Math.max(0, asked - state.masteredBefore), mastered: m.mastered, total: m.total, set: examLabel(state.examNum),
   });
 }
 

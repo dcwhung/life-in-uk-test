@@ -504,11 +504,18 @@ async function checkPhaseLabelsAndPill(pg, where) {
     pill.textContent = t('plan.status.today', { n: PERCENT });
     const side = row.querySelector('.plan-day-side').getBoundingClientRect(), p = pill.getBoundingClientRect();
     const out = { zero, clipped, full: pill.textContent, fits: p.left >= side.left - 0.5 && p.right <= side.right + 0.5, p: [p.left, p.right], side: [side.left, side.right] };
+    // a past day's "✓ Done" / 「✓ 已完成」 (zh 已, user 2026-10-09) fits the same column on one line
+    pill.textContent = t('plan.status.done');
+    range.selectNodeContents(pill);
+    const d = pill.getBoundingClientRect();
+    out.done = { text: pill.textContent, fits: d.left >= side.left - 0.5 && d.right <= side.right + 0.5,
+      lines: new Set([...range.getClientRects()].map(q => Math.round(q.top))).size };
     pill.textContent = before;
     return out;
   });
   assert(r.clipped.length === 0, `${where}: phase bar labels not clipped: ` + r.clipped);
   assert(r.fits, `${where}: "${r.full}" pill fits the left column: ` + JSON.stringify(r));
+  assert(r.done.fits && r.done.lines === 1, `${where}: "${r.done.text}" pill fits the left column on one line: ` + JSON.stringify(r.done));
   assert(r.zero.lines === 1 && r.zero.font === r.zero.xs && r.zero.col === DAY_SIDE_PX, `${where}: S-117 "Today 0%" on one line at --fs-xs in a ${DAY_SIDE_PX}px column: ` + JSON.stringify(r.zero));
 }
 async function checkPillWideFont(pg, where) {

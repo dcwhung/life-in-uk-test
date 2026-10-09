@@ -31,39 +31,47 @@ function similarLegendHtml() {
 // practise: false = no "Practise these N" (G26: a plan task session, which has nowhere to come back to after it);
 // cta (arch §E.3): { action, arg, n } another session for the button (a study plan's wrong fact), n = the questions it asks;
 // currentMark (CUI-0025): the panel stands alone (no question card above it), so q itself is listed first with this
-// mark and the count is every question of the fact (no "+"). groups = similarGroups(q): counts are distinct questions (G40)
+// mark and the count is every question of the fact (no "+"). groups = similarGroups(q): counts are distinct questions (G40).
+// No item to list (S-141a, user 2026-10-09: in Practice, a fact whose sources are all copies of q, 9 facts): the core
+// fact card and the map's merged current node only; no list, count badge, legend (it explains the other nodes'
+// colours) or practise button. Standalone (plan runner) always lists q itself, so it keeps its list, count and CTA
 function similarCtaHtml(groups, cta) {
   const { action, arg, n } = cta || { action: 'startSimilarPractice', n: groups.length };
   const argAttr = arg === undefined ? '' : ` data-arg="${escapeHtml(arg)}"`;
   return `<div class="sqm-cta"><button data-action="${action}"${argAttr}>${t('similar.practise', { n })}</button></div>`;
 }
-function similarPanelHtml(q, groups, { practise = true, cta = null, currentMark = '' } = {}) {
-  const ctaHtml = practise ? similarCtaHtml(groups, cta) : '';
+// legend, item cards (q first when standalone) and the practise button; '' when there is no item
+function similarListHtml(q, groups, { practise, cta, currentMark }) {
   const items = (currentMark ? [similarItemHtml(currentCopies(q), currentMark)] : []).concat(groups.map(g => similarItemHtml(g)));
+  if (!items.length) return '';
+  const ctaHtml = practise ? similarCtaHtml(groups, cta) : '';
+  return `${similarLegendHtml()}<div class="sqm-list">${items.join('')}</div>${ctaHtml}`;
+}
+function similarPanelHtml(q, groups, { practise = true, cta = null, currentMark = '' } = {}) {
   const count = currentMark ? groups.length + 1 : `+${groups.length}`;
+  const countHtml = groups.length || currentMark ? `<span class="sqm-count">${count}</span>` : '';
   return `
     <div class="sqm-head">
       <span class="sqm-icon">🗺️</span>
       <span class="sqm-title"><b>${t('similar.title')}</b><span>${t('similar.subtitle')}</span></span>
-      <span class="sqm-count">${count}</span>
+      ${countHtml}
     </div>
     ${factCardHtml(factOf(q), { variant: FACT_VARIANT.core })}
     ${similarMapHtml(q, groups)}
-    ${similarLegendHtml()}
-    <div class="sqm-list">${items.join('')}</div>
-    ${ctaHtml}`;
+    ${similarListHtml(q, groups, { practise, cta, currentMark })}`;
 }
 function renderSimilar(q, revealed) {
   const box = byId('similarBox');
   // G26: a plan task session shows the panel too, without its own side session
   const show = state.mode === PRACTICE_MODE && revealed && (!isSideSession() || isPlanSession());
-  const groups = show ? similarGroups(q) : [];
-  box.classList.toggle('show', groups.length > 0);
-  box.innerHTML = groups.length ? similarPanelHtml(q, groups, { practise: !isPlanSession() }) : '';
+  // S-141a: a fact whose other sources are all copies of q still shows it; a one-source fact has nothing to map
+  const fact = show ? factOf(q) : null, shown = !!fact && fact.src.length > 1;
+  box.classList.toggle('show', shown);
+  box.innerHTML = shown ? similarPanelHtml(q, similarGroups(q), { practise: !isPlanSession() }) : '';
 }
 
-// one-off side session over the similar questions (each distinct question once, G40) (js/screens/sideSession.js); the original session
-// is stashed and restored at the same question when the last one is done
+// one-off side session over the similar questions (js/screens/sideSession.js), each distinct question once (G40);
+// the original session is stashed and restored at the same question when the last one is done
 function startSimilarPractice() {
   const keys = similarKeys(state.questions[state.current]);
   if (!keys.length) return;

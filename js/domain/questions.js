@@ -19,6 +19,8 @@ const MAX_DIFFICULTY = Math.max(...DIFF_LEVELS); // stars shown out of this many
 function examQuestions(n) { return allQuestions().filter(item => item.examNum === Number(n)); }
 function chapterQuestions(ch) { return allQuestions().filter(({ q }) => q.ch === ch); }
 function difficultyQuestions(level) { return allQuestions().filter(({ q }) => q.d === level); }
+// "exam.idx" storage key of a pool item; questionByKey is its inverse
+const qKey = q => q.examNum + '.' + q.origIdx;
 function questionByKey(k) {
   const [examNum, origIdx] = k.split('.').map(Number);
   return { q: EXAMS[examNum][origIdx], examNum, origIdx };
@@ -30,7 +32,7 @@ function questionByKey(k) {
 function buildQuestionCopies() {
   const byText = {}, canon = {};
   allQuestions().forEach(({ q, examNum, origIdx }) => {
-    const text = q.q.trim().toLowerCase(), key = examNum + '.' + origIdx;
+    const text = q.q.trim().toLowerCase(), key = qKey({ examNum, origIdx });
     (byText[text] = byText[text] || []).push(key); // exam order
     canon[key] = byText[text][0];
   });
@@ -45,6 +47,16 @@ function questionCopies(k) { return QUESTION_COPIES.copies[canonQuestionKey(k)] 
 function questionGroups(keys) {
   const inKeys = new Set(keys);
   return [...new Set(keys.map(canonQuestionKey))].map(c => questionCopies(c).filter(k => inKeys.has(k)));
+}
+// W-046: one item per distinct question (a random copy of each), shuffled; a Practice round asks a text once,
+// so the copies' synced streak moves at most once a round
+function distinctQuestions(list) {
+  const byCanon = new Map();
+  shuffle(list).forEach(item => {
+    const c = canonQuestionKey(qKey(item));
+    if (!byCanon.has(c)) byCanon.set(c, item);
+  });
+  return [...byCanon.values()];
 }
 
 // ── set ids ──

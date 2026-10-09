@@ -1,7 +1,7 @@
 // ════════════════════════════════════════
 // MASTERY — consecutive correct answers per question (practice mode only)
 // ════════════════════════════════════════
-const qKey = q => q.examNum + '.' + q.origIdx;
+// qKey (the "exam.idx" key) lives in js/domain/questions.js beside its inverse questionByKey (S-142)
 // G40: copies of one question text share a streak; old data may still differ, so a copy reads the copies' max
 function keyStreak(k) { return Math.max(...questionCopies(k).map(c => streaks[c] || 0)); }
 function streakOf(q) { return keyStreak(qKey(q)); }

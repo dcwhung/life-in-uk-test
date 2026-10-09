@@ -90,7 +90,7 @@ function planExamDateRange(todayIso, mode = PLAN_GOAL_MODE.create) {
 // ── canonical questions (G4): the same English question in several exams is one question ──
 // the shared copies map (js/domain/questions.js): "exam.idx" → first "exam.idx" (exam order) with the same text
 const PLAN_CANON_QKEY = QUESTION_COPIES.canon;
-function planCanonKey(k) { return canonQuestionKey(k); }
+const planCanonKey = canonQuestionKey; // plan name kept: planProgress.js and the plan tests use it (S-142)
 function planUnique(list) { return [...new Set(list)]; }
 // a fact's questions as canonical keys (a repeated question never crosses facts: plan-test checks it)
 function planFactQids(f) { return planUnique(f.src.map(planCanonKey)); }

@@ -77,8 +77,9 @@ function isStudyReturn(ret) { return ret !== null && ret.kind === SESSION_RETURN
 function studyReturnPoint(factId) {
   return isStudyReturn(sessionReturn) ? sessionReturn : { kind: SESSION_RETURN_KIND.study, scrollY: window.scrollY, factId };
 }
-// Study fact → its source questions (f.src order, each distinct question once: G40 asks one copy of a repeated text), header "Fact Ch c #n" (W-016); ↩ Back returns to Study
-// at the same scroll. Entry: the fact card's "▶ Practise these N" (startFactPractice action).
+// Study fact → its source questions (f.src order, each distinct question once: G40 asks one copy of a repeated
+// text), header "Fact Ch c #n" (W-016); ↩ Back returns to Study at the same scroll.
+// Entry: the fact card's "▶ Practise these N" (startFactPractice action).
 function startFactPractice(factId) {
   const fact = STUDY.find(f => f.id === factId);
   if (!fact) return;
