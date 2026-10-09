@@ -228,7 +228,7 @@ function renderPlanCalendar(plan, log, iso, todayIso) {
 }
 // band / rest / ahead / outside / exam; days gone by take the lighter band colours (never opacity, W-034)
 function planCellClass(c) {
-  if (c.examDay) return 'exam plan-exam-pat';
+  if (c.examDay) return 'exam plan-exam-pat' + (c.today ? ' today' : ''); // QA O-2: today's outline on the exam day too
   if (!c.inPlan) return 'out';
   const when = c.today ? ' today' : c.past ? ' past' : '';
   if (c.rest) return 'rest' + when;

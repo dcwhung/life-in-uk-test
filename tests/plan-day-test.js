@@ -255,6 +255,10 @@ async function checkExamDayAndEnded(pg) {
   assert(await text(pg, '#planDayTitle') === 'Exam day' && await visible(pg, '#planDayExam') && !(await visible(pg, '#planDayHead')), 'exam day screen: banner, no ring');
   assert((await text(pg, '#planDayExam')).includes('good luck') && await pg.$eval('#planDayNext', e => e.disabled), 'exam day: "good luck", › disabled');
   assert(await pg.$$eval('#planTaskList .plan-task', els => els.length) === 0 && !(await visible(pg, '#planCarryAlert')), 'G16: no tasks, no carry-over');
+  const cell = await pg.$eval('#planCal [data-iso="2026-10-29"]', e => ({ cls: e.className, current: e.getAttribute('aria-current'),
+    outline: getComputedStyle(e).outlineStyle, image: getComputedStyle(e).backgroundImage }));
+  assert(cell.cls.includes('today') && cell.current === 'date' && cell.outline === 'solid' && cell.image.includes('gradient'),
+    'QA O-2: on the exam day its cell has the today outline and keeps the lattice: ' + JSON.stringify(cell));
   await fresh(pg, at('2026-11-02'));
   await seedPlan(pg);
   await pg.evaluate(() => leaveToHome());
