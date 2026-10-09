@@ -15,8 +15,10 @@ const path = require('path');
 //   a corrupt log is cleared the same way (S-110 / O-1)
 // - S-112: Cancel / Confirm / Esc on the switch-off modal keep the ⓘ popover open with focus on the switch
 // - 44px tap areas, 320 / 360 / 375 / 390 / 400px en + zh-HK without horizontal scroll, [hidden] never displayed
-// - v1.0.2: equal phase segments (name / days on two lines), equal study order bars with a gap before the count,
-//   task lines "Ch n" + a remarks line of full chapter names, the pill under the date box ("Today 100%" fits)
+// - v1.0.2: equal phase segments (name / days on two lines), task lines "Ch n", the pill under the date box
+// - v1.0.3: study order steps read name / why / bar row (equal full-width bars, fixed gap + count column); the day's
+//   chapters as a bullet list of spans (gold, ≥ 4.5:1; grey on past rows); "Today 0–99%" on one line (also in a wider
+//   font); no pill on days ahead; "↺ Reset plan" on its own full-width row
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
 const launchOpts = { args: ['--no-sandbox'] };
 if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_PATH;
@@ -26,7 +28,7 @@ const TODAY = '2026-10-08'; // a Thursday
 const NOW = new Date(TODAY + 'T09:00:00');
 const START = '2026-09-28'; // the seeded plan began 10 days ago: today is Day 11
 const GOAL = { examDate: '2026-10-29', dailyMins: 120, restDays: [0], level: 'none' };
-const WIDTHS = [320, 340, 360, 375, 390, 400, 600]; // 600: the wide (> 480px) study order layout
+const WIDTHS = [320, 340, 360, 375, 390, 400, 600]; // 600: a wide-screen sample (one layout at every width since v1.0.3)
 const HIT_MIN_PX = 44;
 
 const activeScreen = pg => pg.evaluate(() => document.querySelector('.screen.active').id);
@@ -492,7 +494,7 @@ async function checkPhaseLabelsAndPill(pg, where) {
     const clipped = [...document.querySelectorAll('#planPhaseBar span')].filter(e => e.scrollWidth > e.clientWidth + 0.5).map(e => e.textContent);
     const row = document.querySelector('#planDayList .plan-day.today'), pill = row.querySelector('.plan-pill');
     const before = pill.textContent;
-    // S-117: the pill keeps --fs-xs and "Today 0%" / "今日 0%" stays on one line in the left column (72px, v1.0.3)
+    // S-117: the pill keeps --fs-xs and "Today 0%" / "今日 0%" stays on one line in the DAY_SIDE_PX left column
     pill.textContent = t('plan.status.today', { n: 0 });
     const range = document.createRange();
     range.selectNodeContents(pill);
