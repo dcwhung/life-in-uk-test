@@ -204,7 +204,7 @@ const readDayNotes = pg => pg.evaluate(() => {
 async function checkDayChapters(pg) {
   // v1.0.2: task lines name the chapter number only; the remarks under the tasks name each chapter in full
   const notes = await readDayNotes(pg);
-  // v1.0.3 (user): one gold bullet per chapter (mud yellow --gold-text); past rows stay grey like the rest of the row
+  // v1.0.3 (user): one gold bullet per chapter (mud yellow --plan-day-chs-text); past rows stay grey like the rest of the row
   const tokenColor = name => pg.evaluate(n => { const e = document.createElement('span'); e.style.color = `var(${n})`; document.body.append(e); const c = getComputedStyle(e).color; e.remove(); return c; }, name);
   const gold = await tokenColor('--plan-day-chs-text'), grey = await tokenColor('--plan-past-text');
   const fullNames = await pg.evaluate(() => [1, 2, 3, 4, 5].map(ch => planChapterText(ch)));
