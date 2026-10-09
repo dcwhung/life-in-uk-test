@@ -110,7 +110,9 @@ async function checkOverview(pg) {
   assert(r.strat.length === 3 && r.strat.map(s => s[0].split(' ')[1]).join() === 'learn,drill,mock', 'strategy: three phases in order');
   assert(r.strat[0][2].startsWith('Day 1–') && r.strat[2][1].includes(`${r.mocks} timed exams`), 'strategy: day range + mock count: ' + JSON.stringify(r.strat));
   const stratText = await text(pg, '#planStrategy');
-  assert(stratText.includes('236 facts') && stratText.includes('389 questions') && stratText.includes('18/24'), 'strategy: facts / questions totals and the pass mark');
+  assert(stratText.includes('(236 facts · 389 Qs)') && stratText.includes('24 Qs, 45 minutes') && stratText.includes('18/24'), 'strategy: facts / Qs totals and the pass mark');
+  // S-116: a question count next to a number reads "Qs" in English; prose ("redo questions") keeps the word
+  assert(!/\d+ questions/.test(stratText) && stratText.includes('questions straight after reading'), 'strategy: counts use "Qs", prose keeps "questions": ' + stratText);
   const order = await pg.$$eval('#planOrder .plan-ord', els => els.map(e => [e.querySelector('b').textContent, e.querySelector('.plan-ord-why').textContent, e.querySelector('.plan-chw-c').textContent]));
   assert(JSON.stringify(order.map(o => o[0])) === JSON.stringify(['Ch 1 Values & principles + Ch 2 What is the UK?', 'Ch 5 Government & law', 'Ch 4 Modern society', 'Ch 3 History']),
     'order card: Ch1–2 → Ch5 → Ch4 → Ch3: ' + JSON.stringify(order.map(o => o[0])));
