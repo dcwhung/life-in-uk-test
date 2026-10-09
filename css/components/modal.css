@@ -10,6 +10,18 @@
   width: 100%; max-width: 360px; padding: 22px var(--space-10) 18px; text-align: center;
 }
 .modal-title { font-size: 17px; font-weight: 800; color: var(--navy); margin-bottom: var(--space-4); }
-.modal-msg { font-size: var(--fs-md); color: var(--text-muted); line-height: 1.55; margin-bottom: 18px; white-space: pre-line; }
+.modal-msg { font-size: var(--fs-md); color: var(--text-muted); line-height: 1.55; margin-bottom: 18px; white-space: pre-line;
+  text-align: justify; text-align-last: left; } /* v1.0.6 (user): justified, last line on the left; the title stays centred */
 .modal-actions { display: flex; gap: var(--space-5); }
 .modal-actions .nav-btn { flex: 1; }
+
+/* v1.0.6 (user): destructive confirm (showConfirm danger: study plan off / reset, practice / completed exam resets):
+   red title, red Confirm, red single-line Cancel. Cancel takes focus on open, so its focus is a tint instead of
+   an outer ring around the border (user: single line); Confirm keeps a red ring */
+.modal-card.danger .modal-title { color: var(--red); }
+.modal-card.danger #confirmOk { background: var(--red); }
+.modal-card.danger #confirmOk:hover { background: var(--red-dark); }
+.modal-card.danger #confirmOk:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+.modal-card.danger #confirmCancel { color: var(--red); border-color: var(--red); }
+.modal-card.danger #confirmCancel:hover,
+.modal-card.danger #confirmCancel:focus-visible { background: var(--danger-bg); color: var(--red); border-color: var(--red); outline: none; }

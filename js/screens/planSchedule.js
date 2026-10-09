@@ -274,7 +274,7 @@ function planEditGoal() {
 // "↺ Reset plan" = delete (handoff §2.3): the plan and its log only; practice records and the switch stay
 function planAskReset() {
   showConfirm({ title: t('modal.planResetTitle'), message: t('modal.planResetMessage'), okLabel: t('modal.planResetOk'),
-    cancelLabel: t('modal.planResetCancel'), onOk: planReset, focusCancel: true });
+    cancelLabel: t('modal.planResetCancel'), onOk: planReset, focusCancel: true, danger: true });
 }
 function planReset() {
   clearStudyPlan();

@@ -110,7 +110,7 @@ function renderResetRows(isPractice) {
 // both resets ask in the in-app modal first (Keep / Reset), like the exam's Submit / Leave prompts
 function confirmReset(titleKey, messageKey, onOk) {
   showConfirm({ title: t(titleKey), message: t(messageKey),
-    okLabel: t('modal.resetOk'), cancelLabel: t('modal.resetCancel'), onOk, focusCancel: true });
+    okLabel: t('modal.resetOk'), cancelLabel: t('modal.resetCancel'), onOk, focusCancel: true, danger: true });
 }
 function resetPracticeProgress() {
   confirmReset('modal.resetProgressTitle', 'modal.resetProgressMessage', () => {
