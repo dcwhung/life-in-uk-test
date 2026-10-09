@@ -191,7 +191,7 @@ async function checkDayList(pg) {
   });
   // v1.0.3 (user): one gold bullet per chapter (mud yellow --gold-text); past rows stay grey like the rest of the row
   const tokenColor = name => pg.evaluate(n => { const e = document.createElement('span'); e.style.color = `var(${n})`; document.body.append(e); const c = getComputedStyle(e).color; e.remove(); return c; }, name);
-  const gold = await tokenColor('--gold-text'), grey = await tokenColor('--plan-past-text');
+  const gold = await tokenColor('--plan-day-chs-text'), grey = await tokenColor('--plan-past-text');
   const fullNames = await pg.evaluate(() => [1, 2, 3, 4, 5].map(ch => planChapterText(ch)));
   const withCh = notes.filter(n => n.chs.length && !n.light);
   // PR5: rows are buttons, so the list is spans (phrasing content): one .plan-day-ch per chapter, each on its own line
@@ -202,8 +202,25 @@ async function checkDayList(pg) {
   assert(withCh.every(n => n.bullets.every(c => c.includes('•'))), 'remarks: each chapter has a bullet: ' + JSON.stringify(withCh[0].bullets));
   const want = n => (n.past ? grey : gold);
   assert(withCh.every(n => n.colors.every(c => c === want(n)) && n.markers.every(c => c === want(n))),
-    `remarks: text + bullets ${gold} (--gold-text), past rows ${grey}: ` + JSON.stringify(withCh.map(n => [n.past, n.colors[0], n.markers[0]]).slice(8, 13)));
+    `remarks: text + bullets ${gold} (--plan-day-chs-text), past rows ${grey}: ` + JSON.stringify(withCh.map(n => [n.past, n.colors[0], n.markers[0]]).slice(8, 13)));
   assert(withCh.some(n => n.past) && withCh.some(n => !n.past), 'remarks: both past and current rows checked');
+  // review: --gold-text was 4.45:1 on today's tint; the chapter list's own token holds ≥ 4.5:1 on white, today's tint
+  // (also the hover) and the past row (WCAG 1.4.3, 11px text)
+  const ratios = await pg.evaluate(() => {
+    const rgb = c => c.match(/[\d.]+/g).map(Number);
+    const lum = c => { const v = rgb(c).slice(0, 3).map(x => x / 255).map(x => (x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4)); return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2]; };
+    const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+    const col = n => { const e = document.createElement('span'); e.style.color = `var(${n})`; document.body.append(e); const c = getComputedStyle(e).color; e.remove(); return c; };
+    const text = col('--plan-day-chs-text');
+    const out = Object.fromEntries(['--card', '--selected-bg'].map(n => [n, ratio(text, col(n))]));
+    // the live rows: every chapter item against its row's own background
+    document.querySelectorAll('#planDayList .plan-day').forEach(row => {
+      const bg = getComputedStyle(row).backgroundColor, base = rgb(bg)[3] === 0 ? 'rgb(255, 255, 255)' : bg;
+      row.querySelectorAll('.plan-day-ch').forEach(li => { out.min = Math.min(out.min || 99, ratio(getComputedStyle(li).color, base)); });
+    });
+    return out;
+  });
+  assert(Object.values(ratios).every(r => r >= 4.5), 'remarks: ≥ 4.5:1 on white, --selected-bg and every row: ' + JSON.stringify(ratios));
   assert(notes.filter(n => !n.chs.length || n.light).every(n => n.note === null), 'remarks: none on rest / mock-only / light days');
   assert(notes.every(n => !fullNames.some(f => n.tasks.includes(f))), 'task lines show "Ch n" without the chapter name');
   assert(r.exam.cls.includes('exam') && r.exam.pat && r.exam.text.includes('🎯') && r.exam.text.includes('29/10 Thu') && r.exam.text.includes('Exam day'),
