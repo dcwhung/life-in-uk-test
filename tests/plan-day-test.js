@@ -206,6 +206,14 @@ async function checkPastAndAhead(pg) {
   const past = await pg.$$eval('#planTaskList .plan-task', els => els.map(e => e.className));
   assert(past.every(c => !c.includes('carry')), 'a past day lists its own tasks (no carry tags)');
   assert(!(await visible(pg, '#planCarryAlert')), 'carry alert only on today');
+  // CUI-0022 / G24: a past day never opened has no clear-wrong task at all (not in the list, not in n / m)
+  await openDay(pg, '2026-09-29');
+  const d2 = await pg.evaluate(() => ({ count: byId('planDayCount').textContent, ring: byId('planRingPct').textContent, done: !byId('planDayDone').hidden,
+    boxes: [...document.querySelectorAll('#planTaskList .plan-task')].map(e => e.className), text: byId('planTaskList').textContent }));
+  assert(d2.count === '2 / 2 done' && d2.ring === '100%' && d2.done, 'CUI-0022: unopened past day: 2 / 2 done, 100%, done banner: ' + JSON.stringify(d2));
+  assert(d2.boxes.length === 2 && !d2.boxes.some(c => c.includes('review')) && !d2.text.includes('Decided on the day'), 'CUI-0022: no clear-wrong box on it');
+  assert(await pg.evaluate(() => planVisibleTasks(planLoad().days[2], '2026-10-01').length) === 4 && await pg.evaluate(() => planVisibleTasks(planLoad().days[4], '2026-10-01').length) === 5,
+    'planVisibleTasks: a past unopened review is dropped; an ahead day keeps it (G23)');
   // ahead: a drill day (G23: decided on the day), a rest day, a mock day
   await openDay(pg, '2026-10-06');
   assert(await text(pg, '#planDayPhase') === 'Drill phase · ahead' && (await text(pg, '#planDayHint')).includes('early'), 'ahead day: pill · ahead + early hint');

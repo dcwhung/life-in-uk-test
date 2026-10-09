@@ -102,12 +102,13 @@ function renderPlanDayBody(plan, log, iso, todayIso) {
   const carry = iso === todayIso ? planCarryTasks(plan, log, todayIso) : [];
   setShown('planDayExam', false);
   setShown('planDayHead', true);
+  const tasks = planVisibleTasks(day, todayIso); // CUI-0022: one list for the boxes and for n / m
   renderPlanRing(comp.pct, iso === todayIso);
-  renderPlanDayInfo(day, comp, when);
+  renderPlanDayInfo(day, tasks.map(task => planTaskProgress(task, dayLog)), when);
   const doneKey = iso === todayIso ? 'plan.day.doneToday' : 'plan.day.doneDay';
   byId('planDayDone').textContent = t(doneKey);
   setShown('planDayDone', comp.pct === PERCENT);
-  renderPlanTasks(plan, day, dayLog, when, carry, log);
+  renderPlanTasks(plan, { ...day, tasks }, dayLog, when, carry, log);
   byId('planCarryText').textContent = t('plan.day.carryAlert', { n: carry.length });
   setShown('planCarryAlert', carry.length > 0);
 }
@@ -126,13 +127,13 @@ function renderPlanRing(pct, isToday) {
 }
 const PLAN_PILL_KEYS = { today: 'plan.day.pill', past: 'plan.day.pillPast', '': 'plan.day.pillAhead' };
 const PLAN_HINT_KEYS = { today: 'plan.day.hintToday', past: 'plan.day.hintPast', '': 'plan.day.hintAhead' };
-function renderPlanDayInfo(day, comp, when) {
+function renderPlanDayInfo(day, progress, when) {
   const pill = byId('planDayPhase'), rest = day.phase === PLAN_PHASE.rest;
   const pillKey = PLAN_PILL_KEYS[when], hintKey = PLAN_HINT_KEYS[when], phaseKey = PLAN_PHASE_LABEL_KEYS[day.phase];
   pill.className = `plan-pill plan-phase-pill ${day.phase}`;
   pill.textContent = rest ? t('plan.schedule.restDay') : t(pillKey, { phase: t(phaseKey) });
-  const done = comp.tasks.filter(p => p.complete).length;
-  byId('planDayCount').textContent = rest ? t('plan.day.restCount') : t('plan.day.count', { done, total: day.tasks.length });
+  const done = progress.filter(p => p.complete).length;
+  byId('planDayCount').textContent = rest ? t('plan.day.restCount') : t('plan.day.count', { done, total: progress.length });
   byId('planDayHint').textContent = t(hintKey);
   setShown('planDayHint', !rest);
 }
