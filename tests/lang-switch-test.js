@@ -396,7 +396,8 @@ const myReviewView = pg => pg.evaluate(() => {
     };
   };
   const outside = [...byId('myReview').querySelectorAll('.t-note, .my-note, #myReviewNote')].filter(e => !e.closest('.my-tile'));
-  return { wrong: tile('tileWrong'), flagged: tile('tileFlagged'), outside: outside.map(squash) };
+  const stacked = byId('tileFlagged').getBoundingClientRect().top >= byId('tileWrong').getBoundingClientRect().bottom;
+  return { wrong: tile('tileWrong'), flagged: tile('tileFlagged'), outside: outside.map(squash), stacked };
 });
 async function checkMyReviewIn(pg, lang, tag) {
   assert((await langOf(pg)).lang === lang, `${tag}: page in ${lang}`);
@@ -405,7 +406,8 @@ async function checkMyReviewIn(pg, lang, tag) {
   assert(v.outside.length === 0, `${tag}: no note outside the tiles: ` + JSON.stringify(v.outside));
   assert(v.wrong.sub === null, `${tag}: 30 wrong → no "to clear" line under the title (v0.70): ${v.wrong.sub}`);
   assert(!v.flagged.text.includes(FLAGGED_8[lang]) && !v.flagged.subVisible, `${tag}: 8 flagged → no "${FLAGGED_8[lang]}", no visible .sub: ${v.flagged.text}`);
-  assert(v.wrong.height === v.flagged.height, `${tag}: tiles are the same height (${v.wrong.height} / ${v.flagged.height})`);
+  // v1.0.3: side by side (landscape) the tiles match heights; stacked (portrait) each keeps its own
+  assert(v.stacked || v.wrong.height === v.flagged.height, `${tag}: side-by-side tiles are the same height (${v.wrong.height} / ${v.flagged.height})`);
 }
 async function checkMyReviewEmptyIn(pg, lang, tag) {
   assert((await langOf(pg)).lang === lang, `${tag}: page in ${lang}`);
@@ -413,7 +415,7 @@ async function checkMyReviewEmptyIn(pg, lang, tag) {
   // v0.70: no note at 0, only "Nothing to review yet"
   assert(v.wrong.note === null && v.wrong.sub === WRONG_EMPTY[lang], `${tag}: 0 wrong → "${WRONG_EMPTY[lang]}", no note: ${JSON.stringify(v.wrong)}`);
   assert(v.outside.length === 0, `${tag}: 0 wrong → no note outside the tiles: ` + JSON.stringify(v.outside));
-  assert(v.wrong.height === v.flagged.height, `${tag}: 0 wrong → tiles the same height (${v.wrong.height} / ${v.flagged.height})`);
+  assert(v.stacked || v.wrong.height === v.flagged.height, `${tag}: 0 wrong → side-by-side tiles the same height (${v.wrong.height} / ${v.flagged.height})`);
   // W-022: the empty tile fades its own parts (opacity multiplies down the tree)
   const fade = await effectiveOpacities(pg, '#tileWrong', ['.t-icon', '.t-num', 'b', '.sub']);
   assert(Object.values(fade).every(o => o < 1), `${tag}: 0 wrong → icon, count, title, sub fade: ` + JSON.stringify(fade));
@@ -450,6 +452,41 @@ async function checkMyReviewNarrow(pg, check, lang, tag) {
   } finally {
     await pg.setViewportSize(WIDE);
   }
+}
+// v1.0.3 (user): portrait stacks the two tiles, each the grid's full width; landscape keeps them side by side
+const MY_REVIEW_PORTRAIT = [{ width: 320, height: 640 }, { width: 390, height: 844 }, { width: 768, height: 1024 }];
+const MY_REVIEW_LANDSCAPE = [{ width: 844, height: 390 }, { width: 1024, height: 768 }];
+const MY_REVIEW_TOLERANCE_PX = 1;
+async function checkMyReviewOrientation(pg) {
+  await seedMyReview(pg, MY_REVIEW_WRONG_N, MY_REVIEW_FLAG_N);
+  const layout = () => pg.evaluate(() => {
+    const r = id => byId(id).getBoundingClientRect(), grid = document.querySelector('#myReview .my-grid').getBoundingClientRect();
+    const w = r('tileWrong'), f = r('tileFlagged');
+    return { grid: Math.round(grid.width), w: [Math.round(w.left), Math.round(w.width), Math.round(w.bottom)], f: [Math.round(f.left), Math.round(f.width), Math.round(f.top)], sameTop: Math.round(w.top) === Math.round(f.top) };
+  });
+  const tol = MY_REVIEW_TOLERANCE_PX;
+  for (const lang of [EN, ZH_HK]) {
+    await pg.evaluate(l => { setLang(l); leaveToHome(); startMode('practice'); }, lang);
+    for (const vp of MY_REVIEW_PORTRAIT) {
+      await pg.setViewportSize(vp);
+      const l = await layout();
+      assert(l.f[2] >= l.w[2] && Math.abs(l.w[1] - l.grid) <= tol && Math.abs(l.f[1] - l.grid) <= tol,
+        `My Review ${lang} ${vp.width}×${vp.height} portrait: tiles stacked, each the grid's full width: ` + JSON.stringify(l));
+    }
+    for (const vp of MY_REVIEW_LANDSCAPE) {
+      await pg.setViewportSize(vp);
+      const l = await layout();
+      assert(l.sameTop && l.f[0] > l.w[0] && Math.abs(l.w[1] - l.f[1]) <= tol && l.w[1] < l.grid / 2,
+        `My Review ${lang} ${vp.width}×${vp.height} landscape: tiles side by side, equal widths: ` + JSON.stringify(l));
+      const v = await myReviewView(pg);
+      assert(v.wrong.height === v.flagged.height, `My Review ${lang} ${vp.width}×${vp.height} landscape: same height`);
+    }
+  }
+  await pg.setViewportSize(WIDE);
+  await pg.evaluate(() => {
+    localStorage.removeItem('lifeuk.wrongList'); localStorage.removeItem('lifeuk.practiceFlags');
+    wrongList = {}; practiceFlags = {}; setLang('en'); leaveToHome();
+  });
 }
 async function checkMyReviewTiles(pg) {
   await pg.evaluate(lang => setLang(lang), EN);
@@ -593,7 +630,7 @@ const hasCjkFont = pg => pg.evaluate(({ px, chars, baseline }) => {
 const CHECKS = [
   checkPill, checkHomeSwitch, checkHomePractice, checkQuizPractice, checkAnswerFallback, checkOptionYueLang,
   checkSideSession, checkQuizExam, checkExamTimer, checkModal, checkResult, checkFlagged, checkStudy, checkPlanGoal, checkPlanSchedule, checkDoubleTap,
-  checkMyReviewTiles, checkExamDesc, checkPracticeHint, checkResetRows, checkLeaveCancel,
+  checkMyReviewTiles, checkMyReviewOrientation, checkExamDesc, checkPracticeHint, checkResetRows, checkLeaveCancel,
 ];
 
 async function main() {

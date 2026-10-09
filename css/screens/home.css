@@ -112,6 +112,8 @@
 .my-review { display: none; margin-bottom: var(--space-2); }
 .my-review.show { display: block; }
 .my-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-5); margin-bottom: var(--space-10); }
+/* v1.0.3 (user): portrait stacks the two tiles, each full width; landscape keeps them side by side */
+@media (orientation: portrait) { .my-grid { grid-template-columns: minmax(0, 1fr); } }
 /* grid stretches both tiles to one height; flex column keeps a short tile's content at the top
    (a <button> centres its content vertically by default) */
 .my-tile {
