@@ -21,7 +21,7 @@ function toggleInfo() {
 }
 // counts in the popover text come from the data
 function fillInfoCounts() {
-  byId('infoTitle').textContent = t('app.infoTitle', { n: EXAM_COUNT });
+  byId('infoTitle').textContent = t('app.title'); // v1.0.6 (user): the app title, as <title> and the header
   byId('infoIntro').textContent = t('app.infoIntro', { n: TOTAL_QUESTIONS });
   byId('infoExamCount').textContent = t('app.infoExams', { n: EXAM_COUNT });
   const chapterBadge = byId('infoChapterCount'); // a pre-v1.0.5 shell has no chapter badge
