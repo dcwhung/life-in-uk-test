@@ -175,6 +175,8 @@ async function checkResultCard(pg, { i, qids }) {
   assert(r.sub === `All ${qids.length} questions right, 1 of them after a redo.`, 'summary: ' + r.sub);
   assert(/^The matching “Read Ch \d .+” now counts as read\.$/.test(r.note), 'G3: the matching reading task now counts as read: ' + r.note);
   assert(r.next.startsWith('Next') && r.acts[0][1] === 'planReviewTask' && r.acts[1][0] === 'Start next →', 'next task card + "Review this task" / "Start next →": ' + r.next);
+  assert(await pg.evaluate(() => document.activeElement === document.querySelector('#planRunBody .result-label') && document.activeElement.tabIndex === -1),
+    'S-121: the Result card takes focus on its result line (screen readers read it)');
   assert(r.back === "← Today's tasks" && !r.side, 'header ← Today\'s tasks; the side session has ended');
   for (const s of ['#planRunBack', '#planRunBody [data-action="planReviewTask"]', '#planRunBody [data-action="planOpenTask"]']) assert(await hitOk(pg, s), `${s}: ${HIT_MIN_PX}px`);
   const low = (await contrastOf(pg, '#screenPlanRun .result-label, #screenPlanRun .result-sub, #screenPlanRun .plan-note, #screenPlanRun .plan-muted, #screenPlanRun .section-title, #screenPlanRun b'))

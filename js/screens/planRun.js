@@ -170,6 +170,9 @@ function planShowTaskDone(date, taskIndex, from) {
   showScreen('screenPlanRun');
   window.scrollTo(0, 0);
   renderPlanRun();
+  // S-121: the last question's button is gone with screenQuiz; focus goes to the result line (as the day heading)
+  const result = document.querySelector('#planRunBody .result-label');
+  if (result) result.focus({ preventScroll: true });
 }
 // the day screen's list: the day's own tasks, plus the carry-over on today (G8); { date, taskIndex, task, dayLog }
 function planRunList(plan, log, viewIso, todayIso) {
@@ -207,7 +210,7 @@ function planDoneCardHtml(ctx, isToday, next, pct) {
   const day = `<span lang="en">${t('plan.dayN', { n: planDayNumber(ctx.plan, ctx.day.date) })}</span>`;
   return `<div class="result-card"><div class="result-emoji" aria-hidden="true">${all ? '🎉' : '✅'}</div>`
     + `<div class="result-score plan-num">${pct}<span>%</span></div>`
-    + `<div class="result-label${all ? ' pass' : ''}">${t(labelKey, { day })}</div><div class="result-sub">${subText}</div></div>`;
+    + `<div class="result-label${all ? ' pass' : ''}" tabindex="-1">${t(labelKey, { day })}</div><div class="result-sub">${subText}</div></div>`;
 }
 // "n questions all right, k of them wrong at first and redone right" (the day's wrong answers on this task)
 function planDoneSummary(ctx) {
