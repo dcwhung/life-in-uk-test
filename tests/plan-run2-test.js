@@ -395,6 +395,13 @@ async function checkMockTimer(pg) {
   await pg.waitForFunction(() => document.querySelector('.screen.active').id === 'screenResult', null, { timeout: 5000 });
   const r = await pg.evaluate(() => ({ up: !byId('resultTimeUp').hidden, note: byId('resultPlanRow').textContent, log: planDayLog(planLoadLog(), planTodayIso()).mock }));
   assert(r.up && r.note.includes('✓ Mock exam task done') && r.log.length === 1 && r.log[0].correct === 18, 'time up submits: 18 / 24 passes the task');
+  // QA O-3: switching off on the result page hides the plan row (on shows it again)
+  await pg.evaluate(() => togglePlanFeature());
+  await tap(pg, '#confirmOk');
+  assert(await activeScreen(pg) === 'screenResult' && await pg.evaluate(() => byId('resultPlanRow').hidden && byId('resultPlanRow').innerHTML === ''),
+    'O-3: switch off on the result page: the result stays, the plan row is hidden');
+  await pg.evaluate(() => setPlanFeature(true));
+  assert(await pg.evaluate(() => !byId('resultPlanRow').hidden), 'O-3: switch on again: the plan row is back');
 }
 
 // S-131: started 23:50, submitted 00:10: the log has no attempt for that day, so the row says it does not count

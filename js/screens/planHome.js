@@ -74,6 +74,7 @@ function setPlanFeature(on) {
   setStudyPlanEnabled(on);
   renderPlanSettings();
   renderPlanCard();
+  renderResultPlanRow(); // QA O-3: a plan mock's result page stays (W-031), its plan row follows the switch
   const toastKey = on ? 'plan.toastOn' : 'plan.toastOff';
   showToast(t(toastKey));
 }
