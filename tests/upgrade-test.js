@@ -137,6 +137,26 @@ async function prePlanUiShell(b) {
   await pg.close();
 }
 
+// CUI-0021 (PR4): a PR3 shell has the goal screen but no schedule: "Build" would open nothing, so no card either
+const PR3_SHELL_REF = '8bcb5ee'; // main after the PR3 merge (#61)
+async function pr3Shell(b) {
+  const dir = tmpDir('pr3shell');
+  copyCurrent(dir);
+  fs.writeFileSync(path.join(dir, 'old.html'), execFileSync('git', ['-C', ROOT, 'show', `${PR3_SHELL_REF}:index.html`]));
+  const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
+  const errs = []; pg.on('pageerror', e => errs.push(e.message));
+  await pg.goto('file://' + path.join(dir, 'old.html'));
+  await seed(pg, { [P + 'studyPlanPreview']: 'true' });
+  await pg.waitForSelector('#examGrid .exam-btn', { state: 'attached' });
+  assert(await pg.evaluate(() => typeof openPlanSchedule === 'function' && !!document.getElementById('screenPlanGoal') && !document.getElementById('screenPlanSchedule')),
+    'PR3 shell: planSchedule.js late-loaded, goal screen markup but no schedule');
+  assert(await pg.evaluate(() => !document.getElementById('planCard')), 'PR3 shell + preview: no plan card (CUI-0021)');
+  await pg.evaluate(() => { openPlanGoal(); openPlanSchedule(); });
+  assert(await pg.evaluate(() => document.querySelector('.screen.active').id) === 'screenHome', 'PR3 shell: plan screens stay closed');
+  assert(errs.length === 0, 'PR3 shell + preview: no page errors: ' + errs.join(' | '));
+  await pg.close();
+}
+
 // 5. S-014: the old shell's locale fetch fails (file missing) — main.js reloads once, then shows its fallback text
 const I18N_BOOT_FALLBACK = fs.readFileSync(path.join(ROOT, 'js/main.js'), 'utf8').match(/const I18N_BOOT_FALLBACK_MSG =\s*'([^']+)'/);
 const BOOT_SETTLE_MS = 1000;
@@ -328,6 +348,7 @@ function checkV057Ref() {
   const b = await chromium.launch(launchOpts);
   await mixedShell(b);
   await prePlanUiShell(b);
+  await pr3Shell(b);
   await oppositeMix(b);
   await swUpgrade(b);
   await v057UtilsMix(b);

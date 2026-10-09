@@ -3,6 +3,9 @@
 // today + 7 and today + 6 months), the daily limit (slider 30–120, step 15), rest days, level (.mode-card) and
 // whether the time is enough (✓ / △ / ✕; G13: ✕ still builds, with longer days). Fewer than PLAN_MIN_STUDY_DAYS
 // study days disables the CTA with a hint (G28). Create = clear the old plan + log, then store buildPlan().
+// "Change goal" (schedule) opens the same form prefilled with the plan's goal; its CTA re-plans from today
+// (replanFrom, G7: past days frozen, Day 1 unchanged). G36: there the exam may be as soon as tomorrow with a
+// single study day (PLAN_GOAL_MODE.edit; the limits live in plan.js). Either way the schedule opens next.
 // ════════════════════════════════════════
 const PLAN_DEFAULT_GOAL = { days: 21, dailyMins: 120, restDays: [0], level: 'none' };
 const PLAN_PRESET_LABEL_KEYS = { 14: 'plan.goal.preset2w', 21: 'plan.goal.preset3w', 28: 'plan.goal.preset4w', 42: 'plan.goal.preset6w' };
@@ -11,14 +14,19 @@ const PLAN_MINUTES_PER_HOUR = 60;
 const PLAN_FEAS_METER_SCALE = 1.5; // the meter is full at 150% of the time needed
 const PLAN_PERCENT = 100;
 let planGoalDraft = null; // { examDate, dailyMins, restDays, level } being edited
+let planGoalEditing = false; // true: changing the stored plan's goal; false: a new plan
+// G36: which limits the date field and the CTA follow
+function planGoalMode() { return planGoalEditing ? PLAN_GOAL_MODE.edit : PLAN_GOAL_MODE.create; }
 
 function planDefaultDraft(todayIso) {
   const d = PLAN_DEFAULT_GOAL;
   return { examDate: isoAddDays(todayIso, d.days), dailyMins: d.dailyMins, restDays: [...d.restDays], level: d.level };
 }
-function openPlanGoal() {
+// goal: the stored plan's goal to change, or none for a new plan
+function openPlanGoal(goal = null) {
   if (!planVisible()) return;
-  planGoalDraft = planDefaultDraft(planTodayIso());
+  planGoalEditing = !!goal;
+  planGoalDraft = goal ? planCopyGoal(goal) : planDefaultDraft(planTodayIso());
   showScreen('screenPlanGoal');
   renderPlanGoal();
   window.scrollTo(0, 0);
@@ -62,7 +70,7 @@ function renderPlanDays(todayIso) {
 }
 // W-033: while the field has focus its half-typed segments are left alone (planCommitExamDate writes it back)
 function renderPlanDateInput(todayIso) {
-  const input = byId('planExamDate'), range = planExamDateRange(todayIso);
+  const input = byId('planExamDate'), range = planExamDateRange(todayIso, planGoalMode());
   // re-setting min / max on a focused date field drops its focus in Chromium, so only on a change (midnight)
   if (input.min !== range.min) input.min = range.min;
   if (input.max !== range.max) input.max = range.max;
@@ -70,7 +78,7 @@ function renderPlanDateInput(todayIso) {
 }
 // S-111: a draft left open past midnight moves up to the new minimum (as a date past the maximum moves down)
 function planClampDraftDate(todayIso) {
-  const range = planExamDateRange(todayIso);
+  const range = planExamDateRange(todayIso, planGoalMode());
   if (planGoalDraft.examDate < range.min) planGoalDraft.examDate = range.min;
 }
 function renderPlanMins() {
@@ -106,12 +114,14 @@ function renderPlanLevels() {
 const PLAN_FEAS_LABEL_KEYS = { ok: 'plan.feas.ok', tight: 'plan.feas.tight', short: 'plan.feas.short' };
 const PLAN_FEAS_MSG_KEYS = { ok: 'plan.feas.okMsg', tight: 'plan.feas.tightMsg', short: 'plan.feas.shortMsg' };
 function renderPlanFeasibility(todayIso) {
-  const f = planFeasibility(planGoalDraft, todayIso);
+  // W-035: a changed goal re-plans only the facts still to learn (replanFrom), so the estimate counts those
+  const factIds = planGoalEditing ? planFactsLeft(planLoadLog() || planEmptyLog()) : PLAN_LEARN_ORDER;
+  const f = planFeasibility(planGoalDraft, todayIso, factIds);
   const labelKey = PLAN_FEAS_LABEL_KEYS[f.status], msgKey = PLAN_FEAS_MSG_KEYS[f.status];
   byId('planFeasPill').className = 'plan-pill ' + f.status;
   byId('planFeasPill').textContent = t(labelKey);
   byId('planFeasDays').textContent = f.studyDays;
-  byId('planFeasDaysSub').textContent = t('plan.feas.studyDaysSub', { total: f.studyDays + f.restCount, rest: f.restCount });
+  byId('planFeasDaysSub').textContent = t('plan.feas.studyDaysSub', { n: f.studyDays + f.restCount, rest: f.restCount });
   byId('planFeasAvail').textContent = t('plan.feas.hours', { n: planHours(f.availMins) });
   byId('planFeasNeed').textContent = t('plan.feas.hours', { n: planHours(f.needMins) });
   const meter = byId('planFeasMeter');
@@ -120,16 +130,22 @@ function renderPlanFeasibility(todayIso) {
   byId('planFeasMsg').textContent = t(msgKey, { n: planHours(f.diffMins), m: PLAN_MINS.step });
 }
 function renderPlanCta(todayIso) {
-  const check = validatePlanGoal(planGoalDraft, todayIso);
+  const mode = planGoalMode(), check = validatePlanGoal(planGoalDraft, todayIso, mode);
   byId('planCreateBtn').disabled = !check.ok;
   const fewDays = check.errors.includes(PLAN_GOAL_ERROR.studyDays);
-  byId('planGoalHint').textContent = fewDays ? t('plan.goal.minStudyDays', { n: PLAN_MIN_STUDY_DAYS }) : '';
+  const hintKey = planGoalEditing ? 'plan.goal.editMinStudyDays' : 'plan.goal.minStudyDays';
+  byId('planGoalHint').textContent = fewDays ? t(hintKey, { n: planGoalLimits(mode).minStudyDays }) : '';
   setShown('planGoalHint', fewDays);
   setShown('planFeasMsg', !fewDays); // its "build anyway" advice (G13) does not apply while the CTA is disabled
 }
 function renderPlanGoal() {
   if (!planGoalDraft) planGoalDraft = planDefaultDraft(planTodayIso());
   const todayIso = planTodayIso();
+  const stepKey = planGoalEditing ? 'plan.goal.editStep' : 'plan.goal.step', ctaKey = planGoalEditing ? 'plan.goal.update' : 'plan.goal.create';
+  byId('planGoalStep').textContent = t(stepKey);
+  byId('planCreateBtn').textContent = t(ctaKey);
+  setShown('planGoalSteps', !planGoalEditing); // the 1 / 2 stepper belongs to a new plan
+  setShown('planDateNote', planGoalEditing); // G36: tells why the date field now starts tomorrow
   planClampDraftDate(todayIso);
   renderPlanDays(todayIso);
   renderPlanMins();
@@ -149,14 +165,14 @@ function planSetDays(n) {
 // takes a complete in-range date and never rewrites the field. Leaving the field commits it: a date past the
 // 6-month limit moves to the limit, anything else not taken snaps back to the draft.
 function planSetExamDate(value) {
-  const range = planExamDateRange(planTodayIso());
+  const range = planExamDateRange(planTodayIso(), planGoalMode());
   if (!isoIsValid(value) || value < range.min || value > range.max) return;
   planGoalDraft.examDate = value;
   renderPlanGoal();
 }
 // CUI-0019: usually input already took the date, so a commit that changes nothing only resets the field
 function planCommitExamDate(value) {
-  const range = planExamDateRange(planTodayIso()), before = planGoalDraft.examDate;
+  const range = planExamDateRange(planTodayIso(), planGoalMode()), before = planGoalDraft.examDate;
   if (isoIsValid(value) && value > range.max) planGoalDraft.examDate = range.max;
   else if (isoIsValid(value) && value >= range.min) planGoalDraft.examDate = value;
   if (planGoalDraft.examDate !== before) renderPlanGoal();
@@ -176,12 +192,19 @@ function planSetLevel(level) {
   if (planIsLevel(level)) planGoalDraft.level = level;
   renderPlanGoal();
 }
-// O-2: a new plan never inherits the old log (or a corrupt one, O-1); the schedule screen is PR4, so Home for now
+// O-2: a new plan never inherits the old log (or a corrupt one, O-1). A changed goal keeps the log (G7): an
+// unreadable log re-plans as if nothing were answered and stays as it is (↺ Reset clears it, S-110).
+// A plan deleted meanwhile (another tab) makes the edit a new plan; a goal only a change allows (G36) then
+// shows the form in create mode with its limits instead of doing nothing.
 function planCreate() {
   const todayIso = planTodayIso();
-  const plan = buildPlan(planGoalDraft, todayIso);
-  if (!plan) return;
-  clearStudyPlan();
+  const old = planGoalEditing ? planLoad() : null;
+  const plan = old ? replanFrom(old, planGoalDraft, todayIso, planLoadLog() || planEmptyLog()) : buildPlan(planGoalDraft, todayIso);
+  if (!plan) {
+    if (planGoalEditing && !old) { planGoalEditing = false; renderPlanGoal(); }
+    return;
+  }
+  if (!old) clearStudyPlan();
   writeStudyPlan(plan);
-  leaveToHome();
+  openPlanSchedule();
 }

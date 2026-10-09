@@ -306,6 +306,33 @@ async function checkPlanGoal(pg, ctx) {
   await pg.evaluate(() => { window.planEntryReady = window.planEntryReadyWas; leaveToHome(); });
 }
 
+// study plan schedule (PR4): seeded plan begun 10 days ago, list scrolled; the plan, its log and the scroll survive.
+// Its own page (fresh storage) with a fixed clock: the plan is built from "today", and the real clock could cross
+// midnight mid-check
+const PLAN_SCHEDULE_NOW = new Date('2026-10-08T09:00:00');
+async function checkPlanSchedule(pg, ctx) {
+  const sp = await pg.context().browser().newPage({ viewport: WIDE });
+  sp.on('pageerror', e => ctx.errs.push(e.message));
+  sp.on('console', m => { if (m.type() === 'warning') ctx.warns.push(m.text()); });
+  await sp.clock.setFixedTime(PLAN_SCHEDULE_NOW);
+  await sp.goto(APP_URL);
+  await sp.evaluate(() => {
+    window.planEntryReady = () => true;
+    writeStudyPlan(buildPlan({ examDate: '2026-10-19', dailyMins: 90, restDays: [0], level: 'some' }, '2026-09-28'));
+    openPlanSchedule();
+    byId('planDayList').scrollTo({ top: 120, behavior: 'instant' });
+  });
+  const scroll = () => sp.evaluate(() => byId('planDayList').scrollTop);
+  await switchOn(sp, ctx, 'plan schedule', '#planSummary');
+  assert(await scroll() === 120, 'plan schedule zh-HK: the day list keeps its scroll position');
+  assert((await textOf(sp, '#planDayList .plan-day.today .plan-pill')).startsWith('今日') && (await textOf(sp, '#planStrategy')).includes('模擬考試'),
+    'plan schedule zh-HK: pills and strategy re-rendered');
+  await switchOn(sp, ctx, 'plan schedule', '#planSummary');
+  assert(await scroll() === 120 && (await textOf(sp, '#planDayList .plan-day.today .plan-pill')).startsWith('Today'), 'plan schedule back in en: scroll kept, pills in en');
+  await sp.evaluate(() => clearStudyPlan());
+  await sp.close();
+}
+
 // Study: tab + chip + typed search, then chapters / timeline / geography
 async function checkStudy(pg, ctx) {
   await pg.evaluate(() => { openStudy(); studySetTab('people'); studySetGroup('writer'); });
@@ -544,7 +571,7 @@ const hasCjkFont = pg => pg.evaluate(({ px, chars, baseline }) => {
 // run in order: each check starts from the screen / language the previous one left
 const CHECKS = [
   checkPill, checkHomeSwitch, checkHomePractice, checkQuizPractice, checkAnswerFallback, checkOptionYueLang,
-  checkSideSession, checkQuizExam, checkExamTimer, checkModal, checkResult, checkFlagged, checkStudy, checkPlanGoal, checkDoubleTap,
+  checkSideSession, checkQuizExam, checkExamTimer, checkModal, checkResult, checkFlagged, checkStudy, checkPlanGoal, checkPlanSchedule, checkDoubleTap,
   checkMyReviewTiles, checkExamDesc, checkPracticeHint, checkLeaveCancel,
 ];
 

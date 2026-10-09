@@ -180,6 +180,11 @@ LOCALES.en = {
     planOffMessage: "The plan card, schedule and today's tasks will be hidden, and you'll leave the study plan screens. Your plan and progress are kept: turn it back on to carry on where you left off.",
     planOffOk: 'Confirm',
     planOffCancel: 'Cancel',
+    // "↺ Reset plan" on the schedule: deletes the plan and its log only
+    planResetTitle: 'Reset the study plan?',
+    planResetMessage: "This plan and its daily progress will be deleted and can't be restored. You can build a new one afterwards.\nYour study and practice records (mastery, wrong answers, flags) are kept.",
+    planResetOk: 'Confirm',
+    planResetCancel: 'Cancel',
   },
 
   common: {
@@ -222,6 +227,7 @@ LOCALES.en = {
     // toast after the ⓘ switch
     toastOff: 'Study plan turned off',
     toastOn: 'Study plan turned on: carry on where you left off',
+    toastReset: 'Study plan reset: you can build a new one',
     dayOf: 'Day {n} / {total}',
     daysLeft: { one: '{n} day to the exam · {date}', other: '{n} days to the exam · {date}' },
     goal: {
@@ -244,14 +250,77 @@ LOCALES.en = {
       levelLabel: 'Where are you now?',
       minStudyDays: "Fewer than {n} study days, so the plan can't be built. Choose fewer rest days or a later exam date.",
       create: 'Build my plan →',
+      // "Change goal" from the schedule: the same form, prefilled; the plan is re-planned from today (G7)
+      editStep: 'Change goal',
+      update: 'Update my plan →',
+      // G36: a changed goal may move the exam up to tomorrow and keep a single study day
+      editDateNote: 'When you change your goal, the exam date can be as soon as tomorrow.',
+      editMinStudyDays: {
+        one: "At least {n} study day is needed before the exam, so the plan can't be updated. Choose fewer rest days or a later exam date.",
+        other: "At least {n} study days are needed before the exam, so the plan can't be updated. Choose fewer rest days or a later exam date.",
+      },
     },
+    // schedule screen (handoff §2.3; mockup step ②); Day n / Week n stay English (lang="en")
+    schedule: {
+      name: 'Schedule',
+      editGoal: 'Change goal',
+      title: 'Your study schedule',
+      summary: 'Starts {start} · exam {exam} · up to {mins} a day · {level}',
+      phasesTitle: 'Three phases',
+      phaseDays: { one: '{name} {n} day', other: '{name} {n} days' },
+      dayRange: 'Day {from}–{to}',
+      orderTitle: 'Study order: easy to hard, History last',
+      orderIntro: "Each chapter's time follows its number of facts. The order goes by difficulty, with History, the hardest to remember, last so it is still fresh on exam day.",
+      orderCount: '{facts} facts · {qs} questions',
+      listTitle: 'Daily tasks',
+      week: 'Week {n}',
+      restDay: 'Rest day',
+      examDay: 'Exam day',
+      examTip: 'Bring your ID and confirmation letter, and arrive 30 minutes early.',
+      resetHint: 'Want to start over? Resetting deletes this plan and its progress so you can build a new one. Your practice records are kept.',
+      reset: '↺ Reset plan',
+    },
+    phase: { learn: 'Read + practise', drill: 'Drill', mock: 'Mocks' },
+    strategy: {
+      learnTitle: 'Read + practise: questions straight after reading',
+      learnOrder: 'Order Ch1–2 → Ch5 → Ch4 → Ch3: easy to hard, History last',
+      learnPair: 'After each set of facts, practise the questions on them ({facts} facts · {qs} questions)',
+      learnReview: 'End each day by clearing your wrong answers',
+      drillTitle: 'Drill: redo questions not yet mastered',
+      drillAgain: 'The same order again, only questions you got wrong or have not mastered',
+      drillFacts: 'Then review the facts behind your wrong answers',
+      mockTitle: { one: 'Mock exams: {n} timed exam', other: 'Mock exams: {n} timed exams' },
+      mockReal: 'Real test conditions: {n} questions, {m} minutes, no answers shown',
+      mockPass: 'Pass mark {pass}/{n}; {k} in a row at {safe}/{n} or more is safe',
+      mockLast: 'No new mock exam on the last study day, only your wrong answers',
+    },
+    // why each step of the study order comes where it does (PLAN_ORDER_WHY_KEYS)
+    order: {
+      whyWarmUp: 'Only {n} facts and few questions: done in a day, a warm-up',
+      whyGov: 'Government, law and rights: much of it is like Hong Kong, so common sense gets you far',
+      whySociety: 'Festivals, sport and culture: easier to remember than history',
+      whyHistory: 'The most dates, names and places, the hardest to remember: last, so it is fresh on exam day',
+    },
+    // day list task lines ({ch} = "Ch 3 History", lang="en"); no minutes, "not yet mastered" in words (handoff §2.3)
+    task: {
+      read: 'Read {ch} facts {range}',
+      practice: { one: 'Practise {ch}: {n} question', other: 'Practise {ch}: {n} questions' },
+      drill: { one: 'Practise {ch} again: {n} question not yet mastered', other: 'Practise {ch} again: {n} questions not yet mastered' },
+      wrongFacts: 'Review the facts behind wrong answers',
+      review: 'Clear your wrong answers',
+      reviewMock: 'Redo your mock exam mistakes',
+      light: 'Light review: wrong answers and their facts (no new mock exam)',
+      mock: 'Timed mock exam',
+      mockExam: 'Timed mock exam: {exam}',
+    },
+    status: { rest: 'Rest', today: 'Today {n}%', done: '✓ Done', pct: '{n}%' },
     feas: {
       title: 'Is there enough time?',
       ok: '✓ Plenty',
       tight: '△ Just enough',
       short: '✕ Not enough',
       studyDays: 'Study days',
-      studyDaysSub: '{total} days, {rest} rest',
+      studyDaysSub: { one: '{n} day, {rest} rest', other: '{n} days, {rest} rest' }, // n: all days to the exam (G36: can be 1)
       avail: 'Available',
       availSub: 'daily limit × study days',
       need: 'Suggested',

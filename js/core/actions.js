@@ -50,7 +50,7 @@ const ACTIONS = {
   studyToggleMark: el => studyToggleMark(el.dataset.mark, numArg(el)),
   studySetSearch: el => studySetSearch(el.value),
   startFactPractice: el => startFactPractice(numArg(el)),
-  // study plan (entry hidden until planVisible: js/screens/planHome.js, planGoal.js)
+  // study plan (entry hidden until planVisible: js/screens/planHome.js, planGoal.js, planSchedule.js)
   togglePlanFeature: () => togglePlanFeature(),
   openPlanGoal: () => openPlanGoal(),
   planSetDays: el => planSetDays(numArg(el)),
@@ -60,6 +60,9 @@ const ACTIONS = {
   planToggleRest: el => planToggleRest(numArg(el)),
   planSetLevel: el => planSetLevel(el.dataset.arg),
   planCreate: () => planCreate(),
+  openPlanSchedule: () => openPlanSchedule(),
+  planEditGoal: () => planEditGoal(),
+  planAskReset: () => planAskReset(),
   // confirm modal
   confirmAccept: () => confirmAccept(),
   closeConfirm: () => closeConfirm(),
@@ -107,9 +110,10 @@ function runClickAction(el, e) {
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-action]');
   if (el && !el.disabled) runClickAction(el, e);
-  // the ⓘ button toggles the popover itself; any other click outside the popover closes it
+  // the ⓘ button toggles the popover itself; any other click outside the popover closes it. S-112: the confirm
+  // modal opened from the popover (switch off) counts as inside, so the popover and the switch stay in view
   if (el && el.dataset.action === 'toggleInfo') return;
-  if (!e.target.closest('#infoPop')) setInfoOpen(false);
+  if (!e.target.closest('#infoPop, #confirmModal')) setInfoOpen(false);
 });
 document.addEventListener('input', e => {
   const el = e.target.closest('[data-input-action]');
@@ -126,6 +130,7 @@ document.addEventListener('keydown', e => {
   // S-103: Enter held on the button that opened the prompt would auto-repeat onto the prompt's default button
   if (e.key === 'Enter' && e.repeat && isConfirmOpen()) e.preventDefault();
   if (e.key !== 'Escape') return;
-  if (isConfirmOpen()) closeConfirm();
+  // S-112: Esc closes the top layer only: the modal first, the popover under it on the next Esc
+  if (isConfirmOpen()) { closeConfirm(); return; }
   setInfoOpen(false);
 });

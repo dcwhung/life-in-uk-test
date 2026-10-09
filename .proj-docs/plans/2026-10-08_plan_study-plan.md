@@ -147,6 +147,8 @@
 | T-328 | `plan-ui-test` 今日 / 月曆 / 主頁卡 + `plan-day-test`（`page.clock` 過午夜、返前台換日、HK → London `timezoneId`）；`lang-switch-test` day screen | test | frontend-developer | none-required | 1.25 | T-323–T-327 | P0 |
 
 **PR5 驗收**：
+- [ ] PR4 QA O-1：長計劃（183 日）進度表喺低階機轉語言慢（CPU ×4 0.55–1.0 s），考慮 `content-visibility: auto` 或者減 layout
+- [ ] PR4 S-115：跨午夜後撳「更新進度表 / 建立進度表」失敗時 re-render 表單 + 提示（唔可以冇反應）；加跨午夜 clock UI test
 - [ ] handoff §5「今日任務」（自動計完成度、練完當溫咗 G3、補做 G8、‹ › 轉日、已過補做 / 未到預覽）—— runner 未有，用 seed log 驗 UI
 - [ ] handoff §5「月曆」：一個月一版、selector、已過淡化、考試日
 - [ ] G6 換日、G9 清錯題第一次打開 snapshot、G14 開返時未做入補做、G16 考試日 / 完結
@@ -196,6 +198,7 @@
 | T-343 | Merge 後 git tag `v1.1.0` | chore | devops-engineer | none-required | 0.1 | T-342 | P0 |
 
 **PR7 驗收**：
+- [ ] 改目標模式 ✕ 提示「仍可照樣建立」改配合「更新進度表」；俾用戶睇剩 1 / 2 個溫習日嘅排法（PR4 review Round 2）
 - [ ] HANDOFF「data-action 慣例」加 PR3 新 `data-blur-action`（`focusout` delegation）同 toast component
 - [ ] 用戶已確認對照表（T-340，PR 開之前）
 - [ ] handoff §5 十項全部打勾；入口真用戶睇得到（預設開）

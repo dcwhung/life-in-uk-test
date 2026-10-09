@@ -30,7 +30,7 @@
 .plan-cta-ic { width: 44px; height: 44px; border-radius: var(--radius-md); background: var(--gold-bg); display: grid; place-items: center; font-size: 22px; }
 .plan-cta b { display: block; font-size: var(--fs-md); }
 .plan-cta-go { background: var(--navy); color: var(--text-inverse); border-radius: var(--radius-pill); padding: 7px var(--space-6); font-size: var(--fs-sm); font-weight: 800; white-space: nowrap; }
-.plan-home { background: var(--navy-light); color: var(--text-inverse); border-radius: var(--radius); padding: var(--space-8); box-shadow: var(--shadow-sm); }
+.plan-home { display: grid; gap: var(--space-6); background: var(--navy-light); color: var(--text-inverse); border-radius: var(--radius); padding: var(--space-8); box-shadow: var(--shadow-sm); }
 .plan-home-top { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-4); flex-wrap: wrap; }
 .plan-home-ttl { font-size: var(--fs-lg); font-weight: 800; }
 .plan-home-ttl span { color: var(--gold-light); }
@@ -67,9 +67,89 @@
 .plan-pill.tight { background: var(--gold-bg); color: var(--gold-text); }
 .plan-pill.short { background: var(--danger-bg); color: var(--red); }
 
+/* schedule (mockup step ②): header button, phase bar, strategy, study order, day list */
+.nav-btn.plan-small { padding: 7px var(--space-7); font-size: var(--fs-base); }
+/* a small button keeps its look while its tap area grows to 44px (WCAG 2.5.5), as the switch */
+.plan-hit { position: relative; }
+.plan-hit::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: max(100%, 44px); transform: translateY(-50%); }
+.plan-phase-bar { display: flex; height: 34px; border-radius: var(--radius-sm); overflow: hidden; font-size: var(--fs-xs); font-weight: 800; color: var(--text-inverse); }
+/* each segment grows with its days but never below its own label (a short phase still reads in full) */
+.plan-phase-bar > div { display: flex; align-items: center; justify-content: center; flex: 1 1 0; min-width: max-content; padding: 0 var(--space-2); }
+.plan-phase-bar span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.plan-bg-learn { background: var(--plan-ph-learn); }
+.plan-bg-drill { background: var(--plan-ph-drill); }
+.plan-bg-mock { background: var(--plan-ph-mock); color: var(--text); }
+.plan-strats { display: grid; gap: var(--space-5); }
+.plan-strat { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: var(--space-5); align-items: start; padding: var(--space-6); border-radius: var(--radius-md); }
+.plan-strat.learn { background: var(--plan-ph-learn-bg); }
+.plan-strat.drill { background: var(--plan-ph-drill-bg); }
+.plan-strat.mock { background: var(--plan-ph-mock-bg); }
+.plan-strat-n { width: 30px; height: 30px; border-radius: var(--radius-circle); display: grid; place-items: center; color: var(--text-inverse); font-weight: 800; font-size: var(--fs-base); }
+.plan-strat.learn .plan-strat-n { background: var(--plan-ph-learn); }
+.plan-strat.drill .plan-strat-n { background: var(--plan-ph-drill); }
+.plan-strat.mock .plan-strat-n { background: var(--plan-ph-mock); color: var(--text); }
+.plan-strat h4 { font-size: var(--fs-md); margin-bottom: var(--space-1); }
+.plan-strat ul { padding-left: var(--space-8); font-size: var(--fs-sm); line-height: 1.6; }
+.plan-strat-days { font-size: var(--fs-xs); color: var(--text-muted); font-weight: 700; }
+.plan-order { display: grid; gap: var(--space-5); }
+.plan-ord { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: var(--space-5); align-items: start; }
+.plan-ord-n { width: 26px; height: 26px; border-radius: var(--radius-circle); background: var(--navy); color: var(--text-inverse); display: grid; place-items: center; font-size: var(--fs-sm); font-weight: 800; }
+.plan-ord-body { display: grid; gap: var(--space-2); min-width: 0; }
+.plan-chw { display: grid; grid-template-columns: minmax(0, 1fr) 90px auto; gap: var(--space-4); align-items: center; font-size: var(--fs-sm); }
+.plan-chw-bar { height: 8px; background: var(--border); border-radius: var(--radius-pill); overflow: hidden; }
+.plan-chw-bar i { display: block; height: 100%; background: var(--navy-light); border-radius: var(--radius-pill); }
+.plan-chw-c { text-align: right; color: var(--text-muted); white-space: nowrap; }
+.plan-ord-why { font-size: var(--fs-xs); color: var(--text-muted); line-height: 1.5; }
+.plan-legend { display: flex; gap: var(--space-2); align-items: center; font-size: var(--fs-2xs); color: var(--text-muted); flex-wrap: wrap; }
+.plan-legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.plan-legend span + i { margin-left: var(--space-2); }
+/* the day list scrolls on its own (opened at today); rows bleed 8px each side so today's tint reaches the edge */
+.plan-day-scroll { position: relative; max-height: min(60vh, 520px); overflow-y: auto; overflow-x: hidden; padding-inline: var(--space-4); margin-inline: calc(-1 * var(--space-4)); overscroll-behavior: contain; scroll-behavior: smooth; }
+.plan-day-scroll.plan-jump { scroll-behavior: auto; } /* opening at today jumps there */
+.plan-day-scroll:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+/* the week heading sticks while scrolling and spans the scroller's full width, so no row shows past its edges */
+.plan-week { position: sticky; top: 0; z-index: 2; background: var(--card); margin-inline: calc(-1 * var(--space-4)); padding: var(--space-4) var(--space-4) var(--space-2); font-size: var(--fs-xs); font-weight: 800; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; }
+.plan-day { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; gap: var(--space-5); align-items: start; padding: var(--space-5) 0; border-top: 1px solid var(--border); }
+.plan-day-d { text-align: center; border-radius: var(--radius-sm); padding: var(--space-2) 0; font-weight: 800; font-size: var(--fs-md); line-height: 1.15; }
+.plan-day-d small { display: block; font-size: var(--fs-2xs); font-weight: 600; color: var(--text-muted); }
+.plan-day.learn .plan-day-d { background: var(--plan-ph-learn-bg); color: var(--plan-ph-learn); }
+.plan-day.drill .plan-day-d { background: var(--plan-ph-drill-bg); color: var(--plan-ph-drill); }
+.plan-day.mock .plan-day-d { background: var(--plan-ph-mock-bg); color: var(--plan-ph-mock-text); }
+.plan-day.rest .plan-day-d { background: var(--bg); color: var(--text-muted); }
+.plan-day.exam .plan-day-d, .plan-day.exam .plan-day-d small { color: var(--navy); }
+.plan-day.exam .plan-day-tasks b { color: var(--navy); font-size: var(--fs-md); }
+.plan-day.today, .plan-day.past { margin-inline: calc(-1 * var(--space-4)); padding-inline: var(--space-4); }
+.plan-day.today { background: var(--selected-bg); border-radius: var(--radius-sm); }
+/* days already gone: grey row, grey text and a grey date box without its phase colour; today and the days ahead
+   stay bright. W-034: no opacity on text, so dates and completion stay ≥ 4.5:1 (only the decorative icon fades) */
+.plan-day.past { background: var(--plan-past-row); }
+.plan-day.past .plan-day-tasks { color: var(--plan-past-text); }
+.plan-day.past .plan-day-ic { opacity: 0.55; }
+.plan-day.past .plan-day-d { background: var(--bg); color: var(--plan-past-text); }
+.plan-day.past .plan-day-d small { color: var(--plan-past-text); }
+.plan-day-tasks { display: grid; gap: 3px; font-size: var(--fs-sm); line-height: 1.45; min-width: 0; }
+.plan-day-t { display: flex; gap: var(--space-3); }
+.plan-exam-pat { background-color: var(--plan-exam-bg); background-image: linear-gradient(45deg, var(--plan-exam-line) 1px, transparent 1px), linear-gradient(-45deg, var(--plan-exam-line) 1px, transparent 1px); background-size: 8px 8px; }
+/* day status pills: ✓ done (.ok), G27 bands (dark text on every band for contrast), today, rest */
+.plan-pill.mute { background: var(--bg); color: var(--text-muted); }
+.plan-pill.now { background: var(--navy); color: var(--text-inverse); }
+.plan-pill.h0 { background: var(--plan-heat-0); color: var(--text); }
+.plan-pill.h1 { background: var(--plan-heat-1); color: var(--text); }
+.plan-pill.h2 { background: var(--plan-heat-2); color: var(--text); }
+.plan-pill.h3 { background: var(--plan-heat-3); color: var(--text); }
+.plan-reset { margin-bottom: 0; }
+/* Home plan card: link to the schedule (the full card with "continue today" is PR5) */
+.plan-home-acts { display: flex; gap: var(--space-4); flex-wrap: wrap; }
+.plan-btn-line { min-height: 44px; background: transparent; color: var(--text-inverse); border: 1.5px solid var(--text-inverse-faint); border-radius: var(--radius-md); padding: var(--space-5) var(--space-7); font-size: var(--fs-sm); font-weight: 700; cursor: pointer; }
+.plan-btn-line:hover { border-color: var(--text-inverse); }
+.plan-btn-line:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 2px; }
+
 @media (max-width: 480px) {
+  .plan-chw { grid-template-columns: minmax(0, 1fr) auto; row-gap: var(--space-2); }
+  .plan-chw b { grid-column: 1 / -1; }
   .plan-stats { grid-template-columns: 1fr 1fr; }
   .plan-stats .plan-stat:last-child { grid-column: 1 / -1; }
   .plan-cta { grid-template-columns: 44px minmax(0, 1fr); }
   .plan-cta-go { grid-column: 1 / -1; text-align: center; }
 }
+@media (prefers-reduced-motion: reduce) { .plan-day-scroll { scroll-behavior: auto; } }

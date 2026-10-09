@@ -71,7 +71,12 @@
   --fs-lg: 15px;
 
   /* spacing scale (v0.72, B5): margin / padding / gap on these steps use the token (structure-test); the step number
-     is px / 2. Off-scale values (1, 3, 5, 7, 9, 11, 13, 18, 22px…) stay literal where they sit */
+     is px / 2. Off-scale values (1, 3, 5, 7, 9, 11, 13, 18, 22px…) stay literal where they sit.
+     S-114, study plan (css/screens/plan.css), kept off-scale to match the mockup's sp-* sizes (0 visual change):
+     3px = .plan-pill vertical padding, .plan-day-tasks line gap; 7px = .plan-cta-go / .nav-btn.plan-small vertical
+     padding (same 7px as .back-btn, so the header buttons line up). Not spacing, so not on this scale either:
+     .plan-phase-bar height 34px (fits one 11px label line with room), .plan-legend swatch radius 3px (a 12px swatch:
+     the smallest --radius-xs 6px would make it a circle) */
   --space-1: 2px;
   --space-2: 4px;
   --space-3: 6px;
@@ -85,6 +90,26 @@
 
   /* switch (css/components/switch.css): the off track on a dark surface (the ⓘ popover) */
   --switch-track-inverse: rgba(255,255,255,0.25);
+
+  /* study plan (css/screens/plan.css; mockup sp-* tokens). Phases: learn = read + practise (navy), drill (purple),
+     mock (orange; text on it stays dark: white on orange is below 4.5:1) */
+  --plan-ph-learn: var(--navy-light);
+  --plan-ph-learn-bg: var(--selected-bg);
+  --plan-ph-drill: var(--purple);
+  --plan-ph-drill-bg: var(--yue-bg);
+  --plan-ph-mock: var(--orange);
+  --plan-ph-mock-bg: var(--flag-bg);
+  --plan-ph-mock-text: var(--note-label);
+  /* G27: completion bands 0 / 1–49 / 50–74 / 75–99 % (planPctBand h0–h3; the 100 % band h4 comes with the ring + calendar, PR5) */
+  --plan-heat-0: #e3e7f1;
+  --plan-heat-1: #e8735f;
+  --plan-heat-2: #f0a54a;
+  --plan-heat-3: #c9cf4f;
+  /* exam day: amber with a fine gold lattice; days already gone sit on a lighter grey row */
+  --plan-exam-bg: #f2a93b;
+  --plan-exam-line: rgba(255,214,120,0.75);
+  --plan-past-row: #f6f7fa;
+  --plan-past-text: var(--text-muted); /* W-034: 5.1:1 on the past row, 4.9:1 on its --bg date box */
 
   /* shadows and overlays */
   --shadow: 0 4px 24px rgba(26,39,68,0.10);
