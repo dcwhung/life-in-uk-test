@@ -100,7 +100,7 @@ async function checkHeader(pg) {
   assert(await text(pg, '#planDaySub') === '1/10 Thu · 4/31', 'sub: date weekday · Day n / N: ' + await text(pg, '#planDaySub'));
   assert(await pg.$eval('#planDaySub [lang="en"]', e => e.textContent) === '4/31', 'n/N carries lang="en"');
   assert(!(await visible(pg, '#planBackToday')), 'today: no "back to today"');
-  // .back-btn is the shared header button (32–34px on every screen, accepted in PR3 / PR4), not checked here
+  // S-117: the day header's ← Home (plan-hit) is checked at every width in checkLayout
   for (const s of ['#planDayPrev', '#planDayNext', '#screenPlanDay [data-action="openPlanSchedule"]']) {
     assert(await hitOk(pg, s), `${s}: ${HIT_MIN_PX}px tap area`);
   }
@@ -493,6 +493,7 @@ async function checkLayout(browser) {
         assert(!over.scroll && over.bad.length === 0, `${lang} ${w}px ${await activeScreen(pg)}: no horizontal overflow ` + JSON.stringify(over));
       }
       await pg.evaluate(() => openPlanDay());
+      assert(await hitOk(pg, '#screenPlanDay .back-btn'), `S-117 ${lang} ${w}px: day header "← Home" has a ${HIT_MIN_PX}px tap area`);
       const shown = await pg.evaluate(() => [...document.querySelectorAll('#screenPlanDay [hidden]')].filter(e => getComputedStyle(e).display !== 'none').length);
       assert(shown === 0, `${lang} ${w}px: [hidden] never displayed`);
       if (lang === 'zh-HK' && w === 375) {
