@@ -193,3 +193,106 @@ HANDOFF_RECEIPT:
   context: "W-034 past-day opacity → contrast ~2:1; W-035 change-goal feasibility counts the whole syllabus. One commit per item (fix: W-034 | …). Then re-review delta."
   report: .proj-docs/reviews/2026-10-08_review_plan-pr4.md
 ```
+
+---
+
+# Round 2 — 2026-10-09
+
+- **目標**：`claude/charming-hopper-48ypzp` @ `c5e4994`；delta = `git diff 1c1e476..HEAD`（13 files，+275 / −62）
+- **Commit**：`cd90d7e` W-034、`16cc3b5` W-035、`a5ab37b` S-113、`95a0f85` S-114、`5ca9909`（lang-switch 固定 clock、scroll wait）、`fdd1aa8`（docs G36）、`c5e4994` G36
+- **總評**：Round 1 四項全部修好，每項一個 commit。G36 做得乾淨：create mode 行為完全冇變（41 040 個目標新舊對比，0 差異）；edit 限制只喺 `replanFrom` 同改目標表單用。開 1 個 Suggestion（S-115）：半夜過咗之後撳「更新」冇反應，亦冇提示。
+
+## Hard Gates（Round 2）
+
+| Gate | 結果 | 備注 |
+|---|---|---|
+| Lint | n/a | `structure-test` PASS |
+| Type check | n/a | vanilla JS |
+| Tests | ✅ pass | `run-all.sh` 35 套 ALL PASS，exit 0（`plan-test` 2688 checks）；`plan-schedule-test` / `lang-switch-test` 各再跑 2 次，4 / 4 PASS |
+| Coverage | ✅ pass | 新 `checkEditValidation` / `checkFeasibilityFactsLeft` / `checkReplanLastWeek`（domain）+ `checkChangeGoalFeasibility` / `checkChangeGoalLastWeek`（UI） |
+| No Critical | ✅ pass | 0 |
+| Security scan | n/a | 冇新 dependency |
+| visual-diff（UI-common） | ✅ VISUAL IDENTICAL（76 個狀態） | `node tests/tools/visual-diff.js origin/main`；之後已 `git checkout -- 'tests/*.png'`、`rm -f tests/shot-similar.png` |
+
+## 評分結果（Round 2）
+
+| 維度 | 得分 | 滿分 | 備注 |
+|---|---|---|---|
+| 正確性 | 24 | 25 | S-115 |
+| 安全性 | 20 | 20 | |
+| 可維護性 | 20 | 20 | S-113 已修 |
+| 測試覆蓋 | 15 | 15 | |
+| 性能 | 10 | 10 | |
+| 代碼風格 | 10 | 10 | W-034、S-114 已修 |
+| **總分** | **99** | **100** | |
+
+**結果：✅ pass**
+
+## Round 1 項目驗證
+
+| ID | 結論 | 證據 |
+|---|---|---|
+| W-034 | ✅ 已修 | 重跑 Round 1 probe（360px；已過日子有 100% / 46% / 0% / 休息）：computed contrast 最低值：日期格 Day 號碼同 `<small>` **4.85:1**（`--text-muted` 配 `--bg` 底）、任務文字 5.07:1、`✓ Done` 5.88:1、h1 4.97:1、h0 11.97:1、`.mute` 4.85:1。全部 effective opacity = 1，只有裝飾 icon 係 0.55。今日格保留階段色。`plan-schedule-test` 改成逐個 text 驗 ≥ 4.5:1 同冇 opacity |
+| W-035 | ✅ 已修 | 同一 probe（21 日 · 60 分鐘 · 行咗 12 日 · 剩 44 條知識點）：改目標 meter 由 **✕ short** 變 **△ tight**（ratio 1.01）；replan 排 `讀讀讀 強強強 模模 + 輕鬆日`。新計劃照用成份課程（UI test 驗返仍然係 ✕）。強化 + 模擬考嘅估算照舊，同 Round 1 方案 A 一致 |
+| S-113 | ✅ 已修 | `PLAN_WHEN = { today, past, ahead: '' }`，註釋寫明係 class 名 |
+| S-114 | ✅ 已處理（方案 B 變體：記錄原因） | `tokens.css` 寫明 3px / 7px / 34px 點解唔跟 scale（對齊 mockup、同 `.back-btn` 7px 一致；swatch 用 6px 會變圓形）。同 0 視覺差異嘅取捨合理，接受 |
+| Flaky | ✅ 已處理 | `lang-switch-test checkPlanSchedule` 開新 page 再固定 clock；`checkScrollToToday` 用 `waitForFunction` 代替 100 ms。今次 run-all 加重跑 4 次都冇 fail |
+
+## G36 審閱
+
+| 項目 | 結論 |
+|---|---|
+| **create mode 完全不變** | ✅ 用 vm 載入 `1c1e476` 嘅 `plan.js` / `planProgress.js` 同 HEAD 版本，3 個 today × 1–190 日 × 6 種分鐘 × 4 種休息日 × 3 個程度 = **41 040 個目標**，比較 `validatePlanGoal`、`buildPlan`、`planFeasibility`、`planExamDateRange` 嘅 JSON 輸出：**0 差異**。`planSplitStudyDays` 嘅 `mock` 由 `max(1, min(rest, …))` 改成 `min(rest, max(1, …))`，只有 `rest = 0` 時唔同，舊公式喺嗰度會出 `drill = -1`；create mode 去唔到呢個情況，所以冇影響 |
+| **mode 預設安全** | ✅ `planGoalLimits()` / `(undefined)` / `(null)` / `('EDIT')` 全部回 create（7 / 7），只有 `'edit'` 先係 1 / 1。所有 domain 函數嘅 mode 參數預設都係 create；edit 只喺 `replanFrom`（包括「clock 早過 Day 1」嗰條 `buildPlan` 路徑）同 `planGoalMode()` 用 |
+| **1–2 溫習日邊界** | ✅ 隨機 400 個進行中計劃（開始日 1–40 日前、長度 8–68 日、各種分鐘 / 休息日 / 程度 / 完成度）× 考試日 1–8 日後 × 3 種休息日，一共 **6 831 次 edit replan，0 個問題**。驗咗：過去日子逐字凍結（考試後補嘅空檔係休息日）、`start` 不變、每條未完成知識點讀 1 次、題目練 1 次（按 learn order）、冇空嘅溫習日、溫習日數同 calendar 一樣、feasibility `studyDays` 同 plan 一致。形態：1 日 = `learn`；2 日 = `learn, light`；3 日 = `learn, mock, light`；4 日以上 learn → drill → mock → light。0 個溫習日（例如今日係休息日，考試聽日）會被拒，有 edit hint |
+| **replan 守恆** | ✅ 同上；`planKeepTodayContents` 只係換同類型、已 materialise 嘅 task，唔會丟知識點 |
+| **UI** | ✅ 日期欄 `min` = 聽日；`#planDateNote` 只喺改目標顯示；hint 用 `editMinStudyDays`；改目標途中另一個 tab 刪咗計劃 → 轉做 create mode，日期 clamp 到 +7，顯示 G28 hint，唔會寫入（自己 probe 過，冇 page error） |
+| **zh-HK 書面語** | ✅「改目標時，考試日期最早可選明天。」、「考試前最少需要 {n} 個溫習日，未能更新進度表。請減少休息日或延後考試日期。」、「共 {n} 日，休息 {rest} 日」——冇口語字（`i18n-test` 書面語 scope PASS） |
+| **en 複數** | ✅ `studyDaysSub` 同 `editMinStudyDays` 都係 `{one, other}`，用 `n` 揀（`i18n.js` `PLURAL_N_PARAM`）；UI test 驗咗「1 day, 0 rest」同「At least 1 study day is needed…」。`studyDaysSub` 由 `{total}` 改名 `{n}`，兩個 locale 都改咗，parity PASS |
+
+### 1 個溫習日、仲有未完成知識點時冇輕鬆重溫日：合理
+
+接受。G13 要所有內容都排到（✕ 照樣建立，每日長啲）；G36 又寫明「時間唔夠照樣排（G13）」。只剩 1 日嘅話，排輕鬆重溫就要放棄未讀嘅知識點，同 G13 衝突。輕鬆日嘅作用係考試前減壓，而且佢本身係可以犧牲嘅任務；知識點冇讀過就一定答唔到。所有知識點都完成咗嘅話，仍然會排輕鬆日（test 有驗）。2 日嘅情況係 `learn, light`，冇模擬考日：輕鬆日喺 phase bar 計入模擬考，亦符合「learn 優先」，接受。建議 PR7（G35）中英對照時順便俾用戶睇一次呢兩個形態。
+
+### 觀察（唔開 ID）
+
+- 只剩 1–2 日時，「建議需要」仍然計成份強化 + 模擬考（例如 1 日 · 2 小時 → 需要 18 小時，「尚欠約 16 小時」），但 plan 唔會排呢啲。呢個係 W-035 方案 A 刻意保留嘅估算，✕ + 「可延後考試日期」嘅建議亦都合理；唔當缺陷。
+- 改目標畫面 ✕ 提示寫「仍可照樣建立」，但掣係「更新進度表」。Round 1 已經係咁；G36 之後最後一星期會經常見到 ✕，建議 PR7 字眼審閱時一齊改（例如「仍可照樣更新」）。
+
+## 問題清單（Round 2）
+
+### 🟢 S-115 半夜過咗之後撳「更新 / 建立」，`planCreate` 冇反應亦冇提示
+
+- **位置**：`js/screens/planGoal.js` `planCreate()` → `if (!plan) { if (planGoalEditing && !old) {…} return; }`
+- **描述**：Probe：10-08 改目標揀考試日 10-09（聽日），clock 去到 10-09 00:01 先撳「更新進度表」→ `replanFrom` 回 `null`（考試日變咗今日），畫面留喺表單、掣仍然可以撳、draft 仍然係 10-09，冇任何提示；再撳幾多次都一樣。要郁過任何輸入，`planClampDraftDate` 先會修正。create mode 喺 PR3 已經有同樣問題（+7 日跨過午夜），但 G36 令「考試日 = 聽日」變成正常用法，夜晚改目標就更容易撞到。
+- **影響**：低（要剛好跨過午夜），但用戶會見到一個撳極都冇反應嘅掣。
+- **方案 A**：`if (!plan) { if (planGoalEditing && !old) planGoalEditing = false; renderPlanGoal(); return; }`——任何失敗都重新 render，令 S-111 clamp 同 CTA / hint 即刻更新。Trade-off：考試日會自動移後一日，用戶要再撳一次。
+- **方案 B**：喺 `planCreate` 開頭先 `planClampDraftDate(todayIso)`，然後用 clamp 後嘅 draft 建立。Trade-off：用戶冇確認過就用咗新日期。
+- **推薦**：A（同 S-111「先 clamp，再俾用戶睇」一致），加一個 `pg.clock.setFixedTime` 跨午夜嘅 UI test。
+
+## ✅ 做得好嘅地方（Round 2）
+
+- G36 嘅 limits 集中喺 `PLAN_GOAL_LIMITS` + `planGoalLimits(mode)`，未知 mode 一律當 create，預設值安全。
+- `planStudySplit` 將「最後一日係咪輕鬆日」抽出嚟，`buildPlanDays` 同 `planFeasibility` 共用，兩邊數字唔會走樣。
+- `checkReplanLastWeek` 逐個形態（1 / 2 / 3 / 6 日、全部完成）驗守恆同次序；W-034 嘅 test 改成驗 computed contrast，唔再驗 opacity。
+- 修 flaky 嘅方法啱：固定 clock、等條件成立，唔係加長 timeout。
+
+## Handoff receipt（Round 2）
+
+```handoff-receipt
+protocol: 1
+status: pass
+score: 99/100
+hard_gates:
+  lint: n/a
+  type_check: n/a
+  tests: pass
+  coverage: n/a
+  no_critical: pass
+  security_scan: n/a
+  visual_diff: pass
+next_action: merge_develop
+next_agent: null
+branch: "claude/charming-hopper-48ypzp"
+context: "PR4 round 2 @ c5e4994: W-034 / W-035 / S-113 / S-114 resolved; G36 verified (create mode 0 diff over 41,040 goals; 6,831 edit replans conserve facts/qids, past frozen). New S-115 (midnight dead CTA in planCreate), optional, one commit 'fix: S-115 | …' or fold into PR5. PR7 wording: edit-mode '仍可照樣建立'."
+```
