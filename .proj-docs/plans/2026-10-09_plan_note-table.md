@@ -2,19 +2,25 @@
 
 - 日期：2026-10-09
 - 狀態：**設計已確認，未開始實作**
-- Mockup：`mockups/note-table.html`（Design Origin 用 `mockup:mockups/note-table.html`）
+- Mockup：`mockups/note-table.html`（顏色，Theme B）、`mockups/note-table-church.html`（格內備注，V4）
+- Design Origin：`mockup:mockups/note-table.html` + `mockup:mockups/note-table-church.html`
 
 ## 用戶已確認嘅決定
 
 | 項目 | 決定 |
 |------|------|
 | 做法 | 方案 A：明確語法（note 入面連續以 `\|` 開頭嘅行 render 成 table，第一行係 header）；唔做自動偵測 `→` |
-| 格仔內容 | 全部英文，國家同國花都唔要中文字（390px 一行放得晒，唔使 scroll） |
+| 格仔內容 | 主文全部英文，國家同國花都唔要中文字（390px 一行放得晒，唔使 scroll） |
 | 顏色 | **Theme B：Minimal 線條**（冇底色，header 深藍字 + 2px `--navy` 底線，行之間 1px `--divider`，最後一行冇線，第一欄 `--navy` 粗體），跟住所在框嘅背景 |
-| Header | 國家 / 聖人 / 日子 / 國花（mockup 用呢個，用戶冇反對；實作前可再確認） |
-| 第一批 | 英國 4 國記憶法（15 題，見下面） |
+| 格內備注 | **V4**：格入面用 `<br>` 分開主文同備注；第一段 = 主文（正常字），之後每段 = 備注（`--fs-xs`、`--text-muted`，自己一行）；只有用咗 `<br>` 嘅格可以轉行，其他格 `nowrap` |
+| 混合行 | 同一個 note 入面 table 行同普通文字行（標題、• 列點）可以混合，非 `\|` 行照舊用 `noteLineHtml()` |
+| 第一批 | 英國 4 國聖人 / 日子 / 國花（15 題）+ 國教 / 教會（5 題），見下面 |
 
-## 第一批 data（15 題 note 改成）
+## 第一批 data
+
+### A. 聖人 / 日子 / 國花（15 題）
+
+Header：國家 / 聖人 / 日子 / 國花（mockup 用呢個，用戶冇反對；實作前可再確認）
 
 ```
 記憶法：
@@ -27,19 +33,35 @@
 
 題目：Exam 1 Q5、2 Q16、10 Q1、11 Q10（patron saint）；Exam 5 Q22、7 Q16、8 Q5、8 Q23、13 Q1、14 Q1（St * Day）；Exam 4 Q2、8 Q2、8 Q13、9 Q1、9 Q20（national flower）。Exam 5 Q14（X 形十字）唔改。
 
+### B. 國教 / 教會（5 題，V4）
+
+Header：國家 / 國教 / 教會（用戶原本寫「國教教會」，因為 Scotland 冇國教但有 Church of Scotland，mockup 改用「教會」）
+
+```
+記憶法：
+| 國家 | 國教 | 教會 |
+| England | ✓ | Church of England<br>君主係最高領袖，坎特伯雷大主教係精神領袖 |
+| Scotland | ✗ | Church of Scotland<br>Presbyterian（長老會），國家教會，唔係國教 |
+| Wales | ✗ | ✗ |
+| N. Ireland | ✗ | ✗ |
+```
+
+題目：Exam 3 Q2、Exam 3 Q16、Exam 5 Q7、Exam 6 Q5、Exam 10 Q3（而家 note 係 `a09aedb` 嘅箭咀文字版，做 table 時換成上面）。
+
 ## 實作範圍
 
 | 檔案 | 改動 |
 |------|------|
-| `js/components/tags.js` | `noteHtml()` 收集連續 `\|` 行 → `<div class="note-table-wrap"><table class="note-table">`（thead 第一行，tbody 其餘）；其他行照舊；所有格仔 `escapeHtml` |
-| `css/components/note.css` | `.note-table*` 樣式（Theme B，只用現有 token），`white-space: nowrap`，wrap `overflow-x: auto` 做後備 |
-| `data/exams.js` | 上面 15 題 note |
-| `tests/` | `noteHtml` table render（header / body / escape / 混合文字行）；3 個畫面（Study 溫習卡、Practice 答題後、Results review）390px 唔爆 |
+| `js/components/tags.js` | `noteHtml()` 收集連續 `\|` 行 → `<div class="note-table-wrap"><table class="note-table">`（thead 第一行，tbody 其餘）；其他行照舊；格仔按 `<br>` 拆段（先拆後 `escapeHtml`，每段都 escape），有備注嘅格加 `class="multi"`、備注段 `<span class="note-cell-sub">` |
+| `css/components/note.css` | `.note-table*`（Theme B，只用現有 token）、`th` / `td` `nowrap` + `vertical-align: top`、`td.multi { white-space: normal }`、`.note-cell-sub`（block、`--fs-xs`、`--text-muted`）；wrap `overflow-x: auto` 做後備 |
+| `data/exams.js` | 上面 A（15 題）+ B（5 題）note |
+| `tests/` | `noteHtml` table render：header / body、escape（`<script>` 等）、`<br>` 備注拆段、混合文字行；3 個畫面（Study 溫習卡、Practice 答題後、Results review）390px 唔爆、唔使 scroll |
 
 唔受影響：`content-guard-test`（note 只比形狀）、`factMemoryText()`（Study 照刪「記憶法：」標題行）。
 
 ## 之後可以考慮（未決定）
 
-- 同樣格式嘅記憶法：發明家 / 科學家（6 題）、地方議會（7 題）、國教 / 教會（5 題：E3 Q2、E3 Q16、E5 Q7、E6 Q5、E10 Q3，用戶原本想要 國家 / 國教 / 國教教會 三欄）
+- 同樣格式嘅記憶法：發明家 / 科學家（6 題）、地方議會（7 題）
 - Exam 9 Q20「patron flower of Ireland」字眼（用戶未決定）
 - `APP_VERSION` bump（令已安裝 PWA 攞到新 note）
+- 實作完之後 mockup 處理：跟 repo 慣例（v0.65 刪咗已確認嘅 mockup）
