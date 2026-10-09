@@ -268,9 +268,9 @@
     <div class="plan-stack">
       <div class="quiz-header">
         <button class="back-btn" data-action="goHome" data-i18n="common.home"></button>
-        <span class="quiz-label" data-i18n="plan.goal.step"></span>
+        <span class="quiz-label" id="planGoalStep"></span>
       </div>
-      <div class="plan-steps" aria-hidden="true"><i class="on"></i><i></i></div>
+      <div class="plan-steps" id="planGoalSteps" aria-hidden="true"><i class="on"></i><i></i></div>
       <div>
         <h2 class="plan-h2" data-i18n="plan.goal.title"></h2>
         <p class="plan-muted" data-i18n="plan.goal.intro"></p>
@@ -317,7 +317,47 @@
       </div>
 
       <p class="plan-hint" id="planGoalHint" role="status" hidden></p>
-      <button class="nav-btn plan-block" id="planCreateBtn" data-action="planCreate" data-i18n="plan.goal.create"></button>
+      <button class="nav-btn plan-block" id="planCreateBtn" data-action="planCreate"></button>
+    </div>
+  </div>
+
+  <!-- ── STUDY PLAN · SCHEDULE (js/screens/planSchedule.js; day rows open the day screen in PR5) ── -->
+  <div class="screen" id="screenPlanSchedule">
+    <div class="plan-stack">
+      <div class="quiz-header">
+        <button class="back-btn" data-action="goHome" data-i18n="common.home"></button>
+        <span class="quiz-label" data-i18n="plan.schedule.name"></span>
+        <button class="nav-btn secondary plan-small plan-hit" data-action="planEditGoal" data-i18n="plan.schedule.editGoal"></button>
+      </div>
+      <div>
+        <h2 class="plan-h2" data-i18n="plan.schedule.title"></h2>
+        <p class="plan-muted" id="planSummary"></p>
+      </div>
+
+      <div class="plan-card-box">
+        <h3 data-i18n="plan.schedule.phasesTitle"></h3>
+        <div class="plan-phase-bar" id="planPhaseBar" aria-hidden="true"></div>
+        <div class="plan-strats" id="planStrategy"></div>
+      </div>
+
+      <div class="plan-card-box">
+        <h3 data-i18n="plan.schedule.orderTitle"></h3>
+        <p class="plan-muted" data-i18n="plan.schedule.orderIntro"></p>
+        <div class="plan-order" id="planOrder"></div>
+      </div>
+
+      <div class="plan-card-box">
+        <div class="plan-row">
+          <h3 id="planDayListTitle" data-i18n="plan.schedule.listTitle"></h3>
+          <span class="plan-legend" aria-hidden="true"><i class="plan-bg-learn"></i><span data-i18n="plan.phase.learn"></span><i class="plan-bg-drill"></i><span data-i18n="plan.phase.drill"></span><i class="plan-bg-mock"></i><span data-i18n="plan.phase.mock"></span></span>
+        </div>
+        <div class="plan-day-scroll" id="planDayList" tabindex="0" role="region" aria-labelledby="planDayListTitle"></div>
+      </div>
+
+      <div class="reset-row show plan-reset">
+        <span class="reset-hint" data-i18n="plan.schedule.resetHint"></span>
+        <button class="reset-btn plan-hit" data-action="planAskReset" data-i18n="plan.schedule.reset"></button>
+      </div>
     </div>
   </div>
 
@@ -368,6 +408,7 @@
 <script src="js/screens/study.js"></script>
 <script src="js/screens/planHome.js"></script>
 <script src="js/screens/planGoal.js"></script>
+<script src="js/screens/planSchedule.js"></script>
 <script src="js/core/actions.js"></script>
 <script src="js/pwa/pwa.js"></script>
 <script src="js/main.js"></script>

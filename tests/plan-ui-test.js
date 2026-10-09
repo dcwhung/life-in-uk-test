@@ -8,7 +8,8 @@ const path = require('path');
 // - switch: on by default (no write), off asks in the app modal (G15: leaves the plan screens), on does not
 // - goal screen: presets, date min / max / clamp, slider ticks, rest days, level cards, the three feasibility
 //   states (G13: short still builds), fewer than 7 study days disables the CTA with a hint (G28)
-// - create: clears the old plan + log first (PR1 O-2; O-1: a corrupt plan shows the create card again)
+// - create: clears the old plan + log first (PR1 O-2; O-1: a corrupt plan shows the create card again), then the
+//   schedule opens (PR4: tests/plan-schedule-test.js covers it)
 // - 360 / 375 / 400px en + zh-HK: no horizontal scroll; [hidden] is never shown by a component display rule
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
 const launchOpts = { args: ['--no-sandbox'] };
@@ -96,8 +97,8 @@ async function checkSwitch(pg) {
   assert(await text(pg, '#confirmOk') === 'Confirm' && await text(pg, '#confirmCancel') === 'Cancel', 'switch off modal: Confirm / Cancel');
   await pg.click('#confirmCancel');
   assert(await pg.evaluate(() => isStudyPlanEnabled()) && (await planKeys(pg)).length === 0, 'switch off → Cancel: still on, nothing written');
+  assert(await visible(pg, sw), 'S-112: after Cancel the popover stays open on the switch');
   await pg.evaluate(() => openPlanGoal());
-  await pg.click('#infoBtn');
   await pg.click(sw);
   await pg.click('#confirmOk');
   assert(await pg.evaluate(k => localStorage.getItem(k), 'lifeuk.studyPlanEnabled') === 'false', 'switch off → OK: stored off');
@@ -105,8 +106,7 @@ async function checkSwitch(pg) {
   assert(!(await visible(pg, '#planCard')), 'switch off: no plan card on Home');
   await pg.evaluate(() => openPlanGoal());
   assert(await activeScreen(pg) === 'screenHome', 'switch off: the goal screen cannot be opened');
-  await pg.click('#infoBtn');
-  assert(await pg.getAttribute(sw, 'aria-checked') === 'false', 'switch off: the popover shows it off');
+  assert(await visible(pg, sw) && await pg.getAttribute(sw, 'aria-checked') === 'false', 'switch off: the popover (still open, S-112) shows it off');
   await pg.click(sw);
   assert(!(await pg.evaluate(() => isConfirmOpen())), 'switch on: no confirm');
   assert(await pg.getAttribute(sw, 'aria-checked') === 'true' && await visible(pg, '#planCard .plan-cta'), 'switch on: card back at once');
@@ -172,9 +172,8 @@ async function checkSwitchOffElsewhere(pg) {
   await pg.click('#confirmOk');
   const r = await pg.evaluate(() => ({ screen: document.querySelector('.screen.active').id, timer: examTimerId !== null, on: isStudyPlanEnabled() }));
   assert(r.screen === 'screenQuiz' && r.timer && !r.on, 'W-031: off during an Exam keeps the exam screen and its timer: ' + JSON.stringify(r));
-  await pg.evaluate(() => { setStudyPlanEnabled(true); stopExamTimer(); openStudy(); });
-  await pg.click('#infoBtn');
-  await pg.click('#planFeatureSwitch');
+  await pg.evaluate(() => { setStudyPlanEnabled(true); renderPlanSettings(); stopExamTimer(); openStudy(); });
+  await pg.click('#planFeatureSwitch'); // S-112: the popover stayed open after Confirm
   await pg.click('#confirmOk');
   assert(await activeScreen(pg) === 'screenStudy', 'W-031: off on Study stays on Study');
   await pg.evaluate(() => leaveToHome());
@@ -201,8 +200,7 @@ async function checkToast(pg) {
   await pg.waitForTimeout(ms + 300);
   const gone = await toast();
   assert(gone.hidden && gone.display === 'none', `toast hides itself after TOAST_MS (${ms} ms)`);
-  await pg.click('#infoBtn');
-  await pg.click('#planFeatureSwitch');
+  await pg.click('#planFeatureSwitch'); // S-112: the popover stayed open after Confirm
   const on = await toast();
   assert(!on.hidden && on.text.startsWith('Study plan turned on') && await pg.evaluate(() => document.activeElement.id) === 'planFeatureSwitch',
     'toast after switching on: shown, focus stays on the switch: ' + on.text);
@@ -354,7 +352,8 @@ async function checkCreate(pg) {
   assert(r.plan && r.plan.start === TODAY && r.plan.goal.examDate === '2026-11-05' && r.plan.goal.dailyMins === 120,
     'create: a valid plan is stored from the draft');
   assert(r.log === null, 'create: the old (corrupt) log was cleared first (O-2)');
-  assert(await activeScreen(pg) === 'screenHome', 'create: back to Home (schedule comes in PR4)');
+  assert(await activeScreen(pg) === 'screenPlanSchedule', 'create: the schedule opens (PR4; tests/plan-schedule-test.js)');
+  await pg.evaluate(() => leaveToHome());
   assert(!(await visible(pg, '#planCard .plan-cta')) && await visible(pg, '#planCard .plan-home'), 'create: Home shows the plan card, not the create card');
   assert((await text(pg, '#planCard .plan-home')).includes('Day 1 / 28'), 'plan card: Day 1 / 28: ' + await text(pg, '#planCard .plan-home'));
   assert(await pg.$eval('#planCard .plan-home [lang="en"]', e => e.textContent) === 'Day 1 / 28', 'plan card: Day n / N carries lang="en"');

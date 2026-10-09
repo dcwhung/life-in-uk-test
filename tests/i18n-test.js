@@ -29,7 +29,7 @@ const DYNAMIC_PREFIXES = [
 ];
 // G21 (study plan, arch R10): plan UI text in zh-HK is written Chinese, not the mockup's Cantonese; these keys
 // are scanned for colloquial words (question data yue / oy / note stays Cantonese and is not a locale key)
-const ZH_HK_WRITTEN_SCOPES = ['plan.', 'data.weekdays.', 'data.planLevels.', 'modal.planOff', 'app.features', 'app.plan'];
+const ZH_HK_WRITTEN_SCOPES = ['plan.', 'data.weekdays.', 'data.planLevels.', 'modal.planOff', 'modal.planReset', 'app.features', 'app.plan'];
 const ZH_HK_COLLOQUIAL = ['唔', '嘅', '咗', '冇', '嚟', '睇', '喺', '啱', '嗰', '佢', '哋', '咩', '啲', '嘢', '乜', '俾', '畀', '做緊', '幾耐', '係咪', '點樣'];
 // keys no source file reads: manifest.webmanifest mirrors them (static JSON), tests/pwa-test.js compares the two
 const MANIFEST_KEYS = ['app.installName', 'app.installShortName'];

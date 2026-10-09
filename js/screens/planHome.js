@@ -1,17 +1,18 @@
 // ════════════════════════════════════════
 // STUDY PLAN · HOME ENTRY — whether the feature shows (planEntryReady / planVisible), the ⓘ "Features" switch
 // (on by default; off asks first, G15) and the Home card above "Choose Mode": the dashed gold "create" card
-// without a plan, a small navy card with one (the full card with today's progress is PR5).
+// without a plan, a small navy card with one and a link to the schedule (the full card with today's progress is PR5).
 // The card is created only while it shows, so Home's DOM is unchanged while the entry is hidden.
 // ════════════════════════════════════════
 const PLAN_CARD_ID = 'planCard';
-// W-031 / G15: switching off leaves only these screens (PR4+: add each plan screen; plan-ui-test pins the list)
-const PLAN_SCREEN_IDS = ['screenPlanGoal'];
+// W-031 / G15: switching off leaves only these screens (PR5+: add each plan screen; plan-ui-test pins the list)
+const PLAN_SCREEN_IDS = ['screenPlanGoal', 'screenPlanSchedule'];
 
 // G19 / G31: hidden until release, except on a device that opened ?preview=plan (tests may override this)
 function planEntryReady() { return STUDY_PLAN_READY || isPlanPreviewOn(); }
-// CUI-0021: an older cached index.html lacks the plan screens, so the card would open nothing
-function planShellReady() { return !!byId('screenPlanGoal'); }
+// CUI-0021: an older cached index.html lacks the plan screens, so the card would open nothing (or a PR3 shell: a goal
+// screen whose "Build" opens a schedule it does not have)
+function planShellReady() { return PLAN_SCREEN_IDS.every(id => !!byId(id)); }
 function planVisible() { return planEntryReady() && planShellReady() && isStudyPlanEnabled(); }
 
 // G31: ?preview=plan / ?preview=off update the stored preview, then the param leaves the URL
@@ -72,14 +73,15 @@ function planCreateCardHtml() {
     + `<span><b>${t('plan.createTitle')}</b><span class="plan-muted">${t('plan.createText')}</span></span>`
     + `<span class="plan-cta-go">${t('plan.createGo')}</span></button>`;
 }
-// PR3 stand-in until the full card (PR5): which day of how many, and the exam countdown
+// stand-in until the full card (PR5): which day of how many, the exam countdown and the schedule
 function planHomeCardHtml(plan, todayIso) {
   const total = plan.days.length;
   const n = Math.min(total, Math.max(1, isoDiffDays(plan.start, todayIso) + 1));
   const left = Math.max(0, isoDiffDays(todayIso, plan.goal.examDate));
   return `<div class="plan-home"><div class="plan-home-top"><span class="plan-home-ttl">${t('plan.cardTitle')}${LIST_SEP}`
     + `<span lang="en">${t('plan.dayOf', { n, total })}</span></span>`
-    + `<span class="plan-home-cd">${t('plan.daysLeft', { n: left, date: planShortDate(plan.goal.examDate) })}</span></div></div>`;
+    + `<span class="plan-home-cd">${t('plan.daysLeft', { n: left, date: planShortDate(plan.goal.examDate) })}</span></div>`
+    + `<div class="plan-home-acts"><button type="button" class="plan-btn-line" data-action="openPlanSchedule">${t('plan.schedule.name')}</button></div></div>`;
 }
 function planCardEl() {
   let el = byId(PLAN_CARD_ID);

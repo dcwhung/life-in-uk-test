@@ -86,6 +86,25 @@
   /* switch (css/components/switch.css): the off track on a dark surface (the ⓘ popover) */
   --switch-track-inverse: rgba(255,255,255,0.25);
 
+  /* study plan (css/screens/plan.css; mockup sp-* tokens). Phases: learn = read + practise (navy), drill (purple),
+     mock (orange; text on it stays dark: white on orange is below 4.5:1) */
+  --plan-ph-learn: var(--navy-light);
+  --plan-ph-learn-bg: var(--selected-bg);
+  --plan-ph-drill: var(--purple);
+  --plan-ph-drill-bg: var(--yue-bg);
+  --plan-ph-mock: var(--orange);
+  --plan-ph-mock-bg: var(--flag-bg);
+  --plan-ph-mock-text: var(--note-label);
+  /* G27: completion bands 0 / 1–49 / 50–74 / 75–99 % (planPctBand h0–h3; the 100 % band h4 comes with the ring + calendar, PR5) */
+  --plan-heat-0: #e3e7f1;
+  --plan-heat-1: #e8735f;
+  --plan-heat-2: #f0a54a;
+  --plan-heat-3: #c9cf4f;
+  /* exam day: amber with a fine gold lattice; days already gone sit on a lighter grey row */
+  --plan-exam-bg: #f2a93b;
+  --plan-exam-line: rgba(255,214,120,0.75);
+  --plan-past-row: #f6f7fa;
+
   /* shadows and overlays */
   --shadow: 0 4px 24px rgba(26,39,68,0.10);
   --shadow-sm: 0 2px 8px rgba(26,39,68,0.07);

@@ -3,6 +3,8 @@
 // today + 7 and today + 6 months), the daily limit (slider 30–120, step 15), rest days, level (.mode-card) and
 // whether the time is enough (✓ / △ / ✕; G13: ✕ still builds, with longer days). Fewer than PLAN_MIN_STUDY_DAYS
 // study days disables the CTA with a hint (G28). Create = clear the old plan + log, then store buildPlan().
+// "Change goal" (schedule) opens the same form prefilled with the plan's goal; its CTA re-plans from today
+// (replanFrom, G7: past days frozen, Day 1 unchanged). Either way the schedule opens next.
 // ════════════════════════════════════════
 const PLAN_DEFAULT_GOAL = { days: 21, dailyMins: 120, restDays: [0], level: 'none' };
 const PLAN_PRESET_LABEL_KEYS = { 14: 'plan.goal.preset2w', 21: 'plan.goal.preset3w', 28: 'plan.goal.preset4w', 42: 'plan.goal.preset6w' };
@@ -11,14 +13,17 @@ const PLAN_MINUTES_PER_HOUR = 60;
 const PLAN_FEAS_METER_SCALE = 1.5; // the meter is full at 150% of the time needed
 const PLAN_PERCENT = 100;
 let planGoalDraft = null; // { examDate, dailyMins, restDays, level } being edited
+let planGoalEditing = false; // true: changing the stored plan's goal; false: a new plan
 
 function planDefaultDraft(todayIso) {
   const d = PLAN_DEFAULT_GOAL;
   return { examDate: isoAddDays(todayIso, d.days), dailyMins: d.dailyMins, restDays: [...d.restDays], level: d.level };
 }
-function openPlanGoal() {
+// goal: the stored plan's goal to change, or none for a new plan
+function openPlanGoal(goal = null) {
   if (!planVisible()) return;
-  planGoalDraft = planDefaultDraft(planTodayIso());
+  planGoalEditing = !!goal;
+  planGoalDraft = goal ? planCopyGoal(goal) : planDefaultDraft(planTodayIso());
   showScreen('screenPlanGoal');
   renderPlanGoal();
   window.scrollTo(0, 0);
@@ -130,6 +135,10 @@ function renderPlanCta(todayIso) {
 function renderPlanGoal() {
   if (!planGoalDraft) planGoalDraft = planDefaultDraft(planTodayIso());
   const todayIso = planTodayIso();
+  const stepKey = planGoalEditing ? 'plan.goal.editStep' : 'plan.goal.step', ctaKey = planGoalEditing ? 'plan.goal.update' : 'plan.goal.create';
+  byId('planGoalStep').textContent = t(stepKey);
+  byId('planCreateBtn').textContent = t(ctaKey);
+  setShown('planGoalSteps', !planGoalEditing); // the 1 / 2 stepper belongs to a new plan
   planClampDraftDate(todayIso);
   renderPlanDays(todayIso);
   renderPlanMins();
@@ -176,12 +185,15 @@ function planSetLevel(level) {
   if (planIsLevel(level)) planGoalDraft.level = level;
   renderPlanGoal();
 }
-// O-2: a new plan never inherits the old log (or a corrupt one, O-1); the schedule screen is PR4, so Home for now
+// O-2: a new plan never inherits the old log (or a corrupt one, O-1). A changed goal keeps the log (G7): an
+// unreadable log re-plans as if nothing were answered and stays as it is (↺ Reset clears it, S-110).
+// A plan deleted meanwhile (another tab) makes the edit a new plan.
 function planCreate() {
   const todayIso = planTodayIso();
-  const plan = buildPlan(planGoalDraft, todayIso);
+  const old = planGoalEditing ? planLoad() : null;
+  const plan = old ? replanFrom(old, planGoalDraft, todayIso, planLoadLog() || planEmptyLog()) : buildPlan(planGoalDraft, todayIso);
   if (!plan) return;
-  clearStudyPlan();
+  if (!old) clearStudyPlan();
   writeStudyPlan(plan);
-  leaveToHome();
+  openPlanSchedule();
 }

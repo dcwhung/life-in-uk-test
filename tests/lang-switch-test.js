@@ -306,6 +306,25 @@ async function checkPlanGoal(pg, ctx) {
   await pg.evaluate(() => { window.planEntryReady = window.planEntryReadyWas; leaveToHome(); });
 }
 
+// study plan schedule (PR4): seeded plan begun 10 days ago, list scrolled; the plan, its log and the scroll survive
+async function checkPlanSchedule(pg, ctx) {
+  await pg.evaluate(() => {
+    window.planEntryReadyWas = planEntryReady;
+    window.planEntryReady = () => true;
+    writeStudyPlan(buildPlan({ examDate: isoAddDays(planTodayIso(), 21), dailyMins: 90, restDays: [0], level: 'some' }, isoAddDays(planTodayIso(), -10)));
+    openPlanSchedule();
+    byId('planDayList').scrollTo({ top: 120, behavior: 'instant' });
+  });
+  const scroll = () => pg.evaluate(() => byId('planDayList').scrollTop);
+  await switchOn(pg, ctx, 'plan schedule', '#planSummary');
+  assert(await scroll() === 120, 'plan schedule zh-HK: the day list keeps its scroll position');
+  assert((await textOf(pg, '#planDayList .plan-day.today .plan-pill')).startsWith('今日') && (await textOf(pg, '#planStrategy')).includes('模擬考試'),
+    'plan schedule zh-HK: pills and strategy re-rendered');
+  await switchOn(pg, ctx, 'plan schedule', '#planSummary');
+  assert(await scroll() === 120 && (await textOf(pg, '#planDayList .plan-day.today .plan-pill')).startsWith('Today'), 'plan schedule back in en: scroll kept, pills in en');
+  await pg.evaluate(() => { clearStudyPlan(); window.planEntryReady = window.planEntryReadyWas; leaveToHome(); });
+}
+
 // Study: tab + chip + typed search, then chapters / timeline / geography
 async function checkStudy(pg, ctx) {
   await pg.evaluate(() => { openStudy(); studySetTab('people'); studySetGroup('writer'); });
@@ -544,7 +563,7 @@ const hasCjkFont = pg => pg.evaluate(({ px, chars, baseline }) => {
 // run in order: each check starts from the screen / language the previous one left
 const CHECKS = [
   checkPill, checkHomeSwitch, checkHomePractice, checkQuizPractice, checkAnswerFallback, checkOptionYueLang,
-  checkSideSession, checkQuizExam, checkExamTimer, checkModal, checkResult, checkFlagged, checkStudy, checkPlanGoal, checkDoubleTap,
+  checkSideSession, checkQuizExam, checkExamTimer, checkModal, checkResult, checkFlagged, checkStudy, checkPlanGoal, checkPlanSchedule, checkDoubleTap,
   checkMyReviewTiles, checkExamDesc, checkPracticeHint, checkLeaveCancel,
 ];
 

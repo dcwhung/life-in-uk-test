@@ -102,6 +102,7 @@ const SCREEN_RERENDER = {
   screenFlagged: () => openFlagged(),
   screenStudy: () => renderStudy(),
   screenPlanGoal: () => renderPlanGoal(),
+  screenPlanSchedule: () => rerenderPlanSchedule(), // keeps the day list where it was scrolled
 };
 function rerenderCurrentScreen() {
   const active = document.querySelector('.screen.active');
