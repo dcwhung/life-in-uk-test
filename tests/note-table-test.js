@@ -230,16 +230,17 @@ async function checkStudy(pg) {
   // the table look (Theme B + V4): nowrap cells, only <br> cells wrap, remark small / muted / not bold
   const look = await pg.evaluate(() => {
     const host = document.createElement('div'); host.style.width = '358px'; document.body.appendChild(host);
-    host.innerHTML = noteHtml('| H | I |\n| a | b<br>c |\n| d | e |');
+    host.innerHTML = noteHtml('| H | I<br>J |\n| a | b<br>c |\n| d | e |');
     const cs = sel => getComputedStyle(host.querySelector(sel));
     const tok = n => { const i = document.createElement('i'); i.style.color = `var(${n})`; host.appendChild(i); return getComputedStyle(i).color; };
     const fs = n => { const i = document.createElement('i'); i.style.fontSize = `var(${n})`; host.appendChild(i); return getComputedStyle(i).fontSize; };
     const out = {
-      th: [cs('th').whiteSpace, cs('th').color, cs('th').borderBottomWidth, cs('th').borderBottomColor, cs('th').verticalAlign],
+      th: [cs('th:not(.multi)').whiteSpace, cs('th').color, cs('th').borderBottomWidth, cs('th').borderBottomColor, cs('th').verticalAlign],
       td: [cs('tbody tr:first-child td:last-child').whiteSpace, cs('tbody td:not(.multi)').whiteSpace, cs('tbody td').verticalAlign],
       first: [cs('tbody td:first-child').color, cs('tbody td:first-child').fontWeight, cs('tbody tr:first-child td').borderBottomColor],
       last: cs('tbody tr:last-child td').borderBottomWidth,
       sub: [cs('.note-cell-sub').display, cs('.note-cell-sub').fontSize, cs('.note-cell-sub').fontWeight, cs('.note-cell-sub').color],
+      thMulti: cs('th.multi').whiteSpace,
       wrap: cs('.note-table-wrap').overflowX,
       want: { navy: tok('--navy'), divider: tok('--divider'), muted: tok('--text-muted'), xs: fs('--fs-xs') },
     };
@@ -248,9 +249,9 @@ async function checkStudy(pg) {
   });
   const w = look.want;
   assert(JSON.stringify(look.th) === JSON.stringify(['nowrap', w.navy, '2px', w.navy, 'top']) && JSON.stringify(look.td) === JSON.stringify(['normal', 'nowrap', 'top'])
-    && JSON.stringify(look.first) === JSON.stringify([w.navy, '700', w.divider]) && look.last === '0px'
+    && JSON.stringify(look.first) === JSON.stringify([w.navy, '700', w.divider]) && look.last === '0px' && look.thMulti === 'normal'
     && JSON.stringify(look.sub) === JSON.stringify(['block', w.xs, '400', w.muted]) && look.wrap === 'auto',
-  'Theme B + V4 look: navy header + 2px navy rule, divider rows, last row no rule, navy bold first column, nowrap except td.multi, muted xs remarks: ' + JSON.stringify(look));
+  'Theme B + V4 look: navy header + 2px navy rule, divider rows, last row no rule, navy bold first column, nowrap except th/td.multi, muted xs remarks: ' + JSON.stringify(look));
   await checkPractice(pg);
   await checkResults(pg);
   await checkStudy(pg);
