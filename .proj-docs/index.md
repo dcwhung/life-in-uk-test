@@ -2,11 +2,11 @@
 
 文件索引（同一日內按檔名倒序）。Review item ID：C / W / S 全局遞增，賦號前要 grep `.proj-docs/reviews/`。溫習計劃序列最新到 W-045、S-139（2026-10-09 plan PR7）；之後 S-140–S-145 用咗喺 v1.0.7 記憶法 table review（2026-10-10）；W-375 屬於另一個 session，唔好接住佢嘅號碼。
 
-**撞號注意（2026-10-10）**：plan PR7b review（`2026-10-09_review_plan-pr7b.md`）同時用咗 W-046–W-047、S-140–S-145，同 v1.0.7 記憶法 table review 嘅 S-140–S-145 重複；引用呢幾個 S 號要連報告名。之後新號由兩邊最大值之後開始（grep 全部報告）。另一個 session 用咗 S-146–S-152；plan PR7c review（2026-10-10）用 W-048、S-153–S-156。
+**撞號注意（2026-10-10）**：plan PR7b review（`2026-10-09_review_plan-pr7b.md`）同時用咗 W-046–W-047、S-140–S-145，同 v1.0.7 記憶法 table review 嘅 S-140–S-145 重複；引用呢幾個 S 號要連報告名。之後新號由兩邊最大值之後開始（grep 全部報告）。另一個 session 用咗 S-146–S-152；plan PR7c review（2026-10-10）用 W-048、S-153–S-157（S-157 = S-154 follow-up）。
 
 ## Reviews
 
-- [2026-10-10_review_plan-pr7c.md](reviews/2026-10-10_review_plan-pr7c.md) — 溫習計劃 PR7c 閱讀任務已完成 tag + 最後一條未完成提示（G41，未升版；pass 91；W-048 🏆 卡褪色令 tag 得 2.4:1、S-153–S-156）
+- [2026-10-10_review_plan-pr7c.md](reviews/2026-10-10_review_plan-pr7c.md) — 溫習計劃 PR7c 閱讀任務已完成 tag + 最後一條未完成提示（G41，未升版；pass 91；W-048 🏆 卡褪色令 tag 得 2.4:1、S-153–S-156；S-154 follow-up（runner nav 一行）pass 99、S-157）
 - [2026-10-10_review_v107.md](reviews/2026-10-10_review_v107.md) — v1.0.7 記憶法 table（pass 94；S-140–S-145：S-140/141/144 已修，S-142/143 延後）
 - [2026-10-09_review_v104.md](reviews/2026-10-09_review_v104.md)
 - [2026-10-09_review_v103.md](reviews/2026-10-09_review_v103.md)
