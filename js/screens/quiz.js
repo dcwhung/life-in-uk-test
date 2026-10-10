@@ -14,13 +14,14 @@ let state = {
   planDay: null,         // study plan day (ISO) a plan task session counts for; null otherwise (G5)
 };
 
-// Practice: skip mastered questions until the whole set is mastered, shuffle, then draw at most
-// PRACTICE_ROUND_MAX; review sets (wrong answers / flagged) ask every listed question, mastered or not.
-// Exam: fixed exam order with all questions (All Exams shuffled, Random Exam drawn).
+// Practice: skip mastered questions until the whole set is mastered, keep one copy per question text (G40, W-046:
+// the copies share a streak, so it moves once a round), shuffle, then draw at most PRACTICE_ROUND_MAX; review sets
+// (wrong answers / flagged) ask every listed question, mastered or not, each text once.
+// Exam: fixed exam order with all questions (All Exams shuffled, Random Exam drawn); a paper keeps its real questions.
 function sessionQuestions(examNum, pool) {
   if (state.mode === PRACTICE_MODE) {
     const candidates = isReviewSet(examNum) ? pool : practicePool(pool);
-    return shuffle(candidates).slice(0, PRACTICE_ROUND_MAX).map(toQuestionItem);
+    return distinctQuestions(candidates).slice(0, PRACTICE_ROUND_MAX).map(toQuestionItem);
   }
   if (isRandomExam(examNum)) return randomExamPick(pool).map(toQuestionItem);
   return (examNum === ALL_EXAM ? shuffle(pool) : pool).map(toQuestionItem);
@@ -42,10 +43,12 @@ function startExam(examNum, mode = pendingMode) {
   state.planDay = null;
   clearSideSession();
   state.setPool = pool;
-  state.masteredBefore = masteryOf(pool).mastered;
-  state.reviewTotal = isReviewSet(examNum) ? pool.length : 0;
+  // S-145(a): distinct questions, as the round asks each text once ("Round 1 of N · n of your T")
+  state.reviewTotal = isReviewSet(examNum) ? questionGroups(pool.map(qKey)).length : 0;
   state.cleared = 0;
   state.questions = sessionQuestions(examNum, pool);
+  // S-141(b): "Mastered N more this round" counts the questions asked, not their unasked copies (G40)
+  state.masteredBefore = masteryOf(state.questions).mastered;
   resetAnswers();
   examTimeUp = false;
   if (hasExamTools()) startExamTimer(); else stopExamTimer();
@@ -213,13 +216,13 @@ function revealAnswer() {
 function recordPracticeResult(q, correct) {
   // session length stays fixed; unmastered ones return next session
   recordPracticeAnswer(q, correct, state.planDay || null);
-  // wrong answers join the review list; only a correct answer inside the review (or any plan task, R9 / G38) clears one
+  // wrong answers join the review list; only a correct answer inside the review (or any plan task, R9 / G38) clears it
   if (!correct) addWrong(q);
-  else if (isPlanSession()) clearPlanReviewWrong(q);
-  else if (state.examNum === WRONG_EXAM && wrongList[qKey(q)]) { clearWrong(q); state.cleared++; }
+  else if (isPlanSession() || state.examNum === WRONG_EXAM) clearWrongCopies(q);
 }
-// W-030 / G38: a plan task (practise / drill / clear wrong answers) asks the canonical copy; clear every copy of that question the wrong list holds, counted once
-function clearPlanReviewWrong(q) {
+// W-030 / G38 / W-047: a plan task or a wrong-answers round asks one copy of a question text (G40, W-046); clear
+// every copy of that question the wrong list holds, counted once
+function clearWrongCopies(q) {
   const keys = planSameQuestionKeys(keysOf(wrongList), qKey(q));
   keys.forEach(k => clearWrong(questionByKey(k)));
   if (keys.length) state.cleared++;

@@ -6,8 +6,10 @@ let practiceFlags = getLS(FLAGS_LS) || {};   // { "exam.idx": true } — practic
 let wrongList = getLS(WRONG_LS) || {};       // { "exam.idx": true } — practice + exam mistakes
 
 function saveStreaks() { setLS(STREAK_LS, streaks); }
+// G40 (user 2026-10-10): copies of one question text share a flag, so a toggle writes every copy
+// (questionCopies: js/domain/questions.js, loaded later; only called at run time)
 function setPracticeFlag(key, on) {
-  if (on) practiceFlags[key] = true; else delete practiceFlags[key];
+  questionCopies(key).forEach(k => { if (on) practiceFlags[k] = true; else delete practiceFlags[k]; });
   setLS(FLAGS_LS, practiceFlags);
 }
 function addWrong(q) { wrongList[qKey(q)] = true; setLS(WRONG_LS, wrongList); }

@@ -19,9 +19,44 @@ const MAX_DIFFICULTY = Math.max(...DIFF_LEVELS); // stars shown out of this many
 function examQuestions(n) { return allQuestions().filter(item => item.examNum === Number(n)); }
 function chapterQuestions(ch) { return allQuestions().filter(({ q }) => q.ch === ch); }
 function difficultyQuestions(level) { return allQuestions().filter(({ q }) => q.d === level); }
+// "exam.idx" storage key of a pool item; questionByKey is its inverse
+const qKey = q => q.examNum + '.' + q.origIdx;
 function questionByKey(k) {
   const [examNum, origIdx] = k.split('.').map(Number);
   return { q: EXAMS[examNum][origIdx], examNum, origIdx };
+}
+
+// ── copies: the same English question text in several exams is one question (plan G4, G40) ──
+// Single source for the plan's canonical keys, the merged source nodes and the streak sync (js/domain/mastery.js).
+// A copy never crosses facts (tests/plan-test.js checks it), so a fact's src holds every copy of its questions.
+function buildQuestionCopies() {
+  const byText = {}, canon = {};
+  allQuestions().forEach(({ q, examNum, origIdx }) => {
+    const text = q.q.trim().toLowerCase(), key = qKey({ examNum, origIdx });
+    (byText[text] = byText[text] || []).push(key); // exam order
+    canon[key] = byText[text][0];
+  });
+  const copies = Object.fromEntries(Object.values(byText).map(keys => [keys[0], keys]));
+  return { canon, copies };
+}
+const QUESTION_COPIES = buildQuestionCopies(); // { canon: "exam.idx" → first copy in exam order, copies: first → all }
+function canonQuestionKey(k) { return QUESTION_COPIES.canon[k] || k; }
+// every copy of k's question, k included, in exam order
+function questionCopies(k) { return QUESTION_COPIES.copies[canonQuestionKey(k)] || [k]; }
+// keys → one group per distinct question, in first-appearance order; a group holds its copies from keys, exam order
+function questionGroups(keys) {
+  const inKeys = new Set(keys);
+  return [...new Set(keys.map(canonQuestionKey))].map(c => questionCopies(c).filter(k => inKeys.has(k)));
+}
+// W-046: one item per distinct question (a random copy of each), shuffled; a Practice round asks a text once,
+// so the copies' synced streak moves at most once a round
+function distinctQuestions(list) {
+  const byCanon = new Map();
+  shuffle(list).forEach(item => {
+    const c = canonQuestionKey(qKey(item));
+    if (!byCanon.has(c)) byCanon.set(c, item);
+  });
+  return [...byCanon.values()];
 }
 
 // ── set ids ──

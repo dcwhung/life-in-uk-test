@@ -145,7 +145,8 @@
 .sqm-count { background: var(--navy); color: var(--gold-light); border-radius: var(--radius-pill); padding: 3px 9px; font-size: var(--fs-xs); font-weight: 800; }
 .sqm-map { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; margin-bottom: var(--space-7); }
 .sqm-map-label { font-size: var(--fs-xs); color: var(--text-muted); font-weight: 700; margin-right: var(--space-1); }
-.sqm-node { font-size: var(--fs-xs); font-weight: 700; padding: var(--space-2) 9px; border-radius: var(--radius-pill); border: 1.5px solid var(--border); color: var(--text-muted); background: var(--card); }
+.sqm-ref { white-space: nowrap; } /* S-140: a merged ref ("Exam 7 · Q16 = Exam 13 · Q1") breaks only at " = " */
+.sqm-node { font-size: var(--fs-xs); font-weight: 700; white-space: nowrap; padding: var(--space-2) 9px; border-radius: var(--radius-pill); border: 1.5px solid var(--border); color: var(--text-muted); background: var(--card); }
 .sqm-node.current { background: var(--navy); border-color: var(--navy); color: var(--text-inverse); }
 .sqm-node.mastered { border-color: var(--green-light); color: var(--green); background: var(--success-bg); }
 .sqm-node.weak { border-color: var(--red-light); color: var(--red); background: var(--danger-bg); }

@@ -144,7 +144,8 @@ function flaggedTileBody(n) {
   return n ? '' : `<span class="sub">${t('home.flaggedEmptyHtml', { icon: bookmarkSvg('bm-inline') })}</span>`;
 }
 function renderMyReview() {
-  const wrongN = keysOf(wrongList).length, flagN = keysOf(practiceFlags).length;
+  // G40: distinct questions (copies of one text are one question, as in the rounds and the result note)
+  const wrongN = questionGroups(keysOf(wrongList)).length, flagN = questionGroups(keysOf(practiceFlags)).length;
   byId('myReview').classList.toggle('show', pendingMode === PRACTICE_MODE && (wrongN + flagN) > 0);
   renderReviewTile('tileWrong', wrongN, '✗', t('home.wrongTitle'), wrongTileBody(wrongN));
   renderReviewTile('tileFlagged', flagN, bookmarkSvg('rv-flag-tile'), t('home.flaggedTitle'), flaggedTileBody(flagN));
