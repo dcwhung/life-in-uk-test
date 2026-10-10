@@ -359,11 +359,12 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
 .plan-run-meta > .plan-num { flex: none; white-space: nowrap; }
 .plan-run-meter { height: 5px; }
 .plan-run-body .fact, .plan-run-body .sqm { margin: 0; }
-/* W-048: a mastered (🏆 / ticked) card fades whole in Study (.fact.mastered, --fact-mastered-opacity); in the runner it fades
+/* W-048: a mastered (🏆 / ticked) card fades whole in Study (.fact.mastered, --fact-mastered-opacity). In the runner a card
+   fades only once its practice is done (user 2026-10-10: ticked ✓ but not done stays clear, ▶ Practise too), and then
    everything but the G41 "✓ Practice done" tag, which faded with the card drops to 2.4:1 (kept ≥ 4.5:1 here) */
 .plan-run-body .fact.mastered { opacity: 1; }
-.plan-run-body .fact.mastered > :not(.fact-src),
-.plan-run-body .fact.mastered .fact-src > :not(.fact-done-tag) { opacity: var(--fact-mastered-opacity); }
+.plan-run-body .fact.practice-done > :not(.fact-src),
+.plan-run-body .fact.practice-done .fact-src > :not(.fact-done-tag) { opacity: var(--fact-mastered-opacity); }
 .plan-run-body .sqm-cta button { min-height: 44px; } /* the Similar panel's own CTA is 42px tall (unchanged there) */
 .plan-note.warn { color: var(--red); background: var(--danger-bg); }
 /* G41: reading's last fact, facts still to practise: the carry-over orange (5.3:1 text on --flag-bg) */

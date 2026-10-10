@@ -90,7 +90,8 @@ function factMemoryHtml(f) {
 // opts: tag switches + title (People tab name line) + practise (factPractiseHtml) + doneTag (factDoneTagHtml)
 function factFullHtml(f, { marks = {}, opts = {} }) {
   const mastered = marks.mastered || marks.derived;
-  return `<div class="fact${f.w ? ' war' : ''}${mastered ? ' mastered' : ''}" data-fact-id="${escapeHtml(f.id)}">
+  const done = opts.doneTag ? ' practice-done' : ''; // a study plan reading card whose practice is done (G41)
+  return `<div class="fact${f.w ? ' war' : ''}${mastered ? ' mastered' : ''}${done}" data-fact-id="${escapeHtml(f.id)}">
     <div class="fact-top">
       <div class="fact-meta">${factTagsHtml(f, opts)}</div>
       <div class="fact-actions">
