@@ -21,6 +21,6 @@
 | 4b | 三層 B | 用戶定稿字眼；最尾一行用「    ※ 同英國有聯繫，但唔係英國、亦唔係 Great Britain 一部分」 | 已確認 |
 | 4c | E4 | 三層拆開之後，Great Britain / 位置兩行（4.6、6.5、17.8、1.3）要另外再傾放邊 | 待傾 |
 | 5 | 都鐸王朝（14 題） | 拆：5A 宗教改革（3.3、13.22、17.9、2.13、8.23、12.8；字眼照草稿）、5B 都鐸王朝（1.5、13.11、17.13、3.21、8.5、16.2） | 已確認 |
-| 5b | 5B | 用戶 v2：續行（8 空格、冇符號）放 York vs Lancaster、兩位被處決妻子；app 只得兩層，續行會縮返去對齊「•」文字 → 要用戶揀：接受 / 改 code 加第三級縮排 / 續行加「◦」 | 待確認 |
+| 5b | 5B | 用戶 v2：續行（8 空格、冇符號）放 York vs Lancaster、兩位被處決妻子；app 只得兩層，續行會縮返去對齊「•」文字 → 用戶揀 A：改 app code，8+ 空格冇符號 = 續行（`.rv-note-line.cont`，padding-left 2 × indent、text-indent 0），對齊「→」後面文字；改 `js/components/tags.js` noteLineHtml + `css/components/note.css` + 測試 | 已確認（preview 待睇） |
 | 5c | 4.15、11.15 | 搬去 ② 教會 table（E1）：England 格「Church of England<br>Henry VIII 創立；君主係最高領袖，Archbishop of Canterbury（坎特伯雷大主教）係精神領袖」，刪重複前綴；② 變 7 題 | 已確認 |
 | 5d | 5A | 字眼照草稿 | 已確認 |

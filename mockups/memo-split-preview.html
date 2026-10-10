@@ -31,6 +31,8 @@
   .phone .flag { font-size: 12px; margin: 0 0 8px; color: var(--text-muted); line-height: 1.45; }
   .phone.bad .flag { color: var(--red); }
   .answer-box { display: block; margin-bottom: 0; }
+  /* PROPOSED app CSS (css/components/note.css) for 5B option A */
+  .rv-note-line.cont { padding-left: calc(2 * var(--note-indent)); text-indent: 0; }
   .q { font-size: 13px; font-weight: 600; margin: 0 0 8px; color: var(--navy); }
 </style>
 </head>
@@ -87,9 +89,9 @@ const GROUPS = [
    [['ok', '草稿', '',
      '記憶法（宗教改革）：\n• Henry VIII（亨利八世）\n    → 教宗唔准佢同第一任妻子 Catherine of Aragon（阿拉貢的凱瑟琳）離婚\n    → 脫離天主教會，成立 Church of England（英格蘭國教會）\n    → 解散修道院（Dissolution of the Monasteries），沒收財產\n• Reformation（宗教改革）\n    → 16 世紀脫離天主教會、建立新教教會嘅運動']]],
   ['5B 都鐸王朝（6 題）— 用戶定稿 v2',
-   '續行用 8 個半形空格縮排、冇符號。App 會當佢係子項（同「→」嗰行同一級），所以續行文字會對齊「→」個符號，唔係對齊「→」後面嘅文字。',
+   '方案 A（要改 app code）：8 個半形空格開頭、冇符號嘅行 = 續行，對齊「→」後面嘅文字。呢個 preview 已經用咗建議嘅新規則。',
    'Who was Henry VIII\'s second wife? → Anne Boleyn',
-   [['', '你嘅版本（照抄）', '續行對齊「→」符號',
+   [['ok', '方案 A（建議嘅新規則）', '續行對齊「→」後面嘅文字',
      '記憶法（都鐸王朝）：\n• Henry VII（亨利七世）\n    → 玫瑰戰爭（Wars of the Roses，1455–1485）：\n        York（約克）vs Lancaster（蘭開斯特）\n    → 戰爭結束，開創都鐸王朝\n• Henry VIII（亨利八世）\n    → 六任妻子，兩位被處決：\n        Anne Boleyn（安妮·博林）｜第二任\n        Catherine Howard（凱瑟琳·霍華德）\n• Elizabeth I（伊利沙伯一世）\n    → Anne Boleyn 嘅女兒\n    → 處決 Mary, Queen of Scots（蘇格蘭瑪麗女王）']]],
   ['② 國教 / 教會 table（5 → 7 題）',
    '4.15、11.15 由都鐸搬過嚟。England 格加「Henry VIII 創立」；兩題原本嘅前綴（君主係最高領袖、坎特伯雷大主教係精神領袖）同 table 重複，刪咗。',
@@ -103,7 +105,8 @@ const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<':
 const NOTE_MARK = /^([•◦→])\s*/;
 function noteLineHtml(line) {
   const text = line.trim(), mark = text.match(NOTE_MARK);
-  const cls = /^\s{2,}/.test(line) ? ' sub' : mark ? ' bullet' : '';
+  // PROPOSED (5B, option A): 8+ leading spaces and no marker = continuation line, aligned with the text after a sub item's "→"
+  const cls = (/^\s{8,}/.test(line) && !mark) ? ' cont' : /^\s{2,}/.test(line) ? ' sub' : mark ? ' bullet' : '';
   const body = mark ? `<span class="note-mark">${mark[1]} </span>${escapeHtml(text.slice(mark[0].length))}` : escapeHtml(text);
   return `<div class="rv-note-line${cls}" lang="zh-HK">${body}</div>`;
 }
