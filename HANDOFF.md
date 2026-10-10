@@ -47,7 +47,7 @@ v0.57（P1 refactor）起 `index.html` 只剩 `<head>`、各 screen 嘅 markup �
 | `tests/content-guard-test.js` | v0.66（T-101）：Track 2 content guard（純 node，唔使 browser）：`data/exams.js` 除 `yue` / `oy` / `note` 之外、`data/study.js` 除 fact `yue` 之外嘅**所有**欄位同 `tests/fixtures/content-baseline.json` 逐個比較（English `q` / `o` / `a`、`ch`、`d`、`src`、`en`、`geo`、`p`、`yl`、加 / 刪 key、次序、題數 / fact 數、`CHAPTERS`、每個 data file 嘅 top-level 名）；可以改嘅欄位只比形狀（`yue` 非空、`oy.length === o.length` 同每個 slot 空 / 非空、有冇 `note` key），所以 `oy` 原本 `''` 嘅 slot 要保持 `''`；報錯寫 `Exam N · Qk (index)` / `fact #id (index)`，最多列 40 條。**R3 check**（v0.66，S-055）：同一條 English 題目（`q` trim + 唔分大細階）喺唔同 exam 出現，`yue` 一定要逐字一樣，否則列出成組題目再 fail。v0.68 加 S-051 `_noteNonEmpty` 單向規則（有內容嘅 note 唔可以清空）同 S-061 多選題 yue 數量字；`oy` 錯位由 `tests/tools/check-batch-replay.js` 守（S-053） |
 | `tests/fixtures/content-baseline.json` | v0.66（T-101）：guard 嘅 committed baseline（受保護欄位原樣 + 可改欄位嘅形狀，一題一行，改 English 時 diff 易睇）；用 fixture 唔用 git ref，因為 `origin/main` 會郁、shallow clone 未必有舊 commit。**唔好手改** |
 | `tests/tools/make-content-baseline.js` | v0.66（T-101）：生成上面個 fixture：`node tests/tools/make-content-baseline.js`（亦 export `loadData` / `project` / `BASELINE` 俾 guard 用）。**只可以喺刻意改 English 內容或者 data 結構（id、`ch`、`d`、`src`、答案、次序、題數）嗰陣重生成，同嗰個改動放喺同一個 commit**；**唔准喺廣東話改寫之後為咗令 guard pass 而重生成**（guard 存在就係防 `yue` / `oy` / `note` 改寫靜靜雞改埋其他嘢；fixture 只喺 T-101 `30f0e8d`（v0.66）同 S-051 `295bd71`（v0.68，加 `_noteNonEmpty`）commit 過）。同一規則寫咗喺 tool 檔頭、guard 檔頭同 `tests/tools/README.md` |
-| `tests/*.js` | 31 套測試（v0.63 加 `factmastery-test`，v0.64 加 `doubletap-test`，v0.65 加 `lang-switch-test`，v0.66 加 `content-guard-test`，v1.0.7 加 `note-table-test`）（大部分 Playwright），`tests/run-all.sh` 一次過跑 |
+| `tests/*.js` | 41 套測試（v0.63 加 `factmastery-test`，v0.64 加 `doubletap-test`，v0.65 加 `lang-switch-test`，v0.66 加 `content-guard-test`，v1.0.7 加 `note-table-test`）（大部分 Playwright），`tests/run-all.sh` 一次過跑 |
 | `mockups/similar-question-map.html` | Similar Questions 嘅設計 mockup（獨立 HTML，頂部 tab 切換情景；PR 嘅 `Design Origin`） |
 | `mockups/study-plan-flow.html` | 溫習計劃（Study Plan）嘅設計 mockup（PR #51 / #52，用戶 2026-10-08 確認）：link app 嘅 `css/`，頂部 tab 切換入口 / 訂立目標 / 進度表 / 今日任務；開發 handoff 見 `.proj-docs/plans/2026-10-08_handoff_study-plan.md`；功能完成後刪除 |
 
@@ -234,10 +234,10 @@ v0.57（P1 refactor）起 `index.html` 只剩 `<head>`、各 screen 嘅 markup �
 - 顯示時「💡 備注：」獨立一行，內容由下一行開始（Practice 答案框同 Exam 結果頁 review 都係）
 - 內容係列點就一定要分行，一點一行；時間線每行以「→」開頭（包括第一行）
 - 有層次用「• 」主項、四個空格 + 「◦ 」子項；獨立段落（例如「陷阱：」）前留空行
-- 記憶法格式：第一行「記憶法：」或「記憶法（主題）：」，之後每行「A → B → C；」，最後一行用「。」結尾
+- 記憶法格式：第一行「記憶法：」或「記憶法（主題）：」，之後每行「A → B → C；」，最後一行用「。」結尾（table 題組例外：見下面「Table 行（v1.0.7）」）
 - 四地區對照類記憶法統一次序：Scotland → England → Wales → Northern Ireland
 - 同一題組嘅所有題目用完全相同嘅記憶法文字；原有專題備注（例如邱吉爾金句）放喺記憶法上面一行
-- **Table 行（v1.0.7）**：連續以 `|` 開頭嘅行（`| 國家 | 聖人 | 日子 |`）render 成一個 table（`noteHtml()` → `noteTableHtml()`，`js/components/tags.js`；`.note-table*` 喺 `css/components/note.css`），第一行係 header，其餘係 body；前後可以混普通行、`•` 列點同空行（照舊行 `noteLineHtml()`）。格入面 `<br>` 分開主文同備注（`noteCellHtml()`：先拆再逐段 `escapeHtml`，第一段 = 主文，之後每段一個細字 `.note-cell-sub`；有 `<br>` 嘅格 `td.multi` 先可以轉行，其他格 `nowrap`）；`<br>` 係 note 入面唯一有效嘅 markup。主文寫英文（國家 / 地名唔加中文），中文譯名放 `<br>` 後面；390px 三個畫面（Study「💡 記憶法」、Practice 答案框、Results review）要唔使左右 scroll（`note-table-test` 守，`.note-table-wrap` `overflow-x: auto` 只係後備）。用咗 table 嘅 10 組、101 題見「記憶法題組」；都鐸王朝、三層屬地、Magna Carta、選舉、戴卓爾夫人、陪審員保持文字
+- **Table 行（v1.0.7）**：連續以 `|` 開頭嘅行（`| 國家 | 聖人 | 日子 |`）render 成一個 table（`noteHtml()` → `noteTableHtml()`，`js/components/tags.js`；`.note-table*` 喺 `css/components/note.css`），第一行係 header，其餘係 body；前後可以混普通行、`•` 列點同空行（照舊行 `noteLineHtml()`）。格入面 `<br>` 分開主文同備注（`noteCellHtml()`：先拆再逐段 `escapeHtml`，第一段 = 主文，之後每段一個細字 `.note-cell-sub`；有 `<br>` 嘅格（`th.multi` / `td.multi`）先可以轉行，其他格 `nowrap`；備注要成段唔斷行就用 `\u2060` WORD JOINER / `\u00a0` NO-BREAK SPACE，例如 ④ 嘅 `全\u2060英\u2060國\u00a0MP`）；`<br>` 係 note 入面唯一有效嘅 markup。主文寫英文（國家 / 地名唔加中文），中文譯名放 `<br>` 後面；390px 三個畫面（Study「💡 記憶法」、Practice 答案框、Results review）要唔使左右 scroll（`note-table-test` 守，`.note-table-wrap` `overflow-x: auto` 只係後備）。用咗 table 嘅 10 組、101 題見「記憶法題組」；都鐸王朝、三層屬地、Magna Carta、選舉、戴卓爾夫人、陪審員保持文字
 
 ## 廣東話翻譯（yue）規則（v0.66）
 
