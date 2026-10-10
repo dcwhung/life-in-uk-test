@@ -418,16 +418,84 @@ function checkPhaseDoneDrillMock() {
   const passes = d => d.tasks.filter(t => t.type === 'mock').map(() => pass);
   const mockLog = { v: 1, days: Object.fromEntries(mockDays.map(d => [d.date, dayEntry([], passes(d))])) };
   assert(done(plan, mockLog, 'mock') && plan.days.some(d => d.phase === 'rest'), 'G43: every mock day (light day too) 100% → mock done; rest days ignored');
-  const firstMock = mockDays.find(d => !d.light);
-  const mockShort = clone(mockLog);
-  mockShort.days[firstMock.date].mock = [];
-  assert(!done(plan, mockShort, 'mock'), 'G43: a mock day without a pass → mock not done');
+  assert(!done(plan, { v: 1, days: {} }, 'mock'), 'W-049: no mock attempt at all → mock not done');
   const light = clone(plan);
   light.days.filter(d => d.light).forEach(d => d.tasks.forEach(t => { if (t.type === 'wrongFacts') { delete t.facts; delete t.anchor; } }));
   assert(!done(light, mockLog, 'mock'), 'G43: the light day still unopened (wrong facts pending) → mock not done');
   const noDrill = clone(plan);
   noDrill.days = noDrill.days.filter(d => d.phase !== 'drill');
   assert(!done(noDrill, drillLog, 'drill'), 'G43: a phase with no days is never done');
+}
+// W-049 (user 2026-10-10「只計做得到嘅日子」): a past failed / skipped mock day does not block; the mock phase is done
+// once every countable mock day's other tasks are done (light day included) and the phase's latest attempt passed
+function checkPhaseDoneMockLatest() {
+  const plan = phaseDoneFixture();
+  const done = log => g('planPhaseDone')(plan, log, 'mock');
+  const mockDays = plan.days.filter(d => d.phase === 'mock' && !d.light);
+  const pass = { exam: 1, correct: 20, total: 24 }, fail = { exam: 2, correct: 12, total: 24 };
+  const logOf = byDay => ({ v: 1, days: Object.fromEntries(mockDays.map((d, i) => [d.date, dayEntry([], byDay(i))])) });
+  const last = mockDays.length - 1;
+  assert(done(logOf(i => (i === 0 ? [fail] : [pass]))), 'W-049: first mock failed, later ones passed → mock done');
+  assert(done(logOf(i => (i === 1 ? [] : [pass]))), 'W-049: a skipped mock day, later passes → mock done');
+  assert(!done(logOf(i => (i === last ? [pass, fail] : [pass]))), 'W-049: the latest attempt failed → mock not done');
+  assert(done(logOf(i => (i === last ? [fail, pass] : []))), 'W-049: only the last day passed (after a fail that day) → mock done');
+  const light = clone(plan);
+  light.days.filter(d => d.light).forEach(d => d.tasks.forEach(t => { if (t.type === 'wrongFacts') { delete t.facts; delete t.anchor; } }));
+  assert(!g('planPhaseDone')(light, logOf(() => [pass]), 'mock'), 'W-049: the light day\'s wrong facts still to do → mock not done');
+  const review = clone(plan);
+  const rDay = review.days.find(d => d.date === mockDays[0].date);
+  rDay.tasks.find(t => t.type === 'review').qids = ['1.0'];
+  assert(!g('planPhaseDone')(review, logOf(() => [pass]), 'mock'), 'W-049: a mock day\'s filled review still wrong → mock not done (carry-over can finish it)');
+  const fixed = logOf(() => [pass]);
+  fixed.days[mockDays[0].date].ok = okOf(['1.0']);
+  assert(g('planPhaseDone')(review, fixed, 'mock'), 'W-049: …answered right (carry-over counts for its own day) → mock done');
+}
+// W-049 / S-163: days before the latest re-plan (G7 frozen, before carryFrom) are left out of drill / mock; learn is
+// content, so facts answered before and after a re-plan both count
+function checkPhaseDoneReplan() {
+  const plan = phaseDoneFixture();
+  const drillDays = plan.days.filter(d => d.phase === 'drill');
+  const learnQids = plan.days.filter(d => d.phase === 'learn').flatMap(d => d.tasks.flatMap(t => g('planTaskQids')(t)));
+  const half = Math.floor(learnQids.length / 2);
+  const before = { v: 1, days: { [TODAY]: dayEntry(learnQids) } };
+  const at = drillDays[3].date;
+  const re = clone(g('replanFrom')(plan, plan.goal, at, before));
+  assert(re && re.carryFrom === at && re.days.filter(d => d.phase === 'drill' && d.date < at).length === 3, 'S-163: re-planned on the 4th drill day: 3 frozen drill days before carryFrom');
+  re.days.forEach(d => d.tasks.forEach(t => {
+    if (t.type === 'drill' && !t.qids) t.qids = g('PLAN_CHAPTER_QIDS')[t.ch].slice(0, t.quota);
+    if (t.type === 'review' && !t.qids) t.qids = [];
+    if (t.type === 'wrongFacts' && !t.facts) Object.assign(t, { facts: [], anchor: {} });
+  }));
+  re.days.filter(d => d.phase === 'drill' && d.date < at).forEach(d => d.tasks.forEach(t => { if (t.type === 'drill') t.qids = g('PLAN_CHAPTER_QIDS')[t.ch].slice(0, t.quota); }));
+  const log = clone(before);
+  re.days.filter(d => d.phase === 'drill' && d.date >= at).forEach(d => { log.days[d.date] = dayEntry(d.tasks.flatMap(t => g('planTaskQids')(t))); });
+  assert(g('planPhaseDone')(re, log, 'drill'), 'W-049: every drill day since the re-plan 100%, 3 frozen ones unfinished → drill done');
+  const noCarry = clone(re);
+  delete noCarry.carryFrom;
+  assert(!g('planPhaseDone')(noCarry, log, 'drill'), 'W-049: the same days without a re-plan → drill not done');
+  const split = { v: 1, days: { [TODAY]: dayEntry(learnQids.slice(0, half)), [at]: dayEntry(learnQids.slice(half)) } };
+  const facts = plan.days.filter(d => d.phase === 'learn').flatMap(d => d.tasks.filter(t => t.type === 'read').flatMap(t => t.facts));
+  const splitFact = facts.find(id => { const q = g('planFactQids')(STUDY.find(f => f.id === id)); return q.includes(learnQids[half - 1]) && q.includes(learnQids[half]); });
+  if (splitFact !== undefined) split.days[at].ok = { ...split.days[at].ok, ...okOf(g('planFactQids')(STUDY.find(f => f.id === splitFact))) };
+  assert(g('planPhaseDone')(re, split, 'learn'), 'S-163: learn facts answered half before, half after the re-plan → learn done');
+}
+// S-163: a null log (unreadable) is nothing done, never a throw
+function checkPhaseDoneNullLog() {
+  const plan = phaseDoneFixture();
+  assert(['learn', 'drill', 'mock'].every(ph => g('planPhaseDone')(plan, null, ph) === false), 'S-163: null log → no phase done');
+  assert(g('planChaptersDone')(null, [1, 2]) === false && g('planFactDoneEver')(null, 1) === false, 'S-163: null log → no chapter / fact done');
+  const sets = g('planDoneSets')(null);
+  assert(sets.facts.size === 0 && sets.qids.size === 0, 'S-160: planDoneSets(null) is empty');
+}
+// S-160: one done set per render, passed in, gives the same answers as computing it inside
+function checkDoneSetsPassedIn() {
+  const plan = phaseDoneFixture();
+  const learnQids = plan.days.filter(d => d.phase === 'learn').flatMap(d => d.tasks.flatMap(t => g('planTaskQids')(t)));
+  const log = { v: 1, days: { [TODAY]: dayEntry(learnQids) } };
+  const sets = g('planDoneSets')(log);
+  assert(sets.facts.size === FACT_COUNT && g('planPhaseDone')(plan, log, 'learn', sets) && g('planChaptersDone')(log, [3], sets), 'S-160: a done set passed in: learn / Ch 3 done');
+  const empty = g('planDoneSets')(emptyLog());
+  assert(!g('planPhaseDone')(plan, log, 'learn', empty) && !g('planChaptersDone')(log, [3], empty), 'S-160: the passed-in set is what is used');
 }
 function checkChaptersDone() {
   const view = (log, m) => g('planWithMastered')(log, m);
@@ -905,6 +973,10 @@ function runSuite() {
   checkMastered();
   checkPhaseDoneLearn();
   checkPhaseDoneDrillMock();
+  checkPhaseDoneMockLatest();
+  checkPhaseDoneReplan();
+  checkPhaseDoneNullLog();
+  checkDoneSetsPassedIn();
   checkChaptersDone();
   checkStatusAndCarry();
   checkAttribution();

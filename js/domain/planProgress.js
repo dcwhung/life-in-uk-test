@@ -174,33 +174,62 @@ function planDayCompletion(day, dayLog) {
 }
 
 // ── phase / chapter done (G43): content, not dates, so a phase may turn green before its last day ──
-// G3 / G4: a fact is done once one day's log holds all its questions right; G37: 🏆 ones count on any day (or alone)
-function planFactDoneEver(log, id) {
+// S-160: the facts / questions done, worked out once per render. G3 / G4: a fact is done once one day's log holds
+// all its questions right; G37: 🏆 ones count on any day, or alone. Questions: right on any day, or 🏆
+function planDoneSets(log) {
   const mastered = (log && log.mastered) || PLAN_NO_MASTERED;
-  if (planFactDone(id, planDayLog(null, ''), mastered)) return true;
-  return !!log && Object.keys(log.days).some(iso => planFactDone(id, planDayLog(log, iso), mastered));
+  const facts = new Set(), qids = new Set(mastered);
+  const check = (keys, dayLog) => keys.forEach(k => {
+    const f = FACT_BY_QKEY[k];
+    if (f && !facts.has(f.id) && planFactDone(f.id, dayLog, mastered)) facts.add(f.id);
+  });
+  check([...mastered], planDayLog(null, ''));
+  if (log) Object.keys(log.days).forEach(iso => {
+    const dayLog = planDayLog(log, iso);
+    Object.keys(dayLog.ok).forEach(k => qids.add(k));
+    check(Object.keys(dayLog.ok), dayLog);
+  });
+  return { facts, qids };
 }
-function planQidDoneEver(log, qid) {
-  if (!log) return false;
-  return (log.mastered || PLAN_NO_MASTERED).has(qid) || Object.values(log.days).some(d => !!(d.ok && d.ok[qid]));
-}
+function planFactDoneEver(log, id) { return planDoneSets(log).facts.has(id); }
 // learn: every fact of its reading tasks and every question of its practice tasks, answered on whichever day
-function planLearnContentDone(days, log) {
+function planLearnContentDone(days, done) {
   const tasks = days.flatMap(d => d.tasks);
   const facts = tasks.filter(t => t.type === PLAN_TASK.read).flatMap(t => t.facts || []);
   const qids = tasks.filter(t => t.type === PLAN_TASK.practice).flatMap(t => t.qids || []);
-  return facts.every(id => planFactDoneEver(log, id)) && qids.every(k => planQidDoneEver(log, k));
+  return facts.every(id => done.facts.has(id)) && qids.every(k => done.qids.has(k));
 }
-// drill / mock: every day of the phase at 100% (G8 / G24 day rules); rest days have their own phase; no days = never
-function planPhaseDone(plan, log, phase) {
+// W-049 (user decision): drill / mock count only the days still doable, from the latest re-plan on (G7: the
+// days before carryFrom are frozen, never carried); when every day of the phase is frozen, all of them count
+function planCountableDays(plan, phase) {
   const days = plan.days.filter(d => d.phase === phase);
-  if (!days.length) return false;
-  if (phase === PLAN_PHASE.learn) return planLearnContentDone(days, log);
+  const open = plan.carryFrom ? days.filter(d => d.date >= plan.carryFrom) : days;
+  return open.length ? open : days;
+}
+// W-049: a mock day's other tasks (review, the light day's wrong facts) done; an unopened review weighs nothing (G24)
+function planMockDayRestDone(day, dayLog) {
+  return day.tasks.filter(t => t.type !== PLAN_TASK.mock).every(t => { const p = planTaskProgress(t, dayLog); return p.complete || p.total === 0; });
+}
+// W-049: a failed / skipped mock day never blocks (mocks are not carried, G10 / G23): every countable day's other tasks
+// done and the phase's latest attempt a pass (G10), so the phase only turns green after a pass that follows the last fail
+function planMockPhaseDone(plan, days, log) {
+  const attempts = plan.days.filter(d => d.phase === PLAN_PHASE.mock).flatMap(d => planDayLog(log, d.date).mock);
+  const latest = attempts[attempts.length - 1];
+  return planMockPassed(latest) && days.every(d => planMockDayRestDone(d, planDayLog(log, d.date)));
+}
+// learn: content (above); drill: every countable day at 100% (G8 / G24 day rules); mock: planMockPhaseDone. Rest days
+// have their own phase; no days = never. done = planDoneSets(log), passed in once per render (S-160)
+function planPhaseDone(plan, log, phase, done = null) {
+  if (!plan.days.some(d => d.phase === phase)) return false;
+  if (phase === PLAN_PHASE.learn) return planLearnContentDone(plan.days.filter(d => d.phase === phase), done || planDoneSets(log));
+  const days = planCountableDays(plan, phase);
+  if (phase === PLAN_PHASE.mock) return planMockPhaseDone(plan, days, log);
   return days.every(d => planDayCompletion(d, planDayLog(log, d.date)).pct === PERCENT);
 }
 // a study-order step (chapters chs): every fact of those chapters done
-function planChaptersDone(log, chs) {
-  return STUDY.filter(f => chs.includes(f.ch)).every(f => planFactDoneEver(log, f.id));
+function planChaptersDone(log, chs, done = null) {
+  const facts = (done || planDoneSets(log)).facts;
+  return STUDY.filter(f => chs.includes(f.ch)).every(f => facts.has(f.id));
 }
 
 // G8: every unfinished past task except mocks, oldest first; G7: nothing from before the last re-plan; G16: none after.

@@ -47,10 +47,11 @@ function renderPlanSchedule() {
   const log = planLoadLogView() || planEmptyLog(); // an unreadable log shows as nothing answered (↺ Reset clears it)
   const phases = planPhaseDays(plan);
   byId('planSummary').textContent = planSummaryText(plan);
-  const done = planPhasesDone(plan, log, phases);
+  const doneSets = planDoneSets(log); // S-160: once per render, shared by the phases and the study order
+  const done = planPhasesDone(plan, log, phases, doneSets);
   renderPlanPhaseBar(phases, done);
   renderPlanStrategy(plan, phases, done);
-  renderPlanOrder(log);
+  renderPlanOrder(log, doneSets);
   Object.keys(PLAN_FOLD_TOGGLES).forEach(applyPlanFold);
   byId('planDayList').innerHTML = planDayListHtml(plan, log, planTodayIso());
 }
@@ -110,8 +111,8 @@ function planShownPhases(phases) { return PLAN_SHOWN_PHASES.filter(k => phases[k
 // v1.0.4: each also carries its Day range, shown instead of the count while the card is collapsed (plan.css .collapsed)
 // G43: the ✓ is decoration; screen readers hear "(done)" after the name instead
 function planDoneSrHtml(done) { return done ? `<span class="plan-sr">${t('plan.schedule.doneSr')}</span>` : ''; }
-function planPhasesDone(plan, log, phases) {
-  return Object.fromEntries(planShownPhases(phases).map(k => [k, planPhaseDone(plan, log, k)]));
+function planPhasesDone(plan, log, phases, doneSets) {
+  return Object.fromEntries(planShownPhases(phases).map(k => [k, planPhaseDone(plan, log, k, doneSets)]));
 }
 function renderPlanPhaseBar(phases, done) {
   byId('planPhaseBar').innerHTML = planShownPhases(phases).map(k => {
@@ -173,8 +174,8 @@ function planOrderMiniHtml(chs, i, done) {
     + `<span class="plan-ord-mini-name" lang="en" aria-hidden="true">${short}</span>`
     + `<span class="plan-sr" lang="en">${chs.map(planChapterText).join(' + ')}</span>${planDoneSrHtml(done)}</li>`;
 }
-function renderPlanOrder(log) {
-  const done = PLAN_ORDER_STEPS.map(chs => planChaptersDone(log, chs));
+function renderPlanOrder(log, doneSets) {
+  const done = PLAN_ORDER_STEPS.map(chs => planChaptersDone(log, chs, doneSets));
   const mini = byId('planOrderMini');
   if (mini) mini.innerHTML = PLAN_ORDER_STEPS.map((chs, i) => planOrderMiniHtml(chs, i, done[i])).join('');
   const box = byId('planOrder');

@@ -207,8 +207,9 @@
 .plan-pill.now { background: var(--navy); color: var(--text-inverse); }
 /* G43: today at 100%: solid green, white text (a past day's 100% stays the light .ok) */
 .plan-pill.today-done { background: var(--plan-done-today); color: var(--text-inverse); }
-/* en "Done today" in the iPhone's wider SF (Arial + 10%) needs ~74px with the 4px sides: 2px sides keep it on one line in 72px */
-.plan-day-side .plan-pill.today-done { padding-inline: var(--space-1); }
+/* en "Done today" in the iPhone's wider SF (Arial + 10%) needs ~74px with the usual 4px sides, ~72px with 3px (no
+   margin left), so en takes 2px (~70px) in the 72px column; S-161: zh-HK 「今日已完成」 (~61px + 8px) keeps the usual 4px */
+html[lang="en"] .plan-day-side .plan-pill.today-done { padding-inline: var(--space-1); }
 .plan-pill.h0 { background: var(--plan-heat-0); color: var(--text); }
 .plan-pill.h1 { background: var(--plan-heat-1); color: var(--text); }
 .plan-pill.h2 { background: var(--plan-heat-2); color: var(--text); }

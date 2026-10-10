@@ -160,8 +160,12 @@ async function checkTodayPill(pg) {
   const done = await todayPill(pg);
   assert(done.text === 'Done today' && done.cls.includes('today-done') && !done.cls.includes('now'), 'G43: today at 100% → "Done today": ' + JSON.stringify(done));
   assert(done.bg !== done.ok && await contrastOf(pg, done.color, done.bg) >= MIN_CONTRAST && done.color === 'rgb(255, 255, 255)', 'G43: a solid green pill (not the light ✓ Done), white text ≥ 4.5:1: ' + JSON.stringify(done));
+  const side = sel => pg.$eval(sel, e => parseFloat(getComputedStyle(e).paddingLeft));
+  const enPad = await side('#planDayList .plan-day.today .plan-pill');
   await pg.evaluate(() => setLang('zh-HK'));
   assert((await todayPill(pg)).text === '今日已完成', 'G43 zh-HK: 「今日已完成」');
+  const zhPad = await side('#planDayList .plan-day.today .plan-pill'), usual = await side('#planDayList .plan-day.past .plan-pill');
+  assert(zhPad === usual && enPad === 2 && usual === 4, `S-161: zh-HK keeps the usual ${usual}px sides; en "Done today" ${enPad}px to fit 72px: ` + [zhPad, enPad, usual]);
   await pg.evaluate(() => setLang('en'));
 }
 
