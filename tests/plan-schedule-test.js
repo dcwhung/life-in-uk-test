@@ -2,8 +2,8 @@ const { chromium } = require('playwright-core');
 const fs = require('fs');
 const path = require('path');
 // Study plan PR4 (T-319–T-322; handoff §2.3, grill G7 / G16 / G27 / G30 / G34; PR3 S-110 / S-112, PR1 QA O-1):
-// the schedule screen, "Change goal" (re-plan from today) and "↺ Reset plan". The entry stays hidden
-// (STUDY_PLAN_READY = false) unless ?preview=plan (G31), so every flow below starts from the preview.
+// the schedule screen, "Change goal" (re-plan from today) and "↺ Reset plan". The entry is open since
+// v1.1.0 (STUDY_PLAN_READY, PR8), so every flow below opens the app normally.
 // - create → schedule; Home card "Schedule" button; hidden entry: openPlanSchedule() does nothing
 // - summary, phase bar + strategy (three phases), study order card (Ch1–2 → Ch5 → Ch4 → Ch3 with reasons)
 // - day list: its own scroller opened at today (below the sticky full-width WEEK heading, the page not moved),
@@ -34,7 +34,7 @@ const HIT_MIN_PX = 44;
 const activeScreen = pg => pg.evaluate(() => document.querySelector('.screen.active').id);
 const text = (pg, sel) => pg.$eval(sel, e => e.textContent.replace(/\s+/g, ' ').trim());
 const visible = (pg, sel) => pg.evaluate(sel => { const e = document.querySelector(sel); return !!e && e.getClientRects().length > 0; }, sel);
-const fresh = async (pg, query = '?preview=plan') => {
+const fresh = async (pg, query = '') => {
   await pg.goto(APP_URL + query);
   await pg.evaluate(() => localStorage.clear());
   await pg.goto(APP_URL + query);
@@ -62,7 +62,8 @@ const hitOk = (pg, sel) => pg.evaluate(({ s, min }) => {
 }, { s: sel, min: HIT_MIN_PX });
 
 async function checkHidden(pg) {
-  await fresh(pg, '');
+  await fresh(pg);
+  await pg.evaluate(() => { window.planEntryReady = () => false; }); // G19: the release flag off (rollback) hides the entry
   await pg.evaluate(() => { writeStudyPlan(buildPlan({ examDate: '2026-10-29', dailyMins: 120, restDays: [0], level: 'none' }, planTodayIso())); openPlanSchedule(); });
   assert(await activeScreen(pg) === 'screenHome', 'hidden: openPlanSchedule() stays on Home');
   assert(await pg.evaluate(() => PLAN_SCREEN_IDS.includes('screenPlanSchedule')), 'W-031: the schedule is a plan screen (switch off leaves it)');

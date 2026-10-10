@@ -12,7 +12,7 @@ const path = require('path');
 // - Result card (#screenPlanRun, .result-card classes): today's %, summary, "Review this task" / "Start next →";
 //   all done 🎉; G17 review mode: correct answers + "✗ You got this wrong", nothing written to storage
 // - ← in the runner goes back to the day; double tap guard; 44px; contrast; 360 / 375 / 400 × en / zh-HK
-// The entry stays hidden (STUDY_PLAN_READY = false) unless ?preview=plan (G31).
+// The entry is open since v1.1.0 (STUDY_PLAN_READY, PR8), so the app opens normally.
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
 const launchOpts = { args: ['--no-sandbox'] };
 if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_PATH;
@@ -33,7 +33,7 @@ const activeScreen = pg => pg.evaluate(() => document.querySelector('.screen.act
 const text = (pg, sel) => pg.$eval(sel, e => e.textContent.replace(/\s+/g, ' ').trim());
 const visible = (pg, sel) => pg.evaluate(sel => { const e = document.querySelector(sel); return !!e && e.getClientRects().length > 0; }, sel);
 const storage = pg => pg.evaluate(() => JSON.stringify(Object.keys(localStorage).sort().map(k => [k, localStorage.getItem(k)])));
-async function fresh(pg, now = at(TODAY), query = '?preview=plan') {
+async function fresh(pg, now = at(TODAY), query = '') {
   await pg.clock.setFixedTime(now);
   await pg.goto(APP_URL + query);
   await pg.evaluate(() => localStorage.clear());
@@ -100,7 +100,8 @@ const contrastOf = (pg, sel) => pg.evaluate(sel => {
 const taskIndexOf = (p, iso, pred) => p.days.find(d => d.date === iso).tasks.findIndex(pred);
 
 async function checkHidden(pg) {
-  await fresh(pg, at(TODAY), '');
+  await fresh(pg, at(TODAY));
+  await pg.evaluate(() => { window.planEntryReady = () => false; }); // G19: the release flag off (rollback) hides the entry
   await seed(pg);
   await pg.evaluate(() => planOpenTask('2026-10-01', 1));
   assert(await activeScreen(pg) === 'screenHome', 'hidden: planOpenTask() stays on Home');

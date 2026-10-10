@@ -357,7 +357,9 @@ async function checkWording(pg) {
   assert(w.home === '<b>✓ 今日已完成</b>，明日再來' && w.mock === '✓ 模擬考試任務已完成' && w.pill === '✓ 已完成', 'zh-HK 「已完成」 (home card, mock pass, day pill): ' + JSON.stringify(w));
   assert(w.en === "All of today's tasks are done!" && w.enHome === '<b>✓ Done for today</b>, see you tomorrow' && w.enMock === '✓ Mock exam task done', 'en unchanged: ' + w.enPill);
   assert(w.enPill === '✓ Done', 'en day pill unchanged');
-  assert(w.v === '1.0.8', 'APP_VERSION 1.0.8: ' + w.v);
+  // G40 shipped in v1.0.8: any later version keeps it (v1.1.0 = the study plan release, PR8)
+  const [major, minor, patch] = w.v.split('.').map(Number);
+  assert(major > 1 || (major === 1 && (minor > 0 || patch >= 8)), 'APP_VERSION 1.0.8 or later: ' + w.v);
 }
 
 (async () => {

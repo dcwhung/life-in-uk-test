@@ -2,7 +2,7 @@
 // CONFIG — app-wide constants. sw.js loads this file with importScripts() to name its cache,
 // so it must stay worker-safe: plain constants only, no DOM and no question data.
 // ════════════════════════════════════════
-const APP_VERSION = '1.0.8';
+const APP_VERSION = '1.1.0';
 
 // ── modes and special set ids (state.examNum is 1..EXAM_COUNT or one of these) ──
 const PRACTICE_MODE = 'practice';
@@ -48,8 +48,9 @@ const COPY_SEP = ' = ';    // G40: between the copies of one question text ("E7�
 const TOAST_MS = 2400; // how long a toast stays on screen (js/components/toast.js)
 
 // ── study plan (js/domain/plan.js, planProgress.js) ──
-// G19: the entry points (ⓘ switch, home card) stay hidden until the release PR flips this; answer hooks ignore it
-const STUDY_PLAN_READY = false;
+// G19: the entry points (ⓘ switch, home card) show only while this is true (opened in v1.1.0, PR8); answer hooks
+// ignore it. Setting it back to false hides the entry again without touching stored plans (rollback switch).
+const STUDY_PLAN_READY = true;
 
 // ── install banner (js/pwa/pwa.js) ──
 // touch-first devices only: PC Chrome / Edge fire beforeinstallprompt too, but desktop install is not the target
@@ -75,11 +76,6 @@ const STUDY_PLAN_LS = LS_PREFIX + 'studyPlan';
 const STUDY_PLAN_PROGRESS_LS = LS_PREFIX + 'studyPlanProgress';
 // v1.0.4: the plan identity (planIdentity) whose schedule was already opened once: later opens fold its cards
 const STUDY_PLAN_SEEN_LS = LS_PREFIX + 'studyPlanScheduleSeen';
-// G31: ?preview=plan shows the hidden entry on this device until ?preview=off (only written when a param asks)
-const STUDY_PLAN_PREVIEW_LS = LS_PREFIX + 'studyPlanPreview';
-const PLAN_PREVIEW_PARAM = 'preview';
-const PLAN_PREVIEW_ON = 'plan';
-const PLAN_PREVIEW_OFF = 'off';
 const STUDY_LS = {
   prefs: LS_PREFIX + 'studyPrefs',
   mastered: LS_PREFIX + 'studyMastered',
@@ -105,5 +101,6 @@ const MIGRATED_LS = LS_PREFIX + 'migrated';
 const MIGRATE_FALLBACK_LS = LS_PREFIX + 'migrateFallback';
 // object maps ("exam.idx" / fact id → record) merged per entry when both names exist; the rest (prefs) keep the new value
 const MERGE_LS = [STREAK_LS, FLAGS_LS, WRONG_LS, COMPLETED_LS, STUDY_LS.mastered, STUDY_LS.bookmarks];
-// keys no version reads any more (reviewOrder: results-page sort chip, dropped in v0.53)
-const OBSOLETE_LS = ['reviewOrder'];
+// keys no version reads any more, removed on each load (reviewOrder: results-page sort chip, dropped in v0.53;
+// lifeuk.studyPlanPreview: the G31 ?preview=plan flag, dropped at release in v1.1.0, G42)
+const OBSOLETE_LS = ['reviewOrder', LS_PREFIX + 'studyPlanPreview'];

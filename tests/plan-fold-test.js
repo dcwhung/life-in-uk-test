@@ -20,9 +20,9 @@ const HIT_MIN_PX = 44;
 const SEEN_KEY = 'lifeuk.studyPlanScheduleSeen';
 
 const fresh = async pg => {
-  await pg.goto(APP_URL + '?preview=plan');
+  await pg.goto(APP_URL);
   await pg.evaluate(() => localStorage.clear());
-  await pg.goto(APP_URL + '?preview=plan');
+  await pg.goto(APP_URL);
 };
 // as the goal screen does it: a new plan, then the schedule
 const createPlan = (pg, goal = GOAL) => pg.evaluate(g => { clearStudyPlan(); writeStudyPlan(buildPlan(g, planTodayIso())); openPlanSchedule(); }, goal);

@@ -1,10 +1,11 @@
 const { chromium } = require('playwright-core');
 const path = require('path');
 // Study plan PR3 (T-314–T-318; handoff §2.1 / §2.2, grill G13 / G15 / G28 / G31): the ⓘ switch, the home
-// "create a study plan" card and the goal screen. The entry stays hidden (STUDY_PLAN_READY = false) unless
-// ?preview=plan (G31, remembered per device) or a test override of planEntryReady().
-// - hidden: no card, no ⓘ row, openPlanGoal() does nothing, start-up writes no plan key
-// - G31: ?preview=plan / ?preview=off persist / clear the preview and are removed from the URL (replaceState)
+// "create a study plan" card and the goal screen. The entry is open since v1.1.0 (STUDY_PLAN_READY = true, PR8);
+// a test override of planEntryReady() stands for the release flag off (G19 rollback).
+// - release (G42): a plain URL shows the card + ⓘ row; the dropped ?preview=plan / ?preview=off params do nothing
+//   (left in the URL, nothing written); a stale lifeuk.studyPlanPreview from v1.0.x is ignored and removed on load
+// - hidden (flag off): no card, no ⓘ row, openPlanGoal() does nothing, start-up writes no plan key
 // - switch: on by default (no write), off asks in the app modal (G15: leaves the plan screens), on does not
 // - goal screen: presets, date min / max / clamp, slider ticks, rest days, level cards, the three feasibility
 //   states (G13: short still builds), fewer than 7 study days disables the CTA with a hint (G28)
@@ -18,15 +19,15 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
 const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('ok:', m); };
 
 const TODAY = '2026-10-08';
-const PREVIEW_LS = 'lifeuk.studyPlanPreview';
+const OLD_PREVIEW_LS = 'lifeuk.studyPlanPreview'; // G31 flag, dropped in v1.1.0 (G42)
 const NOW = new Date(TODAY + 'T09:00:00');
 const WIDTHS = [320, 341, 344, 355, 360, 375, 390, 400]; // CUI-0023: 341–355 (344 = Galaxy Z Fold cover)
 const HIT_MIN_PX = 44;
 const TICKS_EN = ['30 min', '45 min', '1 hr', '15 min', '30 min', '45 min', '2 hr'];
 const TICKS_ZH = ['30 分鐘', '45 分鐘', '1 小時', '15 分', '30 分', '45 分', '2 小時'];
 
-// plan data / switch keys (the G31 preview flag is checked on its own)
-const planKeys = pg => pg.evaluate(k => Object.keys(localStorage).filter(x => x.startsWith('lifeuk.studyPlan') && x !== k), PREVIEW_LS);
+// plan data / switch keys
+const planKeys = pg => pg.evaluate(() => Object.keys(localStorage).filter(x => x.startsWith('lifeuk.studyPlan')));
 const visible = (pg, sel) => pg.evaluate(sel => { const e = document.querySelector(sel); return !!e && e.getClientRects().length > 0; }, sel);
 const activeScreen = pg => pg.evaluate(() => document.querySelector('.screen.active').id);
 const text = (pg, sel) => pg.$eval(sel, e => e.textContent.replace(/\s+/g, ' ').trim());
@@ -38,8 +39,10 @@ const fresh = async (pg, query = '') => {
   await pg.goto(APP_URL + query);
 };
 
+// G19 rollback: the release flag off hides every entry (tests stand in for STUDY_PLAN_READY = false)
 async function checkHidden(pg) {
   await fresh(pg);
+  await pg.evaluate(() => { window.planEntryReady = () => false; renderPlanSettings(); renderPlanCard(); });
   assert(!(await visible(pg, '#planCard')), 'hidden: no plan card on Home');
   await pg.click('#infoBtn');
   assert(!(await visible(pg, '#infoPlanRow')), 'hidden: the ⓘ popover has no Features row');
@@ -49,25 +52,34 @@ async function checkHidden(pg) {
   assert((await planKeys(pg)).length === 0, 'hidden: start-up writes no study plan key');
 }
 
-async function checkPreview(pg) {
-  await fresh(pg, '?preview=plan');
-  const url = await pg.evaluate(() => location.href);
-  assert(!url.includes('preview'), 'G31: ?preview=plan is removed from the URL: ' + url);
-  assert(await pg.evaluate(k => localStorage.getItem(k), PREVIEW_LS) === 'true', 'G31: preview remembered in localStorage');
-  assert(await visible(pg, '#planCard .plan-cta'), 'G31: preview shows the create card');
+// G42 (v1.1.0): the entry shows on a plain URL; the old preview flag and params change nothing
+async function checkReleaseEntry(pg) {
+  await fresh(pg);
+  assert(await pg.evaluate(() => STUDY_PLAN_READY === true && planEntryReady()), 'G19: STUDY_PLAN_READY is on (v1.1.0)');
+  assert(await visible(pg, '#planCard .plan-cta'), 'release: a plain URL shows the create card');
+  await pg.click('#infoBtn');
+  assert(await visible(pg, '#infoPlanRow') && await pg.getAttribute('#planFeatureSwitch', 'aria-checked') === 'true', 'release: the ⓘ Features row shows, switch on');
+  await pg.click('#infoBtn');
+  assert((await planKeys(pg)).length === 0, 'release: showing the entry writes no study plan key');
+  for (const stale of ['false', 'true']) {
+    await pg.evaluate(([k, v]) => localStorage.setItem(k, v), [OLD_PREVIEW_LS, stale]);
+    await pg.goto(APP_URL);
+    assert(await visible(pg, '#planCard .plan-cta'), `G42: a stale preview flag (${stale}) does not change the card`);
+    assert(await pg.evaluate(k => localStorage.getItem(k), OLD_PREVIEW_LS) === null, `G42: the stale preview flag (${stale}) is removed on load`);
+  }
+  for (const query of ['?preview=off', '?preview=plan&x=1#top']) {
+    await pg.goto(APP_URL + query);
+    assert(await visible(pg, '#planCard .plan-cta'), `G42: ${query} is ignored: the card still shows`);
+    assert((await pg.evaluate(() => location.search + location.hash)) === query, `G42: ${query} is left as it is in the URL`);
+    assert(await pg.evaluate(k => localStorage.getItem(k), OLD_PREVIEW_LS) === null && (await planKeys(pg)).length === 0, `G42: ${query} writes nothing`);
+  }
+  await pg.evaluate(() => localStorage.setItem(STUDY_PLAN_ENABLED_LS, 'false'));
   await pg.goto(APP_URL);
-  assert(await visible(pg, '#planCard .plan-cta'), 'G31: preview survives a reload without the param');
-  await pg.goto(APP_URL + '?preview=off');
-  assert(!(await pg.evaluate(() => location.href)).includes('preview'), 'G31: ?preview=off is removed from the URL');
-  assert(await pg.evaluate(k => localStorage.getItem(k), PREVIEW_LS) === null, 'G31: ?preview=off clears the stored preview');
-  assert(!(await visible(pg, '#planCard')), 'G31: preview off hides the card again');
-  await pg.goto(APP_URL + '?preview=plan&x=1#top');
-  const kept = await pg.evaluate(() => location.search + location.hash);
-  assert(kept === '?x=1#top', 'G31: other params and the hash are kept: ' + kept);
+  assert(!(await visible(pg, '#planCard')), 'release: the card follows lifeuk.studyPlanEnabled (off: hidden)');
 }
 
 async function checkCreateCard(pg) {
-  await fresh(pg, '?preview=plan');
+  await fresh(pg);
   const order = await pg.evaluate(() => {
     const card = byId('planCard');
     const title = document.querySelector('#screenHome > .section-title');
@@ -80,7 +92,7 @@ async function checkCreateCard(pg) {
 }
 
 async function checkSwitch(pg) {
-  await fresh(pg, '?preview=plan');
+  await fresh(pg);
   await pg.click('#infoBtn');
   assert(await visible(pg, '#infoPlanRow'), 'switch: ⓘ popover shows the Features row');
   const sw = '#planFeatureSwitch';
@@ -115,7 +127,7 @@ async function checkSwitch(pg) {
 }
 
 async function checkGoalDefaults(pg) {
-  await fresh(pg, '?preview=plan');
+  await fresh(pg);
   await openGoal(pg);
   const d = await goalDraft(pg);
   assert(d.examDate === '2026-10-29' && d.dailyMins === 120 && JSON.stringify(d.restDays) === '[0]' && d.level === 'none',
@@ -164,7 +176,7 @@ async function checkGoalInputs(pg) {
 
 // W-031: switching off from outside the plan screens keeps the current screen (an exam keeps running)
 async function checkSwitchOffElsewhere(pg) {
-  await fresh(pg, '?preview=plan');
+  await fresh(pg);
   const ids = await pg.evaluate(() => [...document.querySelectorAll('.screen[id^="screenPlan"]')].map(e => e.id).filter(id => !PLAN_SCREEN_IDS.includes(id)));
   assert(ids.length === 0, 'W-031: every #screenPlan* is listed in PLAN_SCREEN_IDS: ' + ids);
   await pg.evaluate(() => startExam(3, EXAM_MODE));
@@ -183,7 +195,7 @@ async function checkSwitchOffElsewhere(pg) {
 
 // v1.0.5 (user): the Features row reads "🗓️ Study plan" then an On (green) / Off (red) pill; the note below has no On: / Off: prefix
 async function checkFeaturePill(pg) {
-  await fresh(pg, '?preview=plan');
+  await fresh(pg);
   await pg.click('#infoBtn');
   const pill = () => pg.evaluate(() => {
     const e = byId('infoPlanPill'), label = e.previousElementSibling, cs = getComputedStyle(e);
@@ -215,7 +227,7 @@ async function checkFeaturePill(pg) {
 
 // toast (mockup .sp-toast): switching off / on says so at the bottom, for TOAST_MS, without taking focus
 async function checkToast(pg) {
-  await fresh(pg, '?preview=plan');
+  await fresh(pg);
   const toast = () => pg.evaluate(() => {
     const e = byId('appToast');
     return { hidden: e.hidden, display: getComputedStyle(e).display, text: e.textContent, role: e.closest('[role="status"]') && e.closest('[role="status"]').getAttribute('aria-live'),
@@ -242,7 +254,7 @@ async function checkToast(pg) {
 
 // W-032: the switch updates in place: the popover stays open and focus stays on the switch
 async function checkSwitchInPlace(pg) {
-  await fresh(pg, '?preview=plan');
+  await fresh(pg);
   await pg.evaluate(() => setStudyPlanEnabled(false));
   await pg.click('#infoBtn');
   await pg.click('#planFeatureSwitch');
@@ -313,7 +325,7 @@ async function checkTapAfterDate(b) {
   const ctx = await b.newContext({ viewport: { width: 375, height: 800 }, hasTouch: true, isMobile: true });
   const pg = await ctx.newPage();
   await pg.clock.setFixedTime(NOW);
-  await fresh(pg, '?preview=plan');
+  await fresh(pg);
   await pg.evaluate(() => openPlanGoal());
   await pg.fill('#planExamDate', '2026-12-01');
   await pg.tap('#planRestChips .chip >> nth=3');
@@ -371,7 +383,7 @@ async function checkFeasibility(pg) {
 }
 
 async function checkCreate(pg) {
-  await fresh(pg, '?preview=plan');
+  await fresh(pg);
   await pg.evaluate(() => {
     localStorage.setItem(STUDY_PLAN_LS, '{"v":1,"broken":true}');
     localStorage.setItem(STUDY_PLAN_PROGRESS_LS, '{not json');
@@ -418,7 +430,7 @@ async function checkGoalLayout(pg, where) {
   assert(r.clipped.length === 0, `${where}: chip labels not clipped: ` + r.clipped);
 }
 async function checkWidths(pg) {
-  await fresh(pg, '?preview=plan');
+  await fresh(pg);
   for (const lang of ['en', 'zh-HK']) {
     await pg.evaluate(l => { setLang(l); leaveToHome(); }, lang);
     for (const w of WIDTHS) {
@@ -455,7 +467,7 @@ async function main() {
   const errs = [];
   pg.on('pageerror', e => errs.push(e.message));
   await pg.clock.setFixedTime(NOW);
-  for (const check of [checkHidden, checkPreview, checkCreateCard, checkSwitch, checkSwitchOffElsewhere, checkSwitchInPlace, checkFeaturePill, checkToast, checkGoalDefaults, checkGoalInputs, checkDateTyping, checkKeepFocus, checkClickAfterDate, checkHourPluralAndCta, checkFeasibility, checkMidnightClamp, checkCreate, checkWidths]) {
+  for (const check of [checkHidden, checkReleaseEntry, checkCreateCard, checkSwitch, checkSwitchOffElsewhere, checkSwitchInPlace, checkFeaturePill, checkToast, checkGoalDefaults, checkGoalInputs, checkDateTyping, checkKeepFocus, checkClickAfterDate, checkHourPluralAndCta, checkFeasibility, checkMidnightClamp, checkCreate, checkWidths]) {
     await check(pg);
   }
   await checkTapAfterDate(b);
