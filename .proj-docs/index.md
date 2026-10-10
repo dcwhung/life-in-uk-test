@@ -83,6 +83,8 @@
 
 ## Plans
 
+- [2026-10-10_plan_memo-v2.md](plans/2026-10-10_plan_memo-v2.md) — 記憶法 v2 + 相似題分組 deep check（proposal，待確認；42 組記憶法建議、S1–S6 fact 分組、X1–X10 資料問題；機讀 `2026-10-10_memo-v2-proposal.json`；review page `mockups/memo-v2-review.html`）
+
 - [2026-10-09_study-plan-i18n-pr6b.md](plans/2026-10-09_study-plan-i18n-pr6b.md)
 - [2026-10-09_study-plan-i18n-pr6a.md](plans/2026-10-09_study-plan-i18n-pr6a.md)
 - [2026-10-09_study-plan-i18n-pr5.md](plans/2026-10-09_study-plan-i18n-pr5.md)

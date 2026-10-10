@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<!-- Review page for .proj-docs/plans/2026-10-10_plan_memo-v2.md (proposal only; delete after the user confirms) -->
+<!--ARTIFACT-START-->
+<title>Memory Note Review</title>
+<style>
+  /* Layout: header + tab bar, one panel per tab; cards for memory groups, wide matrix for similar facts */
+  :root {
+    --navy: #1a2744; --gold: #b8933a; --bg: #f0f2f7; --card: #ffffff; --text: #1a2744; --muted: #5a6a8a;
+    --border: #dde2f0; --zebra: #f7f8fc; --ok: #2d6a4f; --ok-bg: #e5f3ec; --warn: #8a6414; --warn-bg: #fbf3df;
+    --bad: #922b21; --bad-bg: #fbeceb; --info: #2e4080; --info-bg: #e8ecf8; --add-bg: #e3f4e9;
+    --font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, 'PingFang HK', 'Noto Sans HK', sans-serif;
+    --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --navy: #c9d3ee; --gold: #e0c06a; --bg: #10172a; --card: #18213a; --text: #e4e9f5; --muted: #97a3c2; --border: #2a3657;
+    --zebra: #1c2642; --ok: #6fcf9c; --ok-bg: #173226; --warn: #e8c97a; --warn-bg: #352c16; --bad: #f19a92; --bad-bg: #3a1f22;
+    --info: #a9b8ee; --info-bg: #222d52; --add-bg: #173226; color-scheme: dark; } }
+  :root[data-theme="dark"] {
+    --navy: #c9d3ee; --gold: #e0c06a; --bg: #10172a; --card: #18213a; --text: #e4e9f5; --muted: #97a3c2; --border: #2a3657;
+    --zebra: #1c2642; --ok: #6fcf9c; --ok-bg: #173226; --warn: #e8c97a; --warn-bg: #352c16; --bad: #f19a92; --bad-bg: #3a1f22;
+    --info: #a9b8ee; --info-bg: #222d52; --add-bg: #173226; color-scheme: dark; }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-ui); font-size: 14px; line-height: 1.5; }
+  .wrap { padding-inline: 16px; padding-block: 20px 48px; max-width: 1500px; margin: 0 auto; display: grid; gap: 16px; }
+  h1 { margin: 0; font-size: 1.45rem; text-wrap: balance; }
+  h2 { margin: 0; font-size: 1.05rem; text-wrap: balance; }
+  .sub { margin: 4px 0 0; color: var(--muted); max-width: 72ch; }
+  .stats { display: flex; flex-wrap: wrap; gap: 8px; font-variant-numeric: tabular-nums; }
+  .stat { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px; }
+  .stat b { display: block; font-size: 1.2rem; }
+  .stat span { color: var(--muted); font-size: 0.8rem; }
+  .tabs { display: flex; flex-wrap: wrap; gap: 6px; position: sticky; top: env(safe-area-inset-top, 0px); background: var(--bg); padding-block: 6px; z-index: 5; }
+  .tab { font: inherit; border: 1px solid var(--border); background: var(--card); color: var(--text); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+  .tab[aria-selected="true"] { background: var(--navy); color: var(--card); border-color: var(--navy); }
+  .tab:focus-visible, .chip:focus-visible, input:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  .panel { display: grid; gap: 12px; min-width: 0; }
+  .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .controls input[type=search] { font: inherit; color: var(--text); background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; flex: 1 1 220px; min-width: 0; }
+  .chip { font: inherit; font-size: 0.85rem; border: 1px solid var(--border); background: var(--card); color: var(--text); border-radius: 999px; padding: 3px 10px; cursor: pointer; }
+  .chip[aria-pressed="true"] { background: var(--navy); color: var(--card); border-color: var(--navy); }
+  .count { color: var(--muted); font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: grid; gap: 10px; min-width: 0; }
+  .card-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; }
+  .gid { font-family: var(--font-mono); font-weight: 700; color: var(--gold); }
+  .pill { font-size: 0.72rem; border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
+  .k-fill { color: var(--ok); background: var(--ok-bg); }
+  .k-extend, .k-move { color: var(--info); background: var(--info-bg); }
+  .k-new { color: var(--warn); background: var(--warn-bg); }
+  .k-merge, .k-split, .k-bad { color: var(--bad); background: var(--bad-bg); }
+  .why { color: var(--muted); font-size: 0.85rem; }
+  .cols { display: grid; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); gap: 14px; }
+  @media (max-width: 760px) { .cols { grid-template-columns: minmax(0, 1fr); } }
+  .note { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; background: var(--zebra); font-size: 0.85rem; min-width: 0; }
+  .note-label { font-weight: 600; color: var(--gold); margin-bottom: 4px; }
+  .note-line { white-space: pre-wrap; }
+  .added { background: var(--add-bg); border-radius: 4px; }
+  .note-line.head { font-weight: 600; }
+  .nt-wrap { overflow-x: auto; margin-block: 4px; }
+  .nt { border-collapse: collapse; font-size: 0.8rem; }
+  .nt th, .nt td { border: 1px solid var(--border); padding: 4px 6px; text-align: left; vertical-align: top; }
+  .nt th { background: var(--card); }
+  .nt small { display: block; color: var(--muted); }
+  .qlist { display: grid; gap: 6px; min-width: 0; }
+  .q { border-left: 3px solid var(--border); padding-left: 8px; font-size: 0.85rem; }
+  .q.has { border-left-color: var(--ok); }
+  .qid { font-family: var(--font-mono); font-size: 0.75rem; color: var(--gold); font-weight: 700; margin-right: 6px; }
+  .ans { color: var(--ok); font-weight: 600; }
+  .cur { color: var(--muted); font-size: 0.78rem; white-space: pre-wrap; }
+  .table-box { overflow-x: auto; background: var(--card); border: 1px solid var(--border); border-radius: 12px; }
+  table.m { border-collapse: separate; border-spacing: 0; width: max-content; min-width: 100%; }
+  table.m th, table.m td { border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); padding: 8px; vertical-align: top; text-align: left; }
+  table.m thead th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); background: var(--card); }
+  table.m tbody tr:nth-child(even) td { background: var(--zebra); }
+  table.m tbody tr:nth-child(odd) td { background: var(--card); }
+  .c-idx { position: sticky; left: 0; z-index: 1; width: 52px; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .c-key { width: 230px; min-width: 200px; }
+  .c-q { width: 260px; min-width: 220px; font-size: 0.85rem; }
+  .fix { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 4px 10px; }
+  @media (prefers-reduced-motion: no-preference) { .tab, .chip { transition: background 0.15s; } }
+</style>
+<!--ARTIFACT-HEAD-END-->
+</head>
+<body>
+<!--ARTIFACT-BODY-START-->
+<div class="wrap">
+  <header>
+    <h1>記憶法 v2 Review</h1>
+    <p class="sub">根據 main v1.0.8 嘅 408 題重新 deep check。呢頁只係建議，未改任何 data；你確認邊啲做，我先照 Q8 流程套用。題目 ID 用「exam.idx」（idx 由 0 起）；Exam N 第 k 題 = N.(k−1)。</p>
+  </header>
+  <div class="stats" id="stats"></div>
+  <div class="tabs" role="tablist" id="tabs"></div>
+  <section class="panel" id="p-findings" role="tabpanel"></section>
+  <section class="panel" id="p-memo" role="tabpanel" hidden></section>
+  <section class="panel" id="p-similar" role="tabpanel" hidden></section>
+  <section class="panel" id="p-left" role="tabpanel" hidden></section>
+</div>
+<!--ARTIFACT-SCRIPTS-->
+<script src="../data/exams.js"></script>
+<script src="../data/study.js"></script>
+<script src="memo-v2-proposal.js"></script>
+<!--ARTIFACT-SCRIPTS-END-->
+<script>
+(() => {
+    const DATA = { exams: EXAMS, study: STUDY, proposal: PROPOSAL };
+    const MEMO_SAMPLE = { M1: '1.19', M2: '13.1', M3: '4.17', M5: '1.5', M7: '11.20', M8: '8.11', M9: '14.20', M12: '10.0', M13: '3.15', M14: '4.10', M16: '14.1' };
+    const KIND = { fill: '補齊', extend: '擴充', move: '搬組', new: '新記憶法', merge: '合併', split: '拆開' };
+    const MEMO_RE = /記憶法|投票權時間線/;
+    const TABS = [['p-findings', '① 發現'], ['p-memo', '② 記憶法建議'], ['p-similar', '③ 相似題分組'], ['p-left', '④ 仍然冇記憶法']];
+    const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+    const getQ = (k) => { const [e, i] = k.split('.'); return DATA.exams[e][i]; };
+    const allKeys = () => Object.keys(DATA.exams).flatMap((e) => DATA.exams[e].map((q, i) => `${e}.${i}`));
+    const answer = (q) => q.a.map((a) => q.o[a]).join(' + ');
+    const hasMemo = (q) => MEMO_RE.test(q.note || '');
+    const memoPart = (note) => { const ls = note.split('\n'); const i = ls.findIndex((l) => MEMO_RE.test(l)); return i < 0 ? [] : ls.slice(i); };
+    const proposed = () => new Set(DATA.proposal.groups.flatMap((g) => g.add));
+
+    // ── note rendering: consecutive "|" lines become a table (same rule as the app); <br> splits main / sub line ──
+    function cellHtml(c, tag) {
+        const [main, ...subs] = c.trim().split('<br>');
+        return `<${tag}>${esc(main)}${subs.map((s) => `<small>${esc(s)}</small>`).join('')}</${tag}>`;
+    }
+    function noteHtml(lines, isAdded = () => false) {
+        let html = '', rows = [];
+        const flush = () => {
+            if (!rows.length) return;
+            const cells = rows.map((r) => r.text.replace(/^\||\|$/g, '').split('|'));
+            html += `<div class="nt-wrap"><table class="nt"><thead><tr>${cells[0].map((c) => cellHtml(c, 'th')).join('')}</tr></thead><tbody>${
+                cells.slice(1).map((r, i) => `<tr${rows[i + 1].added ? ' class="added"' : ''}>${r.map((c) => cellHtml(c, 'td')).join('')}</tr>`).join('')}</tbody></table></div>`;
+            rows = [];
+        };
+        lines.forEach((text, i) => {
+            if (text.startsWith('|')) { rows.push({ text, added: isAdded(i) }); return; }
+            flush();
+            html += `<div class="note-line${isAdded(i) ? ' added' : ''}${MEMO_RE.test(text) && i === 0 ? ' head' : ''}">${esc(text) || '&nbsp;'}</div>`;
+        });
+        flush();
+        return html;
+    }
+
+    // proposed note for a group: new = heading + body; fill / extend = existing method (+ inserted / appended lines)
+    function previewNote(g) {
+        if (g.kind === 'new') return noteHtml([g.heading, ...g.body], () => true);
+        const key = ((g.memo || '').match(/M\d+/) || [])[0];
+        const sample = g.kind === 'move' ? null : MEMO_SAMPLE[key];
+        if (!sample) return `<div class="note-line">${esc(g.why || '')}</div>`;
+        const base = memoPart(getQ(sample).note);
+        if (g.insert_after_first_line) {
+            const lines = [base[0], ...g.insert_after_first_line, ...base.slice(1)];
+            return noteHtml(lines, (i) => i >= 1 && i <= g.insert_after_first_line.length);
+        }
+        if (g.append) {
+            const lines = base.slice();
+            const last = lines.length - 1;
+            if (!lines[last].startsWith('|')) lines[last] = lines[last].replace(/。$/, '；').replace(/([^；。])$/, '$1；');
+            return noteHtml([...lines, ...g.append], (i) => i >= lines.length);
+        }
+        return noteHtml(base);
+    }
+
+    function questionHtml(k, g = {}) {
+        const q = getQ(k);
+        const keep = g.keep_prefix === true || (Array.isArray(g.keep_prefix) && g.keep_prefix.includes(k));
+        const lines = (q.note || '').split('\n');
+        const memoLine = lines.find((l) => MEMO_RE.test(l));
+        const cur = !q.note ? '（空）' : memoLine ? memoLine + (lines[0] !== memoLine ? '（＋前綴）' : '') : q.note;
+        return `<div class="q${hasMemo(q) ? ' has' : ''}"><span class="qid">${k}</span>${esc(q.q)}<br><span class="ans">✓ ${esc(answer(q))}</span>
+            <div class="cur">現有：${esc(cur)}${keep ? ' · 保留前綴' : ''}</div></div>`;
+    }
+
+    function memoCard(g) {
+        const prefix = g.prefix ? `<div class="note-line added">${esc(g.prefix)}</div>` : '';
+        return `<article class="card" data-kind="${g.kind}" data-search="${esc([g.id, g.title, g.memo || '', ...g.add].join(' ').toLowerCase())}">
+            <div class="card-head"><span class="gid">${g.id}</span><h2>${esc(g.title)}</h2><span class="pill k-${g.kind}">${KIND[g.kind]}</span>
+            <span class="count">${g.add.length} 題${g.memo ? ' · ' + esc(g.memo) : ''}</span></div>
+            ${g.why ? `<div class="why">${esc(g.why)}</div>` : ''}${g.change ? `<div class="why">改動：${esc(g.change)}</div>` : ''}
+            <div class="cols"><div class="note"><div class="note-label">💡 建議備注（綠色 = 新加）</div>${prefix}${previewNote(g)}</div>
+            <div class="qlist">${g.add.map((k) => questionHtml(k, g)).join('')}</div></div></article>`;
+    }
+
+    function wireChips(box, attr, onPick) {
+        box.querySelectorAll(`.chip[${attr}]`).forEach((c) => c.addEventListener('click', () => {
+            box.querySelectorAll(`.chip[${attr}]`).forEach((x) => x.setAttribute('aria-pressed', String(x === c)));
+            onPick(c.getAttribute(attr));
+        }));
+    }
+
+    function renderMemo() {
+        const box = document.getElementById('p-memo');
+        const kinds = ['all', 'fill', 'extend', 'move', 'new'];
+        box.innerHTML = `<div class="controls"><input type="search" id="mq" placeholder="搜尋組名、ID、題號（例如 N5、8.13）" aria-label="搜尋記憶法建議">${
+            kinds.map((k) => `<button class="chip" type="button" data-k="${k}" aria-pressed="${k === 'all'}">${k === 'all' ? '全部' : KIND[k]}</button>`).join('')}<span class="count" id="mcount"></span></div>
+            <div class="panel">${DATA.proposal.groups.map(memoCard).join('')}</div>`;
+        let kind = 'all';
+        const apply = () => {
+            const q = document.getElementById('mq').value.trim().toLowerCase();
+            let n = 0;
+            box.querySelectorAll('article').forEach((a) => { const show = (kind === 'all' || a.dataset.kind === kind) && (!q || a.dataset.search.includes(q)); a.hidden = !show; n += show; });
+            document.getElementById('mcount').textContent = `${n} 組`;
+        };
+        wireChips(box, 'data-k', (k) => { kind = k; apply(); });
+        document.getElementById('mq').addEventListener('input', apply);
+        apply();
+    }
+
+    function renderFindings() {
+        const P = DATA.proposal;
+        const fixRows = P.fixes.map((f) => `<div class="fix"><span class="gid">${f.id}</span><div><b>${esc(f.q.join('、'))}</b> — ${esc(f.issue)}<br><span class="why">建議：${esc(f.fix)}</span></div></div>`).join('');
+        const sim = P.similar.map((s) => `<div class="fix"><span class="gid">${s.id}</span><div><span class="pill k-${s.kind}">${KIND[s.kind]}</span> <b>${s.kind === 'merge' ? `${s.from} → ${s.into}（${s.q.join('、')}）` : `${s.from} 拆出 ${s.new.join('、')}`}</b> — ${esc(s.why)}<br><span class="why">影響：${esc(s.impact)}</span></div></div>`).join('');
+        document.getElementById('p-findings').innerHTML = `
+            <article class="card"><h2>A. 資料問題（建議修正）</h2>${fixRows}</article>
+            <article class="card"><h2>B. 相似題分組（STUDY fact）建議</h2><p class="why">Similar panel 同 Study 卡都係用 fact 分組。拆開 = 新 fact 加喺 STUDY 尾，現有編號唔變；合併要 migrate 書籤／已掌握。兩樣都要重生成 content baseline。</p>${sim}</article>
+            <article class="card"><h2>C. 統一規則（套用時跟）</h2>
+              <div>• 同一知識點（fact）所有題目用同一個 note：前綴（專題重點）＋記憶法，前綴放記憶法上面一行。</div>
+              <div>• 前綴同記憶法內容重複就刪前綴；R1 現況括號（54→56、47→46、£100、Remembrance Sunday、選民登記冊等）一定保留。</div>
+              <div>• 新記憶法跟現有格式：標題「記憶法（主題）：」；table 主文英文、&lt;br&gt; 後中文；列點每行「；」、最後「。」；廣東話口語（yue 規則）。</div>
+              <div>• 新 table 要過 390px 唔使左右 scroll（套用時加入 note-table-test）。</div></article>`;
+    }
+
+    function factFlags(f) {
+        const ns = f.src.map((k) => getQ(k).note || '');
+        const out = [];
+        if (f.src.length > 1 && new Set(ns).size > 1) out.push(['k-bad', '備注唔一致', 'bad']);
+        const m = f.src.map((k) => hasMemo(getQ(k)));
+        if (m.some(Boolean) && !m.every(Boolean)) out.push(['k-new', '部分有記憶法', 'part']);
+        if (ns.every((n) => !n)) out.push(['k-extend', '冇備注', 'none']);
+        DATA.proposal.similar.filter((x) => x.from === 'F' + f.id || x.into === 'F' + f.id).forEach((s) => out.push(['k-split', `${s.id} ${KIND[s.kind]}`, 'prop']));
+        return out;
+    }
+
+    function renderSimilar() {
+        const facts = DATA.study.map((f) => ({ ...f, fl: factFlags(f) }));
+        const box = document.getElementById('p-similar');
+        const filters = [['multi', '多過一題'], ['bad', '備注唔一致'], ['part', '部分有記憶法'], ['none', '冇備注'], ['prop', '有分組建議'], ['all', '全部']];
+        box.innerHTML = `<div class="controls"><input type="search" id="sq" placeholder="搜尋題目、答案、F 編號" aria-label="搜尋知識點">${
+            filters.map(([k, t]) => `<button class="chip" type="button" data-f="${k}" aria-pressed="${k === 'multi'}">${t}</button>`).join('')}<span class="count" id="scount"></span></div>
+            <div class="table-box"><table class="m" id="stbl"></table></div>`;
+        let mode = 'multi';
+        const match = (f) => mode === 'all' || (mode === 'multi' ? f.src.length > 1 : f.fl.some((x) => x[2] === mode));
+        const text = (f) => ('f' + f.id + ' ' + f.en + ' ' + f.src.map((k) => k + ' ' + getQ(k).q + ' ' + answer(getQ(k))).join(' ')).toLowerCase();
+        const cell = (k) => {
+            const x = getQ(k);
+            const lines = (x.note || '（冇備注）').split('\n');
+            return `<td class="c-q"><span class="qid">${k}</span>${esc(x.q)}<br><span class="ans">✓ ${esc(answer(x))}</span><div class="cur">${esc(lines.slice(0, 2).join('\n'))}${lines.length > 2 ? '…' : ''}</div></td>`;
+        };
+        const draw = () => {
+            const q = document.getElementById('sq').value.trim().toLowerCase();
+            const rows = facts.filter((f) => match(f) && (!q || text(f).includes(q)));
+            const max = rows.reduce((m, f) => Math.max(m, f.src.length), 1);
+            document.getElementById('stbl').innerHTML = `<thead><tr><th class="c-idx">#</th><th class="c-key">知識點</th>${
+                Array.from({ length: max }, (_, i) => `<th class="c-q">問法 ${i + 1}</th>`).join('')}</tr></thead><tbody>${
+                rows.map((f, n) => `<tr><td class="c-idx">${n + 1}</td><td class="c-key"><span class="gid">F${f.id}</span> Ch${f.ch}<br>${esc(f.en)}<div class="card-head">${
+                    f.fl.map(([c, t]) => `<span class="pill ${c}">${t}</span>`).join('')}</div></td>${f.src.map(cell).join('')}${'<td></td>'.repeat(max - f.src.length)}</tr>`).join('')}</tbody>`;
+            document.getElementById('scount').textContent = `${rows.length} 個知識點`;
+        };
+        wireChips(box, 'data-f', (f) => { mode = f; draw(); });
+        document.getElementById('sq').addEventListener('input', draw);
+        draw();
+    }
+
+    function renderLeft() {
+        const s = proposed();
+        const left = allKeys().filter((k) => !hasMemo(getQ(k)) && !s.has(k));
+        document.getElementById('p-left').innerHTML = `<article class="card"><h2>套用建議後仍然冇記憶法（${left.length} 題）</h2>
+            <p class="why">呢幾題各自獨立，冇合適題組，保留現有單句備注。</p><div class="qlist">${left.map((k) => questionHtml(k)).join('')}</div></article>`;
+    }
+
+    function renderStats() {
+        const keys = allKeys();
+        const s = proposed();
+        const before = keys.filter((k) => hasMemo(getQ(k))).length;
+        const after = keys.filter((k) => hasMemo(getQ(k)) || s.has(k)).length;
+        const g = DATA.proposal.groups;
+        const items = [[`${before} → ${after}`, '有記憶法嘅題目（/ 408）'], [keys.filter((k) => !getQ(k).note).length, '而家冇備注'],
+            [g.filter((x) => x.kind === 'new').length, '新記憶法'], [g.filter((x) => x.kind !== 'new').length, '補齊 / 擴充 / 搬組'],
+            [DATA.proposal.similar.length, '分組建議'], [DATA.proposal.fixes.length, '資料問題']];
+        document.getElementById('stats').innerHTML = items.map(([n, l]) => `<div class="stat"><b>${n}</b><span>${l}</span></div>`).join('');
+    }
+
+    function initTabs() {
+        const bar = document.getElementById('tabs');
+        bar.innerHTML = TABS.map(([id, t], i) => `<button class="tab" role="tab" type="button" data-p="${id}" aria-selected="${i === 0}">${t}</button>`).join('');
+        bar.querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => {
+            bar.querySelectorAll('.tab').forEach((x) => x.setAttribute('aria-selected', String(x === b)));
+            TABS.forEach(([id]) => { document.getElementById(id).hidden = id !== b.dataset.p; });
+        }));
+    }
+
+    renderStats();
+    initTabs();
+    renderFindings();
+    renderMemo();
+    renderSimilar();
+    renderLeft();
+})();
+</script>
+<!--ARTIFACT-BODY-END-->
+</body>
+</html>
