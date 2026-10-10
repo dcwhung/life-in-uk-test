@@ -808,7 +808,7 @@ c10115b feat: randomise answer option order in Practice and Exam mode
 
 ## Follow-up 候選（未做）
 
-- [ ] **4 組文字記憶法整理**（Magna Carta 8、國會選舉 4、戴卓爾夫人 3、陪審員 3，共 18 題，data only）：內容已確認，handoff 見 `.proj-docs/plans/2026-10-10_handoff_note-text-cleanup.md`，mockup `mockups/note-text-cleanup.html`；都鐸王朝、三層屬地未確認
+- [x] **4 組文字記憶法整理**（Magna Carta 8、國會選舉 4、戴卓爾夫人 3、陪審員 3，共 18 題，data only）：已完成（branch `fix/notes/note-text-cleanup`），18 題 `note` 逐字換成 handoff §2 新文字，冇 bump `APP_VERSION`；新增 `tests/note-text-test.js`（已加入 `run-all.sh`）鎖死 4 組文字同每組 note 一致。handoff 見 `.proj-docs/plans/2026-10-10_handoff_note-text-cleanup.md`，mockup `mockups/note-text-cleanup.html`；都鐸王朝、三層屬地未確認
 - [ ] **記憶法 table display**：設計已確認（方案 A 明確 `|` 語法、全英文主文、Theme B Minimal 線條、V4 格內 `<br>` 備注），未實作。第一批 = 10 組、99 題（聖人 / 日子、國教 / 教會、首都 / 國花、地方議會、發明家、節日、戰役、二戰、國王 vs 國會、名勝 / 地方）。**下一個開發任務**：handoff 見 `.proj-docs/plans/2026-10-09_handoff_note-table.md`（由 `/feature` 開始），詳情同每組 data 見 `.proj-docs/plans/2026-10-09_plan_note-table.md`，mockup `mockups/note-table.html`、`mockups/note-table-church.html`、`mockups/note-table-all.html`
 - [ ] **溫習計劃（Study Plan）**：mockup 已確認（`mockups/study-plan-flow.html`），**下一個開發任務**。規格、建議模組、LS key、未決定事項同驗收清單見 `.proj-docs/plans/2026-10-08_handoff_study-plan.md`；建議由 `/plan` 開始
 - [x] 1.19、14.3 備注改成分行列點（v0.70 B1，batch 9；Crown dependency 記憶法同組 7 題一齊改）
