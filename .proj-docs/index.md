@@ -7,7 +7,7 @@
 - [2026-10-09_review_v104.md](reviews/2026-10-09_review_v104.md)
 - [2026-10-09_review_v103.md](reviews/2026-10-09_review_v103.md)
 - [2026-10-09_review_v102.md](reviews/2026-10-09_review_v102.md)
-- [2026-10-09_review_plan-pr7b.md](reviews/2026-10-09_review_plan-pr7b.md) — 溫習計劃 PR7b 相同文字題目合併 + 連勝同步（G40，v1.0.7；warn 89；W-046、S-140–S-144）；re-review 2026-10-10 pass 94：舊 finding 全部解決，新 W-047（錯題簿回合只清答嗰個 copy）、S-145
+- [2026-10-09_review_plan-pr7b.md](reviews/2026-10-09_review_plan-pr7b.md) — 溫習計劃 PR7b 相同文字題目合併 + 連勝同步（G40，v1.0.7；warn 89；W-046、S-140–S-144）；re-review 2026-10-10 pass 94：舊 finding 全部解決，新 W-047（錯題簿回合只清答嗰個 copy）、S-145；re-review 2 2026-10-10 pass 100：W-047、S-145 已解決（錯題 / 標記 copy 同步）
 - [2026-10-09_review_plan-pr7.md](reviews/2026-10-09_review_plan-pr7.md) — 溫習計劃 PR7 zh-HK / en 字眼（warn 89；W-045、S-134–S-139）
 - [2026-10-09_review_plan-pr6b.md](reviews/2026-10-09_review_plan-pr6b.md)
 - [2026-10-09_review_plan-pr6a.md](reviews/2026-10-09_review_plan-pr6a.md)

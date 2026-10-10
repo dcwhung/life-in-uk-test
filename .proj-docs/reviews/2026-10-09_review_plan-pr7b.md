@@ -301,3 +301,74 @@ branch: "claude/charming-hopper-48ypzp"
 context: "PR7b re-review: W-046, S-140-S-144 and the zh 已 strings resolved; 41/41 pass. Plan runner panel left unchanged (S-141a) is sound (CUI-0025 standalone lists the wrong answer). New W-047: a wrong-answers round asks one copy per text but a correct answer clears only that copy, so k copies take k rounds of the same question (browser probe 3 copies -> 3 rounds); fix = clear all copies like G38 + reviewTotal by distinct questions. S-145: round note / flags count copies"
 blockers: []
 ```
+
+---
+
+# Re-review 2 — 2026-10-10
+
+- 目標：新 commits `5145beb`（code + tests）+ `3ed45ea`（docs），喺 `51a6dbd` 之上
+- 總評：W-047 同 S-145（a）（b）全部解決，冇新 finding。計劃 runner 同錯題簿回合而家用同一個 `clearWrongCopies`，所有「錯題 / 標記」數目（回合提示、結果頁、標記列表、Home tile）都按不同題目計，同計劃本身（`planUnique(wrongKeys.map(planCanonKey))`）一致。
+
+## Hard Gates（re-review 2）
+
+| Gate | 結果 | 備注 |
+|------|------|------|
+| Lint | n/a | 項目冇 linter |
+| Type check | n/a | 純 JS |
+| Tests | ✅ pass | `bash tests/run-all.sh` 41/41 PASS，exit 0；跑完 `git checkout -- 'tests/*.png'` |
+| Coverage | n/a | 冇工具；新行為 dup-test `checkWrongRound` / `checkFlagSync` 有 cover |
+| No Critical | ✅ pass | 0 |
+| Security scan | n/a | 冇新依賴 |
+
+## 逐條核對
+
+| ID | 結果 | 核對 |
+|----|------|------|
+| W-047 | ✅ 已解決 | `recordPracticeResult`：`isPlanSession() \|\| state.examNum === WRONG_EXAM` → `clearWrongCopies(q)`（即係舊 `clearPlanReviewWrong` 改名，G38 行為冇變）。舊條件 `wrongList[qKey(q)]` 由 `planSameQuestionKeys(keysOf(wrongList), qKey(q))` 回空就唔 `cleared++` 代替，所以效果一樣。Similar / fact side session 嘅 `examNum` 唔係 `WRONG_EXAM`，冇變。我第一次 re-review 用嘅 browser probe 再跑：3 個 copy → 1 輪、`reviewTotal 1`、`cleared 1`、`left []`（之前要 3 輪）。結果頁「left」= `questionGroups(keysOf(wrongList)).length` |
+| S-145(a) | ✅ 已解決 | `reviewTotal = questionGroups(pool.map(qKey)).length`；test：25 條不同題目 + 1 個 copy →「Round 1 of 2 · 24 of your 25」，24 條 + 1 個 copy → 一輪、冇提示（之前會錯出「Round 1 of 2」） |
+| S-145(b) | ✅ 已解決（照用戶 2026-10-10 決定） | 見下面 |
+| G40 ④ | ✅ | docs 已標「用戶 2026-10-10 接受」 |
+
+### S-145(b) 標記同步
+
+- **載入次序**：`index.html` 次序係 `store.js` → `questions.js` → `mastery.js`。`setPracticeFlag` 喺 `store.js` 用 `questionCopies`，但係只喺 runtime 叫：`examTools.js` L48（toggle）同 `flagged.js` L23（`unflagFromList`），冇 load 時嘅 caller（grep 過）。`store.js` load 時只讀 `getLS`，所以冇 ReferenceError。comment 有講清楚。✅
+- **`isPracticeFlagged` = 任何一個 copy**：舊資料只標記一個 copy，兩個 copy 都會顯示已標記；toggle 讀到 true，就寫 false 落所有 copy，所以一撳就清晒，唔會出現「撳完仲係有標記」。test 有 cover。✅
+- **標記列表**：`questionGroups(keysOf(practiceFlags))` 每條不同題目一項，ref 用 `copiesRefText`（`.sqm-ref` nowrap，S-140 嘅 CSS 喺全域 stylesheet）；取消標記傳 `keys[0]`，`setPracticeFlag` 會清晒 copy。「Practise flagged (N)」、Home 標記 tile、標記回合 `reviewTotal` 都係不同題目數。✅
+- **Home 錯題 tile 改為按不同題目計**（developer 自己決定）：**我同意**。W-047 之後一條文字嘅 copy 會一齊清，回合提示同結果頁「left」都按不同題目計，計劃嘅清錯題任務本身都用 canon。如果 tile 仲逐個 key 計，就會出現 tile 寫「3」、入去回合寫「1 of your 1」、做完寫「0 left」咁嘅矛盾。錯題簿仍然逐個 copy 記錄（`addWrong` 冇改，S-143(c) test 照 pass），只係顯示同清除按題目計，冇 data migration 風險。✅
+- 計時試卷嘅 session 標記（`state.flags[i]`）冇郁，啱。
+
+## 新 finding
+
+冇。
+
+## 評分結果（re-review 2）
+
+| 維度 | 得分 | 滿分 | 備注 |
+|------|------|------|------|
+| 正確性 | 25 | 25 | W-047、S-145 已解決 |
+| 安全性 | 20 | 20 | |
+| 可維護性 | 20 | 20 | 計劃同錯題簿共用一個 helper；comment 有講 load order |
+| 測試覆蓋 | 15 | 15 | `checkWrongRound`、`checkFlagSync` 覆蓋清除、數目、回合提示 boundary（24 / 25）、舊資料、列表取消標記 |
+| 性能 | 10 | 10 | |
+| 代碼風格 | 10 | 10 | |
+| **總分** | **100** | **100** | |
+
+**結果：✅ pass**
+
+## Handoff receipt（re-review 2）
+
+```handoff-receipt
+protocol: 1
+status: pass
+score: 100/100
+hard_gates:
+  lint: n/a
+  type_check: n/a
+  tests: pass
+  coverage: n/a
+next_action: merge_develop
+next_agent: null
+branch: "claude/charming-hopper-48ypzp"
+context: "PR7b re-review 2: W-047 (clearWrongCopies shared by plan + wrong round; probe 3 copies -> 1 round), S-145(a) distinct reviewTotal, S-145(b) flag sync (setPracticeFlag only called at run time after questions.js loads; any-copy read; merged list) all resolved; Home wrong tile distinct is consistent with rounds/result/plan. 41/41 pass. No new findings"
+blockers: []
+```
