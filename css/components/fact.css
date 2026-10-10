@@ -114,3 +114,11 @@
 .sqm-fact-label [lang="en"] { text-transform: none; }
 .sqm-fact-en { font-size: var(--fs-base); line-height: 1.55; color: var(--navy); font-weight: 600; }
 .sqm-fact-yue { font-size: 12.5px; line-height: 1.6; color: var(--purple); margin-top: var(--space-2); }
+
+/* G41 (study plan reading): "✓ Practice done" in the slot of "▶ Practise" (a done fact has none); success colours
+   as .sqm-node.mastered. Beside the nodes it sits at the row's right end; wrapped, alone on its line, right-aligned */
+.fact-done-tag {
+  flex: 0 0 auto; margin-left: auto; white-space: nowrap;
+  background: var(--success-bg); color: var(--green); border-radius: var(--radius-pill);
+  padding: var(--space-2) var(--space-4); font-size: var(--fs-sm); font-weight: 700;
+}

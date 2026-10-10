@@ -443,6 +443,9 @@ LOCALES.en = {
       // PR6b: reading / facts behind wrong answers (#screenPlanRun), the mock exam's result row (G10 / G11)
       factOf: 'Fact {n} of {total}',
       practiseN: { one: 'Practise this one →', other: 'Practise these {n} →' },
+      factDoneTag: '✓ Practice done', // G41: a reading card whose fact's questions are all right today (or 🏆)
+      lastUndoneNote: { one: '{n} fact still needs practice · {qs}', other: '{n} facts still need practice · {qs}' }, // G41: the last fact only
+      lastUndoneQs: { one: '{n} question', other: '{n} questions' }, // {qs} above: the last button's count
       wrongFactsLabel: 'Wrong-answer facts',
       mockPassNote: '✓ Mock exam task done',
       mockFailNote: 'Not passed (pass mark {pass} / {n}): retake as a Random Exam today.',

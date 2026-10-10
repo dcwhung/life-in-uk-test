@@ -344,10 +344,14 @@ function planFactMetaHtml(ctx, pos) {
 function planFactLeft(ctx, id, review) { return review ? [] : planNextRound({ ...ctx.task, facts: [id] }, ctx.dayLog); }
 // reading: the Study card (Study marks); wrong facts: the Similar panel, the wrong answer as the current node.
 // Either's "▶ Practise" runs the fact's questions for the plan day (G26: never a Similar / Study session of its own)
+// G41: a reading card whose fact is done (G3 / G37, as the task's progress) says so where "▶ Practise" would sit
 function planFactCardHtml(ctx, f, review) {
   const n = planFactLeft(ctx, f.id, review).length;
   const practise = n ? { action: 'planPractiseFact', arg: f.id, n } : false;
-  if (ctx.task.type === PLAN_TASK.read) return factCardHtml(f, { variant: FACT_VARIANT.full, marks: factMarks(f), opts: { practise } });
+  if (ctx.task.type === PLAN_TASK.read) {
+    const doneTag = planFactDone(f.id, ctx.dayLog, planTaskMastered(ctx.task, ctx.dayLog)) ? t('plan.run.factDoneTag') : '';
+    return factCardHtml(f, { variant: FACT_VARIANT.full, marks: factMarks(f), opts: { practise, doneTag } });
+  }
   const anchor = questionByKey((ctx.task.anchor || {})[f.id] || planFactQids(f)[0]);
   return `<div class="sqm show">${similarPanelHtml(anchor, similarGroups(anchor), { practise: !!practise, cta: practise || null, currentMark: t('plan.run.youGotWrong') })}</div>`;
 }
@@ -355,12 +359,26 @@ function planFactNavHtml(view, ctx) {
   const last = view.pos >= ctx.task.facts.length - 1;
   const prev = `<button type="button" class="nav-btn secondary" data-action="planStepFact" data-arg="-1"${view.pos ? '' : ' disabled'}>${t('plan.run.prevFact')}</button>`;
   const next = last ? planFactLastHtml(view, ctx) : `<button type="button" class="nav-btn" data-action="planStepFact" data-arg="1">${t('plan.run.nextFact')}</button>`;
-  return `<div class="nav-row plan-run-nav">${prev}${next}</div>`;
+  return (last ? planFactLeftNoteHtml(view, ctx) : '') + `<div class="nav-row plan-run-nav">${prev}${next}</div>`;
+}
+// the last fact's main button counts these: reading → its paired practice task's (G3), wrong facts → the task's own
+// askable questions not yet right today; review → none
+function planFactLastLeft(view, ctx) {
+  const task = ctx.task.type === PLAN_TASK.read ? ctx.day.tasks[ctx.task.pair] : ctx.task;
+  return view.review ? 0 : planAskableQids(task, ctx.dayLog).filter(k => !ctx.dayLog.ok[k]).length;
+}
+// G41 (user report 2026-10-10): reading's last fact, while facts are left, says how many and the button's question count
+function planFactLeftNoteHtml(view, ctx) {
+  if (ctx.task.type !== PLAN_TASK.read) return '';
+  const m = planTaskMastered(ctx.task, ctx.dayLog);
+  const n = ctx.task.facts.filter(id => !planFactDone(id, ctx.dayLog, m)).length, q = planFactLastLeft(view, ctx);
+  if (!n || !q) return '';
+  const text = t('plan.run.lastUndoneNote', { n, qs: t('plan.run.lastUndoneQs', { n: q }) });
+  return `<p class="plan-note carry plan-fact-left" role="status">${text}</p>`;
 }
 // last fact: reading → its paired practice task (G3); wrong facts → what is left of the task; review / nothing left → back
 function planFactLastHtml(view, ctx) {
-  const read = ctx.task.type === PLAN_TASK.read, task = read ? ctx.day.tasks[ctx.task.pair] : ctx.task;
-  const n = view.review ? 0 : planAskableQids(task, ctx.dayLog).filter(k => !ctx.dayLog.ok[k]).length;
+  const read = ctx.task.type === PLAN_TASK.read, n = planFactLastLeft(view, ctx);
   if (!n) return `<button type="button" class="nav-btn" data-action="planBackToDay">${t('quiz.finishButton')}</button>`;
   const label = t('plan.run.practiseN', { n });
   if (!read) return `<button type="button" class="nav-btn" data-action="planPractiseTask">${label}</button>`;
