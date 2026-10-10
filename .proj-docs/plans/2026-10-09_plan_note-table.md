@@ -1,7 +1,7 @@
 # 記憶法 table display（未做，已確認設計）
 
 - 日期：2026-10-09
-- 狀態：**設計已確認，未開始實作**
+- 狀態：**設計已確認；2026-10-10 grill 決定見最後「Grill 決定」一節（覆蓋上面 ④–⑨ 文字、題數同未決定事項）**
 - Mockup：`mockups/note-table.html`（顏色，Theme B）、`mockups/note-table-church.html`（格內備注，V4）、`mockups/note-table-all.html`（全部 10 組內容）
 - Design Origin：`mockup:mockups/note-table.html` + `mockup:mockups/note-table-church.html` + `mockup:mockups/note-table-all.html`
 
@@ -189,3 +189,106 @@
 - Exam 9 Q20「patron flower of Ireland」字眼（用戶未決定）
 - `APP_VERSION` bump（令已安裝 PWA 攞到新 note）
 - 實作完之後 mockup 處理：跟 repo 慣例（v0.65 刪咗已確認嘅 mockup）
+
+## Grill 決定（2026-10-10，用戶確認，覆蓋上面）
+
+| # | 決定 |
+|---|------|
+| 1 | 照 spec 逐字用，但唔可以 information lost：原有 note 嘅事實 / 全名全部補返 |
+| 2 | 中文譯名：④–⑨ 補落 `<br>` 備注；①③ 唔補（主文英文） |
+| 3 | ⑩ 三個題庫冇嘅地點（National Park / Highlands / County Antrim）保留 |
+| 4 | E4 Q21、E5 Q23（National Assembly for Wales）加入 ④ → ④ 9 題，總數 **101 題**；E5 Q23 原句做前綴 |
+| 5 | E9 Q20 題目字眼唔改，加前綴「題目嘅 Ireland 即係 N. Ireland（Shamrock 係成個愛爾蘭島嘅象徵）」 |
+| 6 | 標題保留主題名、刪多餘排序提示：⑦ `記憶法（英國重要戰役）：`、⑧ `記憶法（二戰）：`、⑨ `記憶法（國王 vs 國會）：`；其餘組 `記憶法：`（都鐸王朝唔郁） |
+| 7 | `APP_VERSION` 1.0.6 → 1.0.7 |
+| 8 | 同一個 PR 刪 `mockups/note-table.html`、`note-table-church.html`、`note-table-all.html`；更新 `HANDOFF.md` |
+
+### 前綴句（寫喺「記憶法…：」上面一行）
+
+- 保留原 note：E5 Q23、E13 Q6、E15 Q20、E17 Q13；⑩ 嘅 E9 Q4、E14 Q19、E5 Q3、E12 Q7、E4 Q9、E7 Q19、E16 Q2
+- 新加：E9 Q20（見上面 #5）
+
+### ①②③⑩：照上面原文（無改）
+
+### ④ 地方議會（9 題：上面 7 題 + Exam 4 Q21、5 Q23）
+
+```
+記憶法：
+| 地區 | 議會 / 地點 | 議員 |
+| England | UK Parliament<br>Westminster | 650<br>全英國 MP |
+| Scotland | Scottish Parliament<br>蘇格蘭議會<br>Edinburgh（愛丁堡） | 129 |
+| Wales | Senedd<br>威爾斯議會，前稱 National Assembly for Wales<br>Cardiff（加的夫） | 60 |
+| N. Ireland | Northern Ireland Assembly<br>北愛爾蘭議會<br>Belfast（貝爾法斯特） | 90 |
+• England 冇自己嘅地方議會，由英國國會直接負責；
+• Senedd 議員：考試答 60（2026 年選舉起增至 96）；
+• Scotland / Wales / N. Ireland 三個議會用比例代表制（proportional representation）；
+• 英國國會用領先者當選制（first past the post）
+```
+
+### ⑤ 發明家（6 題）
+
+```
+記憶法：
+| 年份 | 人物 / 發明 |
+| 17 世紀 | Isaac Newton<br>牛頓：萬有引力、運動定律 |
+| 1876 | Alexander Graham Bell<br>貝爾：電話（蘇格蘭裔） |
+| 1928 | Alexander Fleming<br>弗萊明：盤尼西林 penicillin（蘇格蘭人） |
+| 1930s | Frank Whittle<br>惠特爾：噴射引擎 jet engine |
+| 1953 | Francis Crick<br>克里克：DNA 結構（同 James Watson 一齊發現） |
+| 1989 | Tim Berners-Lee<br>柏納斯-李：萬維網 World Wide Web |
+```
+
+### ⑥ 節日（11 題）
+
+```
+記憶法：
+| 日期 | 節日 |
+| 25/1 | Burns Night<br>彭斯之夜：紀念蘇格蘭詩人 Robert Burns |
+| 31/10 | Halloween<br>萬聖節前夕 |
+| 5/11 | Bonfire Night<br>篝火之夜：紀念 1605 年火藥陰謀（Gunpowder Plot）失敗 |
+| 11/11 | Remembrance Day<br>國殤紀念日：戴紅罌粟花 |
+| 26/12 | Boxing Day<br>節禮日：聖誕節翌日 |
+| 31/12 | Hogmanay<br>霍格莫尼：蘇格蘭除夕 |
+```
+
+### ⑦ 英國重要戰役（15 題）
+
+```
+記憶法（英國重要戰役）：
+| 年份 | 戰役 / 結果 |
+| 9 世紀 | Alfred the Great vs Vikings<br>阿佛烈大帝統一盎格魯-撒克遜王國，打敗維京人 |
+| 1066 | Battle of Hastings vs Normandy<br>黑斯廷斯戰役：William of Normandy（諾曼第公爵威廉）打敗 Harold → 英格蘭戰敗，諾曼征服 |
+| 1314 | Battle of Bannockburn vs Scotland<br>班諾克本戰役：Robert the Bruce 打敗英格蘭 → 蘇格蘭保持獨立 |
+| 1588 | Spanish Armada vs Spain<br>西班牙無敵艦隊：Elizabeth I 年代英格蘭打敗西班牙 |
+| 1805 | Battle of Trafalgar vs France + Spain<br>特拉法加海戰：Admiral Nelson（納爾遜）打敗法西聯合艦隊，但陣亡 |
+| 1815 | Battle of Waterloo vs France<br>滑鐵盧戰役：Duke of Wellington（威靈頓公爵）打敗 Napoleon，英法最後一戰 |
+| 1940 | Battle of Britain vs Germany<br>不列顛戰役：皇家空軍擊退德國空襲 → 阻止德國入侵 |
+```
+
+### ⑧ 二戰（9 題）
+
+```
+記憶法（二戰）：
+| 年份 | 事件 |
+| 1939 | 德國入侵 Poland（波蘭）<br>英法宣戰 |
+| 1940 | Winston Churchill（邱吉爾）做首相<br>Dunkirk（敦克爾克）大撤退、Battle of Britain（不列顛戰役） |
+| 1940–41 | the Blitz（倫敦大轟炸）<br>德國轟炸英國城市 |
+| 1944 | D-Day<br>諾曼第登陸 |
+| 1945 | 戰爭結束<br>VE Day（歐洲勝利日）8/5、VJ Day（對日勝利日）15/8 |
+```
+
+### ⑨ 國王 vs 國會（8 題）
+
+```
+記憶法（國王 vs 國會）：
+| 年份 | 事件 |
+| 1628 | Petition of Right<br>《權利請願書》：國王要國會同意先可以加稅 |
+| 1642–51 | Civil War<br>英格蘭內戰：Charles I（查理一世）vs 國會 |
+| 1649 | Charles I 被處決 → Commonwealth<br>共和國：Oliver Cromwell（克倫威爾）做 Lord Protector（護國公），到 1658 年 |
+| 1660 | Restoration<br>復辟：Charles II（查理二世）做國王 |
+| 1688 | Glorious Revolution<br>光榮革命：William of Orange（奧蘭治的威廉）取代 James II（詹姆士二世）→ 君主立憲 |
+```
+
+### 題數
+
+①10 + ②5 + ③11 + ④9 + ⑤6 + ⑥11 + ⑩17 + ⑦15 + ⑧9 + ⑨8 = **101 題**
