@@ -1,7 +1,7 @@
 # Handoff：記憶法 table display 開發
 
 **日期**：2026-10-09
-**狀態**：設計同內容已確認（用戶 2026-10-09），待開發
+**狀態**：**已實作（v1.0.7，2026-10-10）**：10 組、101 題（以 spec「Grill 決定」為準）；mockup 已刪
 **Spec（Single Source of Truth）**：`.proj-docs/plans/2026-10-09_plan_note-table.md`（決定、10 組 data、題號、實作範圍）
 **Design Origin**：`mockup:mockups/note-table.html`（Theme B 顏色）+ `mockup:mockups/note-table-church.html`（V4 格內備注）+ `mockup:mockups/note-table-all.html`（10 組內容，390px）
 **Base**：`main` @ v1.0.6（`APP_VERSION = '1.0.6'`）+ 本 session PR（國教 note `a09aedb` + mockup / plan 文件）

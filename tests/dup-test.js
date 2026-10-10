@@ -1,6 +1,6 @@
 const { chromium } = require('playwright-core');
 const path = require('path');
-// v1.0.7 (G40, user 2026-10-09): some questions have the same text in several exams (17 facts, 19 extra keys).
+// v1.0.8 (G40, user 2026-10-09): some questions have the same text in several exams (17 facts, 19 extra keys).
 // One question text is one question wherever a fact's sources are listed: the fact card's source row and the
 // Similar panel merge the copies into one node ("E7·Q16 = E13·Q1"), a practise button counts distinct questions
 // and its session asks each once; answering any copy writes the same streak to every copy (read: the copies' max).
@@ -357,7 +357,7 @@ async function checkWording(pg) {
   assert(w.home === '<b>✓ 今日已完成</b>，明日再來' && w.mock === '✓ 模擬考試任務已完成' && w.pill === '✓ 已完成', 'zh-HK 「已完成」 (home card, mock pass, day pill): ' + JSON.stringify(w));
   assert(w.en === "All of today's tasks are done!" && w.enHome === '<b>✓ Done for today</b>, see you tomorrow' && w.enMock === '✓ Mock exam task done', 'en unchanged: ' + w.enPill);
   assert(w.enPill === '✓ Done', 'en day pill unchanged');
-  assert(w.v === '1.0.7', 'APP_VERSION 1.0.7: ' + w.v);
+  assert(w.v === '1.0.8', 'APP_VERSION 1.0.8: ' + w.v);
 }
 
 (async () => {

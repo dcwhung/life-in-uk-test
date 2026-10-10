@@ -40,7 +40,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(await pg.evaluate(() => state.questions.length === 24), 'round 1: 24 answers, length unchanged');
   assert((await distinct()) === 24, 'round 1: 24 distinct questions');
   await pg.evaluate((r1) => r1.forEach(k => { streaks[k] = MASTERY_STREAK; }), round1);
-  // G40 (v1.0.7): copies of one question text share a streak, so a mastered copy masters its twins too
+  // G40 (v1.0.8): copies of one question text share a streak, so a mastered copy masters its twins too
   const covered = await pg.evaluate(r1 => chapterQuestions(3).filter(q => questionCopies(qKey(q)).some(c => r1.includes(c))).length, round1);
   assert(covered >= 24 && await pg.evaluate(n => masteryOf(chapterQuestions(3)).mastered === n, covered), `Ch3: the 24 + their copies mastered (${covered})`);
   // round 2: next 24 drawn from the unmastered pool only

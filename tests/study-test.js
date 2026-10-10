@@ -163,8 +163,12 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(dotOff.some(d => d.lines > 1) && offCentre.length === 0, `timeline dots centred on the cap-trimmed year text and ${TL_YEAR_GAP_PX}px clear of it, incl. ${dotOff.filter(d => d.lines > 1).length} two-line years (bad: ${JSON.stringify(offCentre.slice(0, 3))})`);
   // v0.71 (B3): a card whose source questions carry a memory method (note from "記憶法…") shows it in a closed
   // <details> "💡 記憶法" (the "記憶法（…）：" heading line dropped, rows as on the answer box); other cards have none
+  // v1.0.7: "|" note lines are table rows — each <tr> is compared as its cells' segments (main text + <br> remarks)
   const memBad = await pg.evaluate(() => {
-    const memOf = f => { for (const k of f.src) { const [e, i] = k.split('.'); const n = EXAMS[e][i].note || ''; const at = n.indexOf('記憶法'); if (at >= 0) return n.slice(at).split('\n').slice(1).map(l => l.trim()); } return null; };
+    const rowOf = l => JSON.stringify(l.trim().replace(/^\||\|$/g, '').split('|').map(c => c.trim().split('<br>')));
+    const memOf = f => { for (const k of f.src) { const [e, i] = k.split('.'); const n = EXAMS[e][i].note || ''; const at = n.indexOf('記憶法'); if (at >= 0) return n.slice(at).split('\n').slice(1).map(l => (l.trim().startsWith('|') ? rowOf(l) : l.trim())); } return null; };
+    const cellOf = c => [c.firstChild && c.firstChild.nodeType === Node.TEXT_NODE ? c.firstChild.textContent : '', ...[...c.querySelectorAll('.note-cell-sub')].map(x => x.textContent)];
+    const rowText = r => (r.classList.contains('rv-note-gap') ? '' : r.tagName === 'TR' ? JSON.stringify([...r.cells].map(cellOf)) : r.textContent);
     const out = []; let withMem = 0;
     for (const ch of CHAPTER_NUMBERS) {
       studySetTab('chapters'); studySetChapter(ch);
@@ -172,7 +176,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
         const f = STUDY.find(x => x.id === Number(c.dataset.factId)), want = memOf(f), d = c.querySelector('details.fact-mem');
         if (!want) { if (d) out.push(`#${f.id} unexpected`); continue; }
         withMem++;
-        const rows = d ? [...d.querySelectorAll('.rv-note-line, .rv-note-gap')].map(r => (r.classList.contains('rv-note-gap') ? '' : r.textContent)) : null;
+        const rows = d ? [...d.querySelectorAll('.rv-note-line, .rv-note-gap, .note-table tr')].map(rowText) : null;
         const tap = d ? d.querySelector('summary').getBoundingClientRect().height : 0;
         const ok = d && !d.open && d.querySelector('summary').textContent.trim() === '💡 記憶法' && JSON.stringify(rows) === JSON.stringify(want) && tap >= 44
           && d.querySelector('.fact-mem-body').getAttribute('lang') === 'zh-HK';

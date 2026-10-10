@@ -15,7 +15,7 @@ const FACT_CHAPTER_NUM = 15; // its number within chapter 3 (ids 7–97), shown 
 // W-016: the session header uses the card's chapter number; "Ch 3 #15" stays English (lang="en") in zh-HK too
 const FACT_NUM_TEXT = `Ch ${FACT_CHAPTER} #${FACT_CHAPTER_NUM}`;
 const FACT_LABEL = { en: `Fact ${FACT_NUM_TEXT}`, 'zh-HK': `知識點 ${FACT_NUM_TEXT}` };
-// G40 (v1.0.7): each distinct question once, the first copy in exam order
+// G40 (v1.0.8): each distinct question once, the first copy in exam order
 const FACT_SRC = '4.16,6.6,7.14,8.13,16.16,17.21';
 // Study is scrolled so fact #21 sits this far below the viewport top, as when its "▶ Practise" is tapped
 // (v0.63: ↩ Back brings the card into view if the restored scroll no longer shows it, R-010)

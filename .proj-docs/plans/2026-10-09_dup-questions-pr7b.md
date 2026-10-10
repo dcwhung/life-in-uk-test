@@ -1,4 +1,4 @@
-# 溫習計劃 PR7b：相同文字題目合併（G40，v1.0.7）
+# 溫習計劃 PR7b：相同文字題目合併（G40，v1.0.8）
 
 Design Origin: proposal: user-approved preview 2026-10-09 (merged " = " source node)
 
@@ -30,7 +30,7 @@ Design Origin: proposal: user-approved preview 2026-10-09 (merged " = " source n
 | `js/screens/sideSession.js` | `startFactPractice` 每組問第一個 copy |
 | `js/screens/similarPanel.js` | 收 groups：地圖、卡、「+N」、CTA |
 | `js/screens/planRun.js` | 錯題知識點 panel 用 `similarGroups(anchor)`（CTA 題數照舊由計劃計） |
-| `js/core/config.js` | `COPY_SEP = ' = '`；`APP_VERSION` 1.0.7（SW cache 跟版本） |
+| `js/core/config.js` | `COPY_SEP = ' = '`；`APP_VERSION` 1.0.8（SW cache 跟版本） |
 | `css/screens/quiz.css` | `.sqm-node` `white-space: nowrap`（合併 node 唔喺中間斷行；來源行本身已 nowrap） |
 | `locales/zh-HK.js` | `plan.run.allDoneToday` / `allDoneDayHtml` 加「已」 |
 | `tests/dup-test.js`（新，入 `run-all.sh`） | copy 表、連勝同步 + 舊資料讀最高、Study 卡合併 node + N + session、Similar panel（13.0 / 10.0 / 全部係 copy 嘅 #67）、獨立 panel（currentMark）、zh 字眼、版本 |
