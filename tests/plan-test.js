@@ -364,6 +364,84 @@ function checkMastered() {
   assert(!carry.some(c => c.task === practice || c.task === read) && carry.length > 0, 'G37: a mastered task is never carried over');
 }
 
+// G43: a schedule phase / study-order step is done once its content is (it may turn green before its last day).
+// learn = every reading + practice task's facts / questions (G3 / G4: one day holds all of a fact's questions; G37 🏆
+// counts); drill / mock = every day of the phase at 100% (rest days are no phase; G24 review rules via planDayCompletion)
+function phaseDoneFixture() {
+  const plan = clone(g('buildPlan')(goalFor(42), TODAY));
+  plan.days.forEach(d => d.tasks.forEach(t => {
+    if (t.type === 'review') t.qids = [];
+    if (t.type === 'wrongFacts') Object.assign(t, { facts: [], anchor: {} });
+  }));
+  return plan;
+}
+const okOf = keys => Object.fromEntries(keys.map(k => [k, 1]));
+const dayEntry = (ok = [], mock = []) => ({ ok: okOf(ok), bad: {}, mock });
+function checkPhaseDoneLearn() {
+  const plan = phaseDoneFixture();
+  const done = (log, phase) => g('planPhaseDone')(plan, log, phase);
+  const learnDays = plan.days.filter(d => d.phase === 'learn');
+  const own = d => d.tasks.flatMap(t => g('planTaskQids')(t));
+  const full = { v: 1, days: Object.fromEntries(learnDays.map(d => [d.date, dayEntry(own(d))])) };
+  assert(!done(emptyLog(), 'learn') && !done(emptyLog(), 'drill') && !done(emptyLog(), 'mock'), 'G43: nothing answered → no phase done');
+  assert(done(full, 'learn') && !done(full, 'drill'), 'G43: every learn day\'s questions right → learn done (drill not)');
+  const lastDay = learnDays[learnDays.length - 1];
+  const short = clone(full);
+  delete short.days[lastDay.date].ok[own(lastDay)[0]];
+  assert(!done(short, 'learn'), 'G43: one learn question missing → learn not done');
+  const early = { v: 1, days: { [TODAY]: dayEntry(learnDays.flatMap(own)) } };
+  assert(done(early, 'learn'), 'G43: content, not dates: all of it right on Day 1 (early) → learn done');
+  const all = new Set(Object.values(g('PLAN_CHAPTER_QIDS')).flat());
+  assert(done(g('planWithMastered')(emptyLog(), all), 'learn'), 'G43 / G37: every question 🏆 → learn done');
+  assert(!done(g('planWithMastered')(emptyLog(), all), 'drill') && !done(g('planWithMastered')(emptyLog(), all), 'mock'), 'G43 / G37: 🏆 does not finish drill / mock days');
+  const multi = STUDY.find(f => g('planFactQids')(f).length > 1);
+  const [q0, ...qRest] = g('planFactQids')(multi);
+  const split = { v: 1, days: { [TODAY]: dayEntry([q0]), [isoAddDays(TODAY, 1)]: dayEntry(qRest) } };
+  const one = { v: 1, days: { [TODAY]: dayEntry([q0, ...qRest]) } };
+  const factDone = log => g('planFactDoneEver')(log, multi.id);
+  assert(!factDone(split) && factDone(one), 'G43 / G4: a fact needs all its questions right on one day');
+  assert(factDone(g('planWithMastered')(split, new Set([q0]))), 'G43 / G37: 🏆 questions complete a fact with any day\'s answers');
+}
+function checkPhaseDoneDrillMock() {
+  const plan = phaseDoneFixture();
+  const done = (p, log, phase) => g('planPhaseDone')(p, log, phase);
+  const drillDays = plan.days.filter(d => d.phase === 'drill'), mockDays = plan.days.filter(d => d.phase === 'mock');
+  assert(!done(plan, emptyLog(), 'drill'), 'G43: unopened drill days (pending quota) → drill not done');
+  drillDays.forEach(d => d.tasks.forEach(t => { if (t.type === 'drill') t.qids = g('PLAN_CHAPTER_QIDS')[t.ch].slice(0, t.quota); }));
+  const drillLog = { v: 1, days: Object.fromEntries(drillDays.map(d => [d.date, dayEntry(d.tasks.flatMap(t => g('planTaskQids')(t)))])) };
+  assert(done(plan, drillLog, 'drill') && !done(plan, drillLog, 'learn') && !done(plan, drillLog, 'mock'), 'G43: every drill day 100% → drill done, learn / mock not');
+  const lastDrill = drillDays[drillDays.length - 1];
+  const drillShort = clone(drillLog);
+  drillShort.days[lastDrill.date].ok = {};
+  assert(!done(plan, drillShort, 'drill'), 'G43: one drill day under 100% → drill not done');
+  const pass = { exam: 1, correct: 20, total: 24 };
+  const passes = d => d.tasks.filter(t => t.type === 'mock').map(() => pass);
+  const mockLog = { v: 1, days: Object.fromEntries(mockDays.map(d => [d.date, dayEntry([], passes(d))])) };
+  assert(done(plan, mockLog, 'mock') && plan.days.some(d => d.phase === 'rest'), 'G43: every mock day (light day too) 100% → mock done; rest days ignored');
+  const firstMock = mockDays.find(d => !d.light);
+  const mockShort = clone(mockLog);
+  mockShort.days[firstMock.date].mock = [];
+  assert(!done(plan, mockShort, 'mock'), 'G43: a mock day without a pass → mock not done');
+  const light = clone(plan);
+  light.days.filter(d => d.light).forEach(d => d.tasks.forEach(t => { if (t.type === 'wrongFacts') { delete t.facts; delete t.anchor; } }));
+  assert(!done(light, mockLog, 'mock'), 'G43: the light day still unopened (wrong facts pending) → mock not done');
+  const noDrill = clone(plan);
+  noDrill.days = noDrill.days.filter(d => d.phase !== 'drill');
+  assert(!done(noDrill, drillLog, 'drill'), 'G43: a phase with no days is never done');
+}
+function checkChaptersDone() {
+  const view = (log, m) => g('planWithMastered')(log, m);
+  const chDone = (log, chs) => g('planChaptersDone')(log, chs);
+  const qidsOfCh = ch => STUDY.filter(f => f.ch === ch).flatMap(f => g('planFactQids')(f));
+  const warm = new Set([...qidsOfCh(1), ...qidsOfCh(2)]);
+  assert(!chDone(emptyLog(), [1, 2]) && !chDone(emptyLog(), [5]), 'G43: no chapter done on an empty log');
+  assert(chDone(view(emptyLog(), warm), [1, 2]) && !chDone(view(emptyLog(), warm), [5]), 'G43 / G37: Ch 1 + 2 all 🏆 → that step done, Ch 5 not');
+  assert(!chDone(view(emptyLog(), new Set(qidsOfCh(1))), [1, 2]), 'G43: a two-chapter step needs both chapters');
+  const ch5 = qidsOfCh(5);
+  assert(chDone({ v: 1, days: { [TODAY]: dayEntry(ch5) } }, [5]), 'G43: every Ch 5 fact answered right → Ch 5 done');
+  assert(!chDone({ v: 1, days: { [TODAY]: dayEntry(ch5.slice(1)) } }, [5]), 'G43: one Ch 5 question missing → not done');
+}
+
 function checkStatusAndCarry() {
   const plan = g('buildPlan')(goalFor(21), TODAY);
   const st = iso => g('planStatus')(plan, iso);
@@ -825,6 +903,9 @@ function runSuite() {
   checkParse();
   checkProgress();
   checkMastered();
+  checkPhaseDoneLearn();
+  checkPhaseDoneDrillMock();
+  checkChaptersDone();
   checkStatusAndCarry();
   checkAttribution();
   checkRounds();

@@ -173,6 +173,36 @@ function planDayCompletion(day, dayLog) {
   return { pct: total ? percent(done, total) : null, done, total, tasks };
 }
 
+// ── phase / chapter done (G43): content, not dates, so a phase may turn green before its last day ──
+// G3 / G4: a fact is done once one day's log holds all its questions right; G37: 🏆 ones count on any day (or alone)
+function planFactDoneEver(log, id) {
+  const mastered = (log && log.mastered) || PLAN_NO_MASTERED;
+  if (planFactDone(id, planDayLog(null, ''), mastered)) return true;
+  return !!log && Object.keys(log.days).some(iso => planFactDone(id, planDayLog(log, iso), mastered));
+}
+function planQidDoneEver(log, qid) {
+  if (!log) return false;
+  return (log.mastered || PLAN_NO_MASTERED).has(qid) || Object.values(log.days).some(d => !!(d.ok && d.ok[qid]));
+}
+// learn: every fact of its reading tasks and every question of its practice tasks, answered on whichever day
+function planLearnContentDone(days, log) {
+  const tasks = days.flatMap(d => d.tasks);
+  const facts = tasks.filter(t => t.type === PLAN_TASK.read).flatMap(t => t.facts || []);
+  const qids = tasks.filter(t => t.type === PLAN_TASK.practice).flatMap(t => t.qids || []);
+  return facts.every(id => planFactDoneEver(log, id)) && qids.every(k => planQidDoneEver(log, k));
+}
+// drill / mock: every day of the phase at 100% (G8 / G24 day rules); rest days have their own phase; no days = never
+function planPhaseDone(plan, log, phase) {
+  const days = plan.days.filter(d => d.phase === phase);
+  if (!days.length) return false;
+  if (phase === PLAN_PHASE.learn) return planLearnContentDone(days, log);
+  return days.every(d => planDayCompletion(d, planDayLog(log, d.date)).pct === PERCENT);
+}
+// a study-order step (chapters chs): every fact of those chapters done
+function planChaptersDone(log, chs) {
+  return STUDY.filter(f => chs.includes(f.ch)).every(f => planFactDoneEver(log, f.id));
+}
+
 // G8: every unfinished past task except mocks, oldest first; G7: nothing from before the last re-plan; G16: none after.
 // W-027: only tasks with contents (ensurePlanToday fills past drill / wrong-facts days first)
 function planCarryTasks(plan, log, todayIso) {
