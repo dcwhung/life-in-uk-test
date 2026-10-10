@@ -6,7 +6,7 @@
 
 ## Reviews
 
-- [2026-10-10_review_plan-pr8.md](reviews/2026-10-10_review_plan-pr8.md) — 溫習計劃 PR8 正式推出（v1.1.0，`STUDY_PLAN_READY = true`、拎走 `?preview=plan` G42；warn 88；code 冇問題、45/45 PASS；W-050 HANDOFF 模擬考合格寫錯 21/24（應為 18/24）、W-051 HANDOFF replay 後漏 G43 #82 / #80 S-154 / #81 runner fade、測試數同撞號 stale；S-165 upgrade-test 舊 shell 冇 assert 入口開咗、S-166 mockup 歷史 commit 指向）
+- [2026-10-10_review_plan-pr8.md](reviews/2026-10-10_review_plan-pr8.md) — 溫習計劃 PR8 正式推出（v1.1.0，`STUDY_PLAN_READY = true`、拎走 `?preview=plan` G42；warn 88；code 冇問題、45/45 PASS；W-050 HANDOFF 模擬考合格寫錯 21/24（應為 18/24）、W-051 HANDOFF replay 後漏 G43 #82 / #80 S-154 / #81 runner fade、測試數同撞號 stale；S-165 upgrade-test 舊 shell 冇 assert 入口開咗、S-166 mockup 歷史 commit 指向；re-review + QA 2026-10-10（3c1c8f3）pass 100：W-050/051、S-165/166 全部解決、冇新 finding；reviewer 自己瀏覽器 QA 91 checks（第一次開、ⓘ 關 + reload、完整流程 390/320 en + zh-HK、真 SW 1.0.8 → `lifeuk-v1.1.0` 升級保留計劃、刪 `lifeuk.studyPlanPreview`），script `qa/scripts/2026-10-10_qa-plan-pr8-release.js`；merge / tag 等用戶批准）
 - [2026-10-10_review_plan-done-green.md](reviews/2026-10-10_review_plan-done-green.md) — 溫習計劃日程已完成變綠（G43，未升版；pass 91；W-049 錯過嘅模擬考日 / re-plan 前未完成強化日令該段永遠唔綠（待用戶決定）、S-160 性能、S-161 pill padding、S-162 模擬考段 navy 字、S-163 re-plan test；re-review + QA 2026-10-10（7de3447）pass 98：W-049 按用戶「只計做得到嘅日子」解決、S-160/161/163 解決、自己瀏覽器 QA（中途 re-plan + 先唔合格後合格）OK，新 S-164）
 - [2026-10-10_review_plan-pr7c.md](reviews/2026-10-10_review_plan-pr7c.md) — 溫習計劃 PR7c 閱讀任務已完成 tag + 最後一條未完成提示（G41，未升版；pass 91；W-048 🏆 卡褪色令 tag 得 2.4:1、S-153–S-156；S-154 follow-up（runner nav 一行）pass 99、S-157；runner fade follow-up（練習完成先褪色）pass 98、S-158–S-159）
 - [2026-10-10_review_v107.md](reviews/2026-10-10_review_v107.md) — v1.0.7 記憶法 table（pass 94；S-140–S-145：S-140/141/144 已修，S-142/143 延後）

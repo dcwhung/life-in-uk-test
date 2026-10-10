@@ -150,3 +150,84 @@ blockers:
   - "W-050 HANDOFF.md Study Plan section says mock pass >= 21/24; G10 / PASS_RATIO is >= 18/24"
   - "W-051 HANDOFF.md v1.1.0 row / Study Plan section stale after replay: missing G43 #82, #80 S-154, #81 runner fade; G1-G42 -> G1-G43; 44 -> 45 suites; ID note lacks W-049, S-160-S-164"
 ```
+
+---
+
+## Re-review + QA — 2026-10-10
+
+- **目標**：`a1aa0e0..3c1c8f3`（4 個 commit，每個 item 一個 commit）：`10e3ced`（W-050）、`5301b85`（W-051）、`70ac565`（S-165）、`3c1c8f3`（S-166）；4 個檔案 +16 / −10，冇改 app code（`js/`、`css/`、`index.html`、`sw.js`、`locales/` 0 改動）
+- **QA**：主 agent 唔另外叫 QA agent，由 reviewer 自己做（release PR）
+- **結果**：✅ pass — **100 / 100**，0 Critical、0 Warning、0 Suggestion；4 個 item 全部解決，冇新 finding
+
+### Hard Gates
+
+| Gate | 結果 | 備注 |
+|---|---|---|
+| Lint | n/a | 冇 eslint；`js/` 冇改動，CJK 0 |
+| Type check | n/a | plain JS |
+| Tests | ✅ pass | `run-all.sh` exit 0，**45/45 PASS**（`plan-test` 2744 checks，`upgrade-test` 包括 S-165 新 assert）；跑完 `git checkout -- 'tests/*.png'`，clean |
+| Coverage | ✅ pass | S-165 補返 CUI-0021 舊 shell「入口開咗」前提；加上下面瀏覽器 QA 91 checks |
+| No Critical | ✅ pass | 0 |
+| Security scan | n/a | 冇新依賴 |
+
+### 逐項覆核
+
+| ID | 狀態 | 覆核 |
+|---|---|---|
+| W-050 | ✅ 已解決 | 記錄格式段改為「合格 = ≥ 18/24（`PASS_RATIO`，G10）先算任務完成；21/24 `PLAN_SAFE_SCORE` 只係整體進度 bar 嘅穩陣目標」，同 G10、`planMockPassed`、`plan.js` `PLAN_SAFE_SCORE` 一致 |
+| W-051 | ✅ 已解決 | v1.1.0 行逐個列 #79（G41）、#80（S-154）、#81（runner fade，S-158 / S-159）、G43 #82（三隻綠、溫習次序 ✓、今日已完成 pill、W-049、`planPhaseDone` / `planChaptersDone` / `planDoneSets`）；section 改 G1–G43；`planProgress.js` / `planSchedule.js` / `planRun.js` 三行補咗；測試 45 套 + 點名 `plan-read-done-test`（G41）、`plan-done-green-test`（G43）；撞號段加 G43（W-049、S-160–S-164）同 PR8（W-050–W-051、S-165–S-166）連 report 名。三個 function 名喺 `js/domain/planProgress.js` 都存在（179 / 222 / 230 行） |
+| S-165 | ✅ 已解決 | `prePlanUiShell` / `pr3Shell` / `pr4Shell` 各加 `planEntryReady() && isStudyPlanEnabled()` assert（喺「冇卡」assert 之前），flag 改返 `false` 就會 fail，唔會 vacuous pass |
+| S-166 | ✅ 已解決 | handoff / plan doc 改為 `git show c442651:mockups/study-plan-flow.html`（PR8 base；`39a3e51^` 都得），可以直接 copy 用 |
+
+### 評分結果
+
+| 維度 | 得分 | 滿分 | 備注 |
+|------|------|------|------|
+| 正確性 | 25 | 25 | |
+| 安全性 | 20 | 20 | |
+| 可維護性 | 20 | 20 | W-050、W-051 已解決 |
+| 測試覆蓋 | 15 | 15 | S-165 已解決 |
+| 性能 | 10 | 10 | |
+| 代碼風格 | 10 | 10 | S-166 已解決 |
+| **總分** | **100** | **100** | |
+
+### 瀏覽器 QA（reviewer 自己做）
+
+Script：`.proj-docs/qa/scripts/2026-10-10_qa-plan-pr8-release.js`（`QA_OUT=<scratch> NODE_PATH=… CHROMIUM_PATH=… node …`），Chromium（Playwright），app 用 `tests/pages-server.js` 經 http serve（Pages 一樣 `max-age=600`），**冇 `?preview`**。結果 **QA PASS（91 checks）**，冇 page error；截圖 29 張喺 scratchpad（唔 commit）。
+
+| 項目 | 闊度 × 語言 | 結果 |
+|---|---|---|
+| 第一次開（冇 LS）：建立卡、ⓘ「功能」row、switch `aria-checked="true"`、冇寫任何 `lifeuk.studyPlan*` key、Home 冇 h-scroll、`<html lang>` 啱 | 390 / 320 × en / zh-HK | ✅ 4/4 |
+| ⓘ 關（紅色 confirm → 確認）→ 卡消失；reload 之後仍然冇卡、switch 讀 off | 390 / 320 × en / zh-HK | ✅ 4/4 |
+| 完整流程：建立卡 → 訂立目標（預設）→ 建立 → 進度表 → 撳今日 row → 今日任務 → 閱讀 Ch 1（#1–2，最後一條見「尚有 2 條知識點未完成練習，共 9 題」+「練習這 9 題 →」）→ Practice plan session（`isPlanSession()`）→ 答啱一題，log 今日 `ok` 1 條 → ← 返今日任務 → Home 見計劃卡；每個畫面冇 h-scroll | 390 / 320 × en / zh-HK | ✅ 4/4 |
+| 1.0.8 → 1.1.0 升級：`c442651`（1.0.8）經 http serve，`?preview=plan` 開，SW 控制、cache `["lifeuk-v1.0.8"]`、`lifeuk.studyPlanPreview = true`、建計劃 + Practice 答啱一題（log `{"2026-10-10":{"ok":{"1.0":1}…}}`）→ 原位 deploy 1.1.0 檔案 → reload：`APP_VERSION 1.1.0`、`STUDY_PLAN_READY true`、SW 控制、cache 只剩 `["lifeuk-v1.1.0"]`（1.0.8 被刪）、`lifeuk.studyPlanPreview` 被刪、progress log byte 一樣、計劃同一個（start / goal / days 一樣）、plain URL Home 見計劃卡「Day 1 / 21」；offline reload 照出 1.1.0 + 計劃卡 | 390 en | ✅ |
+
+QA 觀察（唔係 finding）：
+
+- 升級後計劃 JSON 長咗 10 個字元：載入時 G9 `planFillDays` 將今日嘅 review task materialize（`writeStudyPlan` 只喺 `changed` 先寫），1.0.8 一樣會咁做；goal / 日子冇郁。
+- 自動化連續 click：進度表撳今日 row 之後即刻（< 350 ms）撳同一位置嘅閱讀任務，會被 CUI-0011 double tap guard（`SCREEN_CHANGE_CLICK_GUARD_MS` 350、40px）擋住（zh-HK 390 兩個掣剛好重疊）。呢個係設計（防止 stray 第二下落喺新畫面），真人點擊冇問題；script 每下 click 之前等 400 ms。
+- 截圖肉眼睇過：320 zh-HK ⓘ popover「功能 · 🗓️ 溫習計劃 已開啟」+ switch 開、閱讀最後一條提示 + 主掣冇裁字；升級後 Home 計劃卡正常。
+
+### 未做 / 交返用戶
+
+- 實機 iOS PWA / Android 安裝版升級（T-342 實機部分）：呢度只有 Chromium；SW 換 cache 已用真 http + SW 驗過。
+- **Merge 同 tag `v1.1.0` 要等用戶批准**（main agent 處理）；reviewer 冇 push / merge / tag。
+
+### Handoff receipt（re-review）
+
+```handoff-receipt
+protocol: 1
+status: pass
+score: 100/100
+hard_gates:
+  lint: n/a
+  type_check: n/a
+  tests: pass
+  coverage: n/a
+next_action: merge_develop
+next_agent: null
+branch: "claude/charming-hopper-48ypzp"
+context: "PR8 v1.1.0 re-review + reviewer-run QA pass: W-050/W-051/S-165/S-166 resolved, 45/45 PASS, browser QA 91 checks (first launch, switch off + reload, full flow 390/320 en+zh-HK, real SW upgrade 1.0.8 -> lifeuk-v1.1.0 keeps plan, drops lifeuk.studyPlanPreview); merge to main and tag v1.1.0 ONLY after the user approves"
+blockers:
+  - "user approval required before merge / tag v1.1.0 (user decision 2026-10-10)"
+```
