@@ -350,6 +350,8 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
 .plan-run-next { gap: var(--space-2); }
 .plan-run-next .section-title { margin: 0; }
 .plan-run-body .nav-row .nav-btn { flex: 1; min-height: 44px; }
+/* S-154 (user 2026-10-10): fact-view labels on one line at 320px+, narrower side padding instead of shorter words */
+.plan-run-nav .nav-btn { padding-left: var(--space-4); padding-right: var(--space-4); white-space: nowrap; }
 /* PR6b reading / wrong facts (mockup #runner .sp-run-meta): task + "Fact n of m" above the card, a thin position bar */
 .plan-run-head { display: grid; gap: var(--space-3); }
 .plan-run-meta { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-4); font-size: var(--fs-sm); font-weight: 700; color: var(--text-muted); }
