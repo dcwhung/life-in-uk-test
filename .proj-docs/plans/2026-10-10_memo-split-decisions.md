@@ -43,3 +43,4 @@
 | 18 | N8 19 世紀（11 題） | 用戶：分做兩個記憶法 → N8a 19 世紀事件（14.23、16.18、10.20、17.1、6.10；table 1807 / 1840s / 1899–1902，1807 加「由 MP William Wilberforce 推動」）已確認；N8b 人物：用戶要睇之後有冇人物記憶法可併 → 建議 Brunel 搬入 ⑤（「19 世紀 ｜ I. K. Brunel<br>布魯內爾（工程師） ｜ 橋、隧道、船<br>Great Western Railway」，7.23 轉 ⑤），餘下 Wilberforce、Mahomet、Nightingale 留 N8b（N10–N25 冇同類） | N8a 已確認；Brunel 搬入 ⑤ 已確認；N8b 留 3 人已確認 |
 | 18b | N8b 格式 | 用戶：N8b 要用 table →「年份 ｜ 人物」3 行（1807 Wilberforce、約 1810 Sake Dean Mahomet、1853–56 Nightingale） | 已確認 |
 | 19 | ⑤ 斷行 | 三欄喺手機多格斷行 → 方案 A（刪年份欄，年份入人物細字；仍有 4 格斷行）、方案 B（兩欄跟 ⑨ 格式「人名 中文：<br>發明」；冇斷行）→ 用戶：唔改，保持三欄（Brunel 行照加：「19 世紀 ｜ I. K. Brunel<br>布魯內爾（工程師） ｜ 橋、隧道、船<br>Great Western Railway」） | 已確認 |
+| 20 | N9 一次世界大戰（4 題：15.23、17.15、4.12、15.5） | 標題改「記憶法（一次世界大戰）：」；table 3 行 1914 / 1916 / 1918；刪「女性 30 歲以上有票」（投票權已有） | 已確認 |
