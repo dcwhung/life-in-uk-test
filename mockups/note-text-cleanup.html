@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memory Note Cleanup</title>
+<!-- real app styles; notes rendered by a copy of noteHtml() / noteLineHtml() in js/components/tags.js (no new syntax) -->
+<link rel="stylesheet" href="../css/base/tokens.css">
+<link rel="stylesheet" href="../css/components/note.css">
+<link rel="stylesheet" href="../css/screens/quiz.css">
+<style>
+  /* ════════ mockup chrome only ════════ */
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: #e4e7ef; color: var(--text); }
+  .brief { max-width: 820px; margin: 16px; background: #fffbea; border: 1.5px solid #e8d48a; border-radius: 10px; padding: 12px 14px; font-size: 13px; line-height: 1.6; }
+  .brief h1 { font-size: 16px; margin: 0 0 6px; }
+  .brief ol { margin: 4px 0 0 18px; padding: 0; }
+  .group { display: flex; gap: 20px; flex-wrap: wrap; padding: 0 16px 22px; align-items: flex-start; }
+  .group-title { width: 100%; font-size: 15px; font-weight: 800; color: var(--navy); margin: 4px 0 -8px; }
+  .phone { width: 390px; background: var(--bg); border-radius: 18px; padding: 14px 16px 16px; box-shadow: var(--shadow); }
+  .phone h2 { font-size: 13px; margin: 0 0 8px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .phone.after h2 { color: var(--green); }
+  .answer-box { display: block; margin-bottom: 0; }
+</style>
+</head>
+<body>
+
+<div class="brief">
+  <h1>6 組文字記憶法：整理前 vs 整理後（唔用 table）</h1>
+  只用 app 而家支援嘅格式（• 列點、◦ 子項、空行），唔使改 code。整理原則：
+  <ol>
+    <li>標題統一「記憶法（主題）：」，一眼知講乜</li>
+    <li>每行「關鍵詞 → 解釋」，考試答案（年份、數字、名）放最前</li>
+    <li>按人物 / 層級分組，一行一個重點；子項用 ◦</li>
+    <li>標點統一：每行「；」，最後一行「。」</li>
+  </ol>
+  每組左邊係而家，右邊係建議（Practice 答題後嘅框，390px）。
+</div>
+
+<div id="groups"></div>
+
+<script>
+const GROUPS = [
+  ['1. 都鐸王朝（9 題）',
+   '記憶法（都鐸王朝 Tudor）：\n• 1455–1485 → 玫瑰戰爭（Wars of the Roses）→ York（約克）vs Lancaster（蘭開斯特）→ Henry VII（亨利七世）開創都鐸王朝；\n• Henry VIII（亨利八世）：\n    ◦ 教宗唔准佢同第一任妻子 Catherine of Aragon（阿拉貢的凱瑟琳）離婚 → 脫離天主教會，成立 Church of England（英格蘭國教會）；\n    ◦ 解散修道院（Dissolution of the Monasteries）；\n    ◦ 六任妻子，兩位被處決 → Anne Boleyn（安妮·博林）、Catherine Howard（凱瑟琳·霍華德）；\n• Elizabeth I（伊利沙伯一世）→ Anne Boleyn 嘅女兒 → 處決 Mary, Queen of Scots（蘇格蘭瑪麗女王）。',
+   '記憶法（都鐸王朝 Tudor，三代人）：\n• Henry VII（亨利七世）：\n    ◦ 玫瑰戰爭（Wars of the Roses，1455–1485）→ York（約克）vs Lancaster（蘭開斯特）；\n    ◦ 戰爭結束 → 開創都鐸王朝；\n• Henry VIII（亨利八世）：\n    ◦ 離婚 → 教宗唔准佢同第一任妻子 Catherine of Aragon（阿拉貢的凱瑟琳）離婚；\n    ◦ 國教 → 脫離天主教會，成立 Church of England（英格蘭國教會）；\n    ◦ 修道院 → 解散修道院（Dissolution of the Monasteries）；\n    ◦ 六任妻子 → 兩位被處決：Anne Boleyn（安妮·博林）、Catherine Howard（凱瑟琳·霍華德）；\n• Elizabeth I（伊利沙伯一世）：\n    ◦ 身世 → Anne Boleyn 嘅女兒；\n    ◦ 處決 → Mary, Queen of Scots（蘇格蘭瑪麗女王）。'],
+  ['2. 三層屬地（7 題）',
+   '記憶法（三層）：\n• 英國（UK）→ England、Scotland、Wales、Northern Ireland 四地；\n• Crown dependency（皇家屬地）→ 有自己政府，唔係英國一部分。\n    ◦ Isle of Man（曼島）\n    ◦ Channel Islands（海峽群島，如 Jersey 澤西島）\n• British overseas territory（英國海外領土）→ 同英國有聯繫，唔係英國一部分。\n    ◦ St Helena（聖赫勒拿島）\n    ◦ Falkland Islands（福克蘭群島）\n    ◦ Gibraltar（直布羅陀）\n    ◦ Bermuda（百慕達）\n\n陷阱：\n• 以下都係英國一部分：\n    ◦ Shetland（設得蘭群島）\n    ◦ Isle of Wight（懷特島）\n    ◦ Anglesey（安格爾西島）',
+   '記憶法（三層：係唔係英國一部分？）：\n• ✓ 英國（UK）→ England、Scotland、Wales、Northern Ireland 四地；\n    ◦ 陷阱：離島都計 → Shetland（設得蘭群島）、Isle of Wight（懷特島）、Anglesey（安格爾西島）都係英國；\n• ✗ Crown dependency（皇家屬地）→ 有自己政府：\n    ◦ Isle of Man（曼島）；\n    ◦ Channel Islands（海峽群島，如 Jersey 澤西島）；\n• ✗ British overseas territory（英國海外領土）→ 同英國有聯繫：\n    ◦ St Helena（聖赫勒拿島）、Falkland Islands（福克蘭群島）；\n    ◦ Gibraltar（直布羅陀）、Bermuda（百慕達）。'],
+  ['3. Magna Carta（8 題）',
+   '記憶法（Magna Carta，大憲章）：\n1215 → King John（約翰王）簽署；\n限制國王權力 → 冇人凌駕法律之上，國王都唔例外；\n奠定法治（rule of law）基礎。',
+   '記憶法（Magna Carta，大憲章）：\n• 1215 → King John（約翰王）簽署；\n• 重點 → 冇人凌駕法律之上，國王都唔例外；\n• 影響 → 限制國王權力，奠定法治（rule of law）基礎。'],
+  ['4. 選舉（4 題）',
+   '記憶法：\n650 個選區（constituency）→ 每區選 1 位國會議員（Member of Parliament, MP）→ 下議院一共 650 位 MP；\n大選（general election）→ 每 5 年一次；\nMP 中途去世或者辭職 → 補選（by-election）。',
+   '記憶法（國會選舉）：\n• 選區（constituency）→ 650 個 = 下議院 MP 數目，每區選 1 位；\n• 大選（general election）→ 5 年一次；\n• 補選（by-election）→ MP 中途去世或者辭職。'],
+  ['5. 戴卓爾夫人（3 題）',
+   '記憶法（Margaret Thatcher，戴卓爾夫人）：\n任期 → 1979 至 1990 年，共 11 年；\n首位 → 英國第一位女首相；\n最長 → 20 世紀任期最長嘅首相。',
+   '記憶法（Margaret Thatcher，戴卓爾夫人）：\n• 1979–1990 → 任期 11 年；\n• 第一 → 英國第一位女首相；\n• 最長 → 20 世紀任期最長嘅首相。'],
+  ['6. 陪審員（3 題）',
+   '記憶法：\n陪審員（juror）→ 18 至 70 歲；\n來源 → 選民登記冊（electoral register）；\n方式 → 隨機抽選。',
+   '記憶法（陪審員 juror）：\n• 年齡 → 18 至 70 歲；\n• 來源 → 選民登記冊（electoral register）；\n• 方式 → 隨機抽選。'],
+];
+// copy of js/components/tags.js noteLineHtml / noteHtml
+const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const NOTE_MARK = /^([•◦→])\s*/;
+function noteLineHtml(line) {
+  const text = line.trim(), mark = text.match(NOTE_MARK);
+  const cls = /^\s{2,}/.test(line) ? ' sub' : mark ? ' bullet' : '';
+  const body = mark ? `<span class="note-mark">${mark[1]} </span>${esc(text.slice(mark[0].length))}` : esc(text);
+  return `<div class="rv-note-line${cls}" lang="zh-HK">${body}</div>`;
+}
+const noteHtml = note => note.split('\n').map(l => (l.trim() ? noteLineHtml(l) : '<div class="rv-note-gap"></div>')).join('');
+const box = (cls, label, note) => `<div class="phone ${cls}"><h2>${label}</h2><div class="answer-box"><div class="ans-label">✓ Correct</div>
+  <div class="ans-note" lang="zh-HK"><strong>💡 備注：</strong><div class="ans-note-text">${noteHtml(note)}</div></div></div></div>`;
+document.getElementById('groups').innerHTML = GROUPS.map(([t, before, after]) =>
+  `<div class="group"><div class="group-title">${t}</div>${box('before', '整理前（而家）', before)}${box('after', '整理後（建議）', after)}</div>`).join('');
+</script>
+</body>
+</html>
