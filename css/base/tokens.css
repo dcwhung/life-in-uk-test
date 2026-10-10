@@ -133,6 +133,17 @@
      5.6:1 on white, 5.1:1 on --selected-bg (today + hover) */
   --plan-day-chs-text: #806419;
 
+  /* G43: what is finished turns green on the schedule. Three greens, darkest first (learn / drill / mock), so two
+     finished phases side by side keep their edge: white text 11.1:1 on learn, 6.4:1 on drill; the light mock green
+     takes navy text (6.0:1; white there is 2.5:1). A finished study-order step and today's "Done today" pill use the
+     mid green with white (6.4:1), solid, unlike a past day's light "✓ Done" */
+  --plan-done-learn: #1b4332;
+  --plan-done-drill: var(--green);
+  --plan-done-mock: var(--green-light);
+  --plan-done-mock-text: var(--text);
+  --plan-done-step: var(--green);
+  --plan-done-today: var(--green);
+
   /* a mastered fact card (🏆 / ticked) fades: the whole card in Study, all but the G41 done tag in the plan runner (W-048) */
   --fact-mastered-opacity: 0.55;
 
