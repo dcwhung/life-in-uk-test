@@ -48,6 +48,34 @@ function noteLineHtml(line) {
   const body = mark ? `<span class="note-mark">${mark[1]} </span>${escapeHtml(text.slice(mark[0].length))}` : escapeHtml(text);
   return `<div class="rv-note-line${cls}" lang="zh-HK">${body}</div>`;
 }
+// v1.0.7: consecutive lines starting with "|" are one table ("| a | b |", first row = header); "<br>" in a cell
+// splits its main text from small remark lines (.note-cell-sub). Other lines still go through noteLineHtml
+const NOTE_TABLE_ROW = /^\s*\|/;
+const NOTE_CELL_BREAK = '<br>';
+const NOTE_GAP_HTML = '<div class="rv-note-gap"></div>';
 function noteHtml(note) {
-  return note.split('\n').map(line => (line.trim() ? noteLineHtml(line) : '<div class="rv-note-gap"></div>')).join('');
+  const out = [];
+  let rows = [];
+  const flushTable = () => { if (rows.length) out.push(noteTableHtml(rows)); rows = []; };
+  for (const line of note.split('\n')) {
+    if (NOTE_TABLE_ROW.test(line)) { rows.push(line); continue; }
+    flushTable();
+    out.push(line.trim() ? noteLineHtml(line) : NOTE_GAP_HTML);
+  }
+  flushTable();
+  return out.join('');
+}
+// "| a | b |" lines -> table; lang on the table so it is marked like the .rv-note-line rows around it
+function noteTableHtml(rows) {
+  const [head, ...body] = rows.map(row => row.trim().replace(/^\||\|$/g, '').split('|').map(cell => cell.trim()));
+  const rowHtml = (cells, tag) => `<tr>${cells.map(cell => noteCellHtml(cell, tag)).join('')}</tr>`;
+  return `<div class="note-table-wrap"><table class="note-table" lang="zh-HK"><thead>${rowHtml(head, 'th')}</thead>`
+    + `<tbody>${body.map(cells => rowHtml(cells, 'td')).join('')}</tbody></table></div>`;
+}
+// split on "<br>" first, then escape each part, so the only markup a note can add is the remark span
+function noteCellHtml(cell, tag) {
+  const [main, ...remarks] = cell.split(NOTE_CELL_BREAK);
+  if (!remarks.length) return `<${tag}>${escapeHtml(cell)}</${tag}>`;
+  const subs = remarks.map(remark => `<span class="note-cell-sub">${escapeHtml(remark)}</span>`).join('');
+  return `<${tag} class="multi">${escapeHtml(main)}${subs}</${tag}>`;
 }
