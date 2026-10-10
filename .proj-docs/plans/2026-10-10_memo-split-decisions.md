@@ -28,3 +28,4 @@
 | 6b | X7 譯名 | James II →「詹姆斯二世」（用戶 2026-10-10；同 `yue-terms.md`「James → 詹姆斯」一致）；⑨ table 8 題嘅「詹姆士二世」一齊改；「聖詹姆士宮」係地名，唔郁 | 已確認 |
 | 7 | ⑤ 發明家（8 題） | 唔拆；分三欄「年份 / 人物 / 發明 / 發現」；Newton 格只留「萬有引力、運動定律」；Woolsthorpe / Royal Mint 保留做 8.11、4.7、8.21 前綴（專有名詞英文：「Isaac Newton（牛頓）喺 Lincolnshire（林肯郡）Woolsthorpe 出世，後來做過 Royal Mint（皇家鑄幣廠）嘅 Warden / Master」） | 已確認；細字英文大楷開頭（Penicillin、Jet engine） |
 | 8 | ⑥ 全年節日（15 題） | 唔拆；用戶定稿：25/1「Burns Night 彭斯之夜：<br>紀念蘇格蘭詩人 Robert Burns<br>佢寫咗 Auld Lang Syne」、5/11「Bonfire Night 篝火之夜：<br>又叫 Guy Fawkes Night<br>紀念 1605 年 Guy Fawkes 等人<br>火藥陰謀（Gunpowder Plot）失敗」、11/11「Remembrance Day 國殤紀念日：<br>又叫 Armistice Day（停戰紀念日）<br>紀念 1918 年 11/11 上午 11 時一戰停戰同戰爭死難者；<br>戴紅罌粟花」，其餘照建議；Guy Fawkes / Armistice Day 前綴搬入 table，6 題刪前綴 | 已確認 |
+| 9 | ⑧ 二戰（11 題） | 唔拆；跟 ⑨ 格式；1940 行分開：Churchill 任期 1940–45、1951–55 / Dunkirk / Battle of Britain 結果；D-Day 加「盟軍喺法國 Normandy（諾曼第）海灘登陸<br>開始反攻，解放西歐」；11.6、17.12 保留邱吉爾金句前綴 | 已確認（preview 待睇） |
