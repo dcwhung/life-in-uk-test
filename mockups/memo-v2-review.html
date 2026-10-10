@@ -80,6 +80,9 @@
   .c-idx { position: sticky; left: 0; z-index: 1; width: 52px; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
   .c-key { width: 230px; min-width: 200px; }
   .c-q { width: 260px; min-width: 220px; font-size: 0.85rem; }
+  .k-done { color: var(--ok); background: var(--ok-bg); }
+  .k-part { color: var(--warn); background: var(--warn-bg); }
+  article.is-done { opacity: 0.72; }
   .fix { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 4px 10px; }
   @media (prefers-reduced-motion: no-preference) { .tab, .chip { transition: background 0.15s; } }
 </style>
@@ -90,7 +93,7 @@
 <div class="wrap">
   <header>
     <h1>記憶法 v2 Review</h1>
-    <p class="sub">根據 main v1.0.8 嘅 408 題重新 deep check。呢頁只係建議，未改任何 data；你確認邊啲做，我先照 Q8 流程套用。題目 ID 用「exam.idx」（idx 由 0 起）；Exam N 第 k 題 = N.(k−1)。</p>
+    <p class="sub">根據 main v1.0.8 嘅 408 題重新 deep check。已套用：同一知識點統一備注、專有名詞保留英文；其餘仍然係建議，你確認邊啲做，我先照 Q8 流程套用。預設只顯示未做嘅組。題目 ID 用「exam.idx」（idx 由 0 起）；Exam N 第 k 題 = N.(k−1)。</p>
   </header>
   <div class="stats" id="stats"></div>
   <div class="tabs" role="tablist" id="tabs"></div>
@@ -118,6 +121,12 @@
     const hasMemo = (q) => MEMO_RE.test(q.note || '');
     const memoPart = (note) => { const ls = note.split('\n'); const i = ls.findIndex((l) => MEMO_RE.test(l)); return i < 0 ? [] : ls.slice(i); };
     const proposed = () => new Set(DATA.proposal.groups.flatMap((g) => g.add));
+    // a fill group is done for a question once its note already carries the target memory method
+    const targetMemo = (g) => { const key = ((g.memo || '').match(/M\d+/) || [])[0]; return g.kind === 'fill' && MEMO_SAMPLE[key] ? memoPart(getQ(MEMO_SAMPLE[key]).note).join('\n') : null; };
+    const qDone = (g, k) => { const t = targetMemo(g); return t !== null && memoPart(getQ(k).note || '').join('\n') === t; };
+    const groupStatus = (g) => { const n = g.add.filter((k) => qDone(g, k)).length; return n === 0 ? 'pending' : n === g.add.length ? 'done' : 'part'; };
+    const STATUS = { done: ['k-done', '✓ 已完成'], part: ['k-part', '部分完成'], pending: null };
+    const pendingKeys = () => new Set(DATA.proposal.groups.flatMap((g) => g.add.filter((k) => !qDone(g, k))));
 
     // ── note rendering: consecutive "|" lines become a table (same rule as the app); <br> splits main / sub line ──
     function cellHtml(c, tag) {
@@ -169,13 +178,14 @@
         const memoLine = lines.find((l) => MEMO_RE.test(l));
         const cur = !q.note ? '（空）' : memoLine ? memoLine + (lines[0] !== memoLine ? '（＋前綴）' : '') : q.note;
         return `<div class="q${hasMemo(q) ? ' has' : ''}"><span class="qid">${k}</span>${esc(q.q)}<br><span class="ans">✓ ${esc(answer(q))}</span>
-            <div class="cur">現有：${esc(cur)}${keep ? ' · 保留前綴' : ''}</div></div>`;
+            <div class="cur">現有：${esc(cur)}${keep ? ' · 保留前綴' : ''}${g.kind && qDone(g, k) ? ' · ✓ 已完成' : ''}</div></div>`;
     }
 
     function memoCard(g) {
         const prefix = g.prefix ? `<div class="note-line added">${esc(g.prefix)}</div>` : '';
-        return `<article class="card" data-kind="${g.kind}" data-search="${esc([g.id, g.title, g.memo || '', ...g.add].join(' ').toLowerCase())}">
-            <div class="card-head"><span class="gid">${g.id}</span><h2>${esc(g.title)}</h2><span class="pill k-${g.kind}">${KIND[g.kind]}</span>
+        const st = groupStatus(g);
+        return `<article class="card${st === 'done' ? ' is-done' : ''}" data-kind="${g.kind}" data-status="${st}" data-search="${esc([g.id, g.title, g.memo || '', ...g.add].join(' ').toLowerCase())}">
+            <div class="card-head"><span class="gid">${g.id}</span><h2>${esc(g.title)}</h2><span class="pill k-${g.kind}">${KIND[g.kind]}</span>${STATUS[st] ? `<span class="pill ${STATUS[st][0]}">${STATUS[st][1]}</span>` : ''}
             <span class="count">${g.add.length} 題${g.memo ? ' · ' + esc(g.memo) : ''}</span></div>
             ${g.why ? `<div class="why">${esc(g.why)}</div>` : ''}${g.change ? `<div class="why">改動：${esc(g.change)}</div>` : ''}
             <div class="cols"><div class="note"><div class="note-label">💡 建議備注（綠色 = 新加）</div>${prefix}${previewNote(g)}</div>
@@ -193,32 +203,38 @@
         const box = document.getElementById('p-memo');
         const kinds = ['all', 'fill', 'extend', 'move', 'new'];
         box.innerHTML = `<div class="controls"><input type="search" id="mq" placeholder="搜尋組名、ID、題號（例如 N5、8.13）" aria-label="搜尋記憶法建議">${
-            kinds.map((k) => `<button class="chip" type="button" data-k="${k}" aria-pressed="${k === 'all'}">${k === 'all' ? '全部' : KIND[k]}</button>`).join('')}<span class="count" id="mcount"></span></div>
+            kinds.map((k) => `<button class="chip" type="button" data-k="${k}" aria-pressed="${k === 'all'}">${k === 'all' ? '全部' : KIND[k]}</button>`).join('')}<span class="count">｜</span>${
+            [['todo', '未做'], ['done', '已完成'], ['any', '全部狀態']].map(([k, t]) => `<button class="chip" type="button" data-st="${k}" aria-pressed="${k === 'todo'}">${t}</button>`).join('')}<span class="count" id="mcount"></span></div>
             <div class="panel">${DATA.proposal.groups.map(memoCard).join('')}</div>`;
-        let kind = 'all';
+        let kind = 'all', status = 'todo';
+        const stOk = (a) => status === 'any' || (status === 'done' ? a.dataset.status === 'done' : a.dataset.status !== 'done');
         const apply = () => {
             const q = document.getElementById('mq').value.trim().toLowerCase();
             let n = 0;
-            box.querySelectorAll('article').forEach((a) => { const show = (kind === 'all' || a.dataset.kind === kind) && (!q || a.dataset.search.includes(q)); a.hidden = !show; n += show; });
+            box.querySelectorAll('article').forEach((a) => { const show = (kind === 'all' || a.dataset.kind === kind) && stOk(a) && (!q || a.dataset.search.includes(q)); a.hidden = !show; n += show; });
             document.getElementById('mcount').textContent = `${n} 組`;
         };
         wireChips(box, 'data-k', (k) => { kind = k; apply(); });
+        wireChips(box, 'data-st', (k) => { status = k; apply(); });
         document.getElementById('mq').addEventListener('input', apply);
         apply();
     }
 
     function renderFindings() {
         const P = DATA.proposal;
-        const fixRows = P.fixes.map((f) => `<div class="fix"><span class="gid">${f.id}</span><div><b>${esc(f.q.join('、'))}</b> — ${esc(f.issue)}<br><span class="why">建議：${esc(f.fix)}</span></div></div>`).join('');
+        const fixRows = P.fixes.map((f) => `<div class="fix"><span class="gid">${f.id}</span><div>${f.status === 'done' ? '<span class="pill k-done">✓ 已修正</span> ' : ''}<b>${esc(f.q.join('、'))}</b> — ${esc(f.issue)}<br><span class="why">${f.status === 'done' ? '已由 ' + esc(f.done_by) + ' 修正' : '建議：' + esc(f.fix)}</span></div></div>`).join('');
+        const applied = (P.applied || []).map((a) => `<div class="fix"><span class="gid">${esc(a.commit)}</span><div>${esc(a.what)}</div></div>`).join('');
         const sim = P.similar.map((s) => `<div class="fix"><span class="gid">${s.id}</span><div><span class="pill k-${s.kind}">${KIND[s.kind]}</span> <b>${s.kind === 'merge' ? `${s.from} → ${s.into}（${s.q.join('、')}）` : `${s.from} 拆出 ${s.new.join('、')}`}</b> — ${esc(s.why)}<br><span class="why">影響：${esc(s.impact)}</span></div></div>`).join('');
         document.getElementById('p-findings').innerHTML = `
+            <article class="card"><h2>已套用</h2>${applied}</article>
             <article class="card"><h2>A. 資料問題（建議修正）</h2>${fixRows}</article>
             <article class="card"><h2>B. 相似題分組（STUDY fact）建議</h2><p class="why">Similar panel 同 Study 卡都係用 fact 分組。拆開 = 新 fact 加喺 STUDY 尾，現有編號唔變；合併要 migrate 書籤／已掌握。兩樣都要重生成 content baseline。</p>${sim}</article>
             <article class="card"><h2>C. 統一規則（套用時跟）</h2>
               <div>• 同一知識點（fact）所有題目用同一個 note：前綴（專題重點）＋記憶法，前綴放記憶法上面一行。</div>
               <div>• 前綴同記憶法內容重複就刪前綴；R1 現況括號（54→56、47→46、£100、Remembrance Sunday、選民登記冊等）一定保留。</div>
               <div>• 新記憶法跟現有格式：標題「記憶法（主題）：」；table 主文英文、&lt;br&gt; 後中文；列點每行「；」、最後「。」；廣東話口語（yue 規則）。</div>
-              <div>• 新 table 要過 390px 唔使左右 scroll（套用時加入 note-table-test）。</div></article>`;
+              <div>• 新 table 要過 390px 唔使左右 scroll（套用時加入 note-table-test）。</div>
+              <div>• 專有名詞同人名保留英文：「English（中文）」，例如 William the Conqueror（征服者威廉）；英國四地同國名照用中文。</div></article>`;
     }
 
     function factFlags(f) {
@@ -274,10 +290,12 @@
         const s = proposed();
         const before = keys.filter((k) => hasMemo(getQ(k))).length;
         const after = keys.filter((k) => hasMemo(getQ(k)) || s.has(k)).length;
+        const st = g0 => DATA.proposal.groups.filter((x) => groupStatus(x) === g0).length;
         const g = DATA.proposal.groups;
-        const items = [[`${before} → ${after}`, '有記憶法嘅題目（/ 408）'], [keys.filter((k) => !getQ(k).note).length, '而家冇備注'],
+        const items = [[`${before} → ${after}`, '有記憶法嘅題目（而家 → 全部做完 / 408）'], [keys.filter((k) => !getQ(k).note).length, '而家冇備注'],
+            [`${st('done')} / ${DATA.proposal.groups.length}`, '已完成組數'], [pendingKeys().size, '未做題目'],
             [g.filter((x) => x.kind === 'new').length, '新記憶法'], [g.filter((x) => x.kind !== 'new').length, '補齊 / 擴充 / 搬組'],
-            [DATA.proposal.similar.length, '分組建議'], [DATA.proposal.fixes.length, '資料問題']];
+            [DATA.proposal.similar.length, '分組建議'], [`${DATA.proposal.fixes.filter((f) => f.status !== 'done').length} / ${DATA.proposal.fixes.length}`, '資料問題未修']];
         document.getElementById('stats').innerHTML = items.map(([n, l]) => `<div class="stat"><b>${n}</b><span>${l}</span></div>`).join('');
     }
 
