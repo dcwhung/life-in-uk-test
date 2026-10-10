@@ -96,7 +96,8 @@ function renderResultActions() {
 // practice result line: wrong-answer review → cleared / left; other sets → mastery gained this round
 function practiceResultNote() {
   if (state.examNum === WRONG_EXAM) {
-    return t('result.clearedNote', { n: state.cleared, left: keysOf(wrongList).length });
+    // W-047: left = distinct questions (copies of one text are one question, cleared together)
+    return t('result.clearedNote', { n: state.cleared, left: questionGroups(keysOf(wrongList)).length });
   }
   if (state.examNum === SIMILAR_EXAM || !state.setPool) return '';
   const m = masteryOf(state.setPool), asked = masteryOf(state.questions).mastered; // n: asked this round only

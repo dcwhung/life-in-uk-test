@@ -43,7 +43,8 @@ function startExam(examNum, mode = pendingMode) {
   state.planDay = null;
   clearSideSession();
   state.setPool = pool;
-  state.reviewTotal = isReviewSet(examNum) ? pool.length : 0;
+  // S-145(a): distinct questions, as the round asks each text once ("Round 1 of N · n of your T")
+  state.reviewTotal = isReviewSet(examNum) ? questionGroups(pool.map(qKey)).length : 0;
   state.cleared = 0;
   state.questions = sessionQuestions(examNum, pool);
   // S-141(b): "Mastered N more this round" counts the questions asked, not their unasked copies (G40)
@@ -215,13 +216,13 @@ function revealAnswer() {
 function recordPracticeResult(q, correct) {
   // session length stays fixed; unmastered ones return next session
   recordPracticeAnswer(q, correct, state.planDay || null);
-  // wrong answers join the review list; only a correct answer inside the review (or any plan task, R9 / G38) clears one
+  // wrong answers join the review list; only a correct answer inside the review (or any plan task, R9 / G38) clears it
   if (!correct) addWrong(q);
-  else if (isPlanSession()) clearPlanReviewWrong(q);
-  else if (state.examNum === WRONG_EXAM && wrongList[qKey(q)]) { clearWrong(q); state.cleared++; }
+  else if (isPlanSession() || state.examNum === WRONG_EXAM) clearWrongCopies(q);
 }
-// W-030 / G38: a plan task (practise / drill / clear wrong answers) asks the canonical copy; clear every copy of that question the wrong list holds, counted once
-function clearPlanReviewWrong(q) {
+// W-030 / G38 / W-047: a plan task or a wrong-answers round asks one copy of a question text (G40, W-046); clear
+// every copy of that question the wrong list holds, counted once
+function clearWrongCopies(q) {
   const keys = planSameQuestionKeys(keysOf(wrongList), qKey(q));
   keys.forEach(k => clearWrong(questionByKey(k)));
   if (keys.length) state.cleared++;

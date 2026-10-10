@@ -14,7 +14,8 @@ function recordPracticeAnswer(q, correct, planDay = null) {
   saveStreaks();
   recordPlanAnswer(k, correct, planDay); // no plan stored → writes nothing (R3)
 }
-function isPracticeFlagged(q) { return !!practiceFlags[qKey(q)]; }
+// G40: old data may flag one copy only; a question reads flagged when any copy is
+function isPracticeFlagged(q) { return questionCopies(qKey(q)).some(k => practiceFlags[k]); }
 
 function masteryOf(list) {
   const mastered = list.filter(isMastered).length;

@@ -26,6 +26,7 @@ const WRONG_SET = 'wrong';
 const FLAGGED_SET = 'flagged';
 const MASTERY_LAST = 2; // one correct answer away from mastered
 const NARROW_W = 320;
+const PRACTICE_ROUND_MAX_T = 24; // PRACTICE_ROUND_MAX (questions per Practice round)
 const FACT_CARD = id => `#studyContent .fact[data-fact-id="${id}"]`;
 
 const answer = (pg, correct) => pg.evaluate(c => {
@@ -134,6 +135,80 @@ async function checkRounds(pg) {
   // timed exam papers keep their real questions (no paper holds two copies; Exam 13 still has 13.0)
   await startSet(pg, 13, 'exam');
   assert(await pg.evaluate(() => state.questions.length === EXAMS[13].length && state.questions.some(q => qKey(q) === '13.0')), 'Exam 13 paper unchanged');
+  await pg.evaluate(() => leaveToHome());
+}
+
+// W-047: outside the plan a right answer in a wrong-answers round clears every copy of that question text,
+// counted once (as the plan's G38); the round's totals count distinct questions (S-145a)
+const setWrong = (pg, keys) => pg.evaluate(ks => { wrongList = Object.fromEntries(ks.map(k => [k, true])); setLS(WRONG_LS, wrongList); }, keys);
+async function checkWrongRound(pg) {
+  await setStreaks(pg, {});
+  await setWrong(pg, TRIPLE);
+  await startSet(pg, WRONG_SET);
+  const total = await pg.evaluate(() => state.reviewTotal);
+  await answerRound(pg, true);
+  const r = await pg.evaluate(() => ({ left: Object.keys(wrongList), stored: Object.keys(getLS(WRONG_LS)), cleared: state.cleared }));
+  assert(total === 1 && same(r.left, []) && same(r.stored, []) && r.cleared === 1, 'wrong round, 3 copies: one right answer clears all 3, counted once: ' + JSON.stringify({ total, ...r }));
+  await pg.evaluate(() => finishExam());
+  const note = await pg.$eval('#resultNote', e => e.textContent);
+  assert(note === 'Cleared 1 from your wrong answers · 0 left', 'result note counts the question once: ' + note);
+  await pg.evaluate(() => leaveToHome());
+  // 25 distinct questions + a copy: "Round 1 of 2 · 24 of your 25"; 24 distinct + a copy: one round, no note
+  const plain = await pg.evaluate(n => allQuestions().map(qKey).filter(k => questionCopies(k).length === 1).slice(0, n), PRACTICE_ROUND_MAX_T);
+  await setWrong(pg, [...plain, TWIN_FIRST, TWIN_LATER]);
+  await startSet(pg, WRONG_SET);
+  const big = await pg.evaluate(() => ({ total: state.reviewTotal, note: byId('roundNote').textContent, shown: !byId('roundRow').hidden }));
+  assert(big.total === PRACTICE_ROUND_MAX_T + 1 && big.note === `Round 1 of 2 · ${PRACTICE_ROUND_MAX_T} of your ${PRACTICE_ROUND_MAX_T + 1} wrong answers`,
+    'round note counts distinct questions: ' + JSON.stringify(big));
+  await setWrong(pg, [...plain.slice(1), TWIN_FIRST, TWIN_LATER]);
+  await startSet(pg, WRONG_SET);
+  const fit = await pg.evaluate(() => ({ total: state.reviewTotal, n: state.questions.length, shown: !byId('roundRow').hidden }));
+  assert(fit.total === PRACTICE_ROUND_MAX_T && fit.n === PRACTICE_ROUND_MAX_T && !fit.shown, '24 distinct questions (25 keys): one round, no round note: ' + JSON.stringify(fit));
+  await setWrong(pg, []);
+  await pg.evaluate(() => leaveToHome());
+}
+
+// S-145(b), user 2026-10-10: practice flags sync across copies like the streak — a toggle writes every copy,
+// old data reads "flagged" if any copy is; the flagged list, its count and the flagged round count distinct questions
+const setFlags = (pg, keys) => pg.evaluate(ks => { practiceFlags = Object.fromEntries(ks.map(k => [k, true])); setLS(FLAGS_LS, practiceFlags); }, keys);
+const flagKeys = pg => pg.evaluate(() => ({ mem: Object.keys(practiceFlags).sort(), stored: Object.keys(getLS(FLAGS_LS) || {}).sort() }));
+async function checkFlagSync(pg) {
+  await setFlags(pg, []);
+  await openPracticeQ(pg, TWIN_LATER);
+  await pg.evaluate(() => toggleFlag());
+  const on = await flagKeys(pg);
+  assert(same(on.mem, [TWIN_FIRST, TWIN_LATER].sort()) && same(on.stored, on.mem), 'flag on 13.0: both copies flagged, saved: ' + JSON.stringify(on));
+  await pg.evaluate(() => toggleFlag());
+  const off = await flagKeys(pg);
+  assert(!off.mem.length && !off.stored.length, 'unflag 13.0: both copies cleared: ' + JSON.stringify(off));
+  await setFlags(pg, [TWIN_LATER]); // old data: only one copy flagged
+  const old = await pg.evaluate(k => isPracticeFlagged(questionByKey(k)), TWIN_FIRST);
+  assert(old, 'old data: a copy reads flagged when any copy is');
+  await openPracticeQ(pg, TWIN_FIRST);
+  assert(await pg.evaluate(() => isFlaggedNow(state.current)), 'old data: the question card shows 7.15 flagged');
+  await pg.evaluate(() => toggleFlag());
+  assert(!(await flagKeys(pg)).mem.length, 'old data: a toggle writes the new state to every copy (all cleared)');
+  // flagged list / Home tile / flagged round: one per distinct question
+  const plain = await pg.evaluate(() => allQuestions().map(qKey).find(k => questionCopies(k).length === 1));
+  await setFlags(pg, [...TRIPLE, plain]);
+  await pg.evaluate(() => { leaveToHome(); openFlagged(); });
+  const list = await pg.evaluate(() => ({ items: [...document.querySelectorAll('#flaggedList .flag-item small')].map(e => [...e.querySelectorAll('.sqm-ref')].map(r => r.textContent).join(' = ')),
+    start: document.querySelector('#flaggedStart b').textContent }));
+  assert(same(list.items, ['Exam 8 · Q14 = Exam 12 · Q24 = Exam 15 · Q7', await pg.evaluate(k => questionRefText(questionByKey(k)), plain)]) && list.start === 'Practise flagged (2)',
+    'flagged list: the copies are one item, count 2: ' + JSON.stringify(list));
+  await pg.evaluate(() => { pendingMode = PRACTICE_MODE; leaveToHome(); });
+  assert(await pg.$eval('#tileFlagged .t-num', e => e.textContent) === '2', 'Home flagged tile counts distinct questions');
+  await setWrong(pg, TRIPLE);
+  await pg.evaluate(() => leaveToHome());
+  assert(await pg.$eval('#tileWrong .t-num', e => e.textContent) === '1', 'Home wrong-answers tile counts distinct questions (3 copies = 1)');
+  await setWrong(pg, []);
+  await startSet(pg, FLAGGED_SET);
+  assert(same(await pg.evaluate(() => [state.reviewTotal, state.questions.length]), [2, 2]), 'flagged round: 2 distinct questions');
+  await pg.evaluate(() => { leaveToHome(); openFlagged(); });
+  await pg.evaluate(k => unflagFromList(k), TRIPLE[1]);
+  const left = await flagKeys(pg);
+  assert(same(left.mem, [plain]) && await pg.$$eval('#flaggedList .flag-item', e => e.length) === 1, 'unflag from the list clears every copy: ' + JSON.stringify(left));
+  await setFlags(pg, []);
   await pg.evaluate(() => leaveToHome());
 }
 
@@ -300,6 +375,8 @@ async function checkWording(pg) {
     await checkAllCopiesPanel(pg);
     await checkStandalonePanel(pg);
     await checkRounds(pg);
+    await checkWrongRound(pg);
+    await checkFlagSync(pg);
     await checkResultNote(pg);
     await checkRefWrap(pg);
     await checkWording(pg);
