@@ -1,6 +1,6 @@
 // v1.0.7: memory-note tables (.proj-docs/plans/2026-10-09_plan_note-table.md). Consecutive note lines starting with
 // "|" render as one table (first row = header); "<br>" inside a cell splits main text from small remarks.
-// A: noteHtml unit (in the page, with the app's escapeHtml)  B: the 10 groups' notes in data/exams.js (101 questions)
+// A: noteHtml unit (in the page, with the app's escapeHtml)  B: the 10 groups' notes in data/exams.js (110 questions; +9 from the 2026-10-10 same-fact note unification)
 // C: the Study card "💡 記憶法", the Practice answer box and the Results review fit every table at 390px
 const { chromium } = require('playwright-core');
 const fs = require('fs');
@@ -29,30 +29,50 @@ const GROUP_QUESTIONS = {
   1: ['1.5', '2.16', '10.1', '11.10', '5.22', '7.16', '8.5', '8.23', '13.1', '14.1'],
   2: ['3.2', '3.16', '5.7', '6.5', '10.3'],
   3: ['2.17', '2.22', '3.17', '4.11', '9.9', '9.24', '4.2', '8.2', '8.13', '9.1', '9.20'],
-  4: ['6.9', '7.18', '8.20', '9.19', '12.3', '13.8', '14.2', '4.21', '5.23'],
-  5: ['1.21', '6.10', '8.7', '8.12', '9.11', '14.8'],
-  6: ['2.15', '2.18', '6.17', '7.2', '9.8', '9.12', '10.5', '11.23', '12.20', '14.21', '16.18'],
+  4: ['6.9', '7.18', '8.20', '9.19', '12.3', '13.8', '14.2', '4.21', '5.23', '17.7'],
+  5: ['1.21', '6.10', '8.7', '8.12', '9.11', '14.8', '4.8', '8.22'],
+  6: ['2.15', '2.18', '6.17', '7.2', '9.8', '9.12', '10.5', '11.23', '12.20', '14.21', '16.18', '3.3', '3.24', '14.14', '17.23'],
   10: ['9.4', '13.2', '14.19', '4.19', '5.3', '11.22', '13.20', '12.7', '4.9', '10.2', '11.20', '8.8', '3.13', '4.15', '7.11', '7.19', '16.2'],
-  7: ['1.12', '2.11', '4.1', '4.18', '6.12', '6.19', '7.6', '9.2', '9.21', '11.7', '12.4', '14.6', '16.13', '16.21', '17.13'],
+  7: ['1.12', '2.11', '4.1', '4.18', '6.12', '6.19', '7.6', '9.2', '9.21', '11.7', '12.4', '14.6', '16.13', '16.21', '17.13', '17.18', '4.24'],
   8: ['2.9', '2.24', '3.19', '4.23', '6.23', '8.1', '14.13', '15.23', '16.7'],
   9: ['1.23', '11.19', '15.3', '15.13', '15.17', '16.11', '13.6', '15.20'],
 };
-const GROUP_SIZES = { 1: 10, 2: 5, 3: 11, 4: 9, 5: 6, 6: 11, 10: 17, 7: 15, 8: 9, 9: 8 };
-const TOTAL_TABLE_QUESTIONS = 101;
-// lines kept above the heading (original note, or the E9 Q20 clarification); every other question has none
+const GROUP_SIZES = { 1: 10, 2: 5, 3: 11, 4: 10, 5: 8, 6: 15, 10: 17, 7: 17, 8: 9, 9: 8 };
+const TOTAL_TABLE_QUESTIONS = 110;
+// lines kept above the heading; since the 2026-10-10 same-fact unification every question of a STUDY fact carries the same
+// prefix (plan 2026-10-10_plan_memo-v2.md); every other question has none
 const PREFIXES = {
-  '5.23': '而家叫做Senedd Cymru（威爾斯議會）',
   '13.6': '後來叫做「皇家橡樹」（Royal Oak）',
+  '1.23': '1649年查理一世被處決之後克倫威爾掌權，到1658年去世（考試以官方手冊嘅講法為準；佢1653年先正式做護國公）',
   '15.20': '1649年查理一世被處決之後克倫威爾掌權，到1658年去世（考試以官方手冊嘅講法為準；佢1653年先正式做護國公）',
+  '11.7': '「呢個係英國人最輝煌嘅時刻」— 邱吉爾（Winston Churchill）',
   '17.13': '「呢個係英國人最輝煌嘅時刻」— 邱吉爾（Winston Churchill）',
-  '9.4': '英格蘭最大國家公園',
   '14.19': '英格蘭威爾特郡，大約5,000年前建成',
+  '4.19': '英格蘭西南部',
   '5.3': '英格蘭西南部',
   '12.7': 'Tate Britain and Tate Modern（泰特不列顛同泰特現代）',
   '4.9': '英國最高山，海拔1,345米',
   '7.19': '玄武岩柱，大約5000萬年前由火山熔岩形成',
-  '16.2': '大約5000萬年前由火山熔岩形成',
-  '9.20': '題目嘅 Ireland 即係 N. Ireland（Shamrock 係成個愛爾蘭島嘅象徵）',
+  '16.2': '玄武岩柱，大約5000萬年前由火山熔岩形成',
+  '9.1': 'Shamrock 係成個愛爾蘭島嘅象徵，題目寫 Ireland 或者 Northern Ireland 都係答 Shamrock',
+  '9.20': 'Shamrock 係成個愛爾蘭島嘅象徵，題目寫 Ireland 或者 Northern Ireland 都係答 Shamrock',
+  '4.18': 'Normans（諾曼人）係定居法國北部嘅維京人後裔',
+  '6.19': 'Normans（諾曼人）係定居法國北部嘅維京人後裔',
+  '9.21': 'Normans（諾曼人）係定居法國北部嘅維京人後裔',
+  '17.18': 'Normans（諾曼人）係定居法國北部嘅維京人後裔',
+  '4.1': 'Duke of Wellington（威靈頓公爵）綽號 Iron Duke（鐵公爵），打敗拿破崙，後來做咗首相',
+  '4.24': 'Duke of Wellington（威靈頓公爵）綽號 Iron Duke（鐵公爵），打敗拿破崙，後來做咗首相',
+  '9.2': 'Duke of Wellington（威靈頓公爵）綽號 Iron Duke（鐵公爵），打敗拿破崙，後來做咗首相',
+  '16.13': 'Duke of Wellington（威靈頓公爵）綽號 Iron Duke（鐵公爵），打敗拿破崙，後來做咗首相',
+  '4.8': 'Isaac Newton（牛頓）喺林肯郡 Woolsthorpe 出世，後來做過皇家鑄幣廠（Royal Mint）嘅 Warden / Master',
+  '8.12': 'Isaac Newton（牛頓）喺林肯郡 Woolsthorpe 出世，後來做過皇家鑄幣廠（Royal Mint）嘅 Warden / Master',
+  '8.22': 'Isaac Newton（牛頓）喺林肯郡 Woolsthorpe 出世，後來做過皇家鑄幣廠（Royal Mint）嘅 Warden / Master',
+  '3.24': '1605年，Guy Fawkes（蓋伊·福克斯）等人想炸毀國會',
+  '14.21': '1605年，Guy Fawkes（蓋伊·福克斯）等人想炸毀國會',
+  '2.18': 'Remembrance Day 又叫 Armistice Day（停戰紀念日），紀念1918年11月11日上午11時一戰停戰同戰爭死難者',
+  '9.12': 'Remembrance Day 又叫 Armistice Day（停戰紀念日），紀念1918年11月11日上午11時一戰停戰同戰爭死難者',
+  '14.14': 'Remembrance Day 又叫 Armistice Day（停戰紀念日），紀念1918年11月11日上午11時一戰停戰同戰爭死難者',
+  '17.23': 'Remembrance Day 又叫 Armistice Day（停戰紀念日），紀念1918年11月11日上午11時一戰停戰同戰爭死難者',
 };
 const isTableLine = l => l.trim().startsWith('|');
 const tableRowsOf = text => text.split('\n').filter(isTableLine).map(l => l.trim().replace(/^\||\|$/g, '').split('|').map(c => c.trim()));

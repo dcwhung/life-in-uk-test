@@ -1,0 +1,734 @@
+[
+ {
+  "fact": 1,
+  "q": "1.0",
+  "before": "六大責任：遵守法律、照顧家人、尊重他人意見、公平待人、照顧環境、照顧自己",
+  "after": "公民責任：遵守法律、尊重他人權利同意見、公平待人、照顧自己同家人、照顧居住地區同環境、交稅"
+ },
+ {
+  "fact": 1,
+  "q": "6.0",
+  "before": "六大責任：遵守法律、照顧家人、尊重他人意見、公平待人、照顧環境、照顧自己",
+  "after": "公民責任：遵守法律、尊重他人權利同意見、公平待人、照顧自己同家人、照顧居住地區同環境、交稅"
+ },
+ {
+  "fact": 1,
+  "q": "7.0",
+  "before": "",
+  "after": "公民責任：遵守法律、尊重他人權利同意見、公平待人、照顧自己同家人、照顧居住地區同環境、交稅"
+ },
+ {
+  "fact": 1,
+  "q": "9.4",
+  "before": "",
+  "after": "公民責任：遵守法律、尊重他人權利同意見、公平待人、照顧自己同家人、照顧居住地區同環境、交稅"
+ },
+ {
+  "fact": 1,
+  "q": "15.7",
+  "before": "",
+  "after": "公民責任：遵守法律、尊重他人權利同意見、公平待人、照顧自己同家人、照顧居住地區同環境、交稅"
+ },
+ {
+  "fact": 2,
+  "q": "3.0",
+  "before": "五大原則：民主、法治、個人自由、寬容、社區參與",
+  "after": "五大原則：民主、法治、個人自由、寬容、社區參與（君主制唔係）"
+ },
+ {
+  "fact": 2,
+  "q": "5.4",
+  "before": "五大原則：民主、法治、個人自由、寬容、社區參與",
+  "after": "五大原則：民主、法治、個人自由、寬容、社區參與（君主制唔係）"
+ },
+ {
+  "fact": 2,
+  "q": "6.12",
+  "before": "五大原則係：民主、法治、個人自由、寬容、社區參與",
+  "after": "五大原則：民主、法治、個人自由、寬容、社區參與（君主制唔係）"
+ },
+ {
+  "fact": 2,
+  "q": "8.9",
+  "before": "",
+  "after": "五大原則：民主、法治、個人自由、寬容、社區參與（君主制唔係）"
+ },
+ {
+  "fact": 3,
+  "q": "4.6",
+  "before": "「英國」(UK) 先包括北愛爾蘭",
+  "after": "大不列顛 = 英格蘭、蘇格蘭、威爾斯；英國（UK）再加北愛爾蘭"
+ },
+ {
+  "fact": 3,
+  "q": "6.5",
+  "before": "唔包括北愛爾蘭",
+  "after": "大不列顛 = 英格蘭、蘇格蘭、威爾斯；英國（UK）再加北愛爾蘭"
+ },
+ {
+  "fact": 3,
+  "q": "17.8",
+  "before": "",
+  "after": "大不列顛 = 英格蘭、蘇格蘭、威爾斯；英國（UK）再加北愛爾蘭"
+ },
+ {
+  "fact": 7,
+  "q": "2.6",
+  "before": "大約6,000年前嚟到英國",
+  "after": "大約6,000年前由東南歐嚟到英國"
+ },
+ {
+  "fact": 7,
+  "q": "15.4",
+  "before": "",
+  "after": "大約6,000年前由東南歐嚟到英國"
+ },
+ {
+  "fact": 9,
+  "q": "6.1",
+  "before": "有啲硬幣上面刻有鐵器時代國王嘅名字",
+  "after": "鐵器時代鑄造，有啲硬幣上面刻有鐵器時代國王嘅名字"
+ },
+ {
+  "fact": 9,
+  "q": "12.4",
+  "before": "",
+  "after": "鐵器時代鑄造，有啲硬幣上面刻有鐵器時代國王嘅名字"
+ },
+ {
+  "fact": 12,
+  "q": "2.18",
+  "before": "公元122年，橫跨英格蘭北部",
+  "after": "羅馬人公元122年起，橫跨英格蘭北部，標示羅馬帝國嘅北界"
+ },
+ {
+  "fact": 12,
+  "q": "16.15",
+  "before": "",
+  "after": "羅馬人公元122年起，橫跨英格蘭北部，標示羅馬帝國嘅北界"
+ },
+ {
+  "fact": 16,
+  "q": "4.17",
+  "before": "記憶法（英國重要戰役）：\n| 年份 | 戰役 / 結果 |\n| 9 世紀 | Alfred the Great vs Vikings<br>阿佛烈大帝統一盎格魯-撒克遜王國，打敗維京人 |\n| 1066 | Battle of Hastings vs Normandy<br>黑斯廷斯戰役：William of Normandy（諾曼第公爵威廉）打敗 Harold → 英格蘭戰敗，諾曼征服 |\n| 1314 | Battle of Bannockburn vs Scotland<br>班諾克本戰役：Robert the Bruce 打敗英格蘭 → 蘇格蘭保持獨立 |\n| 1588 | Spanish Armada vs Spain<br>西班牙無敵艦隊：Elizabeth I 年代英格蘭打敗西班牙 |\n| 1805 | Battle of Trafalgar vs France + Spain<br>特拉法加海戰：Admiral Nelson（納爾遜）打敗法西聯合艦隊，但陣亡 |\n| 1815 | Battle of Waterloo vs France<br>滑鐵盧戰役：Duke of Wellington（威靈頓公爵）打敗 Napoleon，英法最後一戰 |\n| 1940 | Battle of Britain vs Germany<br>不列顛戰役：皇家空軍擊退德國空襲 → 阻止德國入侵 |",
+  "after": "Normans（諾曼人）係定居法國北部嘅維京人後裔\n記憶法（英國重要戰役）：\n| 年份 | 戰役 / 結果 |\n| 9 世紀 | Alfred the Great vs Vikings<br>阿佛烈大帝統一盎格魯-撒克遜王國，打敗維京人 |\n| 1066 | Battle of Hastings vs Normandy<br>黑斯廷斯戰役：William of Normandy（諾曼第公爵威廉）打敗 Harold → 英格蘭戰敗，諾曼征服 |\n| 1314 | Battle of Bannockburn vs Scotland<br>班諾克本戰役：Robert the Bruce 打敗英格蘭 → 蘇格蘭保持獨立 |\n| 1588 | Spanish Armada vs Spain<br>西班牙無敵艦隊：Elizabeth I 年代英格蘭打敗西班牙 |\n| 1805 | Battle of Trafalgar vs France + Spain<br>特拉法加海戰：Admiral Nelson（納爾遜）打敗法西聯合艦隊，但陣亡 |\n| 1815 | Battle of Waterloo vs France<br>滑鐵盧戰役：Duke of Wellington（威靈頓公爵）打敗 Napoleon，英法最後一戰 |\n| 1940 | Battle of Britain vs Germany<br>不列顛戰役：皇家空軍擊退德國空襲 → 阻止德國入侵 |"
+ },
+ {
+  "fact": 16,
+  "q": "6.18",
+  "before": "記憶法（英國重要戰役）：\n| 年份 | 戰役 / 結果 |\n| 9 世紀 | Alfred the Great vs Vikings<br>阿佛烈大帝統一盎格魯-撒克遜王國，打敗維京人 |\n| 1066 | Battle of Hastings vs Normandy<br>黑斯廷斯戰役：William of Normandy（諾曼第公爵威廉）打敗 Harold → 英格蘭戰敗，諾曼征服 |\n| 1314 | Battle of Bannockburn vs Scotland<br>班諾克本戰役：Robert the Bruce 打敗英格蘭 → 蘇格蘭保持獨立 |\n| 1588 | Spanish Armada vs Spain<br>西班牙無敵艦隊：Elizabeth I 年代英格蘭打敗西班牙 |\n| 1805 | Battle of Trafalgar vs France + Spain<br>特拉法加海戰：Admiral Nelson（納爾遜）打敗法西聯合艦隊，但陣亡 |\n| 1815 | Battle of Waterloo vs France<br>滑鐵盧戰役：Duke of Wellington（威靈頓公爵）打敗 Napoleon，英法最後一戰 |\n| 1940 | Battle of Britain vs Germany<br>不列顛戰役：皇家空軍擊退德國空襲 → 阻止德國入侵 |",
+  "after": "Normans（諾曼人）係定居法國北部嘅維京人後裔\n記憶法（英國重要戰役）：\n| 年份 | 戰役 / 結果 |\n| 9 世紀 | Alfred the Great vs Vikings<br>阿佛烈大帝統一盎格魯-撒克遜王國，打敗維京人 |\n| 1066 | Battle of Hastings vs Normandy<br>黑斯廷斯戰役：William of Normandy（諾曼第公爵威廉）打敗 Harold → 英格蘭戰敗，諾曼征服 |\n| 1314 | Battle of Bannockburn vs Scotland<br>班諾克本戰役：Robert the Bruce 打敗英格蘭 → 蘇格蘭保持獨立 |\n| 1588 | Spanish Armada vs Spain<br>西班牙無敵艦隊：Elizabeth I 年代英格蘭打敗西班牙 |\n| 1805 | Battle of Trafalgar vs France + Spain<br>特拉法加海戰：Admiral Nelson（納爾遜）打敗法西聯合艦隊，但陣亡 |\n| 1815 | Battle of Waterloo vs France<br>滑鐵盧戰役：Duke of Wellington（威靈頓公爵）打敗 Napoleon，英法最後一戰 |\n| 1940 | Battle of Britain vs Germany<br>不列顛戰役：皇家空軍擊退德國空襲 → 阻止德國入侵 |"
+ },
+ {
+  "fact": 16,
+  "q": "9.20",
+  "before": "記憶法（英國重要戰役）：\n| 年份 | 戰役 / 結果 |\n| 9 世紀 | Alfred the Great vs Vikings<br>阿佛烈大帝統一盎格魯-撒克遜王國，打敗維京人 |\n| 1066 | Battle of Hastings vs Normandy<br>黑斯廷斯戰役：William of Normandy（諾曼第公爵威廉）打敗 Harold → 英格蘭戰敗，諾曼征服 |\n| 1314 | Battle of Bannockburn vs Scotland<br>班諾克本戰役：Robert the Bruce 打敗英格蘭 → 蘇格蘭保持獨立 |\n| 1588 | Spanish Armada vs Spain<br>西班牙無敵艦隊：Elizabeth I 年代英格蘭打敗西班牙 |\n| 1805 | Battle of Trafalgar vs France + Spain<br>特拉法加海戰：Admiral Nelson（納爾遜）打敗法西聯合艦隊，但陣亡 |\n| 1815 | Battle of Waterloo vs France<br>滑鐵盧戰役：Duke of Wellington（威靈頓公爵）打敗 Napoleon，英法最後一戰 |\n| 1940 | Battle of Britain vs Germany<br>不列顛戰役：皇家空軍擊退德國空襲 → 阻止德國入侵 |",
+  "after": "Normans（諾曼人）係定居法國北部嘅維京人後裔\n記憶法（英國重要戰役）：\n| 年份 | 戰役 / 結果 |\n| 9 世紀 | Alfred the Great vs Vikings<br>阿佛烈大帝統一盎格魯-撒克遜王國，打敗維京人 |\n| 1066 | Battle of Hastings vs Normandy<br>黑斯廷斯戰役：William of Normandy（諾曼第公爵威廉）打敗 Harold → 英格蘭戰敗，諾曼征服 |\n| 1314 | Battle of Bannockburn vs Scotland<br>班諾克本戰役：Robert the Bruce 打敗英格蘭 → 蘇格蘭保持獨立 |\n| 1588 | Spanish Armada vs Spain<br>西班牙無敵艦隊：Elizabeth I 年代英格蘭打敗西班牙 |\n| 1805 | Battle of Trafalgar vs France + Spain<br>特拉法加海戰：Admiral Nelson（納爾遜）打敗法西聯合艦隊，但陣亡 |\n| 1815 | Battle of Waterloo vs France<br>滑鐵盧戰役：Duke of Wellington（威靈頓公爵）打敗 Napoleon，英法最後一戰 |\n| 1940 | Battle of Britain vs Germany<br>不列顛戰役：皇家空軍擊退德國空襲 → 阻止德國入侵 |"
+ },
+ {
+  "fact": 16,
+  "q": "17.17",
+  "before": "",
+  "after": "Normans（諾曼人）係定居法國北部嘅維京人後裔\n記憶法（英國重要戰役）：\n| 年份 | 戰役 / 結果 |\n| 9 世紀 | Alfred the Great vs Vikings<br>阿佛烈大帝統一盎格魯-撒克遜王國，打敗維京人 |\n| 1066 | Battle of Hastings vs Normandy<br>黑斯廷斯戰役：William of Normandy（諾曼第公爵威廉）打敗 Harold → 英格蘭戰敗，諾曼征服 |\n| 1314 | Battle of Bannockburn vs Scotland<br>班諾克本戰役：Robert the Bruce 打敗英格蘭 → 蘇格蘭保持獨立 |\n| 1588 | Spanish Armada vs Spain<br>西班牙無敵艦隊：Elizabeth I 年代英格蘭打敗西班牙 |\n| 1805 | Battle of Trafalgar vs France + Spain<br>特拉法加海戰：Admiral Nelson（納爾遜）打敗法西聯合艦隊，但陣亡 |\n| 1815 | Battle of Waterloo vs France<br>滑鐵盧戰役：Duke of Wellington（威靈頓公爵）打敗 Napoleon，英法最後一戰 |\n| 1940 | Battle of Britain vs Germany<br>不列顛戰役：皇家空軍擊退德國空襲 → 阻止德國入侵 |"
+ },
+ {
+  "fact": 17,
+  "q": "17.19",
+  "before": "1066年之後英格蘭大幅改變",
+  "after": "1066年之後英格蘭大幅改變：貴族講諾曼法語，農民講盎格魯-撒克遜語"
+ },
+ {
+  "fact": 17,
+  "q": "15.0",
+  "before": "貴族講諾曼法語，農民講盎格魯-撒克遜語",
+  "after": "1066年之後英格蘭大幅改變：貴族講諾曼法語，農民講盎格魯-撒克遜語"
+ },
+ {
+  "fact": 20,
+  "q": "4.13",
+  "before": "",
+  "after": "1086年，征服者威廉下令編製"
+ },
+ {
+  "fact": 20,
+  "q": "13.6",
+  "before": "1086年",
+  "after": "1086年，征服者威廉下令編製"
+ },
+ {
+  "fact": 23,
+  "q": "9.21",
+  "before": "1337–1453年",
+  "after": "實際上打咗116年（1337–1453）"
+ },
+ {
+  "fact": 24,
+  "q": "9.15",
+  "before": "令英格蘭三分之一人口死亡",
+  "after": "1348年傳入，令英格蘭三分之一人口死亡"
+ },
+ {
+  "fact": 24,
+  "q": "14.9",
+  "before": "",
+  "after": "1348年傳入，令英格蘭三分之一人口死亡"
+ },
+ {
+  "fact": 25,
+  "q": "10.3",
+  "before": "中世紀英語文學重要作品",
+  "after": "喬叟寫嘅中世紀英語文學重要作品"
+ },
+ {
+  "fact": 25,
+  "q": "13.3",
+  "before": "喬叟寫嘅",
+  "after": "喬叟寫嘅中世紀英語文學重要作品"
+ },
+ {
+  "fact": 28,
+  "q": "17.9",
+  "before": "亨利八世喺英格蘭推動",
+  "after": "記憶法（都鐸王朝 Tudor）：\n• 1455–1485 → 玫瑰戰爭（Wars of the Roses）→ York（約克）vs Lancaster（蘭開斯特）→ Henry VII（亨利七世）開創都鐸王朝；\n• Henry VIII（亨利八世）：\n    ◦ 教宗唔准佢同第一任妻子 Catherine of Aragon（阿拉貢的凱瑟琳）離婚 → 脫離天主教會，成立 Church of England（英格蘭國教會）；\n    ◦ 解散修道院（Dissolution of the Monasteries）；\n    ◦ 六任妻子，兩位被處決 → Anne Boleyn（安妮·博林）、Catherine Howard（凱瑟琳·霍華德）；\n• Elizabeth I（伊利沙伯一世）→ Anne Boleyn 嘅女兒 → 處決 Mary, Queen of Scots（蘇格蘭瑪麗女王）。"
+ },
+ {
+  "fact": 29,
+  "q": "2.13",
+  "before": "亨利八世解散修道院",
+  "after": "記憶法（都鐸王朝 Tudor）：\n• 1455–1485 → 玫瑰戰爭（Wars of the Roses）→ York（約克）vs Lancaster（蘭開斯特）→ Henry VII（亨利七世）開創都鐸王朝；\n• Henry VIII（亨利八世）：\n    ◦ 教宗唔准佢同第一任妻子 Catherine of Aragon（阿拉貢的凱瑟琳）離婚 → 脫離天主教會，成立 Church of England（英格蘭國教會）；\n    ◦ 解散修道院（Dissolution of the Monasteries）；\n    ◦ 六任妻子，兩位被處決 → Anne Boleyn（安妮·博林）、Catherine Howard（凱瑟琳·霍華德）；\n• Elizabeth I（伊利沙伯一世）→ Anne Boleyn 嘅女兒 → 處決 Mary, Queen of Scots（蘇格蘭瑪麗女王）。"
+ },
+ {
+  "fact": 31,
+  "q": "3.21",
+  "before": "被伊利沙伯一世下令處決",
+  "after": "記憶法（都鐸王朝 Tudor）：\n• 1455–1485 → 玫瑰戰爭（Wars of the Roses）→ York（約克）vs Lancaster（蘭開斯特）→ Henry VII（亨利七世）開創都鐸王朝；\n• Henry VIII（亨利八世）：\n    ◦ 教宗唔准佢同第一任妻子 Catherine of Aragon（阿拉貢的凱瑟琳）離婚 → 脫離天主教會，成立 Church of England（英格蘭國教會）；\n    ◦ 解散修道院（Dissolution of the Monasteries）；\n    ◦ 六任妻子，兩位被處決 → Anne Boleyn（安妮·博林）、Catherine Howard（凱瑟琳·霍華德）；\n• Elizabeth I（伊利沙伯一世）→ Anne Boleyn 嘅女兒 → 處決 Mary, Queen of Scots（蘇格蘭瑪麗女王）。"
+ },
+ {
+  "fact": 31,
+  "q": "8.5",
+  "before": "被伊利沙伯一世下令處決",
+  "after": "記憶法（都鐸王朝 Tudor）：\n• 1455–1485 → 玫瑰戰爭（Wars of the Roses）→ York（約克）vs Lancaster（蘭開斯特）→ Henry VII（亨利七世）開創都鐸王朝；\n• Henry VIII（亨利八世）：\n    ◦ 教宗唔准佢同第一任妻子 Catherine of Aragon（阿拉貢的凱瑟琳）離婚 → 脫離天主教會，成立 Church of England（英格蘭國教會）；\n    ◦ 解散修道院（Dissolution of the Monasteries）；\n    ◦ 六任妻子，兩位被處決 → Anne Boleyn（安妮·博林）、Catherine Howard（凱瑟琳·霍華德）；\n• Elizabeth I（伊利沙伯一世）→ Anne Boleyn 嘅女兒 → 處決 Mary, Queen of Scots（蘇格蘭瑪麗女王）。"
+ },
+ {
+  "fact": 38,
+  "q": "1.22",
+  "before": "記憶法（國王 vs 國會）：\n| 年份 | 事件 |\n| 1628 | Petition of Right<br>《權利請願書》：國王要國會同意先可以加稅 |\n| 1642–51 | Civil War<br>英格蘭內戰：Charles I（查理一世）vs 國會 |\n| 1649 | Charles I 被處決 → Commonwealth<br>共和國：Oliver Cromwell（克倫威爾）做 Lord Protector（護國公），到 1658 年 |\n| 1660 | Restoration<br>復辟：Charles II（查理二世）做國王 |\n| 1688 | Glorious Revolution<br>光榮革命：William of Orange（奧蘭治的威廉）取代 James II（詹姆士二世）→ 君主立憲 |",
+  "after": "1649年查理一世被處決之後克倫威爾掌權，到1658年去世（考試以官方手冊嘅講法為準；佢1653年先正式做護國公）\n記憶法（國王 vs 國會）：\n| 年份 | 事件 |\n| 1628 | Petition of Right<br>《權利請願書》：國王要國會同意先可以加稅 |\n| 1642–51 | Civil War<br>英格蘭內戰：Charles I（查理一世）vs 國會 |\n| 1649 | Charles I 被處決 → Commonwealth<br>共和國：Oliver Cromwell（克倫威爾）做 Lord Protector（護國公），到 1658 年 |\n| 1660 | Restoration<br>復辟：Charles II（查理二世）做國王 |\n| 1688 | Glorious Revolution<br>光榮革命：William of Orange（奧蘭治的威廉）取代 James II（詹姆士二世）→ 君主立憲 |"
+ },
+ {
+  "fact": 40,
+  "q": "4.2",
+  "before": "1666年倫敦大火，包括聖保羅大教堂",
+  "after": "1666年查理二世年代，倫敦大火燒毀咗包括聖保羅大教堂喺內嘅大片地方"
+ },
+ {
+  "fact": 40,
+  "q": "7.19",
+  "before": "查理二世年代",
+  "after": "1666年查理二世年代，倫敦大火燒毀咗包括聖保羅大教堂喺內嘅大片地方"
+ },
+ {
+  "fact": 40,
+  "q": "11.11",
+  "before": "",
+  "after": "1666年查理二世年代，倫敦大火燒毀咗包括聖保羅大教堂喺內嘅大片地方"
+ },
+ {
+  "fact": 45,
+  "q": "12.14",
+  "before": "",
+  "after": "成立大不列顛王國（Kingdom of Great Britain）"
+ },
+ {
+  "fact": 45,
+  "q": "13.17",
+  "before": "",
+  "after": "成立大不列顛王國（Kingdom of Great Britain）"
+ },
+ {
+  "fact": 48,
+  "q": "11.4",
+  "before": "18世紀",
+  "after": "18世紀嘅思想運動；亞當·斯密係《國富論》作者，自由市場經濟之父"
+ },
+ {
+  "fact": 48,
+  "q": "14.4",
+  "before": "《國富論》作者，自由市場經濟之父",
+  "after": "18世紀嘅思想運動；亞當·斯密係《國富論》作者，自由市場經濟之父"
+ },
+ {
+  "fact": 49,
+  "q": "4.7",
+  "before": "",
+  "after": "Isaac Newton（牛頓）喺林肯郡 Woolsthorpe 出世，後來做過皇家鑄幣廠（Royal Mint）嘅 Warden / Master\n記憶法：\n| 年份 | 人物 / 發明 |\n| 17 世紀 | Isaac Newton<br>牛頓：萬有引力、運動定律 |\n| 1876 | Alexander Graham Bell<br>貝爾：電話（蘇格蘭裔） |\n| 1928 | Alexander Fleming<br>弗萊明：盤尼西林 penicillin（蘇格蘭人） |\n| 1930s | Frank Whittle<br>惠特爾：噴射引擎 jet engine |\n| 1953 | Francis Crick<br>克里克：DNA 結構（同 James Watson 一齊發現） |\n| 1989 | Tim Berners-Lee<br>柏納斯-李：萬維網 World Wide Web |"
+ },
+ {
+  "fact": 49,
+  "q": "8.11",
+  "before": "記憶法：\n| 年份 | 人物 / 發明 |\n| 17 世紀 | Isaac Newton<br>牛頓：萬有引力、運動定律 |\n| 1876 | Alexander Graham Bell<br>貝爾：電話（蘇格蘭裔） |\n| 1928 | Alexander Fleming<br>弗萊明：盤尼西林 penicillin（蘇格蘭人） |\n| 1930s | Frank Whittle<br>惠特爾：噴射引擎 jet engine |\n| 1953 | Francis Crick<br>克里克：DNA 結構（同 James Watson 一齊發現） |\n| 1989 | Tim Berners-Lee<br>柏納斯-李：萬維網 World Wide Web |",
+  "after": "Isaac Newton（牛頓）喺林肯郡 Woolsthorpe 出世，後來做過皇家鑄幣廠（Royal Mint）嘅 Warden / Master\n記憶法：\n| 年份 | 人物 / 發明 |\n| 17 世紀 | Isaac Newton<br>牛頓：萬有引力、運動定律 |\n| 1876 | Alexander Graham Bell<br>貝爾：電話（蘇格蘭裔） |\n| 1928 | Alexander Fleming<br>弗萊明：盤尼西林 penicillin（蘇格蘭人） |\n| 1930s | Frank Whittle<br>惠特爾：噴射引擎 jet engine |\n| 1953 | Francis Crick<br>克里克：DNA 結構（同 James Watson 一齊發現） |\n| 1989 | Tim Berners-Lee<br>柏納斯-李：萬維網 World Wide Web |"
+ },
+ {
+  "fact": 49,
+  "q": "8.21",
+  "before": "",
+  "after": "Isaac Newton（牛頓）喺林肯郡 Woolsthorpe 出世，後來做過皇家鑄幣廠（Royal Mint）嘅 Warden / Master\n記憶法：\n| 年份 | 人物 / 發明 |\n| 17 世紀 | Isaac Newton<br>牛頓：萬有引力、運動定律 |\n| 1876 | Alexander Graham Bell<br>貝爾：電話（蘇格蘭裔） |\n| 1928 | Alexander Fleming<br>弗萊明：盤尼西林 penicillin（蘇格蘭人） |\n| 1930s | Frank Whittle<br>惠特爾：噴射引擎 jet engine |\n| 1953 | Francis Crick<br>克里克：DNA 結構（同 James Watson 一齊發現） |\n| 1989 | Tim Berners-Lee<br>柏納斯-李：萬維網 World Wide Web |"
+ },
+ {
+  "fact": 51,
+  "q": "7.4",
+  "before": "工業革命時期",
+  "after": "工業革命時期（18–19世紀）"
+ },
+ {
+  "fact": 51,
+  "q": "13.15",
+  "before": "18–19世紀",
+  "after": "工業革命時期（18–19世紀）"
+ },
+ {
+  "fact": 55,
+  "q": "8.15",
+  "before": "1807年通過《廢除奴隸貿易法案》（Slave Trade Act）",
+  "after": "1807年通過《廢除奴隸貿易法案》（Slave Trade Act），廢除大英帝國嘅奴隸貿易，由威廉·威伯福斯推動立法"
+ },
+ {
+  "fact": 55,
+  "q": "14.23",
+  "before": "廢除大英帝國嘅奴隸貿易，由威廉·威伯福斯推動立法",
+  "after": "1807年通過《廢除奴隸貿易法案》（Slave Trade Act），廢除大英帝國嘅奴隸貿易，由威廉·威伯福斯推動立法"
+ },
+ {
+  "fact": 55,
+  "q": "16.18",
+  "before": "",
+  "after": "1807年通過《廢除奴隸貿易法案》（Slave Trade Act），廢除大英帝國嘅奴隸貿易，由威廉·威伯福斯推動立法"
+ },
+ {
+  "fact": 56,
+  "q": "2.11",
+  "before": "仲引入咗shampooing（洗頭按摩）服務",
+  "after": "由Sake Dean Mahomet（薩克·迪恩·馬霍梅特）大約1810年喺倫敦開設；佢仲引入咗shampooing（洗頭按摩）服務"
+ },
+ {
+  "fact": 56,
+  "q": "16.23",
+  "before": "由Sake Dean Mahomet（薩克·迪恩·馬霍梅特）開設，大約1810年",
+  "after": "由Sake Dean Mahomet（薩克·迪恩·馬霍梅特）大約1810年喺倫敦開設；佢仲引入咗shampooing（洗頭按摩）服務"
+ },
+ {
+  "fact": 57,
+  "q": "4.0",
+  "before": "記憶法（英國重要戰役）：\n| 年份 | 戰役 / 結果 |\n| 9 世紀 | Alfred the Great vs Vikings<br>阿佛烈大帝統一盎格魯-撒克遜王國，打敗維京人 |\n| 1066 | Battle of Hastings vs Normandy<br>黑斯廷斯戰役：William of Normandy（諾曼第公爵威廉）打敗 Harold → 英格蘭戰敗，諾曼征服 |\n| 1314 | Battle of Bannockburn vs Scotland<br>班諾克本戰役：Robert the Bruce 打敗英格蘭 → 蘇格蘭保持獨立 |\n| 1588 | Spanish Armada vs Spain<br>西班牙無敵艦隊：Elizabeth I 年代英格蘭打敗西班牙 |\n| 1805 | Battle of Trafalgar vs France + Spain<br>特拉法加海戰：Admiral Nelson（納爾遜）打敗法西聯合艦隊，但陣亡 |\n| 1815 | Battle of Waterloo vs France<br>滑鐵盧戰役：Duke of Wellington（威靈頓公爵）打敗 Napoleon，英法最後一戰 |\n| 1940 | Battle of Britain vs Germany<br>不列顛戰役：皇家空軍擊退德國空襲 → 阻止德國入侵 |",
+  "after": "Duke of Wellington（威靈頓公爵）綽號 Iron Duke（鐵公爵），打敗拿破崙，後來做咗首相\n記憶法（英國重要戰役）：\n| 年份 | 戰役 / 結果 |\n| 9 世紀 | Alfred the Great vs Vikings<br>阿佛烈大帝統一盎格魯-撒克遜王國，打敗維京人 |\n| 1066 | Battle of Hastings vs Normandy<br>黑斯廷斯戰役：William of Normandy（諾曼第公爵威廉）打敗 Harold → 英格蘭戰敗，諾曼征服 |\n| 1314 | Battle of Bannockburn vs Scotland<br>班諾克本戰役：Robert the Bruce 打敗英格蘭 → 蘇格蘭保持獨立 |\n| 1588 | Spanish Armada vs Spain<br>西班牙無敵艦隊：Elizabeth I 年代英格蘭打敗西班牙 |\n| 1805 | Battle of Trafalgar vs France + Spain<br>特拉法加海戰：Admiral Nelson（納爾遜）打敗法西聯合艦隊，但陣亡 |\n| 1815 | Battle of Waterloo vs France<br>滑鐵盧戰役：Duke of Wellington（威靈頓公爵）打敗 Napoleon，英法最後一戰 |\n| 1940 | Battle of Britain vs Germany<br>不列顛戰役：皇家空軍擊退德國空襲 → 阻止德國入侵 |"
+ },
+ {
+  "fact": 57,
+  "q": "4.23",
+  "before": "打敗拿破崙嘅名將",
+  "after": "Duke of Wellington（威靈頓公爵）綽號 Iron Duke（鐵公爵），打敗拿破崙，後來做咗首相\n記憶法（英國重要戰役）：\n| 年份 | 戰役 / 結果 |\n| 9 世紀 | Alfred the Great vs Vikings<br>阿佛烈大帝統一盎格魯-撒克遜王國，打敗維京人 |\n| 1066 | Battle of Hastings vs Normandy<br>黑斯廷斯戰役：William of Normandy（諾曼第公爵威廉）打敗 Harold → 英格蘭戰敗，諾曼征服 |\n| 1314 | Battle of Bannockburn vs Scotland<br>班諾克本戰役：Robert the Bruce 打敗英格蘭 → 蘇格蘭保持獨立 |\n| 1588 | Spanish Armada vs Spain<br>西班牙無敵艦隊：Elizabeth I 年代英格蘭打敗西班牙 |\n| 1805 | Battle of Trafalgar vs France + Spain<br>特拉法加海戰：Admiral Nelson（納爾遜）打敗法西聯合艦隊，但陣亡 |\n| 1815 | Battle of Waterloo vs France<br>滑鐵盧戰役：Duke of Wellington（威靈頓公爵）打敗 Napoleon，英法最後一戰 |\n| 1940 | Battle of Britain vs Germany<br>不列顛戰役：皇家空軍擊退德國空襲 → 阻止德國入侵 |"
+ },
+ {
+  "fact": 57,
+  "q": "9.1",
+  "before": "記憶法（英國重要戰役）：\n| 年份 | 戰役 / 結果 |\n| 9 世紀 | Alfred the Great vs Vikings<br>阿佛烈大帝統一盎格魯-撒克遜王國，打敗維京人 |\n| 1066 | Battle of Hastings vs Normandy<br>黑斯廷斯戰役：William of Normandy（諾曼第公爵威廉）打敗 Harold → 英格蘭戰敗，諾曼征服 |\n| 1314 | Battle of Bannockburn vs Scotland<br>班諾克本戰役：Robert the Bruce 打敗英格蘭 → 蘇格蘭保持獨立 |\n| 1588 | Spanish Armada vs Spain<br>西班牙無敵艦隊：Elizabeth I 年代英格蘭打敗西班牙 |\n| 1805 | Battle of Trafalgar vs France + Spain<br>特拉法加海戰：Admiral Nelson（納爾遜）打敗法西聯合艦隊，但陣亡 |\n| 1815 | Battle of Waterloo vs France<br>滑鐵盧戰役：Duke of Wellington（威靈頓公爵）打敗 Napoleon，英法最後一戰 |\n| 1940 | Battle of Britain vs Germany<br>不列顛戰役：皇家空軍擊退德國空襲 → 阻止德國入侵 |",
+  "after": "Duke of Wellington（威靈頓公爵）綽號 Iron Duke（鐵公爵），打敗拿破崙，後來做咗首相\n記憶法（英國重要戰役）：\n| 年份 | 戰役 / 結果 |\n| 9 世紀 | Alfred the Great vs Vikings<br>阿佛烈大帝統一盎格魯-撒克遜王國，打敗維京人 |\n| 1066 | Battle of Hastings vs Normandy<br>黑斯廷斯戰役：William of Normandy（諾曼第公爵威廉）打敗 Harold → 英格蘭戰敗，諾曼征服 |\n| 1314 | Battle of Bannockburn vs Scotland<br>班諾克本戰役：Robert the Bruce 打敗英格蘭 → 蘇格蘭保持獨立 |\n| 1588 | Spanish Armada vs Spain<br>西班牙無敵艦隊：Elizabeth I 年代英格蘭打敗西班牙 |\n| 1805 | Battle of Trafalgar vs France + Spain<br>特拉法加海戰：Admiral Nelson（納爾遜）打敗法西聯合艦隊，但陣亡 |\n| 1815 | Battle of Waterloo vs France<br>滑鐵盧戰役：Duke of Wellington（威靈頓公爵）打敗 Napoleon，英法最後一戰 |\n| 1940 | Battle of Britain vs Germany<br>不列顛戰役：皇家空軍擊退德國空襲 → 阻止德國入侵 |"
+ },
+ {
+  "fact": 57,
+  "q": "16.12",
+  "before": "記憶法（英國重要戰役）：\n| 年份 | 戰役 / 結果 |\n| 9 世紀 | Alfred the Great vs Vikings<br>阿佛烈大帝統一盎格魯-撒克遜王國，打敗維京人 |\n| 1066 | Battle of Hastings vs Normandy<br>黑斯廷斯戰役：William of Normandy（諾曼第公爵威廉）打敗 Harold → 英格蘭戰敗，諾曼征服 |\n| 1314 | Battle of Bannockburn vs Scotland<br>班諾克本戰役：Robert the Bruce 打敗英格蘭 → 蘇格蘭保持獨立 |\n| 1588 | Spanish Armada vs Spain<br>西班牙無敵艦隊：Elizabeth I 年代英格蘭打敗西班牙 |\n| 1805 | Battle of Trafalgar vs France + Spain<br>特拉法加海戰：Admiral Nelson（納爾遜）打敗法西聯合艦隊，但陣亡 |\n| 1815 | Battle of Waterloo vs France<br>滑鐵盧戰役：Duke of Wellington（威靈頓公爵）打敗 Napoleon，英法最後一戰 |\n| 1940 | Battle of Britain vs Germany<br>不列顛戰役：皇家空軍擊退德國空襲 → 阻止德國入侵 |",
+  "after": "Duke of Wellington（威靈頓公爵）綽號 Iron Duke（鐵公爵），打敗拿破崙，後來做咗首相\n記憶法（英國重要戰役）：\n| 年份 | 戰役 / 結果 |\n| 9 世紀 | Alfred the Great vs Vikings<br>阿佛烈大帝統一盎格魯-撒克遜王國，打敗維京人 |\n| 1066 | Battle of Hastings vs Normandy<br>黑斯廷斯戰役：William of Normandy（諾曼第公爵威廉）打敗 Harold → 英格蘭戰敗，諾曼征服 |\n| 1314 | Battle of Bannockburn vs Scotland<br>班諾克本戰役：Robert the Bruce 打敗英格蘭 → 蘇格蘭保持獨立 |\n| 1588 | Spanish Armada vs Spain<br>西班牙無敵艦隊：Elizabeth I 年代英格蘭打敗西班牙 |\n| 1805 | Battle of Trafalgar vs France + Spain<br>特拉法加海戰：Admiral Nelson（納爾遜）打敗法西聯合艦隊，但陣亡 |\n| 1815 | Battle of Waterloo vs France<br>滑鐵盧戰役：Duke of Wellington（威靈頓公爵）打敗 Napoleon，英法最後一戰 |\n| 1940 | Battle of Britain vs Germany<br>不列顛戰役：皇家空軍擊退德國空襲 → 阻止德國入侵 |"
+ },
+ {
+  "fact": 59,
+  "q": "12.17",
+  "before": "將投票權擴大到中產階級",
+  "after": "投票權時間線：\n→ 1689《權利法案》（Bill of Rights）冇擴大投票權\n→ 1832《大改革法案》（Great Reform Act）中產階級男性有票\n→ 1918 男性21歲、女性30歲以上有票（表揚第一次世界大戰貢獻）\n→ 1928 男女同樣21歲\n→ 1969 降到18歲"
+ },
+ {
+  "fact": 61,
+  "q": "10.20",
+  "before": "大約100萬人死亡，另外有大約100萬人移民",
+  "after": "19世紀中葉（1840年代），大約100萬人死亡，另外有大約100萬人移民"
+ },
+ {
+  "fact": 61,
+  "q": "17.1",
+  "before": "19世紀中葉，大約100萬人死亡",
+  "after": "19世紀中葉（1840年代），大約100萬人死亡，另外有大約100萬人移民"
+ },
+ {
+  "fact": 62,
+  "q": "10.18",
+  "before": "",
+  "after": "克里米亞戰爭期間"
+ },
+ {
+  "fact": 64,
+  "q": "6.19",
+  "before": "投票權時間線：\n→ 1689《權利法案》（Bill of Rights）冇擴大投票權\n→ 1832《大改革法案》（Great Reform Act）中產階級男性有票\n→ 1918 男性21歲、女性30歲以上有票（表揚第一次世界大戰貢獻）\n→ 1928 男女同樣21歲\n→ 1969 降到18歲",
+  "after": "Emmeline Pankhurst（愛米林·潘克赫斯特）係著名領袖。\n投票權時間線：\n→ 1689《權利法案》（Bill of Rights）冇擴大投票權\n→ 1832《大改革法案》（Great Reform Act）中產階級男性有票\n→ 1918 男性21歲、女性30歲以上有票（表揚第一次世界大戰貢獻）\n→ 1928 男女同樣21歲\n→ 1969 降到18歲"
+ },
+ {
+  "fact": 64,
+  "q": "7.9",
+  "before": "投票權時間線：\n→ 1689《權利法案》（Bill of Rights）冇擴大投票權\n→ 1832《大改革法案》（Great Reform Act）中產階級男性有票\n→ 1918 男性21歲、女性30歲以上有票（表揚第一次世界大戰貢獻）\n→ 1928 男女同樣21歲\n→ 1969 降到18歲",
+  "after": "Emmeline Pankhurst（愛米林·潘克赫斯特）係著名領袖。\n投票權時間線：\n→ 1689《權利法案》（Bill of Rights）冇擴大投票權\n→ 1832《大改革法案》（Great Reform Act）中產階級男性有票\n→ 1918 男性21歲、女性30歲以上有票（表揚第一次世界大戰貢獻）\n→ 1928 男女同樣21歲\n→ 1969 降到18歲"
+ },
+ {
+  "fact": 64,
+  "q": "13.23",
+  "before": "投票權時間線：\n→ 1689《權利法案》（Bill of Rights）冇擴大投票權\n→ 1832《大改革法案》（Great Reform Act）中產階級男性有票\n→ 1918 男性21歲、女性30歲以上有票（表揚第一次世界大戰貢獻）\n→ 1928 男女同樣21歲\n→ 1969 降到18歲",
+  "after": "Emmeline Pankhurst（愛米林·潘克赫斯特）係著名領袖。\n投票權時間線：\n→ 1689《權利法案》（Bill of Rights）冇擴大投票權\n→ 1832《大改革法案》（Great Reform Act）中產階級男性有票\n→ 1918 男性21歲、女性30歲以上有票（表揚第一次世界大戰貢獻）\n→ 1928 男女同樣21歲\n→ 1969 降到18歲"
+ },
+ {
+  "fact": 67,
+  "q": "15.5",
+  "before": "11月11日",
+  "after": "11月11日停戰"
+ },
+ {
+  "fact": 76,
+  "q": "11.6",
+  "before": "記憶法（英國重要戰役）：\n| 年份 | 戰役 / 結果 |\n| 9 世紀 | Alfred the Great vs Vikings<br>阿佛烈大帝統一盎格魯-撒克遜王國，打敗維京人 |\n| 1066 | Battle of Hastings vs Normandy<br>黑斯廷斯戰役：William of Normandy（諾曼第公爵威廉）打敗 Harold → 英格蘭戰敗，諾曼征服 |\n| 1314 | Battle of Bannockburn vs Scotland<br>班諾克本戰役：Robert the Bruce 打敗英格蘭 → 蘇格蘭保持獨立 |\n| 1588 | Spanish Armada vs Spain<br>西班牙無敵艦隊：Elizabeth I 年代英格蘭打敗西班牙 |\n| 1805 | Battle of Trafalgar vs France + Spain<br>特拉法加海戰：Admiral Nelson（納爾遜）打敗法西聯合艦隊，但陣亡 |\n| 1815 | Battle of Waterloo vs France<br>滑鐵盧戰役：Duke of Wellington（威靈頓公爵）打敗 Napoleon，英法最後一戰 |\n| 1940 | Battle of Britain vs Germany<br>不列顛戰役：皇家空軍擊退德國空襲 → 阻止德國入侵 |",
+  "after": "「呢個係英國人最輝煌嘅時刻」— 邱吉爾（Winston Churchill）\n記憶法（英國重要戰役）：\n| 年份 | 戰役 / 結果 |\n| 9 世紀 | Alfred the Great vs Vikings<br>阿佛烈大帝統一盎格魯-撒克遜王國，打敗維京人 |\n| 1066 | Battle of Hastings vs Normandy<br>黑斯廷斯戰役：William of Normandy（諾曼第公爵威廉）打敗 Harold → 英格蘭戰敗，諾曼征服 |\n| 1314 | Battle of Bannockburn vs Scotland<br>班諾克本戰役：Robert the Bruce 打敗英格蘭 → 蘇格蘭保持獨立 |\n| 1588 | Spanish Armada vs Spain<br>西班牙無敵艦隊：Elizabeth I 年代英格蘭打敗西班牙 |\n| 1805 | Battle of Trafalgar vs France + Spain<br>特拉法加海戰：Admiral Nelson（納爾遜）打敗法西聯合艦隊，但陣亡 |\n| 1815 | Battle of Waterloo vs France<br>滑鐵盧戰役：Duke of Wellington（威靈頓公爵）打敗 Napoleon，英法最後一戰 |\n| 1940 | Battle of Britain vs Germany<br>不列顛戰役：皇家空軍擊退德國空襲 → 阻止德國入侵 |"
+ },
+ {
+  "fact": 80,
+  "q": "9.9",
+  "before": "工黨政府（Clement Attlee），免費醫療服務",
+  "after": "1948年工黨政府（Clement Attlee）成立，由Aneurin Bevan（安奈林·貝文）推動，使用嗰陣免費"
+ },
+ {
+  "fact": 80,
+  "q": "12.10",
+  "before": "1948年成立",
+  "after": "1948年工黨政府（Clement Attlee）成立，由Aneurin Bevan（安奈林·貝文）推動，使用嗰陣免費"
+ },
+ {
+  "fact": 80,
+  "q": "13.14",
+  "before": "",
+  "after": "1948年工黨政府（Clement Attlee）成立，由Aneurin Bevan（安奈林·貝文）推動，使用嗰陣免費"
+ },
+ {
+  "fact": 80,
+  "q": "17.7",
+  "before": "Aneurin Bevan（安奈林·貝文）推動，工黨政府",
+  "after": "1948年工黨政府（Clement Attlee）成立，由Aneurin Bevan（安奈林·貝文）推動，使用嗰陣免費"
+ },
+ {
+  "fact": 81,
+  "q": "17.20",
+  "before": "",
+  "after": "二戰之後由工黨政府建立"
+ },
+ {
+  "fact": 103,
+  "q": "4.15",
+  "before": "記憶法（都鐸王朝 Tudor）：\n• 1455–1485 → 玫瑰戰爭（Wars of the Roses）→ York（約克）vs Lancaster（蘭開斯特）→ Henry VII（亨利七世）開創都鐸王朝；\n• Henry VIII（亨利八世）：\n    ◦ 教宗唔准佢同第一任妻子 Catherine of Aragon（阿拉貢的凱瑟琳）離婚 → 脫離天主教會，成立 Church of England（英格蘭國教會）；\n    ◦ 解散修道院（Dissolution of the Monasteries）；\n    ◦ 六任妻子，兩位被處決 → Anne Boleyn（安妮·博林）、Catherine Howard（凱瑟琳·霍華德）；\n• Elizabeth I（伊利沙伯一世）→ Anne Boleyn 嘅女兒 → 處決 Mary, Queen of Scots（蘇格蘭瑪麗女王）。",
+  "after": "君主係最高領袖，坎特伯雷大主教係精神領袖\n記憶法（都鐸王朝 Tudor）：\n• 1455–1485 → 玫瑰戰爭（Wars of the Roses）→ York（約克）vs Lancaster（蘭開斯特）→ Henry VII（亨利七世）開創都鐸王朝；\n• Henry VIII（亨利八世）：\n    ◦ 教宗唔准佢同第一任妻子 Catherine of Aragon（阿拉貢的凱瑟琳）離婚 → 脫離天主教會，成立 Church of England（英格蘭國教會）；\n    ◦ 解散修道院（Dissolution of the Monasteries）；\n    ◦ 六任妻子，兩位被處決 → Anne Boleyn（安妮·博林）、Catherine Howard（凱瑟琳·霍華德）；\n• Elizabeth I（伊利沙伯一世）→ Anne Boleyn 嘅女兒 → 處決 Mary, Queen of Scots（蘇格蘭瑪麗女王）。"
+ },
+ {
+  "fact": 103,
+  "q": "11.15",
+  "before": "坎特伯雷大主教係精神領袖",
+  "after": "君主係最高領袖，坎特伯雷大主教係精神領袖\n記憶法（都鐸王朝 Tudor）：\n• 1455–1485 → 玫瑰戰爭（Wars of the Roses）→ York（約克）vs Lancaster（蘭開斯特）→ Henry VII（亨利七世）開創都鐸王朝；\n• Henry VIII（亨利八世）：\n    ◦ 教宗唔准佢同第一任妻子 Catherine of Aragon（阿拉貢的凱瑟琳）離婚 → 脫離天主教會，成立 Church of England（英格蘭國教會）；\n    ◦ 解散修道院（Dissolution of the Monasteries）；\n    ◦ 六任妻子，兩位被處決 → Anne Boleyn（安妮·博林）、Catherine Howard（凱瑟琳·霍華德）；\n• Elizabeth I（伊利沙伯一世）→ Anne Boleyn 嘅女兒 → 處決 Mary, Queen of Scots（蘇格蘭瑪麗女王）。"
+ },
+ {
+  "fact": 113,
+  "q": "3.23",
+  "before": "1605年，Guy Fawkes（蓋伊·福克斯）想炸毀國會",
+  "after": "1605年，Guy Fawkes（蓋伊·福克斯）等人想炸毀國會\n記憶法：\n| 日期 | 節日 |\n| 25/1 | Burns Night<br>彭斯之夜：紀念蘇格蘭詩人 Robert Burns |\n| 31/10 | Halloween<br>萬聖節前夕 |\n| 5/11 | Bonfire Night<br>篝火之夜：紀念 1605 年火藥陰謀（Gunpowder Plot）失敗 |\n| 11/11 | Remembrance Day<br>國殤紀念日：戴紅罌粟花 |\n| 26/12 | Boxing Day<br>節禮日：聖誕節翌日 |\n| 31/12 | Hogmanay<br>霍格莫尼：蘇格蘭除夕 |"
+ },
+ {
+  "fact": 113,
+  "q": "14.20",
+  "before": "記憶法：\n| 日期 | 節日 |\n| 25/1 | Burns Night<br>彭斯之夜：紀念蘇格蘭詩人 Robert Burns |\n| 31/10 | Halloween<br>萬聖節前夕 |\n| 5/11 | Bonfire Night<br>篝火之夜：紀念 1605 年火藥陰謀（Gunpowder Plot）失敗 |\n| 11/11 | Remembrance Day<br>國殤紀念日：戴紅罌粟花 |\n| 26/12 | Boxing Day<br>節禮日：聖誕節翌日 |\n| 31/12 | Hogmanay<br>霍格莫尼：蘇格蘭除夕 |",
+  "after": "1605年，Guy Fawkes（蓋伊·福克斯）等人想炸毀國會\n記憶法：\n| 日期 | 節日 |\n| 25/1 | Burns Night<br>彭斯之夜：紀念蘇格蘭詩人 Robert Burns |\n| 31/10 | Halloween<br>萬聖節前夕 |\n| 5/11 | Bonfire Night<br>篝火之夜：紀念 1605 年火藥陰謀（Gunpowder Plot）失敗 |\n| 11/11 | Remembrance Day<br>國殤紀念日：戴紅罌粟花 |\n| 26/12 | Boxing Day<br>節禮日：聖誕節翌日 |\n| 31/12 | Hogmanay<br>霍格莫尼：蘇格蘭除夕 |"
+ },
+ {
+  "fact": 114,
+  "q": "3.2",
+  "before": "12月31日",
+  "after": "記憶法：\n| 日期 | 節日 |\n| 25/1 | Burns Night<br>彭斯之夜：紀念蘇格蘭詩人 Robert Burns |\n| 31/10 | Halloween<br>萬聖節前夕 |\n| 5/11 | Bonfire Night<br>篝火之夜：紀念 1605 年火藥陰謀（Gunpowder Plot）失敗 |\n| 11/11 | Remembrance Day<br>國殤紀念日：戴紅罌粟花 |\n| 26/12 | Boxing Day<br>節禮日：聖誕節翌日 |\n| 31/12 | Hogmanay<br>霍格莫尼：蘇格蘭除夕 |"
+ },
+ {
+  "fact": 115,
+  "q": "2.17",
+  "before": "記憶法：\n| 日期 | 節日 |\n| 25/1 | Burns Night<br>彭斯之夜：紀念蘇格蘭詩人 Robert Burns |\n| 31/10 | Halloween<br>萬聖節前夕 |\n| 5/11 | Bonfire Night<br>篝火之夜：紀念 1605 年火藥陰謀（Gunpowder Plot）失敗 |\n| 11/11 | Remembrance Day<br>國殤紀念日：戴紅罌粟花 |\n| 26/12 | Boxing Day<br>節禮日：聖誕節翌日 |\n| 31/12 | Hogmanay<br>霍格莫尼：蘇格蘭除夕 |",
+  "after": "Remembrance Day 又叫 Armistice Day（停戰紀念日），紀念1918年11月11日上午11時一戰停戰同戰爭死難者\n記憶法：\n| 日期 | 節日 |\n| 25/1 | Burns Night<br>彭斯之夜：紀念蘇格蘭詩人 Robert Burns |\n| 31/10 | Halloween<br>萬聖節前夕 |\n| 5/11 | Bonfire Night<br>篝火之夜：紀念 1605 年火藥陰謀（Gunpowder Plot）失敗 |\n| 11/11 | Remembrance Day<br>國殤紀念日：戴紅罌粟花 |\n| 26/12 | Boxing Day<br>節禮日：聖誕節翌日 |\n| 31/12 | Hogmanay<br>霍格莫尼：蘇格蘭除夕 |"
+ },
+ {
+  "fact": 115,
+  "q": "9.11",
+  "before": "記憶法：\n| 日期 | 節日 |\n| 25/1 | Burns Night<br>彭斯之夜：紀念蘇格蘭詩人 Robert Burns |\n| 31/10 | Halloween<br>萬聖節前夕 |\n| 5/11 | Bonfire Night<br>篝火之夜：紀念 1605 年火藥陰謀（Gunpowder Plot）失敗 |\n| 11/11 | Remembrance Day<br>國殤紀念日：戴紅罌粟花 |\n| 26/12 | Boxing Day<br>節禮日：聖誕節翌日 |\n| 31/12 | Hogmanay<br>霍格莫尼：蘇格蘭除夕 |",
+  "after": "Remembrance Day 又叫 Armistice Day（停戰紀念日），紀念1918年11月11日上午11時一戰停戰同戰爭死難者\n記憶法：\n| 日期 | 節日 |\n| 25/1 | Burns Night<br>彭斯之夜：紀念蘇格蘭詩人 Robert Burns |\n| 31/10 | Halloween<br>萬聖節前夕 |\n| 5/11 | Bonfire Night<br>篝火之夜：紀念 1605 年火藥陰謀（Gunpowder Plot）失敗 |\n| 11/11 | Remembrance Day<br>國殤紀念日：戴紅罌粟花 |\n| 26/12 | Boxing Day<br>節禮日：聖誕節翌日 |\n| 31/12 | Hogmanay<br>霍格莫尼：蘇格蘭除夕 |"
+ },
+ {
+  "fact": 115,
+  "q": "14.13",
+  "before": "",
+  "after": "Remembrance Day 又叫 Armistice Day（停戰紀念日），紀念1918年11月11日上午11時一戰停戰同戰爭死難者\n記憶法：\n| 日期 | 節日 |\n| 25/1 | Burns Night<br>彭斯之夜：紀念蘇格蘭詩人 Robert Burns |\n| 31/10 | Halloween<br>萬聖節前夕 |\n| 5/11 | Bonfire Night<br>篝火之夜：紀念 1605 年火藥陰謀（Gunpowder Plot）失敗 |\n| 11/11 | Remembrance Day<br>國殤紀念日：戴紅罌粟花 |\n| 26/12 | Boxing Day<br>節禮日：聖誕節翌日 |\n| 31/12 | Hogmanay<br>霍格莫尼：蘇格蘭除夕 |"
+ },
+ {
+  "fact": 115,
+  "q": "17.22",
+  "before": "",
+  "after": "Remembrance Day 又叫 Armistice Day（停戰紀念日），紀念1918年11月11日上午11時一戰停戰同戰爭死難者\n記憶法：\n| 日期 | 節日 |\n| 25/1 | Burns Night<br>彭斯之夜：紀念蘇格蘭詩人 Robert Burns |\n| 31/10 | Halloween<br>萬聖節前夕 |\n| 5/11 | Bonfire Night<br>篝火之夜：紀念 1605 年火藥陰謀（Gunpowder Plot）失敗 |\n| 11/11 | Remembrance Day<br>國殤紀念日：戴紅罌粟花 |\n| 26/12 | Boxing Day<br>節禮日：聖誕節翌日 |\n| 31/12 | Hogmanay<br>霍格莫尼：蘇格蘭除夕 |"
+ },
+ {
+  "fact": 121,
+  "q": "9.0",
+  "before": "記憶法：\n| 國家 | 首都 | 國花 |\n| England | London | Tudor rose |\n| Scotland | Edinburgh | Thistle |\n| Wales | Cardiff | Daffodil |\n| N. Ireland | Belfast | Shamrock |",
+  "after": "Shamrock 係成個愛爾蘭島嘅象徵，題目寫 Ireland 或者 Northern Ireland 都係答 Shamrock\n記憶法：\n| 國家 | 首都 | 國花 |\n| England | London | Tudor rose |\n| Scotland | Edinburgh | Thistle |\n| Wales | Cardiff | Daffodil |\n| N. Ireland | Belfast | Shamrock |"
+ },
+ {
+  "fact": 121,
+  "q": "9.19",
+  "before": "題目嘅 Ireland 即係 N. Ireland（Shamrock 係成個愛爾蘭島嘅象徵）\n記憶法：\n| 國家 | 首都 | 國花 |\n| England | London | Tudor rose |\n| Scotland | Edinburgh | Thistle |\n| Wales | Cardiff | Daffodil |\n| N. Ireland | Belfast | Shamrock |",
+  "after": "Shamrock 係成個愛爾蘭島嘅象徵，題目寫 Ireland 或者 Northern Ireland 都係答 Shamrock\n記憶法：\n| 國家 | 首都 | 國花 |\n| England | London | Tudor rose |\n| Scotland | Edinburgh | Thistle |\n| Wales | Cardiff | Daffodil |\n| N. Ireland | Belfast | Shamrock |"
+ },
+ {
+  "fact": 125,
+  "q": "11.2",
+  "before": "符號£",
+  "after": "• 符號：£\n• 硬幣：1p、2p、5p、10p、20p、50p、£1、£2（冇25p）"
+ },
+ {
+  "fact": 125,
+  "q": "5.1",
+  "before": "英國硬幣：1p, 2p, 5p, 10p, 20p, 50p, £1, £2",
+  "after": "• 符號：£\n• 硬幣：1p、2p、5p、10p、20p、50p、£1、£2（冇25p）"
+ },
+ {
+  "fact": 126,
+  "q": "3.22",
+  "before": "",
+  "after": "英倫銀行（Bank of England）最大面值係£50（考試以官方手冊嘅£50為準；蘇格蘭同北愛爾蘭有啲銀行另外發行£100）"
+ },
+ {
+  "fact": 126,
+  "q": "4.4",
+  "before": "",
+  "after": "英倫銀行（Bank of England）最大面值係£50（考試以官方手冊嘅£50為準；蘇格蘭同北愛爾蘭有啲銀行另外發行£100）"
+ },
+ {
+  "fact": 133,
+  "q": "3.8",
+  "before": "正式名稱：Yeoman Warders（皇家衛士）",
+  "after": "倫敦塔由Yeoman Warders（皇家衛士，俗稱Beefeaters）守衛，皇冠珠寶都放喺度"
+ },
+ {
+  "fact": 133,
+  "q": "12.11",
+  "before": "正式名稱：Yeoman Warders（皇家衛士）",
+  "after": "倫敦塔由Yeoman Warders（皇家衛士，俗稱Beefeaters）守衛，皇冠珠寶都放喺度"
+ },
+ {
+  "fact": 133,
+  "q": "10.17",
+  "before": "",
+  "after": "倫敦塔由Yeoman Warders（皇家衛士，俗稱Beefeaters）守衛，皇冠珠寶都放喺度"
+ },
+ {
+  "fact": 135,
+  "q": "16.1",
+  "before": "大約5000萬年前由火山熔岩形成\n記憶法：\n| 名勝 | 國家 | 地點 |\n| Lake District<br>英格蘭最大國家公園 | England | National Park |\n| Stonehenge<br>約 5,000 年前建成 | England | Wiltshire |\n| Eden Project<br>巨型溫室生態館 | England | Cornwall |\n| Glastonbury<br>音樂節 | England | Somerset |\n| Tate<br>Tate Britain、Tate Modern | England | London |\n| Ben Nevis<br>英國最高山 | Scotland | Highlands |\n| Loch Lomond & Trossachs<br>蘇格蘭國家公園 | Scotland | National Park |\n| Edinburgh Castle<br>愛丁堡城堡 | Scotland | Edinburgh |\n| National Galleries of Scotland<br>蘇格蘭國家美術館 | Scotland | Edinburgh |\n| Snowdonia<br>Snowdon 係威爾斯最高山 | Wales | National Park |\n| Giant's Causeway<br>火山熔岩形成嘅玄武岩柱 | N. Ireland | County Antrim |",
+  "after": "玄武岩柱，大約5000萬年前由火山熔岩形成\n記憶法：\n| 名勝 | 國家 | 地點 |\n| Lake District<br>英格蘭最大國家公園 | England | National Park |\n| Stonehenge<br>約 5,000 年前建成 | England | Wiltshire |\n| Eden Project<br>巨型溫室生態館 | England | Cornwall |\n| Glastonbury<br>音樂節 | England | Somerset |\n| Tate<br>Tate Britain、Tate Modern | England | London |\n| Ben Nevis<br>英國最高山 | Scotland | Highlands |\n| Loch Lomond & Trossachs<br>蘇格蘭國家公園 | Scotland | National Park |\n| Edinburgh Castle<br>愛丁堡城堡 | Scotland | Edinburgh |\n| National Galleries of Scotland<br>蘇格蘭國家美術館 | Scotland | Edinburgh |\n| Snowdonia<br>Snowdon 係威爾斯最高山 | Wales | National Park |\n| Giant's Causeway<br>火山熔岩形成嘅玄武岩柱 | N. Ireland | County Antrim |"
+ },
+ {
+  "fact": 136,
+  "q": "4.18",
+  "before": "記憶法：\n| 名勝 | 國家 | 地點 |\n| Lake District<br>英格蘭最大國家公園 | England | National Park |\n| Stonehenge<br>約 5,000 年前建成 | England | Wiltshire |\n| Eden Project<br>巨型溫室生態館 | England | Cornwall |\n| Glastonbury<br>音樂節 | England | Somerset |\n| Tate<br>Tate Britain、Tate Modern | England | London |\n| Ben Nevis<br>英國最高山 | Scotland | Highlands |\n| Loch Lomond & Trossachs<br>蘇格蘭國家公園 | Scotland | National Park |\n| Edinburgh Castle<br>愛丁堡城堡 | Scotland | Edinburgh |\n| National Galleries of Scotland<br>蘇格蘭國家美術館 | Scotland | Edinburgh |\n| Snowdonia<br>Snowdon 係威爾斯最高山 | Wales | National Park |\n| Giant's Causeway<br>火山熔岩形成嘅玄武岩柱 | N. Ireland | County Antrim |",
+  "after": "英格蘭西南部\n記憶法：\n| 名勝 | 國家 | 地點 |\n| Lake District<br>英格蘭最大國家公園 | England | National Park |\n| Stonehenge<br>約 5,000 年前建成 | England | Wiltshire |\n| Eden Project<br>巨型溫室生態館 | England | Cornwall |\n| Glastonbury<br>音樂節 | England | Somerset |\n| Tate<br>Tate Britain、Tate Modern | England | London |\n| Ben Nevis<br>英國最高山 | Scotland | Highlands |\n| Loch Lomond & Trossachs<br>蘇格蘭國家公園 | Scotland | National Park |\n| Edinburgh Castle<br>愛丁堡城堡 | Scotland | Edinburgh |\n| National Galleries of Scotland<br>蘇格蘭國家美術館 | Scotland | Edinburgh |\n| Snowdonia<br>Snowdon 係威爾斯最高山 | Wales | National Park |\n| Giant's Causeway<br>火山熔岩形成嘅玄武岩柱 | N. Ireland | County Antrim |"
+ },
+ {
+  "fact": 139,
+  "q": "9.3",
+  "before": "英格蘭最大國家公園\n記憶法：\n| 名勝 | 國家 | 地點 |\n| Lake District<br>英格蘭最大國家公園 | England | National Park |\n| Stonehenge<br>約 5,000 年前建成 | England | Wiltshire |\n| Eden Project<br>巨型溫室生態館 | England | Cornwall |\n| Glastonbury<br>音樂節 | England | Somerset |\n| Tate<br>Tate Britain、Tate Modern | England | London |\n| Ben Nevis<br>英國最高山 | Scotland | Highlands |\n| Loch Lomond & Trossachs<br>蘇格蘭國家公園 | Scotland | National Park |\n| Edinburgh Castle<br>愛丁堡城堡 | Scotland | Edinburgh |\n| National Galleries of Scotland<br>蘇格蘭國家美術館 | Scotland | Edinburgh |\n| Snowdonia<br>Snowdon 係威爾斯最高山 | Wales | National Park |\n| Giant's Causeway<br>火山熔岩形成嘅玄武岩柱 | N. Ireland | County Antrim |",
+  "after": "記憶法：\n| 名勝 | 國家 | 地點 |\n| Lake District<br>英格蘭最大國家公園 | England | National Park |\n| Stonehenge<br>約 5,000 年前建成 | England | Wiltshire |\n| Eden Project<br>巨型溫室生態館 | England | Cornwall |\n| Glastonbury<br>音樂節 | England | Somerset |\n| Tate<br>Tate Britain、Tate Modern | England | London |\n| Ben Nevis<br>英國最高山 | Scotland | Highlands |\n| Loch Lomond & Trossachs<br>蘇格蘭國家公園 | Scotland | National Park |\n| Edinburgh Castle<br>愛丁堡城堡 | Scotland | Edinburgh |\n| National Galleries of Scotland<br>蘇格蘭國家美術館 | Scotland | Edinburgh |\n| Snowdonia<br>Snowdon 係威爾斯最高山 | Wales | National Park |\n| Giant's Causeway<br>火山熔岩形成嘅玄武岩柱 | N. Ireland | County Antrim |"
+ },
+ {
+  "fact": 143,
+  "q": "10.16",
+  "before": "每年6–7月舉行",
+  "after": "每年6–7月喺倫敦舉行"
+ },
+ {
+  "fact": 143,
+  "q": "12.21",
+  "before": "",
+  "after": "每年6–7月喺倫敦舉行"
+ },
+ {
+  "fact": 146,
+  "q": "5.10",
+  "before": "歐洲最大街頭嘉年華",
+  "after": "每年8月喺倫敦舉行，歐洲最大街頭嘉年華"
+ },
+ {
+  "fact": 146,
+  "q": "8.16",
+  "before": "每年8月喺倫敦舉行",
+  "after": "每年8月喺倫敦舉行，歐洲最大街頭嘉年華"
+ },
+ {
+  "fact": 155,
+  "q": "15.3",
+  "before": "另一套係James Bond（占士邦）",
+  "after": "Harry Potter（哈利波特）同James Bond（占士邦）都係，兩個都啱"
+ },
+ {
+  "fact": 155,
+  "q": "16.4",
+  "before": "另一套係Harry Potter（哈利波特）",
+  "after": "Harry Potter（哈利波特）同James Bond（占士邦）都係，兩個都啱"
+ },
+ {
+  "fact": 157,
+  "q": "10.21",
+  "before": "",
+  "after": "全球最大廣播機構，獨立於政府"
+ },
+ {
+  "fact": 159,
+  "q": "3.19",
+  "before": "",
+  "after": "維多利亞時代小說家，作品有《聖誕頌歌》、《孤雛淚》、《雙城記》等"
+ },
+ {
+  "fact": 159,
+  "q": "8.18",
+  "before": "《孤雛淚》、《雙城記》等",
+  "after": "維多利亞時代小說家，作品有《聖誕頌歌》、《孤雛淚》、《雙城記》等"
+ },
+ {
+  "fact": 167,
+  "q": "10.12",
+  "before": "",
+  "after": "按慣例會任命下議院多數黨嘅領袖"
+ },
+ {
+  "fact": 173,
+  "q": "7.16",
+  "before": "",
+  "after": "上議院唔可以拒絕財政法案"
+ },
+ {
+  "fact": 173,
+  "q": "17.23",
+  "before": "",
+  "after": "上議院唔可以拒絕財政法案"
+ },
+ {
+  "fact": 177,
+  "q": "6.21",
+  "before": "",
+  "after": "每個選區選出一位國會議員（Member of Parliament, MP），代表選區內所有人"
+ },
+ {
+  "fact": 177,
+  "q": "15.9",
+  "before": "",
+  "after": "每個選區選出一位國會議員（Member of Parliament, MP），代表選區內所有人"
+ },
+ {
+  "fact": 177,
+  "q": "17.3",
+  "before": "",
+  "after": "每個選區選出一位國會議員（Member of Parliament, MP），代表選區內所有人"
+ },
+ {
+  "fact": 183,
+  "q": "9.12",
+  "before": "",
+  "after": "由反對黨領袖委任"
+ },
+ {
+  "fact": 184,
+  "q": "2.0",
+  "before": "負責罪案、警政同移民",
+  "after": "內政大臣負責罪案、警政同移民"
+ },
+ {
+  "fact": 191,
+  "q": "17.18",
+  "before": "",
+  "after": "英國大選用呢個制度"
+ },
+ {
+  "fact": 192,
+  "q": "17.6",
+  "before": "蘇格蘭議會、Senedd（威爾斯議會）同北愛爾蘭議會都用呢個制度",
+  "after": "記憶法：\n| 地區 | 議會 / 地點 | 議員 |\n| England | UK Parliament<br>Westminster | 650<br>全⁠英⁠國 MP |\n| Scotland | Scottish Parliament<br>蘇格蘭議會<br>Edinburgh（愛丁堡） | 129 |\n| Wales | Senedd<br>威爾斯議會，前稱 National Assembly for Wales<br>Cardiff（加的夫） | 60 |\n| N. Ireland | Northern Ireland Assembly<br>北愛爾蘭議會<br>Belfast（貝爾法斯特） | 90 |\n• England 冇自己嘅地方議會，由英國國會直接負責；\n• Senedd 議員：考試答 60（2026 年選舉起增至 96）；\n• Scotland / Wales / N. Ireland 三個議會用比例代表制（proportional representation）；\n• 英國國會用領先者當選制（first past the post）"
+ },
+ {
+  "fact": 200,
+  "q": "5.22",
+  "before": "而家叫做Senedd Cymru（威爾斯議會）\n記憶法：\n| 地區 | 議會 / 地點 | 議員 |\n| England | UK Parliament<br>Westminster | 650<br>全⁠英⁠國 MP |\n| Scotland | Scottish Parliament<br>蘇格蘭議會<br>Edinburgh（愛丁堡） | 129 |\n| Wales | Senedd<br>威爾斯議會，前稱 National Assembly for Wales<br>Cardiff（加的夫） | 60 |\n| N. Ireland | Northern Ireland Assembly<br>北愛爾蘭議會<br>Belfast（貝爾法斯特） | 90 |\n• England 冇自己嘅地方議會，由英國國會直接負責；\n• Senedd 議員：考試答 60（2026 年選舉起增至 96）；\n• Scotland / Wales / N. Ireland 三個議會用比例代表制（proportional representation）；\n• 英國國會用領先者當選制（first past the post）",
+  "after": "記憶法：\n| 地區 | 議會 / 地點 | 議員 |\n| England | UK Parliament<br>Westminster | 650<br>全⁠英⁠國 MP |\n| Scotland | Scottish Parliament<br>蘇格蘭議會<br>Edinburgh（愛丁堡） | 129 |\n| Wales | Senedd<br>威爾斯議會，前稱 National Assembly for Wales<br>Cardiff（加的夫） | 60 |\n| N. Ireland | Northern Ireland Assembly<br>北愛爾蘭議會<br>Belfast（貝爾法斯特） | 90 |\n• England 冇自己嘅地方議會，由英國國會直接負責；\n• Senedd 議員：考試答 60（2026 年選舉起增至 96）；\n• Scotland / Wales / N. Ireland 三個議會用比例代表制（proportional representation）；\n• 英國國會用領先者當選制（first past the post）"
+ },
+ {
+  "fact": 203,
+  "q": "9.14",
+  "before": "",
+  "after": "由民主選舉產生嘅地區議會管理"
+ },
+ {
+  "fact": 203,
+  "q": "12.18",
+  "before": "",
+  "after": "由民主選舉產生嘅地區議會管理"
+ },
+ {
+  "fact": 222,
+  "q": "16.7",
+  "before": "",
+  "after": "包括年齡、性別、種族、宗教等"
+ },
+ {
+  "fact": 225,
+  "q": "15.15",
+  "before": "自願參加",
+  "after": "係自願參加嘅"
+ },
+ {
+  "fact": 230,
+  "q": "7.12",
+  "before": "",
+  "after": "大約54個成員國（考試以官方手冊嘅54個為準；2022年起56個）"
+ },
+ {
+  "fact": 231,
+  "q": "6.23",
+  "before": "同歐盟係唔同嘅機構",
+  "after": "唔係歐盟機構；47個成員國（考試以官方手冊嘅47個為準；2022年起46個）"
+ },
+ {
+  "fact": 232,
+  "q": "8.14",
+  "before": "由歐洲委員會（唔係歐盟）監督",
+  "after": "由歐洲委員會（唔係歐盟）監督；歐洲人權法院喺法國史特拉斯堡"
+ },
+ {
+  "fact": 232,
+  "q": "15.18",
+  "before": "法國史特拉斯堡",
+  "after": "由歐洲委員會（唔係歐盟）監督；歐洲人權法院喺法國史特拉斯堡"
+ },
+ {
+  "fact": 233,
+  "q": "16.0",
+  "before": "1945年",
+  "after": "二戰之後成立，1945年"
+ },
+ {
+  "fact": 236,
+  "q": "16.22",
+  "before": "",
+  "after": "英國係創始成員"
+ }
+]
