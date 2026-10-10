@@ -8,3 +8,15 @@
 /* the marker box is exactly one indent wide, so the text after it lines up with its own wrapped lines */
 .note-mark { display: inline-block; width: var(--note-indent); text-indent: 0; }
 .rv-note-gap { height: 6px; }
+/* v1.0.7 memory-note table (noteTableHtml): Theme B minimal lines, no fill, so it sits on the box behind it.
+   Cells stay on one line except a cell with "<br>" remarks (th/td.multi); the wrap scrolls only as a fallback */
+.note-table-wrap { margin: var(--space-2) 0 var(--space-3); overflow-x: auto; }
+.note-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: var(--fs-sm); line-height: 1.4; color: var(--text); }
+.note-table th, .note-table td { padding: var(--space-3) var(--space-4); text-align: left; vertical-align: top; white-space: nowrap; }
+.note-table th { font-weight: 700; color: var(--navy); border-bottom: 2px solid var(--navy); }
+.note-table td { border-bottom: 1px solid var(--divider); }
+.note-table tr:last-child td { border-bottom: 0; }
+.note-table td:first-child { font-weight: 700; color: var(--navy); }
+.note-table th.multi, .note-table td.multi { white-space: normal; }
+/* V4 in-cell remark: its own line, small and muted, never bold (even in the bold first column) */
+.note-cell-sub { display: block; margin-top: var(--space-1); font-size: var(--fs-xs); font-weight: 400; color: var(--text-muted); line-height: 1.45; }
