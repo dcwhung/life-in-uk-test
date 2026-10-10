@@ -92,6 +92,10 @@
 .plan-bg-learn { background: var(--plan-ph-learn); }
 .plan-bg-drill { background: var(--plan-ph-drill); }
 .plan-bg-mock { background: var(--plan-ph-mock); color: var(--text); }
+/* G43: a phase whose content is all done: its own green (darkest → lightest), a ✓ before the name */
+.plan-bg-learn.done { background: var(--plan-done-learn); }
+.plan-bg-drill.done { background: var(--plan-done-drill); }
+.plan-bg-mock.done { background: var(--plan-done-mock); color: var(--plan-done-mock-text); }
 .plan-strats { display: grid; gap: var(--space-5); }
 .plan-strat { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: var(--space-5); align-items: start; padding: var(--space-6); border-radius: var(--radius-md); }
 .plan-strat.learn { background: var(--plan-ph-learn-bg); }
@@ -107,6 +111,8 @@
 .plan-order { display: grid; gap: var(--space-5); }
 .plan-ord { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: var(--space-5); align-items: start; }
 .plan-ord-n { width: 26px; height: 26px; border-radius: var(--radius-circle); background: var(--navy); color: var(--text-inverse); display: grid; place-items: center; font-size: var(--fs-sm); font-weight: 800; }
+/* G43: a step whose chapters are all done: green dot, white ✓ instead of its number (expanded and folded) */
+.plan-ord-n.done { background: var(--plan-done-step); }
 .plan-ord-body { display: grid; gap: var(--space-2); min-width: 0; }
 /* v1.0.3 (user's layout, every width): name, why, then the bar row. The bar fills the row up to a fixed gap
    (--plan-chw-gap) before a fixed-width count column (--plan-chw-count-w; the widest count "91 facts · 161 Qs" is
@@ -199,6 +205,11 @@
 /* day status pills: ✓ done (.ok), G27 bands (dark text on every band for contrast), today, rest */
 .plan-pill.mute { background: var(--bg); color: var(--text-muted); }
 .plan-pill.now { background: var(--navy); color: var(--text-inverse); }
+/* G43: today at 100%: solid green, white text (a past day's 100% stays the light .ok) */
+.plan-pill.today-done { background: var(--plan-done-today); color: var(--text-inverse); }
+/* en "Done today" in the iPhone's wider SF (Arial + 10%) needs ~74px with the usual 4px sides, ~72px with 3px (no
+   margin left), so en takes 2px (~70px) in the 72px column; S-161: zh-HK 「今日已完成」 (~61px + 8px) keeps the usual 4px */
+html[lang="en"] .plan-day-side .plan-pill.today-done { padding-inline: var(--space-1); }
 .plan-pill.h0 { background: var(--plan-heat-0); color: var(--text); }
 .plan-pill.h1 { background: var(--plan-heat-1); color: var(--text); }
 .plan-pill.h2 { background: var(--plan-heat-2); color: var(--text); }

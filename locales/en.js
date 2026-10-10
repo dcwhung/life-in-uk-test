@@ -340,6 +340,7 @@ LOCALES.en = {
     },
     // schedule screen (handoff §2.3; mockup step ②); Day n / Week n stay English (lang="en")
     schedule: {
+      doneSr: '(done)', // G43: screen-reader text after a finished phase / study-order step
       name: 'Schedule',
       editGoal: 'Change goal',
       title: 'Your study schedule',
@@ -455,7 +456,7 @@ LOCALES.en = {
       prevFact: '← Prev',
       nextFact: 'Next →',
     },
-    status: { rest: 'Rest', today: 'Today {n}%', done: '✓ Done', pct: '{n}%' },
+    status: { rest: 'Rest', today: 'Today {n}%', done: '✓ Done', pct: '{n}%', todayDone: 'Done today' },
     feas: {
       title: 'Is there enough time?',
       ok: '✓ Plenty',
