@@ -27,3 +27,4 @@
 | 6 | ⑨ 國王 vs 國會（8 題） | 唔拆；格式改「English 中文：<br>經過」（用戶定稿 1628 / 1642–51 / 1660）；1649 同 1688 要再執：建議 1649「Commonwealth 共和國：<br>Charles I 被處決，英格蘭冇咗君主<br>Oliver Cromwell（克倫威爾）做 Lord Protector（護國公），到 1658 年」、1688「Glorious Revolution 光榮革命：<br>James II（詹姆斯二世）被和平取代<br>William of Orange（奧蘭治的威廉）做國王 → 開始君主立憲」 | 已確認 |
 | 6b | X7 譯名 | James II →「詹姆斯二世」（用戶 2026-10-10；同 `yue-terms.md`「James → 詹姆斯」一致）；⑨ table 8 題嘅「詹姆士二世」一齊改；「聖詹姆士宮」係地名，唔郁 | 已確認 |
 | 7 | ⑤ 發明家（8 題） | 唔拆；分三欄「年份 / 人物 / 發明 / 發現」；Newton 格只留「萬有引力、運動定律」；Woolsthorpe / Royal Mint 保留做 8.11、4.7、8.21 前綴（專有名詞英文：「Isaac Newton（牛頓）喺 Lincolnshire（林肯郡）Woolsthorpe 出世，後來做過 Royal Mint（皇家鑄幣廠）嘅 Warden / Master」） | 已確認；細字英文大楷開頭（Penicillin、Jet engine） |
+| 8 | ⑥ 全年節日（15 題） | 唔拆；跟 ⑨ 格式；Guy Fawkes / Armistice Day 前綴搬入 table，6 題刪前綴；Burns 加 Auld Lang Syne | 已確認（preview 待睇） |
