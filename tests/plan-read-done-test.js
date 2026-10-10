@@ -168,9 +168,25 @@ async function checkMastered(pg) {
   assert(await pg.evaluate(() => !!document.querySelector('#planRunBody .fact.mastered .fact-done-tag')), 'a ticked-mastered done fact: tagged');
   await checkFadedCard(pg, 'ticked');
 }
+// user 2026-10-10: in the runner a card fades only once its practice is done — ticked ✓ by hand but not done stays
+// clear (▶ Practise too); done but never ticked fades like a 🏆 one (the tag still unfaded)
+async function checkFadeOnlyWhenDone(pg) {
+  await fresh(pg);
+  const s = await seedRead(pg, [0]);
+  await pg.evaluate(id => { study.mastered[id] = true; }, s.facts[0]);
+  await showFact(pg, s.ri, 0);
+  const [en, practise] = await Promise.all(['.fact-en', '.fact-practise'].map(sel => opacityOf(pg, '#planRunBody .fact ' + sel)));
+  assert(await pg.evaluate(() => !!document.querySelector('#planRunBody .fact.mastered .fact-practise')), 'ticked, not done: ▶ Practise shown');
+  assert(en === 1 && practise === 1, `ticked, not done: the card and ▶ Practise not faded (${en}, ${practise})`);
+  await showFact(pg, s.ri, 1);
+  assert(await pg.evaluate(() => !document.querySelector('#planRunBody .fact.mastered') && !!document.querySelector('#planRunBody .fact-done-tag')),
+    'done, never ticked: tagged, no mastered mark');
+  await checkFadedCard(pg, 'done, not ticked');
+}
+
 // W-048: the runner fades everything on a mastered card but the tag, which keeps ≥ 4.5:1 composited
 async function checkFadedCard(pg, kind) {
-  const fade = sel => opacityOf(pg, '#planRunBody .fact.mastered ' + sel);
+  const fade = sel => opacityOf(pg, '#planRunBody .fact ' + sel);
   const near = (x, y) => Math.abs(x - y) < 1e-6;
   const [en, nodes, top, tag] = await Promise.all(['.fact-en', '.fact-src-nodes', '.fact-top', '.fact-done-tag'].map(fade));
   assert(near(en, MASTERED_FADE) && near(nodes, MASTERED_FADE) && near(top, MASTERED_FADE) && near(tag, 1),
@@ -262,6 +278,7 @@ async function main() {
   await checkTags(pg);
   await checkCounts(pg);
   await checkMastered(pg);
+  await checkFadeOnlyWhenDone(pg);
   await checkStudyUntouched(pg);
   await checkWrongFacts(pg);
   await checkNarrow(b);
