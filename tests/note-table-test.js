@@ -79,6 +79,17 @@ function checkData() {
   // no other note in the bank uses the table syntax
   const withTable = Object.entries(EXAMS).flatMap(([e, qs]) => qs.map((q, i) => [`${e}.${i + 1}`, q.note || ''])).filter(([, n]) => n.split('\n').some(isTableLine)).map(([k]) => k);
   assert(withTable.length === TOTAL_TABLE_QUESTIONS && withTable.every(k => all.includes(k)), `exactly the ${TOTAL_TABLE_QUESTIONS} group notes carry table rows (${withTable.length})`);
+  // S-140: every table in the bank is rectangular (each row has the header's cell count) and no "<br>" segment is empty
+  const shapeBad = withTable.filter(k => {
+    const lines = questionAt(EXAMS, k).note.split('\n');
+    const blocks = []; let cur = null;
+    lines.forEach(l => { if (isTableLine(l)) { if (!cur) blocks.push(cur = []); cur.push(l); } else cur = null; });
+    return blocks.some(b => {
+      const rows = tableRowsOf(b.join('\n'));
+      return rows.some(r => r.length !== rows[0].length) || rows.flat().some(c => c.includes('<br>') && c.split('<br>').some(seg => !seg.trim()));
+    });
+  });
+  assert(shapeBad.length === 0, `all ${withTable.length} tables are rectangular with no empty <br> remark (bad: ${shapeBad.join(', ')})`);
   return EXAMS;
 }
 
