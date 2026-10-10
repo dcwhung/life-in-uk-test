@@ -133,6 +133,9 @@
      5.6:1 on white, 5.1:1 on --selected-bg (today + hover) */
   --plan-day-chs-text: #806419;
 
+  /* a mastered fact card (🏆 / ticked) fades: the whole card in Study, all but the G41 done tag in the plan runner (W-048) */
+  --fact-mastered-opacity: 0.55;
+
   /* shadows and overlays */
   --shadow: 0 4px 24px rgba(26,39,68,0.10);
   --shadow-sm: 0 2px 8px rgba(26,39,68,0.07);

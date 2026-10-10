@@ -11,7 +11,7 @@
   transition: opacity 0.15s;
 }
 .fact.war { border-left-color: var(--red-light); }
-.fact.mastered { opacity: 0.55; border-left-color: var(--green-light); }
+.fact.mastered { opacity: var(--fact-mastered-opacity); border-left-color: var(--green-light); }
 /* Q8: back from the fact's session — gold outline for FACT_HIGHLIGHT_MS (static, no animation) */
 .fact.flash { outline: 2px solid var(--gold); outline-offset: 2px; }
 .fact-top { display: flex; align-items: flex-start; gap: var(--space-4); margin-bottom: var(--space-3); }
