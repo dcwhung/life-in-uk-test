@@ -220,3 +220,104 @@ report: .proj-docs/reviews/2026-10-10_review_plan-pr7c.md#s-154-follow-up--2026-
 next_action: merge_develop
 context: "Pass 99. Scope only .plan-run-nav (planFactNavHtml). Worst-case N 85 (reading) / 43 (wrong facts); browser QA 48/48 OK at 320/360/390 en+zh-HK incl. forced N=888; heights 45/47px. nowrap cannot clip (flex min-width:auto grows the main button; Prev shrinks to 126px at 320 en). S-157 optional test hardening. No APP_VERSION bump (plan hidden). No develop branch: merge_develop = PR into main."
 ```
+
+## Runner fade follow-up — 2026-10-10
+
+- 審閱者：code-reviewer（獨立 subagent）
+- 目標：branch `claude/charming-hopper-48ypzp`，`92dd27e...HEAD`：`59d78a7` test（`checkFadeOnlyWhenDone`）、`7089483` fix
+- Design Origin：proposal（user decision 2026-10-10，只限 plan runner：reading 卡要練習完成先褪色；Study 剔咗 ✓ 但未完成練習 → 唔褪，▶ Practise 都唔褪；完成咗 → 除咗「✓ 已完成練習」tag 全部褪，無論有冇剔 / 🏆。Study mode 不變）
+- 改動：`js/components/factCard.js` 有 `opts.doneTag` 先加 class `practice-done`（只有 `planFactCardHtml` 傳 doneTag）；`css/screens/plan.css` runner 兩條褪色 rule 由 `.fact.mastered` 改做 `.fact.practice-done`，保留 `.plan-run-body .fact.mastered { opacity: 1 }`；`tests/plan-read-done-test.js` 加 `checkFadeOnlyWhenDone`，`checkFadedCard` selector 由 `.fact.mastered` 放寬做 `.fact`
+- 未升 APP_VERSION：plan 入口仲隱藏，同意
+
+### Hard gates
+
+| Gate | 結果 |
+|------|------|
+| Lint / Type | n/a（純 JS + CSS，冇 linter / tsc） |
+| Tests | pass — `tests/run-all.sh` 44/44（`tests/*.png` 已 `git checkout` 還原）；喺 `59d78a7`（未 fix）跑 `plan-read-done-test` 係紅：`ticked, not done: the card and ▶ Practise not faded (0.55, 0.55)`，TDD 順序 OK |
+| Coverage | pass — 新行為兩邊（剔咗未完成 / 完成未剔）都有 test |
+| No Critical | pass |
+| Security | n/a（冇新依賴；class 名係常數，冇 escape 問題） |
+
+### 評分
+
+| 維度 | 得分 | 滿分 | 備注 |
+|------|------|------|------|
+| 正確性 | 25 | 25 | |
+| 安全性 | 20 | 20 | |
+| 可維護性 | 19 | 20 | S-158（−1） |
+| 測試覆蓋 | 14 | 15 | S-159（−1） |
+| 性能 | 10 | 10 | |
+| 代碼風格 / a11y | 10 | 10 | tag 對比 ≥ 4.5:1 不變 |
+| **總分** | **98** | **100** | |
+
+**結果：pass**
+
+### 檢查結果
+
+1. **`.fact.mastered` 其他 runner 樣式冇失**：`.fact.mastered` 嘅另一半（`css/components/fact.css:14` 綠色左邊框 `--green-light`）冇改，runner 照用：剔咗 / 🏆 卡都係綠邊（`rgb(82,183,136)`），完成但未剔嘅卡維持 study-accent 藍邊，左邊框喺 card 本身，所以唔褪（同 W-048 一樣）。✓ 掣狀態靠 marks（`.fact-btn.on`），唔靠 `.fact.mastered`，剔咗嘅卡 ✓ 照亮。`.plan-run-body .fact.mastered { opacity: 1 }` 保留，所以 runner 入面剔咗但未完成嘅卡唔會整張褪。
+2. **Class scope**：`practice-done` 只喺 `opts.doneTag` 有值時出；全 repo 只有 `planFactCardHtml`（reading）傳 doneTag。Study（`renderFact`）冇傳；wrong-facts（Similar panel）用 `FACT_VARIANT.core` / `factCoreHtml`，唔經 `factFullHtml`，所以冇 class、冇褪色。而且褪色 rule 有 `.plan-run-body` 前綴，Study 就算有呢個 class 都唔受影響。
+3. **Review mode**：review 會畀每張卡都出 tag（`planFactDone` 喺完成咗嘅任務個個都係 true），所以全部褪，tag 唔褪——即係同 user 講嘅「完成 → 褪」一致。
+4. **Tag 對比**：完成卡個 tag 喺 `.fact-src` 入面，唔受 0.55 影響（opacity 1，計埋 ancestor）；test `checkFadedCard` 用 composited contrast 計 🏆 / 剔咗 / 完成未剔三種，全部 ≥ 4.5:1。
+
+### 問題清單
+
+### 🟢 S-158 — test / CSS 註釋仲講「mastered 卡褪色」
+
+- 位置：`tests/plan-read-done-test.js` 檔頭（「W-048: in the runner a 🏆 / ticked-mastered card fades all but the tag」）、`MASTERED_FADE` 註釋（「.fact.mastered … the runner fades the parts」）、`checkFadedCard` 上面嘅註釋（「fades everything on a mastered card」）
+- 描述：而家 runner 係按「練習完成」褪色，唔係按 mastered。註釋冇跟住改，之後睇 test 嘅人會以為 runner 仲係 keyed on `.fact.mastered`。
+- 方案 A：三處改做「a done card（`.fact.practice-done`）fades all but the tag; ticked-but-not-done stays clear」。Trade-off：純註釋，0 風險。
+- 方案 B：只改檔頭 summary，其他兩處留低。Trade-off：更少改動，但 `checkFadedCard` 註釋仍然誤導。
+- 推薦：A。
+
+### 🟢 S-159 — 新 test 冇查 ✓ 掣行（`.fact-top`）同 review mode 嘅褪色
+
+- 位置：`tests/plan-read-done-test.js` `checkFadeOnlyWhenDone`、`checkCounts`（review 段）
+- 描述：剔咗未完成嗰 case 只量 `.fact-en` 同 `.fact-practise` 係 1；冇量 `.fact-top`（bookmark / ✓ 掣）同 `.fact-src-nodes`。Review mode 只 assert 有 tag，冇 assert 卡褪 + tag ≥ 4.5:1。今次 browser QA 確認兩樣都啱，但冇 regression 保護。
+- 方案 A：剔咗未完成 case 改成量 `['.fact-en', '.fact-top', '.fact-src-nodes', '.fact-practise']` 全部 = 1；`checkCounts` review 嗰兩個 `showFact(..., true)` 後面加 `await checkFadedCard(pg, 'review')`。Trade-off：多 2–3 行。
+- 方案 B：維持原狀，靠今次 QA。Trade-off：0 成本；之後有人改 selector 未必即刻發現。
+- 推薦：A（細改，可以同 S-158 一齊做，但要分開 commit）。
+
+### 做得好嘅地方
+
+- 改動好細：一個 class + 兩個 selector，冇郁到 Study 嘅 `.fact.mastered`，亦冇郁到 domain logic（`planFactDone`）。
+- 用「有冇 doneTag」做褪色條件，同 tag 本身同一個來源，唔會出現「褪咗但冇 tag」或者「有 tag 但唔褪」。
+- Test 真係先紅後綠，而且兩個方向（剔咗未完成、完成未剔）都有覆蓋，`checkFadedCard` 重用得好。
+
+### QA（reviewer 自己喺 browser 做）
+
+Playwright Chromium，`?preview=plan`，390 / 320 × zh-HK / en。同一個 reading 任務：fact 0 喺 Study 剔咗但未答、fact 1 今日答啱但冇剔、fact 2 🏆（今日冇答）、之後全部答啱入 review mode。**20/20 view 全部符合**，冇 page error、冇橫向 scroll：
+
+| View | class | 內文 / ✓ 行 opacity | ▶ Practise | Tag | 左邊框 |
+|------|-------|-------------------|-----------|-----|--------|
+| 剔咗未完成 | `fact mastered` | 1 / 1 | 有，1 | 冇 | 綠 |
+| 完成未剔 | `fact practice-done` | 0.55 / 0.55 | 冇 | 有，1 | 藍 |
+| 🏆 | `fact mastered practice-done` | 0.55 / 0.55 | 冇 | 有，1 | 綠 |
+| Review（剔咗） | `fact mastered practice-done` | 0.55 / 0.55 | 冇 | 有，1 | 綠 |
+| Review（普通） | `fact practice-done` | 0.55 / 0.55 | 冇 | 有，1 | 藍 |
+
+Study mode：剔咗嘅卡 `fact mastered`，整張 0.55，冇 `practice-done` / tag（不變）。Screenshot 睇過（320 zh-HK 剔咗未完成：全清、綠邊、▶ 練習這 3 題；320 en 完成未剔：內文褪、「✓ Practice done」清楚）。冇 ticket。
+
+### 修正優先順序
+
+| 優先 | ID | 處理 |
+|------|----|------|
+| 可選 | S-158 | 改 test 註釋（runner 按練習完成褪色） |
+| 可選 | S-159 | test 加 `.fact-top` / `.fact-src-nodes` 唔褪 + review mode `checkFadedCard` |
+
+### Handoff receipt
+
+```
+HANDOFF_RECEIPT
+agent: code-reviewer
+task: review runner fade follow-up (plan runner reading card fades only once its practice is done)
+branch: claude/charming-hopper-48ypzp
+commits: 59d78a7, 7089483
+status: pass
+score: 98
+hard_gates: { lint: n/a, type: n/a, tests: pass (44/44), coverage: pass, no_critical: pass, security: n/a }
+findings: { critical: 0, warning: 0, suggestion: 2 (S-158, S-159) }
+report: .proj-docs/reviews/2026-10-10_review_plan-pr7c.md#runner-fade-follow-up--2026-10-10
+next_action: merge_develop
+context: "Pass 98. practice-done only from planFactCardHtml (reading); Study and wrong-facts (core variant) never get it; fade rules scoped .plan-run-body. Green border + ✓ state unaffected. Test red at 59d78a7, green after. Browser QA 20/20 at 390/320 en+zh-HK (ticked-not-done clear, done-not-ticked / trophy / review faded with tag at 1). S-158 stale test comments, S-159 optional test hardening. No APP_VERSION bump (plan hidden). No develop branch: merge_develop = PR into main."
+```
