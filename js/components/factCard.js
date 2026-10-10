@@ -71,10 +71,12 @@ function factPractiseHtml(f, practise) {
   const { action, n } = practise || { action: 'startFactPractice', n: questionGroups(f.src).length };
   return `<button class="fact-practise" aria-describedby="${factIdElId(f)}" data-action="${action}" data-arg="${escapeHtml(f.id)}">${t('similar.practise', { n })}</button>`;
 }
-function factSourceRowHtml(f, practise) {
+// doneTag (G41): a caller's status label (e.g. a study plan's "✓ Practice done") shown at the row's right end; '' = none
+const factDoneTagHtml = doneTag => (doneTag ? `<span class="fact-done-tag">${escapeHtml(doneTag)}</span>` : '');
+function factSourceRowHtml(f, practise, doneTag) {
   return `<div class="fact-src">
       <div class="fact-src-nodes"><span class="sqm-map-label">${t('similar.appearsIn')}</span>${questionGroups(f.src).map(questionNodeHtml).join('')}</div>
-      ${factPractiseHtml(f, practise)}
+      ${factPractiseHtml(f, practise)}${factDoneTagHtml(doneTag)}
     </div>`;
 }
 
@@ -85,7 +87,7 @@ function factMemoryHtml(f) {
 }
 
 // marks: { bookmarks, mastered (ticked by hand), derived (factMastery) } booleans for this fact;
-// opts: tag switches + title (People tab name line) + practise (factPractiseHtml)
+// opts: tag switches + title (People tab name line) + practise (factPractiseHtml) + doneTag (factDoneTagHtml)
 function factFullHtml(f, { marks = {}, opts = {} }) {
   const mastered = marks.mastered || marks.derived;
   return `<div class="fact${f.w ? ' war' : ''}${mastered ? ' mastered' : ''}" data-fact-id="${escapeHtml(f.id)}">
@@ -99,7 +101,7 @@ function factFullHtml(f, { marks = {}, opts = {} }) {
     <div class="fact-en" lang="en">${escapeHtml(f.en)}</div>
     <div class="fact-yue" lang="zh-HK">${escapeHtml(f.yue)}</div>
     ${factMemoryHtml(f)}
-    ${factSourceRowHtml(f, opts.practise)}
+    ${factSourceRowHtml(f, opts.practise, opts.doneTag)}
   </div>`;
 }
 

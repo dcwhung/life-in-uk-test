@@ -11,7 +11,7 @@
   transition: opacity 0.15s;
 }
 .fact.war { border-left-color: var(--red-light); }
-.fact.mastered { opacity: 0.55; border-left-color: var(--green-light); }
+.fact.mastered { opacity: var(--fact-mastered-opacity); border-left-color: var(--green-light); }
 /* Q8: back from the fact's session — gold outline for FACT_HIGHLIGHT_MS (static, no animation) */
 .fact.flash { outline: 2px solid var(--gold); outline-offset: 2px; }
 .fact-top { display: flex; align-items: flex-start; gap: var(--space-4); margin-bottom: var(--space-3); }
@@ -114,3 +114,11 @@
 .sqm-fact-label [lang="en"] { text-transform: none; }
 .sqm-fact-en { font-size: var(--fs-base); line-height: 1.55; color: var(--navy); font-weight: 600; }
 .sqm-fact-yue { font-size: 12.5px; line-height: 1.6; color: var(--purple); margin-top: var(--space-2); }
+
+/* G41 (study plan reading): "✓ Practice done" in the slot of "▶ Practise" (a done fact has none); success colours
+   as .sqm-node.mastered. Beside the nodes it sits at the row's right end; wrapped, alone on its line, right-aligned */
+.fact-done-tag {
+  flex: 0 0 auto; margin-left: auto; white-space: nowrap;
+  background: var(--success-bg); color: var(--green); border-radius: var(--radius-pill);
+  padding: var(--space-2) var(--space-4); font-size: var(--fs-sm); font-weight: 700;
+}
