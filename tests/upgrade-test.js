@@ -118,7 +118,7 @@ async function mixedShell(b) {
 }
 
 // CUI-0021: a pre-PR3 cached index.html (no #screenPlanGoal / #infoPlanRow / #appToast) + current js with the
-// study plan preview on: no create card (it would open a screen the shell lacks), no ⓘ row, no page error
+// study plan entry on (v1.1.0): no create card (it would open a screen the shell lacks), no ⓘ row, no page error
 const PRE_PLAN_UI_REF = '4dc89b2';
 async function prePlanUiShell(b) {
   const dir = tmpDir('preplanui');
@@ -127,13 +127,13 @@ async function prePlanUiShell(b) {
   const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
   const errs = []; pg.on('pageerror', e => errs.push(e.message));
   await pg.goto('file://' + path.join(dir, 'old.html'));
-  await seed(pg, { [P + 'studyPlanPreview']: 'true' });
+  await seed(pg, {});
   await pg.waitForSelector('#examGrid .exam-btn', { state: 'attached' });
   assert(await pg.evaluate(() => typeof renderPlanCard === 'function' && !document.getElementById('screenPlanGoal')), 'pre-PR3 shell: planHome.js loaded, no goal screen markup');
-  assert(await pg.evaluate(() => !document.getElementById('planCard')), 'pre-PR3 shell + preview: no create card (CUI-0021)');
+  assert(await pg.evaluate(() => !document.getElementById('planCard')), 'pre-PR3 shell: no create card (CUI-0021)');
   await pg.evaluate(() => { openPlanGoal(); document.getElementById('infoBtn').click(); });
   assert(await pg.evaluate(() => document.querySelector('.screen.active').id) === 'screenHome', 'pre-PR3 shell: openPlanGoal() stays on Home');
-  assert(errs.length === 0, 'pre-PR3 shell + preview: no page errors: ' + errs.join(' | '));
+  assert(errs.length === 0, 'pre-PR3 shell: no page errors: ' + errs.join(' | '));
   await pg.close();
 }
 
@@ -146,14 +146,14 @@ async function pr3Shell(b) {
   const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
   const errs = []; pg.on('pageerror', e => errs.push(e.message));
   await pg.goto('file://' + path.join(dir, 'old.html'));
-  await seed(pg, { [P + 'studyPlanPreview']: 'true' });
+  await seed(pg, {});
   await pg.waitForSelector('#examGrid .exam-btn', { state: 'attached' });
   assert(await pg.evaluate(() => typeof openPlanSchedule === 'function' && !!document.getElementById('screenPlanGoal') && !document.getElementById('screenPlanSchedule')),
     'PR3 shell: planSchedule.js late-loaded, goal screen markup but no schedule');
-  assert(await pg.evaluate(() => !document.getElementById('planCard')), 'PR3 shell + preview: no plan card (CUI-0021)');
+  assert(await pg.evaluate(() => !document.getElementById('planCard')), 'PR3 shell: no plan card (CUI-0021)');
   await pg.evaluate(() => { openPlanGoal(); openPlanSchedule(); });
   assert(await pg.evaluate(() => document.querySelector('.screen.active').id) === 'screenHome', 'PR3 shell: plan screens stay closed');
-  assert(errs.length === 0, 'PR3 shell + preview: no page errors: ' + errs.join(' | '));
+  assert(errs.length === 0, 'PR3 shell: no page errors: ' + errs.join(' | '));
   await pg.close();
 }
 
@@ -167,18 +167,18 @@ async function pr4Shell(b) {
   const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
   const errs = []; pg.on('pageerror', e => errs.push(e.message));
   await pg.goto('file://' + path.join(dir, 'old.html'));
-  await seed(pg, { [P + 'studyPlanPreview']: 'true' });
+  await seed(pg, {});
   await pg.evaluate(() => writeStudyPlan(buildPlan({ examDate: isoAddDays(planTodayIso(), 21), dailyMins: 60, restDays: [0], level: 'none' }, planTodayIso())));
   await pg.reload();
   await pg.waitForSelector('#examGrid .exam-btn', { state: 'attached' });
   const stored = await pg.evaluate(() => localStorage.getItem(STUDY_PLAN_LS));
   assert(await pg.evaluate(() => typeof openPlanDay === 'function' && typeof planWatchDay === 'function' && !!document.getElementById('screenPlanSchedule') && !document.getElementById('screenPlanDay')),
     'PR4 shell: planDay.js late-loaded, schedule markup but no day screen');
-  assert(await pg.evaluate(() => !document.getElementById('planCard')), 'PR4 shell + preview + plan: no plan card (CUI-0021)');
+  assert(await pg.evaluate(() => !document.getElementById('planCard')), 'PR4 shell + plan: no plan card (CUI-0021)');
   await pg.evaluate(() => { openPlanDay(); openPlanSchedule(); });
   assert(await pg.evaluate(() => document.querySelector('.screen.active').id) === 'screenHome', 'PR4 shell: plan screens stay closed');
   assert(await pg.evaluate(() => localStorage.getItem(STUDY_PLAN_LS)) === stored, 'PR4 shell: the stored plan is not touched (G9 snapshot waits for the new shell)');
-  assert(errs.length === 0, 'PR4 shell + preview: no page errors: ' + errs.join(' | '));
+  assert(errs.length === 0, 'PR4 shell: no page errors: ' + errs.join(' | '));
   await pg.close();
 }
 

@@ -34,7 +34,7 @@ const modalLook = pg => pg.evaluate(() => {
 });
 
 async function open(pg, fn) {
-  await pg.goto(APP_URL + '?preview=plan');
+  await pg.goto(APP_URL);
   await pg.evaluate(`(${fn.toString()})()`);
 }
 

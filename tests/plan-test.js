@@ -76,7 +76,8 @@ const logWith = (iso, ok = [], bad = [], mock = []) => ({
 });
 
 function checkConfigAndStore() {
-  assert(g('STUDY_PLAN_READY') === false, 'STUDY_PLAN_READY is false until PR7 (G19)');
+  assert(g('STUDY_PLAN_READY') === true, 'STUDY_PLAN_READY is on since v1.1.0 (G19, PR8)');
+  assert(g('OBSOLETE_LS').includes('lifeuk.studyPlanPreview') && g('typeof isPlanPreviewOn') === 'undefined', 'G42: the preview flag is gone and its key is obsolete');
   assert(g('STUDY_PLAN_ENABLED_LS') === 'lifeuk.studyPlanEnabled' && g('STUDY_PLAN_LS') === 'lifeuk.studyPlan'
     && g('STUDY_PLAN_PROGRESS_LS') === 'lifeuk.studyPlanProgress', 'three plan localStorage keys carry the lifeuk. prefix');
   assert(g('PLAN_PREFIX') === 'p', "plan side sessions use the 'p' set id prefix");
