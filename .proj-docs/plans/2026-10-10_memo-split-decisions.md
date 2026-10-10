@@ -29,4 +29,6 @@
 | 7 | ⑤ 發明家（8 題） | 唔拆；分三欄「年份 / 人物 / 發明 / 發現」；Newton 格只留「萬有引力、運動定律」；Woolsthorpe / Royal Mint 保留做 8.11、4.7、8.21 前綴（專有名詞英文：「Isaac Newton（牛頓）喺 Lincolnshire（林肯郡）Woolsthorpe 出世，後來做過 Royal Mint（皇家鑄幣廠）嘅 Warden / Master」） | 已確認；細字英文大楷開頭（Penicillin、Jet engine） |
 | 8 | ⑥ 全年節日（15 題） | 唔拆；用戶定稿：25/1「Burns Night 彭斯之夜：<br>紀念蘇格蘭詩人 Robert Burns<br>佢寫咗 Auld Lang Syne」、5/11「Bonfire Night 篝火之夜：<br>又叫 Guy Fawkes Night<br>紀念 1605 年 Guy Fawkes 等人<br>火藥陰謀（Gunpowder Plot）失敗」、11/11「Remembrance Day 國殤紀念日：<br>又叫 Armistice Day（停戰紀念日）<br>紀念 1918 年 11/11 上午 11 時一戰停戰同戰爭死難者；<br>戴紅罌粟花」，其餘照建議；Guy Fawkes / Armistice Day 前綴搬入 table，6 題刪前綴 | 已確認 |
 | 9 | ⑧ 二戰（11 題） | 唔拆；跟 ⑨ 格式；1940 行分開：Churchill 任期 1940–45、1951–55 / Dunkirk / Battle of Britain 結果；D-Day 加「盟軍喺法國 Normandy（諾曼第）海灘登陸<br>開始反攻，解放西歐」；11.6、17.12 保留邱吉爾金句前綴；1939 改「Germany invades Poland：<br>德國入侵波蘭<br>英國同法國宣戰，二戰開始」（原本主文差 5px 唔夠位） | 已確認 |
-| 10 | ① 聖人、③ 首都 / 國花、② 教會、投票權 | 用戶：直接整理。①③ 加中文譯名細字；② 用第 5 組版本；投票權改 table（標題「記憶法（投票權）：」，1689 加「確認國會權利」→ 1.6、7.2 刪前綴） | preview 待睇 |
+| 10 | ① 聖人、③ 首都 / 國花、② 教會、投票權 | 用戶：直接整理。①③ 加中文譯名細字；② 用第 5 組版本；投票權改 table（標題「記憶法（投票權）：」，1689 加「確認國會權利」→ 1.6、7.2 刪前綴） | 已確認 |
+| 10b | E2 | 用戶要睇改前改後先決定（preview 已出） | 待決定 |
+| 10c | 投票權 | 女性投票權相關題全部喺投票權組；建議 table 加「19 世紀中 Chartists 憲章運動」同「20 世紀初 Suffragettes 婦女參政運動（Emmeline Pankhurst）」兩行，5.8、6.19、7.9、13.23、5.14、10.13 刪前綴 | 待確認 |
