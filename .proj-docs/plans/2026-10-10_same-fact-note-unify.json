@@ -57,19 +57,19 @@
   "fact": 3,
   "q": "4.6",
   "before": "「英國」(UK) 先包括北愛爾蘭",
-  "after": "大不列顛 = 英格蘭、蘇格蘭、威爾斯；英國（UK）再加北愛爾蘭"
+  "after": "Great Britain（大不列顛）= 英格蘭、蘇格蘭、威爾斯；英國（UK）再加北愛爾蘭"
  },
  {
   "fact": 3,
   "q": "6.5",
   "before": "唔包括北愛爾蘭",
-  "after": "大不列顛 = 英格蘭、蘇格蘭、威爾斯；英國（UK）再加北愛爾蘭"
+  "after": "Great Britain（大不列顛）= 英格蘭、蘇格蘭、威爾斯；英國（UK）再加北愛爾蘭"
  },
  {
   "fact": 3,
   "q": "17.8",
   "before": "",
-  "after": "大不列顛 = 英格蘭、蘇格蘭、威爾斯；英國（UK）再加北愛爾蘭"
+  "after": "Great Britain（大不列顛）= 英格蘭、蘇格蘭、威爾斯；英國（UK）再加北愛爾蘭"
  },
  {
   "fact": 7,
@@ -87,25 +87,25 @@
   "fact": 9,
   "q": "6.1",
   "before": "有啲硬幣上面刻有鐵器時代國王嘅名字",
-  "after": "鐵器時代鑄造，有啲硬幣上面刻有鐵器時代國王嘅名字"
+  "after": "Iron Age（鐵器時代）鑄造，有啲硬幣上面刻有鐵器時代國王嘅名字"
  },
  {
   "fact": 9,
   "q": "12.4",
   "before": "",
-  "after": "鐵器時代鑄造，有啲硬幣上面刻有鐵器時代國王嘅名字"
+  "after": "Iron Age（鐵器時代）鑄造，有啲硬幣上面刻有鐵器時代國王嘅名字"
  },
  {
   "fact": 12,
   "q": "2.18",
   "before": "公元122年，橫跨英格蘭北部",
-  "after": "羅馬人公元122年起，橫跨英格蘭北部，標示羅馬帝國嘅北界"
+  "after": "Romans（羅馬人）公元122年起，橫跨英格蘭北部，標示Roman Empire（羅馬帝國）嘅北界"
  },
  {
   "fact": 12,
   "q": "16.15",
   "before": "",
-  "after": "羅馬人公元122年起，橫跨英格蘭北部，標示羅馬帝國嘅北界"
+  "after": "Romans（羅馬人）公元122年起，橫跨英格蘭北部，標示Roman Empire（羅馬帝國）嘅北界"
  },
  {
   "fact": 16,
@@ -135,25 +135,25 @@
   "fact": 17,
   "q": "17.19",
   "before": "1066年之後英格蘭大幅改變",
-  "after": "1066年之後英格蘭大幅改變：貴族講諾曼法語，農民講盎格魯-撒克遜語"
+  "after": "1066年之後英格蘭大幅改變：貴族講Norman French（諾曼法語），農民講Anglo-Saxon（盎格魯-撒克遜語）"
  },
  {
   "fact": 17,
   "q": "15.0",
   "before": "貴族講諾曼法語，農民講盎格魯-撒克遜語",
-  "after": "1066年之後英格蘭大幅改變：貴族講諾曼法語，農民講盎格魯-撒克遜語"
+  "after": "1066年之後英格蘭大幅改變：貴族講Norman French（諾曼法語），農民講Anglo-Saxon（盎格魯-撒克遜語）"
  },
  {
   "fact": 20,
   "q": "4.13",
   "before": "",
-  "after": "1086年，征服者威廉下令編製"
+  "after": "1086年，William the Conqueror（征服者威廉）下令編製"
  },
  {
   "fact": 20,
   "q": "13.6",
   "before": "1086年",
-  "after": "1086年，征服者威廉下令編製"
+  "after": "1086年，William the Conqueror（征服者威廉）下令編製"
  },
  {
   "fact": 23,
@@ -177,13 +177,13 @@
   "fact": 25,
   "q": "10.3",
   "before": "中世紀英語文學重要作品",
-  "after": "喬叟寫嘅中世紀英語文學重要作品"
+  "after": "Geoffrey Chaucer（喬叟）寫嘅中世紀英語文學重要作品"
  },
  {
   "fact": 25,
   "q": "13.3",
   "before": "喬叟寫嘅",
-  "after": "喬叟寫嘅中世紀英語文學重要作品"
+  "after": "Geoffrey Chaucer（喬叟）寫嘅中世紀英語文學重要作品"
  },
  {
   "fact": 28,
@@ -213,25 +213,25 @@
   "fact": 38,
   "q": "1.22",
   "before": "記憶法（國王 vs 國會）：\n| 年份 | 事件 |\n| 1628 | Petition of Right<br>《權利請願書》：國王要國會同意先可以加稅 |\n| 1642–51 | Civil War<br>英格蘭內戰：Charles I（查理一世）vs 國會 |\n| 1649 | Charles I 被處決 → Commonwealth<br>共和國：Oliver Cromwell（克倫威爾）做 Lord Protector（護國公），到 1658 年 |\n| 1660 | Restoration<br>復辟：Charles II（查理二世）做國王 |\n| 1688 | Glorious Revolution<br>光榮革命：William of Orange（奧蘭治的威廉）取代 James II（詹姆士二世）→ 君主立憲 |",
-  "after": "1649年查理一世被處決之後克倫威爾掌權，到1658年去世（考試以官方手冊嘅講法為準；佢1653年先正式做護國公）\n記憶法（國王 vs 國會）：\n| 年份 | 事件 |\n| 1628 | Petition of Right<br>《權利請願書》：國王要國會同意先可以加稅 |\n| 1642–51 | Civil War<br>英格蘭內戰：Charles I（查理一世）vs 國會 |\n| 1649 | Charles I 被處決 → Commonwealth<br>共和國：Oliver Cromwell（克倫威爾）做 Lord Protector（護國公），到 1658 年 |\n| 1660 | Restoration<br>復辟：Charles II（查理二世）做國王 |\n| 1688 | Glorious Revolution<br>光榮革命：William of Orange（奧蘭治的威廉）取代 James II（詹姆士二世）→ 君主立憲 |"
+  "after": "1649年Charles I（查理一世）被處決之後Oliver Cromwell（克倫威爾）掌權，到1658年去世（考試以官方手冊嘅講法為準；佢1653年先正式做Lord Protector（護國公））\n記憶法（國王 vs 國會）：\n| 年份 | 事件 |\n| 1628 | Petition of Right<br>《權利請願書》：國王要國會同意先可以加稅 |\n| 1642–51 | Civil War<br>英格蘭內戰：Charles I（查理一世）vs 國會 |\n| 1649 | Charles I 被處決 → Commonwealth<br>共和國：Oliver Cromwell（克倫威爾）做 Lord Protector（護國公），到 1658 年 |\n| 1660 | Restoration<br>復辟：Charles II（查理二世）做國王 |\n| 1688 | Glorious Revolution<br>光榮革命：William of Orange（奧蘭治的威廉）取代 James II（詹姆士二世）→ 君主立憲 |"
  },
  {
   "fact": 40,
   "q": "4.2",
   "before": "1666年倫敦大火，包括聖保羅大教堂",
-  "after": "1666年查理二世年代，倫敦大火燒毀咗包括聖保羅大教堂喺內嘅大片地方"
+  "after": "1666年Charles II（查理二世）年代，Great Fire of London（倫敦大火）燒毀咗包括St Paul's Cathedral（聖保羅大教堂）喺內嘅大片地方"
  },
  {
   "fact": 40,
   "q": "7.19",
   "before": "查理二世年代",
-  "after": "1666年查理二世年代，倫敦大火燒毀咗包括聖保羅大教堂喺內嘅大片地方"
+  "after": "1666年Charles II（查理二世）年代，Great Fire of London（倫敦大火）燒毀咗包括St Paul's Cathedral（聖保羅大教堂）喺內嘅大片地方"
  },
  {
   "fact": 40,
   "q": "11.11",
   "before": "",
-  "after": "1666年查理二世年代，倫敦大火燒毀咗包括聖保羅大教堂喺內嘅大片地方"
+  "after": "1666年Charles II（查理二世）年代，Great Fire of London（倫敦大火）燒毀咗包括St Paul's Cathedral（聖保羅大教堂）喺內嘅大片地方"
  },
  {
   "fact": 45,
@@ -249,13 +249,13 @@
   "fact": 48,
   "q": "11.4",
   "before": "18世紀",
-  "after": "18世紀嘅思想運動；亞當·斯密係《國富論》作者，自由市場經濟之父"
+  "after": "18世紀嘅思想運動；Adam Smith（亞當·斯密）係《The Wealth of Nations》（國富論）作者，自由市場經濟之父"
  },
  {
   "fact": 48,
   "q": "14.4",
   "before": "《國富論》作者，自由市場經濟之父",
-  "after": "18世紀嘅思想運動；亞當·斯密係《國富論》作者，自由市場經濟之父"
+  "after": "18世紀嘅思想運動；Adam Smith（亞當·斯密）係《The Wealth of Nations》（國富論）作者，自由市場經濟之父"
  },
  {
   "fact": 49,
@@ -279,67 +279,67 @@
   "fact": 51,
   "q": "7.4",
   "before": "工業革命時期",
-  "after": "工業革命時期（18–19世紀）"
+  "after": "Industrial Revolution（工業革命）時期（18–19世紀）"
  },
  {
   "fact": 51,
   "q": "13.15",
   "before": "18–19世紀",
-  "after": "工業革命時期（18–19世紀）"
+  "after": "Industrial Revolution（工業革命）時期（18–19世紀）"
  },
  {
   "fact": 55,
   "q": "8.15",
   "before": "1807年通過《廢除奴隸貿易法案》（Slave Trade Act）",
-  "after": "1807年通過《廢除奴隸貿易法案》（Slave Trade Act），廢除大英帝國嘅奴隸貿易，由威廉·威伯福斯推動立法"
+  "after": "1807年通過《廢除奴隸貿易法案》（Slave Trade Act），廢除British Empire（大英帝國）嘅奴隸貿易，由William Wilberforce（威廉·威伯福斯）推動立法"
  },
  {
   "fact": 55,
   "q": "14.23",
   "before": "廢除大英帝國嘅奴隸貿易，由威廉·威伯福斯推動立法",
-  "after": "1807年通過《廢除奴隸貿易法案》（Slave Trade Act），廢除大英帝國嘅奴隸貿易，由威廉·威伯福斯推動立法"
+  "after": "1807年通過《廢除奴隸貿易法案》（Slave Trade Act），廢除British Empire（大英帝國）嘅奴隸貿易，由William Wilberforce（威廉·威伯福斯）推動立法"
  },
  {
   "fact": 55,
   "q": "16.18",
   "before": "",
-  "after": "1807年通過《廢除奴隸貿易法案》（Slave Trade Act），廢除大英帝國嘅奴隸貿易，由威廉·威伯福斯推動立法"
+  "after": "1807年通過《廢除奴隸貿易法案》（Slave Trade Act），廢除British Empire（大英帝國）嘅奴隸貿易，由William Wilberforce（威廉·威伯福斯）推動立法"
  },
  {
   "fact": 56,
   "q": "2.11",
   "before": "仲引入咗shampooing（洗頭按摩）服務",
-  "after": "由Sake Dean Mahomet（薩克·迪恩·馬霍梅特）大約1810年喺倫敦開設；佢仲引入咗shampooing（洗頭按摩）服務"
+  "after": "由Sake Dean Mahomet（薩克·迪恩·馬霍梅特）大約1810年喺London（倫敦）開設；佢仲引入咗shampooing（洗頭按摩）服務"
  },
  {
   "fact": 56,
   "q": "16.23",
   "before": "由Sake Dean Mahomet（薩克·迪恩·馬霍梅特）開設，大約1810年",
-  "after": "由Sake Dean Mahomet（薩克·迪恩·馬霍梅特）大約1810年喺倫敦開設；佢仲引入咗shampooing（洗頭按摩）服務"
+  "after": "由Sake Dean Mahomet（薩克·迪恩·馬霍梅特）大約1810年喺London（倫敦）開設；佢仲引入咗shampooing（洗頭按摩）服務"
  },
  {
   "fact": 57,
   "q": "4.0",
   "before": "記憶法（英國重要戰役）：\n| 年份 | 戰役 / 結果 |\n| 9 世紀 | Alfred the Great vs Vikings<br>阿佛烈大帝統一盎格魯-撒克遜王國，打敗維京人 |\n| 1066 | Battle of Hastings vs Normandy<br>黑斯廷斯戰役：William of Normandy（諾曼第公爵威廉）打敗 Harold → 英格蘭戰敗，諾曼征服 |\n| 1314 | Battle of Bannockburn vs Scotland<br>班諾克本戰役：Robert the Bruce 打敗英格蘭 → 蘇格蘭保持獨立 |\n| 1588 | Spanish Armada vs Spain<br>西班牙無敵艦隊：Elizabeth I 年代英格蘭打敗西班牙 |\n| 1805 | Battle of Trafalgar vs France + Spain<br>特拉法加海戰：Admiral Nelson（納爾遜）打敗法西聯合艦隊，但陣亡 |\n| 1815 | Battle of Waterloo vs France<br>滑鐵盧戰役：Duke of Wellington（威靈頓公爵）打敗 Napoleon，英法最後一戰 |\n| 1940 | Battle of Britain vs Germany<br>不列顛戰役：皇家空軍擊退德國空襲 → 阻止德國入侵 |",
-  "after": "Duke of Wellington（威靈頓公爵）綽號 Iron Duke（鐵公爵），打敗拿破崙，後來做咗首相\n記憶法（英國重要戰役）：\n| 年份 | 戰役 / 結果 |\n| 9 世紀 | Alfred the Great vs Vikings<br>阿佛烈大帝統一盎格魯-撒克遜王國，打敗維京人 |\n| 1066 | Battle of Hastings vs Normandy<br>黑斯廷斯戰役：William of Normandy（諾曼第公爵威廉）打敗 Harold → 英格蘭戰敗，諾曼征服 |\n| 1314 | Battle of Bannockburn vs Scotland<br>班諾克本戰役：Robert the Bruce 打敗英格蘭 → 蘇格蘭保持獨立 |\n| 1588 | Spanish Armada vs Spain<br>西班牙無敵艦隊：Elizabeth I 年代英格蘭打敗西班牙 |\n| 1805 | Battle of Trafalgar vs France + Spain<br>特拉法加海戰：Admiral Nelson（納爾遜）打敗法西聯合艦隊，但陣亡 |\n| 1815 | Battle of Waterloo vs France<br>滑鐵盧戰役：Duke of Wellington（威靈頓公爵）打敗 Napoleon，英法最後一戰 |\n| 1940 | Battle of Britain vs Germany<br>不列顛戰役：皇家空軍擊退德國空襲 → 阻止德國入侵 |"
+  "after": "Duke of Wellington（威靈頓公爵）綽號 Iron Duke（鐵公爵），打敗 Napoleon（拿破崙），後來做咗首相\n記憶法（英國重要戰役）：\n| 年份 | 戰役 / 結果 |\n| 9 世紀 | Alfred the Great vs Vikings<br>阿佛烈大帝統一盎格魯-撒克遜王國，打敗維京人 |\n| 1066 | Battle of Hastings vs Normandy<br>黑斯廷斯戰役：William of Normandy（諾曼第公爵威廉）打敗 Harold → 英格蘭戰敗，諾曼征服 |\n| 1314 | Battle of Bannockburn vs Scotland<br>班諾克本戰役：Robert the Bruce 打敗英格蘭 → 蘇格蘭保持獨立 |\n| 1588 | Spanish Armada vs Spain<br>西班牙無敵艦隊：Elizabeth I 年代英格蘭打敗西班牙 |\n| 1805 | Battle of Trafalgar vs France + Spain<br>特拉法加海戰：Admiral Nelson（納爾遜）打敗法西聯合艦隊，但陣亡 |\n| 1815 | Battle of Waterloo vs France<br>滑鐵盧戰役：Duke of Wellington（威靈頓公爵）打敗 Napoleon，英法最後一戰 |\n| 1940 | Battle of Britain vs Germany<br>不列顛戰役：皇家空軍擊退德國空襲 → 阻止德國入侵 |"
  },
  {
   "fact": 57,
   "q": "4.23",
   "before": "打敗拿破崙嘅名將",
-  "after": "Duke of Wellington（威靈頓公爵）綽號 Iron Duke（鐵公爵），打敗拿破崙，後來做咗首相\n記憶法（英國重要戰役）：\n| 年份 | 戰役 / 結果 |\n| 9 世紀 | Alfred the Great vs Vikings<br>阿佛烈大帝統一盎格魯-撒克遜王國，打敗維京人 |\n| 1066 | Battle of Hastings vs Normandy<br>黑斯廷斯戰役：William of Normandy（諾曼第公爵威廉）打敗 Harold → 英格蘭戰敗，諾曼征服 |\n| 1314 | Battle of Bannockburn vs Scotland<br>班諾克本戰役：Robert the Bruce 打敗英格蘭 → 蘇格蘭保持獨立 |\n| 1588 | Spanish Armada vs Spain<br>西班牙無敵艦隊：Elizabeth I 年代英格蘭打敗西班牙 |\n| 1805 | Battle of Trafalgar vs France + Spain<br>特拉法加海戰：Admiral Nelson（納爾遜）打敗法西聯合艦隊，但陣亡 |\n| 1815 | Battle of Waterloo vs France<br>滑鐵盧戰役：Duke of Wellington（威靈頓公爵）打敗 Napoleon，英法最後一戰 |\n| 1940 | Battle of Britain vs Germany<br>不列顛戰役：皇家空軍擊退德國空襲 → 阻止德國入侵 |"
+  "after": "Duke of Wellington（威靈頓公爵）綽號 Iron Duke（鐵公爵），打敗 Napoleon（拿破崙），後來做咗首相\n記憶法（英國重要戰役）：\n| 年份 | 戰役 / 結果 |\n| 9 世紀 | Alfred the Great vs Vikings<br>阿佛烈大帝統一盎格魯-撒克遜王國，打敗維京人 |\n| 1066 | Battle of Hastings vs Normandy<br>黑斯廷斯戰役：William of Normandy（諾曼第公爵威廉）打敗 Harold → 英格蘭戰敗，諾曼征服 |\n| 1314 | Battle of Bannockburn vs Scotland<br>班諾克本戰役：Robert the Bruce 打敗英格蘭 → 蘇格蘭保持獨立 |\n| 1588 | Spanish Armada vs Spain<br>西班牙無敵艦隊：Elizabeth I 年代英格蘭打敗西班牙 |\n| 1805 | Battle of Trafalgar vs France + Spain<br>特拉法加海戰：Admiral Nelson（納爾遜）打敗法西聯合艦隊，但陣亡 |\n| 1815 | Battle of Waterloo vs France<br>滑鐵盧戰役：Duke of Wellington（威靈頓公爵）打敗 Napoleon，英法最後一戰 |\n| 1940 | Battle of Britain vs Germany<br>不列顛戰役：皇家空軍擊退德國空襲 → 阻止德國入侵 |"
  },
  {
   "fact": 57,
   "q": "9.1",
   "before": "記憶法（英國重要戰役）：\n| 年份 | 戰役 / 結果 |\n| 9 世紀 | Alfred the Great vs Vikings<br>阿佛烈大帝統一盎格魯-撒克遜王國，打敗維京人 |\n| 1066 | Battle of Hastings vs Normandy<br>黑斯廷斯戰役：William of Normandy（諾曼第公爵威廉）打敗 Harold → 英格蘭戰敗，諾曼征服 |\n| 1314 | Battle of Bannockburn vs Scotland<br>班諾克本戰役：Robert the Bruce 打敗英格蘭 → 蘇格蘭保持獨立 |\n| 1588 | Spanish Armada vs Spain<br>西班牙無敵艦隊：Elizabeth I 年代英格蘭打敗西班牙 |\n| 1805 | Battle of Trafalgar vs France + Spain<br>特拉法加海戰：Admiral Nelson（納爾遜）打敗法西聯合艦隊，但陣亡 |\n| 1815 | Battle of Waterloo vs France<br>滑鐵盧戰役：Duke of Wellington（威靈頓公爵）打敗 Napoleon，英法最後一戰 |\n| 1940 | Battle of Britain vs Germany<br>不列顛戰役：皇家空軍擊退德國空襲 → 阻止德國入侵 |",
-  "after": "Duke of Wellington（威靈頓公爵）綽號 Iron Duke（鐵公爵），打敗拿破崙，後來做咗首相\n記憶法（英國重要戰役）：\n| 年份 | 戰役 / 結果 |\n| 9 世紀 | Alfred the Great vs Vikings<br>阿佛烈大帝統一盎格魯-撒克遜王國，打敗維京人 |\n| 1066 | Battle of Hastings vs Normandy<br>黑斯廷斯戰役：William of Normandy（諾曼第公爵威廉）打敗 Harold → 英格蘭戰敗，諾曼征服 |\n| 1314 | Battle of Bannockburn vs Scotland<br>班諾克本戰役：Robert the Bruce 打敗英格蘭 → 蘇格蘭保持獨立 |\n| 1588 | Spanish Armada vs Spain<br>西班牙無敵艦隊：Elizabeth I 年代英格蘭打敗西班牙 |\n| 1805 | Battle of Trafalgar vs France + Spain<br>特拉法加海戰：Admiral Nelson（納爾遜）打敗法西聯合艦隊，但陣亡 |\n| 1815 | Battle of Waterloo vs France<br>滑鐵盧戰役：Duke of Wellington（威靈頓公爵）打敗 Napoleon，英法最後一戰 |\n| 1940 | Battle of Britain vs Germany<br>不列顛戰役：皇家空軍擊退德國空襲 → 阻止德國入侵 |"
+  "after": "Duke of Wellington（威靈頓公爵）綽號 Iron Duke（鐵公爵），打敗 Napoleon（拿破崙），後來做咗首相\n記憶法（英國重要戰役）：\n| 年份 | 戰役 / 結果 |\n| 9 世紀 | Alfred the Great vs Vikings<br>阿佛烈大帝統一盎格魯-撒克遜王國，打敗維京人 |\n| 1066 | Battle of Hastings vs Normandy<br>黑斯廷斯戰役：William of Normandy（諾曼第公爵威廉）打敗 Harold → 英格蘭戰敗，諾曼征服 |\n| 1314 | Battle of Bannockburn vs Scotland<br>班諾克本戰役：Robert the Bruce 打敗英格蘭 → 蘇格蘭保持獨立 |\n| 1588 | Spanish Armada vs Spain<br>西班牙無敵艦隊：Elizabeth I 年代英格蘭打敗西班牙 |\n| 1805 | Battle of Trafalgar vs France + Spain<br>特拉法加海戰：Admiral Nelson（納爾遜）打敗法西聯合艦隊，但陣亡 |\n| 1815 | Battle of Waterloo vs France<br>滑鐵盧戰役：Duke of Wellington（威靈頓公爵）打敗 Napoleon，英法最後一戰 |\n| 1940 | Battle of Britain vs Germany<br>不列顛戰役：皇家空軍擊退德國空襲 → 阻止德國入侵 |"
  },
  {
   "fact": 57,
   "q": "16.12",
   "before": "記憶法（英國重要戰役）：\n| 年份 | 戰役 / 結果 |\n| 9 世紀 | Alfred the Great vs Vikings<br>阿佛烈大帝統一盎格魯-撒克遜王國，打敗維京人 |\n| 1066 | Battle of Hastings vs Normandy<br>黑斯廷斯戰役：William of Normandy（諾曼第公爵威廉）打敗 Harold → 英格蘭戰敗，諾曼征服 |\n| 1314 | Battle of Bannockburn vs Scotland<br>班諾克本戰役：Robert the Bruce 打敗英格蘭 → 蘇格蘭保持獨立 |\n| 1588 | Spanish Armada vs Spain<br>西班牙無敵艦隊：Elizabeth I 年代英格蘭打敗西班牙 |\n| 1805 | Battle of Trafalgar vs France + Spain<br>特拉法加海戰：Admiral Nelson（納爾遜）打敗法西聯合艦隊，但陣亡 |\n| 1815 | Battle of Waterloo vs France<br>滑鐵盧戰役：Duke of Wellington（威靈頓公爵）打敗 Napoleon，英法最後一戰 |\n| 1940 | Battle of Britain vs Germany<br>不列顛戰役：皇家空軍擊退德國空襲 → 阻止德國入侵 |",
-  "after": "Duke of Wellington（威靈頓公爵）綽號 Iron Duke（鐵公爵），打敗拿破崙，後來做咗首相\n記憶法（英國重要戰役）：\n| 年份 | 戰役 / 結果 |\n| 9 世紀 | Alfred the Great vs Vikings<br>阿佛烈大帝統一盎格魯-撒克遜王國，打敗維京人 |\n| 1066 | Battle of Hastings vs Normandy<br>黑斯廷斯戰役：William of Normandy（諾曼第公爵威廉）打敗 Harold → 英格蘭戰敗，諾曼征服 |\n| 1314 | Battle of Bannockburn vs Scotland<br>班諾克本戰役：Robert the Bruce 打敗英格蘭 → 蘇格蘭保持獨立 |\n| 1588 | Spanish Armada vs Spain<br>西班牙無敵艦隊：Elizabeth I 年代英格蘭打敗西班牙 |\n| 1805 | Battle of Trafalgar vs France + Spain<br>特拉法加海戰：Admiral Nelson（納爾遜）打敗法西聯合艦隊，但陣亡 |\n| 1815 | Battle of Waterloo vs France<br>滑鐵盧戰役：Duke of Wellington（威靈頓公爵）打敗 Napoleon，英法最後一戰 |\n| 1940 | Battle of Britain vs Germany<br>不列顛戰役：皇家空軍擊退德國空襲 → 阻止德國入侵 |"
+  "after": "Duke of Wellington（威靈頓公爵）綽號 Iron Duke（鐵公爵），打敗 Napoleon（拿破崙），後來做咗首相\n記憶法（英國重要戰役）：\n| 年份 | 戰役 / 結果 |\n| 9 世紀 | Alfred the Great vs Vikings<br>阿佛烈大帝統一盎格魯-撒克遜王國，打敗維京人 |\n| 1066 | Battle of Hastings vs Normandy<br>黑斯廷斯戰役：William of Normandy（諾曼第公爵威廉）打敗 Harold → 英格蘭戰敗，諾曼征服 |\n| 1314 | Battle of Bannockburn vs Scotland<br>班諾克本戰役：Robert the Bruce 打敗英格蘭 → 蘇格蘭保持獨立 |\n| 1588 | Spanish Armada vs Spain<br>西班牙無敵艦隊：Elizabeth I 年代英格蘭打敗西班牙 |\n| 1805 | Battle of Trafalgar vs France + Spain<br>特拉法加海戰：Admiral Nelson（納爾遜）打敗法西聯合艦隊，但陣亡 |\n| 1815 | Battle of Waterloo vs France<br>滑鐵盧戰役：Duke of Wellington（威靈頓公爵）打敗 Napoleon，英法最後一戰 |\n| 1940 | Battle of Britain vs Germany<br>不列顛戰役：皇家空軍擊退德國空襲 → 阻止德國入侵 |"
  },
  {
   "fact": 59,
@@ -363,7 +363,7 @@
   "fact": 62,
   "q": "10.18",
   "before": "",
-  "after": "克里米亞戰爭期間"
+  "after": "Crimean War（克里米亞戰爭）期間"
  },
  {
   "fact": 64,
@@ -399,43 +399,43 @@
   "fact": 80,
   "q": "9.9",
   "before": "工黨政府（Clement Attlee），免費醫療服務",
-  "after": "1948年工黨政府（Clement Attlee）成立，由Aneurin Bevan（安奈林·貝文）推動，使用嗰陣免費"
+  "after": "1948年Labour（工黨）政府（Clement Attlee）成立，由Aneurin Bevan（安奈林·貝文）推動，使用嗰陣免費"
  },
  {
   "fact": 80,
   "q": "12.10",
   "before": "1948年成立",
-  "after": "1948年工黨政府（Clement Attlee）成立，由Aneurin Bevan（安奈林·貝文）推動，使用嗰陣免費"
+  "after": "1948年Labour（工黨）政府（Clement Attlee）成立，由Aneurin Bevan（安奈林·貝文）推動，使用嗰陣免費"
  },
  {
   "fact": 80,
   "q": "13.14",
   "before": "",
-  "after": "1948年工黨政府（Clement Attlee）成立，由Aneurin Bevan（安奈林·貝文）推動，使用嗰陣免費"
+  "after": "1948年Labour（工黨）政府（Clement Attlee）成立，由Aneurin Bevan（安奈林·貝文）推動，使用嗰陣免費"
  },
  {
   "fact": 80,
   "q": "17.7",
   "before": "Aneurin Bevan（安奈林·貝文）推動，工黨政府",
-  "after": "1948年工黨政府（Clement Attlee）成立，由Aneurin Bevan（安奈林·貝文）推動，使用嗰陣免費"
+  "after": "1948年Labour（工黨）政府（Clement Attlee）成立，由Aneurin Bevan（安奈林·貝文）推動，使用嗰陣免費"
  },
  {
   "fact": 81,
   "q": "17.20",
   "before": "",
-  "after": "二戰之後由工黨政府建立"
+  "after": "二戰之後由Labour（工黨）政府建立"
  },
  {
   "fact": 103,
   "q": "4.15",
   "before": "記憶法（都鐸王朝 Tudor）：\n• 1455–1485 → 玫瑰戰爭（Wars of the Roses）→ York（約克）vs Lancaster（蘭開斯特）→ Henry VII（亨利七世）開創都鐸王朝；\n• Henry VIII（亨利八世）：\n    ◦ 教宗唔准佢同第一任妻子 Catherine of Aragon（阿拉貢的凱瑟琳）離婚 → 脫離天主教會，成立 Church of England（英格蘭國教會）；\n    ◦ 解散修道院（Dissolution of the Monasteries）；\n    ◦ 六任妻子，兩位被處決 → Anne Boleyn（安妮·博林）、Catherine Howard（凱瑟琳·霍華德）；\n• Elizabeth I（伊利沙伯一世）→ Anne Boleyn 嘅女兒 → 處決 Mary, Queen of Scots（蘇格蘭瑪麗女王）。",
-  "after": "君主係最高領袖，坎特伯雷大主教係精神領袖\n記憶法（都鐸王朝 Tudor）：\n• 1455–1485 → 玫瑰戰爭（Wars of the Roses）→ York（約克）vs Lancaster（蘭開斯特）→ Henry VII（亨利七世）開創都鐸王朝；\n• Henry VIII（亨利八世）：\n    ◦ 教宗唔准佢同第一任妻子 Catherine of Aragon（阿拉貢的凱瑟琳）離婚 → 脫離天主教會，成立 Church of England（英格蘭國教會）；\n    ◦ 解散修道院（Dissolution of the Monasteries）；\n    ◦ 六任妻子，兩位被處決 → Anne Boleyn（安妮·博林）、Catherine Howard（凱瑟琳·霍華德）；\n• Elizabeth I（伊利沙伯一世）→ Anne Boleyn 嘅女兒 → 處決 Mary, Queen of Scots（蘇格蘭瑪麗女王）。"
+  "after": "君主係最高領袖，Archbishop of Canterbury（坎特伯雷大主教）係精神領袖\n記憶法（都鐸王朝 Tudor）：\n• 1455–1485 → 玫瑰戰爭（Wars of the Roses）→ York（約克）vs Lancaster（蘭開斯特）→ Henry VII（亨利七世）開創都鐸王朝；\n• Henry VIII（亨利八世）：\n    ◦ 教宗唔准佢同第一任妻子 Catherine of Aragon（阿拉貢的凱瑟琳）離婚 → 脫離天主教會，成立 Church of England（英格蘭國教會）；\n    ◦ 解散修道院（Dissolution of the Monasteries）；\n    ◦ 六任妻子，兩位被處決 → Anne Boleyn（安妮·博林）、Catherine Howard（凱瑟琳·霍華德）；\n• Elizabeth I（伊利沙伯一世）→ Anne Boleyn 嘅女兒 → 處決 Mary, Queen of Scots（蘇格蘭瑪麗女王）。"
  },
  {
   "fact": 103,
   "q": "11.15",
   "before": "坎特伯雷大主教係精神領袖",
-  "after": "君主係最高領袖，坎特伯雷大主教係精神領袖\n記憶法（都鐸王朝 Tudor）：\n• 1455–1485 → 玫瑰戰爭（Wars of the Roses）→ York（約克）vs Lancaster（蘭開斯特）→ Henry VII（亨利七世）開創都鐸王朝；\n• Henry VIII（亨利八世）：\n    ◦ 教宗唔准佢同第一任妻子 Catherine of Aragon（阿拉貢的凱瑟琳）離婚 → 脫離天主教會，成立 Church of England（英格蘭國教會）；\n    ◦ 解散修道院（Dissolution of the Monasteries）；\n    ◦ 六任妻子，兩位被處決 → Anne Boleyn（安妮·博林）、Catherine Howard（凱瑟琳·霍華德）；\n• Elizabeth I（伊利沙伯一世）→ Anne Boleyn 嘅女兒 → 處決 Mary, Queen of Scots（蘇格蘭瑪麗女王）。"
+  "after": "君主係最高領袖，Archbishop of Canterbury（坎特伯雷大主教）係精神領袖\n記憶法（都鐸王朝 Tudor）：\n• 1455–1485 → 玫瑰戰爭（Wars of the Roses）→ York（約克）vs Lancaster（蘭開斯特）→ Henry VII（亨利七世）開創都鐸王朝；\n• Henry VIII（亨利八世）：\n    ◦ 教宗唔准佢同第一任妻子 Catherine of Aragon（阿拉貢的凱瑟琳）離婚 → 脫離天主教會，成立 Church of England（英格蘭國教會）；\n    ◦ 解散修道院（Dissolution of the Monasteries）；\n    ◦ 六任妻子，兩位被處決 → Anne Boleyn（安妮·博林）、Catherine Howard（凱瑟琳·霍華德）；\n• Elizabeth I（伊利沙伯一世）→ Anne Boleyn 嘅女兒 → 處決 Mary, Queen of Scots（蘇格蘭瑪麗女王）。"
  },
  {
   "fact": 113,
@@ -519,19 +519,19 @@
   "fact": 133,
   "q": "3.8",
   "before": "正式名稱：Yeoman Warders（皇家衛士）",
-  "after": "倫敦塔由Yeoman Warders（皇家衛士，俗稱Beefeaters）守衛，皇冠珠寶都放喺度"
+  "after": "Tower of London（倫敦塔）由Yeoman Warders（皇家衛士，俗稱Beefeaters）守衛，Crown Jewels（皇冠珠寶）都放喺度"
  },
  {
   "fact": 133,
   "q": "12.11",
   "before": "正式名稱：Yeoman Warders（皇家衛士）",
-  "after": "倫敦塔由Yeoman Warders（皇家衛士，俗稱Beefeaters）守衛，皇冠珠寶都放喺度"
+  "after": "Tower of London（倫敦塔）由Yeoman Warders（皇家衛士，俗稱Beefeaters）守衛，Crown Jewels（皇冠珠寶）都放喺度"
  },
  {
   "fact": 133,
   "q": "10.17",
   "before": "",
-  "after": "倫敦塔由Yeoman Warders（皇家衛士，俗稱Beefeaters）守衛，皇冠珠寶都放喺度"
+  "after": "Tower of London（倫敦塔）由Yeoman Warders（皇家衛士，俗稱Beefeaters）守衛，Crown Jewels（皇冠珠寶）都放喺度"
  },
  {
   "fact": 135,
@@ -555,25 +555,25 @@
   "fact": 143,
   "q": "10.16",
   "before": "每年6–7月舉行",
-  "after": "每年6–7月喺倫敦舉行"
+  "after": "每年6–7月喺London（倫敦）舉行"
  },
  {
   "fact": 143,
   "q": "12.21",
   "before": "",
-  "after": "每年6–7月喺倫敦舉行"
+  "after": "每年6–7月喺London（倫敦）舉行"
  },
  {
   "fact": 146,
   "q": "5.10",
   "before": "歐洲最大街頭嘉年華",
-  "after": "每年8月喺倫敦舉行，歐洲最大街頭嘉年華"
+  "after": "每年8月喺London（倫敦）舉行，歐洲最大街頭嘉年華"
  },
  {
   "fact": 146,
   "q": "8.16",
   "before": "每年8月喺倫敦舉行",
-  "after": "每年8月喺倫敦舉行，歐洲最大街頭嘉年華"
+  "after": "每年8月喺London（倫敦）舉行，歐洲最大街頭嘉年華"
  },
  {
   "fact": 155,
@@ -597,31 +597,31 @@
   "fact": 159,
   "q": "3.19",
   "before": "",
-  "after": "維多利亞時代小說家，作品有《聖誕頌歌》、《孤雛淚》、《雙城記》等"
+  "after": "Victorian（維多利亞時代）小說家，作品有《A Christmas Carol》（聖誕頌歌）、《Oliver Twist》（孤雛淚）、《A Tale of Two Cities》（雙城記）等"
  },
  {
   "fact": 159,
   "q": "8.18",
   "before": "《孤雛淚》、《雙城記》等",
-  "after": "維多利亞時代小說家，作品有《聖誕頌歌》、《孤雛淚》、《雙城記》等"
+  "after": "Victorian（維多利亞時代）小說家，作品有《A Christmas Carol》（聖誕頌歌）、《Oliver Twist》（孤雛淚）、《A Tale of Two Cities》（雙城記）等"
  },
  {
   "fact": 167,
   "q": "10.12",
   "before": "",
-  "after": "按慣例會任命下議院多數黨嘅領袖"
+  "after": "按慣例會任命House of Commons（下議院）多數黨嘅領袖"
  },
  {
   "fact": 173,
   "q": "7.16",
   "before": "",
-  "after": "上議院唔可以拒絕財政法案"
+  "after": "House of Lords（上議院）唔可以拒絕財政法案"
  },
  {
   "fact": 173,
   "q": "17.23",
   "before": "",
-  "after": "上議院唔可以拒絕財政法案"
+  "after": "House of Lords（上議院）唔可以拒絕財政法案"
  },
  {
   "fact": 177,
@@ -645,13 +645,13 @@
   "fact": 183,
   "q": "9.12",
   "before": "",
-  "after": "由反對黨領袖委任"
+  "after": "由Leader of the Opposition（反對黨領袖）委任"
  },
  {
   "fact": 184,
   "q": "2.0",
   "before": "負責罪案、警政同移民",
-  "after": "內政大臣負責罪案、警政同移民"
+  "after": "Home Secretary（內政大臣）負責罪案、警政同移民"
  },
  {
   "fact": 191,
@@ -675,13 +675,13 @@
   "fact": 203,
   "q": "9.14",
   "before": "",
-  "after": "由民主選舉產生嘅地區議會管理"
+  "after": "由民主選舉產生嘅local councils（地區議會）管理"
  },
  {
   "fact": 203,
   "q": "12.18",
   "before": "",
-  "after": "由民主選舉產生嘅地區議會管理"
+  "after": "由民主選舉產生嘅local councils（地區議會）管理"
  },
  {
   "fact": 222,
@@ -705,19 +705,19 @@
   "fact": 231,
   "q": "6.23",
   "before": "同歐盟係唔同嘅機構",
-  "after": "唔係歐盟機構；47個成員國（考試以官方手冊嘅47個為準；2022年起46個）"
+  "after": "唔係歐盟（European Union, EU）機構；47個成員國（考試以官方手冊嘅47個為準；2022年起46個）"
  },
  {
   "fact": 232,
   "q": "8.14",
   "before": "由歐洲委員會（唔係歐盟）監督",
-  "after": "由歐洲委員會（唔係歐盟）監督；歐洲人權法院喺法國史特拉斯堡"
+  "after": "由Council of Europe（歐洲委員會，唔係歐盟）監督；European Court of Human Rights（歐洲人權法院）喺法國Strasbourg（史特拉斯堡）"
  },
  {
   "fact": 232,
   "q": "15.18",
   "before": "法國史特拉斯堡",
-  "after": "由歐洲委員會（唔係歐盟）監督；歐洲人權法院喺法國史特拉斯堡"
+  "after": "由Council of Europe（歐洲委員會，唔係歐盟）監督；European Court of Human Rights（歐洲人權法院）喺法國Strasbourg（史特拉斯堡）"
  },
  {
   "fact": 233,

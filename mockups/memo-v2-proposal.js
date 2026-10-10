@@ -289,8 +289,8 @@ const PROPOSAL = {
         "| 年份 | 事件 |",
         "| 1066 | Norman Conquest<br>諾曼人係定居法國北部嘅維京人後裔；Bayeux Tapestry（貝葉掛毯）記錄征服 |",
         "| 之後 | New ruling class<br>新統治階層、新法律、各地起城堡 |",
-        "| 中世紀 | Languages<br>貴族講諾曼法語，農民講盎格魯-撒克遜語 |",
-        "| 1086 | Domesday Book<br>末日審判書：征服者威廉下令記錄土地同財產 |"
+        "| 中世紀 | Languages<br>貴族講 Norman French（諾曼法語），農民講 Anglo-Saxon（盎格魯-撒克遜語） |",
+        "| 1086 | Domesday Book<br>末日審判書：William the Conqueror（征服者威廉）下令記錄土地同財產 |"
       ]
     },
     {
@@ -310,7 +310,7 @@ const PROPOSAL = {
         "| 年份 | 事件 |",
         "| 1337–1453 | Hundred Years War<br>百年戰爭：英法打咗 116 年 |",
         "| 1348 | Black Death<br>黑死病：大約三分一人口死亡 |",
-        "| 14 世紀 | The Canterbury Tales<br>喬叟：一班人去坎特伯雷朝聖 |"
+        "| 14 世紀 | The Canterbury Tales<br>Geoffrey Chaucer（喬叟）：一班人去 Canterbury（坎特伯雷）朝聖 |"
       ]
     },
     {
@@ -369,7 +369,7 @@ const PROPOSAL = {
       "body": [
         "| 年份 | 事件 |",
         "| 1721–42 | Robert Walpole<br>第一位首相 |",
-        "| 1745 | Bonnie Prince Charlie<br>英俊王子查理帶蘇格蘭高地人起兵 |",
+        "| 1745 | Bonnie Prince Charlie<br>英俊王子查理帶 Scottish Highlands（蘇格蘭高地）人起兵 |",
         "| 18 世紀 | Enlightenment<br>啟蒙運動：Adam Smith 經濟學 |",
         "| 1776 | 13 colonies<br>北美 13 個殖民地宣佈獨立 |",
         "| 18–19 世紀 | Industrial Revolution<br>工業革命：製造業變成最大就業來源 |"
@@ -399,7 +399,7 @@ const PROPOSAL = {
         "| 約 1810 | Sake Dean Mahomet<br>倫敦第一間咖喱屋，引入 shampooing |",
         "| 維多利亞時代 | Isambard Kingdom Brunel<br>工程師：橋、隧道、鐵路、船 |",
         "| 1840s | Irish famine<br>薯仔失收，大約 100 萬人死 |",
-        "| 1853–56 | Florence Nightingale<br>南丁格爾：克里米亞戰爭改善醫院 |",
+        "| 1853–56 | Florence Nightingale<br>南丁格爾：Crimean War（克里米亞戰爭）改善醫院 |",
         "| 1899–1902 | Boer War<br>波爾戰爭：喺南非打 |"
       ]
     },
@@ -416,7 +416,7 @@ const PROPOSAL = {
       ],
       "body": [
         "| 年份 | 事件 |",
-        "| 1914 | 一戰開始<br>斐迪南大公遇刺 + 複雜同盟 |",
+        "| 1914 | 一戰開始<br>Archduke Franz Ferdinand（斐迪南大公）遇刺 + 複雜同盟 |",
         "| 1916 | Battle of the Somme<br>索姆河戰役：第一日大約 20,000 英軍陣亡 |",
         "| 1918 | 11/11 上午 11 時停戰<br>女性 30 歲以上有票 |"
       ]
@@ -572,7 +572,7 @@ const PROPOSAL = {
         "| Lent | Christian<br>大齋期：復活節前 40 日 |",
         "| Easter | Christian<br>復活節：3 月或者 4 月 |",
         "| Eid al-Fitr | Muslim<br>開齋節：齋戒月（Ramadan）完結 |",
-        "| Eid ul Adha | Muslim<br>宰牲節：紀念易卜拉欣願意犧牲兒子 |",
+        "| Eid ul Adha | Muslim<br>宰牲節：紀念Ibrahim（易卜拉欣）願意犧牲兒子 |",
         "| Diwali | Hindu + Sikh<br>排燈節（Festival of Lights） |",
         "| Vaisakhi | Sikh<br>光輝節：每年 4 月，紀念 Khalsa 成立 |",
         "• Bank holiday（銀行假期）→ 英國公眾假期嘅叫法，銀行同好多商舖休息。"
@@ -595,7 +595,7 @@ const PROPOSAL = {
         "| 地標 | 重點 |",
         "| Big Ben | Houses of Parliament<br>國會大廈嘅大鐘 |",
         "| Buckingham Palace | 君主喺倫敦嘅官方居所 |",
-        "| Tower of London | 征服者威廉起<br>Yeoman Warders（Beefeaters）守衛兼導賞；放 Crown Jewels（皇冠珠寶） |"
+        "| Tower of London | William the Conqueror 起<br>Yeoman Warders（Beefeaters）守衛兼導賞；放 Crown Jewels（皇冠珠寶） |"
       ]
     },
     {
