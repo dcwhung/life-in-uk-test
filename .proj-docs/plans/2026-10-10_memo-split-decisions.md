@@ -39,3 +39,5 @@
 | 15 | N5 倫敦大火（5 題：4.2、7.19、11.11、14.15、7.7） | table 3 行：1666 Great Fire of London（Charles II 年代 / 燒毀咗 London 大片地方 / 包括 St Paul's Cathedral）、- Samuel Pepys（寫日記記錄倫敦大火）、之後 St Paul's Cathedral（由 Sir Christopher Wren（雷恩）重新設計） | 已確認 |
 | 16 | N6 聯合王國點樣形成（5 題：10.8、12.14、13.17、10.14、2.5） | 用戶定稿 table 5 行：1536「Act for the Government of Wales：<br>Henry VIII（亨利八世）年代<br>Wales 正式併入 England」（用戶要求加；分兩行唔斷字）、1707 / 1800 Act of Union、1922 Irish Free State（Southern Ireland 脫離 UK / Northern Ireland 留喺 UK）、1949 Republic of Ireland | 已確認 |
 | 17 | N7 18 世紀（9 題：10.23、11.23、14.2、3.5、11.4、14.4、15.1、7.4、13.15） | 用戶定稿全 table 5 行；啟蒙運動「好多學者提出政治、哲學、科學新諗法<br>例如 Adam Smith（亞當·斯密）<br>研究經濟學，寫咗《國富論》<br>（The Wealth of Nations）」（書名中文先，英文括號）；Scottish Highlands 唔加中文 | 已確認 |
+| 17b | N7 次序 | 用戶問「18 世紀」放 1776 前有冇問題 → 建議確實年份先（1721–42、1745、1776），跨成個世紀嘅 Enlightenment（18 世紀）、Industrial Revolution（18 世紀起）放尾 | 待確認 |
+| 18 | N8 19 世紀（11 題） | 用戶：人同事分開 → 事件 table（1807 Slave Trade Act、1840s Irish famine、1853–56 Crimean War、1899–1902 Boer War）+「人物：」列點（Wilberforce、Sake Dean Mahomet、Brunel、Nightingale；長句用續行） | 待確認 |
