@@ -510,12 +510,22 @@ async function checkPhaseLabelsAndPill(pg, where) {
     const d = pill.getBoundingClientRect();
     out.done = { text: pill.textContent, fits: d.left >= side.left - 0.5 && d.right <= side.right + 0.5,
       lines: new Set([...range.getClientRects()].map(q => Math.round(q.top))).size };
+    // G43: today at 100% reads "Done today" / 「今日已完成」 in its solid green pill: one line in the same column
+    const cls = pill.className;
+    pill.className = 'plan-pill today-done';
+    pill.textContent = t('plan.status.todayDone');
+    range.selectNodeContents(pill);
+    const td = pill.getBoundingClientRect();
+    out.todayDone = { text: pill.textContent, fits: td.left >= side.left - 0.5 && td.right <= side.right + 0.5,
+      lines: new Set([...range.getClientRects()].map(q => Math.round(q.top))).size };
+    pill.className = cls;
     pill.textContent = before;
     return out;
   });
   assert(r.clipped.length === 0, `${where}: phase bar labels not clipped: ` + r.clipped);
   assert(r.fits, `${where}: "${r.full}" pill fits the left column: ` + JSON.stringify(r));
   assert(r.done.fits && r.done.lines === 1, `${where}: "${r.done.text}" pill fits the left column on one line: ` + JSON.stringify(r.done));
+  assert(r.todayDone.fits && r.todayDone.lines === 1, `${where}: G43 "${r.todayDone.text}" pill fits the left column on one line: ` + JSON.stringify(r.todayDone));
   assert(r.zero.lines === 1 && r.zero.font === r.zero.xs && r.zero.col === DAY_SIDE_PX, `${where}: S-117 "Today 0%" on one line at --fs-xs in a ${DAY_SIDE_PX}px column: ` + JSON.stringify(r.zero));
 }
 async function checkPillWideFont(pg, where) {
@@ -523,12 +533,14 @@ async function checkPillWideFont(pg, where) {
   // (Arial / Helvetica + 10%); "Today 100%" may wrap but stays inside the column
   const wide = await pg.evaluate(({ fonts, grow }) => {
     const row = document.querySelector('#planDayList .plan-day.today'), pill = row.querySelector('.plan-pill'), col = row.querySelector('.plan-day-side');
-    const before = [pill.textContent, pill.style.fontFamily];
+    const before = [pill.textContent, pill.style.fontFamily, pill.className];
     const out = [];
     for (const font of fonts) {
       pill.style.fontFamily = font;
-      for (const n of [0, 9, 99]) {
-        pill.textContent = t('plan.status.today', { n });
+      // G43: null = today at 100%, "Done today" / 「今日已完成」, which must fit one line too
+      for (const n of [0, 9, 99, null]) {
+        pill.className = n === null ? 'plan-pill today-done' : before[2];
+        pill.textContent = n === null ? t('plan.status.todayDone') : t('plan.status.today', { n });
         const range = document.createRange();
         range.selectNodeContents(pill);
         const cs = getComputedStyle(pill), text = range.getBoundingClientRect().width;
@@ -537,10 +549,10 @@ async function checkPillWideFont(pg, where) {
         out.push({ font, n, lines, need: Math.round(need), col: Math.round(col.getBoundingClientRect().width) });
       }
     }
-    [pill.textContent, pill.style.fontFamily] = before;
+    [pill.textContent, pill.style.fontFamily, pill.className] = before;
     return out;
   }, { fonts: ['', WIDE_FONT], grow: WIDE_FONT_GROW });
-  assert(wide.every(x => x.lines === 1 && (x.font === '' || x.need <= x.col)), `${where}: "Today 0–99%" on one line, also in ${WIDE_FONT} +10%: ` + JSON.stringify(wide.filter(x => x.lines !== 1 || x.need > x.col)));
+  assert(wide.every(x => x.lines === 1 && (x.font === '' || x.need <= x.col)), `${where}: "Today 0–99%" / "Done today" on one line, also in ${WIDE_FONT} +10%: ` + JSON.stringify(wide.filter(x => x.lines !== 1 || x.need > x.col)));
 }
 async function checkPlanResetRow(pg, where) {
   // v1.0.3 (user): "↺ Reset plan" on its own row under the hint, across the box's full content width

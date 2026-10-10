@@ -317,6 +317,7 @@ LOCALES['zh-HK'] = {
       editMinStudyDays: '考試前最少需要 {n} 個溫習日，未能更新進度表。請減少休息日或延後考試日期。',
     },
     schedule: {
+      doneSr: '（已完成）', // G43: screen-reader text after a finished phase / study-order step
       name: '進度表',
       editGoal: '更改目標',
       title: '你的進度表',
@@ -426,7 +427,7 @@ LOCALES['zh-HK'] = {
       prevFact: '← 上一條',
       nextFact: '下一條 →',
     },
-    status: { rest: '休息', today: '今日 {n}%', done: '✓ 已完成', pct: '{n}%' },
+    status: { rest: '休息', today: '今日 {n}%', done: '✓ 已完成', pct: '{n}%', todayDone: '今日已完成' },
     feas: {
       title: '時間是否足夠？',
       ok: '✓ 充裕',

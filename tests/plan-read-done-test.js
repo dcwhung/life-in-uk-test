@@ -8,8 +8,8 @@ const path = require('path');
 //   "{n} facts still need practice · {q} questions" (q = the main button's "Practise these q →")
 // - review mode (a finished task): no note; tags on every card
 // - Study mode's own card has no tag; 320px: a merged-node fact (98) + tag fit, no horizontal scroll
-// - W-048: in the runner a 🏆 / ticked-mastered card fades all but the tag (≥ 4.5:1 counted with ancestor opacity);
-//   Study's mastered card still fades whole
+// - W-048 / user 2026-10-10: in the runner a card fades only once its practice is done, then all but the tag (≥ 4.5:1
+//   counted with ancestor opacity); ticked ✓ but not done stays clear; Study's mastered card still fades whole
 // - S-155: a wrong-answer facts task (Similar panel) gets neither the note nor a tag
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
 const launchOpts = { args: ['--no-sandbox'] };
@@ -25,7 +25,7 @@ const MIN_CONTRAST = 4.5;
 const EN_TAG = '✓ Practice done';
 const ZH_TAG = '✓ 已完成練習';
 const ALL = 'all'; // seedRead: every fact of the task left unanswered
-const MASTERED_FADE = 0.55; // .fact.mastered (css/components/fact.css): the runner fades the parts, Study the card
+const MASTERED_FADE = 0.55; // --fact-mastered-opacity: the runner fades a done card's parts, Study a mastered card
 const DRILL_START = '2026-09-28', DRILL_TODAY = '2026-10-06'; // a drill day: drill Ch 1 / 2 / 5 + wrong facts (as plan-run2-test)
 const WRONG_KEYS = ['1.0', '2.3', '5.7'];
 const NAV_WIDTHS = [320, 360, 390]; // S-154: the runner's nav labels stay on one line at phone widths
@@ -143,6 +143,7 @@ async function checkCounts(pg) {
   assert(v.tag === EN_TAG && !v.practise && v.left === null && v.action === 'planBackToDay', 'review: tagged, no note, "Finish ✓" as today');
   await showFact(pg, s.ri, 0, true);
   assert((await view(pg)).tag === EN_TAG, 'review: the first card tagged too');
+  await checkFadedCard(pg, 'review');
   await showFact(pg, s.ri, s.facts.length - 1, false);
   v = await view(pg);
   assert(v.left === null && v.action === 'planBackToDay', 'all done (not review): no note, the last button as when nothing is left');
@@ -168,9 +169,25 @@ async function checkMastered(pg) {
   assert(await pg.evaluate(() => !!document.querySelector('#planRunBody .fact.mastered .fact-done-tag')), 'a ticked-mastered done fact: tagged');
   await checkFadedCard(pg, 'ticked');
 }
-// W-048: the runner fades everything on a mastered card but the tag, which keeps ≥ 4.5:1 composited
+// user 2026-10-10: in the runner a card fades only once its practice is done — ticked ✓ by hand but not done stays
+// clear (▶ Practise too); done but never ticked fades like a 🏆 one (the tag still unfaded)
+async function checkFadeOnlyWhenDone(pg) {
+  await fresh(pg);
+  const s = await seedRead(pg, [0]);
+  await pg.evaluate(id => { study.mastered[id] = true; }, s.facts[0]);
+  await showFact(pg, s.ri, 0);
+  const [en, practise, top, nodes] = await Promise.all(['.fact-en', '.fact-practise', '.fact-top', '.fact-src-nodes'].map(sel => opacityOf(pg, '#planRunBody .fact ' + sel)));
+  assert(await pg.evaluate(() => !!document.querySelector('#planRunBody .fact.mastered .fact-practise')), 'ticked, not done: ▶ Practise shown');
+  assert([en, practise, top, nodes].every(o => o === 1), `ticked, not done: text, ✓ row, nodes and ▶ Practise not faded (${en}, ${top}, ${nodes}, ${practise})`);
+  await showFact(pg, s.ri, 1);
+  assert(await pg.evaluate(() => !document.querySelector('#planRunBody .fact.mastered') && !!document.querySelector('#planRunBody .fact-done-tag')),
+    'done, never ticked: tagged, no mastered mark');
+  await checkFadedCard(pg, 'done, not ticked');
+}
+
+// W-048: the runner fades everything on a done card but the tag, which keeps ≥ 4.5:1 composited
 async function checkFadedCard(pg, kind) {
-  const fade = sel => opacityOf(pg, '#planRunBody .fact.mastered ' + sel);
+  const fade = sel => opacityOf(pg, '#planRunBody .fact ' + sel);
   const near = (x, y) => Math.abs(x - y) < 1e-6;
   const [en, nodes, top, tag] = await Promise.all(['.fact-en', '.fact-src-nodes', '.fact-top', '.fact-done-tag'].map(fade));
   assert(near(en, MASTERED_FADE) && near(nodes, MASTERED_FADE) && near(top, MASTERED_FADE) && near(tag, 1),
@@ -262,6 +279,7 @@ async function main() {
   await checkTags(pg);
   await checkCounts(pg);
   await checkMastered(pg);
+  await checkFadeOnlyWhenDone(pg);
   await checkStudyUntouched(pg);
   await checkWrongFacts(pg);
   await checkNarrow(b);

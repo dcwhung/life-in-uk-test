@@ -8,6 +8,8 @@
 // Each day row (and the exam day) is a button that opens that day (planDay.js); "View today's tasks →" below.
 // v1.0.4: "Three phases" and "Study order" fold: expanded on the first open after a new plan / changed goal, collapsed on
 // every later open (the bar then shows each phase's Day range; the order a stepper of numbered dots)
+// G43: a phase whose content is done (planPhaseDone) turns its own green with a ✓; a study-order step whose chapters are
+// done (planChaptersDone) gets a green ✓ dot; today at 100% shows a solid green "Done today" pill
 // ════════════════════════════════════════
 const PLAN_ORDER_STEPS = [[1, 2], [5], [4], [3]]; // PLAN_STUDY_ORDER grouped as the order card shows it
 const PLAN_ORDER_WHY_KEYS = { 1: 'plan.order.whyWarmUp', 5: 'plan.order.whyGov', 4: 'plan.order.whySociety', 3: 'plan.order.whyHistory' };
@@ -19,6 +21,7 @@ const PLAN_TASK_ICONS = { read: '📖', practice: '📝', drill: '📝', wrongFa
 const PLAN_REST_ICON = '😴';
 const PLAN_LIGHT_ICON = '🔁';
 const PLAN_EXAM_ICON = '🎯';
+const PLAN_DONE_MARK = '✓'; // G43: before a finished phase's name, in a finished study-order step's dot
 const PLAN_SAFE_IN_A_ROW = 3; // "3 in a row at 21 / 24 or more is safe"
 const PLAN_ORDER_BAR_MIN_PCT = 2; // the smallest chapter bar stays visible
 // PR4 QA O-1: rows further than this from today skip layout until scrolled near (content-visibility); the rows
@@ -44,9 +47,11 @@ function renderPlanSchedule() {
   const log = planLoadLogView() || planEmptyLog(); // an unreadable log shows as nothing answered (↺ Reset clears it)
   const phases = planPhaseDays(plan);
   byId('planSummary').textContent = planSummaryText(plan);
-  renderPlanPhaseBar(phases);
-  renderPlanStrategy(plan, phases);
-  renderPlanOrder();
+  const doneSets = planDoneSets(log); // S-160: once per render, shared by the phases and the study order
+  const done = planPhasesDone(plan, log, phases, doneSets);
+  renderPlanPhaseBar(phases, done);
+  renderPlanStrategy(plan, phases, done);
+  renderPlanOrder(log, doneSets);
   Object.keys(PLAN_FOLD_TOGGLES).forEach(applyPlanFold);
   byId('planDayList').innerHTML = planDayListHtml(plan, log, planTodayIso());
 }
@@ -104,10 +109,16 @@ function planPhaseDays(plan) {
 function planShownPhases(phases) { return PLAN_SHOWN_PHASES.filter(k => phases[k].length); }
 // v1.0.2: three equal segments, the name over its day count; a name too long for its segment wraps (W-037, plan.css)
 // v1.0.4: each also carries its Day range, shown instead of the count while the card is collapsed (plan.css .collapsed)
-function renderPlanPhaseBar(phases) {
+// G43: the ✓ is decoration; screen readers hear "(done)" after the name instead
+function planDoneSrHtml(done) { return done ? `<span class="plan-sr">${t('plan.schedule.doneSr')}</span>` : ''; }
+function planPhasesDone(plan, log, phases, doneSets) {
+  return Object.fromEntries(planShownPhases(phases).map(k => [k, planPhaseDone(plan, log, k, doneSets)]));
+}
+function renderPlanPhaseBar(phases, done) {
   byId('planPhaseBar').innerHTML = planShownPhases(phases).map(k => {
     const nameKey = PLAN_PHASE_LABEL_KEYS[k];
-    return `<div class="plan-bg-${k}" role="listitem"><span class="plan-ph-name">${t(nameKey)}</span>`
+    const mark = done[k] ? `<span aria-hidden="true">${PLAN_DONE_MARK} </span>` : '';
+    return `<div class="plan-bg-${k}${done[k] ? ' done' : ''}" role="listitem"><span class="plan-ph-name">${mark}${t(nameKey)}</span>${planDoneSrHtml(done[k])}`
       + `<span class="plan-ph-days plan-num">${t('plan.schedule.phaseDaysN', { n: phases[k].length })}</span>`
       + `<span class="plan-ph-range plan-num" lang="en">${planDayRangeText(phases[k])}</span></div>`;
   }).join('');
@@ -128,41 +139,47 @@ function planStrategyItems(plan, phase) {
   return [t('plan.strategy.mockTitle', { n: mocks }), t('plan.strategy.mockReal', { n: REAL_TEST_SIZE, m: EXAM_MINUTES }),
     t('plan.strategy.mockPass', { pass: passScore, safe: PLAN_SAFE_SCORE, n: REAL_TEST_SIZE, k: PLAN_SAFE_IN_A_ROW }), t('plan.strategy.mockLast')];
 }
-function renderPlanStrategy(plan, phases) {
+// G43: expanded, the bar is aria-hidden, so a finished phase's "(done)" goes after its strategy title instead
+function renderPlanStrategy(plan, phases, done) {
   byId('planStrategy').innerHTML = planShownPhases(phases).map((k, i) => {
     const [title, ...items] = planStrategyItems(plan, k);
     return `<div class="plan-strat ${k}"><span class="plan-strat-n plan-num" aria-hidden="true">${i + 1}</span><div>`
-      + `${planDayRangeHtml(phases[k])}<h4>${title}</h4><ul>${items.map(s => `<li>${s}</li>`).join('')}</ul></div></div>`;
+      + `${planDayRangeHtml(phases[k])}<h4>${title}${planDoneSrHtml(done[k])}</h4><ul>${items.map(s => `<li>${s}</li>`).join('')}</ul></div></div>`;
   }).join('');
 }
 
 // ── study order: Ch1–2 → Ch5 → Ch4 → Ch3, each with its size and why it comes there ──
 function planChapterText(ch) { return `${t('common.chapterShort', { n: ch })} ${t(`data.chapterShort.${ch}`)}`; }
 function planChapterFacts(ch) { return STUDY.filter(f => f.ch === ch).length; }
-function planOrderStepHtml(chs, i) {
+// the step's dot: its number, or a ✓ once its chapters are done (G43); aria-hidden either way
+function planOrderDotHtml(i, done) {
+  return `<span class="plan-ord-n plan-num${done ? ' done' : ''}" aria-hidden="true">${done ? PLAN_DONE_MARK : i + 1}</span>`;
+}
+function planOrderStepHtml(chs, i, done) {
   const facts = chs.reduce((s, ch) => s + planChapterFacts(ch), 0);
   const qs = chs.reduce((s, ch) => s + PLAN_CHAPTER_QIDS[ch].length, 0);
   const whyKey = PLAN_ORDER_WHY_KEYS[chs[0]];
   const why = t(whyKey, { n: facts });
   // v1.0.3: name, why, then the bar row (bar filling the row, a fixed gap, the count)
-  return `<div class="plan-ord"><span class="plan-ord-n plan-num" aria-hidden="true">${i + 1}</span><div class="plan-ord-body">`
-    + `<b class="plan-ord-name" lang="en">${chs.map(planChapterText).join(' + ')}</b><span class="plan-ord-why">${why}</span>`
+  return `<div class="plan-ord">${planOrderDotHtml(i, done)}<div class="plan-ord-body">`
+    + `<b class="plan-ord-name" lang="en">${chs.map(planChapterText).join(' + ')}</b>${planDoneSrHtml(done)}<span class="plan-ord-why">${why}</span>`
     + `<div class="plan-chw"><span class="plan-chw-bar" aria-hidden="true"><i></i></span>`
     + `<span class="plan-chw-c plan-num">${t('plan.schedule.orderCount', { facts, qs })}</span></div></div></div>`;
 }
 // v1.0.4: the collapsed card's stepper: a numbered dot per step, a short label ("Ch 1 + 2") under it; screen readers get
 // the full chapter names instead
-function planOrderMiniHtml(chs, i) {
+function planOrderMiniHtml(chs, i, done) {
   const short = [t('common.chapterShort', { n: chs[0] }), ...chs.slice(1)].join(' + ');
-  return `<li><span class="plan-ord-n plan-num" aria-hidden="true">${i + 1}</span>`
+  return `<li>${planOrderDotHtml(i, done)}`
     + `<span class="plan-ord-mini-name" lang="en" aria-hidden="true">${short}</span>`
-    + `<span class="plan-sr" lang="en">${chs.map(planChapterText).join(' + ')}</span></li>`;
+    + `<span class="plan-sr" lang="en">${chs.map(planChapterText).join(' + ')}</span>${planDoneSrHtml(done)}</li>`;
 }
-function renderPlanOrder() {
+function renderPlanOrder(log, doneSets) {
+  const done = PLAN_ORDER_STEPS.map(chs => planChaptersDone(log, chs, doneSets));
   const mini = byId('planOrderMini');
-  if (mini) mini.innerHTML = PLAN_ORDER_STEPS.map(planOrderMiniHtml).join('');
+  if (mini) mini.innerHTML = PLAN_ORDER_STEPS.map((chs, i) => planOrderMiniHtml(chs, i, done[i])).join('');
   const box = byId('planOrder');
-  box.innerHTML = PLAN_ORDER_STEPS.map(planOrderStepHtml).join('');
+  box.innerHTML = PLAN_ORDER_STEPS.map((chs, i) => planOrderStepHtml(chs, i, done[i])).join('');
   const sizes = PLAN_ORDER_STEPS.map(chs => chs.reduce((s, ch) => s + planChapterFacts(ch), 0));
   const most = Math.max(...sizes);
   box.querySelectorAll('.plan-chw-bar i').forEach((el, i) => {
@@ -205,12 +222,17 @@ function planDayTasksHtml(day) {
   if (day.light) return planTaskLineHtml(PLAN_LIGHT_ICON, t('plan.task.light'));
   return day.tasks.map(task => planTaskLineHtml(PLAN_TASK_ICONS[task.type], planTaskText(task, day))).join('') + planDayChaptersHtml(day);
 }
-// ✓ done / its G27 band (past), today n%, rest; a day ahead has no pill (v1.0.3, user: the whole row opens it)
+// ✓ done / its G27 band (past), today n% (G43: "Done today" at 100%), rest; a day ahead has no pill (v1.0.3, user: the
+// whole row opens it)
+function planTodayPillHtml(pct) {
+  if (pct >= PERCENT) return `<span class="plan-pill today-done">${t('plan.status.todayDone')}</span>`;
+  return `<span class="plan-pill now plan-num">${t('plan.status.today', { n: pct })}</span>`;
+}
 function planDayPillHtml(day, dayLog, when) {
   if (day.phase === PLAN_PHASE.rest) return `<span class="plan-pill mute">${t('plan.status.rest')}</span>`;
   if (when === PLAN_WHEN.ahead) return '';
   const pct = planDayCompletion(day, dayLog).pct || 0;
-  if (when === PLAN_WHEN.today) return `<span class="plan-pill now plan-num">${t('plan.status.today', { n: pct })}</span>`;
+  if (when === PLAN_WHEN.today) return planTodayPillHtml(pct);
   if (pct >= PERCENT) return `<span class="plan-pill ok">${t('plan.status.done')}</span>`;
   return `<span class="plan-pill plan-num h${planPctBand(pct)}">${t('plan.status.pct', { n: pct })}</span>`;
 }
