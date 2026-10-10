@@ -24,5 +24,6 @@
 | 5b | 5B | 用戶 v2：續行（8 空格、冇符號）放 York vs Lancaster、兩位被處決妻子；app 只得兩層，續行會縮返去對齊「•」文字 → 用戶揀 A：改 app code，8+ 空格冇符號 = 續行（`.rv-note-line.cont`，padding-left 2 × indent、text-indent 0），對齊「→」後面文字；改 `js/components/tags.js` noteLineHtml + `css/components/note.css` + 測試 | 已確認 |
 | 5c | 4.15、11.15 | 搬去 ② 教會 table（E1）：England 格「Church of England<br>Henry VIII 創立；君主係最高領袖，Archbishop of Canterbury（坎特伯雷大主教）係精神領袖」，刪重複前綴；② 變 7 題 | 已確認 |
 | 5d | 5A | 字眼照草稿 | 已確認 |
-| 6 | ⑨ 國王 vs 國會（8 題） | 唔拆；格式改「English 中文：<br>經過」（用戶定稿 1628 / 1642–51 / 1660）；1649 同 1688 要再執：建議 1649「Commonwealth 共和國：<br>Charles I 被處決，英格蘭冇咗君主<br>Oliver Cromwell（克倫威爾）做 Lord Protector（護國公），到 1658 年」、1688「Glorious Revolution 光榮革命：<br>James II（詹姆士二世）被和平取代<br>William of Orange（奧蘭治的威廉）做國王 → 開始君主立憲」 | 已確認 |
+| 6 | ⑨ 國王 vs 國會（8 題） | 唔拆；格式改「English 中文：<br>經過」（用戶定稿 1628 / 1642–51 / 1660）；1649 同 1688 要再執：建議 1649「Commonwealth 共和國：<br>Charles I 被處決，英格蘭冇咗君主<br>Oliver Cromwell（克倫威爾）做 Lord Protector（護國公），到 1658 年」、1688「Glorious Revolution 光榮革命：<br>James II（詹姆斯二世）被和平取代<br>William of Orange（奧蘭治的威廉）做國王 → 開始君主立憲」 | 已確認 |
 | 6b | X7 譯名 | James II →「詹姆斯二世」（用戶 2026-10-10；同 `yue-terms.md`「James → 詹姆斯」一致）；⑨ table 8 題嘅「詹姆士二世」一齊改；「聖詹姆士宮」係地名，唔郁 | 已確認 |
+| 7 | ⑤ 發明家（8 題） | 唔拆；分三欄「年份 / 人物 / 發明 / 發現」；Newton 前綴搬入 table，8.11、4.7、8.21 刪前綴 | 已確認（字眼待確認） |
