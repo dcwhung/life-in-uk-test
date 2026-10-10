@@ -130,6 +130,8 @@ async function prePlanUiShell(b) {
   await seed(pg, {});
   await pg.waitForSelector('#examGrid .exam-btn', { state: 'attached' });
   assert(await pg.evaluate(() => typeof renderPlanCard === 'function' && !document.getElementById('screenPlanGoal')), 'pre-PR3 shell: planHome.js loaded, no goal screen markup');
+  // the entry itself is on (v1.1.0), so only planShellReady() (CUI-0021) can be what hides the card
+  assert(await pg.evaluate(() => planEntryReady() && isStudyPlanEnabled()), 'pre-PR3 shell: the entry is on');
   assert(await pg.evaluate(() => !document.getElementById('planCard')), 'pre-PR3 shell: no create card (CUI-0021)');
   await pg.evaluate(() => { openPlanGoal(); document.getElementById('infoBtn').click(); });
   assert(await pg.evaluate(() => document.querySelector('.screen.active').id) === 'screenHome', 'pre-PR3 shell: openPlanGoal() stays on Home');
@@ -150,6 +152,8 @@ async function pr3Shell(b) {
   await pg.waitForSelector('#examGrid .exam-btn', { state: 'attached' });
   assert(await pg.evaluate(() => typeof openPlanSchedule === 'function' && !!document.getElementById('screenPlanGoal') && !document.getElementById('screenPlanSchedule')),
     'PR3 shell: planSchedule.js late-loaded, goal screen markup but no schedule');
+  // the entry itself is on (v1.1.0), so only planShellReady() (CUI-0021) can be what hides the card
+  assert(await pg.evaluate(() => planEntryReady() && isStudyPlanEnabled()), 'PR3 shell: the entry is on');
   assert(await pg.evaluate(() => !document.getElementById('planCard')), 'PR3 shell: no plan card (CUI-0021)');
   await pg.evaluate(() => { openPlanGoal(); openPlanSchedule(); });
   assert(await pg.evaluate(() => document.querySelector('.screen.active').id) === 'screenHome', 'PR3 shell: plan screens stay closed');
@@ -174,6 +178,8 @@ async function pr4Shell(b) {
   const stored = await pg.evaluate(() => localStorage.getItem(STUDY_PLAN_LS));
   assert(await pg.evaluate(() => typeof openPlanDay === 'function' && typeof planWatchDay === 'function' && !!document.getElementById('screenPlanSchedule') && !document.getElementById('screenPlanDay')),
     'PR4 shell: planDay.js late-loaded, schedule markup but no day screen');
+  // the entry itself is on (v1.1.0), so only planShellReady() (CUI-0021) can be what hides the card
+  assert(await pg.evaluate(() => planEntryReady() && isStudyPlanEnabled()), 'PR4 shell: the entry is on');
   assert(await pg.evaluate(() => !document.getElementById('planCard')), 'PR4 shell + plan: no plan card (CUI-0021)');
   await pg.evaluate(() => { openPlanDay(); openPlanSchedule(); });
   assert(await pg.evaluate(() => document.querySelector('.screen.active').id) === 'screenHome', 'PR4 shell: plan screens stay closed');
