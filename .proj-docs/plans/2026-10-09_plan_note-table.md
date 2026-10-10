@@ -212,10 +212,12 @@
 
 ### ④ 地方議會（9 題：上面 7 題 + Exam 4 Q21、5 Q23）
 
+> 2026-10-10 用戶要求：議員格喺 390px 要啱啱兩行（「650」/「全英國 MP」），所以 data 寫 `全\u2060英\u2060國\u00a0MP`（WORD JOINER 夾住中文字、NO-BREAK SPACE 喺 MP 前），防止「全英國 MP」斷行。
+
 ```
 記憶法：
 | 地區 | 議會 / 地點 | 議員 |
-| England | UK Parliament<br>Westminster | 650<br>全英國 MP |
+| England | UK Parliament<br>Westminster | 650<br>全\u2060英\u2060國\u00a0MP |
 | Scotland | Scottish Parliament<br>蘇格蘭議會<br>Edinburgh（愛丁堡） | 129 |
 | Wales | Senedd<br>威爾斯議會，前稱 National Assembly for Wales<br>Cardiff（加的夫） | 60 |
 | N. Ireland | Northern Ireland Assembly<br>北愛爾蘭議會<br>Belfast（貝爾法斯特） | 90 |

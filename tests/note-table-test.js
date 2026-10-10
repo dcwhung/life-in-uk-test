@@ -11,11 +11,12 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
 const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('ok:', m); };
 
 // ── spec: the note text from the 記憶法 heading on, per group (plan "第一批 data" + "Grill 決定") ──
+// ④ "全英國 MP": WORD JOINER (U+2060) between the CJK chars + NO-BREAK SPACE before MP keep that remark on one line
 const NOTE_TABLES = {
   1: '記憶法：\n| 國家 | 聖人 | 日子 |\n| England | George | 23/4 |\n| Scotland | Andrew | 30/11 |\n| Wales | David | 1/3 |\n| N. Ireland | Patrick | 17/3 |',
   2: '記憶法：\n| 國家 | 國教 | 教會 |\n| England | ✓ | Church of England<br>君主係最高領袖，坎特伯雷大主教係精神領袖 |\n| Scotland | ✗ | Church of Scotland<br>Presbyterian（長老會），國家教會，唔係國教 |\n| Wales | ✗ | ✗ |\n| N. Ireland | ✗ | ✗ |',
   3: '記憶法：\n| 國家 | 首都 | 國花 |\n| England | London | Tudor rose |\n| Scotland | Edinburgh | Thistle |\n| Wales | Cardiff | Daffodil |\n| N. Ireland | Belfast | Shamrock |',
-  4: '記憶法：\n| 地區 | 議會 / 地點 | 議員 |\n| England | UK Parliament<br>Westminster | 650<br>全英國 MP |\n| Scotland | Scottish Parliament<br>蘇格蘭議會<br>Edinburgh（愛丁堡） | 129 |\n| Wales | Senedd<br>威爾斯議會，前稱 National Assembly for Wales<br>Cardiff（加的夫） | 60 |\n| N. Ireland | Northern Ireland Assembly<br>北愛爾蘭議會<br>Belfast（貝爾法斯特） | 90 |\n• England 冇自己嘅地方議會，由英國國會直接負責；\n• Senedd 議員：考試答 60（2026 年選舉起增至 96）；\n• Scotland / Wales / N. Ireland 三個議會用比例代表制（proportional representation）；\n• 英國國會用領先者當選制（first past the post）',
+  4: '記憶法：\n| 地區 | 議會 / 地點 | 議員 |\n| England | UK Parliament<br>Westminster | 650<br>全\u2060英\u2060國\u00a0MP |\n| Scotland | Scottish Parliament<br>蘇格蘭議會<br>Edinburgh（愛丁堡） | 129 |\n| Wales | Senedd<br>威爾斯議會，前稱 National Assembly for Wales<br>Cardiff（加的夫） | 60 |\n| N. Ireland | Northern Ireland Assembly<br>北愛爾蘭議會<br>Belfast（貝爾法斯特） | 90 |\n• England 冇自己嘅地方議會，由英國國會直接負責；\n• Senedd 議員：考試答 60（2026 年選舉起增至 96）；\n• Scotland / Wales / N. Ireland 三個議會用比例代表制（proportional representation）；\n• 英國國會用領先者當選制（first past the post）',
   5: '記憶法：\n| 年份 | 人物 / 發明 |\n| 17 世紀 | Isaac Newton<br>牛頓：萬有引力、運動定律 |\n| 1876 | Alexander Graham Bell<br>貝爾：電話（蘇格蘭裔） |\n| 1928 | Alexander Fleming<br>弗萊明：盤尼西林 penicillin（蘇格蘭人） |\n| 1930s | Frank Whittle<br>惠特爾：噴射引擎 jet engine |\n| 1953 | Francis Crick<br>克里克：DNA 結構（同 James Watson 一齊發現） |\n| 1989 | Tim Berners-Lee<br>柏納斯-李：萬維網 World Wide Web |',
   6: '記憶法：\n| 日期 | 節日 |\n| 25/1 | Burns Night<br>彭斯之夜：紀念蘇格蘭詩人 Robert Burns |\n| 31/10 | Halloween<br>萬聖節前夕 |\n| 5/11 | Bonfire Night<br>篝火之夜：紀念 1605 年火藥陰謀（Gunpowder Plot）失敗 |\n| 11/11 | Remembrance Day<br>國殤紀念日：戴紅罌粟花 |\n| 26/12 | Boxing Day<br>節禮日：聖誕節翌日 |\n| 31/12 | Hogmanay<br>霍格莫尼：蘇格蘭除夕 |',
   7: '記憶法（英國重要戰役）：\n| 年份 | 戰役 / 結果 |\n| 9 世紀 | Alfred the Great vs Vikings<br>阿佛烈大帝統一盎格魯-撒克遜王國，打敗維京人 |\n| 1066 | Battle of Hastings vs Normandy<br>黑斯廷斯戰役：William of Normandy（諾曼第公爵威廉）打敗 Harold → 英格蘭戰敗，諾曼征服 |\n| 1314 | Battle of Bannockburn vs Scotland<br>班諾克本戰役：Robert the Bruce 打敗英格蘭 → 蘇格蘭保持獨立 |\n| 1588 | Spanish Armada vs Spain<br>西班牙無敵艦隊：Elizabeth I 年代英格蘭打敗西班牙 |\n| 1805 | Battle of Trafalgar vs France + Spain<br>特拉法加海戰：Admiral Nelson（納爾遜）打敗法西聯合艦隊，但陣亡 |\n| 1815 | Battle of Waterloo vs France<br>滑鐵盧戰役：Duke of Wellington（威靈頓公爵）打敗 Napoleon，英法最後一戰 |\n| 1940 | Battle of Britain vs Germany<br>不列顛戰役：皇家空軍擊退德國空襲 → 阻止德國入侵 |',
@@ -146,6 +147,7 @@ const FIT_JS = `(root) => [...root.querySelectorAll('.note-table-wrap')].map(w =
 const fits = list => list.length > 0 && list.every(f => f.sw <= f.cw && f.over <= 0.5 && f.left <= 0.5 && f.docW <= f.vw);
 
 async function checkPractice(pg) {
+  const mpLines = []; // group ④: line boxes of the 議員 remark "全英國 MP" per question
   for (const [g, keys] of Object.entries(GROUP_QUESTIONS)) {
     const bad = [];
     for (const key of keys) {
@@ -156,12 +158,19 @@ async function checkPractice(pg) {
         if (state.current < 0) return { missing: true };
         renderQuestion(); selectOption(state.questions[state.current].a[0]);
         const box = document.getElementById('ansNote');
-        return { visible: box.offsetParent !== null, rows: box.querySelectorAll('.note-table tr').length, fit: new Function('return ' + fitSrc)()(box) };
+        // distinct line tops of the "… MP" remark's text (a wrap = 2+ tops)
+        const sub = [...box.querySelectorAll('.note-cell-sub')].find(s => /MP$/.test(s.textContent));
+        let mpLines = null;
+        if (sub) { const rg = document.createRange(); rg.selectNodeContents(sub); mpLines = new Set([...rg.getClientRects()].map(x => Math.round(x.top))).size; }
+        return { visible: box.offsetParent !== null, rows: box.querySelectorAll('.note-table tr').length, fit: new Function('return ' + fitSrc)()(box), mpLines };
       }, { key, fitSrc: FIT_JS });
       if (r.missing || !r.visible || !r.rows || !fits(r.fit)) bad.push(`${key} ${JSON.stringify(r)}`);
+      if (g === '4') mpLines.push([key, r.mpLines]);
     }
     assert(bad.length === 0, `Practice answer box, group ${g}: ${keys.length} tables fit 390px, no scroll (bad: ${bad.slice(0, 2).join(' | ')})`);
   }
+  // user request: the 議員 cell is exactly "650" / "全英國 MP", the remark never wraps at 390px (e.g. E6 Q9)
+  assert(mpLines.length === GROUP_SIZES[4] && mpLines.every(([, n]) => n === 1), `Practice, group ④: "全英國 MP" remark on one line in all ${mpLines.length} questions: ${JSON.stringify(mpLines)}`);
 }
 
 async function checkResults(pg) {
