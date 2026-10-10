@@ -11,5 +11,5 @@
 | 1c | N13b | 用戶定稿：Proms「每年喺 Royal Albert Hall 舉行<br>為期 8 個星期嘅古典音樂節」、Notting Hill「每年 8 月喺 London 舉行<br>歐洲最大型嘅加勒比海文化街頭嘉年華」、Glastonbury「每年喺 Somerset 舉行嘅音樂節」、Theatreland「劇院區喺 London 嘅 West End（西區）」；唔加 East End 提示 | 已確認 |
 | 1d | N13c / N13d | 拆開：N13c 電影（15.3、16.4、14.3，列點 + 中文譯名 +「Emily Watson 冇贏過」）、N13d 媒體同公益（10.21、12.1、15.20，table） | 已確認 |
 | 1e | 14.3 | 刪舊前綴，中文譯名加入 N13c 列點 | 已確認 |
-| 1f | N13a | 改寫「身份 + 代表作 / 地點」 | 已確認 |
+| 1f | N13a | 改寫「身份 + 代表作 / 地點」；National Galleries of Scotland 名稱格加「<br>蘇格蘭國家美術館」令英文名分行（用戶要求） | 已確認 |
 | — | 語體 | 記憶法一律用廣東話口語（喺、嘅），用戶 2026-10-10 | 已確認 |
