@@ -28,6 +28,8 @@ const ALL = 'all'; // seedRead: every fact of the task left unanswered
 const MASTERED_FADE = 0.55; // .fact.mastered (css/components/fact.css): the runner fades the parts, Study the card
 const DRILL_START = '2026-09-28', DRILL_TODAY = '2026-10-06'; // a drill day: drill Ch 1 / 2 / 5 + wrong facts (as plan-run2-test)
 const WRONG_KEYS = ['1.0', '2.3', '5.7'];
+const NAV_WIDTHS = [320, 360, 390]; // S-154: the runner's nav labels stay on one line at phone widths
+const MIN_TAP = 44; // .plan-run-body .nav-row .nav-btn min-height
 
 async function fresh(pg, iso = TODAY) {
   await pg.clock.setFixedTime(at(iso));
@@ -231,6 +233,26 @@ async function checkNarrow(b) {
   }
 }
 
+// S-154 (user 2026-10-10): every fact-view nav label ("← Prev" / "Practise these 39 →") on one line, nothing clipped,
+// the 44px tap target kept — the full-task count (nothing done) is the longest label a reading task shows
+async function checkNavOneLine(b) {
+  for (const lang of ['en', 'zh-HK']) for (const width of NAV_WIDTHS) {
+    const pg = await b.newPage({ viewport: { width, height: 760 } });
+    await fresh(pg);
+    await pg.evaluate(lang => setLang(lang), lang);
+    const s = await seedRead(pg, ALL);
+    await showFact(pg, s.ri, s.facts.length - 1);
+    const r = await pg.evaluate(() => [...document.querySelectorAll('#planRunBody .plan-run-nav .nav-btn')].map(x => {
+      const range = document.createRange(); range.selectNodeContents(x);
+      const lines = new Set([...range.getClientRects()].filter(rc => rc.width > 0).map(rc => Math.round(rc.top))).size;
+      return { t: x.textContent.trim(), lines, fits: x.scrollWidth <= x.clientWidth, h: x.getBoundingClientRect().height };
+    }));
+    const sw = await pg.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth);
+    assert(sw && r.length === 2 && r.every(x => x.lines === 1 && x.fits && x.h >= MIN_TAP), `${lang} ${width}px: nav labels on one line, unclipped, ≥ ${MIN_TAP}px: ` + JSON.stringify(r));
+    await pg.close();
+  }
+}
+
 async function main() {
   const b = await chromium.launch(launchOpts);
   const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
@@ -243,6 +265,7 @@ async function main() {
   await checkStudyUntouched(pg);
   await checkWrongFacts(pg);
   await checkNarrow(b);
+  await checkNavOneLine(b);
   assert(errs.length === 0, 'no page errors / i18n warnings: ' + errs.join(' | '));
   await b.close();
 }

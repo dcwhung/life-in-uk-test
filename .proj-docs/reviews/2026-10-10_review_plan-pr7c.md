@@ -127,3 +127,96 @@ report: .proj-docs/reviews/2026-10-10_review_plan-pr7c.md
 next_action: merge_develop
 context: "Pass 91. n/q consistent: q shares planFactLastLeft with the main button; n>0 <=> q>0 because the pair's qids are the reading facts' planFactQids and both tasks use the same mastered set (q=0 guard is defensive only). Tag and Practise are mutually exclusive. Non-blocking but recommended before merge: W-048 — .fact.mastered (opacity 0.55, pre-existing) fades the new tag to 2.38:1 on 🏆 / ticked facts; the test's 4.5:1 check ignores ancestor opacity. Option A: plan-runner-scoped CSS that fades all but the tag (Study unchanged) + fix the test; option B: accept the fade and correct the test/plan wording — user's call. S-153 test cleanup, S-154 en main button wraps at 320–390px (pre-existing, follow-up), S-155 no test that wrong-facts tasks get no note/tag, S-156 add a ## Design Proposal heading to the PR7c plan. Dev questions: (1) extra lastUndoneQs key OK, (2) hide when q=0 OK, (3) reading-only OK per G41 ⑤, (4) S-154. No APP_VERSION bump needed (STUDY_PLAN_READY=false). Repo has no develop branch: merge_develop = PR into main."
 ```
+
+---
+
+## S-154 follow-up — 2026-10-10
+
+- 審閱者：code-reviewer（獨立 subagent）
+- 目標：branch `claude/charming-hopper-48ypzp`，`d39db6a...HEAD`：`71afc71` test（`checkNavOneLine`）、`2a5523d` CSS
+- Design Origin：proposal（user decision 2026-10-10：保留「Practise these N →」字眼，一行，收窄左右 padding）
+- 改動：`css/screens/plan.css` 加 `.plan-run-nav .nav-btn { padding-left/right: var(--space-4); white-space: nowrap; }`（12px → 8px）；`tests/plan-read-done-test.js` 加 320 / 360 / 390 × en / zh-HK 一行、冇 clip、≥ 44px 檢查
+- 未升 APP_VERSION：plan 入口仲隱藏（`STUDY_PLAN_READY=false`），同意
+
+### Hard gates
+
+| Gate | 結果 |
+|------|------|
+| Lint / Type | n/a（純 JS + CSS，冇 linter / tsc） |
+| Tests | pass — `tests/run-all.sh` 44/44（`tests/*.png` 已 `git checkout` 還原） |
+| Coverage | pass — 新 rule 有專門 test |
+| No Critical | pass |
+| Security | n/a（冇新依賴） |
+
+### 評分
+
+| 維度 | 得分 | 滿分 | 備注 |
+|------|------|------|------|
+| 正確性 | 25 | 25 | |
+| 安全性 | 20 | 20 | |
+| 可維護性 | 20 | 20 | token、有註釋、scope 窄 |
+| 測試覆蓋 | 14 | 15 | S-157（−1） |
+| 性能 | 10 | 10 | |
+| 代碼風格 / a11y | 10 | 10 | |
+| **總分** | **99** | **100** | |
+
+**結果：pass**
+
+### 檢查結果
+
+1. **Selector scope**：`.plan-run-nav` 只喺 `planFactNavHtml`（`js/screens/planRun.js`）出現，即係 reading / wrong-facts runner 嘅 fact-view nav。`.plan-result-row` 嘅 nav row、mock 結果 row、quiz `#prevBtn/#nextBtn`、modal、`plan-block` / `plan-small` 都冇 `plan-run-nav`，唔受影響。Specificity (0,2,0) 高過 `.nav-btn` (0,1,0)，同 `.plan-run-body .nav-row .nav-btn`（flex / min-height）冇衝突。
+2. **最長 N**：喺 browser 計（全部 dailyMins 30–120 × 多個考試日 × 休息日組合）：reading 任務 pair 嘅題數最多 **85**（`dailyMins 30`、`examDate 2026-10-08`、冇休息日），wrong-facts 任務（10 條 fact × 每條最多題數）最多 **43**，所以 N 一定係 1–2 位數。
+3. **量度（實際 runner view，`?preview=plan`）**，320 / 360 / 390 × en / zh-HK，全部 1 行、`scrollWidth ≤ clientWidth`、row 冇 overflow、page 冇橫向 scroll：
+
+   | View | 320 en | 320 zh-HK |
+   |------|--------|-----------|
+   | 第一條（Prev disabled + Next →） | 141 / 137px | 141 / 137px |
+   | Reading 最後一條 N=85 | Prev 126 / 主掣 152px（字 136px） | 141 / 137px（字 97px） |
+   | Review 最後一條「Finish ✓ / 完成 ✓」 | 141 / 137px | 141 / 137px |
+   | Wrong-facts 最後一條（10 facts，N=26） | 126 / 152px | 141 / 137px |
+   | 壓力測試 N=188 / 888（強制 label） | 120 / 158、117 / 161px，仍 1 行 | 1 行，剩 14–17px |
+
+   高度：en 45px、zh-HK 47px，全部 ≥ 44px。
+4. **nowrap 會唔會 clip**：唔會。flex item 預設 `min-width: auto`，`nowrap` 令 min-content = 成條 label，所以 320px 時主掣會撐大（152px），Prev 縮到 126px，字唔會被截。要 Prev 縮到 min-content（48 + 16 + 4px）先會 overflow，即主掣字要超過約 210px，比 N=888 仲長好多。副作用：en 最長 label 時兩粒掣唔等闊（126 vs 152px）；睇過 screenshot 可以接受，冇記號。
+5. **Test 穩健性**：`Range.selectNodeContents` + `getClientRects()` 再按 `top` 去重計行數，對一個 text node 嘅 button 有效（摺行時每行一個 rect）；有 `width > 0` filter。`fits` 用 `scrollWidth ≤ clientWidth`，加埋 document 冇橫向 scroll。夠用，見 S-157。
+
+### 🟢 S-157 — `checkNavOneLine` 只測 GOAL 嘅 N=39，冇查 row 本身有冇 overflow
+
+- 位置：`tests/plan-read-done-test.js` `checkNavOneLine`
+- 描述：用 fixture GOAL 嘅第一個 reading 任務（N=39）。2 位數最闊係 85–88，闊度差唔多，所以而家冇事。不過如果 row 嘅 ancestor 有 `overflow: hidden`，row 自己 overflow 唔會反映到 `document.scrollWidth`。
+- 方案 A：每個 width 加一個 `row.scrollWidth <= row.clientWidth` assert，並將主掣 label 設做 `t('plan.run.practiseN', { n: 88 })` 再量一次（最壞 2 位數）。Trade-off：多兩行、要改 DOM text。
+- 方案 B：維持原狀，靠今次 QA 數據（最大 N 85、N=888 都 fit）。Trade-off：0 成本，之後 label 改長要人手再量。
+- 推薦：B（optional）；如果再改 label 字眼就做 A。
+
+### 做得好嘅地方
+
+- Scope 啱啱好，用 `--space-4` token，有註釋寫明 user 決定。
+- 照 user 決定保留字眼，冇縮字。
+- Test 覆蓋 3 個 width × 2 種語言，一次過查行數、clip、tap target。
+
+### QA（reviewer 自己喺 browser 做）
+
+Playwright Chromium，`?preview=plan`，320 / 360 / 390 × en / zh-HK，測咗 reading 第一條 / 中間 / 最後一條（最長任務 N=85）、review「Finish ✓」、wrong-facts 最後一條（加 400 個錯題到 quota 10）、強制 N=88 / 188 / 888。**48/48 case 全部 OK**：1 行、冇 clip、冇 overflow、≥ 44px。Screenshot 睇過（320 en N=85）：兩粒掣一行，冇截字。冇 ticket。
+
+### 修正優先順序
+
+| 優先 | ID | 處理 |
+|------|----|------|
+| 可選 | S-157 | test 加 row overflow + N=88 量度 |
+
+### Handoff receipt
+
+```
+HANDOFF_RECEIPT
+agent: code-reviewer
+task: review S-154 follow-up (plan runner fact-view nav labels one line at 320-390px)
+branch: claude/charming-hopper-48ypzp
+commits: 71afc71, 2a5523d
+status: pass
+score: 99
+hard_gates: { lint: n/a, type: n/a, tests: pass (44/44), coverage: pass, no_critical: pass, security: n/a }
+findings: { critical: 0, warning: 0, suggestion: 1 (S-157) }
+report: .proj-docs/reviews/2026-10-10_review_plan-pr7c.md#s-154-follow-up--2026-10-10
+next_action: merge_develop
+context: "Pass 99. Scope only .plan-run-nav (planFactNavHtml). Worst-case N 85 (reading) / 43 (wrong facts); browser QA 48/48 OK at 320/360/390 en+zh-HK incl. forced N=888; heights 45/47px. nowrap cannot clip (flex min-width:auto grows the main button; Prev shrinks to 126px at 320 en). S-157 optional test hardening. No APP_VERSION bump (plan hidden). No develop branch: merge_develop = PR into main."
+```
