@@ -405,7 +405,7 @@ v1.1.0（PR8）正式推出；PR1–PR7c 逐個入 `main`，期間 `STUDY_PLAN_R
 
 **localStorage**：`lifeuk.studyPlan`、`lifeuk.studyPlanProgress`、`lifeuk.studyPlanEnabled`（同 `lifeuk.studyPlanScheduleSeen`），見下面 table；全部新 key，唔喺 `LEGACY_LS_MIGRATION` / `MERGE_LS`。**`lifeuk.studyPlanPreview` 已拎走**（G31 預覽 flag，v1.1.0 G42）：舊機留低嘅值冇 code 讀，每次載入經 `OBSOLETE_LS` 刪走；`?preview=plan` / `?preview=off` URL 參數無效（唔處理、唔清 URL）。
 
-**記錄格式**：`lifeuk.studyPlanProgress` = `{ v: 1, days: { [iso]: { ok, bad, mock } } }`，`ok` / `bad` 係 `{ "exam.idx": 1 }` map（當日答啱 / 答錯；只有答啱計完成，G2），`mock` 係當日模擬考試結果 list `[{ exam, correct, total }]`（合格 ≥ 21/24，G10；只計當日，唔補做）。
+**記錄格式**：`lifeuk.studyPlanProgress` = `{ v: 1, days: { [iso]: { ok, bad, mock } } }`，`ok` / `bad` 係 `{ "exam.idx": 1 }` map（當日答啱 / 答錯；只有答啱計完成，G2），`mock` 係當日模擬考試結果 list `[{ exam, correct, total }]`（合格 = ≥ 18/24（`PASS_RATIO`，G10）先算任務完成；21/24 `PLAN_SAFE_SCORE` 只係整體進度 bar 嘅穩陣目標；只計當日，唔補做）。
 
 **共用 component**：`js/components/toast.js`（`showToast(text)`，`TOAST_MS`；polite live region，唔攞 focus，新 toast 取代舊嘅；switch 開 / 關用）、`js/components/switch.js`（`switchHtml`、`setSwitchOn`，`role="switch"`）、`showConfirm({ danger })`（v1.0.6 紅色危險 modal）；`data-blur-action` 見「data-action 慣例」。
 
