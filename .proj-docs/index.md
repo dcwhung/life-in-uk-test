@@ -1,9 +1,10 @@
 # .proj-docs index
 
-文件索引（同一日內按檔名倒序）。Review item ID：C / W / S 全局遞增，賦號前要 grep `.proj-docs/reviews/`。溫習計劃序列最新到 W-045、S-139（2026-10-09 plan PR7）；W-375 屬於另一個 session，唔好接住佢嘅號碼。
+文件索引（同一日內按檔名倒序）。Review item ID：C / W / S 全局遞增，賦號前要 grep `.proj-docs/reviews/`。溫習計劃序列最新到 W-045、S-139（2026-10-09 plan PR7）；之後 S-140–S-145 用咗喺 v1.0.7 記憶法 table review（2026-10-10）；W-375 屬於另一個 session，唔好接住佢嘅號碼。
 
 ## Reviews
 
+- [2026-10-10_review_v107.md](reviews/2026-10-10_review_v107.md) — v1.0.7 記憶法 table（pass 94；S-140–S-145：S-140/141/144 已修，S-142/143 延後）
 - [2026-10-09_review_v104.md](reviews/2026-10-09_review_v104.md)
 - [2026-10-09_review_v103.md](reviews/2026-10-09_review_v103.md)
 - [2026-10-09_review_v102.md](reviews/2026-10-09_review_v102.md)
