@@ -153,3 +153,87 @@ next_agent: null
 branch: "claude/charming-hopper-48ypzp"
 context: "G43 done-green pass 91, 0 Critical; W-049 (drill/mock can never turn green after a missed mock day or a re-plan over unfinished drill days) needs a user decision; S-160 to S-163 optional"
 ```
+
+---
+
+# Re-review + QA — 2026-10-10
+
+- **目標**：follow-up commit 7de3447（`fix(plan): drill / mock done count only days still doable; done sets once per render (W-049, S-160, S-161, S-163)`），7 個檔案 +157 / −33
+- **用戶決定（W-049，2026-10-10）**：「只計做得到嘅日子」— 改目標前凍結嘅日子唔計入強化 / 模擬考；過去唔合格 / 冇做嘅模擬考日唔擋住；模擬考段 = 計得嘅日子模擬考以外嘅任務完成 **而且** 最近一次模擬考合格
+- **結果**：✅ pass — **98 / 100**，0 Critical、0 Warning；W-049、S-160、S-161、S-163 已解決；S-162 只係通知用戶（照舊）；新 S-164
+
+## Hard Gates
+
+| Gate | 結果 | 備注 |
+|---|---|---|
+| Lint | n/a | 冇 eslint；`js/` 新增行冇 CJK；`plan.css` 冇 raw hex |
+| Type check | n/a | plain JS |
+| Tests | ✅ pass | `tests/run-all.sh` 45/45 PASS（EXIT 0），`plan-test` 2743 checks（+16）；跑完 `git checkout -- 'tests/*.png'`，tree clean |
+| Coverage | ✅ pass | W-049 每條規則、re-plan、null log、done set 傳入都有 assert |
+| No Critical | ✅ pass | 0 |
+| Security scan | n/a | 冇新依賴 |
+
+## 評分結果
+
+| 維度 | 得分 | 滿分 | 備注 |
+|---|---|---|---|
+| 正確性 | 25 | 25 | W-049 已按用戶決定實現 |
+| 安全性 | 20 | 20 | |
+| 可維護性 | 19 | 20 | S-164 |
+| 測試覆蓋 | 15 | 15 | S-163 已補 |
+| 性能 | 10 | 10 | S-160 已解決 |
+| 代碼風格 / a11y | 9 | 10 | S-162（照舊，只係通知） |
+| **總分** | **98** | **100** | |
+
+**結果：✅ pass**
+
+## 逐項核對
+
+- **W-049 ✅**
+  - `planCountableDays`：`carryFrom` 當日或之後嘅日子；冇 re-plan = 全部。強化 = 每個計得嘅日子 `planDayCompletion` 100%；補做（carry-over）計返嗰日，凍結日子本身亦唔會入 carry，兩邊一致。
+  - `planMockPhaseDone`：所有模擬考階段日子嘅 attempt 按日子 + 次序攞最後一次，`planMockPassed`（G10 ≥ 18/24）；而且每個計得嘅日子 `planMockDayRestDone`（清錯題未打開 total 0 = 唔計重量 G24；已填就要清晒；輕鬆日錯題知識點要做）。最近一次唔合格 → 未完成；一次都未考 → 未完成；當日唔合格再合格 → 完成。全部有 test。
+  - 讀 + 練不變（按內容，凍結日子嘅內容都計）。
+  - 注意：模擬考日之後嘅日子未到（清錯題未填 = 0 重量），所以有輕鬆日嘅計劃要等輕鬆日打開錯題知識點先會變綠；之後如果再考唔合格會變返唔綠 —— 符合「最近一次合格」嘅定義，plan doc 有寫。
+- **開發者自己嘅選擇：一個階段全部日子都喺 `carryFrom` 之前 → 全部照計**：接受。實測 re-plan 喺模擬考階段、冇知識點剩，`buildPlanDays` 仍然會排 3–16 個新強化日（考試日 10-01 / 10-10 / 10-20），所以「全部凍結」只會喺離考試好近先出現；嗰時照顯示當時做成點係合理嘅歷史，亦唔會「冇日子 = 完成」咁誤導。代價係嗰個罕見情況下段可能唔再變綠，plan doc 已寫明。
+- **S-160 ✅**：`planDoneSets(log)` 一次過計，`renderPlanSchedule` 傳畀三個階段同四個 step。實測（同之前一樣嘅 log）：**1.7 ms（60 日）/ 3.8 ms（180 日）**，之前 21 / 35–40 ms。同舊定義等價：200 個隨機 log × 236 條知識點 0 個唔同；所有知識點都可以經 `FACT_BY_QKEY` 由佢自己嘅 canonical qid 搵到（0 條搵唔到、0 條 qid 屬另一條知識點）。依賴見 S-164。
+- **S-161 ✅**：`html[lang="en"]` 先用 2px；zh-HK 用返 4px，test 驗咗 zh 4px = 已過日子 pill、en 2px；QA 320px「今日已完成」一行放得落。
+- **S-163 ✅**：`checkPhaseDoneMockLatest`、`checkPhaseDoneReplan`（第 4 個強化日 re-plan，3 個凍結未完成；同一批日子冇 `carryFrom` → 未完成；讀 + 練 re-plan 前後各答一半 → 完成）、`checkPhaseDoneNullLog`、`checkDoneSetsPassedIn`。
+- 函數長度全部 < 15 行；CJK / token 照舊乾淨。
+
+## 新問題
+
+### 🟢 S-164 — `planDoneSets` 靠「每條題目只屬一條知識點」，冇 test 守
+
+- **位置**：`js/domain/planProgress.js` `planDoneSets` 嘅 `check`（`FACT_BY_QKEY[k]`，`similar.js` 後寫嘅蓋前面）
+- **描述**：只會檢查 log key 透過 `FACT_BY_QKEY` 指向嘅知識點。而家數據冇一條題目屬兩條知識點（已驗），所以結果同舊逐條知識點計法一樣；但將來內容改動如果有一條題目放咗喺兩條知識點，其中一條就可能永遠唔算完成（`planFactsDoneOn` re-plan 亦有同一個假設）。
+- **方案 A（推薦）**：`content-guard-test` 或 `plan-test` 加一句：每條知識點最少有一個 canonical qid 嘅 `FACT_BY_QKEY` 指返自己（或者每個 src key 只屬一條知識點）。Trade-off：一行 test，唔改 app code。
+- **方案 B**：`check` 改成用 qid → 所有知識點嘅 map。Trade-off：多一個 lookup table，舊 `planFactsDoneOn` 都要跟住改先一致。
+
+## QA（我自己跑，`?preview=plan`，Chromium）
+
+腳本：scratchpad `qa2/qa.js`。計劃 2026-09-01 開始、考試 2026-10-20、每日 1 小時；讀 + 練全部答啱；**第 4 個強化日（2026-09-22）re-plan**，3 個凍結強化日唔做，之後嘅強化日全部 100%；模擬考第一日**唔合格**；時鐘設喺輕鬆日（Day 49，2026-10-19），今日任務完成。
+
+| 情況 | 讀 + 練 | 強化 | 模擬考 | 溫習次序 | 今日 pill |
+|---|---|---|---|---|---|
+| 第一次唔合格、之後合格，但**最後一次唔合格** | ✓ 綠 | ✓ 綠（凍結日子唔擋） | 未綠（橙） | 4 粒 ✓ | Done today / 今日已完成 |
+| 第一次唔合格、**之後合格**（最後一次合格） | ✓ 綠 | ✓ 綠 | ✓ 淺綠 navy 字 | 4 粒 ✓ | Done today / 今日已完成 |
+
+- 390 / 320 × en / zh-HK × 展開 / 摺埋（16 個組合）：`scrollWidth = clientWidth`（冇橫向 scroll），bar / stepper / 日期欄 pill 冇字被切，0 page error。
+- 截圖：`qa2/latestFail_en_320_fold.png`（模擬考段未綠）、`qa2/passed_zh-HK_320_fold.png`（三隻綠由深到淺）、`qa2/passed_today.png`（320px「今日已完成」4px 一行喺 72px 欄內，同已過日子淺綠「✓ 已完成」分得開）。
+
+## Handoff receipt（re-review）
+
+```handoff-receipt
+protocol: 1
+status: pass
+score: 98/100
+hard_gates:
+  lint: n/a
+  type_check: n/a
+  tests: pass
+  coverage: n/a
+next_action: merge_develop
+next_agent: null
+branch: "claude/charming-hopper-48ypzp"
+context: "G43 re-review of 7de3447 pass 98: W-049 (user rule: only doable days; latest mock pass), S-160 (1.7 ms/render), S-161, S-163 resolved; own browser QA (re-plan mid-drill + failed-then-passed mock) 390/320 en+zh-HK OK; new S-164 optional (one-fact-per-question guard test); S-162 just tell the user"
+```
