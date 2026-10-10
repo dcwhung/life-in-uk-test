@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Memory Note Split Preview</title>
+<!-- real app styles; notes rendered by a copy of noteHtml() / noteLineHtml() / noteTableHtml() / noteCellHtml()
+     in js/components/tags.js (keep in sync). Review page for .proj-docs/plans/2026-10-10_memo-split-decisions.md; delete after confirm -->
+<!--CSS-START-->
+<link rel="stylesheet" href="../css/base/tokens.css">
+<link rel="stylesheet" href="../css/components/note.css">
+<link rel="stylesheet" href="../css/screens/quiz.css">
+<!--CSS-END-->
+<style>
+  /* ════════ mockup chrome only ════════ */
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, 'PingFang HK', sans-serif; background: #e4e7ef; color: var(--text); }
+  .wrap { padding-inline: 16px; padding-block: 16px 40px; display: grid; gap: 18px; }
+  .brief { max-width: 860px; background: #fffbea; border: 1.5px solid #e8d48a; border-radius: 10px; padding: 12px 14px; font-size: 13px; line-height: 1.6; color: #1a2744; }
+  .brief h1 { font-size: 16px; margin: 0 0 6px; }
+  .brief p { margin: 4px 0; }
+  .group { display: grid; gap: 10px; }
+  .group-title { font-size: 15px; font-weight: 800; color: var(--navy); margin: 0; }
+  .group-why { font-size: 13px; color: #4a5878; max-width: 860px; margin: 0; line-height: 1.55; }
+  .row { display: flex; gap: 18px; flex-wrap: wrap; align-items: flex-start; }
+  .phone { width: min(390px, 100%); background: var(--bg); border-radius: 18px; padding: 14px 16px 16px; box-shadow: var(--shadow); }
+  .phone h2 { font-size: 12px; margin: 0 0 4px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .phone.ok h2 { color: var(--green); }
+  .phone.bad h2 { color: var(--red); }
+  .phone .flag { font-size: 12px; margin: 0 0 8px; color: var(--text-muted); line-height: 1.45; }
+  .phone.bad .flag { color: var(--red); }
+  .answer-box { display: block; margin-bottom: 0; }
+  .q { font-size: 13px; font-weight: 600; margin: 0 0 8px; color: var(--navy); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brief">
+    <h1>記憶法拆細 preview：N13a / N13b / N13c + 14.3</h1>
+    <p>每個框 = Practice 答完題嘅答案框（手機闊 390px），用 app 真正嘅 CSS 同 render 規則。</p>
+    <p><b>App 限制：</b>table 一格入面冇「&lt;br&gt;」就唔會轉行（太長要左右 scroll，<code>note-table-test</code> 唔准）；有「&lt;br&gt;」先會分「主文」同「細字」兩層轉行。列點（•）就一定會轉行。</p>
+  </div>
+  <div id="groups"></div>
+</div>
+<script>
+// [title, explanation, question shown on top, [[css class, label, flag, note], ...]]
+const GROUPS = [
+  ['N13a 藝術同建築（7 題）',
+   '上一版每格得幾個關鍵字，睇唔明。今次每格寫成「呢個係乜」一句，名放第一欄，句子拆做主文 + 細字先可以喺手機轉行。',
+   'Which UK architect designed the Millennium Dome? → Richard Rogers',
+   [['bad', '上一版', '睇唔明：「Baroque」「Millennium Dome」得個名，冇講係乜',
+     '記憶法（藝術同表演）：\n| 名稱 | 重點 |\n| J.M.W. Turner | The Fighting Temeraire<br>透納：風景畫家；Turner Prize 每年頒俾英國視覺藝術家 |\n| David Hockney | Pop art<br>1960 年代普普藝術 |\n| Purcell & Handel | Baroque<br>巴洛克作曲家 |\n| Richard Rogers | Millennium Dome<br>千禧穹頂 |\n| Tate | London<br>Tate Britain、Tate Modern |\n| National Galleries of Scotland | Edinburgh<br>蘇格蘭國家美術館 |'],
+    ['ok', '建議（新寫法）', '每行：名 → 身份 → 代表作 / 地點',
+     '記憶法（藝術同建築）：\n| 名稱 | 重點 |\n| J.M.W. Turner | 英國風景畫家<br>代表作《The Fighting Temeraire》 |\n| Turner Prize | 藝術獎項<br>每年頒俾英國視覺藝術家 |\n| David Hockney | 畫家<br>1960 年代 pop art（普普藝術）重要人物 |\n| Purcell & Handel | 作曲家<br>同英國有關嘅兩位巴洛克（Baroque）作曲家 |\n| Richard Rogers | 建築師<br>設計 Millennium Dome（千禧穹頂） |\n| Tate | London 嘅美術館<br>包括 Tate Britain 同 Tate Modern |\n| National Galleries of Scotland | Edinburgh 嘅美術館<br>蘇格蘭國家美術館 |']]],
+  ['N13b 表演同節慶（7 題）',
+   '你嘅版本每格係一整句、冇「<br>」，手機會唔轉行要左右 scroll（左框）。建議保留你每句嘅字眼，改用列點（右框），一樣易讀又會轉行。',
+   'What is the BBC Proms? → An annual 8-week classical music festival at Royal Albert Hall',
+   [['bad', '你嘅版本（照抄做 table）', '每格一整句 → 唔轉行，要左右 scroll',
+     '記憶法（表演同節慶）：\n| 名稱 | 重點 |\n| The Proms | 每年在Royal Albert Hall 舉辦為期 8 個星期的古典音樂節 |\n| Notting Hill Carnival | 每年 8 月在倫敦舉行歐洲最大型的加勒比海文化街頭嘉年華 |\n| Glastonbury | 每年於Somerset舉行的音樂節 |\n| Theatreland | 位於 West End 倫敦西區 |'],
+    ['ok', '建議：你嘅字眼 + 列點', '字眼唔變，只係由 table 改做列點',
+     '記憶法（表演同節慶）：\n• The Proms → 每年在 Royal Albert Hall 舉辦為期 8 個星期的古典音樂節；\n• Notting Hill Carnival → 每年 8 月在倫敦舉行歐洲最大型的加勒比海文化街頭嘉年華；\n• Glastonbury → 每年於 Somerset 舉行的音樂節；\n• Theatreland → 位於 West End 倫敦西區。']]],
+  ['N13c 電影同媒體（6 題）',
+   '照你要求，頭兩項改做列點（app 用「•」，唔係「-」）；BBC 同 National Lottery 保留 table。',
+   'What is one of the highest-grossing film franchises produced in the UK? → James Bond',
+   [['ok', '你嘅版本', '列點 + table 可以混用，會轉行',
+     '記憶法（電影同媒體）：\n英國最高票房電影系列：\n• Harry Potter\n• James Bond\n\n奧斯卡得獎者：\n• Colin Firth\n• Anthony Hopkins\n• Judi Dench\n• Kate Winslet\n• Tilda Swinton\n\n| 名稱 | 重點 |\n| BBC | 全球最大廣播機構<br>獨立於政府 |\n| National Lottery | 1994 年推出<br>為藝術、體育、文化遺產籌款 |']]],
+  ['14.3 奧斯卡題：前綴點處理？',
+   '14.3 而家有自己嘅備注（5 個得獎者 + 中文譯名）。用咗 N13c 之後，同一份名單已經喺記憶法入面，如果仲保留舊備注做前綴，同一個答案框會出現兩次名單（中框）。建議刪前綴（右框）；如果想保留中文譯名，可以將譯名加入 N13c 嘅列點（例如「Colin Firth（哥連·費夫）」），咁 6 題都會見到。',
+   'Which of the following actresses has NOT won an Oscar? → Emily Watson',
+   [['', '而家', '14.3 自己一份名單',
+     '以下幾位都贏過奧斯卡：\n• Colin Firth（哥連·費夫）\n• Anthony Hopkins（安東尼·鶴健士）\n• Judi Dench（茱迪·丹芝）\n• Kate Winslet（琦·溫絲莉）\n• Tilda Swinton（蒂達·史雲頓）'],
+    ['bad', '保留前綴 + N13c', '名單出現兩次',
+     '以下幾位都贏過奧斯卡：\n• Colin Firth（哥連·費夫）\n• Anthony Hopkins（安東尼·鶴健士）\n• Judi Dench（茱迪·丹芝）\n• Kate Winslet（琦·溫絲莉）\n• Tilda Swinton（蒂達·史雲頓）\n記憶法（電影同媒體）：\n英國最高票房電影系列：\n• Harry Potter\n• James Bond\n\n奧斯卡得獎者：\n• Colin Firth\n• Anthony Hopkins\n• Judi Dench\n• Kate Winslet\n• Tilda Swinton\n\n| 名稱 | 重點 |\n| BBC | 全球最大廣播機構<br>獨立於政府 |\n| National Lottery | 1994 年推出<br>為藝術、體育、文化遺產籌款 |'],
+    ['ok', '建議：刪前綴', '名單只出現一次；中文譯名可以加入列點',
+     '記憶法（電影同媒體）：\n英國最高票房電影系列：\n• Harry Potter\n• James Bond\n\n奧斯卡得獎者：\n• Colin Firth（哥連·費夫）\n• Anthony Hopkins（安東尼·鶴健士）\n• Judi Dench（茱迪·丹芝）\n• Kate Winslet（琦·溫絲莉）\n• Tilda Swinton（蒂達·史雲頓）\n\n| 名稱 | 重點 |\n| BBC | 全球最大廣播機構<br>獨立於政府 |\n| National Lottery | 1994 年推出<br>為藝術、體育、文化遺產籌款 |']]],
+];
+
+// copy of js/components/tags.js noteLineHtml / noteHtml / noteTableHtml / noteCellHtml (v1.0.8)
+const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const NOTE_MARK = /^([•◦→])\s*/;
+function noteLineHtml(line) {
+  const text = line.trim(), mark = text.match(NOTE_MARK);
+  const cls = /^\s{2,}/.test(line) ? ' sub' : mark ? ' bullet' : '';
+  const body = mark ? `<span class="note-mark">${mark[1]} </span>${escapeHtml(text.slice(mark[0].length))}` : escapeHtml(text);
+  return `<div class="rv-note-line${cls}" lang="zh-HK">${body}</div>`;
+}
+const NOTE_TABLE_ROW = /^\s*\|/;
+const NOTE_CELL_BREAK = '<br>';
+const NOTE_GAP_HTML = '<div class="rv-note-gap"></div>';
+function noteHtml(note) {
+  const out = [];
+  let rows = [];
+  const flushTable = () => { if (rows.length) out.push(noteTableHtml(rows)); rows = []; };
+  for (const line of note.split('\n')) {
+    if (NOTE_TABLE_ROW.test(line)) { rows.push(line); continue; }
+    flushTable();
+    out.push(line.trim() ? noteLineHtml(line) : NOTE_GAP_HTML);
+  }
+  flushTable();
+  return out.join('');
+}
+function noteTableHtml(rows) {
+  const [head, ...body] = rows.map(row => row.trim().replace(/^\||\|$/g, '').split('|').map(cell => cell.trim()));
+  const rowHtml = (cells, tag) => `<tr>${cells.map(cell => noteCellHtml(cell, tag)).join('')}</tr>`;
+  return `<div class="note-table-wrap"><table class="note-table" lang="zh-HK"><thead>${rowHtml(head, 'th')}</thead>`
+    + `<tbody>${body.map(cells => rowHtml(cells, 'td')).join('')}</tbody></table></div>`;
+}
+function noteCellHtml(cell, tag) {
+  const [main, ...remarks] = cell.split(NOTE_CELL_BREAK);
+  if (!remarks.length) return `<${tag}>${escapeHtml(cell)}</${tag}>`;
+  const subs = remarks.map(remark => `<span class="note-cell-sub">${escapeHtml(remark)}</span>`).join('');
+  return `<${tag} class="multi">${escapeHtml(main)}${subs}</${tag}>`;
+}
+
+const box = ([cls, label, flag, note], q) => `<div class="phone ${cls}"><h2>${escapeHtml(label)}</h2><p class="flag">${escapeHtml(flag)}</p>
+  <div class="answer-box"><p class="q">${escapeHtml(q)}</p><div class="ans-label">✓ Correct</div>
+  <div class="ans-note" lang="zh-HK"><strong>💡 備注：</strong><div class="ans-note-text">${noteHtml(note)}</div></div></div></div>`;
+document.getElementById('groups').innerHTML = GROUPS.map(([title, why, q, boxes]) =>
+  `<section class="group"><h2 class="group-title">${escapeHtml(title)}</h2><p class="group-why">${escapeHtml(why)}</p>
+   <div class="row">${boxes.map(b => box(b, q)).join('')}</div></section>`).join('');
+</script>
+</body>
+</html>
