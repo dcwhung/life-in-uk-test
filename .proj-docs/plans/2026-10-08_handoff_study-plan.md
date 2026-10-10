@@ -2,7 +2,7 @@
 
 **日期**：2026-10-08
 **狀態**：Mockup 已確認（用戶 2026-10-08），待開發
-**Design Origin**：`mockup:mockups/study-plan-flow.html`（PR [dcwhung/life-in-uk-test#51](https://github.com/dcwhung/life-in-uk-test/pull/51)、[#52](https://github.com/dcwhung/life-in-uk-test/pull/52)）
+**Design Origin**：`mockup:mockups/study-plan-flow.html`（mockup 喺 PR8 / v1.1.0 已刪，G18；git 歷史 `732d6e7` 仲有）（PR [dcwhung/life-in-uk-test#51](https://github.com/dcwhung/life-in-uk-test/pull/51)、[#52](https://github.com/dcwhung/life-in-uk-test/pull/52)）
 **Base**：`main` `63e87b5`（v0.72）
 **來源 session log**：`.claude/session-logs/2026-10-08_16-11.md`
 

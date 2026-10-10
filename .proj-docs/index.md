@@ -84,6 +84,7 @@
 
 ## Plans
 
+- [2026-10-10_plan-pr8-release.md](plans/2026-10-10_plan-pr8-release.md) — 溫習計劃 PR8 正式推出：`STUDY_PLAN_READY = true`、拎走 `?preview=plan`（G42）、刪 mockup、v1.1.0
 - [2026-10-09_study-plan-i18n-pr6b.md](plans/2026-10-09_study-plan-i18n-pr6b.md)
 - [2026-10-09_study-plan-i18n-pr6a.md](plans/2026-10-09_study-plan-i18n-pr6a.md)
 - [2026-10-09_study-plan-i18n-pr5.md](plans/2026-10-09_study-plan-i18n-pr5.md)
