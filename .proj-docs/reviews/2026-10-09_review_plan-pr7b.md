@@ -175,3 +175,129 @@ context: "PR7b G40: 41/41 pass, copy table single-sourced, grouping/streak-sync/
 blockers:
   - "W-046 should be fixed before merge (breaks 3-correct-rounds mastery for 19 keys)"
 ```
+
+---
+
+# Re-review — 2026-10-10
+
+- 目標：新 commits `05251a8`（code + tests）+ `8e8300b`（docs），全 PR diff = `git diff 7a167fe...HEAD`（25 files，+708 / −83）
+- 總評：W-046、S-140–S-144 全部解決，user 要求嘅三句 zh「已」都改咗兼有 test。`distinctQuestions` 放喺 `questions.js` 同 copy 表一齊，Practice 每輪每條文字只問一次，Exam paper 冇郁。但係 W-046 嘅去重套埋落錯題簿回合，而錯題簿喺計劃以外仍然逐個 copy 清，所以出咗一個新 Warning（W-047）：錯題簿入面有同一題嘅幾個 copy 時，要做幾輪先清得晒，每輪問返同一題。我用 browser probe 驗證過（下面）。
+
+## Hard Gates（re-review）
+
+| Gate | 結果 | 備注 |
+|------|------|------|
+| Lint | n/a | 項目冇 linter |
+| Type check | n/a | 純 JS，冇 tsc |
+| Tests | ✅ pass | `bash tests/run-all.sh` 41/41 PASS，exit 0（跑咗兩次，都係全綠）；跑完 `git checkout -- 'tests/*.png'` |
+| Coverage | n/a | 冇 coverage 工具；新行為 dup-test 有 cover |
+| No Critical | ✅ pass | 0 |
+| Security scan | n/a | 冇新依賴 |
+
+## 舊 finding 逐條核對
+
+| ID | 結果 | 核對 |
+|----|------|------|
+| W-046 | ✅ 已解決 | `sessionQuestions` Practice 分支 → `distinctQuestions(candidates).slice(0, PRACTICE_ROUND_MAX)`；`distinctQuestions` 先 `shuffle` 再按 `canonQuestionKey(qKey(item))` 每組留第一個，輸出次序就係洗牌後次序，所以唔使再 shuffle 多次。Exam / Random Exam / All 分支冇改，dup-test 驗 Exam 13 仍有 `13.0`。dup-test `checkRounds`：章節剩 3 個 copy → 問 1 題，答啱後三個 copy 連勝都係 1；錯題簿 3 個 copy / 標記 2 個 copy 各問 1 題；5 個 set × 15 輪冇重複 |
+| S-140 | ✅ 已解決 | `copiesRefText` 每個 ref 包 `<span class="sqm-ref">`，`.sqm-ref { white-space: nowrap; }`；`questionRefText` 輸出係程式自己砌嘅數字 label，入 HTML 冇 injection 風險。320px test 驗三個 ref 各自一行、`scrollWidth <= 320` |
+| S-141(a) | ✅ 已解決（照用戶決定） | `renderSimilar` 改為 `fact.src.length > 1` 就出；`similarListHtml` 冇項目時回 `''`（冇 legend / list / CTA），`countHtml` 喺 `groups.length === 0 && !currentMark` 時唔出。9 條 all-copy fact id 有 assert（67、81、116、128、130、147、185、230、231），en + zh「出現於：」都驗；一個來源嘅知識點照舊冇 panel |
+| S-141(a) plan runner | ✅ 做法合理 | 見下面「判斷」 |
+| S-141(b) | ✅ 已解決 | `state.masteredBefore = masteryOf(state.questions).mastered`（喺 `sessionQuestions` 之後），result 嘅 `n = masteryOf(state.questions).mastered - masteredBefore`；「x/y」照舊用 `setPool`。side session 有自己嘅 `masteredBefore: 0` 同 `setPool: null`，而 `practiceResultNote` 喺 `!state.setPool` 時 return，所以唔受影響。test：2 個 copy 剩 streak 2，答 1 題 → 「Mastered 1 more」，總數 x/x |
+| S-142 | ✅ 已解決 | `qKey` 搬去 `questions.js`（`questionByKey` 隔籬），`buildQuestionCopies` 用佢；`mastery.js` 留 comment 指去新位置；`const planCanonKey = canonQuestionKey` alias 有 comment 講點解保留。Script 載入次序冇問題（41/41 包括 structure-test / sw-test） |
+| S-143 | ✅ 已解決 | (a) 見 W-046；(b) `recordPracticeAnswer(q, true, PLAN_DAY)` → `recordPlanAnswer` 收到 `['13.0', true, day]`，兩個 copy streak 都係 1；(c) 計劃以外答錯只記答嗰個 copy |
+| S-144 | ✅ 已解決 | `sideSession.js` 同 `similarPanel.js` comment 拆行，≤ 120 字元 |
+| zh「已」 | ✅ 已改 | `plan.home.doneHtml`「<b>✓ 今日已完成</b>，明日再來」、`plan.run.mockPassNote`「✓ 模擬考試任務已完成」、`plan.status.done`「✓ 已完成」；en 三句冇變（dup-test assert）；plan-schedule-test 加咗 pill 喺左欄一行嘅 test |
+
+### 判斷：plan runner 錯題知識點 panel 保持唔變（S-141a）
+
+我同意保持唔變。`currentMark` 模式下面嘅 panel 係獨立出現（上面冇題目卡，CUI-0025），所以答錯嗰題本身就係要列出嚟嘅項目，唔係重複：卡（「Exam 15 · Q6 = Exam 4 · Q13 · You got this wrong」）話俾用戶知錯咗邊題，count `1` = 知識點全部不同題目數，同 `planFactQids`（已按 canon 去重）一致，CTA 嘅 `n` 都係 1。如果跟 Practice 嘅做法拎走列表 / CTA，計劃 wrong-facts 任務就冇辦法喺嗰張卡度重練嗰題，同 G26 / arch §E.3 唔一致。dup-test 有 assert 呢個行為。唯一要做嘅係將 G40 ④ 入面「待用戶確認」交返俾用戶確認（docs，唔關 code 事）。
+
+### 其他要留意嘅 regression
+
+- **隨機揀 copy**：`distinctQuestions` 隨機揀邊個 copy，所以 ref（Exam 7 定 Exam 13）每次都可能唔同。copy 嘅 streak 同步咗，flag / wrong 都係逐個 copy 記，所以唔會錯，只係唔 deterministic。Test 只 assert set membership（`TRIPLE.includes`）同「冇重複」，冇依賴邊個 copy，所以唔會 flaky。可以接受；想 deterministic 嘅話可以揀 pool 入面 exam order 第一個，但係冇必要。
+- **「Round 1 of N」**：見 S-145，只係 cosmetic。
+
+## 🟡 W-047 — 錯題簿回合每條文字只問一個 copy，但答啱只清嗰個 copy：同一題要做 N 輪先清得晒
+
+- 位置：`js/screens/quiz.js` `recordPracticeResult` L221（`else if (state.examNum === WRONG_EXAM && wrongList[qKey(q)]) { clearWrong(q); state.cleared++; }`），配合 L24 `distinctQuestions` 同 L46 `state.reviewTotal = pool.length`
+- 描述：W-046 之後，錯題簿回合每條文字只抽一個 copy；但係計劃以外答啱只清答嗰個 key。錯題簿有同一題嘅 k 個 copy（例如 Exam 4 同 Exam 15 計時試都錯同一題，`result.js` L46 逐個 copy `addWrong`），就要做 k 輪「Review wrong answers」，每輪都問返同一條題目。Browser probe（wrongList = 第 21 條知識點 3 個 copy `8.13 / 12.23 / 15.6`，每輪全部答啱）：
+
+  | 輪 | 問 | reviewTotal | cleared | left |
+  |----|----|-------------|---------|------|
+  | 1 | 8.13 | 3 | 1 | 12.23, 15.6 |
+  | 2 | 12.23 | 2 | 1 | 15.6 |
+  | 3 | 15.6 | 1 | 1 | — |
+
+  修之前：同一輪問晒 3 個 copy，一輪清晒（不過連勝會 +3，即係 W-046）。修之後連勝啱咗，但係錯題簿要三輪，而且結果頁「Cleared 1 · 2 left」講緊嘅「2」其實係啱啱答啱咗嗰題。計劃 runner 冇呢個問題，因為 G38 `clearPlanReviewWrong` 用 `planSameQuestionKeys` 清晒所有 copy、只計 1 次。
+- 影響：只會喺用戶喺唔同試卷答錯同一題文字時出現（19 個 extra key），但係出現嘅話就好明顯：同一題，連續幾輪問同一條。dup-test `checkRounds` 只 assert「問 1 題」，冇 assert 答啱之後清得晒。
+- 方案 A（推薦）：錯題簿回合答啱就清晒嗰條文字嘅所有 copy、只計 1 次，即係同計劃嘅 G38 一樣：抽一個 `clearWrongCopies(q)` helper（用 `planSameQuestionKeys` 或者 `questionCopies(qKey(q)).filter(k => wrongList[k])`），`clearPlanReviewWrong` 同 WRONG_EXAM 分支都用佢；`state.reviewTotal` 改為不同題目數（`questionGroups(pool.map(qKey)).length`）；加一個 dup-test：3 個 copy → 一輪答啱 → `wrongList` 空、`cleared === 1`。Trade-off：改咗「計劃以外錯題簿行為不變」嗰句（G40 ②），要喺 spec / grill 補一句，不過呢個本身就係「一條題目文字 = 一條題目」嘅延伸。
+- 方案 B：錯題簿回合唔去重（`isReviewSet(examNum) ? pool : distinctQuestions(practicePool(pool))`），連勝只喺第一個 copy 加（例如喺 round 入面記住已經加過嘅 canon key）。Trade-off：同一輪問同一題兩次，用戶睇落似 bug；要喺 `recordPracticeAnswer` 加 round state，複雜啲。
+- 推薦：A。改動細（一個 helper + 一行 `reviewTotal` + 一個 test），同 G38 / G40 方向一致。
+
+## 🟢 S-145 — 回合 / 標記數目仍然逐個 copy 計
+
+- 位置：`js/screens/quiz.js` `renderRoundNote` L164–170（`total = state.reviewTotal`，`rounds = Math.ceil(total / PRACTICE_ROUND_MAX)`）；標記題目 `practiceFlags` 逐個 copy 記
+- 描述：(a) 錯題簿 / 標記回合嘅「Round 1 of N · n of your T wrong answers」用 `pool.length`，有 copy 嘅話 T 同 N 都偏高（例如 25 個 key 其實得 24 條題目 → 「Round 1 of 2」但其實一輪問晒）。純 cosmetic。(b) 標記回合每條文字問一個 copy，但係取消標記只取消嗰個 copy，另一個 copy 下次又會出。標記係用戶自己揀嘅，所以冇 W-047 咁嚴重。
+- 方案 A：(a) 跟 W-047 方案 A 一齊將 `reviewTotal` 改為不同題目數；(b) 喺 quiz 取消 / 加標記時同步所有 copy（`questionCopies`），或者喺 spec 寫明標記係逐個 copy 記。
+- 方案 B：只寫入 spec 做 known limitation，暫時唔改。
+- 推薦：(a) 用 A（W-047 本身會改 `reviewTotal`，順手）；(b) 用 B 或者另開 ticket，問用戶想點。
+
+## 評分結果（re-review）
+
+| 維度 | 得分 | 滿分 | 備注 |
+|------|------|------|------|
+| 正確性 | 19 | 25 | W-047（−5）、S-145（−1） |
+| 安全性 | 20 | 20 | 冇新 input；`.sqm-ref` 包住嘅係程式砌嘅 label |
+| 可維護性 | 20 | 20 | `qKey` / `distinctQuestions` 同 copy 表放埋一齊；`similarListHtml` 拆得清楚；alias 有 comment |
+| 測試覆蓋 | 15 | 15 | 新 test 覆蓋 W-046、S-140、S-141、S-143 同 zh pill；W-047 冇 test 嘅問題計喺正確性度，唔重複扣 |
+| 性能 | 10 | 10 | `distinctQuestions` 係 O(n) |
+| 代碼風格 | 10 | 10 | comment 已拆行，命名一致 |
+| **總分** | **94** | **100** | |
+
+**結果：✅ pass**（hard gates 全 pass、≥ 90、冇 Critical）。W-047 係 Warning，唔 block merge，但建議 merge 之前修（細改動），或者即刻開 follow-up；PR7b 本身就係要做「一條文字 = 一條題目」，錯題簿逐個 copy 清就會同呢個目標唔一致。
+
+## 修正優先順序（re-review）
+
+| 優先 | ID | 工作量 | 備注 |
+|------|----|--------|------|
+| 1 | W-047 | helper + 1 行 + 1 個 test | 建議 merge 前，或者即刻開 follow-up；spec G40 ② 補一句 |
+| 2 | S-145(a) | 跟 W-047 一齊改 `reviewTotal` | |
+| 3 | S-145(b) | 問用戶 | 標記係唔係都要同步 copy |
+| — | G40 ④ | docs | 「待用戶確認」：plan runner panel 保持唔變，等用戶確認 |
+
+## 修訂後代碼（W-047 方案 A 重點）
+
+```js
+// js/screens/quiz.js — W-047: a correct answer in a review clears every copy of the question text, counted once
+// (the plan runner already does this: G38); a round asks one copy per text (W-046)
+function clearWrongCopies(q) {
+  const keys = planSameQuestionKeys(keysOf(wrongList), qKey(q));
+  keys.forEach(k => clearWrong(questionByKey(k)));
+  if (keys.length) state.cleared++;
+}
+function recordPracticeResult(q, correct) {
+  recordPracticeAnswer(q, correct, state.planDay || null);
+  if (!correct) addWrong(q);
+  else if (isPlanSession() || state.examNum === WRONG_EXAM) clearWrongCopies(q);
+}
+// startExam: review rounds count distinct questions, so "Round 1 of N" matches what is asked (S-145a)
+state.reviewTotal = isReviewSet(examNum) ? questionGroups(pool.map(qKey)).length : 0;
+```
+
+## Handoff receipt（re-review）
+
+```handoff-receipt
+protocol: 1
+status: pass
+score: 94/100
+hard_gates:
+  lint: n/a
+  type_check: n/a
+  tests: pass
+  coverage: n/a
+next_action: merge_develop
+next_agent: null
+branch: "claude/charming-hopper-48ypzp"
+context: "PR7b re-review: W-046, S-140-S-144 and the zh 已 strings resolved; 41/41 pass. Plan runner panel left unchanged (S-141a) is sound (CUI-0025 standalone lists the wrong answer). New W-047: a wrong-answers round asks one copy per text but a correct answer clears only that copy, so k copies take k rounds of the same question (browser probe 3 copies -> 3 rounds); fix = clear all copies like G38 + reviewTotal by distinct questions. S-145: round note / flags count copies"
+blockers: []
+```
