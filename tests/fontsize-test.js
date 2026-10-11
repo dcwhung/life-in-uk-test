@@ -6,7 +6,7 @@ const path = require('path');
 // - Q8 / Q10: ⚙ → "Text size" [ A | A ] (small A / large A, the current one pressed); a choice closes the popover and
 //   focus goes back to ⚙; nothing is written until the user picks (lifeuk.fontSize), the choice survives a reload
 // - Q3 / M2: large text keeps the layout: L4b (plan task card: "Start ›" under the text), L5 (study order count column
-//   128px), 320–400px en + zh-HK never scroll sideways on the main screens
+//   128px), W-056 (goal form restacked, user option V2), 320–400px en + zh-HK never scroll sideways on 13 screens (S-195)
 // - C3: the quiz counter reads "Question 1 of 24" unless that wraps, then "Question 1/24" ("第 1/24 題"); where even the
 //   short form wraps (320px large, the wide "Translate" button in the row) it stays short on two lines (user)
 // - S-193: ⓘ has a 44px tap area
@@ -153,6 +153,13 @@ async function checkNoSideScroll(pg) {
     result: () => { pendingMode = 'exam'; startExam(2); state.questions.forEach((q, i) => { state.answers[i] = [...q.a]; }); finishExam(); },
     planDay: goal => { writeStudyPlan(buildPlan(goal, '2026-10-01')); openPlanDay(); },
     planSchedule: goal => { writeStudyPlan(buildPlan(goal, '2026-10-01')); openPlanSchedule(); },
+    // W-056 / S-195: the goal form and the screens the first test left out
+    planGoal: () => openPlanGoal(),
+    flagged: () => { pendingMode = 'practice'; startExam(5); setPracticeFlag(qKey(state.questions[0]), true); openFlagged(); },
+    studyTimeline: () => { openStudy(); studySetTab('timeline'); },
+    studyGeo: () => { openStudy(); studySetTab('geo'); },
+    studyPeople: () => { openStudy(); studySetTab('people'); },
+    settings: () => { goHome(); byId('settingsBtn').click(); },
   };
   for (const lang of LANGS) for (const w of WIDTHS) {
     await pg.setViewportSize({ width: w, height: 760 });
@@ -165,6 +172,30 @@ async function checkNoSideScroll(pg) {
     }
     assert(bad.length === 0, `Q3 large ${lang} ${w}px: no sideways scroll: ` + bad.join(', '));
   }
+}
+
+// W-056 (user: option V2): large text restacks the goal form — level cards one per row, the 4 date presets 2 × 2,
+// every other duration tick hidden at 359px and below — so no word breaks and no label touches the next
+async function checkGoalLayout(pg) {
+  for (const w of [320, 375]) {
+    await pg.setViewportSize({ width: w, height: 900 });
+    await fresh(pg);
+    await chooseSize(pg, 'large');
+    await pg.evaluate(() => openPlanGoal());
+    const r = await pg.evaluate(() => {
+      const cols = sel => getComputedStyle(document.querySelector(sel)).gridTemplateColumns.split(' ').length;
+      const ticks = [...document.querySelectorAll('.plan-ticks span')].filter(e => getComputedStyle(e).visibility !== 'hidden')
+        .map(e => { const range = document.createRange(); range.selectNodeContents(e); return range.getBoundingClientRect(); });
+      const touching = ticks.some((a, i) => i > 0 && a.left < ticks[i - 1].right + 2);
+      const cut = [...document.querySelectorAll('.plan-presets .chip, .plan-levels .mode-card')].filter(e => e.scrollWidth > e.clientWidth + 1).length;
+      return { levels: cols('.plan-levels'), presets: cols('.plan-presets'), ticks: ticks.length, touching, cut };
+    });
+    assert(r.levels === 1 && r.presets === 2 && !r.touching && r.cut === 0 && r.ticks === (w <= 359 ? 4 : 7),
+      `W-056 ${w}px large: level cards one per row, presets 2 × 2, tick labels apart (${w <= 359 ? 4 : 7} shown), nothing cut: ` + JSON.stringify(r));
+  }
+  await chooseSize(pg, 'small');
+  const small = await pg.evaluate(() => getComputedStyle(document.querySelector('.plan-levels')).gridTemplateColumns.split(' ').length);
+  assert(small === 3, 'W-056: small text keeps the three level cards in a row');
 }
 
 // S-193: ⓘ keeps its 16px look; the tap area is 44px each way
@@ -188,6 +219,7 @@ async function checkInfoHit(pg) {
   await checkZh(pg);
   await checkCounter(pg);
   await checkPlanLayout(pg);
+  await checkGoalLayout(pg);
   await checkNoSideScroll(pg);
   await checkInfoHit(pg);
   assert(errs.length === 0, 'no page errors: ' + errs.join(' | '));
