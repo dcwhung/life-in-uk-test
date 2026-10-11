@@ -390,11 +390,14 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
 :root[data-font-size="large"] .plan-task-ic { width: 32px; height: 32px; grid-row: span 2; align-self: start; }
 :root[data-font-size="large"] .plan-task-go { grid-column: 2; justify-self: end; }
 :root[data-font-size="large"] .plan-chw { --plan-chw-count-w: 128px; }
-/* W-056 (user: option V2): the goal form restacks in large text: level cards one per row (three "Intermediate"-wide
-   cards pushed 320px 14px wide), the 4 presets 2 × 2 ("1.5 months" was cut), every other duration tick hidden at 359px
-   and below (the labels touched) */
-:root[data-font-size="large"] .plan-levels { grid-template-columns: minmax(0, 1fr); }
-:root[data-font-size="large"] .plan-stack .plan-presets { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+/* W-056 (user): in large text the goal form's presets and level cards wrap only when they do not fit: a flex row whose
+   items share the width (flex 1 1 0) but never shrink below their content (a preset's whole label, a level card's
+   longest word), so a wide screen keeps one row and 320px wraps (three "Intermediate"-wide cards pushed 320px 14px wide
+   and "1.5 months" was cut in the fixed grid); every other duration tick is hidden at 359px and below (labels touched) */
+:root[data-font-size="large"] .plan-levels { display: flex; flex-wrap: wrap; }
+:root[data-font-size="large"] .plan-levels .mode-card { flex: 1 1 0; min-width: min-content; }
+:root[data-font-size="large"] .plan-stack .plan-presets { display: flex; flex-wrap: wrap; }
+:root[data-font-size="large"] .plan-stack .plan-presets .chip { flex: 1 1 0; min-width: max-content; }
 @media (max-width: 359px) { :root[data-font-size="large"] .plan-ticks span:nth-child(even) { visibility: hidden; } }
 
 @media (max-width: 380px) {
