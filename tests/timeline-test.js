@@ -1,7 +1,8 @@
 // v1.1.1 Study timeline layout (user 2026-10-11, preview option C): the year sits above its card, the dot on the
 // vertical rail to its left, so the card is about as wide as on the chapter tab and memory-note tables fit.
 // A: no timeline card is wider than the screen, so the page never scrolls sideways (390 / 375 / 360 / 320px)
-// B: every opened "💡 記憶法" table fits its card at 390 / 375 / 360px (320px may fall back to in-table scroll)
+// B: every opened "💡 記憶法" table fits its card at 390px (narrower screens may fall back to in-table scroll)
+//    and every card starts TL_CARD_LEFT_PX from the screen's left edge
 // C: the dot is centred on the rail and on the year text's vertical middle, TL_YEAR_GAP_PX clear of the text
 // W-052: adjacent items touch (no margin collapses out of an item), so the rail runs on between cards
 // D: year text is --fs-sm; TL_YEAR_SPACE_ABOVE_PX above it (to the card before), TL_YEAR_SPACE_BELOW_PX below it
@@ -13,11 +14,12 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
 const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('ok:', m); };
 
 const PX_TOLERANCE = 0.5;
-const TL_YEAR_GAP_PX = 12; // dot ring to year text; user: double the first 6px
+const TL_YEAR_GAP_PX = 6;
 const TL_YEAR_SPACE_ABOVE_PX = 24; // previous card's margin (8px) + 16px; user: 2–3x the first 10px
 const TL_YEAR_SPACE_BELOW_PX = 16; // user: 2–3x the first 8px
 const NO_OVERFLOW_WIDTHS = [390, 375, 360, 320];
-const TABLE_FIT_WIDTHS = [390, 375, 360];
+const TABLE_FIT_WIDTHS = [390]; // narrower screens may fall back to in-table scroll (wider left gutter, user)
+const TL_CARD_LEFT_PX = 58; // screen edge to card: 16 page + 16 + 2 rail + 24 (user: double the first 30px)
 
 async function openTimeline(pg) {
   await pg.evaluate(() => {
@@ -38,9 +40,11 @@ async function checkWidth(b, width) {
       .map(it => it.querySelector('.fact').dataset.factId);
     const wraps = [...document.querySelectorAll('#studyContent .tl-body .note-table-wrap')];
     const scroll = wraps.filter(w => w.scrollWidth > w.clientWidth).map(w => w.closest('.fact').dataset.factId + ' +' + (w.scrollWidth - w.clientWidth));
-    return { items: items.length, wide, tables: wraps.length, scroll, docW: document.documentElement.scrollWidth, vw: innerWidth };
+    const lefts = [...new Set(items.map(it => Math.round(it.querySelector('.fact').getBoundingClientRect().left * 10) / 10))];
+    return { items: items.length, wide, tables: wraps.length, scroll, docW: document.documentElement.scrollWidth, vw: innerWidth, lefts };
   });
   assert(r.items > 0 && r.wide.length === 0 && r.docW <= r.vw, `${width}px: none of ${r.items} timeline cards is wider than the screen, page doesn't scroll sideways (doc ${r.docW}; wide: ${r.wide.slice(0, 6).join(', ')})`);
+  assert(r.lefts.length === 1 && Math.abs(r.lefts[0] - TL_CARD_LEFT_PX) <= PX_TOLERANCE, `${width}px: every card starts ${TL_CARD_LEFT_PX}px from the screen edge (${r.lefts.join(', ')})`);
   if (TABLE_FIT_WIDTHS.includes(width)) assert(r.tables > 0 && r.scroll.length === 0, `${width}px: all ${r.tables} timeline 記憶法 tables fit their card (scroll: ${r.scroll.join(', ')})`);
   assert(errs.length === 0, `${width}px: no page errors ${errs.join('; ')}`);
   return pg;
