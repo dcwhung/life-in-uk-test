@@ -47,7 +47,13 @@
 /* v1.0.2: the 4 presets share the card width equally; "or exam date" gets its own row under them */
 .plan-date-row { display: grid; gap: var(--space-4); }
 .plan-stack .plan-presets { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-3); }
-.plan-presets .chip { padding-inline: var(--space-2); white-space: nowrap; text-align: center; }
+.plan-presets .chip { white-space: nowrap; text-align: center; }
+/* v1.3.1 (user; replaces W-036's narrow-screen squeeze and C6 / C7): the 4 presets keep the chip's own padding and go
+   2 × 2 when one row cannot hold them; the level cards stay three in a row while each name and sub line fits on one
+   line, else one per row (js/components/fitRow.js) */
+.plan-stack .plan-presets.is-stacked { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.plan-levels { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.plan-levels.is-stacked { grid-template-columns: minmax(0, 1fr); }
 .plan-date-pick { justify-self: end; display: flex; align-items: center; gap: var(--space-3); font-size: var(--fs-sm); color: var(--text-muted); white-space: nowrap; }
 .plan-date-pick input { border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: var(--space-3) var(--space-4); font-size: var(--fs-base); background: var(--card); color: var(--text); }
 .plan-range { width: 100%; accent-color: var(--navy); }
@@ -390,14 +396,7 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
 :root[data-font-size="large"] .plan-task-ic { width: 32px; height: 32px; grid-row: span 2; align-self: start; }
 :root[data-font-size="large"] .plan-task-go { grid-column: 2; justify-self: end; }
 :root[data-font-size="large"] .plan-chw { --plan-chw-count-w: 128px; }
-/* W-056 (user): in large text the goal form's presets and level cards wrap only when they do not fit: a flex row whose
-   items share the width (flex 1 1 0) but never shrink below their content (a preset's whole label, a level card's
-   longest word), so a wide screen keeps one row and 320px wraps (three "Intermediate"-wide cards pushed 320px 14px wide
-   and "1.5 months" was cut in the fixed grid); every other duration tick is hidden at 359px and below (labels touched) */
-:root[data-font-size="large"] .plan-levels { display: flex; flex-wrap: wrap; }
-:root[data-font-size="large"] .plan-levels .mode-card { flex: 1 1 0; min-width: min-content; }
-:root[data-font-size="large"] .plan-stack .plan-presets { display: flex; flex-wrap: wrap; }
-:root[data-font-size="large"] .plan-stack .plan-presets .chip { flex: 1 1 0; min-width: max-content; }
+/* W-056: every other duration tick is hidden at 359px and below in large text (the labels touched) */
 @media (max-width: 359px) { :root[data-font-size="large"] .plan-ticks span:nth-child(even) { visibility: hidden; } }
 
 @media (max-width: 380px) {
@@ -414,5 +413,4 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
 }
 /* W-036 / CUI-0023: below 360px "1.5 months" needs the chip's full width (no side padding, --fs-xs) to stay on one
    row with the other presets; at 341–355px en it overflowed by 1–4px when this stopped at 340px */
-@media (max-width: 359px) { .plan-presets .chip { padding-inline: 0; font-size: var(--fs-xs); } }
 @media (prefers-reduced-motion: reduce) { .plan-day-scroll { scroll-behavior: auto; } .plan-ring-prog { transition: none; } }

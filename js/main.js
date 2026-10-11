@@ -13,6 +13,8 @@ const LATE_BOOT_SCRIPTS = [
   { src: 'js/core/i18n.js', ready: () => typeof t === 'function' },
   { src: 'js/screens/sideSession.js', ready: () => typeof isSideSession === 'function' },
   { src: 'js/components/factCard.js', ready: () => typeof factCardHtml === 'function' },
+  // v1.3.1: rows that stack when their texts do not fit (goal form, My Review) and the quiz counter's line count
+  { src: 'js/components/fitRow.js', ready: () => typeof fitRows === 'function' },
   // study plan (PR2 answer hooks call recordPlanAnswer from mastery.js / result.js): plan.js before planProgress.js
   { src: 'js/domain/plan.js', ready: () => typeof buildPlan === 'function' },
   { src: 'js/domain/planProgress.js', ready: () => typeof recordPlanAnswer === 'function' },
