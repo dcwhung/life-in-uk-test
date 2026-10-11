@@ -21,7 +21,7 @@
 /* Q6: "#15" small text = the fact's number within its chapter (Chapters view only; elsewhere the "Ch 3 #15" pill) */
 .fact-id { font-size: var(--fs-2xs); font-weight: 800; color: var(--text-muted); letter-spacing: 0.04em; }
 .tag {
-  font-size: 10.5px; font-weight: 700;
+  font-size: var(--fs-2xs-plus); font-weight: 700;
   border-radius: var(--radius-xs); padding: var(--space-1) 7px;
   background: var(--bg); color: var(--text-muted);
 }
@@ -113,7 +113,7 @@
 /* S-072: the "Ch 5 #38" number keeps its case, as on the card pill */
 .sqm-fact-label [lang="en"] { text-transform: none; }
 .sqm-fact-en { font-size: var(--fs-base); line-height: 1.55; color: var(--navy); font-weight: 600; }
-.sqm-fact-yue { font-size: 12.5px; line-height: 1.6; color: var(--purple); margin-top: var(--space-2); }
+.sqm-fact-yue { font-size: var(--fs-sm-plus); line-height: 1.6; color: var(--purple); margin-top: var(--space-2); }
 
 /* G41 (study plan reading): "✓ Practice done" in the slot of "▶ Practise" (a done fact has none); success colours
    as .sqm-node.mastered. Beside the nodes it sits at the row's right end; wrapped, alone on its line, right-aligned */

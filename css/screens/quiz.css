@@ -71,9 +71,9 @@
 }
 .q-yue.show { display: block; }
 .opt-body { display: flex; flex-direction: column; gap: 3px; }
-.opt-yue { font-size: 12.5px; font-weight: 500; color: var(--purple); line-height: 1.5; }
+.opt-yue { font-size: var(--fs-sm-plus); font-weight: 500; color: var(--purple); line-height: 1.5; }
 .q-text {
-  font-size: 17px; font-weight: 700; line-height: 1.55;
+  font-size: var(--fs-2xl); font-weight: 700; line-height: 1.55;
   color: var(--navy);
 }
 
@@ -150,7 +150,7 @@
 .sqm-node.current { background: var(--navy); border-color: var(--navy); color: var(--text-inverse); }
 .sqm-node.mastered { border-color: var(--green-light); color: var(--green); background: var(--success-bg); }
 .sqm-node.weak { border-color: var(--red-light); color: var(--red); background: var(--danger-bg); }
-.sqm-legend { display: flex; gap: var(--space-6); font-size: 10.5px; color: var(--text-muted); margin: calc(-1 * var(--space-3)) 0 var(--space-7); flex-wrap: wrap; }
+.sqm-legend { display: flex; gap: var(--space-6); font-size: var(--fs-2xs-plus); color: var(--text-muted); margin: calc(-1 * var(--space-3)) 0 var(--space-7); flex-wrap: wrap; }
 .sqm-legend i { display: inline-block; width: 8px; height: 8px; border-radius: var(--radius-circle); margin-right: var(--space-2); }
 .sqm-legend .lg-current { background: var(--navy); }
 .sqm-legend .lg-mastered { background: var(--green-light); }
@@ -159,10 +159,10 @@
 .sqm-list { display: flex; flex-direction: column; gap: var(--space-4); }
 .sqm-item { border: 1.5px solid var(--border); border-radius: var(--radius-md); padding: 11px 13px; }
 .sqm-item-top { display: flex; align-items: center; gap: var(--space-3); margin-bottom: 5px; }
-.sqm-id { font-size: 10.5px; font-weight: 800; color: var(--text-muted); letter-spacing: 0.04em; }
+.sqm-id { font-size: var(--fs-2xs-plus); font-weight: 800; color: var(--text-muted); letter-spacing: 0.04em; }
 .sqm-streak { margin-left: auto; font-size: var(--fs-xs); font-weight: 700; color: var(--text-muted); }
 .sqm-streak.done { color: var(--green); }
-.sqm-q { font-size: 13.5px; font-weight: 600; color: var(--navy); line-height: 1.5; }
+.sqm-q { font-size: var(--fs-base-plus); font-weight: 600; color: var(--navy); line-height: 1.5; }
 .sqm-qy { font-size: var(--fs-sm); color: var(--purple); line-height: 1.5; margin-top: var(--space-1); }
 .sqm-cta { margin-top: var(--space-7); }
 .sqm-cta button { width: 100%; border-radius: var(--radius-md); padding: 11px var(--space-5); font: inherit; font-size: var(--fs-base); font-weight: 700; cursor: pointer; background: var(--gold); color: var(--navy); border: none; }
