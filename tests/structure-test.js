@@ -365,8 +365,13 @@ const TOKEN_SAMPLES = [
   // S-189 (v1.1.3 review): every test saves its screenshots under tests/ whatever folder it runs from, so a run from
   // the repo root never leaves shot-*.png there to be committed by mistake
   const testDir = path.resolve(__dirname);
-  const relativeShots = fs.readdirSync(testDir).filter(f => f.endsWith('.js'))
-    .filter(f => /screenshot\(\s*\{\s*path:\s*['"`]/.test(fs.readFileSync(path.join(testDir, f), 'utf8')));
+  // S-190: whitelist, not a pattern for bad paths — every screenshot() call's path must be path.join(__dirname, …)
+  // or path.join(SHOTS, …) (plan-run2-test's opt-in folder), whatever key order or quoting it uses
+  const SAFE_SHOT_PATH = /\bpath\s*:\s*path\.join\(\s*(__dirname|SHOTS)\b/;
+  const relativeShots = fs.readdirSync(testDir).filter(f => f.endsWith('.js')).flatMap(f => {
+    const src = fs.readFileSync(path.join(testDir, f), 'utf8');
+    return [...src.matchAll(/\.screenshot\(([^)]*\)?[^)]*)\)/g)].filter(m => !SAFE_SHOT_PATH.test(m[1])).map(m => `${f}: ${m[0].slice(0, 60)}`);
+  });
   assert(relativeShots.length === 0, `screenshot paths are absolute (path.join(__dirname, …)), not relative to the cwd: ${relativeShots.join(', ')}`);
   await b.close();
   console.log('STRUCTURE PASS');
