@@ -141,6 +141,22 @@ const SPACING_SAMPLES = [
   { css: '/* margin: 8px */ d { margin-top: calc(-1 * 10px); }', hits: 1, why: 'a negative scale value in calc, not a comment' },
 ];
 
+// v1.1.2: every font size goes through the --fs-* scale (tokens.css), so one place can shift them all (larger-text
+// mode). Checked: font-size, the font shorthand and custom properties named *fs* / *font-size* / *emoji-size*
+const FONT_SIZE_PROP = /^(?:font-size|font|--[\w-]*(?:fs|font-size|emoji-size)[\w-]*)$/;
+function fontSizeLiterals(css) {
+  const code = css.replace(/\/\*[\s\S]*?\*\//g, ' ');
+  return [...code.matchAll(/([\w-]+)\s*:\s*([^;{}]+)/g)]
+    .filter(([, prop, value]) => FONT_SIZE_PROP.test(prop) && /(?<![\w.-])\d+(?:\.\d+)?(?:px|em|rem|pt|%)/.test(value))
+    .map(([, prop, value]) => `${prop}: ${value.trim()}`);
+}
+const FONT_SIZE_SAMPLES = [
+  { css: 'a { font-size: 12.5px; }', hits: 1, why: 'a px font-size' },
+  { css: 'b { font-size: var(--fs-sm); font: inherit; }', hits: 0, why: 'a token and font: inherit' },
+  { css: 'c { --dot-fs: 9px; --plan-ring-size: 112px; }', hits: 1, why: 'a *fs custom property (a box size is not a font size)' },
+  { css: '/* font-size: 9px */ d { font: 700 1.2em/1 serif; }', hits: 1, why: 'an em size in the font shorthand, not a comment' },
+];
+
 const TOKEN_SAMPLES = [
   { css: ['a { color: var(--nope); }'], gaps: '--nope', why: 'an undefined token' },
   { css: [':root { --a: 1px; }', 'b { margin: var(--a); }'], gaps: '', why: 'a token defined in another file' },
@@ -180,6 +196,12 @@ const TOKEN_SAMPLES = [
   const spacingLits = cssFiles(path.join(ROOT, 'css')).filter(f => f !== TOKENS_CSS)
     .flatMap(f => spacingScaleLiterals(fs.readFileSync(f, 'utf8')).map(d => `${rel(f)} ${d}`));
   assert(spacingLits.length === 0, `margin / padding / gap use --space-* for ${SPACE_SCALE_PX.join(' / ')}px (${spacingLits.length} literal): ${spacingLits.slice(0, 4).join(' | ')}`);
+  // v1.1.2: font sizes go through the --fs-* tokens (tokens.css defines them)
+  const fontMisses = FONT_SIZE_SAMPLES.filter(({ css, hits }) => fontSizeLiterals(css).length !== hits).map(({ why }) => why);
+  assert(fontMisses.length === 0, `font-size guard reads ${FONT_SIZE_SAMPLES.length} in-memory samples right` + (fontMisses.length ? ': ' + fontMisses.join(', ') : ''));
+  const fontLits = cssFiles(path.join(ROOT, 'css')).filter(f => f !== TOKENS_CSS)
+    .flatMap(f => fontSizeLiterals(fs.readFileSync(f, 'utf8')).map(d => `${rel(f)} ${d}`));
+  assert(fontLits.length === 0, `font sizes use the --fs-* tokens (${fontLits.length} literal): ${fontLits.slice(0, 4).join(' | ')}`);
   // S-023: a var(--x) with no --x definition silently falls back (or drops the declaration)
   const tokenMisses = TOKEN_SAMPLES.filter(({ css, gaps }) => undefinedTokens(css).join(',') !== gaps).map(({ why }) => why);
   assert(tokenMisses.length === 0, `undefined-token guard reads ${TOKEN_SAMPLES.length} in-memory samples right`

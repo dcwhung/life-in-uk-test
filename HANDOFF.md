@@ -192,7 +192,7 @@ v0.57（P1 refactor）起 `index.html` 只剩 `<head>`、各 screen 嘅 markup �
 | 翻譯 / Study tag | `--yue-bg`、`--yue-bg-soft`、`--person-bg` |
 | Study 裝飾（v0.62，P3 Q2-a 全 navy） | `--study-accent`（= `--navy-light`：fact 左邊框、timeline 圓點）、`--study-accent-strong`（= `--navy-light`：`.tag.year` 字、timeline 年份、`.study-sub-title`、Home `.ch-num` + `.chapter-btn:hover`）、`--study-accent-bg`（= `--selected-bg`：`.tag.year` 底）。紫色（`--purple*`）只代表廣東話；`structure-test` fail `study.css` / `chips.css` / `home.css` 入面 `.fact-yue` 以外嘅 `--purple*` / `--year-bg`。v0.62 刪咗冇人用嘅 `--year-bg`、`--star-on` |
 | Radius | `--radius`（14px 卡）、`--radius-md`（10px）、`--radius-sm`（8px）、`--radius-xs`（6px，v0.62 O8：`.tag`（原 5px）、`.fact-btn`（原 7px）、Home `.ch-num`）、`--radius-pill`（999px）、`--radius-circle`（50%） |
-| Font size | `--fs-2xs` 10、`--fs-xs` 11、`--fs-sm` 12、`--fs-base` 13、`--fs-md` 14、`--fs-lg` 15（px）；10.5 / 12.5 / 13.5 半級同大標題字號照寫 px |
+| Font size | v1.1.2 起**所有** `font-size` 都用 token（`structure-test` fail `tokens.css` 以外嘅 px / em / rem / pt / % 字號，連 `font` shorthand 同 `--*fs*` / `--*emoji-size*` custom property）：`--fs-3xs` 9、`--fs-2xs` 10、`--fs-2xs-plus` 10.5、`--fs-xs` 11、`--fs-sm` 12、`--fs-sm-plus` 12.5、`--fs-base` 13、`--fs-base-plus` 13.5、`--fs-md` 14、`--fs-lg` 15、`--fs-xl` 16（`body` 字號 = 瀏覽器預設，冇字號嘅文字繼承佢）、`--fs-2xl` 17、`--fs-3xl` 19、`--fs-4xl` 20、`--fs-5xl` 22、`--fs-6xl` 24、`--fs-7xl` 26、`--fs-display-sm` 42、`--fs-display` 52、`--fs-display-lg` 72（px）；為之後嘅大字模式鋪路（`.proj-docs/plans/2026-10-11_grill_font-size.md`） |
 | Spacing（v0.72，B5） | `--space-1` 2、`--space-2` 4、`--space-3` 6、`--space-4` 8、`--space-5` 10、`--space-6` 12、`--space-7` 14、`--space-8` 16、`--space-10` 20、`--space-12` 24（px；步數 = px / 2） |
 | Shadow / overlay | `--shadow`、`--shadow-sm`、`--shadow-header`、`--shadow-pop`、`--overlay` |
 
