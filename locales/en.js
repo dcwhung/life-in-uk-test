@@ -31,6 +31,9 @@ LOCALES.en = {
     // v1.2.0: ⚙ settings popover (the language options name themselves in their own language)
     settings: 'Settings',
     language: 'Language',
+    fontSize: 'Text size', // v1.3.0: the ⚙ text size row; each A is named for screen readers
+    fontSmall: 'Small text',
+    fontLarge: 'Large text',
     langEn: 'EN',
     langZh: '中文',
     // ⚙ settings popover (v1.2.0; ⓘ before) "Features" section: the study plan switch, an On / Off pill after its name, then the note
@@ -72,6 +75,7 @@ LOCALES.en = {
 
   quiz: {
     questionOf: 'Question {n} of {total}',
+    questionOfShort: 'Question {n}/{total}', // C3 (v1.3.0): only where questionOf would wrap
     allShuffled: 'All Questions (shuffled)',
     translate: 'Translate',
     hideTranslation: 'Hide translation',

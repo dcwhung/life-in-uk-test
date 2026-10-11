@@ -2,7 +2,7 @@
 // CONFIG — app-wide constants. sw.js loads this file with importScripts() to name its cache,
 // so it must stay worker-safe: plain constants only, no DOM and no question data.
 // ════════════════════════════════════════
-const APP_VERSION = '1.2.0';
+const APP_VERSION = '1.3.0';
 
 // ── modes and special set ids (state.examNum is 1..EXAM_COUNT or one of these) ──
 const PRACTICE_MODE = 'practice';
@@ -68,7 +68,11 @@ const FLAGS_LS = LS_PREFIX + 'practiceFlags';
 const WRONG_LS = LS_PREFIX + 'wrongList';
 const COMPLETED_LS = LS_PREFIX + 'completedExams';
 const HOME_PREFS_LS = LS_PREFIX + 'homePrefs';
-const UI_LANG_LS = LS_PREFIX + 'uiLang';   // v0.59: UI language (v0.65: header pill)
+const UI_LANG_LS = LS_PREFIX + 'uiLang';   // v0.59: UI language (v0.65: header pill; v1.2.0: ⚙ settings)
+const FONT_SIZE_SMALL = 'small';
+const FONT_SIZE_LARGE = 'large';
+const FONT_SIZES = [FONT_SIZE_SMALL, FONT_SIZE_LARGE];
+const FONT_SIZE_LS = LS_PREFIX + 'fontSize';   // v1.3.0: text size (⚙ settings): FONT_SIZE_SMALL (default, not written) / FONT_SIZE_LARGE
 const INSTALL_DISMISSED_LS = LS_PREFIX + 'installDismissed';   // v0.60: install banner closed with ✕ (never shown again)
 // study plan: the switch (no value = on), the stored schedule, the per-day answer log; new keys, so no legacy names
 const STUDY_PLAN_ENABLED_LS = LS_PREFIX + 'studyPlanEnabled';

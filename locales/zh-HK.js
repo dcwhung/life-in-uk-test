@@ -27,6 +27,9 @@ LOCALES['zh-HK'] = {
     installDismiss: '關閉',
     settings: '設定',
     language: '語言',
+    fontSize: '字型大小',
+    fontSmall: '細字',
+    fontLarge: '大字',
     langEn: 'EN',
     langZh: '中文',
     features: '功能',
@@ -67,6 +70,7 @@ LOCALES['zh-HK'] = {
 
   quiz: {
     questionOf: '第 {n} 題（共 {total} 題）',
+    questionOfShort: '第 {n}/{total} 題',
     allShuffled: '全部試題（隨機排序）',
     translate: '翻譯',
     hideTranslation: '隱藏翻譯',

@@ -1,11 +1,14 @@
 /* ── HEADER: info button + popover (replaces the old home hero) ── */
 .info-btn {
+  position: relative;
   background: transparent; border: none; padding: 0;
   color: var(--text-inverse-muted);
   font-size: var(--fs-xl); line-height: 1;
   cursor: pointer;
   transition: color 0.15s;
 }
+/* S-193 (v1.3.0): the 16px ⓘ keeps its look; the tap area grows to 44 × 44px */
+.info-btn::before { content: ''; position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; transform: translate(-50%, -50%); }
 /* v1.2.0 (user): an open header popover's button turns white, ⓘ and ⚙ alike (css/base/layout.css .settings-btn) */
 .info-btn:hover, .info-btn.open { color: var(--text-inverse); }
 .info-pop {
@@ -53,6 +56,9 @@
 .seg button:last-child { border-radius: 0 var(--radius-pill) var(--radius-pill) 0; }
 .seg button + button { border-left: 1.5px solid var(--gold); }
 .seg button[aria-pressed="true"] { background: var(--gold); color: var(--navy); }
+/* v1.3.0 (Q8): the text size options show a small and a large A */
+.seg .seg-a-sm { font-size: var(--fs-base); font-weight: 800; }
+.seg .seg-a-lg { font-size: var(--fs-3xl); font-weight: 800; }
 .seg button:focus-visible { outline: 2px solid var(--text-inverse); outline-offset: -4px; }
 /* the study plan row moved here from the ⓘ popover (Q7): same rule, no gap above the row line */
 #settingsPop .plan-settings { margin-top: 0; padding-top: var(--space-5); }

@@ -68,6 +68,7 @@ function upgradeLegacyHeaderMarkup() {
 
 function startApp() {
   upgradeLegacyHeaderMarkup();
+  applyFontSize(); // v1.3.0: before anything renders at the default size
   byId('appVersion').textContent = 'v' + APP_VERSION;
   byId('appVersionPop').textContent = 'v' + APP_VERSION;
   applyLanguage(); // <html lang>, data-i18n markup, <title> / meta, ⓘ popover counts
