@@ -99,6 +99,7 @@
 
 ## Plans
 
+- [2026-10-12_handoff_memo-followup-apply.md](plans/2026-10-12_handoff_memo-followup-apply.md) + [2026-10-12_memo-followup-spec.json](plans/2026-10-12_memo-followup-spec.json) — 記憶法跟進（67 題 note、#126 併入 #125 + migration）；v1.2.1 已套用（#125 d 用 5，見 HANDOFF v1.2.1）；review 過程喺 branch `claude/relaxed-hamilton-3x7vm6`
 - [2026-10-11_grill_font-size.md](plans/2026-10-11_grill_font-size.md) — 全域字型大小切換 grill（Q1–Q6：+2px、所有字、layout 跟住調、header A+/A− pill、先 mockup、PR-A v1.1.2 token 化 → PR-B v1.2.0）+ mockup 量度 L1–L6；mockup `mockups/font-size-switch.html`
 - [2026-10-11_memo-final-spec.json](plans/2026-10-11_memo-final-spec.json) — 記憶法 v2 最終規格（61 個記憶法、375 題；Q1 已套：8.15 → N8a）；v1.0.10 已寫入 `data/exams.js`，測試 fixture `tests/fixtures/memo-notes.json`；review 過程 / handoff memo 喺 branch `claude/relaxed-hamilton-3x7vm6`
 - [2026-10-10_plan-pr8-release.md](plans/2026-10-10_plan-pr8-release.md) — 溫習計劃 PR8 正式推出：`STUDY_PLAN_READY = true`、拎走 `?preview=plan`（G42）、刪 mockup、v1.1.0
