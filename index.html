@@ -42,7 +42,7 @@
         <div class="logo-sub"><span data-i18n="app.sub"></span> <span class="app-version" id="appVersion"></span></div>
       </div>
     </div>
-    <button class="lang-btn" id="langBtn" type="button" data-action="toggleLang" data-i18n="app.langSwitch" data-i18n-attr="aria-label:app.langSwitchLabel;title:app.langSwitchLabel"></button>
+    <button class="settings-btn" id="settingsBtn" type="button" data-action="toggleSettings" data-icon="gear" aria-expanded="false" aria-controls="settingsPop" data-i18n-attr="aria-label:app.settings;title:app.settings"></button>
   </div>
   <div class="info-pop" id="infoPop" role="dialog" data-i18n-attr="aria-label:app.about">
     <h2><span id="infoTitle"></span> <span class="app-version" id="appVersionPop"></span></h2>
@@ -53,7 +53,19 @@
       <div class="hero-badge" id="infoQuestionCount" role="img"></div>
       <div class="hero-badge" data-i18n="app.infoOffline"></div>
     </div>
-    <!-- study plan: "Features" switch (js/screens/planHome.js renderPlanSettings; hidden until the entry is ready) -->
+  </div>
+  <!-- v1.2.0: settings popover (js/components/popover.js; ⚙ opens it, a choice closes it): language + the study plan
+       switch (moved from ⓘ). The plan row keeps its v1.0 ids (js/screens/planHome.js renderPlanSettings) -->
+  <div class="info-pop" id="settingsPop" role="dialog" data-i18n-attr="aria-label:app.settings">
+    <h2 data-i18n="app.settings"></h2>
+    <div class="set-row" id="settingsLangRow">
+      <b id="settingsLangLabel" data-i18n="app.language"></b>
+      <span class="seg" role="group" aria-labelledby="settingsLangLabel">
+        <button type="button" data-action="chooseLang" data-arg="en" lang="en" data-i18n="app.langEn"></button>
+        <button type="button" data-action="chooseLang" data-arg="zh-HK" lang="zh-HK" data-i18n="app.langZh"></button>
+      </span>
+    </div>
+    <!-- study plan: "Features" switch (hidden until the entry is ready) -->
     <div class="plan-settings" id="infoPlanRow" hidden>
       <div class="plan-settings-title" data-i18n="app.features"></div>
       <div class="plan-setting-row">
@@ -139,7 +151,7 @@
   <!-- ── FLAGGED (practice) ── -->
   <div class="screen" id="screenFlagged">
     <div class="quiz-header">
-      <button class="back-btn" data-action="goHome" data-i18n="common.home"></button>
+      <button class="back-btn icon-btn" type="button" data-action="goHome" data-icon="home" data-i18n-attr="aria-label:common.homeLabel;title:common.homeLabel"></button>
       <span class="quiz-label" data-i18n="flagged.title"></span>
     </div>
     <button class="flag-start" id="flaggedStart" data-action="startFlaggedPractice"></button>
@@ -149,18 +161,18 @@
   <!-- ── STUDY ── -->
   <div class="screen" id="screenStudy">
     <div class="quiz-header">
-      <button class="back-btn" data-action="goHome" data-i18n="common.home"></button>
+      <button class="back-btn icon-btn" type="button" data-action="goHome" data-icon="home" data-i18n-attr="aria-label:common.homeLabel;title:common.homeLabel"></button>
       <span class="quiz-label" data-i18n="study.title"></span>
-      <span class="study-progress" id="studyProgress"></span>
+      <span class="study-progress" id="studyProgress" role="img"></span>
     </div>
 
     <input class="study-search" id="studySearch" type="search" data-i18n-attr="placeholder:study.search" data-input-action="studySetSearch">
 
     <div class="study-tabs" id="studyTabs">
-      <button class="study-tab" data-tab="chapters" data-action="studySetTab" data-arg="chapters" data-i18n="study.tabChapters"></button>
-      <button class="study-tab" data-tab="timeline" data-action="studySetTab" data-arg="timeline" data-i18n="study.tabTimeline"></button>
-      <button class="study-tab" data-tab="geo" data-action="studySetTab" data-arg="geo" data-i18n="study.tabGeo"></button>
-      <button class="study-tab" data-tab="people" data-action="studySetTab" data-arg="people" data-i18n="study.tabPeople"></button>
+      <button class="study-tab" data-tab="chapters" data-action="studySetTab" data-arg="chapters"><span class="tab-ic" aria-hidden="true">📚</span><span data-i18n="study.tabChapters"></span></button>
+      <button class="study-tab" data-tab="timeline" data-action="studySetTab" data-arg="timeline"><span class="tab-ic" aria-hidden="true">📅</span><span data-i18n="study.tabTimeline"></span></button>
+      <button class="study-tab" data-tab="geo" data-action="studySetTab" data-arg="geo"><span class="tab-ic" aria-hidden="true">🗺️</span><span data-i18n="study.tabGeo"></span></button>
+      <button class="study-tab" data-tab="people" data-action="studySetTab" data-arg="people"><span class="tab-ic" aria-hidden="true">👤</span><span data-i18n="study.tabPeople"></span></button>
     </div>
 
     <div class="chip-row" id="studyChips"></div>
@@ -172,7 +184,7 @@
   <!-- ── QUIZ ── -->
   <div class="screen" id="screenQuiz">
     <div class="quiz-header">
-      <button class="back-btn" data-action="goHome" data-i18n="common.home"></button>
+      <button class="back-btn icon-btn" type="button" data-action="goHome" data-icon="home" data-i18n-attr="aria-label:common.homeLabel;title:common.homeLabel"></button>
       <div class="quiz-meta">
         <span class="quiz-label" id="quizLabel"></span>
         <span class="quiz-mode-badge" id="modeBadge"></span>
@@ -231,7 +243,7 @@
   <!-- ── RESULT ── -->
   <div class="screen" id="screenResult">
     <div class="quiz-header">
-      <button class="back-btn" data-action="goHome" data-i18n="common.home"></button>
+      <button class="back-btn icon-btn" type="button" data-action="goHome" data-icon="home" data-i18n-attr="aria-label:common.homeLabel;title:common.homeLabel"></button>
       <span class="quiz-label" id="resultLabel"></span>
     </div>
 
@@ -275,7 +287,7 @@
   <div class="screen" id="screenPlanGoal">
     <div class="plan-stack">
       <div class="quiz-header">
-        <button class="back-btn" data-action="goHome" data-i18n="common.home"></button>
+        <button class="back-btn icon-btn" type="button" data-action="goHome" data-icon="home" data-i18n-attr="aria-label:common.homeLabel;title:common.homeLabel"></button>
         <span class="quiz-label" id="planGoalStep"></span>
       </div>
       <div class="plan-steps" id="planGoalSteps" aria-hidden="true"><i class="on"></i><i></i></div>
@@ -334,9 +346,9 @@
   <div class="screen" id="screenPlanSchedule">
     <div class="plan-stack">
       <div class="quiz-header">
-        <button class="back-btn" data-action="goHome" data-i18n="common.home"></button>
+        <button class="back-btn icon-btn" type="button" data-action="goHome" data-icon="home" data-i18n-attr="aria-label:common.homeLabel;title:common.homeLabel"></button>
         <span class="quiz-label" data-i18n="plan.schedule.name"></span>
-        <button class="nav-btn secondary plan-small plan-hit" data-action="planEditGoal" data-i18n="plan.schedule.editGoal"></button>
+        <button class="nav-btn secondary plan-small plan-hit icon-btn" type="button" data-action="planEditGoal" data-icon="pencil" data-i18n-attr="aria-label:plan.schedule.editGoal;title:plan.schedule.editGoal"></button>
       </div>
       <div>
         <h2 class="plan-h2" data-i18n="plan.schedule.title"></h2>
@@ -379,13 +391,13 @@
   <div class="screen" id="screenPlanDay">
     <div class="plan-stack">
       <div class="quiz-header plan-day-header">
-        <button class="back-btn plan-hit" data-action="goHome" data-i18n="common.home"></button>
+        <button class="back-btn icon-btn plan-hit" type="button" data-action="goHome" data-icon="home" data-i18n-attr="aria-label:common.homeLabel;title:common.homeLabel"></button>
         <div class="plan-day-switch">
           <button class="quick-btn plan-hit-sq" id="planDayPrev" data-action="planShiftDay" data-arg="-1" data-i18n-attr="aria-label:plan.day.prev">‹</button>
           <h2 class="plan-day-title" id="planDayHeading" tabindex="-1"><span id="planDayTitle"></span><span class="plan-num" id="planDaySub"></span></h2>
           <button class="quick-btn plan-hit-sq" id="planDayNext" data-action="planShiftDay" data-arg="1" data-i18n-attr="aria-label:plan.day.next">›</button>
         </div>
-        <button class="nav-btn secondary plan-small plan-hit" data-action="openPlanSchedule" data-i18n="plan.schedule.name"></button>
+        <button class="nav-btn secondary plan-small plan-hit icon-btn" type="button" data-action="openPlanSchedule" data-icon="calendar" data-i18n-attr="aria-label:plan.schedule.name;title:plan.schedule.name"></button>
       </div>
 
       <div class="plan-card-box">
@@ -422,7 +434,7 @@
           </div>
         </div>
         <div class="plan-cal plan-num" id="planCal"></div>
-        <div class="plan-legend" aria-hidden="true"><span data-i18n="plan.calendar.legendLow"></span><i class="plan-swatch h1"></i><i class="plan-swatch h2"></i><i class="plan-swatch h3"></i><i class="plan-swatch h4"></i><span data-i18n="plan.calendar.legendHigh"></span><i class="plan-swatch plan-exam-pat"></i><span data-i18n="plan.schedule.examDay"></span></div>
+        <div class="plan-legend" aria-hidden="true"><span data-i18n="plan.calendar.legendLow"></span><i class="plan-swatch h1"></i><i class="plan-swatch h2"></i><i class="plan-swatch h3"></i><i class="plan-swatch h4"></i><span data-i18n="plan.calendar.legendHigh"></span><span class="plan-legend-exam"><i class="plan-swatch plan-exam-pat"></i><span data-i18n="plan.calendar.legendExam"></span></span></div>
       </div>
 
       <div class="plan-card-box">

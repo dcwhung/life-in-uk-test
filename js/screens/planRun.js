@@ -122,14 +122,28 @@ function planRunBackHtml(from) {
   if (!plan) return escapeHtml(t('plan.run.backToday'));
   return t('plan.run.backDayHtml', { day: `<span lang="en">${t('plan.dayN', { n: planDayNumber(plan, from) })}</span>` });
 }
-// the quiz header's ← Home reads "← Today's tasks" in a plan session or mock (goHome goes back to the day there);
+// the quiz header's 🏠 reads "← Today's tasks" in a plan session or mock (goHome goes back to the day there);
 // a fact's session is named like the Study one ("Fact Ch c #n", setExamLabel)
+// v1.2.0 (Q11): Home is an icon button; a plan's text back label keeps its words, and those words name it (S-188: an
+// aria-label would hide the <span lang="en">Day n</span> language from screen readers)
+function setQuizBackText(back, html) {
+  back.classList.add('plan-hit');
+  back.classList.remove('icon-btn');
+  back.innerHTML = html;
+  back.removeAttribute('aria-label');
+  back.removeAttribute('title');
+}
+function setQuizBackHome(back) {
+  back.classList.remove('plan-hit');
+  back.classList.add('icon-btn');
+  back.innerHTML = lineIconSvg('home');
+  setAccessibleName(back, t('common.homeLabel'));
+}
 function renderPlanQuizHeader() {
   const back = byId('screenQuiz').querySelector('.back-btn');
   const session = isPlanSession(), plan = session || isPlanMock();
-  back.classList.toggle('plan-hit', plan);
-  if (plan) back.innerHTML = planRunBackHtml((session ? sessionReturn : planMockRun).from);
-  else back.textContent = t('common.home');
+  if (plan) setQuizBackText(back, planRunBackHtml((session ? sessionReturn : planMockRun).from));
+  else setQuizBackHome(back);
   if (!session) return;
   if (planRunPart(sessionReturn).fact !== undefined) setExamLabel(byId('quizLabel'), FACT_PREFIX + sessionReturn.fact);
   else byId('quizLabel').textContent = planRunLabel(sessionReturn);

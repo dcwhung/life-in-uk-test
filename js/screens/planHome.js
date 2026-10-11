@@ -10,7 +10,7 @@ const PLAN_CARD_ID = 'planCard';
 // W-031 / G15: switching off leaves only these screens (PR5+: add each plan screen; plan-ui-test pins the list)
 const PLAN_SCREEN_IDS = ['screenPlanGoal', 'screenPlanSchedule', 'screenPlanDay', 'screenPlanRun'];
 const PLAN_MIDNIGHT_SLACK_S = 1; // the day check runs 1 s after local midnight
-const FEATURE_PILL_ON_CLASS = 'on'; // ⓘ Features row pill colour (css/screens/plan.css .feature-pill)
+const FEATURE_PILL_ON_CLASS = 'on'; // ⚙ Features row pill colour (css/screens/plan.css .feature-pill)
 const FEATURE_PILL_OFF_CLASS = 'off';
 
 // G19: the release flag (v1.1.0: on); a function so tests can hide the entry (G42: no ?preview=plan any more)
@@ -20,7 +20,7 @@ function planEntryReady() { return STUDY_PLAN_READY; }
 function planShellReady() { return PLAN_SCREEN_IDS.every(id => !!byId(id)); }
 function planVisible() { return planEntryReady() && planShellReady() && isStudyPlanEnabled(); }
 
-// ── ⓘ popover: "Features" row (a pre-PR3 shell has no #infoPlanRow) ──
+// ── ⚙ popover (v1.2.0; ⓘ before): "Features" row (a pre-PR3 shell has no #infoPlanRow) ──
 function renderPlanSettings() {
   const row = byId('infoPlanRow');
   if (!row) return;
@@ -55,10 +55,12 @@ function isOnPlanScreen() {
 }
 // off hides every plan item (plan and progress stay stored) and leaves a plan screen (G15); elsewhere the current
 // screen stays (W-031: an exam keeps running); on needs no confirm
+// v1.2.0 (Q10): a choice closes the ⚙ popover; cancelling the "off" prompt leaves it open (nothing was chosen)
 function togglePlanFeature() {
-  if (!isStudyPlanEnabled()) { setPlanFeature(true); return; }
+  if (!isStudyPlanEnabled()) { setSettingsOpen(false); setPlanFeature(true); return; }
   showConfirm({ title: t('modal.planOffTitle'), message: t('modal.planOffMessage'), okLabel: t('modal.planOffOk'),
-    cancelLabel: t('modal.planOffCancel'), onOk: () => { setPlanFeature(false); if (isOnPlanScreen()) leaveToHome(); }, focusCancel: true, danger: true });
+    cancelLabel: t('modal.planOffCancel'), onOk: () => { setSettingsOpen(false); setPlanFeature(false); if (isOnPlanScreen()) leaveToHome(); },
+    focusCancel: true, danger: true });
 }
 function setPlanFeature(on) {
   setStudyPlanEnabled(on);

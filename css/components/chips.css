@@ -16,6 +16,9 @@
 }
 /* v0.62: selection is navy like .practice-tab / .chip (purple means Cantonese only); class name is an upgrade-test hook */
 .study-tab.active { background: var(--navy); border-color: var(--navy); color: var(--text-inverse); }
+/* v1.2.0 (C4): every study tab is icon over label, at every width */
+.study-tab { display: flex; flex-direction: column; align-items: center; gap: var(--space-1); line-height: 1.25; }
+.study-tab .tab-ic { line-height: 1; }
 
 .chip-row { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-7); }
 .chip {

@@ -275,9 +275,9 @@ function planCellHtml(plan, c, viewIso) {
   const viewing = c.iso === viewIso && !c.today ? ' viewing' : '';
   const label = c.examDay ? `${planShortDate(c.iso)}${LIST_SEP}${planCellStatus(c)}`
     : t('plan.calendar.cellLabel', { day: t('plan.dayN', { n: planDayNumber(plan, c.iso) }), date: planShortDate(c.iso), status: planCellStatus(c) });
-  const small = c.examDay ? `<small aria-hidden="true">${t('plan.calendar.examCell')}</small>` : '';
+  // v1.2.0 (C2): the exam cell shows only its day and pattern; the legend names it ("🎯 Exam day")
   return `<button type="button" class="plan-cell ${planCellClass(c)}${viewing}" data-iso="${c.iso}" data-action="planOpenCalendarDay"`
-    + ` data-arg="${c.iso}" aria-label="${label}"${c.today ? ' aria-current="date"' : ''}>${day}${small}</button>`;
+    + ` data-arg="${c.iso}" aria-label="${label}"${c.today ? ' aria-current="date"' : ''}>${day}</button>`;
 }
 // 0 = the month of today (or of the shown day while today is outside the plan)
 function planShiftMonth(step) {

@@ -9,10 +9,12 @@ const examArg = el => (/^\d+$/.test(el.dataset.arg) ? Number(el.dataset.arg) : e
 
 const ACTIONS = {
   // header + home
-  toggleInfo: () => { renderPlanSettings(); toggleInfo(); }, // the Features row follows the current language / switch
-  // R-002: switching with the confirm modal open would leave its text in the old language, so the pill does nothing
-  // until the modal closes (since v0.69 / S-025 Tab cannot reach the pill; this guard stays as a backstop)
-  toggleLang: () => { if (!isConfirmOpen()) setLang(getLang() === DEFAULT_LANG ? ZH_HK_LANG : DEFAULT_LANG); },
+  toggleInfo: () => toggleInfo(),
+  // the rows show the current language / plan switch each time it opens
+  toggleSettings: () => { syncLangSetting(); renderPlanSettings(); toggleSettingsPopover(); },
+  // v1.2.0 (Q10): a choice closes the ⚙ popover. R-002: switching with the confirm modal open would leave its text in
+  // the old language, so nothing happens until the modal closes (since v0.69 / S-025 Tab cannot reach it; a backstop)
+  chooseLang: el => { if (isConfirmOpen()) return; setSettingsOpen(false); if (el.dataset.arg !== getLang()) setLang(el.dataset.arg); },
   install: () => promptInstall(),
   dismissInstall: () => dismissInstallBanner(),
   openStudy: () => openStudy(),
@@ -125,10 +127,10 @@ function runClickAction(el, e) {
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-action]');
   if (el && !el.disabled) runClickAction(el, e);
-  // the ⓘ button toggles the popover itself; any other click outside the popover closes it. S-112: the confirm
-  // modal opened from the popover (switch off) counts as inside, so the popover and the switch stay in view
-  if (el && el.dataset.action === 'toggleInfo') return;
-  if (!e.target.closest('#infoPop, #confirmModal')) setInfoOpen(false);
+  // ⓘ / ⚙ toggle their popover themselves; any other click outside the popovers closes them. S-112: the confirm
+  // modal opened from the ⚙ popover (switch off) counts as inside, so the popover and the switch stay in view
+  if (el && (el.dataset.action === 'toggleInfo' || el.dataset.action === 'toggleSettings')) return;
+  if (!e.target.closest('#infoPop, #settingsPop, #confirmModal')) closeHeaderPopovers();
 });
 document.addEventListener('input', e => {
   const el = e.target.closest('[data-input-action]');
@@ -147,5 +149,5 @@ document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
   // S-112: Esc closes the top layer only: the modal first, the popover under it on the next Esc
   if (isConfirmOpen()) { closeConfirm(); return; }
-  setInfoOpen(false);
+  closeHeaderPopovers();
 });

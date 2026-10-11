@@ -44,9 +44,9 @@ async function checkHidden(pg) {
   await fresh(pg);
   await pg.evaluate(() => { window.planEntryReady = () => false; renderPlanSettings(); renderPlanCard(); });
   assert(!(await visible(pg, '#planCard')), 'hidden: no plan card on Home');
-  await pg.click('#infoBtn');
-  assert(!(await visible(pg, '#infoPlanRow')), 'hidden: the ⓘ popover has no Features row');
-  await pg.click('#infoBtn');
+  await pg.click('#settingsBtn');
+  assert(!(await visible(pg, '#infoPlanRow')), 'hidden: the ⚙ popover has no Features row');
+  await pg.click('#settingsBtn');
   await pg.evaluate(() => openPlanGoal());
   assert(await activeScreen(pg) === 'screenHome', 'hidden: openPlanGoal() stays on Home');
   assert((await planKeys(pg)).length === 0, 'hidden: start-up writes no study plan key');
@@ -57,9 +57,9 @@ async function checkReleaseEntry(pg) {
   await fresh(pg);
   assert(await pg.evaluate(() => STUDY_PLAN_READY === true && planEntryReady()), 'G19: STUDY_PLAN_READY is on (v1.1.0)');
   assert(await visible(pg, '#planCard .plan-cta'), 'release: a plain URL shows the create card');
-  await pg.click('#infoBtn');
-  assert(await visible(pg, '#infoPlanRow') && await pg.getAttribute('#planFeatureSwitch', 'aria-checked') === 'true', 'release: the ⓘ Features row shows, switch on');
-  await pg.click('#infoBtn');
+  await pg.click('#settingsBtn');
+  assert(await visible(pg, '#infoPlanRow') && await pg.getAttribute('#planFeatureSwitch', 'aria-checked') === 'true', 'release: the ⚙ Features row shows, switch on');
+  await pg.click('#settingsBtn');
   assert((await planKeys(pg)).length === 0, 'release: showing the entry writes no study plan key');
   for (const stale of ['false', 'true']) {
     await pg.evaluate(([k, v]) => localStorage.setItem(k, v), [OLD_PREVIEW_LS, stale]);
@@ -94,7 +94,9 @@ async function checkCreateCard(pg) {
 async function checkSwitch(pg) {
   await fresh(pg);
   await pg.click('#infoBtn');
-  assert(await visible(pg, '#infoPlanRow'), 'switch: ⓘ popover shows the Features row');
+  assert(await pg.$('#infoPop #infoPlanRow') === null, 'Q7: the ⓘ popover is about only (no Features row)');
+  await pg.click('#settingsBtn');
+  assert(await visible(pg, '#infoPlanRow') && await pg.$('#settingsPop #infoPlanRow') !== null && !(await visible(pg, '#infoPop')), 'switch: the ⚙ popover shows the Features row (ⓘ closed)');
   const sw = '#planFeatureSwitch';
   assert(await pg.getAttribute(sw, 'role') === 'switch' && await pg.getAttribute(sw, 'aria-checked') === 'true', 'switch: role=switch, on by default');
   assert((await planKeys(pg)).length === 0, 'switch: rendering on by default writes nothing');
@@ -115,15 +117,17 @@ async function checkSwitch(pg) {
   await pg.click(sw);
   await pg.click('#confirmOk');
   assert(await pg.evaluate(k => localStorage.getItem(k), 'lifeuk.studyPlanEnabled') === 'false', 'switch off → OK: stored off');
+  assert(!(await visible(pg, '#settingsPop')), 'Q10: switch off → OK closes the ⚙ popover');
   assert(await activeScreen(pg) === 'screenHome', 'switch off on the goal screen: back to Home (G15)');
   assert(!(await visible(pg, '#planCard')), 'switch off: no plan card on Home');
   await pg.evaluate(() => openPlanGoal());
   assert(await activeScreen(pg) === 'screenHome', 'switch off: the goal screen cannot be opened');
-  assert(await visible(pg, sw) && await pg.getAttribute(sw, 'aria-checked') === 'false', 'switch off: the popover (still open, S-112) shows it off');
+  await pg.click('#settingsBtn');
+  assert(await visible(pg, sw) && await pg.getAttribute(sw, 'aria-checked') === 'false', 'switch off: the ⚙ popover shows it off');
   await pg.click(sw);
   assert(!(await pg.evaluate(() => isConfirmOpen())), 'switch on: no confirm');
   assert(await pg.getAttribute(sw, 'aria-checked') === 'true' && await visible(pg, '#planCard .plan-cta'), 'switch on: card back at once');
-  await pg.keyboard.press('Escape');
+  assert(!(await visible(pg, '#settingsPop')) && await pg.evaluate(() => document.activeElement.id) === 'settingsBtn', 'Q10: switch on closes the ⚙ popover, focus back on ⚙');
 }
 
 async function checkGoalDefaults(pg) {
@@ -180,13 +184,14 @@ async function checkSwitchOffElsewhere(pg) {
   const ids = await pg.evaluate(() => [...document.querySelectorAll('.screen[id^="screenPlan"]')].map(e => e.id).filter(id => !PLAN_SCREEN_IDS.includes(id)));
   assert(ids.length === 0, 'W-031: every #screenPlan* is listed in PLAN_SCREEN_IDS: ' + ids);
   await pg.evaluate(() => startExam(3, EXAM_MODE));
-  await pg.click('#infoBtn');
+  await pg.click('#settingsBtn');
   await pg.click('#planFeatureSwitch');
   await pg.click('#confirmOk');
   const r = await pg.evaluate(() => ({ screen: document.querySelector('.screen.active').id, timer: examTimerId !== null, on: isStudyPlanEnabled() }));
   assert(r.screen === 'screenQuiz' && r.timer && !r.on, 'W-031: off during an Exam keeps the exam screen and its timer: ' + JSON.stringify(r));
   await pg.evaluate(() => { setStudyPlanEnabled(true); renderPlanSettings(); stopExamTimer(); openStudy(); });
-  await pg.click('#planFeatureSwitch'); // S-112: the popover stayed open after Confirm
+  await pg.click('#settingsBtn'); // Q10: Confirm closed the popover
+  await pg.click('#planFeatureSwitch');
   await pg.click('#confirmOk');
   assert(await activeScreen(pg) === 'screenStudy', 'W-031: off on Study stays on Study');
   await pg.evaluate(() => leaveToHome());
@@ -196,7 +201,7 @@ async function checkSwitchOffElsewhere(pg) {
 // v1.0.5 (user): the Features row reads "🗓️ Study plan" then an On (green) / Off (red) pill; the note below has no On: / Off: prefix
 async function checkFeaturePill(pg) {
   await fresh(pg);
-  await pg.click('#infoBtn');
+  await pg.click('#settingsBtn');
   const pill = () => pg.evaluate(() => {
     const e = byId('infoPlanPill'), label = e.previousElementSibling, cs = getComputedStyle(e);
     const rgb = cs.backgroundColor.match(/\d+/g).map(Number);
@@ -210,12 +215,13 @@ async function checkFeaturePill(pg) {
     'pill: on → green "On" pill after the label, note without prefix: ' + JSON.stringify(on));
   await pg.click('#planFeatureSwitch');
   await pg.click('#confirmOk');
+  await pg.click('#settingsBtn'); // Q10: Confirm closed the popover
   const off = await pill();
   assert(off.text === 'Off' && off.off && !off.on && off.redish && off.round && off.note === 'All plan items are now hidden',
     'pill: off → red "Off" pill, note without prefix: ' + JSON.stringify(off));
-  await pg.keyboard.press('Escape'); // the language pill sits outside the popover: a click there closes it first
+  await pg.keyboard.press('Escape');
   await pg.evaluate(() => setLang('zh-HK'));
-  await pg.click('#infoBtn');
+  await pg.click('#settingsBtn');
   const zhOff = await pill();
   assert(zhOff.text === '已關閉' && zhOff.off && zhOff.note === '所有計劃項目已隱藏', 'pill: zh-HK off → 已關閉: ' + JSON.stringify(zhOff));
   await pg.click('#planFeatureSwitch');
@@ -235,7 +241,7 @@ async function checkToast(pg) {
   });
   const idle = await toast();
   assert(idle.hidden && idle.display === 'none', '[hidden] toast is not displayed before use');
-  await pg.click('#infoBtn');
+  await pg.click('#settingsBtn');
   await pg.click('#planFeatureSwitch');
   await pg.click('#confirmOk');
   const off = await toast();
@@ -245,32 +251,31 @@ async function checkToast(pg) {
   await pg.waitForTimeout(ms + 300);
   const gone = await toast();
   assert(gone.hidden && gone.display === 'none', `toast hides itself after TOAST_MS (${ms} ms)`);
-  await pg.click('#planFeatureSwitch'); // S-112: the popover stayed open after Confirm
+  await pg.click('#settingsBtn'); // Q10: Confirm closed the popover
+  await pg.click('#planFeatureSwitch');
   const on = await toast();
-  assert(!on.hidden && on.text.startsWith('Study plan turned on') && await pg.evaluate(() => document.activeElement.id) === 'planFeatureSwitch',
-    'toast after switching on: shown, focus stays on the switch: ' + on.text);
+  assert(!on.hidden && on.text.startsWith('Study plan turned on') && await pg.evaluate(() => document.activeElement.id) === 'settingsBtn',
+    'toast after switching on: shown, the toast does not take focus (it goes back to ⚙): ' + on.text);
   await pg.keyboard.press('Escape');
 }
 
-// W-032: the switch updates in place: the popover stays open and focus stays on the switch
+// W-032: the switch is built once and updated in place; v1.2.0 (Q10): a choice closes the ⚙ popover and focus goes back
+// to ⚙ (by click and by keyboard)
 async function checkSwitchInPlace(pg) {
   await fresh(pg);
   await pg.evaluate(() => setStudyPlanEnabled(false));
-  await pg.click('#infoBtn');
+  await pg.click('#settingsBtn');
+  const before = await pg.evaluate(() => { window.__sw = byId('planFeatureSwitch'); return true; });
   await pg.click('#planFeatureSwitch');
-  const r = await pg.evaluate(() => ({ open: byId('infoPop').classList.contains('show'), focus: document.activeElement.id,
+  const r = await pg.evaluate(() => ({ open: byId('settingsPop').classList.contains('show'), focus: document.activeElement.id, same: byId('planFeatureSwitch') === window.__sw,
     on: byId('planFeatureSwitch').getAttribute('aria-checked'), note: byId('infoPlanStatus').textContent }));
-  assert(r.open && r.focus === 'planFeatureSwitch' && r.on === 'true' && r.note === 'Now showing on the home screen', 'W-032: switch on by click: popover open, focus kept: ' + JSON.stringify(r));
-  await pg.click('#infoBtn');
-  await pg.click('#infoBtn');
+  assert(before && !r.open && r.focus === 'settingsBtn' && r.same && r.on === 'true' && r.note === 'Now showing on the home screen', 'switch on by click: popover closed, focus on ⚙, switch updated in place: ' + JSON.stringify(r));
   await pg.evaluate(() => setStudyPlanEnabled(false));
-  await pg.click('#infoBtn');
-  await pg.click('#infoBtn');
+  await pg.click('#settingsBtn');
   await pg.focus('#planFeatureSwitch');
   await pg.keyboard.press('Space');
-  const k = await pg.evaluate(() => ({ open: byId('infoPop').classList.contains('show'), focus: document.activeElement.id, on: isStudyPlanEnabled() }));
-  assert(k.open && k.focus === 'planFeatureSwitch' && k.on, 'W-032: switch on by Space: popover open, focus kept: ' + JSON.stringify(k));
-  await pg.keyboard.press('Escape');
+  const k = await pg.evaluate(() => ({ open: byId('settingsPop').classList.contains('show'), focus: document.activeElement.id, on: isStudyPlanEnabled() }));
+  assert(!k.open && k.focus === 'settingsBtn' && k.on, 'switch on by Space: popover closed, focus on ⚙: ' + JSON.stringify(k));
 }
 
 // W-033: typing a date segment by segment (half-typed values fall before the minimum) ends on that date;
