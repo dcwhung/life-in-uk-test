@@ -14,8 +14,8 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
 
 const PX_TOLERANCE = 0.5;
 const TL_YEAR_GAP_PX = 6;
-const TL_YEAR_SPACE_ABOVE_PX = 10; // previous card's margin + 2px (user: 1–2px more than the preview)
-const TL_YEAR_SPACE_BELOW_PX = 8; // preview had 6px; +2px
+const TL_YEAR_SPACE_ABOVE_PX = 24; // previous card's margin (8px) + 16px; user: 2–3x the first 10px
+const TL_YEAR_SPACE_BELOW_PX = 16; // user: 2–3x the first 8px
 const NO_OVERFLOW_WIDTHS = [390, 375, 360, 320];
 const TABLE_FIT_WIDTHS = [390, 375, 360];
 

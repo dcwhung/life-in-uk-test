@@ -51,9 +51,9 @@
 }
 /* the dot sits on the vertical middle of the year text: text-box trims the line box to cap height and baseline
    (years are digits / capitals), so the content box is the glyphs' box and its middle is the text's middle.
-   --tl-year-above / --tl-year-below = the space to the card before (+ its margin) and to this item's card */
+   --tl-year-above / --tl-year-below = the space to the card before (+ its margin) and to this item's card (user: 24px / 16px) */
 .tl-year {
-  --tl-year-above: var(--space-1); --tl-year-below: var(--space-4);
+  --tl-year-above: var(--space-8); --tl-year-below: var(--space-8);
   --tl-dot: 10px; --tl-dot-border: 2px; --tl-dot-ring: 2px;
   font-size: var(--fs-sm); font-weight: 800; color: var(--study-accent-strong); line-height: 1.2;
   padding: var(--tl-year-above) 0 var(--tl-year-below) var(--space-1);
@@ -70,9 +70,9 @@
   box-shadow: 0 0 0 var(--tl-dot-ring) var(--study-accent);
 }
 /* S-172: browsers without text-box (Safari < 18.2) keep the full line box, so its half-leading already adds space
-   above and below the text; less padding keeps the 10px / 8px spacing roughly (the dot formula uses the same vars) */
+   above and below the text; less padding keeps the 24px / 16px spacing roughly (the dot formula uses the same vars) */
 @supports not (text-box: trim-both cap alphabetic) {
-  .tl-year { --tl-year-above: 0px; --tl-year-below: var(--space-2); }
+  .tl-year { --tl-year-above: var(--space-7); --tl-year-below: var(--space-6); }
 }
 .tl-item.war .tl-year { color: var(--red); }
 .tl-item.war .tl-year::after { background: var(--red-light); box-shadow: 0 0 0 var(--tl-dot-ring) var(--red-light); }
