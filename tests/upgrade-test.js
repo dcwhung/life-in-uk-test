@@ -15,6 +15,8 @@ const { startPagesServer, appFiles } = require('./pages-server');
 //   6. v0.65 (T-008): an older cached shell without the zh-HK tag + a stored uiLang 'zh-HK' — en, no warning,
 //      the stored choice kept for the next full load
 //   7. W-013: the current shell whose locales/zh-HK.js failed to load — the ⚙ language row is hidden (not a dead control)
+//   9. W-057 (v1.3.0): the current shell with one v1.2.0 file (store.js / i18n.js / locales/en.js) — still starts, ⚙
+//      opens, no raw counter key
 //   8. W-055 (v1.2.0): a v1.1.2 cached shell (pinned 44816c6) + current js — main.js upgradeLegacyHeaderMarkup() hides
 //      the old language pill and turns the "← Home" buttons into 🏠 icon buttons; no raw keys, no [i18n] warnings
 // The v0.57 files come from git: V057_REF is the last v0.57 commit on main (merge of PR #29), pinned so a later
@@ -249,6 +251,30 @@ async function v112Shell(b) {
   await pg.close();
 }
 
+// W-057 (v1.3.0): the current shell with ONE file still from v1.2.0 (an HTTP-cached file outside SW control, CUI-0004
+// style): old store.js (no applyFontSize) still starts Home; old i18n.js (no syncFontSetting) still opens ⚙; old
+// locales/en.js (no quiz.questionOfShort) never shows the raw key — the long counter stays
+const V120_REF = '2d0960c';
+const V120_SINGLES = ['js/core/store.js', 'js/core/i18n.js', 'locales/en.js'];
+async function v120SingleFile(b, file) {
+  const dir = tmpDir('v120one');
+  copyCurrent(dir);
+  fs.writeFileSync(path.join(dir, file), execFileSync('git', ['-C', ROOT, 'show', `${V120_REF}:${file}`]));
+  const pg = await b.newPage({ viewport: { width: 320, height: 760 } });
+  const errs = []; pg.on('pageerror', e => errs.push(e.message));
+  await pg.goto('file://' + path.join(dir, 'index.html'));
+  await pg.evaluate(() => { localStorage.clear(); localStorage.setItem('lifeuk.fontSize', JSON.stringify('large')); });
+  await pg.reload();
+  await pg.waitForSelector('#examGrid .exam-btn', { state: 'attached' });
+  await pg.click('#settingsBtn');
+  const opened = await pg.evaluate(() => byId('settingsPop').classList.contains('show'));
+  await pg.keyboard.press('Escape');
+  await pg.evaluate(() => { pendingMode = 'practice'; startExam(1); const q = state.questions[0]; selectOption(Math.max(0, q.o.indexOf(q.a[0]))); });
+  const counter = await pg.$eval('#qNum > span', e => e.textContent);
+  assert(opened && !counter.includes('quiz.') && errs.length === 0, `v1.2.0 ${file} + current files: Home starts, ⚙ opens, no raw counter key, no page errors: ` + JSON.stringify({ opened, counter, errs }));
+  await pg.close();
+}
+
 // 6. T-008: a v0.64-style shell (no locales/zh-HK.js tag, no language control: v1.2.0 drops the ⚙) running the current js while
 // lifeuk.uiLang says zh-HK — the language has no locale on that page, so it reads as en without warnings and
 // without rewriting the stored value; the current shell then opens in zh-HK
@@ -423,6 +449,7 @@ function checkV057Ref() {
   await i18nBootFailure(b, { tag: 'current shell, i18n.js missing', shell: 'index.html', missing: 'js/core/i18n.js' });
   await i18nBootFailure(b, { tag: 'current shell, locale missing', shell: 'index.html', missing: 'locales/en.js', knownError: ZH_HK_WITHOUT_EN_ERROR });
   await v112Shell(b);
+  for (const file of V120_SINGLES) await v120SingleFile(b, file);
   await oldShellZhHk(b);
   await zhHkLocaleMissing(b);
   console.log('UPGRADE PASS');
