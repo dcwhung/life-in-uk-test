@@ -31,6 +31,7 @@
 | C4 | Study tab（mockup v2.1 comment） | Chapters / Timeline / Geography / People **一律 icon 喺上、字喺下**（細字大字都係）；實作：locale `study.tab*` 拎走 emoji，icon 放 markup `<span class="tab-ic" aria-hidden="true">`，`.study-tab` 改 `flex-direction: column` |
 | C3b | 題號短版都放唔落（PR-C 測試發現，用戶決定） | 英文 320px 大字、未答題（題號行有較闊嘅「Translate」掣）時「Question 1/24」都放唔落：**接受短版斷兩行**，唔再縮 |
 | C6 | Plan 設定目標大字（PR-C review W-056，用戶揀 V2） | 大字時程度卡一行一張、4 個日期 preset 2 × 2、≤ 359px 時長刻度隔一個收起；細字唔變 |
+| C7 | 設定目標 preset / 程度卡（v1.3.1，用戶） | 取代 C6 嘅固定 2 × 2 / 一行一張：**按闊度自動換行**，放得落就一行顯示晒，放唔落先分行 |
 | C5 | ⓘ / ⚙ 打開時顏色（PR-B review S-189 後用戶決定） | ⓘ 同 ⚙ **打開（同 hover）都變白**（`--text-inverse`）；平時 ⚙ 金色、ⓘ 淡白；同一時間只開一個 popover，開一個另一個閂 |
 | Q12 | 點分 PR（範圍擴大後） | **3 個 PR**，順序做，每個 merge 後同一條 branch 由最新 `main` 重開：**PR-A** token 化 refactor，畫面零改動（v1.1.2）→ **PR-B** ⚙ 設定 popover（語言 + 學習計劃搬入）、ⓘ 只做關於、Q11 icon 化、C2 日曆、C4 Study tab，未有字型大小（v1.2.0）→ **PR-C** 字型大小：⚙ 加 `[A｜A]`、大字模式、L4b、L5、C3 題號短版、`fontsize-test`，刪 mockup（v1.3.0） |
 
