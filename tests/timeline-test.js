@@ -13,7 +13,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
 const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('ok:', m); };
 
 const PX_TOLERANCE = 0.5;
-const TL_YEAR_GAP_PX = 6;
+const TL_YEAR_GAP_PX = 12; // dot ring to year text; user: double the first 6px
 const TL_YEAR_SPACE_ABOVE_PX = 24; // previous card's margin (8px) + 16px; user: 2–3x the first 10px
 const TL_YEAR_SPACE_BELOW_PX = 16; // user: 2–3x the first 8px
 const NO_OVERFLOW_WIDTHS = [390, 375, 360, 320];
