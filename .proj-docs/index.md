@@ -49,7 +49,7 @@
 
 ## QA
 
-- [2026-10-11_qa_v1010.md](qa/2026-10-11_qa_v1010.md) — v1.0.10 記憶法 v2（375 題 spec + 4 題 spec base、`.cont` 續行、cell「• 」備注；pass；run-all 46/46，data 17/17，96 個抽樣畫面 390/320 × en/zh-HK 0 問題，Q1 + 舊 4 組 OK；S-165 實測 Inter 0.6px / CJK 2.75px 維持 Suggestion；CUI-0027 🟢 320px table 要喺 table 入面 scroll，唔 block）
+- [2026-10-11_qa_v1010.md](qa/2026-10-11_qa_v1010.md) — v1.0.10 記憶法 v2（375 題 spec + 4 題 spec base、`.cont` 續行、cell「• 」備注；pass；run-all 46/46，data 17/17，96 個抽樣畫面 390/320 × en/zh-HK 0 問題，Q1 + 舊 4 組 OK；S-165 實測 Inter 0.6px / CJK 2.75px 維持 Suggestion；CUI-0027 🟢 320px table 要喺 table 入面 scroll，唔 block；re-test 2026-10-11 @ 1e19d26 pass：run-all 46/46，320/340/360/390 × en/zh-HK 0 table overflow、0 短格斷字（7bfc331：320px 56、340px 11），S-165 四隻字體換行 0.00px 已解決，S-171 字體模擬 10B 0.72px / ⑤ 3.03px 餘位、DejaVu Sans 會落返 scroll 後備，真機未驗；CUI-0027 → completed）
 - [2026-10-10_qa_plan-pr7c.md](qa/2026-10-10_qa_plan-pr7c.md) — 溫習計劃 PR7c 閱讀任務已完成 tag + 最後一條未完成提示（G41，W-048 / S-153 / S-155 / S-156 已驗；pass；run-all 44/44，browser 149/149，PR7b regression 139/139，冇 ticket）
 - [2026-10-10_qa_plan-pr7b.md](qa/2026-10-10_qa_plan-pr7b.md) — 溫習計劃 PR7b 相同文字題目合併（G40 ①–⑧，v1.0.7；pass；run-all 41/41，browser 139/139，冇 ticket）
 - [2026-10-09_qa_plan-pr7.md](qa/2026-10-09_qa_plan-pr7.md) — 溫習計劃 PR7 zh-HK / en 字眼（pass；run-all 40/40，browser 98/98，冇 ticket）
