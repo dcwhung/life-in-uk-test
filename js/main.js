@@ -48,7 +48,26 @@ async function loadBootScripts(list) {
   for (const src of list) await loadScript(src); // in order: i18n.js after the locale
 }
 
+// W-055 (v1.2.0): during an SW update a v1.1.x cached index.html can run with this js (CUI-0004). Its language pill has
+// no handler any more and its "← Home" buttons name a removed key, so until the next load the pill hides (as W-013) and
+// the Home buttons become the 🏠 icon buttons (fillStaticIcons and applyStaticI18n below fill them)
+function upgradeLegacyHeaderMarkup() {
+  const pill = byId('langBtn');
+  if (pill) {
+    pill.hidden = true;
+    pill.removeAttribute('data-i18n');
+    pill.removeAttribute('data-i18n-attr');
+  }
+  document.querySelectorAll('.back-btn[data-i18n="common.home"]').forEach(btn => {
+    btn.removeAttribute('data-i18n');
+    btn.classList.add('icon-btn');
+    btn.dataset.icon = 'home';
+    btn.dataset.i18nAttr = 'aria-label:common.homeLabel;title:common.homeLabel';
+  });
+}
+
 function startApp() {
+  upgradeLegacyHeaderMarkup();
   byId('appVersion').textContent = 'v' + APP_VERSION;
   byId('appVersionPop').textContent = 'v' + APP_VERSION;
   applyLanguage(); // <html lang>, data-i18n markup, <title> / meta, ⓘ popover counts
