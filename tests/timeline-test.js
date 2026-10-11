@@ -5,8 +5,12 @@
 //    and every card starts TL_CARD_LEFT_PX from the screen's left edge
 // C: the dot is centred on the rail and on the year text's vertical middle, TL_YEAR_MIN_GAP_PX clear of the text
 // W-052: adjacent items touch (no margin collapses out of an item), so the rail runs on between cards
+// E (S-175): browsers without text-box (Safari < 18.2) use the @supports not (text-box) fallback. Chromium supports
+//    text-box, so the test reads that rule from the stylesheet, applies it with text-box: normal, and checks the
+//    year keeps the shipped spacing (glyph box to the cards, within FALLBACK_TOLERANCE_PX) and its dot stays centred
 // D: year text is --fs-sm; TL_YEAR_SPACE_ABOVE_PX above it (to the card before), TL_YEAR_SPACE_BELOW_PX below it
 const { chromium } = require('playwright-core');
+const fs = require('fs');
 const path = require('path');
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
 const launchOpts = { args: ['--no-sandbox'] };
@@ -18,6 +22,7 @@ const TL_YEAR_MIN_GAP_PX = 6; // dot ring to year text, at least (the text lines
 const TL_YEAR_TEXT_INSET_PX = 3; // year text starts this close to the card's left edge (padding + glyph side bearing)
 const TL_YEAR_SPACE_ABOVE_PX = 24; // previous card's margin (8px) + 16px; user: 2–3x the first 10px
 const TL_YEAR_SPACE_BELOW_PX = 16; // user: 2–3x the first 8px
+const FALLBACK_TOLERANCE_PX = 1.5; // without the fallback rule the year gains ~2.3px above / ~3.4px below
 const NO_OVERFLOW_WIDTHS = [390, 375, 360, 320];
 const TABLE_FIT_WIDTHS = [390]; // narrower screens may fall back to in-table scroll (wider left gutter, user)
 // W-053: below 390px only these cards (widest tables: 10B, ⑤ inventors, Turner) may use the in-table scroll
@@ -98,8 +103,43 @@ async function checkYearLayout(pg) {
     `${TL_YEAR_SPACE_ABOVE_PX}px from the card before to the year text, ${TL_YEAR_SPACE_BELOW_PX}px from the year text to its card (bad: ${JSON.stringify([...offAbove, ...offBelow].slice(0, 3))})`);
 }
 
+// in the page: for each year label, its glyph box (Range rects, same in both modes) to the card before / its card,
+// and the dot centre against the glyph box middle
+const YEAR_GLYPH_JS = `() => [...document.querySelectorAll('#studyContent .tl-item')].map(it => {
+  const y = it.querySelector('.tl-year'), a = getComputedStyle(y, '::after'), yr = y.getBoundingClientRect();
+  const rg = document.createRange(); rg.selectNodeContents(y); const t = rg.getBoundingClientRect();
+  const card = it.querySelector('.fact').getBoundingClientRect();
+  const prevItem = it.previousElementSibling && it.previousElementSibling.classList.contains('tl-item') ? it.previousElementSibling : null;
+  const shift = a.transform === 'none' ? new DOMMatrix() : new DOMMatrix(a.transform);
+  const dotCy = yr.top + parseFloat(a.top) + shift.m42 + (parseFloat(a.width) + 2 * parseFloat(a.borderLeftWidth)) / 2;
+  return { year: y.textContent, trim: getComputedStyle(y).textBoxTrim, below: card.top - t.bottom,
+    above: prevItem ? t.top - prevItem.querySelector('.fact').getBoundingClientRect().bottom : null, dotOff: dotCy - (t.top + t.bottom) / 2 };
+})`;
+
+async function checkFallback(b) {
+  const pg = await b.newPage({ viewport: { width: NO_OVERFLOW_WIDTHS[0], height: 844 } });
+  await pg.goto(APP_URL);
+  await openTimeline(pg);
+  const measure = () => pg.evaluate(src => new Function('return ' + src)()(), YEAR_GLYPH_JS);
+  const shipped = await measure();
+  // the fallback rule's own declarations, read from css/screens/study.css (no copy of its values in this test; a
+  // file:// page can't read its own sheets' cssRules)
+  const css = fs.readFileSync(path.resolve(__dirname, '..', 'css', 'screens', 'study.css'), 'utf8');
+  const block = css.match(/@supports\s+not\s*\(\s*text-box[^)]*\)\s*\{([\s\S]*?\})\s*\}/);
+  const fallbackCss = block && block[1].trim();
+  assert(fallbackCss && fallbackCss.includes('.tl-year'), 'study.css has an @supports not (text-box) rule for .tl-year: ' + fallbackCss);
+  await pg.addStyleTag({ content: '.tl-year { text-box: normal; }\n' + fallbackCss });
+  const fallback = await measure();
+  assert(fallback.every(d => d.trim === 'none') && shipped.every(d => d.trim === 'trim-both'), 'simulated a browser without text-box (shipped: trim-both, fallback: none)');
+  const bad = fallback.map((d, i) => ({ year: d.year, above: d.above === null ? 0 : d.above - shipped[i].above, below: d.below - shipped[i].below, dotOff: d.dotOff }))
+    .filter(d => Math.abs(d.above) > FALLBACK_TOLERANCE_PX || Math.abs(d.below) > FALLBACK_TOLERANCE_PX || Math.abs(d.dotOff) > 1);
+  assert(bad.length === 0, `without text-box the fallback keeps every year's spacing within ${FALLBACK_TOLERANCE_PX}px of the shipped layout and its dot centred within 1px (${fallback.length} years; bad: ${JSON.stringify(bad.slice(0, 3))})`);
+  await pg.close();
+}
+
 (async () => {
   const b = await chromium.launch(launchOpts);
+  await checkFallback(b);
   for (const width of NO_OVERFLOW_WIDTHS) {
     const pg = await checkWidth(b, width);
     if (width === NO_OVERFLOW_WIDTHS[0]) await checkYearLayout(pg);
