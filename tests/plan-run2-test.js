@@ -293,7 +293,7 @@ async function fillExam(pg, right) {
 }
 const mockState = pg => pg.evaluate(() => ({ screen: document.querySelector('.screen.active').id, mode: state.mode, exam: state.examNum,
   day: state.planDay, n: state.questions.length, timer: !byId('examTimer').hidden, random: isRandomExam(state.examNum),
-  back: document.querySelector('#screenQuiz .back-btn').textContent }));
+  back: (b => (b.classList.contains('icon-btn') ? `icon:${b.getAttribute('aria-label')}` : b.textContent))(document.querySelector('#screenQuiz .back-btn')) }));
 
 // G10 / G25 / G11 / G15 / G32: Exam mode itself; pass = done + score; fail = retake as a Random Exam; Leave = nothing
 async function checkMock(pg) {
@@ -408,7 +408,7 @@ async function checkMockTimer(pg) {
   for (const right of [10, 24]) {
     await tap(pg, '#screenResult .result-actions .retry-btn');
     const m = await mockState(pg);
-    assert(m.screen === 'screenQuiz' && m.mode === 'exam' && m.day === null && m.timer && m.back === '← Home', `G39: Retry after a pass: a plain Exam-mode retake (${right} right next)`);
+    assert(m.screen === 'screenQuiz' && m.mode === 'exam' && m.day === null && m.timer && m.back === 'icon:Home', `G39: Retry after a pass: a plain Exam-mode retake (${right} right next)`);
     await fillExam(pg, right);
     await tap(pg, '#nextBtn');
     const res = await pg.evaluate(() => ({ row: byId('resultPlanRow').hidden, log: planDayLog(planLoadLog(), planTodayIso()).mock.length }));

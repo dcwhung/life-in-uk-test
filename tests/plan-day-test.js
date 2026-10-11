@@ -368,7 +368,7 @@ async function checkCalendar(pg) {
   });
   assert(r.title === 'October 2026' && r.dow === 'Sun,Mon,Tue,Wed,Thu,Fri,Sat' && r.lead === 4 && r.cells === 31, 'October 2026: weeks from Sunday, 4 blanks, 31 days');
   assert(r.d1.includes('today') && /\bh[0-4]\b/.test(r.d1) && r.current === 'date', 'today cell: band + outline + aria-current');
-  assert(r.d2.includes('future') && r.rest.includes('rest') && r.exam.includes('exam') && r.examText.includes('Exam'), 'ahead / rest / exam cells');
+  assert(r.d2.includes('future') && r.rest.includes('rest') && r.exam.includes('exam') && r.examText === '29', 'ahead / rest / exam cells (C2: the exam cell shows only its day)');
   assert(r.out.includes('out') && r.outTag === 'SPAN' && r.btn === 'BUTTON', 'outside the plan: plain number; plan days are buttons');
   assert(r.label === 'Day 4 · 1/10 · 26%' || /^Day 4 · 1\/10 · \d+%$/.test(r.label), 'cell label: ' + r.label);
   assert(r.prev === false && r.next === true && r.todayBtn === true, '‹ to September, › last month, "Today" on today\'s month');

@@ -15,9 +15,9 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
 
 // CJK ideographs, CJK punctuation (【】) and full-width forms (：); emoji are outside these ranges
 const CJK = /[　-〿㐀-鿿豈-﫿＀-￯]/;
-// en keeps the Cantonese section labels in Chinese (user decision, see HANDOFF.md › i18n); the language pill
-// shows the target language, so in en it reads 中
-const CJK_WHITELIST = ['common.yueTitle', 'common.noteLabel', 'app.langSwitch', 'study.memoryAid']; // v0.71: labels a Cantonese memory note, like noteLabel
+// en keeps the Cantonese section labels in Chinese (user decision, see HANDOFF.md › i18n); the ⚙ language options
+// name themselves in their own language (v1.2.0), so in en 中文 stays Chinese
+const CJK_WHITELIST = ['common.yueTitle', 'common.noteLabel', 'app.langZh', 'study.memoryAid']; // v0.71: labels a Cantonese memory note, like noteLabel
 // zh-HK copies these from en: meta description and the manifest stay English (plan R-001); <title> follows the language (v1.0.5)
 const SAME_AS_EN_KEYS = ['app.description', 'app.shortName', 'app.installName', 'app.installShortName'];
 const ZH_HK = 'zh-HK';
@@ -152,7 +152,8 @@ function zhHkChecks() {
     .flatMap(([k, v]) => Object.values(formsOf(v)).flatMap(s => ZH_HK_COLLOQUIAL.filter(w => s.includes(w)).map(w => `${k}: ${w}`)));
   const scanned = [...zhMap.keys()].filter(k => ZH_HK_WRITTEN_SCOPES.some(p => k.startsWith(p))).length;
   assert(scanned > 50 && spoken.length === 0, `${ZH_HK} study plan text (${scanned} keys) has no colloquial words (G21)` + (spoken.length ? ': ' + spoken.join(', ') : ''));
-  assert(enMap.get('app.langSwitch') === '中' && zhMap.get('app.langSwitch') === 'EN', 'language pill shows the target language: en 中, zh-HK EN');
+  // v1.2.0: the ⚙ language options name themselves in their own language, the same in every locale
+  assert(['en', 'zh'].every(l => (l === 'en' ? enMap : zhMap).get('app.langEn') === 'EN' && (l === 'en' ? enMap : zhMap).get('app.langZh') === '中文'), 'language options read EN / 中文 in both locales');
 }
 
 async function runtimeChecks(en) {

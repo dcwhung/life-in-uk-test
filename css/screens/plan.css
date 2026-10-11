@@ -338,9 +338,9 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
 .plan-cell.today { outline: 2.5px solid var(--navy); outline-offset: 1px; }
 .plan-cell.viewing { outline: 2.5px dashed var(--navy); outline-offset: 1px; }
 .plan-cell.exam { color: var(--navy); }
-/* --fs-3xs (9px): "🎯 考試日" under the number fits a 37px cell at 360px (mockup size) */
-.plan-cell.exam small { position: absolute; left: 0; right: 0; top: calc(50% + 0.75em); text-align: center; font-size: var(--fs-3xs); font-weight: 800; white-space: nowrap; }
 .plan-legend .plan-swatch.plan-exam-pat { background-size: 4px 4px; }
+/* v1.2.0 (C2): "[pattern] 🎯 Exam day" sits at the right end of the legend row */
+.plan-legend-exam { margin-left: auto; display: inline-flex; align-items: center; gap: var(--space-2); }
 
 /* overall progress */
 .plan-prog-rows { display: grid; gap: var(--space-5); }
@@ -386,7 +386,6 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
 
 @media (max-width: 380px) {
   .plan-day-header { gap: var(--space-2); }
-  .plan-day-header .back-btn, .plan-day-header .plan-small { padding: var(--space-3) var(--space-4); font-size: var(--fs-sm); }
   .plan-day-switch { gap: var(--space-2); }
 }
 @media (max-width: 480px) {

@@ -111,12 +111,12 @@ async function checkToggle(pg) {
 
 // state now: phases collapsed, order expanded; a language switch keeps it; the next open collapses both again
 async function checkLangKeepsFold(pg) {
-  await pg.click('#langBtn');
+  await pg.click('#settingsBtn'); await pg.click('#settingsLangRow [aria-pressed="false"]'); // v1.2.0: language via ⚙
   let s = await foldState(pg);
   assert(s.phases.expanded === 'false' && s.order.expanded === 'true' && s.order.bodyShown, 'language switch keeps each card as toggled');
   assert(JSON.stringify(s.phases.bar) === JSON.stringify(['讀 + 練 / Day 1–11', '強化練習 / Day 12–14', '模擬考試 / Day 15–21']), 'zh-HK collapsed bar: ' + JSON.stringify(s.phases.bar));
   assert(await pg.$eval('#planPhasesToggle', e => e.textContent.trim()) === '三個階段', 'zh-HK: the toggle reads the card title');
-  await pg.click('#langBtn');
+  await pg.click('#settingsBtn'); await pg.click('#settingsLangRow [aria-pressed="false"]'); // v1.2.0: language via ⚙
   await reopen(pg);
   s = await foldState(pg);
   assert(s.phases.expanded === 'false' && s.order.expanded === 'false', 'toggles are not saved: the next open is collapsed');

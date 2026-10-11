@@ -9,6 +9,16 @@
 }
 .back-btn:hover { background: var(--navy); color: var(--text-inverse); border-color: transparent; }
 
+/* v1.2.0: icon-only screen-header buttons (🏠 Home, 📅 Schedule, ✏️ Change goal; js/components/icons.js); the label is
+   aria-label + title. The icon box is in em, so it follows the button's font size */
+.back-btn.icon-btn, .nav-btn.secondary.icon-btn { position: relative; padding: var(--space-3) 9px; line-height: 0; flex-shrink: 0; justify-content: center; }
+/* the ~37 × 32px button keeps its look; the tap area grows to at least 44 × 44px (WCAG 2.5.5; wins over .plan-hit) */
+.back-btn.icon-btn::before, .nav-btn.secondary.icon-btn::before {
+  content: ''; position: absolute; left: 50%; right: auto; top: 50%;
+  width: max(100%, 44px); height: max(100%, 44px); transform: translate(-50%, -50%);
+}
+.line-icon { width: 1.35em; height: 1.35em; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
 /* nav buttons */
 .nav-row { display: flex; gap: var(--space-5); justify-content: flex-end; }
 .nav-btn {

@@ -58,7 +58,8 @@ const hitOk = (pg, sel) => pg.evaluate(({ s, min }) => {
   e.scrollIntoView({ block: 'center' });
   const r = e.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
   const at = (x, y) => { const h = document.elementFromPoint(x, y); return !!h && (h === e || e.contains(h)); };
-  return at(cx, cy - min / 2 + 1) && at(cx, cy + min / 2 - 1) && r.width >= min;
+  // v1.2.0: icon buttons are narrower than 44px and take the rest through ::before, so check the sides by point too
+  return at(cx, cy - min / 2 + 1) && at(cx, cy + min / 2 - 1) && at(cx - min / 2 + 1, cy) && at(cx + min / 2 - 1, cy);
 }, { s: sel, min: HIT_MIN_PX });
 
 async function checkHidden(pg) {
@@ -445,12 +446,13 @@ async function checkReset(pg, { corruptLog = false } = {}) {
   assert(r.screen === 'screenHome' && await visible(pg, '#planCard .plan-cta') && inView, tag + 'back to Home with the create card in view');
 }
 
-// S-112: the switch-off modal sits outside #infoPop: its buttons / Esc must not close the popover behind it
+// S-112: the switch-off modal sits outside the ⚙ popover (v1.2.0; #infoPop before): Cancel / Esc must not close the
+// popover behind it. v1.2.0 (Q10): Confirm is a choice, so it closes the popover and focus goes back to ⚙
 async function checkSwitchModalKeepsPopover(pg) {
   await fresh(pg);
-  const state = () => pg.evaluate(() => ({ pop: byId('infoPop').classList.contains('show'), modal: isConfirmOpen(), focus: document.activeElement.id,
+  const state = () => pg.evaluate(() => ({ pop: byId('settingsPop').classList.contains('show'), modal: isConfirmOpen(), focus: document.activeElement.id,
     shown: byId('planFeatureSwitch').getClientRects().length > 0, on: isStudyPlanEnabled() }));
-  await pg.click('#infoBtn');
+  await pg.click('#settingsBtn');
   for (const [how, act] of [['Cancel', () => pg.click('#confirmCancel')], ['Esc', () => pg.keyboard.press('Escape')]]) {
     await pg.click('#planFeatureSwitch');
     await act();
@@ -460,7 +462,8 @@ async function checkSwitchModalKeepsPopover(pg) {
   await pg.click('#planFeatureSwitch');
   await pg.click('#confirmOk');
   const s = await state();
-  assert(s.pop && s.focus === 'planFeatureSwitch' && s.shown && !s.on, 'S-112: Confirm → popover open showing the switch off, focus on it: ' + JSON.stringify(s));
+  assert(!s.pop && !s.modal && s.focus === 'settingsBtn' && !s.on, 'Q10: Confirm → switch off, popover closed, focus back on ⚙: ' + JSON.stringify(s));
+  await pg.click('#settingsBtn');
   await pg.keyboard.press('Escape');
   assert(!(await state()).pop, 'Esc with no modal open closes the popover');
 }
@@ -595,10 +598,10 @@ async function checkWidths(pg) {
 async function checkLangKeepsScroll(pg) {
   await pg.evaluate(() => openPlanSchedule());
   await pg.evaluate(() => byId('planDayList').scrollTo({ top: 40, behavior: 'instant' }));
-  await pg.click('#langBtn');
+  await pg.click('#settingsBtn'); await pg.click('#settingsLangRow [aria-pressed="false"]'); // v1.2.0: language via ⚙
   const r = await pg.evaluate(() => ({ top: byId('planDayList').scrollTop, lang: getLang(), sum: byId('planSummary').textContent }));
   assert(r.lang === 'zh-HK' && r.top === 40 && r.sum.includes('開始'), 'language switch: re-rendered, list scroll kept: ' + JSON.stringify(r));
-  await pg.click('#langBtn');
+  await pg.click('#settingsBtn'); await pg.click('#settingsLangRow [aria-pressed="false"]'); // v1.2.0: language via ⚙
 }
 
 function checkWiring() {
