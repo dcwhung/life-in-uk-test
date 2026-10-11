@@ -26,7 +26,7 @@
 | M2 | Layout 修正 | L1 / L2 / L3 / L6 取消（⚙ + icon 化之後 320px 大字已經放得落，有截圖驗證）；保留 **L4b**、**L5** |
 | M3 | 接受唔改 | 下面「接受唔改」5 項全部接受（日曆「🎯 Exam」一項由 C2 取代） |
 | C1 | ⚙ 樣式（mockup v2 comment） | ⚙ **唔要外圈**：冇邊、冇底，金色（`--gold-light`）icon，44px hit area 保留 |
-| C2 | 每日完成度日曆考試格（mockup v2 comment） | 考試日格**唔再顯示「🎯 Exam / 🎯 考試日」**（只剩日子 + 考試日底紋）；legend 改做「[底紋] 🎯 Exam day / 🎯 考試日」。實作：刪 `planCellHtml()` 嘅 `<small>`、`.plan-cell.exam small` CSS、locale `plan.calendar.examCell`；legend 用新 key（例如 `plan.calendar.legendExam`），唔改共用嘅 `plan.schedule.examDay`；格嘅 `aria-label` 照讀「考試日」 |
+| C2 | 每日完成度日曆考試格（mockup v2 comment） | 考試日格**唔再顯示「🎯 Exam / 🎯 考試日」**（只剩日子 + 考試日底紋）；legend 改做「[底紋] 🎯 Exam day / 🎯 考試日」，**成組靠 legend 行最右**（左邊照舊 0% ■■■■ 100%；用 group + `margin-left: auto`）。實作：刪 `planCellHtml()` 嘅 `<small>`、`.plan-cell.exam small` CSS、locale `plan.calendar.examCell`；legend 用新 key（例如 `plan.calendar.legendExam`），唔改共用嘅 `plan.schedule.examDay`；格嘅 `aria-label` 照讀「考試日」 |
 
 ## 技術做法（codebase 查證，唔使問）
 
