@@ -9,7 +9,7 @@
   background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
   width: 100%; max-width: 360px; padding: 22px var(--space-10) 18px; text-align: center;
 }
-.modal-title { font-size: 17px; font-weight: 800; color: var(--navy); margin-bottom: var(--space-4); }
+.modal-title { font-size: var(--fs-2xl); font-weight: 800; color: var(--navy); margin-bottom: var(--space-4); }
 .modal-msg { font-size: var(--fs-md); color: var(--text-muted); line-height: 1.55; margin-bottom: 18px; white-space: pre-line;
   text-align: justify; text-align-last: left; hyphens: auto; } /* v1.0.6 (user): justified, last line on the left; the title stays centred; S-133: hyphens close wide English gaps (needs lang, set on <html>) */
 .modal-actions { display: flex; gap: var(--space-5); }

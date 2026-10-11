@@ -1,7 +1,7 @@
 // v1.0.7: memory-note tables (.proj-docs/plans/2026-10-09_plan_note-table.md). Consecutive note lines starting with
 // "|" render as one table (first row = header); "<br>" inside a cell splits main text from small remarks.
 // v1.0.10: memo v2 (.proj-docs/plans/2026-10-11_memo-final-spec.json): 61 memos, 375 notes, 52 of them with a table;
-// v1.1.2: + S168 地區議會 (fact #203, review S-168) = 62 memos, 378 notes, 53 tables
+// v1.1.3: + S168 地區議會 (fact #203, review S-168) = 62 memos, 378 notes, 53 tables
 // A: noteHtml unit (in the page, with the app's escapeHtml)  B: every memo's notes in data/exams.js
 // C: the Study card "💡 記憶法", the Practice answer box and the Results review fit every table at 390px
 //    and (CUI-0027) at 320px; cells without "<br>" stay on one line at both widths (W-050)
@@ -17,7 +17,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
 // prefixes = lines kept above the heading. ④ 4A "全英國 MP": WORD JOINER (U+2060) between the CJK chars +
 // NO-BREAK SPACE before MP keep that remark on one line
 const SPEC = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'fixtures', 'memo-notes.json'), 'utf8'));
-const MEMO_COUNT = 62, MEMO_QUESTIONS = 378, TABLE_MEMO_COUNT = 53, TOTAL_TABLE_QUESTIONS = 349, PREFIX_COUNT = 20; // v1.1.2: + S168 地區議會
+const MEMO_COUNT = 62, MEMO_QUESTIONS = 378, TABLE_MEMO_COUNT = 53, TOTAL_TABLE_QUESTIONS = 349, PREFIX_COUNT = 20; // v1.1.3: + S168 地區議會
 const MP_MEMO = '4A';
 const isTableLine = l => l.trim().startsWith('|');
 const tableRowsOf = text => text.split('\n').filter(isTableLine).map(l => l.trim().replace(/^\||\|$/g, '').split('|').map(c => c.trim()));

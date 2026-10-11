@@ -1,5 +1,5 @@
-// QA v1.1.2 (S-168): fact #203 地區議會 memo — Practice / Results (wrong answers) / Study ch5 at 390 + 320, en + zh-HK
-// usage: node 2026-10-11_qa-v112.js <shot dir>
+// QA v1.1.3 (S-168): fact #203 地區議會 memo — Practice / Results (wrong answers) / Study ch5 at 390 + 320, en + zh-HK
+// usage: node 2026-10-11_qa-v113.js <shot dir>
 const fs = require('fs'), path = require('path');
 const { chromium } = require('playwright-core');
 

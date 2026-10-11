@@ -1,4 +1,4 @@
-// QA v1.1.2 regression: every question field vs origin/main; only 9.14 / 12.5 / 12.18 note may change
+// QA v1.1.3 regression: every question field vs origin/main; only 9.14 / 12.5 / 12.18 note may change
 const fs=require('fs');
 const load=p=>new Function(fs.readFileSync(p,'utf8')+';return EXAMS;')();
 const SP=process.argv[2]; // dir holding exams_main.js / study_main.js (git show 08c2652:data/…)

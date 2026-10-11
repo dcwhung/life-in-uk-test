@@ -1,4 +1,4 @@
-// QA v1.1.2 edge cases for the S168 地區議會 memo: E1 Practice wrong answer still shows the memo table;
+// QA v1.1.3 edge cases for the S168 地區議會 memo: E1 Practice wrong answer still shows the memo table;
 // E2 280px (below supported 320) page never scrolls sideways; E3 Study search "council" finds #203 with its table;
 // E4 the memo's table HTML contains no unescaped tag other than the table markup
 const { chromium } = require('playwright-core');

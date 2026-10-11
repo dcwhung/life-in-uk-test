@@ -7,15 +7,15 @@
   box-shadow: var(--shadow);
   margin-bottom: var(--space-10);
 }
-.result-emoji { font-size: 52px; margin-bottom: var(--space-6); }
+.result-emoji { font-size: var(--fs-display); margin-bottom: var(--space-6); }
 .result-score {
-  font-size: 52px; font-weight: 900; color: var(--navy);
+  font-size: var(--fs-display); font-weight: 900; color: var(--navy);
   line-height: 1;
 }
-.result-score span { font-size: 22px; color: var(--text-muted); font-weight: 500; }
+.result-score span { font-size: var(--fs-5xl); color: var(--text-muted); font-weight: 500; }
 /* exam: failed score line is red; passed stays navy */
 .result-score.fail, .result-score.fail span { color: var(--red-light); }
-.result-label { font-size: 16px; font-weight: 700; margin: var(--space-4) 0 var(--space-2); }
+.result-label { font-size: var(--fs-xl); font-weight: 700; margin: var(--space-4) 0 var(--space-2); }
 .result-sub { font-size: var(--fs-base); color: var(--text-muted); }
 .pass { color: var(--green); }
 .fail { color: var(--red); }
@@ -34,12 +34,12 @@
 .review-item.rv-correct { border-color: var(--green-light); }
 .review-item.rv-wrong { border-color: var(--red-light); }
 .rv-q { font-weight: 600; color: var(--navy); margin-bottom: var(--space-4); line-height: 1.5; }
-.rv-your { color: var(--text-muted); font-size: 12.5px; line-height: 1.6; margin-bottom: var(--space-2); }
-.rv-correct-ans { color: var(--green); font-size: 12.5px; font-weight: 600; line-height: 1.6; }
+.rv-your { color: var(--text-muted); font-size: var(--fs-sm-plus); line-height: 1.6; margin-bottom: var(--space-2); }
+.rv-correct-ans { color: var(--green); font-size: var(--fs-sm-plus); font-weight: 600; line-height: 1.6; }
 /* translation + note: own block under the answer, one row per note line, hanging indent for bullets */
 .rv-tr { margin-top: var(--space-5); padding-top: var(--space-5); border-top: 1px dashed var(--border); }
-.rv-yue { color: var(--purple); font-size: 12.5px; line-height: 1.6; }
-.rv-note { margin-top: var(--space-5); color: var(--purple); font-size: 12.5px; line-height: 1.6; }
+.rv-yue { color: var(--purple); font-size: var(--fs-sm-plus); line-height: 1.6; }
+.rv-note { margin-top: var(--space-5); color: var(--purple); font-size: var(--fs-sm-plus); line-height: 1.6; }
 .rv-note-label { color: var(--note-label); font-weight: 700; margin-bottom: var(--space-2); }
 .review-item.hl { box-shadow: 0 0 0 3px var(--gold); }
 
@@ -61,7 +61,7 @@
 .diff-pct { text-align: right; font-weight: 700; color: var(--navy); font-size: var(--fs-sm); white-space: nowrap; }
 
 @media (max-width: 480px) {
-  .result-score { font-size: 42px; }
+  .result-score { font-size: var(--fs-display-sm); }
 }
 /* M4: one size down on narrow screens (en and zh-HK alike) so the zh-HK pass line does not leave its last word alone (320px) */
 @media (max-width: 360px) {
