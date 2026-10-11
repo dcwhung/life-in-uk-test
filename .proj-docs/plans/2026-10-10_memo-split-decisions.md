@@ -76,6 +76,7 @@
 | 40 | E3 | 6.20、13.12 語言：方案 A ③ table 下面加「• 語言」列點（Welsh、Gaelic）；方案 B 加「語言」欄（4 欄太迫，多格斷行）→ 用戶揀 B（table 加「語言」欄：English 英文 / Gaelic 蓋爾語 / Welsh 威爾斯語 / Irish Gaelic 愛爾蘭語 +「• Gaelic 係凱爾特語，Scotland 同 Ireland 部分地區講」；接受斷行） | 已確認 |
 | 41 | E5 | 6.3 加入 10A：table 下面「• National Parks（國家公園）／    → 受保護嘅郊野／    → England、Wales、Scotland 一共 15 個」 | 已確認 |
 | 42 | E7 | 1.7、11.8 Cenotaph 加入 ⑥：方案 A 短前綴 + ⑥；方案 B 寫入 ⑥ 11/11 行（「喺 London Whitehall（白廳）嘅<br>Cenotaph（戰爭紀念碑）獻花圈」）；兩個方案都刪 Remembrance Sunday 註腳 → 用戶揀 B | 已確認 |
-| 43 | F9 | 用戶：7.8 用前綴，唔要記憶法（唔入 ⑥）。7.8 note =「Gunpowder Plot（火藥陰謀）：1605 年 Guy Fawkes 等人想炸毀國會、殺死 King James I（詹姆斯一世），失敗」+ 子項「    → 每年 5/11 Bonfire Night（篝火之夜）就係紀念陰謀失敗」「    → 所以 Bonfire Night 又叫 Guy Fawkes Night」（用戶話兩行睇落冇關係，改做子項連返）；S1（fact #33 併 #113）留同 S2–S6 一齊傾 | 已確認（第二行字眼待睇） |
+| 43 | F9 | 用戶：7.8 用前綴，唔要記憶法（唔入 ⑥）。7.8 note =「Gunpowder Plot（火藥陰謀）：1605 年 Guy Fawkes 等人想炸毀國會、殺死 King James I（詹姆斯一世），失敗」+ 子項「    → 每年 5/11 Bonfire Night（篝火之夜）就係紀念陰謀失敗」「    → 所以 Bonfire Night 又叫 Guy Fawkes Night」（用戶話兩行睇落冇關係，改做子項連返）；S1（fact #33 併 #113）留同 S2–S6 一齊傾 | 已確認 |
 | 44 | S2–S6 | STUDY fact 拆分（要郁 `data/study.js` + 重生成 content baseline + 書籤 / 已掌握 migrate） | 未傾 |
 | 45 | 舊 4 組 | Magna Carta、國會選舉、Thatcher、陪審員（18 題）舊格式 | 未傾 |
+| 44a | S1 | fact #33（7.8，Ch3，y 1605，People Guy Fawkes）併入 #113（3.23、14.20，Ch4）→ 建議唔做：Timeline / People tab 會冇咗 Gunpowder Plot；同 F9（7.8 自己前綴）衝突同一知識點同一備註規則；要重生成 baseline + migrate 書籤 | 待確認 |
