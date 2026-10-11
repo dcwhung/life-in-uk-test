@@ -25,7 +25,8 @@
 /* v1.0.10 "• " remark: "•" about one character in, wrapped lines continue under its text (hanging indent);
    S-165: the "•" sits in a .note-mark box exactly one indent wide, so the text starts at 2 indents in any font */
 .note-cell-sub.bullet { --note-indent: 0.9em; padding-left: calc(2 * var(--note-indent)); text-indent: calc(-1 * var(--note-indent)); }
-/* CUI-0027: below 360px (e.g. 320px phones) every cell may wrap, so no table needs to scroll sideways */
+/* CUI-0027: below 360px (e.g. 320px phones) the cells' side padding halves, so every table fits without scrolling
+   sideways; cells keep nowrap, so short cells never break mid-word (W-050) */
 @media (max-width: 359px) {
-  .note-table th, .note-table td { white-space: normal; }
+  .note-table th, .note-table td { padding-left: var(--space-2); padding-right: var(--space-2); }
 }

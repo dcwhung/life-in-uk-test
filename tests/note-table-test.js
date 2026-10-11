@@ -3,7 +3,7 @@
 // v1.0.10: memo v2 (.proj-docs/plans/2026-10-11_memo-final-spec.json): 61 memos, 375 notes, 52 of them with a table
 // A: noteHtml unit (in the page, with the app's escapeHtml)  B: every memo's notes in data/exams.js
 // C: the Study card "💡 記憶法", the Practice answer box and the Results review fit every table at 390px
-//    and (CUI-0027) at 320px, where cells may wrap
+//    and (CUI-0027) at 320px; cells without "<br>" stay on one line at both widths (W-050)
 const { chromium } = require('playwright-core');
 const fs = require('fs');
 const path = require('path');
@@ -119,13 +119,16 @@ async function checkUnit(pg) {
 
 // ── C: screens at 390px ──
 // every .note-table-wrap under root: no horizontal scroll, inside its container's box; tables = expected count
+// broken = cells without "<br>" (single-line by design) whose text runs onto a 2nd line (W-050: no mid-word breaks)
 const FIT_JS = `(root) => [...root.querySelectorAll('.note-table-wrap')].map(w => {
   const r = w.getBoundingClientRect(), p = w.parentElement.getBoundingClientRect();
-  return { sw: w.scrollWidth, cw: w.clientWidth, over: r.right - p.right, left: p.left - r.left, docW: document.documentElement.scrollWidth, vw: innerWidth };
+  const lines = c => { const rg = document.createRange(); rg.selectNodeContents(c); return new Set([...rg.getClientRects()].filter(x => x.width > 0).map(x => Math.round(x.top))).size; };
+  const broken = [...w.querySelectorAll('th:not(.multi), td:not(.multi)')].filter(c => c.textContent.trim() && lines(c) > 1).map(c => c.textContent);
+  return { sw: w.scrollWidth, cw: w.clientWidth, over: r.right - p.right, left: p.left - r.left, docW: document.documentElement.scrollWidth, vw: innerWidth, broken };
 })`;
 let fitWidth = 0;
 const FIT_WIDTHS = [390, 320]; // 390 = design width; 320 = narrowest supported phone (CUI-0027)
-const fits = list => list.length > 0 && list.every(f => f.sw <= f.cw && f.over <= 0.5 && f.left <= 0.5 && f.docW <= f.vw);
+const fits = list => list.length > 0 && list.every(f => f.sw <= f.cw && f.over <= 0.5 && f.left <= 0.5 && f.docW <= f.vw && f.broken.length === 0);
 
 async function checkPractice(pg) {
   const mpLines = []; // memo 4A: line boxes of the 議員 remark "全英國 MP" per question
@@ -148,7 +151,7 @@ async function checkPractice(pg) {
       if (r.missing || !r.visible || !r.rows || !fits(r.fit)) bad.push(`${key} ${JSON.stringify(r)}`);
       if (g === MP_MEMO) mpLines.push([key, r.mpLines]);
     }
-    assert(bad.length === 0, `Practice answer box, memo ${g}: ${keys.length} tables fit ${fitWidth}px, no scroll (bad: ${bad.slice(0, 2).join(' | ')})`);
+    assert(bad.length === 0, `Practice answer box, memo ${g}: ${keys.length} tables fit ${fitWidth}px, no scroll, single-line cells unbroken (bad: ${bad.slice(0, 2).join(' | ')})`);
   }
   // user request: the 議員 cell is exactly "650" / "全英國 MP", the remark never wraps at 390px (e.g. E6 Q9)
   assert(mpLines.length === GROUP_QUESTIONS[MP_MEMO].length && mpLines.every(([, n]) => n === 1), `Practice, memo ${MP_MEMO}: "全英國 MP" remark on one line at ${fitWidth}px in all ${mpLines.length} questions: ${JSON.stringify(mpLines)}`);
@@ -197,7 +200,7 @@ async function checkStudy(pg) {
   const firstWithTable = g => Object.keys(NOTE_TABLES).find(k => tableRowsOf(NOTE_TABLES[k]).join('\n') === tableRowsOf(NOTE_TABLES[g]).join('\n'));
   for (const g of Object.keys(NOTE_TABLES).filter(k => firstWithTable(k) === k)) {
     const cards = r[g] || [], bad = cards.filter(c => !fits(c.fit));
-    assert(cards.length > 0 && bad.length === 0, `Study 💡 記憶法 (opened), memo ${g}: ${cards.length} cards, tables fit ${fitWidth}px, no scroll (bad: ${JSON.stringify(bad.slice(0, 2))})`);
+    assert(cards.length > 0 && bad.length === 0, `Study 💡 記憶法 (opened), memo ${g}: ${cards.length} cards, tables fit ${fitWidth}px, no scroll, single-line cells unbroken (bad: ${JSON.stringify(bad.slice(0, 2))})`);
   }
   assert(!r.undefined, `Study: every table shown belongs to one of the ${TABLE_MEMO_COUNT} memos`);
 }
