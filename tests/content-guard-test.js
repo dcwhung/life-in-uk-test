@@ -99,8 +99,8 @@ function yueCountProblems(EXAMS) {
   return out;
 }
 
-// R4 (S-188, v1.1.4): 地方議會 is memo 4A's term for the Scottish / Welsh / NI parliaments, so it may appear only in
-// notes; "local council(s)" is 地區議會. S-191: a plain ban on question yue / oy / fact yue, so wording the English
+// R4 (S-188, v1.1.4): 地方議會 means the Scottish / Welsh / NI parliaments (memo 4A, titled 四地議會 since v1.1.5,
+// S-193), so it may appear only in notes; "local council(s)" is 地區議會. S-191: a plain ban on question yue / oy / fact yue, so wording the English
 // regex would miss (no "local", line breaks) can't slip a 地方議會 option back in (5.22 read like the right answer)
 const DEVOLVED_TERM_YUE = '地方議會';
 function localCouncilProblems(EXAMS, STUDY) {
