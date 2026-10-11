@@ -71,6 +71,7 @@ function applyLanguage() {
 // v1.3.0: the ⚙ text size row presses the current size (a pre-v1.3.0 shell has no row)
 function syncFontSetting() {
   const row = byId('settingsFontRow');
+  if (row && typeof getFontSize !== 'function') { row.hidden = true; return; } // W-057: a pre-v1.3.0 store.js
   if (row) row.querySelectorAll('[data-arg]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.arg === getFontSize())));
 }
 function syncLangSetting() {

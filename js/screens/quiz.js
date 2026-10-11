@@ -112,7 +112,9 @@ function renderQuizHeader(q, idx, total) {
   // progress: the question card's top border
   byId('progressFill').style.width = percent(idx + 1, total) + '%';
   // no "(select N)" hint: every multi-answer question already states its count (content-guard-test)
-  const full = escapeHtml(t('quiz.questionOf', { n: idx + 1, total })), short = escapeHtml(t('quiz.questionOfShort', { n: idx + 1, total }));
+  const full = escapeHtml(t('quiz.questionOf', { n: idx + 1, total }));
+  // W-057: a pre-v1.3.0 locale has no short form; t() would return the key, so the long form stays
+  const shortKey = 'quiz.questionOfShort', shortText = t(shortKey, { n: idx + 1, total }), short = shortText === shortKey ? full : escapeHtml(shortText);
   byId('qNum').innerHTML = `<span data-full="${full}" data-short="${short}">${full}</span>${starsHtml(q.d)}`;
   byId('qText').textContent = q.q;
 }

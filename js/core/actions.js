@@ -11,13 +11,19 @@ const ACTIONS = {
   // header + home
   toggleInfo: () => toggleInfo(),
   // the rows show the current language / plan switch each time it opens
-  toggleSettings: () => { syncLangSetting(); syncFontSetting(); renderPlanSettings(); toggleSettingsPopover(); },
+  // W-057: a pre-v1.3.0 i18n.js (HTTP-cached file mix) has no syncFontSetting; the popover still opens
+  toggleSettings: () => {
+    syncLangSetting();
+    if (typeof syncFontSetting === 'function') syncFontSetting();
+    renderPlanSettings();
+    toggleSettingsPopover();
+  },
   // v1.2.0 (Q10): a choice closes the ⚙ popover. R-002: switching with the confirm modal open would leave its text in
   // the old language, so nothing happens until the modal closes (since v0.69 / S-025 Tab cannot reach it; a backstop)
   chooseLang: el => { if (isConfirmOpen()) return; setSettingsOpen(false); if (el.dataset.arg !== getLang()) setLang(el.dataset.arg); },
   // v1.3.0: the text size is pure CSS; the screen re-renders so measured text (C3 quiz counter) fits the new size
   chooseFontSize: el => {
-    if (isConfirmOpen()) return;
+    if (isConfirmOpen() || typeof setFontSize !== 'function') return; // W-057: a pre-v1.3.0 store.js has no text size
     setSettingsOpen(false);
     if (el.dataset.arg === getFontSize()) return;
     setFontSize(el.dataset.arg);
