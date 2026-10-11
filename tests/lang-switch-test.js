@@ -157,9 +157,17 @@ async function checkSettingsPopover(pg) {
   assert(JSON.stringify(open.options) === JSON.stringify([['EN', 'en', 'true'], ['中文', 'zh-HK', 'false']]), 'Q8: language options EN / 中文, the current one pressed: ' + JSON.stringify(open.options));
   await pg.click(LANG_OPTION(EN));
   assert(!(await popShown(pg)) && (await langOf(pg)).lang === EN && (await settingsOf(pg)).expanded === 'false', 'Q10: choosing the current language closes the popover, no switch');
-  await pg.click(SETTINGS);
+  // S-192: by keyboard, a choice and Esc both close the popover and hand focus back to ⚙
+  const focused = () => pg.evaluate(() => document.activeElement.id);
+  await pg.focus(SETTINGS);
+  await pg.keyboard.press('Enter');
+  await pg.focus(LANG_OPTION(EN));
+  await pg.keyboard.press('Enter');
+  assert(!(await popShown(pg)) && await focused() === 'settingsBtn', 'keyboard: Enter on ⚙ opens, Enter on a language closes, focus back on ⚙');
+  await pg.keyboard.press('Enter');
+  await pg.focus(LANG_OPTION(ZH_HK));
   await pg.keyboard.press('Escape');
-  assert(!(await popShown(pg)), 'Esc closes the settings popover');
+  assert(!(await popShown(pg)) && await focused() === 'settingsBtn' && (await langOf(pg)).lang === EN, 'Esc closes the settings popover, focus back on ⚙, no switch');
   await pg.click(SETTINGS);
   await pg.click('#infoBtn');
   assert(!(await popShown(pg)) && await pg.$eval('#infoPop', e => e.classList.contains('show')), 'only one popover at a time: ⓘ closes ⚙');
