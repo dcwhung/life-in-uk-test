@@ -37,7 +37,7 @@
 |---|---|
 | 機制 | `<html data-font-size="large">` 下面 override 全部 `--fs-*` token（+2px）；純 CSS，唔使 re-render |
 | Token 化（PR-A） | 現有 6 個 `--fs-*`（10–15px）+ 約 35 個寫死 px（10.5 / 12.5 / 13.5 / 16 / 17 / 19 / 20 / 22 / 24 / 26 / 42 / 52px、`--dot-fs`、`--plan-rest-emoji-size`）全部轉 token |
-| 未設字號嘅 element | `body` 冇設 `font-size`（繼承 UA 16px），ⓘ / flag 等 button 用 UA 13.33px → PR-A 要加 root / control token，否則大字模式唔會放大 |
+| 未設字號嘅 element | `body` 冇設 `font-size`（繼承 UA 16px），ⓘ / flag 等 button 用 UA 13.33px → PR-A 要加 root / control token，否則大字模式唔會放大。**PR-A 結果（S-185）**：只加 `body` `--fs-xl`（16px，唔再跟瀏覽器預設字號）；量度後 UA 13.33px 嘅 control（flag 掣係 24px SVG、switch、range）全部冇文字，ⓘ 本身有 `--fs-xl`，所以**唔使 control token**；PR-B 新 icon button 如果有文字要自己設 `--fs-*` |
 | 保存 | 新 key `lifeuk.fontSize`（`getLS` / `setLS`），冇記錄 = 細字；pattern 照 `UI_LANG_LS` |
 | 防閃 | 最早載入嘅 script set attribute；SW 舊 cache `index.html` 要處理（`LATE_BOOT_*`） |
 | 測試 | 新 `fontsize-test`（切換、保存、reload、320–400px 冇 horizontal scroll / 冇新溢出）；`sw-test` SHELL |
