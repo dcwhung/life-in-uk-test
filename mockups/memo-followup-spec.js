@@ -1,0 +1,184 @@
+// Generated from .proj-docs/plans/2026-10-12_memo-followup-spec.json (single source; regenerate, do not hand edit)
+const FOLLOW = {
+ "memos": [
+  {
+   "id": "4A",
+   "title": "四地議會（+ E6）",
+   "questions": [
+    "4.20",
+    "5.22",
+    "6.8",
+    "7.17",
+    "8.19",
+    "9.18",
+    "12.2",
+    "13.7",
+    "10.10",
+    "12.12"
+   ],
+   "added": [
+    "10.10",
+    "12.12"
+   ],
+   "text": "記憶法（四地議會）：\n| 國家 | 議會 / 地點 | 議員 |\n| England | UK Parliament<br>Westminster | 650<br>全⁠英⁠國 MP |\n| Scotland | Scottish Parliament<br>蘇格蘭議會<br>Edinburgh（愛丁堡） | 129 |\n| Wales | Senedd<br>威爾斯議會，前稱 National Assembly for Wales<br>Cardiff（加的夫） | 60 |\n| N. Ireland | Northern Ireland Assembly<br>北愛爾蘭議會<br>Belfast（貝爾法斯特） | 90 |\n• England 冇自己嘅地方議會，由英國國會直接負責\n• Senedd 議員：考試答 60（2026 年選舉起增至 96）\n• Devolution（權力下放）\n    → 中央將部分權力交俾三地議會\n    → 國防、外交、移民冇下放，由英國政府負責"
+  },
+  {
+   "id": "③",
+   "title": "首都 / 國花（+ E3 語言）",
+   "questions": [
+    "2.16",
+    "2.21",
+    "3.16",
+    "4.1",
+    "4.10",
+    "8.1",
+    "8.12",
+    "9.0",
+    "9.8",
+    "9.19",
+    "9.23",
+    "6.20",
+    "13.12"
+   ],
+   "added": [
+    "6.20",
+    "13.12"
+   ],
+   "text": "記憶法：\n| 國家 | 首都 | 國花 | 語言 |\n| England | London<br>倫敦 | Tudor rose<br>都鐸玫瑰 | English<br>英文 |\n| Scotland | Edinburgh<br>愛丁堡 | Thistle<br>薊花 | Gaelic<br>蓋爾語 |\n| Wales | Cardiff<br>加的夫 | Daffodil<br>水仙花 | Welsh<br>威爾斯語 |\n| N. Ireland | Belfast<br>貝爾法斯特 | Shamrock<br>三葉草 | Irish Gaelic<br>愛爾蘭語 |\n• Gaelic 係凱爾特語，Scotland 同 Ireland 部分地區講"
+  },
+  {
+   "id": "10A",
+   "title": "國家公園同山（+ E5）",
+   "questions": [
+    "3.12",
+    "4.8",
+    "4.14",
+    "7.10",
+    "9.3",
+    "10.1",
+    "13.1",
+    "6.3"
+   ],
+   "added": [
+    "6.3"
+   ],
+   "text": "記憶法（國家公園同山）：\n| 名勝 | 國家 | 地點 |\n| Lake District<br>英格蘭最大國家公園 | England | National Park |\n| Loch Lomond & Trossachs<br>蘇格蘭國家公園 | Scotland | National Park |\n| Snowdonia<br>Snowdon 係威爾斯最高山 | Wales | National Park |\n| Ben Nevis<br>英國最高山 | Scotland | Highlands |\n• National Parks（國家公園）\n    → 受保護嘅郊野\n    → England、Wales、Scotland 一共 15 個"
+  },
+  {
+   "id": "⑥",
+   "title": "全年節日（+ E7 Cenotaph）",
+   "questions": [
+    "2.14",
+    "2.17",
+    "3.2",
+    "3.23",
+    "6.16",
+    "7.1",
+    "9.7",
+    "9.11",
+    "10.4",
+    "11.22",
+    "12.19",
+    "14.13",
+    "14.20",
+    "16.17",
+    "17.22",
+    "1.7",
+    "11.8"
+   ],
+   "added": [
+    "1.7",
+    "11.8"
+   ],
+   "text": "記憶法：\n| 日期 | 節日 |\n| 25/1 | Burns Night 彭斯之夜：<br>紀念蘇格蘭詩人 Robert Burns<br>佢寫咗 Auld Lang Syne |\n| 31/10 | Halloween 萬聖節前夕 |\n| 5/11 | Bonfire Night 篝火之夜：<br>又叫 Guy Fawkes Night<br>紀念 1605 年 Guy Fawkes 等人<br>火藥陰謀（Gunpowder Plot）失敗 |\n| 11/11 | Remembrance Day 國殤紀念日：<br>又叫 Armistice Day（停戰紀念日）<br>紀念 1918 年 11/11 上午 11 時一戰停戰同戰爭死難者；<br>戴紅罌粟花<br>喺 London Whitehall（白廳）嘅<br>Cenotaph（戰爭紀念碑）獻花圈 |\n| 26/12 | Boxing Day 節禮日：<br>聖誕節翌日 |\n| 31/12 | Hogmanay 霍格莫尼：<br>蘇格蘭除夕 |"
+  },
+  {
+   "id": "MagnaCarta",
+   "title": "Magna Carta 大憲章",
+   "questions": [
+    "4.16",
+    "6.6",
+    "7.14",
+    "8.13",
+    "12.23",
+    "15.6",
+    "16.16",
+    "17.21"
+   ],
+   "added": [],
+   "text": "記憶法（Magna Carta 大憲章）：\n• 1215 → King John（約翰王）簽署\n• 重點 → 冇人凌駕法律之上，國王都唔例外\n• 影響 → 限制國王權力，奠定法治（rule of law）基礎"
+  },
+  {
+   "id": "Election",
+   "title": "國會選舉",
+   "questions": [
+    "3.11",
+    "4.3",
+    "6.15",
+    "7.13"
+   ],
+   "added": [],
+   "text": "記憶法（國會選舉）：\n• 選區（constituency）→ 650 個 = 下議院 MP 數目，每區選 1 位\n• 大選（general election）→ 5 年一次\n• 補選（by-election）→ MP 中途去世或者辭職"
+  },
+  {
+   "id": "Thatcher",
+   "title": "Margaret Thatcher 戴卓爾夫人",
+   "questions": [
+    "1.8",
+    "11.7",
+    "17.4"
+   ],
+   "added": [],
+   "text": "記憶法（Margaret Thatcher 戴卓爾夫人）：\n• 1979–1990 → 任期 11 年\n• 第一 → 英國第一位女首相\n• 最長 → 20 世紀任期最長嘅首相"
+  },
+  {
+   "id": "Juror",
+   "title": "陪審員",
+   "questions": [
+    "1.13",
+    "1.14",
+    "5.5"
+   ],
+   "added": [],
+   "text": "記憶法（陪審員）：\n• 年齡 → 18 至 70 歲\n• 來源 → 選民登記冊（electoral register）\n• 方式 → 隨機抽選"
+  }
+ ],
+ "single": {
+  "7.8": "Gunpowder Plot（火藥陰謀）：1605 年 Guy Fawkes 等人想炸毀國會、殺死 King James I（詹姆斯一世），失敗\n    → 每年 5/11 Bonfire Night（篝火之夜）就係紀念陰謀失敗\n    → 所以 Bonfire Night 又叫 Guy Fawkes Night"
+ },
+ "study": {
+  "merge": {
+   "into": 125,
+   "delete": 126
+  },
+  "fact125": {
+   "id": 125,
+   "ch": 4,
+   "d": 4,
+   "src": [
+    "11.2",
+    "5.1",
+    "3.22",
+    "9.2",
+    "4.4"
+   ],
+   "en": "The UK currency is the pound sterling (£). Coins: 1p, 2p, 5p, 10p, 20p, 50p, £1 and £2. Notes: £5, £10, £20 and £50. Scotland and Northern Ireland have their own banknotes, which are valid everywhere in the UK.",
+   "yue": "英國貨幣係英鎊（pound sterling, £）。硬幣有 1p、2p、5p、10p、20p、50p、£1、£2。紙幣有 £5、£10、£20、£50。蘇格蘭同北愛爾蘭有自己嘅紙幣，全英國通用。"
+  },
+  "fact126Before": {
+   "id": 126,
+   "ch": 4,
+   "d": 5,
+   "src": [
+    "3.22",
+    "9.2",
+    "4.4"
+   ],
+   "en": "The highest-value note in England is £50 (Scottish banks issue £100). Scotland and Northern Ireland have their own banknotes, which are valid everywhere in the UK.",
+   "yue": "英格蘭最高面值嘅紙幣係 £50（蘇格蘭同北愛爾蘭有啲銀行另外發行 £100）。蘇格蘭同北愛爾蘭有自己嘅紙幣，全英國通用。"
+  }
+ },
+ "stats": {
+  "changedNotes": 67
+ }
+};

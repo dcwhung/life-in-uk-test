@@ -93,7 +93,7 @@
 <div class="wrap">
   <header>
     <h1>記憶法 v2 Review</h1>
-    <p class="sub">2026-10-11 更新：「⓪ 最終定稿」係逐組 review 完嘅最終版本（未改 data）。已套用：同一知識點統一備注、專有名詞保留英文。① – ④ 係原本建議，已定稿嘅組會標「已定稿」。預設只顯示未做嘅組。題目 ID 用「exam.idx」（idx 由 0 起）；Exam N 第 k 題 = N.(k−1)。</p>
+    <p class="sub">2026-10-12 更新：記憶法 v2 已喺 v1.0.10 套用（main v1.1.5）；「⓪ 最終定稿」頂部係 2026-10-12 跟進定稿（未套用），之後係 v1.0.10 版本。已套用：同一知識點統一備注、專有名詞保留英文。① – ④ 係原本建議，已定稿嘅組會標「已定稿」。預設只顯示未做嘅組。題目 ID 用「exam.idx」（idx 由 0 起）；Exam N 第 k 題 = N.(k−1)。</p>
   </header>
   <div class="stats" id="stats"></div>
   <div class="tabs" role="tablist" id="tabs"></div>
@@ -108,11 +108,13 @@
 <script src="../data/study.js"></script>
 <script src="memo-v2-proposal.js"></script>
 <script src="memo-final-spec.js"></script>
+<script src="memo-followup-spec.js"></script>
 <!--ARTIFACT-SCRIPTS-END-->
 <script>
 (() => {
-    const DATA = { exams: EXAMS, study: STUDY, proposal: PROPOSAL, final: FINAL };
+    const DATA = { exams: EXAMS, study: STUDY, proposal: PROPOSAL, final: FINAL, follow: FOLLOW };
     const memoOf = {}; FINAL.memos.forEach((m) => m.questions.forEach((k) => { memoOf[k] = m.id; }));
+    FOLLOW.memos.forEach((m) => m.questions.forEach((k) => { memoOf[k] = m.id; })); Object.keys(FOLLOW.single).forEach((k) => { memoOf[k] = 'F9'; });
     const MEMO_SAMPLE = { M1: '1.19', M2: '13.1', M3: '4.17', M5: '1.5', M7: '11.20', M8: '8.11', M9: '14.20', M12: '10.0', M13: '3.15', M14: '4.10', M16: '14.1' };
     const KIND = { fill: '補齊', extend: '擴充', move: '搬組', new: '新記憶法', merge: '合併', split: '拆開' };
     const MEMO_RE = /記憶法|投票權時間線/;
@@ -232,11 +234,10 @@
             <span class="count">${m.questions.length} 題 · ${esc(m.source)}</span></div>
             <div class="cols"><div class="note"><div class="note-label">💡 最終備注（題目有保留前綴嘅，前綴喺記憶法上面一行）</div>${noteHtml(m.text.split('\n'))}</div>
             <div class="qlist">${m.questions.map((k) => questionHtml(k)).join('')}</div></div></article>`;
-        const pend = [['E3', '首都 / 國花加語言（6.20、13.12）'], ['E5', '名勝加國家公園定義（6.3）'], ['E6', '地方議會加權力下放同地區議會（10.10、12.12、9.14、12.18、12.5）'],
-            ['E7', '和平紀念碑加節日記憶法（1.7、11.8）'], ['F9', '7.8 Guy Fawkes 補齊節日記憶法'], ['S1–S6', 'Study fact 合併 / 拆分（Similar panel 分組）']];
+        const pend = [];
         box.innerHTML = `<article class="card"><h2>最終定稿：${F.memos.length} 個記憶法 · ${F.stats.questions} 題</h2>
-            <p class="why">全部已經同用戶逐組確認（決定紀錄：.proj-docs/plans/2026-10-10_memo-split-decisions.md；規格：.proj-docs/plans/2026-10-11_memo-final-spec.json）。未改 data，下一個 session 照規格套用。另外 ${F.stats.untouched} 題唔郁（Magna Carta、Thatcher、陪審員、國會選舉 4 個舊記憶法照用）。</p>
-            <h2>未 review（下一步）</h2>${pend.map(([id, t]) => `<div class="fix"><span class="gid">${id}</span><div>${esc(t)}</div></div>`).join('')}</article>
+            <p class="why">v1.0.10 已經寫入 data（main 而家 v1.1.5，另外 v1.1.3 修咗 S-168「地區議會」、v1.1.5 4A 改名「四地議會」）。下面「跟進定稿」係 2026-10-12 確認、未套用嘅改動（handoff：.proj-docs/plans/2026-10-12_handoff_memo-followup-apply.md）；再下面係 v1.0.10 嘅 61 個記憶法（文字係 v1.0.10 定稿版）。</p>
+            </article>${followHtml()}
             <div class="controls"><input type="search" id="fq" placeholder="搜尋記憶法 ID、名、題號（例如 N16b、8.13）" aria-label="搜尋最終記憶法"><span class="count" id="fcount"></span></div>
             <div class="panel" id="flist">${F.memos.map(card).join('')}</div>`;
         const apply = () => {
@@ -247,6 +248,24 @@
         };
         document.getElementById('fq').addEventListener('input', apply);
         apply();
+    }
+
+
+    function followHtml() {
+        const W = DATA.follow;
+        const card = (m) => `<article class="card"><div class="card-head"><span class="gid">${esc(m.id)}</span><h2>${esc(m.title)}</h2><span class="pill k-new">跟進定稿（未套用）</span>
+            <span class="count">${m.questions.length} 題${m.added.length ? ' · 新加 ' + esc(m.added.join('、')) : ''}</span></div>
+            <div class="cols"><div class="note"><div class="note-label">💡 套用後備注</div>${noteHtml(m.text.split('\n'))}</div>
+            <div class="qlist">${m.questions.map((k) => questionHtml(k)).join('')}</div></div></article>`;
+        const single = Object.entries(W.single).map(([k, n]) => `<article class="card"><div class="card-head"><span class="gid">F9</span><h2>7.8 單句備註（冇記憶法）</h2><span class="pill k-new">跟進定稿（未套用）</span></div>
+            <div class="cols"><div class="note"><div class="note-label">💡 套用後備注</div>${noteHtml(n.split('\n'))}</div><div class="qlist">${questionHtml(k)}</div></div></article>`).join('');
+        const f = W.study.fact125;
+        const study = `<article class="card"><div class="card-head"><span class="gid">S3</span><h2>Study fact #126 併入 #125</h2><span class="pill k-new">跟進定稿（未套用）</span><span class="count">${f.src.length} 題 · 難度 ${'★'.repeat(f.d)}</span></div>
+            <div class="why">${esc(f.en)}</div><div class="note-line">${esc(f.yue)}</div><div class="qlist">${f.src.map((k) => questionHtml(k)).join('')}</div>
+            <div class="why">唔做：S1（#33 併 #113）、S2、S4（因 S3 取消）、S5、S6；N24 紙幣行唔改。</div></article>`;
+        return `<article class="card"><h2>跟進定稿（2026-10-12）：${W.stats.changedNotes} 題 note + 1 個 fact 合併</h2>
+            <p class="why">E6 四地議會加 Devolution、E3 首都 / 國花加語言欄、E5 國家公園、E7 ⑥ 加 Cenotaph、F9 7.8 單句、舊 4 組刪句尾標點；S3 fact #126 併入 #125。全部已確認，未 review 嘅項目已經冇晒。</p></article>
+            ${W.memos.map(card).join('')}${single}${study}<article class="card"><h2>v1.0.10 定稿嘅 61 個記憶法</h2></article>`;
     }
 
     function renderFindings() {
