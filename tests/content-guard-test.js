@@ -99,6 +99,19 @@ function yueCountProblems(EXAMS) {
   return out;
 }
 
+// R4 (S-188, v1.1.4): "local council(s)" is 地區議會 everywhere, never 地方議會 — memo 4A uses 地方議會 for the
+// Scottish / Welsh / NI parliaments, so a 地方議會 option for a local council reads like the right answer (5.22)
+const LOCAL_COUNCIL_EN = /local council/i;
+const DEVOLVED_TERM_YUE = '地方議會';
+function localCouncilProblems(EXAMS, STUDY) {
+  const out = [];
+  for (const [exam, qs] of Object.entries(EXAMS)) qs.forEach((q, i) => {
+    if (LOCAL_COUNCIL_EN.test(q.q) && q.yue.includes(DEVOLVED_TERM_YUE)) out.push(`${questionLabel(exam, i)} yue: ${show(q.yue)}`);
+    q.o.forEach((o, j) => { if (LOCAL_COUNCIL_EN.test(o) && (q.oy[j] || '').includes(DEVOLVED_TERM_YUE)) out.push(`${questionLabel(exam, i)} oy[${j}]: ${show(q.oy[j])}`); });
+  });
+  STUDY.forEach((f, i) => { if (/local council|electoral registration officer/i.test(f.en + f.yue) && f.yue.includes(DEVOLVED_TERM_YUE)) out.push(`${factLabel(f, i)} yue: ${show(f.yue)}`); });
+  return out;
+}
 function report(title, problems) {
   if (!problems.length) return;
   console.log(`\n${title}: ${problems.length} difference(s)`);
@@ -134,6 +147,10 @@ const sameQuestion = sameQuestionProblems(EXAMS);
 report('same English question, different yue (R3)', sameQuestion);
 assert(sameQuestion.length === 0, 'R3: identical English questions have identical yue');
 assert(problems['translation shape'].length === 0, 'oy.length === o.length, oy / note / fact yue are strings');
+const localCouncil = localCouncilProblems(EXAMS, STUDY);
+report('local council translated as 地方議會 (R4)', localCouncil);
+assert(localCouncil.length === 0, 'R4: local council(s) read 地區議會, not 地方議會 (memo 4A term for the devolved parliaments)');
+
 const answerCount = answerCountProblems(EXAMS);
 report('multi-answer question without a count word', answerCount);
 assert(answerCount.length === 0, 'every multi-answer question states how many to pick (two / three / four)');
