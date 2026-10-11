@@ -6,8 +6,10 @@
 // C: the dot is centred on the rail and on the year text's vertical middle, TL_YEAR_MIN_GAP_PX clear of the text
 // W-052: adjacent items touch (no margin collapses out of an item), so the rail runs on between cards
 // E (S-175): browsers without text-box (Safari < 18.2) use the @supports not (text-box) fallback. Chromium supports
-//    text-box, so the test reads that rule from the stylesheet, applies it with text-box: normal, and checks the
-//    year keeps the shipped spacing (glyph box to the cards, within FALLBACK_TOLERANCE_PX) and its dot stays centred
+//    text-box, so the test re-injects css/screens/study.css with that condition flipped to @supports (text-box …),
+//    adds text-box: normal, and checks each year keeps the shipped spacing (glyph box to the cards, within
+//    FALLBACK_TOLERANCE_PX) and its dot stays centred. The result depends on the CI font (S-181): it shows the
+//    fallback works with the font the test runs on, not with SF Pro; real Safari < 18.2 still needs a manual look
 // D: year text is --fs-sm; TL_YEAR_SPACE_ABOVE_PX above it (to the card before), TL_YEAR_SPACE_BELOW_PX below it
 const { chromium } = require('playwright-core');
 const fs = require('fs');
@@ -22,7 +24,9 @@ const TL_YEAR_MIN_GAP_PX = 6; // dot ring to year text, at least (the text lines
 const TL_YEAR_TEXT_INSET_PX = 3; // year text starts this close to the card's left edge (padding + glyph side bearing)
 const TL_YEAR_SPACE_ABOVE_PX = 24; // previous card's margin (8px) + 16px; user: 2–3x the first 10px
 const TL_YEAR_SPACE_BELOW_PX = 16; // user: 2–3x the first 8px
-const FALLBACK_TOLERANCE_PX = 1.5; // without the fallback rule the year gains ~2.3px above / ~3.4px below
+// without the fallback rule the year gains ~2.3px above / ~3.4px below. S-180: 1.5px misses the below side one token
+// wider (+1.4px); kept, as the design asks for roughly 24 / 16px and a tighter value fails on more fonts
+const FALLBACK_TOLERANCE_PX = 1.5;
 const NO_OVERFLOW_WIDTHS = [390, 375, 360, 320];
 const TABLE_FIT_WIDTHS = [390]; // narrower screens may fall back to in-table scroll (wider left gutter, user)
 // W-053: below 390px only these cards (widest tables: 10B, ⑤ inventors, Turner) may use the in-table scroll
@@ -122,18 +126,19 @@ async function checkFallback(b) {
   await openTimeline(pg);
   const measure = () => pg.evaluate(src => new Function('return ' + src)()(), YEAR_GLYPH_JS);
   const shipped = await measure();
-  // the fallback rule's own declarations, read from css/screens/study.css (no copy of its values in this test; a
-  // file:// page can't read its own sheets' cssRules)
+  // S-182: the whole sheet again with the fallback's condition flipped, so every rule in that block applies (no
+  // block extraction to get wrong), then text-box: normal last, as in a browser without text-box
+  const FALLBACK_CONDITION = /@supports\s+not\s*\(\s*text-box/g;
   const css = fs.readFileSync(path.resolve(__dirname, '..', 'css', 'screens', 'study.css'), 'utf8');
-  const block = css.match(/@supports\s+not\s*\(\s*text-box[^)]*\)\s*\{([\s\S]*?\})\s*\}/);
-  const fallbackCss = block && block[1].trim();
-  assert(fallbackCss && fallbackCss.includes('.tl-year'), 'study.css has an @supports not (text-box) rule for .tl-year: ' + fallbackCss);
-  await pg.addStyleTag({ content: '.tl-year { text-box: normal; }\n' + fallbackCss });
+  const conditions = css.match(FALLBACK_CONDITION) || [];
+  assert(conditions.length === 1, `study.css has one @supports not (text-box …) fallback (${conditions.length})`);
+  await pg.addStyleTag({ content: css.replace(FALLBACK_CONDITION, '@supports (text-box') + '\n.tl-year { text-box: normal; }' });
   const fallback = await measure();
   assert(fallback.every(d => d.trim === 'none') && shipped.every(d => d.trim === 'trim-both'), 'simulated a browser without text-box (shipped: trim-both, fallback: none)');
+  const font = await pg.evaluate(() => getComputedStyle(document.querySelector('.tl-year')).fontFamily);
   const bad = fallback.map((d, i) => ({ year: d.year, above: d.above === null ? 0 : d.above - shipped[i].above, below: d.below - shipped[i].below, dotOff: d.dotOff }))
     .filter(d => Math.abs(d.above) > FALLBACK_TOLERANCE_PX || Math.abs(d.below) > FALLBACK_TOLERANCE_PX || Math.abs(d.dotOff) > 1);
-  assert(bad.length === 0, `without text-box the fallback keeps every year's spacing within ${FALLBACK_TOLERANCE_PX}px of the shipped layout and its dot centred within 1px (${fallback.length} years; bad: ${JSON.stringify(bad.slice(0, 3))})`);
+  assert(bad.length === 0, `without text-box the fallback keeps every year's spacing within ${FALLBACK_TOLERANCE_PX}px of the shipped layout and its dot centred within 1px (${fallback.length} years, font ${font}; bad: ${JSON.stringify(bad.slice(0, 3))})`);
   await pg.close();
 }
 
