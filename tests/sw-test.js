@@ -21,9 +21,25 @@ const SHELL = [...swSource.match(/const SHELL = \[([\s\S]*?)\];/)[1].matchAll(/'
 const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
 const pageFiles = [...html.matchAll(/<script[^>]*\ssrc="([^"]+)"/g), ...html.matchAll(/<link[^>]*\shref="([^"]+)"/g)].map(m => m[1]);
 
+// iOS resumes a Home-screen app from memory (no page load): coming back to the foreground must check for an update
+async function checkUpdateOnResume(pg) {
+  const called = await pg.evaluate(async () => {
+    const proto = ServiceWorkerRegistration.prototype;
+    const original = proto.update;
+    let calls = 0;
+    proto.update = function () { calls++; return original.call(this); };
+    document.dispatchEvent(new Event('visibilitychange'));
+    proto.update = original;
+    return calls;
+  });
+  assert(called === 1, `back in the foreground (visibilitychange → visible) checks for an update (${called} call)`);
+}
+
 // version bump: only the imported config.js changes; the update must still install a new cache
 // (updateViaCache: 'none') and drop the old lifeuk cache, but leave other apps' caches alone
 async function checkVersionBump(pg, serveDir, oldCache) {
+  // away from Home (a running practice set) the takeover must not reload: the session would be lost
+  await pg.evaluate(() => { pendingMode = 'practice'; startExam(1); window.__beforeUpdate = true; });
   const configPath = path.join(serveDir, 'js/core/config.js');
   const bumped = 'bump-test';
   fs.writeFileSync(configPath, fs.readFileSync(configPath, 'utf8').replace(/const APP_VERSION = '[^']*';/, `const APP_VERSION = '${bumped}';`));
@@ -49,6 +65,17 @@ async function checkVersionBump(pg, serveDir, oldCache) {
   assert(!names.includes(oldCache), `version bump removes the old cache (${oldCache})`);
   assert(names.includes('other-app'), "version bump leaves another app's cache alone");
   assert(poll.settled, `version bump: new worker activates within ${SW_SETTLE_TRIES} × ${SW_SETTLE_INTERVAL_MS}ms`);
+  await checkUpdateReload(pg, bumped);
+}
+
+// the new worker took over: no reload in the practice set, one reload as soon as Home is shown, new version running
+async function checkUpdateReload(pg, bumped) {
+  const kept = await pg.evaluate(() => window.__beforeUpdate === true && byId('screenQuiz').classList.contains('active'));
+  assert(kept, 'new worker takeover does not reload the page during a practice set');
+  await Promise.all([pg.waitForEvent('load'), pg.evaluate(() => leaveToHome())]);
+  const after = await pg.evaluate(() => ({ marker: window.__beforeUpdate, version: APP_VERSION, home: byId('screenHome').classList.contains('active') }));
+  assert(after.marker === undefined && after.home, 'back on Home after the takeover: the page reloads by itself');
+  assert(after.version === bumped, `after the reload the page runs the new version (${after.version})`);
 }
 
 (async () => {
@@ -117,6 +144,7 @@ async function checkVersionBump(pg, serveDir, oldCache) {
     assert(await pg.$$eval('#optionsContainer .opt', els => els.length) > 1, 'offline: a practice set starts');
     assert(errs.length === 0, 'no page errors, console errors or SW errors' + (errs.length ? ': ' + errs.join(' / ') : ''));
     await ctx.setOffline(false);
+    await checkUpdateOnResume(pg);
     if (!external) await checkVersionBump(pg, serveDir, cache.name);
     await ctx.close();
   } finally {
