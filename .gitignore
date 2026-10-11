@@ -1,0 +1,2 @@
+# S-189: tests save screenshots under tests/ (committed baselines); never commit stray ones at the repo root
+/shot-*.png

@@ -23,7 +23,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   // 4. practice tabs default difficulty
   assert(await vis('#practiceTabs') && await pg.$eval('#ptabDifficulty', e => e.classList.contains('active')), 'practice tabs visible, By Difficulty active');
   assert((await shown()) === 'diff', 'only difficulty section shown: ' + await shown());
-  await pg.screenshot({ path: 'shot-home-v2.png' });
+  await pg.screenshot({ path: path.join(__dirname, 'shot-home-v2.png') });
   await pg.click('#ptabChapter');
   assert((await shown()) === 'chapter' && await pg.$eval('#ptabChapter', e => e.classList.contains('active')), 'By Chapter shows only chapter section');
   await pg.click('#ptabExam');
@@ -38,7 +38,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.click('#modeExam');
   assert(!(await vis('#practiceTabs')) && (await shown()) === 'exam' && await vis('#secExamTitle'), 'Exam mode: no practice tabs, Select Exam header shown');
   assert((await pg.$eval('#modeDesc', e => e.textContent)).includes('24 questions'), 'exam description');
-  await pg.screenshot({ path: 'shot-home-exam.png' });
+  await pg.screenshot({ path: path.join(__dirname, 'shot-home-exam.png') });
   await pg.click('#examGrid .exam-btn:nth-child(3)');
   assert((await pg.$eval('#modeBadge', e => e.textContent)) === 'Exam', 'exam mode starts');
   await pg.click('#screenQuiz .back-btn');
