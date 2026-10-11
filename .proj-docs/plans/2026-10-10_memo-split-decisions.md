@@ -52,3 +52,4 @@
 | 24 | N14 節日同假期（11 題） | 建議 table「宗教 ｜ 節日」6 行（Lent、Easter、Eid al-Fitr、Eid ul Adha、Diwali、Vaisakhi）+ Bank holiday 一點；唔併入 ⑥（冇固定日子） | 已確認 |
 | 25 | N15 倫敦地標（6 題：1.1、10.11、6.2、3.8、12.11、10.17） | 用戶：地標名同註解分開 → 兩欄「地標 ｜ 註解」：Big Ben（國會大廈嘅大鐘 / Houses of Parliament）、Buckingham Palace（君主官方住所 / 喺 London）、Tower of London（1066 年後起 / William the Conqueror / 守衛兼導賞： / Beefeaters /（Yeoman Warders）/ 放 Crown Jewels / 加冕用嘅皇冠珠寶）；唔併入 10B | 已確認 |
 | 26 | N16 君主同國會（19 題） | 用戶：拆兩組 → N16a 君主（13.9、14.16、16.21、2.12、10.12、13.18、17.10）、N16b 國會兩院（5.17、1.9、5.12、6.21、15.9、17.3、4.19、7.16、17.23、7.20、16.13、2.2；「國會分兩院」列點 + table「院 ｜ 重點」7 行）；內容之後再睇 | 拆法已確認；內容待睇 |
+| 26b | N16b 國會兩院內容 | 用戶定稿：同一院只喺第一行寫「下議院」/「上議院」，其餘行左欄留空 | 已確認 |
