@@ -215,6 +215,38 @@ async function i18nBootFailure(b, { tag, shell, missing, knownError = null }) {
 // the two loads; the S-014 fallback still shows. Recorded as known behaviour (review v0.65 S-041, option A).
 const ZH_HK_WITHOUT_EN_ERROR = /^LOCALES is not defined$/;
 
+// W-055 (v1.2.0): a v1.1.2 cached index.html (main at the PR #90 merge: header language pill, "← Home" text buttons,
+// the plan switch inside ⓘ) + current js: the pill (no handler any more) hides like W-013 instead of showing a raw key,
+// every Home button becomes the 🏠 icon button, no [i18n] missing-key warning, the ⓘ plan switch still works
+const V112_SHELL_REF = '44816c6';
+async function v112Shell(b) {
+  const dir = tmpDir('v112shell');
+  copyCurrent(dir);
+  fs.writeFileSync(path.join(dir, 'old.html'), execFileSync('git', ['-C', ROOT, 'show', `${V112_SHELL_REF}:index.html`]));
+  const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
+  const errs = []; pg.on('pageerror', e => errs.push(e.message));
+  const warns = []; pg.on('console', m => { if (m.type() === 'warning') warns.push(m.text()); });
+  await pg.goto('file://' + path.join(dir, 'old.html'));
+  await seed(pg, {});
+  warns.length = 0;
+  await pg.reload();
+  await pg.waitForSelector('#examGrid .exam-btn', { state: 'attached' });
+  const r = await pg.evaluate(() => {
+    const pill = document.getElementById('langBtn');
+    return { pill: !!pill, pillShown: !!pill && pill.getClientRects().length > 0, settings: !!document.getElementById('settingsBtn'),
+      homes: [...document.querySelectorAll('.back-btn[data-action="goHome"]')].map(e => [e.textContent.trim(), !!e.querySelector('svg.line-icon'), e.getAttribute('aria-label'), e.classList.contains('icon-btn')]) };
+  });
+  assert(r.pill && !r.pillShown && !r.settings, 'v1.1.2 shell: the old language pill is hidden (no dead button): ' + JSON.stringify(r));
+  assert(r.homes.length === 7 && r.homes.every(([text, icon, label, cls]) => text === '' && icon && label === 'Home' && cls), 'v1.1.2 shell: every Home button is the 🏠 icon button: ' + JSON.stringify(r.homes));
+  assert(warns.filter(w => w.includes('[i18n]')).length === 0, 'v1.1.2 shell: no [i18n] missing-key warnings: ' + warns.join(' | '));
+  await pg.click('#infoBtn');
+  await pg.click('#planFeatureSwitch');
+  await pg.click('#confirmOk');
+  assert(await pg.evaluate(() => !isStudyPlanEnabled()), 'v1.1.2 shell: the ⓘ plan switch still works');
+  assert(errs.length === 0, 'v1.1.2 shell: no page errors: ' + errs.join(' | '));
+  await pg.close();
+}
+
 // 6. T-008: a v0.64-style shell (no locales/zh-HK.js tag, no language control: v1.2.0 drops the ⚙) running the current js while
 // lifeuk.uiLang says zh-HK — the language has no locale on that page, so it reads as en without warnings and
 // without rewriting the stored value; the current shell then opens in zh-HK
@@ -388,6 +420,7 @@ function checkV057Ref() {
   await i18nBootFailure(b, { tag: 'old shell, locale missing', shell: 'v057.html', missing: 'locales/en.js' });
   await i18nBootFailure(b, { tag: 'current shell, i18n.js missing', shell: 'index.html', missing: 'js/core/i18n.js' });
   await i18nBootFailure(b, { tag: 'current shell, locale missing', shell: 'index.html', missing: 'locales/en.js', knownError: ZH_HK_WITHOUT_EN_ERROR });
+  await v112Shell(b);
   await oldShellZhHk(b);
   await zhHkLocaleMissing(b);
   console.log('UPGRADE PASS');
