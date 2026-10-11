@@ -79,4 +79,5 @@
 | 43 | F9 | 用戶：7.8 用前綴，唔要記憶法（唔入 ⑥）。7.8 note =「Gunpowder Plot（火藥陰謀）：1605 年 Guy Fawkes 等人想炸毀國會、殺死 King James I（詹姆斯一世），失敗」+ 子項「    → 每年 5/11 Bonfire Night（篝火之夜）就係紀念陰謀失敗」「    → 所以 Bonfire Night 又叫 Guy Fawkes Night」（用戶話兩行睇落冇關係，改做子項連返）；S1（fact #33 併 #113）留同 S2–S6 一齊傾 | 已確認 |
 | 44 | S2–S6 | STUDY fact 拆分（要郁 `data/study.js` + 重生成 content baseline + 書籤 / 已掌握 migrate） | 未傾 |
 | 45 | 舊 4 組 | Magna Carta、國會選舉、Thatcher、陪審員（18 題）舊格式 | 未傾 |
-| 44a | S1 | fact #33（7.8，Ch3，y 1605，People Guy Fawkes）併入 #113（3.23、14.20，Ch4）→ 建議唔做：Timeline / People tab 會冇咗 Gunpowder Plot；同 F9（7.8 自己前綴）衝突同一知識點同一備註規則；要重生成 baseline + migrate 書籤 | 待確認 |
+| 44a | S1 | fact #33（7.8，Ch3，y 1605，People Guy Fawkes）併入 #113（3.23、14.20，Ch4）→ 建議唔做：Timeline / People tab 會冇咗 Gunpowder Plot；同 F9（7.8 自己前綴）衝突同一知識點同一備註規則；要重生成 baseline + migrate 書籤 → 用戶睇完 fact 內容：唔做 | 已確認 |
+| 44b | S2 | fact #106（5.0 Easter 幾時、1.23 Lent）拆 1.23 出去做新 fact #237 → 建議唔拆：fact 只有一句、兩樣嘢互相解釋（Lent = Easter 之前 40 日），拆開 #237 要靠 Easter 先講得明；兩題已共用 N14 | 待確認 |
