@@ -3,7 +3,7 @@
 **版本**：v1.0
 **日期**：2026-10-08
 **關聯 Spec**：冇獨立 spec；規格 = `2026-10-08_handoff_study-plan.md`（§2 規格、§5 驗收清單）＋ `2026-10-08_grill_study-plan.md`（G1–G21，覆蓋 handoff §4 同 §3.3「+0.01」）＋ Architect 評估 `2026-10-08_arch_study-plan.md`（下稱「arch」）
-**Design Origin**：`mockup:mockups/study-plan-flow.html`（section：`#infoPop` ⓘ 開關、`#step0` 主頁卡、`#step1` 訂立目標、`#step2` 進度表、`#step3` 今日任務 + 月曆 + 整體進度、`#runner` 做任務、`#spModal` 確認框）
+**Design Origin**：`mockup:mockups/study-plan-flow.html`（mockup 喺 PR8 / v1.1.0 已刪，G18；git 歷史仲有：`git show c442651:mockups/study-plan-flow.html`（PR8 base；`39a3e51^` 都得））（section：`#infoPop` ⓘ 開關、`#step0` 主頁卡、`#step1` 訂立目標、`#step2` 進度表、`#step3` 今日任務 + 月曆 + 整體進度、`#runner` 做任務、`#spModal` 確認框）
 **Base**：`main` `ff3e4da`（`APP_VERSION = '1.0.0'`，SemVer）
 **負責人**：Project Manager + Architect Agent
 **狀態**：✅ 用戶已確認（2026-10-08）；開放問題全部有答案（grill G22–G29）

@@ -3,7 +3,7 @@ const path = require('path');
 // Study plan PR5 (T-323–T-328; handoff §2.1 / §2.4, grill G2–G9 / G14 / G16 / G21 / G23–G25 / G27 / G29; PR4 S-115):
 // the day screen ("Today's tasks" / Day n), the completion calendar, the overall progress card and the full
 // Home plan card. Completion comes from a seeded answer log here; opening a task (the runner) is
-// tests/plan-run-test.js (PR6a). The entry stays hidden (STUDY_PLAN_READY = false) unless ?preview=plan (G31).
+// tests/plan-run-test.js (PR6a). The entry is open since v1.1.0 (STUDY_PLAN_READY, PR8), so the app opens normally.
 // - header ← Home | ‹ title / date · n/N › | Schedule; ‹ › step through the plan; "back to today"
 // - ring (G27 band), phase pill (past / ahead), n / m done, hint per day kind; done banner; v1.0.4: a rest day
 //   shows a large 😴 instead of the ring and no visible "no tasks" line (kept for screen readers)
@@ -36,7 +36,7 @@ const REST_EMOJI_MIN_PX = 48;
 const activeScreen = pg => pg.evaluate(() => document.querySelector('.screen.active').id);
 const text = (pg, sel) => pg.$eval(sel, e => e.textContent.replace(/\s+/g, ' ').trim());
 const visible = (pg, sel) => pg.evaluate(sel => { const e = document.querySelector(sel); return !!e && e.getClientRects().length > 0; }, sel);
-async function fresh(pg, now = at(TODAY), query = '?preview=plan') {
+async function fresh(pg, now = at(TODAY), query = '') {
   await pg.clock.setFixedTime(now);
   await pg.goto(APP_URL + query);
   await pg.evaluate(() => localStorage.clear());
@@ -100,7 +100,8 @@ const contrastOf = (pg, sel) => pg.evaluate(sel => {
 }, sel);
 
 async function checkHidden(pg) {
-  await fresh(pg, at(TODAY), '');
+  await fresh(pg, at(TODAY));
+  await pg.evaluate(() => { window.planEntryReady = () => false; }); // G19: the release flag off (rollback) hides the entry
   await pg.evaluate(() => writeStudyPlan(buildPlan({ examDate: '2026-10-29', dailyMins: 120, restDays: [0], level: 'none' }, '2026-09-28')));
   await openDay(pg);
   assert(await activeScreen(pg) === 'screenHome', 'hidden: openPlanDay() stays on Home');
@@ -471,7 +472,7 @@ async function checkMidnight(browser) {
   const ctx = await browser.newContext({ viewport: { width: 375, height: 800 } });
   const pg = await ctx.newPage();
   await pg.clock.install({ time: at('2026-09-30', '23:59:30') });
-  await pg.goto(APP_URL + '?preview=plan');
+  await pg.goto(APP_URL);
   await seedPlan(pg);
   await openDay(pg);
   assert(await text(pg, '#planDaySub') === '30/9 Wed · 3/31', 'before midnight: Day 3');
@@ -496,7 +497,7 @@ async function checkTimeZones(browser) {
   const london = await browser.newContext({ timezoneId: 'Europe/London' });
   const lp = await london.newPage();
   await lp.clock.setFixedTime(new Date('2026-10-08T20:00:00Z')); // London 21:00 on 8 Oct, Hong Kong 04:00 on 9 Oct
-  await lp.goto(APP_URL + '?preview=plan');
+  await lp.goto(APP_URL);
   await lp.evaluate(() => { writeStudyPlan(buildPlan({ examDate: '2026-10-29', dailyMins: 120, restDays: [0], level: 'none' }, planTodayIso())); leaveToHome(); });
   assert((await text(lp, '#planCard .plan-home-ttl')).includes('Day 1 / 21'), 'London: built today = Day 1');
   const stored = await lp.evaluate(() => JSON.stringify({ ...localStorage }));

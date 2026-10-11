@@ -1,5 +1,5 @@
 // ════════════════════════════════════════
-// STUDY PLAN · RUNNER (PR6a; handoff §2.5, arch §E.1 / §E.4; mockup study-plan-flow.html#runner): a question task
+// STUDY PLAN · RUNNER (PR6a; handoff §2.5, arch §E.1 / §E.4; mockup study-plan-flow.html#runner, removed in PR8): a question task
 // (practise / drill / clear wrong answers) runs as a plan side session on the Practice screen itself (screenQuiz:
 // dots, question card, options, answer box, Prev / Next — no answering markup of its own). Rounds of at most
 // PRACTICE_ROUND_MAX: unanswered first (ones passed over come back later), then the wrong ones again, the same day,

@@ -54,7 +54,6 @@ function startApp() {
   applyLanguage(); // <html lang>, data-i18n markup, <title> / meta, ⓘ popover counts
   byId('flagBtn').innerHTML = bookmarkSvg('', { decorative: true });
   loadHomePrefs();
-  applyPlanPreviewParam(); // G31: before the first Home render
   renderPlanSettings();
   planWatchDay(); // G6: the plan's "today" follows local midnight
   buildExamGrid();

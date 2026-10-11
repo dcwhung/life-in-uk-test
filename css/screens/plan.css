@@ -1,4 +1,4 @@
-/* ── STUDY PLAN (js/screens/plan*.js; mockup mockups/study-plan-flow.html, sp-* renamed plan-*) ── */
+/* ── STUDY PLAN (js/screens/plan*.js; mockup study-plan-flow.html (removed in PR8), sp-* renamed plan-*) ── */
 .plan-num { font-variant-numeric: tabular-nums; }
 .plan-muted { color: var(--text-muted); font-size: var(--fs-sm); line-height: 1.55; }
 .plan-stack { display: grid; gap: var(--space-8); }

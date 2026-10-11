@@ -9,7 +9,7 @@ const path = require('path');
 //   number, in the expanded steps and the folded stepper; the chapter names stay announced, plus "(done)"
 // - day list: today at 100% = a solid green pill "Done today" / 「今日已完成」 (past 100% days keep the light "✓ Done");
 //   below 100% today stays "Today n%"; the pill fits the 72px column on one line (plan-schedule-test checkPhaseLabelsAndPill)
-// - 320 / 390px en + zh-HK: no horizontal scroll, no label clipped. The entry stays hidden: every flow uses ?preview=plan
+// - 320 / 390px en + zh-HK: no horizontal scroll, no label clipped. The entry is open (v1.1.0, G42): flows use the plain URL
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
 const launchOpts = { args: ['--no-sandbox'] };
 if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_PATH;
@@ -24,9 +24,9 @@ const MIN_CONTRAST = 4.5;
 const PHASES = ['learn', 'drill', 'mock'];
 
 const fresh = async pg => {
-  await pg.goto(APP_URL + '?preview=plan');
+  await pg.goto(APP_URL);
   await pg.evaluate(() => localStorage.clear());
-  await pg.goto(APP_URL + '?preview=plan');
+  await pg.goto(APP_URL);
 };
 // a plan from START with every task's contents fixed (reviews / wrong facts empty, drills filled), then a log where
 // the first `phases` phases are done, the `chapters` given have every fact right, and today is 100% if `today`

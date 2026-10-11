@@ -33,9 +33,9 @@ const MIN_TAP = 44; // .plan-run-body .nav-row .nav-btn min-height
 
 async function fresh(pg, iso = TODAY) {
   await pg.clock.setFixedTime(at(iso));
-  await pg.goto(APP_URL + '?preview=plan');
+  await pg.goto(APP_URL);
   await pg.evaluate(() => localStorage.clear());
-  await pg.goto(APP_URL + '?preview=plan');
+  await pg.goto(APP_URL);
 }
 // a plan from today; its first reading task; undone = indexes of its facts left unanswered (or ALL; the rest right today)
 async function seedRead(pg, undone, lastFact = null) {

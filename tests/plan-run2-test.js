@@ -12,7 +12,7 @@ const fs = require('fs');
 //   not passed = retake as a Random Exam (G11; Retry too: EXAM_MODE + ALL_EXAM whatever Home's mode); Leave / switch off
 //   while timed = not submitted (G15); time up submits
 // - every task type opens from its box, the Result card's "Start next →" and Home "Continue"
-// The entry stays hidden (STUDY_PLAN_READY = false) unless ?preview=plan (G31).
+// The entry is open since v1.1.0 (STUDY_PLAN_READY, PR8), so the app opens normally.
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
 const SHOTS = process.env.PLAN_SHOTS || '';
 const launchOpts = { args: ['--no-sandbox'] };
@@ -34,7 +34,7 @@ const activeScreen = pg => pg.evaluate(() => document.querySelector('.screen.act
 const text = (pg, sel) => pg.$eval(sel, e => e.textContent.replace(/\s+/g, ' ').trim());
 const visible = (pg, sel) => pg.evaluate(sel => { const e = document.querySelector(sel); return !!e && e.getClientRects().length > 0; }, sel);
 const storage = pg => pg.evaluate(() => JSON.stringify(Object.keys(localStorage).sort().map(k => [k, localStorage.getItem(k)])));
-async function fresh(pg, now = at(TODAY), query = '?preview=plan') {
+async function fresh(pg, now = at(TODAY), query = '') {
   await pg.clock.setFixedTime(now);
   await pg.goto(APP_URL + query);
   await pg.evaluate(() => localStorage.clear());
@@ -97,7 +97,8 @@ const runView = pg => pg.evaluate(() => ({
 }));
 
 async function checkHidden(pg) {
-  await fresh(pg, at(TODAY), '');
+  await fresh(pg, at(TODAY));
+  await pg.evaluate(() => { window.planEntryReady = () => false; }); // G19: the release flag off (rollback) hides the entry
   await seed(pg);
   await pg.evaluate(() => planOpenTask('2026-10-01', 0));
   assert(await activeScreen(pg) === 'screenHome', 'hidden: planOpenTask() on reading stays on Home');
@@ -487,7 +488,7 @@ async function shotMock(b) {
   for (const lang of ['en', 'zh-HK']) {
     for (const w of WIDTHS) {
       const pg = await b.newPage({ viewport: { width: w, height: 760 } });
-      const iso = await (async () => { await pg.goto(APP_URL + '?preview=plan'); return mockDay(pg); })();
+      const iso = await (async () => { await pg.goto(APP_URL); return mockDay(pg); })();
       await fresh(pg, at(iso));
       await pg.evaluate(lang => setLang(lang), lang);
       await seed(pg, { start: START });
