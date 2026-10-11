@@ -49,4 +49,5 @@
 | 21b | N10 細節 | Windrush：用戶寫「第一批 Caribbean（加勒比海）移民：<br>坐 Empire Windrush 疾風號移民嚟英國」，兩句都斷行 → 建議「Caribbean（加勒比海）移民：<br>第一批坐 Empire Windrush<br>疾風號移民嚟英國」；N10b 標題「記憶法（20 世紀後期）：」、1973 主字「European Community 歐洲共同體」已確認 | 已確認 |
 | 22 | N11 運動 | 建議拆：N11a 運動賽事（7.3、10.16、12.21、6.7；「幾時 ｜ 賽事」：- Ashes / 每年 6–7 月 Wimbledon / 每 4 年 Commonwealth Games）、N11b 運動員（5.20、5.16、1.10、2.20；1953 / 1954 / 1966 / 1984） | 已確認 |
 | 23 | N12 作家同詩人 | 建議拆：N12a 作家（9.5、9.17、12.9、13.20、4.21、15.10、16.14、3.19、8.18；「類型 ｜ 作家 中文：<br>作品」5 行）、N12b 詩人（1.21、12.22、11.12、14.21；3 行，Kipling 寫埋 The Jungle Book）；Dickens 只留 A Christmas Carol（另外兩本刪） | 已確認 |
-| 24 | N14 節日同假期（11 題） | 建議 table「宗教 ｜ 節日」6 行（Lent、Easter、Eid al-Fitr、Eid ul Adha、Diwali、Vaisakhi）+ Bank holiday 一點；唔併入 ⑥（冇固定日子） | 待確認 |
+| 24 | N14 節日同假期（11 題） | 建議 table「宗教 ｜ 節日」6 行（Lent、Easter、Eid al-Fitr、Eid ul Adha、Diwali、Vaisakhi）+ Bank holiday 一點；唔併入 ⑥（冇固定日子） | 已確認 |
+| 25 | N15 倫敦地標（6 題：1.1、10.11、6.2、3.8、12.11、10.17） | 建議「# ｜ 地標」3 行：Big Ben、Buckingham Palace、Tower of London（William the Conqueror 起 / Yeoman Warders = Beefeaters / Crown Jewels 加冕用）；唔併入 10B | 待確認 |
