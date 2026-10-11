@@ -390,6 +390,12 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
 :root[data-font-size="large"] .plan-task-ic { width: 32px; height: 32px; grid-row: span 2; align-self: start; }
 :root[data-font-size="large"] .plan-task-go { grid-column: 2; justify-self: end; }
 :root[data-font-size="large"] .plan-chw { --plan-chw-count-w: 128px; }
+/* W-056 (user: option V2): the goal form restacks in large text: level cards one per row (three "Intermediate"-wide
+   cards pushed 320px 14px wide), the 4 presets 2 × 2 ("1.5 months" was cut), every other duration tick hidden at 359px
+   and below (the labels touched) */
+:root[data-font-size="large"] .plan-levels { grid-template-columns: minmax(0, 1fr); }
+:root[data-font-size="large"] .plan-stack .plan-presets { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 359px) { :root[data-font-size="large"] .plan-ticks span:nth-child(even) { visibility: hidden; } }
 
 @media (max-width: 380px) {
   .plan-day-header { gap: var(--space-2); }
