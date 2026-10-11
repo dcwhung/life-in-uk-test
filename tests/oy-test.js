@@ -46,7 +46,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   const corr = await pg.evaluate(() => state.questions[0].a.map(i => state.questions[0].oy[i]));
   assert(corr.every(y => !y || ansYue.includes(y)), 'answer box A) includes correct answer translation');
   assert((await pg.$$('.opt-yue')).length === n, 'option translations stay after reveal');
-  await pg.screenshot({ path: 'shot-translate.png' });
+  await pg.screenshot({ path: path.join(__dirname, 'shot-translate.png') });
   // year-only options: no translation shown
   const yearIdx = await pg.evaluate(() => {
     const i = state.questions.findIndex(q => q.o.every(o => /^\d{4}$/.test(o)));

@@ -66,7 +66,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.click('#ptabChapter');
   assert((await pg.$eval('#chapterGrid .chapter-btn:first-child .ch-count', e => e.textContent)) === '9/9 · 100%', 'Ch1 shows 9/9 · 100%');
   assert(await pg.$eval('#chapterGrid .chapter-btn:first-child', e => e.classList.contains('complete')), 'complete styling');
-  await pg.screenshot({ path: 'shot-mastery-home.png' });
+  await pg.screenshot({ path: path.join(__dirname, 'shot-mastery-home.png') });
   // whole set mastered -> all asked again
   assert(await pg.evaluate(() => { startExam('ch1'); return state.questions.length === 9; }), 'fully mastered set: all 9 asked again');
   // one wrong resets that question to 0 and it comes back alone

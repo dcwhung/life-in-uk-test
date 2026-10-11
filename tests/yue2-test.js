@@ -33,7 +33,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   const expA = q.a.map(i => q.oy[i] || q.o[i]).join(' | ');
   assert(yue.startsWith('【廣東話翻譯】') && yue.includes('Q)') && yue.includes(q.yue) && yue.includes('A)') && yue.replace(/\s+/g, ' ').includes(expA.replace(/\s+/g, ' ')), 'answer box: 【廣東話翻譯】 / Q) / A): ' + yue.replace(/\n/g, ' ⏎ '));
   assert(!(await pg.$eval('#ansEn', e => e.textContent)).includes('（'), 'English answer line has no inline translation');
-  await pg.screenshot({ path: 'shot-answer-format.png', fullPage: true });
+  await pg.screenshot({ path: path.join(__dirname, 'shot-answer-format.png'), fullPage: true });
   // next question -> hidden again
   await pg.click('#nextBtn');
   assert(!(await vis('#qYue')) && (await pg.$$('.opt-yue')).length === 0 && (await vis('#yueToggle')), 'next question: translations hidden, toggle back');
