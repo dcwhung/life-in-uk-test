@@ -93,11 +93,12 @@
 <div class="wrap">
   <header>
     <h1>記憶法 v2 Review</h1>
-    <p class="sub">根據 main v1.0.8 嘅 408 題重新 deep check。已套用：同一知識點統一備注、專有名詞保留英文；其餘仍然係建議，你確認邊啲做，我先照 Q8 流程套用。預設只顯示未做嘅組。題目 ID 用「exam.idx」（idx 由 0 起）；Exam N 第 k 題 = N.(k−1)。</p>
+    <p class="sub">2026-10-11 更新：「⓪ 最終定稿」係逐組 review 完嘅最終版本（未改 data）。已套用：同一知識點統一備注、專有名詞保留英文。① – ④ 係原本建議，已定稿嘅組會標「已定稿」。預設只顯示未做嘅組。題目 ID 用「exam.idx」（idx 由 0 起）；Exam N 第 k 題 = N.(k−1)。</p>
   </header>
   <div class="stats" id="stats"></div>
   <div class="tabs" role="tablist" id="tabs"></div>
-  <section class="panel" id="p-findings" role="tabpanel"></section>
+  <section class="panel" id="p-final" role="tabpanel"></section>
+  <section class="panel" id="p-findings" role="tabpanel" hidden></section>
   <section class="panel" id="p-memo" role="tabpanel" hidden></section>
   <section class="panel" id="p-similar" role="tabpanel" hidden></section>
   <section class="panel" id="p-left" role="tabpanel" hidden></section>
@@ -106,14 +107,16 @@
 <script src="../data/exams.js"></script>
 <script src="../data/study.js"></script>
 <script src="memo-v2-proposal.js"></script>
+<script src="memo-final-spec.js"></script>
 <!--ARTIFACT-SCRIPTS-END-->
 <script>
 (() => {
-    const DATA = { exams: EXAMS, study: STUDY, proposal: PROPOSAL };
+    const DATA = { exams: EXAMS, study: STUDY, proposal: PROPOSAL, final: FINAL };
+    const memoOf = {}; FINAL.memos.forEach((m) => m.questions.forEach((k) => { memoOf[k] = m.id; }));
     const MEMO_SAMPLE = { M1: '1.19', M2: '13.1', M3: '4.17', M5: '1.5', M7: '11.20', M8: '8.11', M9: '14.20', M12: '10.0', M13: '3.15', M14: '4.10', M16: '14.1' };
     const KIND = { fill: '補齊', extend: '擴充', move: '搬組', new: '新記憶法', merge: '合併', split: '拆開' };
     const MEMO_RE = /記憶法|投票權時間線/;
-    const TABS = [['p-findings', '① 發現'], ['p-memo', '② 記憶法建議'], ['p-similar', '③ 相似題分組'], ['p-left', '④ 仍然冇記憶法']];
+    const TABS = [['p-final', '⓪ 最終定稿'], ['p-findings', '① 發現'], ['p-memo', '② 記憶法建議'], ['p-similar', '③ 相似題分組'], ['p-left', '④ 仍然冇記憶法']];
     const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
     const getQ = (k) => { const [e, i] = k.split('.'); return DATA.exams[e][i]; };
     const allKeys = () => Object.keys(DATA.exams).flatMap((e) => DATA.exams[e].map((q, i) => `${e}.${i}`));
@@ -124,9 +127,9 @@
     // a fill group is done for a question once its note already carries the target memory method
     const targetMemo = (g) => { const key = ((g.memo || '').match(/M\d+/) || [])[0]; return g.kind === 'fill' && MEMO_SAMPLE[key] ? memoPart(getQ(MEMO_SAMPLE[key]).note).join('\n') : null; };
     const qDone = (g, k) => { const t = targetMemo(g); return t !== null && memoPart(getQ(k).note || '').join('\n') === t; };
-    const groupStatus = (g) => { const n = g.add.filter((k) => qDone(g, k)).length; return n === 0 ? 'pending' : n === g.add.length ? 'done' : 'part'; };
-    const STATUS = { done: ['k-done', '✓ 已完成'], part: ['k-part', '部分完成'], pending: null };
-    const pendingKeys = () => new Set(DATA.proposal.groups.flatMap((g) => g.add.filter((k) => !qDone(g, k))));
+    const groupStatus = (g) => { if (g.add.every((k) => memoOf[k])) return 'done'; const n = g.add.filter((k) => qDone(g, k)).length; return n === 0 ? 'pending' : n === g.add.length ? 'done' : 'part'; };
+    const STATUS = { done: ['k-done', '✓ 已定稿 / 已完成'], part: ['k-part', '部分完成'], pending: null };
+    const pendingKeys = () => new Set(DATA.proposal.groups.flatMap((g) => g.add.filter((k) => !memoOf[k] && !qDone(g, k))));
 
     // ── note rendering: consecutive "|" lines become a table (same rule as the app); <br> splits main / sub line ──
     function cellHtml(c, tag) {
@@ -220,6 +223,32 @@
         apply();
     }
 
+
+    function renderFinal() {
+        const F = DATA.final;
+        const box = document.getElementById('p-final');
+        const card = (m) => `<article class="card" data-search="${esc([m.id, m.title, ...m.questions].join(' ').toLowerCase())}">
+            <div class="card-head"><span class="gid">${esc(m.id)}</span><h2>${esc(m.title)}</h2><span class="pill k-done">✓ 已定稿</span>
+            <span class="count">${m.questions.length} 題 · ${esc(m.source)}</span></div>
+            <div class="cols"><div class="note"><div class="note-label">💡 最終備注（題目有保留前綴嘅，前綴喺記憶法上面一行）</div>${noteHtml(m.text.split('\n'))}</div>
+            <div class="qlist">${m.questions.map((k) => questionHtml(k)).join('')}</div></div></article>`;
+        const pend = [['E3', '首都 / 國花加語言（6.20、13.12）'], ['E5', '名勝加國家公園定義（6.3）'], ['E6', '地方議會加權力下放同地區議會（10.10、12.12、9.14、12.18、12.5）'],
+            ['E7', '和平紀念碑加節日記憶法（1.7、11.8）'], ['F9', '7.8 Guy Fawkes 補齊節日記憶法'], ['S1–S6', 'Study fact 合併 / 拆分（Similar panel 分組）']];
+        box.innerHTML = `<article class="card"><h2>最終定稿：${F.memos.length} 個記憶法 · ${F.stats.questions} 題</h2>
+            <p class="why">全部已經同用戶逐組確認（決定紀錄：.proj-docs/plans/2026-10-10_memo-split-decisions.md；規格：.proj-docs/plans/2026-10-11_memo-final-spec.json）。未改 data，下一個 session 照規格套用。另外 ${F.stats.untouched} 題唔郁（Magna Carta、Thatcher、陪審員、國會選舉 4 個舊記憶法照用）。</p>
+            <h2>未 review（下一步）</h2>${pend.map(([id, t]) => `<div class="fix"><span class="gid">${id}</span><div>${esc(t)}</div></div>`).join('')}</article>
+            <div class="controls"><input type="search" id="fq" placeholder="搜尋記憶法 ID、名、題號（例如 N16b、8.13）" aria-label="搜尋最終記憶法"><span class="count" id="fcount"></span></div>
+            <div class="panel" id="flist">${F.memos.map(card).join('')}</div>`;
+        const apply = () => {
+            const q = document.getElementById('fq').value.trim().toLowerCase();
+            let n = 0;
+            box.querySelectorAll('#flist article').forEach((a) => { const show = !q || a.dataset.search.includes(q); a.hidden = !show; n += show; });
+            document.getElementById('fcount').textContent = `${n} 個`;
+        };
+        document.getElementById('fq').addEventListener('input', apply);
+        apply();
+    }
+
     function renderFindings() {
         const P = DATA.proposal;
         const fixRows = P.fixes.map((f) => `<div class="fix"><span class="gid">${f.id}</span><div>${f.status === 'done' ? '<span class="pill k-done">✓ 已修正</span> ' : ''}<b>${esc(f.q.join('、'))}</b> — ${esc(f.issue)}<br><span class="why">${f.status === 'done' ? '已由 ' + esc(f.done_by) + ' 修正' : '建議：' + esc(f.fix)}</span></div></div>`).join('');
@@ -280,19 +309,20 @@
 
     function renderLeft() {
         const s = proposed();
-        const left = allKeys().filter((k) => !hasMemo(getQ(k)) && !s.has(k));
-        document.getElementById('p-left').innerHTML = `<article class="card"><h2>套用建議後仍然冇記憶法（${left.length} 題）</h2>
-            <p class="why">呢幾題各自獨立，冇合適題組，保留現有單句備注。</p><div class="qlist">${left.map((k) => questionHtml(k)).join('')}</div></article>`;
+        const left = allKeys().filter((k) => !memoOf[k] && !hasMemo(getQ(k)));
+        document.getElementById('p-left').innerHTML = `<article class="card"><h2>定稿之後仍然冇記憶法（${left.length} 題）</h2>
+            <p class="why">唔屬於任何定稿記憶法、而家亦冇記憶法嘅題目；其中 6.3、6.20、13.12、9.14、10.10、12.5、12.12、12.18、1.7、11.8、7.8 係 E3 / E5 / E6 / E7 / F9 未 review 嘅建議。</p><div class="qlist">${left.map((k) => questionHtml(k)).join('')}</div></article>`;
     }
 
     function renderStats() {
         const keys = allKeys();
         const s = proposed();
         const before = keys.filter((k) => hasMemo(getQ(k))).length;
-        const after = keys.filter((k) => hasMemo(getQ(k)) || s.has(k)).length;
+        const finalMemo = {}; DATA.final.memos.forEach((m) => m.questions.forEach((k) => { finalMemo[k] = MEMO_RE.test(m.text); }));
+        const after = keys.filter((k) => (k in finalMemo ? finalMemo[k] : hasMemo(getQ(k)))).length;
         const st = g0 => DATA.proposal.groups.filter((x) => groupStatus(x) === g0).length;
         const g = DATA.proposal.groups;
-        const items = [[`${before} → ${after}`, '有記憶法嘅題目（而家 → 全部做完 / 408）'], [keys.filter((k) => !getQ(k).note).length, '而家冇備注'],
+        const items = [[`${before} → ${after}`, '有記憶法嘅題目（而家 → 定稿套用後 / 408）'], [keys.filter((k) => !getQ(k).note).length, '而家冇備注'],
             [`${st('done')} / ${DATA.proposal.groups.length}`, '已完成組數'], [pendingKeys().size, '未做題目'],
             [g.filter((x) => x.kind === 'new').length, '新記憶法'], [g.filter((x) => x.kind !== 'new').length, '補齊 / 擴充 / 搬組'],
             [DATA.proposal.similar.length, '分組建議'], [`${DATA.proposal.fixes.filter((f) => f.status !== 'done').length} / ${DATA.proposal.fixes.length}`, '資料問題未修']];
@@ -310,6 +340,7 @@
 
     renderStats();
     initTabs();
+    renderFinal();
     renderFindings();
     renderMemo();
     renderSimilar();

@@ -84,6 +84,9 @@
 
 ## Plans
 
+- [2026-10-11_handoff_memo-v2-apply.md](plans/2026-10-11_handoff_memo-v2-apply.md) — 記憶法 v2 套用 handoff（下一個 session 改 data / code / 測試；開工前要問 F55、APP_VERSION、舊記憶法格式）
+- [2026-10-11_memo-final-spec.json](plans/2026-10-11_memo-final-spec.json) — 記憶法最終規格：61 個記憶法、375 題最終 note、33 題唔郁（生成 script `2026-10-11_memo-final-spec.gen.js`）
+- [2026-10-10_memo-split-decisions.md](plans/2026-10-10_memo-split-decisions.md) — 記憶法逐組 review 決定紀錄（#1–#38，全部確認；E3 / E5 / E6 / E7 / F9 / S1–S6 未 review）
 - [2026-10-10_plan_memo-v2.md](plans/2026-10-10_plan_memo-v2.md) — 記憶法 v2 + 相似題分組 deep check（proposal，待確認；42 組記憶法建議、S1–S6 fact 分組、X1–X10 資料問題；機讀 `2026-10-10_memo-v2-proposal.json`；review page `mockups/memo-v2-review.html`）
 
 - [2026-10-09_study-plan-i18n-pr6b.md](plans/2026-10-09_study-plan-i18n-pr6b.md)

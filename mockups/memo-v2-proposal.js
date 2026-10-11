@@ -984,7 +984,9 @@ const PROPOSAL = {
         "15.16"
       ],
       "issue": "譯名唔一致：oy「詹姆斯二世」vs 記憶法 M6「James II（詹姆士二世）」",
-      "fix": "要你定用邊個（yue-terms 冇收錄）"
+      "fix": "要你定用邊個（yue-terms 冇收錄）",
+      "status": "done",
+      "done_by": "最終定稿規格（⑨ 用「詹姆斯二世」，待套用）"
     },
     {
       "id": "X8",
@@ -994,7 +996,9 @@ const PROPOSAL = {
         "11.15"
       ],
       "issue": "譯名唔一致：題目 yue「英格蘭教會」vs 13.22 oy / M5「英格蘭國教會」",
-      "fix": "要你定（R2：題目 yue 唔可以洩露答案，要逐題睇）"
+      "fix": "要你定（R2：題目 yue 唔可以洩露答案，要逐題睇）",
+      "status": "done",
+      "done_by": "最終定稿：方案 A（yue 照用「英格蘭教會」，記憶法寫「Church of England（英格蘭國教會）」）"
     },
     {
       "id": "X9",
@@ -1002,7 +1006,9 @@ const PROPOSAL = {
         "11.17"
       ],
       "issue": "備注「政治中立」同答案重複，冇新資料",
-      "fix": "由 N17 取代"
+      "fix": "由 N17 取代",
+      "status": "done",
+      "done_by": "最終定稿 N17b（Civil Service 行取代，待套用）"
     },
     {
       "id": "X10",
@@ -1010,7 +1016,9 @@ const PROPOSAL = {
         "M16"
       ],
       "issue": "記憶法 M16 最後一行冇「；」/「。」",
-      "fix": "E6 一齊補"
+      "fix": "E6 一齊補",
+      "status": "done",
+      "done_by": "最終定稿 4A / 4B（新列點格式唔用句尾標點）"
     }
   ],
   "applied": [
@@ -1023,6 +1031,11 @@ const PROPOSAL = {
       "date": "2026-10-10",
       "commit": "9bbc4a7",
       "what": "專有名詞保留英文：「English（中文）」；統一前綴 28 句（67 題）+ 6 條單題備注"
+    },
+    {
+      "date": "2026-10-11",
+      "commit": "spec",
+      "what": "逐組 review 完：61 個記憶法、375 題定稿（.proj-docs/plans/2026-10-11_memo-final-spec.json），未改 data"
     }
   ]
 };
