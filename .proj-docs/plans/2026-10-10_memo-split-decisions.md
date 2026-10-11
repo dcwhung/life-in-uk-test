@@ -75,7 +75,7 @@
 | 39 | E6 | 用戶確認 OK。main v1.1.3 已修 S-168（9.14、12.18、12.5 用新「記憶法（地區議會）」）、v1.1.5 4A 改名「四地議會」；剩 10.10、12.12 → 建議 4A 加「• Devolution（權力下放）／    → 中央將部分權力交俾三地議會／    → 國防、外交、移民冇下放，由英國政府負責」 | 已確認 |
 | 40 | E3 | 6.20、13.12 語言：方案 A ③ table 下面加「• 語言」列點（Welsh、Gaelic）；方案 B 加「語言」欄（4 欄太迫，多格斷行）→ 用戶揀 B（table 加「語言」欄：English 英文 / Gaelic 蓋爾語 / Welsh 威爾斯語 / Irish Gaelic 愛爾蘭語 +「• Gaelic 係凱爾特語，Scotland 同 Ireland 部分地區講」；接受斷行） | 已確認 |
 | 41 | E5 | 6.3 加入 10A：table 下面「• National Parks（國家公園）／    → 受保護嘅郊野／    → England、Wales、Scotland 一共 15 個」 | 已確認 |
-| 42 | E7 | 1.7、11.8 Cenotaph 加入 ⑥：方案 A 短前綴 + ⑥；方案 B 寫入 ⑥ 11/11 行（「喺 London Whitehall（白廳）嘅<br>Cenotaph（戰爭紀念碑）獻花圈」）；兩個方案都刪 Remembrance Sunday 註腳 | 待確認 |
-| 43 | F9 / S1 | 7.8 Gunpowder Plot（同 fact #113 合併？） | 未傾 |
+| 42 | E7 | 1.7、11.8 Cenotaph 加入 ⑥：方案 A 短前綴 + ⑥；方案 B 寫入 ⑥ 11/11 行（「喺 London Whitehall（白廳）嘅<br>Cenotaph（戰爭紀念碑）獻花圈」）；兩個方案都刪 Remembrance Sunday 註腳 → 用戶揀 B | 已確認 |
+| 43 | F9 | 7.8 加入 ⑥：方案 A 前綴「Gunpowder Plot（火藥陰謀）：1605 年 Guy Fawkes 等人想炸毀國會、殺死 King James I（詹姆斯一世），失敗」；方案 B 5/11 行加「<br>佢哋想炸毀國會<br>殺死 King James I（詹姆斯一世）」；S1（fact #33 併 #113）留同 S2–S6 一齊傾 | 待確認 |
 | 44 | S2–S6 | STUDY fact 拆分（要郁 `data/study.js` + 重生成 content baseline + 書籤 / 已掌握 migrate） | 未傾 |
 | 45 | 舊 4 組 | Magna Carta、國會選舉、Thatcher、陪審員（18 題）舊格式 | 未傾 |
