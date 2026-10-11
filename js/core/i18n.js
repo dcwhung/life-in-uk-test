@@ -68,6 +68,14 @@ function applyLanguage() {
 // W-013: a shell whose locales/zh-HK.js failed has nothing to switch to, so the ⚙ language row hides instead of a dead
 // control (v1.2.0; the v0.65 header pill did the same); the pressed option is the current language. A pre-v1.2.0
 // shell has no row
+// v1.3.0: the ⚙ text size row presses the current size (a pre-v1.3.0 shell has no row)
+function syncFontSetting() {
+  const row = byId('settingsFontRow');
+  // W-057 / S-201: a pre-v1.3.0 store.js (no text size) or locale (no row words) hides the row instead of a dead / raw one
+  const labelKey = 'app.fontSize';
+  if (row && (typeof getFontSize !== 'function' || t(labelKey) === labelKey)) { row.hidden = true; return; }
+  if (row) row.querySelectorAll('[data-arg]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.arg === getFontSize())));
+}
 function syncLangSetting() {
   const row = byId('settingsLangRow');
   if (!row) return;

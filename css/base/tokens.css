@@ -170,3 +170,27 @@
   --shadow-pop: 0 12px 32px rgba(0,0,0,0.35);
   --overlay: rgba(26,39,68,0.55);
 }
+
+/* v1.3.0: large text (⚙ settings, lifeuk.fontSize; js/core/store.js applyFontSize): every step + 2px (font size plan Q1 / Q2) */
+:root[data-font-size="large"] {
+  --fs-3xs: 11px;
+  --fs-2xs: 12px;
+  --fs-2xs-plus: 12.5px;
+  --fs-xs: 13px;
+  --fs-sm: 14px;
+  --fs-sm-plus: 14.5px;
+  --fs-base: 15px;
+  --fs-base-plus: 15.5px;
+  --fs-md: 16px;
+  --fs-lg: 17px;
+  --fs-xl: 18px;
+  --fs-2xl: 19px;
+  --fs-3xl: 21px;
+  --fs-4xl: 22px;
+  --fs-5xl: 24px;
+  --fs-6xl: 26px;
+  --fs-7xl: 28px;
+  --fs-display-sm: 44px;
+  --fs-display: 54px;
+  --fs-display-lg: 74px;
+}

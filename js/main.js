@@ -68,6 +68,8 @@ function upgradeLegacyHeaderMarkup() {
 
 function startApp() {
   upgradeLegacyHeaderMarkup();
+  // v1.3.0: before anything renders at the default size; W-057: an HTTP-cached pre-v1.3.0 store.js has no text size
+  if (typeof applyFontSize === 'function') applyFontSize();
   byId('appVersion').textContent = 'v' + APP_VERSION;
   byId('appVersionPop').textContent = 'v' + APP_VERSION;
   applyLanguage(); // <html lang>, data-i18n markup, <title> / meta, ⓘ popover counts

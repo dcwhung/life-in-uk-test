@@ -54,7 +54,7 @@
       <div class="hero-badge" data-i18n="app.infoOffline"></div>
     </div>
   </div>
-  <!-- v1.2.0: settings popover (js/components/popover.js; ⚙ opens it, a choice closes it): language + the study plan
+  <!-- v1.2.0: settings popover (js/components/popover.js; ⚙ opens it, a choice closes it): language, text size (v1.3.0) + the study plan
        switch (moved from ⓘ). The plan row keeps its v1.0 ids (js/screens/planHome.js renderPlanSettings) -->
   <div class="info-pop" id="settingsPop" role="dialog" data-i18n-attr="aria-label:app.settings">
     <h2 data-i18n="app.settings"></h2>
@@ -63,6 +63,14 @@
       <span class="seg" role="group" aria-labelledby="settingsLangLabel">
         <button type="button" data-action="chooseLang" data-arg="en" lang="en" data-i18n="app.langEn"></button>
         <button type="button" data-action="chooseLang" data-arg="zh-HK" lang="zh-HK" data-i18n="app.langZh"></button>
+      </span>
+    </div>
+    <!-- v1.3.0: text size, a small A and a large A (Q8) -->
+    <div class="set-row" id="settingsFontRow">
+      <b id="settingsFontLabel" data-i18n="app.fontSize"></b>
+      <span class="seg" role="group" aria-labelledby="settingsFontLabel">
+        <button type="button" class="seg-a-sm" data-action="chooseFontSize" data-arg="small" data-i18n-attr="aria-label:app.fontSmall;title:app.fontSmall">A</button>
+        <button type="button" class="seg-a-lg" data-action="chooseFontSize" data-arg="large" data-i18n-attr="aria-label:app.fontLarge;title:app.fontLarge">A</button>
       </span>
     </div>
     <!-- study plan: "Features" switch (hidden until the entry is ready) -->
