@@ -41,35 +41,42 @@
   display: flex; justify-content: space-between; align-items: center;
 }
 .tl-era:first-child { margin-top: var(--space-2); }
-.tl-item { display: grid; grid-template-columns: 74px 1fr; gap: 0 var(--space-5); position: relative; }
-/* the dot sits on the vertical middle of the year text, one line or two ("c. 3000 BC"): text-box trims the line
-   boxes to cap height and baseline (years are digits / capitals, so the line-box middle is the glyphs' middle, not
-   ~1px below it), the label does not stretch to the card's height (align-self), and 50% of it past the top padding
-   is that middle. --tl-year-pad keeps the trimmed text where the untrimmed text sat; --tl-year-gap is the space
-   between the text and the dot */
+/* v1.1.1 (user, preview option C): the year sits above its card and the dot on the rail to their left, so the card
+   is about as wide as on the chapter tab and a memory-note table fits it (a "1fr" grid column used to let a nowrap
+   table push the card off screen). The rail is the item's left border; one item = year + card, and flow-root keeps
+   the card's margin inside the item (W-052), so the rail runs on from item to item */
+.tl-item {
+  /* user: screen edge to card doubled (30px -> 58px): margin-left moves the rail 16px in and --tl-indent puts the card
+     24px past it (was 12px), so the card moves 28px in */
+  --tl-rail: 2px; --tl-indent: var(--space-12);
+  display: flow-root; margin-left: var(--space-8); border-left: var(--tl-rail) solid var(--border); padding-left: var(--tl-indent); position: relative;
+}
+/* the dot sits on the vertical middle of the year text: text-box trims the line box to cap height and baseline
+   (years are digits / capitals), so the content box is the glyphs' box and its middle is the text's middle.
+   --tl-year-above / --tl-year-below = the space to the card before (+ its margin) and to this item's card (user: 24px / 16px) */
 .tl-year {
-  --tl-year-pad: var(--space-8); --tl-year-gap: var(--space-3);
-  font-size: var(--fs-sm); font-weight: 800; color: var(--study-accent-strong);
-  text-align: right; padding: var(--tl-year-pad) var(--tl-year-gap) 0 0; line-height: 1.2;
+  --tl-year-above: var(--space-8); --tl-year-below: var(--space-8);
+  --tl-dot: 10px; --tl-dot-border: 2px; --tl-dot-ring: 2px;
+  font-size: var(--fs-sm); font-weight: 800; color: var(--study-accent-strong); line-height: 1.2;
+  padding: var(--tl-year-above) 0 var(--tl-year-below) var(--space-1);
   text-box: trim-both cap alphabetic;
-  position: relative; align-self: start;
+  position: relative;
 }
-/* browsers without text-box keep the v0.69 text position (untrimmed line box, ~1px off centre) */
-@supports not (text-box: trim-both cap alphabetic) {
-  .tl-year { --tl-year-pad: 13px; }
-}
+/* centred on the rail: back over the item's padding and half the rail, then half the dot's outer size */
 .tl-year::after {
-  content: ''; position: absolute; right: -16px; top: calc(50% + var(--tl-year-pad) / 2); transform: translateY(-50%);
-  width: 10px; height: 10px; border-radius: var(--radius-circle);
-  background: var(--study-accent); border: 2px solid var(--card);
-  box-shadow: 0 0 0 2px var(--study-accent);
+  content: ''; position: absolute;
+  left: calc(-1 * var(--tl-indent) - var(--tl-rail) / 2 - var(--tl-dot) / 2 - var(--tl-dot-border));
+  top: calc(var(--tl-year-above) + (100% - var(--tl-year-above) - var(--tl-year-below)) / 2); transform: translateY(-50%);
+  width: var(--tl-dot); height: var(--tl-dot); border-radius: var(--radius-circle);
+  background: var(--study-accent); border: var(--tl-dot-border) solid var(--card);
+  box-shadow: 0 0 0 var(--tl-dot-ring) var(--study-accent);
+}
+/* S-172: browsers without text-box (Safari < 18.2) keep the full line box, so its half-leading already adds space
+   above and below the text; less padding keeps the 24px / 16px spacing roughly (the dot formula uses the same vars) */
+@supports not (text-box: trim-both cap alphabetic) {
+  .tl-year { --tl-year-above: var(--space-7); --tl-year-below: var(--space-6); }
 }
 .tl-item.war .tl-year { color: var(--red); }
-.tl-item.war .tl-year::after { background: var(--red-light); box-shadow: 0 0 0 2px var(--red-light); }
-.tl-body { border-left: 2px solid var(--border); padding-left: var(--space-8); padding-bottom: var(--space-1); }
+.tl-item.war .tl-year::after { background: var(--red-light); box-shadow: 0 0 0 var(--tl-dot-ring) var(--red-light); }
 .tl-body .fact { margin-bottom: var(--space-4); }
 
-@media (max-width: 480px) {
-  .tl-item { grid-template-columns: 62px 1fr; }
-  .tl-year { font-size: var(--fs-xs); }
-}

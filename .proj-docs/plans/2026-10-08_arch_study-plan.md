@@ -462,7 +462,7 @@ CSS：components/… fact.css → switch.css；screens/… study.css → plan.cs
 | **PR6 · Runner** | `planRun.js`、`#screenPlanRun`、讀卡（`factCard` opts）、Similar CTA 參數、plan side session 輪 / 重做、重溫模式、完成卡、模擬考 + `#resultPlanRow`；`lang-switch-test` plan case | `plan-run-test`；`similar-test` / `factsession-test` 不變 | 唔升 |
 | **PR7 · 打開入口** | 先出 G20 / G21 zh-HK 書面語 ↔ en 對照表俾用戶確認；`STUDY_PLAN_READY = true`、`APP_VERSION = '1.1.0'`、刪 `mockups/study-plan-flow.html`（G18）、HANDOFF（File 結構、LS keys、測試、版本記錄）、git tag `v1.1.0` | 全套 `run-all` + 實機 QA（360 / 375 / 400px、iOS PWA）| **1.1.0** |
 
-每個 PR description 寫 `Design Origin: mockup:mockups/study-plan-flow.html`。PR1–PR2 冇 UI，可以並行 review；PR3 起逐個 merge（UI 互相依賴 `plan.css`）。
+每個 PR description 寫 `Design Origin: mockup:mockups/study-plan-flow.html`（mockup 喺 PR8 已刪，G18）。PR1–PR2 冇 UI，可以並行 review；PR3 起逐個 merge（UI 互相依賴 `plan.css`）。
 
 ---
 

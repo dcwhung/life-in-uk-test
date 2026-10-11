@@ -1,9 +1,12 @@
 const { chromium } = require('playwright-core');
+const fs = require('fs');
 const path = require('path');
 // v1.0.8 (G40, user 2026-10-09): some questions have the same text in several exams (17 facts, 19 extra keys).
 // One question text is one question wherever a fact's sources are listed: the fact card's source row and the
 // Similar panel merge the copies into one node ("E7·Q16 = E13·Q1"), a practise button counts distinct questions
 // and its session asks each once; answering any copy writes the same streak to every copy (read: the copies' max).
+// the version this checkout ships (a later bump must not break this suite)
+const APP_VERSION_FILE = fs.readFileSync(path.join(__dirname, '../js/core/config.js'), 'utf8').match(/const APP_VERSION = '([^']+)'/)[1];
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
 const launchOpts = { args: ['--no-sandbox'] };
 if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_PATH;
@@ -357,7 +360,7 @@ async function checkWording(pg) {
   assert(w.home === '<b>✓ 今日已完成</b>，明日再來' && w.mock === '✓ 模擬考試任務已完成' && w.pill === '✓ 已完成', 'zh-HK 「已完成」 (home card, mock pass, day pill): ' + JSON.stringify(w));
   assert(w.en === "All of today's tasks are done!" && w.enHome === '<b>✓ Done for today</b>, see you tomorrow' && w.enMock === '✓ Mock exam task done', 'en unchanged: ' + w.enPill);
   assert(w.enPill === '✓ Done', 'en day pill unchanged');
-  assert(w.v === '1.0.8', 'APP_VERSION 1.0.8: ' + w.v);
+  assert(w.v === APP_VERSION_FILE, 'APP_VERSION matches config.js: ' + w.v);
 }
 
 (async () => {

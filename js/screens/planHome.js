@@ -13,22 +13,12 @@ const PLAN_MIDNIGHT_SLACK_S = 1; // the day check runs 1 s after local midnight
 const FEATURE_PILL_ON_CLASS = 'on'; // ⓘ Features row pill colour (css/screens/plan.css .feature-pill)
 const FEATURE_PILL_OFF_CLASS = 'off';
 
-// G19 / G31: hidden until release, except on a device that opened ?preview=plan (tests may override this)
-function planEntryReady() { return STUDY_PLAN_READY || isPlanPreviewOn(); }
+// G19: the release flag (v1.1.0: on); a function so tests can hide the entry (G42: no ?preview=plan any more)
+function planEntryReady() { return STUDY_PLAN_READY; }
 // CUI-0021: an older cached index.html lacks the plan screens, so the card would open nothing (or a PR3 shell: a goal
 // screen whose "Build" opens a schedule it does not have)
 function planShellReady() { return PLAN_SCREEN_IDS.every(id => !!byId(id)); }
 function planVisible() { return planEntryReady() && planShellReady() && isStudyPlanEnabled(); }
-
-// G31: ?preview=plan / ?preview=off update the stored preview, then the param leaves the URL
-function applyPlanPreviewParam() {
-  const url = new URL(location.href);
-  const value = url.searchParams.get(PLAN_PREVIEW_PARAM);
-  if (value !== PLAN_PREVIEW_ON && value !== PLAN_PREVIEW_OFF) return;
-  setPlanPreview(value === PLAN_PREVIEW_ON);
-  url.searchParams.delete(PLAN_PREVIEW_PARAM);
-  try { history.replaceState(history.state, '', url.href); } catch {}
-}
 
 // ── ⓘ popover: "Features" row (a pre-PR3 shell has no #infoPlanRow) ──
 function renderPlanSettings() {

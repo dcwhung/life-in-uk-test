@@ -1,7 +1,7 @@
 const { chromium } = require('playwright-core');
 const path = require('path');
 // Study plan PR2 (T-309–T-313; arch §D, §E.1, §E.5): the answer / exam hooks that feed the plan log.
-// No UI yet (STUDY_PLAN_READY = false): a plan is seeded with evaluate, the clock is fixed with page.clock.
+// Written before the UI (PR2): a plan is seeded with evaluate, the clock is fixed with page.clock.
 // - no plan: answering and submitting write no study plan key (R3); state.planDay is null
 // - Practice / wrong answers / Flagged / Similar: a right answer on one of today's task questions → today's ok (G2);
 //   a wrong one only feeds bad; a question no task holds is not written; one log write per recorded answer

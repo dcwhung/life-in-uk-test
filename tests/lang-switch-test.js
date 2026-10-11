@@ -290,10 +290,10 @@ async function checkFlagged(pg, ctx) {
   await switchCheckBack(pg, ctx, 'flagged', '#flaggedStart', [['.fi-q', EN], ['.fi-yue', ZH_HK]]);
 }
 
-// study plan goal screen (PR3; entry hidden, so the test overrides planEntryReady): the draft and the inputs
+// study plan goal screen (PR3): the draft and the inputs
 // survive a switch, the slider ticks / feasibility text re-render
 async function checkPlanGoal(pg, ctx) {
-  await pg.evaluate(() => { window.planEntryReadyWas = planEntryReady; window.planEntryReady = () => true; openPlanGoal(); });
+  await pg.evaluate(() => openPlanGoal());
   await pg.click('#planDaysChips .chip >> nth=2');
   await pg.click('#planRestChips .chip >> nth=6');
   const draft = () => pg.evaluate(() => JSON.stringify(planGoalDraft));
@@ -303,7 +303,7 @@ async function checkPlanGoal(pg, ctx) {
   await pg.click(PILL);
   assert((await textOf(pg, '#planMinsTicks')).includes('小時') && (await textOf(pg, '#planRestChips')).includes('六'), 'plan goal zh-HK: ticks and weekday chips re-rendered');
   await pg.click(PILL);
-  await pg.evaluate(() => { window.planEntryReady = window.planEntryReadyWas; leaveToHome(); });
+  await pg.evaluate(() => leaveToHome());
 }
 
 // study plan schedule (PR4): seeded plan begun 10 days ago, list scrolled; the plan, its log and the scroll survive.
@@ -317,7 +317,6 @@ async function checkPlanSchedule(pg, ctx) {
   await sp.clock.setFixedTime(PLAN_SCHEDULE_NOW);
   await sp.goto(APP_URL);
   await sp.evaluate(() => {
-    window.planEntryReady = () => true;
     writeStudyPlan(buildPlan({ examDate: '2026-10-19', dailyMins: 90, restDays: [0], level: 'some' }, '2026-09-28'));
     openPlanSchedule();
     byId('planDayList').scrollTo({ top: 120, behavior: 'instant' });
@@ -341,7 +340,6 @@ async function checkPlanDay(pg, ctx) {
   await sp.clock.setFixedTime(PLAN_SCHEDULE_NOW);
   await sp.goto(APP_URL);
   await sp.evaluate(() => {
-    window.planEntryReady = () => true;
     writeStudyPlan(buildPlan({ examDate: '2026-10-19', dailyMins: 90, restDays: [0], level: 'some' }, '2026-09-28'));
     openPlanDay('2026-09-30');
     planShiftMonth(1);
@@ -370,7 +368,6 @@ async function checkPlanRun(pg, ctx) {
   await sp.clock.setFixedTime(PLAN_SCHEDULE_NOW);
   await sp.goto(APP_URL);
   const i = await sp.evaluate(() => {
-    window.planEntryReady = () => true;
     writeStudyPlan(buildPlan({ examDate: '2026-10-19', dailyMins: 90, restDays: [0], level: 'some' }, '2026-09-28'));
     const k = planLoad().days[2].tasks.findIndex(t => t.type === 'practice');
     planOpenTask('2026-09-30', k, '2026-09-30');
