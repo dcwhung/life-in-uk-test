@@ -4,6 +4,8 @@
 .rv-note-line:last-child { margin-bottom: 0; }
 .rv-note-line.bullet { padding-left: var(--note-indent); text-indent: calc(-1 * var(--note-indent)); }
 .rv-note-line.sub { padding-left: calc(2 * var(--note-indent)); text-indent: calc(-1 * var(--note-indent)); }
+/* v1.0.10 continuation line (8+ spaces, no marker): its text lines up with the text after a sub item's "→" */
+.rv-note-line.cont { padding-left: calc(2 * var(--note-indent)); text-indent: 0; }
 .rv-note-line { --note-indent: 1.1em; }
 /* the marker box is exactly one indent wide, so the text after it lines up with its own wrapped lines */
 .note-mark { display: inline-block; width: var(--note-indent); text-indent: 0; }
@@ -20,3 +22,5 @@
 .note-table th.multi, .note-table td.multi { white-space: normal; }
 /* V4 in-cell remark: its own line, small and muted, never bold (even in the bold first column) */
 .note-cell-sub { display: block; margin-top: var(--space-1); font-size: var(--fs-xs); font-weight: 400; color: var(--text-muted); line-height: 1.45; }
+/* v1.0.10 "• " remark: "•" about one character in, wrapped lines continue under its text (hanging indent) */
+.note-cell-sub.bullet { --cell-bullet-indent: 0.9em; padding-left: calc(2 * var(--cell-bullet-indent)); text-indent: calc(-1 * var(--cell-bullet-indent)); }

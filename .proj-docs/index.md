@@ -84,6 +84,7 @@
 
 ## Plans
 
+- [2026-10-11_memo-final-spec.json](plans/2026-10-11_memo-final-spec.json) — 記憶法 v2 最終規格（61 個記憶法、375 題；Q1 已套：8.15 → N8a）；v1.0.10 已寫入 `data/exams.js`，測試 fixture `tests/fixtures/memo-notes.json`；review 過程 / handoff memo 喺 branch `claude/relaxed-hamilton-3x7vm6`
 - [2026-10-09_study-plan-i18n-pr6b.md](plans/2026-10-09_study-plan-i18n-pr6b.md)
 - [2026-10-09_study-plan-i18n-pr6a.md](plans/2026-10-09_study-plan-i18n-pr6a.md)
 - [2026-10-09_study-plan-i18n-pr5.md](plans/2026-10-09_study-plan-i18n-pr5.md)

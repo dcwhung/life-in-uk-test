@@ -116,9 +116,10 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
 
   // v0.70: the Practice answer box draws the note the same way; a wrapped bullet / sub line continues under its text,
   // after the "•" / "◦", not back at the left edge (hanging indent). 1.19's shared memory note has long wrapped lines
+  // (v1.0.10 memo v2: 三層 split, 1.19 keeps 三層A "Crown dependency": 2 bullets + 4 sub items)
   const hang = await pg.evaluate(() => {
     pendingMode = 'practice'; startExam(1);
-    state.current = state.questions.findIndex(q => (q.note || '').startsWith('記憶法（三層）')); renderQuestion();
+    state.current = state.questions.findIndex(q => (q.note || '').startsWith('記憶法（Crown dependency）')); renderQuestion();
     selectOption(state.questions[state.current].a[0]);
     const lines = [...document.querySelectorAll('#ansNote .rv-note-line.bullet, #ansNote .rv-note-line.sub')];
     return { n: lines.length, subs: lines.filter(l => l.classList.contains('sub')).length, bad: lines.filter(l => {
@@ -128,7 +129,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
       return Math.abs(boxes[boxes.length - 1].left - t.getBoundingClientRect().left) > 1;
     }).map(l => l.textContent.slice(0, 12)), wrapped: lines.filter(l => { const r = document.createRange(); r.selectNodeContents(l.querySelector('.note-mark').nextSibling); return new Set([...r.getClientRects()].map(b => Math.round(b.top))).size > 1; }).length };
   });
-  assert(hang.n === 13 && hang.subs === 9 && hang.wrapped > 0 && hang.bad.length === 0, `Practice answer note: bullet / sub rows with a hanging indent (${JSON.stringify(hang)})`);
+  assert(hang.n === 6 && hang.subs === 4 && hang.wrapped > 0 && hang.bad.length === 0, `Practice answer note: bullet / sub rows with a hanging indent (${JSON.stringify(hang)})`);
 
   assert(errs.length === 0, 'no page errors: ' + errs.join('; '));
   console.log('EXAMRESULT PASS');

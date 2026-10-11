@@ -46,11 +46,19 @@ function setButtonHtml({ extraCls = '', action, arg, labelHtml, list }) {
 // v0.70: shared by the Practice answer box and the Results review, so a wrapped bullet keeps its hanging indent
 // in both (css/components/note.css)
 // note text: one row per \n line; "•" / "→" start a bullet, leading spaces + "◦" a sub-bullet, blank = gap.
-// The marker sits in a fixed-width .note-mark box, so the text (and its wrapped lines) start at the same indent
+// The marker sits in a fixed-width .note-mark box, so the text (and its wrapped lines) start at the same indent.
+// v1.0.10: 8+ leading spaces and no marker = continuation line (.cont), aligned with the text after a sub item's "→"
 const NOTE_MARK = /^([•◦→])\s*/;
+const NOTE_SUB_INDENT = /^\s{2,}/;
+const NOTE_CONT_INDENT = /^\s{8,}/;
+function noteLineClass(line, mark) {
+  if (NOTE_CONT_INDENT.test(line) && !mark) return ' cont';
+  if (NOTE_SUB_INDENT.test(line)) return ' sub';
+  return mark ? ' bullet' : '';
+}
 function noteLineHtml(line) {
   const text = line.trim(), mark = text.match(NOTE_MARK);
-  const cls = /^\s{2,}/.test(line) ? ' sub' : mark ? ' bullet' : '';
+  const cls = noteLineClass(line, mark);
   const body = mark ? `<span class="note-mark">${mark[1]} </span>${escapeHtml(text.slice(mark[0].length))}` : escapeHtml(text);
   return `<div class="rv-note-line${cls}" lang="zh-HK">${body}</div>`;
 }
@@ -78,10 +86,13 @@ function noteTableHtml(rows) {
   return `<div class="note-table-wrap"><table class="note-table" lang="zh-HK"><thead>${rowHtml(head, 'th')}</thead>`
     + `<tbody>${body.map(cells => rowHtml(cells, 'td')).join('')}</tbody></table></div>`;
 }
-// split on "<br>" first, then escape each part, so the only markup a note can add is the remark span
+// split on "<br>" first, then escape each part, so the only markup a note can add is the remark span.
+// v1.0.10: a remark starting with "• " is a bullet (.bullet: indented, hanging indent)
+const NOTE_CELL_BULLET = /^•\s/;
 function noteCellHtml(cell, tag) {
   const [main, ...remarks] = cell.split(NOTE_CELL_BREAK);
   if (!remarks.length) return `<${tag}>${escapeHtml(cell)}</${tag}>`;
-  const subs = remarks.map(remark => `<span class="note-cell-sub">${escapeHtml(remark)}</span>`).join('');
+  const subClass = remark => (NOTE_CELL_BULLET.test(remark) ? 'note-cell-sub bullet' : 'note-cell-sub');
+  const subs = remarks.map(remark => `<span class="${subClass(remark)}">${escapeHtml(remark)}</span>`).join('');
   return `<${tag} class="multi">${escapeHtml(main)}${subs}</${tag}>`;
 }
