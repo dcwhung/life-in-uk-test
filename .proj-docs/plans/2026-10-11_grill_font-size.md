@@ -2,7 +2,7 @@
 
 **日期**：2026-10-11
 **Branch**：`claude/global-font-size-feature-c96ajp`
-**Mockup**：`mockups/font-size-switch.html` v2（真 app 截圖，8 個畫面包括 ⚙ 設定 / ⓘ 關於 popover，320 / 375px × en / zh-HK × 細字 / 大字修正前 / 大字修正後；確認後喺 PR-B 刪）
+**Mockup**：`mockups/font-size-switch.html` v2.2（C1–C4 已套用；真 app 截圖，8 個畫面包括 ⚙ 設定 / ⓘ 關於 popover，320 / 375px × en / zh-HK × 細字 / 大字修正前 / 大字修正後；確認後喺 PR-B 刪）
 **狀態**：Q1–Q6 用戶已逐條確認（grill-me）；第一版 mockup 經用戶 review（M1–M3），追加 Q7–Q11、L4b、L5，全部已確認；用戶仲有 UI mock comment 未講
 
 ---
@@ -27,6 +27,8 @@
 | M3 | 接受唔改 | 下面「接受唔改」5 項全部接受（日曆「🎯 Exam」一項由 C2 取代） |
 | C1 | ⚙ 樣式（mockup v2 comment） | ⚙ **唔要外圈**：冇邊、冇底，金色（`--gold-light`）icon，44px hit area 保留 |
 | C2 | 每日完成度日曆考試格（mockup v2 comment） | 考試日格**唔再顯示「🎯 Exam / 🎯 考試日」**（只剩日子 + 考試日底紋）；legend 改做「[底紋] 🎯 Exam day / 🎯 考試日」，**成組靠 legend 行最右**（左邊照舊 0% ■■■■ 100%；用 group + `margin-left: auto`）。實作：刪 `planCellHtml()` 嘅 `<small>`、`.plan-cell.exam small` CSS、locale `plan.calendar.examCell`；legend 用新 key（例如 `plan.calendar.legendExam`），唔改共用嘅 `plan.schedule.examDay`；格嘅 `aria-label` 照讀「考試日」 |
+| C3 | Quiz 題號（mockup v2.1 comment） | 「Question 1 of 24」→ **「Question 1/24」**；zh-HK「第 1 題（共 24 題）」→ **「第 1/24 題」**（改 locale `quiz.questionOf`；要更新 `factsession` / `practicedots` / `quicknav` ×2 / `similar` 測試嘅期望字串）；320px 大字唔再斷行 |
+| C4 | Study tab（mockup v2.1 comment） | Chapters / Timeline / Geography / People **一律 icon 喺上、字喺下**（細字大字都係）；實作：locale `study.tab*` 拎走 emoji，icon 放 markup `<span class="tab-ic" aria-hidden="true">`，`.study-tab` 改 `flex-direction: column` |
 
 ## 技術做法（codebase 查證，唔使問）
 
