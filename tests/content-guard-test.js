@@ -164,8 +164,11 @@ const firstQuestion = test => Object.entries(EXAMS).flatMap(([exam, qs]) => qs.m
 const withNote = firstQuestion(q => q.note.length > 0);
 const emptied = examProblems(base.exams, mutatedExams(ex => { ex[withNote.exam][withNote.i].note = ''; }));
 assert(emptied.some(p => p.startsWith(questionLabel(withNote.exam, withNote.i))), `S-051: emptying the note of ${questionLabel(withNote.exam, withNote.i)} is reported`);
-const withoutNote = firstQuestion(q => q.note === '');
-const filled = examProblems(base.exams, mutatedExams(ex => { ex[withoutNote.exam][withoutNote.i].note = 'R1'; }));
+// v1.2.1: every question now has a note, so the "'' -> text" case runs on a baseline copy where one note was empty
+const withoutNote = firstQuestion(q => q.note === '') || withNote;
+const emptyBase = JSON.parse(JSON.stringify(base.exams));
+emptyBase[withoutNote.exam][withoutNote.i]._noteNonEmpty = false;
+const filled = examProblems(emptyBase, mutatedExams(ex => { ex[withoutNote.exam][withoutNote.i].note = 'R1'; }));
 assert(filled.length === 0, `S-051: filling the empty note of ${questionLabel(withoutNote.exam, withoutNote.i)} is allowed (R1)`);
 // S-061 self-check: a multi-answer yue that lost its count word is reported
 const multi = firstQuestion(q => q.a.length > 1);
