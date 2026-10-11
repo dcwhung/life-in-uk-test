@@ -1,6 +1,6 @@
 const { chromium } = require('playwright-core');
 const path = require('path');
-// v0.65 (T-007): the header language pill. It shows the target language (en → 中, zh-HK → EN), switches
+// v0.65 (T-007): switching the language (v1.2.0: ⚙ settings → EN / 中文; v0.65–v1.1 the header pill). It switches
 // <html lang> and lifeuk.uiLang, and re-renders the current screen in place: on every screen the plan's
 // state list (current question, answers, reveal, translation, flags, exam deadline, review filter, Study
 // tab / chips / search text, side session) is unchanged, no key is missing, nothing is recorded twice,
@@ -12,14 +12,16 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
 
 const EN = 'en';
 const ZH_HK = 'zh-HK';
-const PILL = '#langBtn';
+const SETTINGS = '#settingsBtn';
+const SETTINGS_POP = '#settingsPop';
+const LANG_OPTION = lang => `#settingsLangRow [data-arg="${lang}"]`;
 const WIDE = { width: 390, height: 844 };
 const NARROW = { width: 320, height: 640 };
 const TITLE = { [EN]: 'Life in the UK Test · Exam Practice', [ZH_HK]: 'Life in the UK Test · 應試練習' }; // v1.0.5: <title> follows the language
 const CJK = /[\u3000-\u303f\u3400-\u9fff\uff00-\uffef]/;
 // S-043: the wait clears the double tap guard window, read from config.js SCREEN_CHANGE_CLICK_GUARD_MS on the page
 const GUARD_MARGIN_MS = 50;
-// S-044: the ::before ring must make the hit area >= 44px; probe this far outside the visible pill
+// S-044: the ::before ring must make the hit area >= 44px; probe this far outside the visible ⚙
 const HIT_MIN_PX = 44;
 const HIT_PROBE_INSET_PX = 1;
 // S-045: glyph probe canvas; two different hanzi drawn the same means both are tofu (no CJK font installed)
@@ -48,7 +50,15 @@ const snapState = pg => pg.evaluate(() => JSON.stringify({
 }));
 const langOf = pg => pg.evaluate(() => ({ lang: getLang(), html: document.documentElement.lang }));
 const textOf = (pg, sel) => pg.$eval(sel, e => e.textContent.replace(/\s+/g, ' ').trim());
-const pillOf = pg => pg.$eval(PILL, e => ({ text: e.textContent, label: e.getAttribute('aria-label'), title: e.title, parent: e.parentElement.className, last: e === e.parentElement.lastElementChild, type: e.type }));
+const settingsOf = pg => pg.$eval(SETTINGS, e => ({ label: e.getAttribute('aria-label'), title: e.title, expanded: e.getAttribute('aria-expanded'),
+  parent: e.parentElement.className, last: e === e.parentElement.lastElementChild, type: e.type, icon: !!e.querySelector('svg.line-icon') }));
+const popShown = pg => pg.$eval(SETTINGS_POP, e => e.getClientRects().length > 0);
+const pressedLang = pg => pg.$eval('#settingsLangRow [aria-pressed="true"]', e => e.dataset.arg);
+// v1.2.0: ⚙ → the other language (Q10: the choice closes the popover)
+async function switchLangUi(pg) {
+  await pg.click(SETTINGS);
+  await pg.click('#settingsLangRow [aria-pressed="false"]');
+}
 
 // ── one switch on the current screen: same state, no missing key, language flipped, 320px fits ──
 async function switchOn(pg, ctx, tag, expectCjkSel) {
@@ -56,7 +66,7 @@ async function switchOn(pg, ctx, tag, expectCjkSel) {
   const from = (await langOf(pg)).lang;
   const to = from === EN ? ZH_HK : EN;
   ctx.warns.length = 0;
-  await pg.click(PILL);
+  await switchLangUi(pg);
   const lang = await langOf(pg);
   assert(lang.lang === to && lang.html === to, `${tag}: switched ${from} → ${to} (<html lang="${lang.html}">)`);
   assert(ctx.warns.filter(w => w.includes('[i18n]')).length === 0, `${tag}: no [i18n] warnings: ` + ctx.warns.join(' | '));
@@ -116,35 +126,61 @@ async function switchCheckChapterShort(pg, ctx, tag, sel) {
   await checkChapterShortLang(pg, `${tag} (en)`, sel, EN);
 }
 
-// ── the pill itself ──
-async function checkPill(pg) {
-  assert(await pg.$(PILL) !== null, 'header has the language pill');
-  const p = await pillOf(pg);
-  assert(p.text === '中' && p.label === 'Switch to Chinese' && p.title === 'Switch to Chinese', 'en: pill shows 中, labelled Switch to Chinese: ' + JSON.stringify(p));
-  assert(p.parent === 'header-inner' && p.last && p.type === 'button', 'pill is the last child of .header-inner, type=button');
-  const size = await pg.$eval(PILL, e => { const r = e.getBoundingClientRect(); return { w: r.width, h: r.height }; });
-  assert(size.w >= 36 && size.h >= 24, 'pill is about 36 × 26px: ' + JSON.stringify(size));
-  // points up to (44 − visible size) / 2 outside the pill on each side still land on it
-  const hit = await pg.$eval(PILL, (e, { min, inset }) => {
+// ── ⚙ and the language row (v1.2.0, mockup font-size-switch.html M1 / Q8–Q10 / C1) ──
+async function checkSettingsButton(pg) {
+  assert(await pg.$('#langBtn') === null && await pg.$(SETTINGS) !== null, 'header has ⚙ instead of the language pill');
+  const p = await settingsOf(pg);
+  assert(p.label === 'Settings' && p.title === 'Settings' && p.expanded === 'false' && p.icon, 'en: ⚙ is an icon labelled Settings, closed: ' + JSON.stringify(p));
+  assert(p.parent === 'header-inner' && p.last && p.type === 'button', '⚙ is the last child of .header-inner, type=button');
+  const look = await pg.$eval(SETTINGS, e => { const r = e.getBoundingClientRect(), cs = getComputedStyle(e); return { w: r.width, h: r.height, border: cs.borderTopWidth, bg: cs.backgroundColor }; });
+  assert(look.w === 32 && look.h === 32 && look.border === '0px' && look.bg === 'rgba(0, 0, 0, 0)', 'C1: ⚙ is 32 × 32px with no ring or fill: ' + JSON.stringify(look));
+  // points up to (44 − visible size) / 2 outside ⚙ on each side still land on it
+  const hit = await pg.$eval(SETTINGS, (e, { min, inset }) => {
     const r = e.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
     const dx = Math.max(0, (min - r.width) / 2) - inset, dy = Math.max(0, (min - r.height) / 2) - inset;
     const pts = [[r.left - dx, cy], [r.right + dx, cy], [cx, r.top - dy], [cx, r.bottom + dy]];
-    return pts.map(([x, y]) => document.elementFromPoint(x, y) === e);
+    return pts.map(([x, y]) => { const h = document.elementFromPoint(x, y); return !!h && (h === e || e.contains(h)); });
   }, { min: HIT_MIN_PX, inset: HIT_PROBE_INSET_PX });
-  assert(hit.every(Boolean), `pill hit area is >= ${HIT_MIN_PX}px each way (left, right, top, bottom): ` + JSON.stringify(hit));
+  assert(hit.every(Boolean), `⚙ hit area is >= ${HIT_MIN_PX}px each way (left, right, top, bottom): ` + JSON.stringify(hit));
+  await checkSettingsPopover(pg);
+}
+// the popover: opens under ⚙ (arrow on it), EN / 中文 with the current one pressed; choosing the current one closes it
+async function checkSettingsPopover(pg) {
+  await pg.click(SETTINGS);
+  const open = await pg.evaluate(() => {
+    const pop = byId('settingsPop'), btn = byId('settingsBtn'), b = btn.getBoundingClientRect();
+    const arrow = parseFloat(getComputedStyle(pop).getPropertyValue('--info-arrow-x')) + pop.getBoundingClientRect().left;
+    return { shown: pop.getClientRects().length > 0, expanded: btn.getAttribute('aria-expanded'), arrowOff: Math.abs(arrow - (b.left + b.width / 2)),
+      options: [...document.querySelectorAll('#settingsLangRow [data-arg]')].map(o => [o.textContent, o.lang, o.getAttribute('aria-pressed')]) };
+  });
+  assert(open.shown && open.expanded === 'true' && open.arrowOff <= 1, 'Q9: ⚙ opens the settings popover with its arrow on ⚙: ' + JSON.stringify(open));
+  assert(JSON.stringify(open.options) === JSON.stringify([['EN', 'en', 'true'], ['中文', 'zh-HK', 'false']]), 'Q8: language options EN / 中文, the current one pressed: ' + JSON.stringify(open.options));
+  await pg.click(LANG_OPTION(EN));
+  assert(!(await popShown(pg)) && (await langOf(pg)).lang === EN && (await settingsOf(pg)).expanded === 'false', 'Q10: choosing the current language closes the popover, no switch');
+  await pg.click(SETTINGS);
+  await pg.keyboard.press('Escape');
+  assert(!(await popShown(pg)), 'Esc closes the settings popover');
+  await pg.click(SETTINGS);
+  await pg.click('#infoBtn');
+  assert(!(await popShown(pg)) && await pg.$eval('#infoPop', e => e.classList.contains('show')), 'only one popover at a time: ⓘ closes ⚙');
+  await pg.click(SETTINGS);
+  assert(await popShown(pg) && !(await pg.$eval('#infoPop', e => e.classList.contains('show'))), '⚙ closes ⓘ');
+  await pg.mouse.click(5, 600);
+  assert(!(await popShown(pg)), 'a click outside closes the settings popover');
 }
 
-// pill label, <html lang>, storage, reload
+// ⚙ label, pressed option, <html lang>, storage, reload
 async function checkHomeSwitch(pg, ctx) {
   await switchOn(pg, ctx, 'home', '#modeDesc');
-  const p = await pillOf(pg);
-  assert(p.text === 'EN' && p.label === '切換至英文' && p.title === '切換至英文', 'zh-HK: pill shows EN, labelled 切換至英文: ' + JSON.stringify(p));
+  const p = await settingsOf(pg);
+  assert(p.label === '設定' && p.title === '設定' && !(await popShown(pg)), 'zh-HK: ⚙ labelled 設定, popover closed after the choice: ' + JSON.stringify(p));
+  assert(await pressedLang(pg) === ZH_HK, 'zh-HK: 中文 pressed');
   assert(await pg.evaluate(() => localStorage.getItem('lifeuk.uiLang')) === JSON.stringify(ZH_HK), 'lifeuk.uiLang = zh-HK');
   await pg.reload();
-  assert((await langOf(pg)).html === ZH_HK && (await pillOf(pg)).text === 'EN', 'reload: zh-HK restored, pill EN');
+  assert((await langOf(pg)).html === ZH_HK && (await settingsOf(pg)).label === '設定', 'reload: zh-HK restored, ⚙ 設定');
   assert(CJK.test(await textOf(pg, '#modeDesc')) && (await pg.title()) === TITLE[ZH_HK], 'reload: zh-HK Home, zh-HK <title>');
   await switchOn(pg, ctx, 'home', '#modeDesc');
-  assert((await pillOf(pg)).text === '中' && await pg.evaluate(() => localStorage.getItem('lifeuk.uiLang')) === JSON.stringify(EN), 'back to en: pill 中, uiLang en');
+  assert((await settingsOf(pg)).label === 'Settings' && await pg.evaluate(() => localStorage.getItem('lifeuk.uiLang')) === JSON.stringify(EN), 'back to en: ⚙ Settings, uiLang en');
 }
 
 // Home with a non-default mode and practice tab
@@ -241,10 +277,11 @@ async function checkExamTimer(pg) {
     const realTimer = LOCALES['zh-HK'].exam.timer;
     LOCALES['zh-HK'].exam.timer = 'ZZ {time}';
     clearInterval(examTimerId); // no interval tick during the check (examTimerId stays set: the timer still counts as running)
-    byId('langBtn').click();
+    const other = () => { byId('settingsBtn').click(); document.querySelector('#settingsLangRow [aria-pressed="false"]').click(); };
+    other();
     const shown = byId('examTimer').textContent;
     LOCALES['zh-HK'].exam.timer = realTimer;
-    byId('langBtn').click();
+    other();
     examTick = realTick;
     examTimerId = setInterval(examTick, EXAM_TICK_MS);
     return { shown, ticks, screen: document.querySelector('.screen.active').id };
@@ -253,13 +290,12 @@ async function checkExamTimer(pg) {
   assert(timer.ticks === 0 && timer.screen === 'screenQuiz', 'exam: the switch does not call examTick (time-up would submit): ' + JSON.stringify(timer));
 }
 
-// a confirm modal on top: the pill does nothing (reached with Tab + Enter, the modal covers it for a pointer)
+// a confirm modal on top: the language option does nothing (R-002 backstop; the modal covers ⚙ for a pointer)
 async function checkModal(pg) {
   await pg.evaluate(() => submitExam());
   assert(await pg.evaluate(() => isConfirmOpen()), 'submit modal open');
-  await pg.focus(PILL);
-  await pg.keyboard.press('Enter');
-  assert((await langOf(pg)).lang === EN && await pg.evaluate(() => isConfirmOpen()), 'modal open: the pill does not switch the language');
+  await pg.evaluate(sel => document.querySelector(sel).click(), LANG_OPTION(ZH_HK));
+  assert((await langOf(pg)).lang === EN && await pg.evaluate(() => isConfirmOpen()), 'modal open: the language option does not switch the language');
   await pg.evaluate(() => closeConfirm());
 }
 
@@ -300,9 +336,9 @@ async function checkPlanGoal(pg, ctx) {
   const before = await draft();
   await switchTwice(pg, ctx, 'plan goal', '#planFeasMsg');
   assert(await draft() === before, 'plan goal: the draft goal is unchanged by the switches: ' + before);
-  await pg.click(PILL);
+  await switchLangUi(pg);
   assert((await textOf(pg, '#planMinsTicks')).includes('小時') && (await textOf(pg, '#planRestChips')).includes('六'), 'plan goal zh-HK: ticks and weekday chips re-rendered');
-  await pg.click(PILL);
+  await switchLangUi(pg);
   await pg.evaluate(() => leaveToHome());
 }
 
@@ -406,15 +442,14 @@ async function checkStudy(pg, ctx) {
   await switchOn(pg, ctx, 'study geography', '#studySubChips');
 }
 
-// double tap guard: the pill does not change the view, so it never arms the guard; a quick second tap works
+// double tap guard: ⚙ and the language options do not change the view, so they never arm the guard; switching back at
+// once works
 async function checkDoubleTap(pg) {
   await pg.evaluate(() => showScreen('screenHome'));
   const guard = await pg.evaluate(() => JSON.stringify(clickGuard));
-  await pg.click(PILL);
-  await pg.waitForTimeout(await pg.evaluate(() => SCREEN_CHANGE_CLICK_GUARD_MS) + GUARD_MARGIN_MS);
-  await pg.dblclick(PILL);
-  assert((await langOf(pg)).lang === ZH_HK && await pg.evaluate(() => JSON.stringify(clickGuard)) === guard, 'pill: never arms the double tap guard; a double tap switches twice');
-  await pg.click(PILL);
+  await switchLangUi(pg);
+  await switchLangUi(pg);
+  assert((await langOf(pg)).lang === EN && await pg.evaluate(() => JSON.stringify(clickGuard)) === guard, '⚙ language: never arms the double tap guard; an immediate switch back works');
 }
 
 // 2026-10-07: My Review tiles. The wrong answers note lives inside #tileWrong, the flagged tile drops its count
@@ -549,7 +584,7 @@ async function checkMyReviewTiles(pg) {
   await seedMyReview(pg, MY_REVIEW_WRONG_N, MY_REVIEW_FLAG_N);
   await checkMyReviewIn(pg, EN, 'My Review en');
   await checkMyReviewNarrow(pg, checkMyReviewIn, EN, 'My Review en 320px');
-  await pg.click(PILL);
+  await switchLangUi(pg);
   await checkMyReviewIn(pg, ZH_HK, 'My Review pill → zh-HK');
   await checkMyReviewNarrow(pg, checkMyReviewIn, ZH_HK, 'My Review zh-HK 320px');
   await checkNoteTailIn(pg, ZH_HK, 'My Review zh-HK 390px note');
@@ -561,7 +596,7 @@ async function checkMyReviewTiles(pg) {
   await seedMyReview(pg, 0, MY_REVIEW_FLAG_N);
   await checkMyReviewEmptyIn(pg, ZH_HK, 'My Review zh-HK');
   await checkMyReviewNarrow(pg, checkMyReviewEmptyIn, ZH_HK, 'My Review zh-HK 0 wrong 320px');
-  await pg.click(PILL);
+  await switchLangUi(pg);
   await checkMyReviewEmptyIn(pg, EN, 'My Review pill → en');
   await checkMyReviewNarrow(pg, checkMyReviewEmptyIn, EN, 'My Review en 0 wrong 320px');
   await seedMyReview(pg, MY_REVIEW_WRONG_N, 0);
@@ -581,9 +616,9 @@ async function checkExamDescIn(pg, lang, tag) {
 async function checkExamDesc(pg) {
   await pg.evaluate(lang => { setLang(lang); leaveToHome(); startMode('exam'); }, EN);
   await checkExamDescIn(pg, EN, 'Exam desc en');
-  await pg.click(PILL);
+  await switchLangUi(pg);
   await checkExamDescIn(pg, ZH_HK, 'Exam desc pill → zh-HK');
-  await pg.click(PILL);
+  await switchLangUi(pg);
 }
 
 // 2026-10-07: the Practice hint beside "Reset progress" is a 4-point list, no full stop at the end of a point,
@@ -644,13 +679,13 @@ async function checkResetRows(pg) {
 async function checkPracticeHint(pg) {
   await pg.evaluate(lang => { setLang(lang); leaveToHome(); startMode('practice'); }, EN);
   await checkPracticeHintIn(pg, EN, 'Practice hint en');
-  await pg.click(PILL);
+  await switchLangUi(pg);
   await checkPracticeHintIn(pg, ZH_HK, 'Practice hint pill → zh-HK');
   await checkNarrow(pg, 'Practice hint');
   await pg.setViewportSize(NARROW);
   await checkPracticeHintIn(pg, ZH_HK, 'Practice hint zh-HK 320px');
   await pg.setViewportSize(WIDE);
-  await pg.click(PILL);
+  await switchLangUi(pg);
 }
 
 // 2026-10-07: the "Leave the exam?" modal cancel reads Cancel / 取消 (was Stay / 留下)
@@ -681,7 +716,7 @@ const hasCjkFont = pg => pg.evaluate(({ px, chars, baseline }) => {
 
 // run in order: each check starts from the screen / language the previous one left
 const CHECKS = [
-  checkPill, checkHomeSwitch, checkHomePractice, checkQuizPractice, checkAnswerFallback, checkOptionYueLang,
+  checkSettingsButton, checkHomeSwitch, checkHomePractice, checkQuizPractice, checkAnswerFallback, checkOptionYueLang,
   checkSideSession, checkQuizExam, checkExamTimer, checkModal, checkResult, checkFlagged, checkStudy, checkPlanGoal, checkPlanSchedule, checkPlanDay, checkPlanRun, checkDoubleTap,
   checkMyReviewTiles, checkMyReviewOrientation, checkExamDesc, checkPracticeHint, checkResetRows, checkLeaveCancel,
 ];
@@ -704,7 +739,7 @@ async function main() {
 // M4: at 320px the zh-HK pass line "…方為合格。" keeps its last words together (no one-word last line)
 async function checkResultSub(pg) {
   await pg.evaluate(() => { pendingMode = 'exam'; startExam(1); finishExam(); });
-  await pg.click(PILL);
+  await switchLangUi(pg);
   await pg.setViewportSize(NARROW);
   const lines = await pg.evaluate(() => {
     const node = byId('resultSub').firstChild, len = node.textContent.length;
@@ -713,7 +748,7 @@ async function checkResultSub(pg) {
   });
   await pg.setViewportSize(WIDE);
   assert(lines.text.endsWith('方為合格。') && lines.tail[0] === lines.tail[1], 'zh-HK 320px: 方為合格。 stays on one line: ' + JSON.stringify(lines));
-  await pg.click(PILL);
+  await switchLangUi(pg);
 }
 
 // S-066: run-all.sh prints only the last line, so a skipped M4 must show up there, not only in the log body

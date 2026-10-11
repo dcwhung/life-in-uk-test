@@ -143,9 +143,9 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(await active('screenResult') && (await text('#resultNote')) === 'Cleared 3 from your wrong answers · 0 left', 'all cleared: result note 3 cleared / 0 left');
   assert(!(await anyVisible('#screenResult .retry-btn')), 'all cleared: no Retry button on the result page');
   assert(await anyVisible('#screenResult .another-btn'), 'all cleared: back-to-home button still shown');
-  await pg.click('#langBtn'); await pause();
+  await pg.click('#settingsBtn'); await pg.click('#settingsLangRow [aria-pressed="false"]'); // v1.2.0: language via ⚙ await pause();
   assert(!(await anyVisible('#screenResult .retry-btn')), 'all cleared: Retry stays hidden after a language switch');
-  await pg.click('#langBtn'); await pause();
+  await pg.click('#settingsBtn'); await pg.click('#settingsLangRow [aria-pressed="false"]'); // v1.2.0: language via ⚙ await pause();
 
   // S-069: a flagged round that unflags every question (real clicks on the bookmark) leaves nothing to retry either
   await pg.evaluate(() => {

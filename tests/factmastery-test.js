@@ -3,7 +3,7 @@ const path = require('path');
 // v0.63 (P3 T-204 / T-205): a Study fact is mastered when it is ticked by hand (study.mastered[id]) OR every
 // one of its source questions is 🏆 in Practice (factMastery(f).derived). The derived value is computed on render,
 // never stored. Derived: the ✓ becomes a 🏆 that cannot be pressed (aria-disabled, no data-action), the card dims
-// like a manual tick (Q7), Hide mastered hides both; Study header "🏆 n / 236 mastered" (O7).
+// like a manual tick (Q7), Hide mastered hides both; Study header "🏆 n / 236" (O7; v1.2.0: "mastered" in its label).
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
 const launchOpts = { args: ['--no-sandbox'] };
 if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_PATH;
@@ -57,7 +57,9 @@ async function checkManualCard(pg, derivedOpacity) {
 }
 
 async function checkProgressAndHide(pg) {
-  assert(await pg.$eval('#studyProgress', e => e.textContent) === `🏆 2 / ${STUDY_TOTAL} mastered`, 'header: 🏆 2 / 236 mastered (1 derived + 1 ticked, O7)');
+  // v1.2.0 (Q11): the pill reads "🏆 n / 236"; "mastered" is its label / tooltip
+  const pill = await pg.$eval('#studyProgress', e => [e.textContent, e.getAttribute('aria-label'), e.getAttribute('title')]);
+  assert(pill[0] === `🏆 2 / ${STUDY_TOTAL}` && pill[1] === `2 of ${STUDY_TOTAL} facts mastered` && pill[2] === pill[1], 'header: 🏆 2 / 236, labelled "2 of 236 facts mastered" (1 derived + 1 ticked, O7): ' + pill.join(' | '));
   const total = parseInt((await pg.$eval('#studyCount', e => e.textContent)).split('/')[1]);
   await pg.click('text=Hide mastered');
   const shown = await pg.$eval('#studyCount', e => e.textContent);
@@ -73,7 +75,7 @@ async function checkReset(pg) {
     manual: document.querySelector(`#studyContent .fact[data-fact-id="${m}"]`).classList.contains('mastered'),
     progress: byId('studyProgress').textContent,
   }), [DERIVED_FACT, MANUAL_FACT]);
-  assert(!r.derived && r.manual && r.progress === `🏆 1 / ${STUDY_TOTAL} mastered`, 'streaks cleared: derived 🏆 gone, manual tick kept: ' + JSON.stringify(r));
+  assert(!r.derived && r.manual && r.progress === `🏆 1 / ${STUDY_TOTAL}`, 'streaks cleared: derived 🏆 gone, manual tick kept: ' + JSON.stringify(r));
 }
 
 (async () => {

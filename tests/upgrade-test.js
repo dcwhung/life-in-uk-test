@@ -14,7 +14,7 @@ const { startPagesServer, appFiles } = require('./pages-server');
 //      S-041: the current shell whose locales/en.js fails to load — same fallback; zh-HK.js's ReferenceError is known
 //   6. v0.65 (T-008): an older cached shell without the zh-HK tag + a stored uiLang 'zh-HK' — en, no warning,
 //      the stored choice kept for the next full load
-//   7. W-013: the current shell whose locales/zh-HK.js failed to load — the language pill is hidden (not a dead button)
+//   7. W-013: the current shell whose locales/zh-HK.js failed to load — the ⚙ language row is hidden (not a dead control)
 // The v0.57 files come from git: V057_REF is the last v0.57 commit on main (merge of PR #29), pinned so a later
 // main does not silently turn this into a same-version test.
 const ROOT = path.resolve(__dirname, '..');
@@ -215,17 +215,17 @@ async function i18nBootFailure(b, { tag, shell, missing, knownError = null }) {
 // the two loads; the S-014 fallback still shows. Recorded as known behaviour (review v0.65 S-041, option A).
 const ZH_HK_WITHOUT_EN_ERROR = /^LOCALES is not defined$/;
 
-// 6. T-008: a v0.64-style shell (no locales/zh-HK.js tag, no language pill) running the current js while
+// 6. T-008: a v0.64-style shell (no locales/zh-HK.js tag, no language control: v1.2.0 drops the ⚙) running the current js while
 // lifeuk.uiLang says zh-HK — the language has no locale on that page, so it reads as en without warnings and
 // without rewriting the stored value; the current shell then opens in zh-HK
 const ZH_HK_TAG = /[ \t]*<script src="locales\/zh-HK\.js"><\/script>\n/;
-const LANG_PILL = /[ \t]*<button class="lang-btn"[^\n]*<\/button>\n/;
+const SETTINGS_BTN = /[ \t]*<button class="settings-btn"[^\n]*<\/button>\n/;
 async function oldShellZhHk(b) {
   const dir = tmpDir('zhshell');
   copyCurrent(dir);
   const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
-  assert(ZH_HK_TAG.test(html) && LANG_PILL.test(html), 'current index.html has the zh-HK script tag and the language pill');
-  fs.writeFileSync(path.join(dir, 'v064.html'), html.replace(ZH_HK_TAG, '').replace(LANG_PILL, ''));
+  assert(ZH_HK_TAG.test(html) && SETTINGS_BTN.test(html), 'current index.html has the zh-HK script tag and the ⚙ settings button');
+  fs.writeFileSync(path.join(dir, 'v064.html'), html.replace(ZH_HK_TAG, '').replace(SETTINGS_BTN, ''));
   const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
   const errs = []; pg.on('pageerror', e => errs.push(e.message));
   const warns = []; pg.on('console', m => { if (m.type() === 'warning') warns.push(m.text()); });
@@ -244,7 +244,7 @@ async function oldShellZhHk(b) {
   await pg.close();
 }
 
-// 7. W-013: current shell, locales/zh-HK.js missing — nothing to switch to, so the pill is hidden; en runs cleanly
+// 7. W-013: current shell, locales/zh-HK.js missing — nothing to switch to, so the ⚙ language row is hidden; en runs cleanly
 async function zhHkLocaleMissing(b) {
   const dir = tmpDir('nozh');
   copyCurrent(dir);
@@ -254,8 +254,9 @@ async function zhHkLocaleMissing(b) {
   await pg.goto('file://' + path.join(dir, 'index.html'));
   await pg.evaluate(() => localStorage.clear()); await pg.reload();
   await pg.waitForSelector('#examGrid .exam-btn', { state: 'attached' });
-  const pill = await pg.evaluate(() => { const e = byId('langBtn'); return { hidden: e.hidden, shown: e.getClientRects().length > 0, lang: getLang() }; });
-  assert(pill.hidden && !pill.shown && pill.lang === 'en', 'current shell, zh-HK.js missing: language pill hidden, en: ' + JSON.stringify(pill));
+  await pg.click('#settingsBtn');
+  const row = await pg.evaluate(() => { const e = byId('settingsLangRow'); return { pop: byId('settingsPop').getClientRects().length > 0, hidden: e.hidden, shown: e.getClientRects().length > 0, lang: getLang() }; });
+  assert(row.pop && row.hidden && !row.shown && row.lang === 'en', 'current shell, zh-HK.js missing: ⚙ opens, language row hidden, en: ' + JSON.stringify(row));
   assert(errs.length === 0, 'current shell, zh-HK.js missing: no page errors: ' + errs.join(' | '));
   await pg.close();
 }
