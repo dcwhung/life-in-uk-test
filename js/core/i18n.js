@@ -71,7 +71,9 @@ function applyLanguage() {
 // v1.3.0: the ⚙ text size row presses the current size (a pre-v1.3.0 shell has no row)
 function syncFontSetting() {
   const row = byId('settingsFontRow');
-  if (row && typeof getFontSize !== 'function') { row.hidden = true; return; } // W-057: a pre-v1.3.0 store.js
+  // W-057 / S-201: a pre-v1.3.0 store.js (no text size) or locale (no row words) hides the row instead of a dead / raw one
+  const labelKey = 'app.fontSize';
+  if (row && (typeof getFontSize !== 'function' || t(labelKey) === labelKey)) { row.hidden = true; return; }
   if (row) row.querySelectorAll('[data-arg]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.arg === getFontSize())));
 }
 function syncLangSetting() {
