@@ -24,7 +24,9 @@
 | Q10 | 揀完之後 | **揀完即閂** popover |
 | Q11 | Screen header icon 化 | 左右掣改 icon（細字大字都用）：7 粒 goHome「← Home」→ 🏠 SVG、Plan 今日「Schedule」→ 📅、進度表「Change goal」→ ✏️；Study pill「🏆 0 / 236 mastered」→「🏆 0 / 236」；保留 `aria-label` + `title`；中間 screen 名（SCHEDULE / STUDY / EXAM 1 / badge）保留文字；Plan runner「← 返去今日」唔郁 |
 | M2 | Layout 修正 | L1 / L2 / L3 / L6 取消（⚙ + icon 化之後 320px 大字已經放得落，有截圖驗證）；保留 **L4b**、**L5** |
-| M3 | 接受唔改 | 下面「接受唔改」5 項全部接受 |
+| M3 | 接受唔改 | 下面「接受唔改」5 項全部接受（日曆「🎯 Exam」一項由 C2 取代） |
+| C1 | ⚙ 樣式（mockup v2 comment） | ⚙ **唔要外圈**：冇邊、冇底，金色（`--gold-light`）icon，44px hit area 保留 |
+| C2 | 每日完成度日曆考試格（mockup v2 comment） | 考試日格**唔再顯示「🎯 Exam / 🎯 考試日」**（只剩日子 + 考試日底紋）；legend 改做「[底紋] 🎯 Exam day / 🎯 考試日」。實作：刪 `planCellHtml()` 嘅 `<small>`、`.plan-cell.exam small` CSS、locale `plan.calendar.examCell`；legend 用新 key（例如 `plan.calendar.legendExam`），唔改共用嘅 `plan.schedule.examDay`；格嘅 `aria-label` 照讀「考試日」 |
 
 ## 技術做法（codebase 查證，唔使問）
 
@@ -50,4 +52,4 @@
 
 順手修嘅現有 bug：Study 英文細字 header（「← / Home」「📖 / STUDY」各斷兩行）、Plan 今日細字標題截斷「Today'…」——都係 Q11 icon 化解決。
 
-接受唔改：dots 圖例變 2 行、「QUESTION 1 OF 24」wrap、notes table 第一欄多行、日曆「🎯 Exam」凸出格（現有行為）、12 欄圓點（320px 照放得落）。
+接受唔改：dots 圖例變 2 行、「QUESTION 1 OF 24」wrap、notes table 第一欄多行、12 欄圓點（320px 照放得落）。日曆「🎯 Exam」凸出格 → C2 拎走格內文字，問題消失。
