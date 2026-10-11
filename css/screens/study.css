@@ -43,10 +43,11 @@
 .tl-era:first-child { margin-top: var(--space-2); }
 /* v1.1.1 (user, preview option C): the year sits above its card and the dot on the rail to their left, so the card
    is about as wide as on the chapter tab and a memory-note table fits it (a "1fr" grid column used to let a nowrap
-   table push the card off screen). The rail is the item's left border; one item = year + card, so it runs on */
+   table push the card off screen). The rail is the item's left border; one item = year + card, and flow-root keeps
+   the card's margin inside the item (W-052), so the rail runs on from item to item */
 .tl-item {
   --tl-rail: 2px; --tl-indent: var(--space-6);
-  border-left: var(--tl-rail) solid var(--border); padding-left: var(--tl-indent); position: relative; min-width: 0;
+  display: flow-root; border-left: var(--tl-rail) solid var(--border); padding-left: var(--tl-indent); position: relative;
 }
 /* the dot sits on the vertical middle of the year text: text-box trims the line box to cap height and baseline
    (years are digits / capitals), so the content box is the glyphs' box and its middle is the text's middle.
@@ -68,8 +69,12 @@
   background: var(--study-accent); border: var(--tl-dot-border) solid var(--card);
   box-shadow: 0 0 0 var(--tl-dot-ring) var(--study-accent);
 }
+/* S-172: browsers without text-box (Safari < 18.2) keep the full line box, so its half-leading already adds space
+   above and below the text; less padding keeps the 10px / 8px spacing roughly (the dot formula uses the same vars) */
+@supports not (text-box: trim-both cap alphabetic) {
+  .tl-year { --tl-year-above: 0px; --tl-year-below: var(--space-2); }
+}
 .tl-item.war .tl-year { color: var(--red); }
 .tl-item.war .tl-year::after { background: var(--red-light); box-shadow: 0 0 0 var(--tl-dot-ring) var(--red-light); }
-.tl-body { min-width: 0; }
 .tl-body .fact { margin-bottom: var(--space-4); }
 

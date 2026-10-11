@@ -3,6 +3,7 @@
 // A: no timeline card is wider than the screen, so the page never scrolls sideways (390 / 375 / 360 / 320px)
 // B: every opened "💡 記憶法" table fits its card at 390 / 375 / 360px (320px may fall back to in-table scroll)
 // C: the dot is centred on the rail and on the year text's vertical middle, TL_YEAR_GAP_PX clear of the text
+// W-052: adjacent items touch (no margin collapses out of an item), so the rail runs on between cards
 // D: year text is --fs-sm; TL_YEAR_SPACE_ABOVE_PX above it (to the card before), TL_YEAR_SPACE_BELOW_PX below it
 const { chromium } = require('playwright-core');
 const path = require('path');
@@ -69,8 +70,13 @@ async function checkYearLayout(pg) {
         below: card.top - contentBottom, above: prev ? contentTop - prev.bottom : null,
       };
     });
-    return { rows, sm: tok('--fs-sm') };
+    // W-052: each item starts where the one before it ends (the rail is the item's left border)
+    const gaps = items.slice(1).filter((it, i) => items[i].nextElementSibling === it)
+      .map((it, i) => Math.abs(it.getBoundingClientRect().top - items[items.indexOf(it) - 1].getBoundingClientRect().bottom));
+    return { rows, sm: tok('--fs-sm'), gaps };
   });
+  const breaks = r.gaps.filter(g => g > PX_TOLERANCE);
+  assert(r.gaps.length > 0 && breaks.length === 0, `rail runs on: all ${r.gaps.length} adjacent items touch (gaps: ${[...new Set(breaks.map(Math.round))].join(', ')}px x ${breaks.length})`);
   const bad = r.rows.filter(d => d.trim !== 'trim-both' || d.vOff > PX_TOLERANCE || d.hOff > PX_TOLERANCE || d.gap < TL_YEAR_GAP_PX - PX_TOLERANCE);
   assert(bad.length === 0, `dot centred on the rail and on the cap-trimmed year text, ${TL_YEAR_GAP_PX}px clear of it, all ${r.rows.length} years (bad: ${JSON.stringify(bad.slice(0, 3))})`);
   assert(r.rows.every(d => d.lines === 1), `every year label is one line above its card (two-line: ${r.rows.filter(d => d.lines > 1).map(d => d.year).join(', ')})`);
