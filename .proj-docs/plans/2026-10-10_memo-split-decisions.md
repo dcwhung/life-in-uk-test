@@ -50,4 +50,5 @@
 | 22 | N11 運動 | 建議拆：N11a 運動賽事（7.3、10.16、12.21、6.7；「幾時 ｜ 賽事」：- Ashes / 每年 6–7 月 Wimbledon / 每 4 年 Commonwealth Games）、N11b 運動員（5.20、5.16、1.10、2.20；1953 / 1954 / 1966 / 1984） | 已確認 |
 | 23 | N12 作家同詩人 | 建議拆：N12a 作家（9.5、9.17、12.9、13.20、4.21、15.10、16.14、3.19、8.18；「類型 ｜ 作家 中文：<br>作品」5 行）、N12b 詩人（1.21、12.22、11.12、14.21；3 行，Kipling 寫埋 The Jungle Book）；Dickens 只留 A Christmas Carol（另外兩本刪） | 已確認 |
 | 24 | N14 節日同假期（11 題） | 建議 table「宗教 ｜ 節日」6 行（Lent、Easter、Eid al-Fitr、Eid ul Adha、Diwali、Vaisakhi）+ Bank holiday 一點；唔併入 ⑥（冇固定日子） | 已確認 |
-| 25 | N15 倫敦地標（6 題：1.1、10.11、6.2、3.8、12.11、10.17） | 用戶：地標名同註解分開 → 兩欄「地標 ｜ 註解」：Big Ben（國會大廈嘅大鐘 / Houses of Parliament）、Buckingham Palace（君主官方住所 / 喺 London）、Tower of London（1066 年後起 / William the Conqueror / 守衛兼導賞： / Beefeaters /（Yeoman Warders）/ 放 Crown Jewels / 加冕用嘅皇冠珠寶）；唔併入 10B | 待確認 |
+| 25 | N15 倫敦地標（6 題：1.1、10.11、6.2、3.8、12.11、10.17） | 用戶：地標名同註解分開 → 兩欄「地標 ｜ 註解」：Big Ben（國會大廈嘅大鐘 / Houses of Parliament）、Buckingham Palace（君主官方住所 / 喺 London）、Tower of London（1066 年後起 / William the Conqueror / 守衛兼導賞： / Beefeaters /（Yeoman Warders）/ 放 Crown Jewels / 加冕用嘅皇冠珠寶）；唔併入 10B | 已確認 |
+| 26 | N16 君主同國會（19 題） | 建議拆三組：N16a 君主（7 題；3 行）、N16b 下議院（6 題；3 行 +「國會分兩院」一點）、N16c 上議院（6 題；4 行）；格式「# ｜ 項目」 | 待確認 |
