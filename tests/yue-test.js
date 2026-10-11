@@ -23,7 +23,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   // answering keeps it shown (post-reveal behaviour is covered by yue2-test)
   await pg.evaluate(() => { state.answers[state.current] = [...state.questions[state.current].a]; revealAnswer(); });
   assert(await vis('#qYue'), 'stays shown after answering');
-  await pg.screenshot({ path: 'shot-yue.png' });
+  await pg.screenshot({ path: path.join(__dirname, 'shot-yue.png') });
   // exam mode: hidden
   await pg.evaluate(() => { pendingMode = 'exam'; startExam(1); });
   assert(!(await vis('#yueToggle')) && !(await vis('#qYue')), 'hidden in exam mode');
