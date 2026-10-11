@@ -63,13 +63,16 @@ function ensureLegacyMigrated() {
 // ── v1.2.1: merged STUDY facts (FACT_ID_MERGES) — move fact-id keyed progress to the kept id, once per old id ──
 function migrateFactIds() {
   if (typeof FACT_ID_MERGES === 'undefined') return;
+  const all = Object.entries(FACT_ID_MERGES).map(([oldId, keptId]) => [Number(oldId), keptId]);
+  // W-057: the plan moves on every load (an old id never comes back, so it is a no-op once clean): a still-open older
+  // tab may write its plan back with the old id after the marks moved, and a plan that does not parse is lost
+  rewriteStoredJson(STUDY_PLAN_LS, v => mergePlanFacts(v, all));
   const done = mergedFactIds();
-  const todo = Object.entries(FACT_ID_MERGES).map(([oldId, keptId]) => [Number(oldId), keptId]).filter(([oldId]) => !done.includes(oldId));
+  const todo = all.filter(([oldId]) => !done.includes(oldId));
   if (!todo.length) return;
-  const moved = FACT_ID_MAP_LS.map(key => rewriteStoredJson(key, v => mergeFactMap(v, todo)))
-    .concat(rewriteStoredJson(STUDY_PLAN_LS, v => mergePlanFacts(v, todo)));
-  // the marker is written only once something moved: storage with no old id stays untouched (and is checked again,
-  // so an old id a cached older page writes during the SW cutover still moves on the next load)
+  const moved = FACT_ID_MAP_LS.map(key => rewriteStoredJson(key, v => mergeFactMap(v, todo)));
+  // the marker (marks only) is written once something moved: storage with no old id stays untouched (and is checked
+  // again, so an old id a cached older page writes during the SW cutover still moves on the next load)
   if (moved.some(Boolean)) localStorage.setItem(FACT_MERGE_LS, JSON.stringify([...done, ...todo.map(([oldId]) => oldId)]));
 }
 function mergedFactIds() {
@@ -79,9 +82,13 @@ function mergedFactIds() {
   } catch { return []; }
 }
 // a value that does not parse is left as stored (the screen that owns it decides); fn returns undefined = no change.
-// Returns whether it wrote
+// Returns whether it wrote.
+// S-195: with a legacy fallback both names are rewritten, so the next legacy merge cannot bring the old id back
 function rewriteStoredJson(key, fn) {
-  const name = LS_KEY_FALLBACK[key] || key, raw = localStorage.getItem(name);
+  return [...new Set([key, LS_KEY_FALLBACK[key] || key])].map(name => rewriteStoredName(name, fn)).some(Boolean);
+}
+function rewriteStoredName(name, fn) {
+  const raw = localStorage.getItem(name);
   if (raw === null) return false;
   let value;
   try { value = JSON.parse(raw); } catch { return false; }
@@ -97,7 +104,8 @@ function mergeFactMap(map, todo) {
   hits.forEach(([oldId, keptId]) => { if (!map[keptId]) map[keptId] = map[oldId]; delete map[oldId]; });
   return hits.length ? map : undefined;
 }
-// the saved plan's tasks list fact ids (read tasks): old → kept, no duplicate within a task
+// the saved plan's tasks list fact ids (read tasks; filled-in wrong-answer tasks also keep anchor { [factId]: qkey }):
+// old → kept, no duplicate within a task
 function mergePlanFacts(plan, todo) {
   if (!plan || !Array.isArray(plan.days)) return undefined;
   const ids = new Map(todo);
@@ -105,6 +113,7 @@ function mergePlanFacts(plan, todo) {
   plan.days.forEach(day => (Array.isArray(day && day.tasks) ? day.tasks : []).forEach(task => {
     if (!task || !Array.isArray(task.facts) || !task.facts.some(id => ids.has(id))) return;
     task.facts = [...new Set(task.facts.map(id => (ids.has(id) ? ids.get(id) : id)))];
+    if (task.anchor && typeof task.anchor === 'object') mergeFactMap(task.anchor, todo); // S-196
     changed = true;
   }));
   return changed ? plan : undefined;

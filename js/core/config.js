@@ -102,7 +102,8 @@ const MIGRATE_FALLBACK_LS = LS_PREFIX + 'migrateFallback';
 // object maps ("exam.idx" / fact id → record) merged per entry when both names exist; the rest (prefs) keep the new value
 const MERGE_LS = [STREAK_LS, FLAGS_LS, WRONG_LS, COMPLETED_LS, STUDY_LS.mastered, STUDY_LS.bookmarks];
 // v1.2.1: STUDY facts merged into another (old id → kept id). Stored progress keyed by fact id (Study marks, the
-// saved plan's read tasks) moves to the kept id once per old id; lifeuk.factIdsMerged lists the old ids already moved.
+// saved plan's tasks) moves to the kept id: the marks once per old id (lifeuk.factIdsMerged lists the old ids already
+// moved), the plan on every load (W-057).
 // An old id is never reused for a new fact
 const FACT_ID_MERGES = { 126: 125 };
 const FACT_MERGE_LS = LS_PREFIX + 'factIdsMerged';

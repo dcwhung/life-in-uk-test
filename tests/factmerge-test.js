@@ -4,6 +4,7 @@
 // B: a saved study plan whose read tasks list 126 lists 125 instead (no duplicate) and still parses
 // C: once only: with the marker written, a later 126 entry is left alone; malformed values stay untouched; the marker
 //    is written only when something moved (fresh storage stays empty)
+// W-057 / S-196 (review v1.2.1): plans move on every load (marker only for marks); wrong-answer anchors move too
 // D: the data side: #126 is gone, #125 holds the merged fact, other ids keep their numbers
 const { chromium } = require('playwright-core');
 const path = require('path');
@@ -40,7 +41,9 @@ async function planWithOldId(b) {
     const withKept = reads.find(t => t.facts.includes(keptId));
     withKept.facts.splice(withKept.facts.indexOf(keptId) + 1, 0, oldId); // [.., 125, 126, ..]
     const other = reads.find(t => t !== withKept);
-    other.facts.push(oldId); // a task with 126 but not 125
+    other.facts.push(oldId); // a task with 126 but not 125 (W-056: another day too — #125 then shows on both)
+    // S-196: a filled-in wrong-answer task keeps the question shown per fact in anchor
+    plan.days[0].tasks.push({ type: 'wrongFacts', quota: 10, facts: [oldId, 3], anchor: { [oldId]: '9.2', 3: '1.0' } });
     return JSON.stringify(plan);
   }, { goal: GOAL, today: PLAN_TODAY, oldId: OLD_ID, keptId: KEPT_ID });
   await pg.close();
@@ -75,14 +78,25 @@ async function checkMarks(b, planRaw) {
     const p = parseStoredPlan(readStudyPlan());
     return p && p.days.flatMap(d => d.tasks).filter(t => t.type === 'read').map(t => t.facts);
   });
+  const wrong = await pg.evaluate(() => { const p = parseStoredPlan(readStudyPlan()); return p && p.days[0].tasks.find(t => t.type === 'wrongFacts'); });
   const flat = plan ? plan.flat() : [];
   assert(plan && !flat.includes(OLD_ID) && plan.every(f => new Set(f).size === f.length) && flat.filter(id => id === KEPT_ID).length === 2,
     `B: saved plan still parses, read tasks list ${KEPT_ID} instead of ${OLD_ID}, no duplicate within a task`);
+  assert(wrong && JSON.stringify(wrong.facts) === JSON.stringify([KEPT_ID, 3]) && JSON.stringify(wrong.anchor) === JSON.stringify({ 3: '1.0', [KEPT_ID]: '9.2' }),
+    `S-196: a wrong-answer task's facts and anchor move to ${KEPT_ID}: ${JSON.stringify(wrong && { facts: wrong.facts, anchor: wrong.anchor })}`);
   assert(s[MARKER] && JSON.parse(s[MARKER]).includes(OLD_ID), `C: marker ${MARKER} records ${OLD_ID}: ${s[MARKER]}`);
   // the Study screen reads the merged marks
   const ui = await pg.evaluate(keptId => { openStudy(); return { mastered: !!study.mastered[keptId], bookmarked: !!study.bookmarks[keptId] }; }, KEPT_ID);
   assert(ui.mastered && ui.bookmarked, `Study shows #${KEPT_ID} mastered and bookmarked`);
   assert(errs.length === 0, 'no page errors: ' + errs.join('; '));
+  await pg.close();
+}
+
+// W-057: the marker only stops the marks moving again; a plan an older open tab writes back with 126 still moves
+async function checkPlanAfterMarker(b, planRaw) {
+  const { pg } = await loadWith(b, { [MARKER]: JSON.stringify([OLD_ID]), [PLAN]: planRaw });
+  const r = await pg.evaluate(oldId => { const p = parseStoredPlan(readStudyPlan()); return p && p.days.flatMap(d => d.tasks).some(t => (t.facts || []).includes(oldId)); }, OLD_ID);
+  assert(r === false, `W-057: with the marker written, a stored plan listing ${OLD_ID} still moves to ${KEPT_ID} and parses`);
   await pg.close();
 }
 
@@ -112,7 +126,9 @@ async function checkOnce(b) {
 (async () => {
   const b = await chromium.launch(launchOpts);
   await checkData(b);
-  await checkMarks(b, await planWithOldId(b));
+  const planRaw = await planWithOldId(b);
+  await checkMarks(b, planRaw);
+  await checkPlanAfterMarker(b, planRaw);
   await checkOnce(b);
   await b.close();
   console.log('FACTMERGE PASS');
