@@ -2,7 +2,8 @@ const { chromium } = require('playwright-core');
 const path = require('path');
 // v1.2.0 (font size plan PR-B; mockup mockups/font-size-switch.html, grill .proj-docs/plans/2026-10-11_grill_font-size.md):
 // - Q11: every "Home" button is a 🏠 icon button (SVG, aria-label + title Home / 主頁), Plan day "Schedule" is 📅 and the
-//   schedule's "Change goal" is ✏️; each has a 44px tap area; a plan session's quiz back button keeps its words
+//   schedule's "Change goal" is ✏️; each has a 44px tap area; a plan session's quiz back button keeps its words (named by
+//   them, S-188)
 // - Q11: the Study pill reads "🏆 n / 236" and is labelled "n of 236 facts mastered"
 // - C2: the calendar's exam cell shows only its day; the legend ends with "[pattern] 🎯 Exam day" at the right end
 // - C4: the four Study tabs are icon over label at every width
@@ -79,8 +80,8 @@ async function checkPlanSessionBack(pg) {
   await fresh(pg, 'en');
   await openPlan(pg, 'day');
   await pg.click('#planTaskList .plan-task.practice.plan-task-btn'); // a practice task opens the quiz (a reading task opens Study)
-  const back = await pg.$eval('#screenQuiz .back-btn', e => ({ text: e.textContent.trim(), label: e.getAttribute('aria-label'), icon: !!e.querySelector('svg'), cls: e.classList.contains('icon-btn') }));
-  assert(back.text.startsWith('←') && !back.icon && !back.cls && back.label === back.text, 'plan session: the quiz back button keeps its words, labelled with them: ' + JSON.stringify(back));
+  const back = await pg.$eval('#screenQuiz .back-btn', e => ({ text: e.textContent.trim(), label: e.getAttribute('aria-label'), title: e.getAttribute('title'), icon: !!e.querySelector('svg'), cls: e.classList.contains('icon-btn') }));
+  assert(back.text.startsWith('←') && !back.icon && !back.cls && back.label === null && back.title === null, 'plan session: the quiz back button keeps its words and they name it (S-188: no aria-label / title): ' + JSON.stringify(back));
   await pg.evaluate(() => { goHome(); pendingMode = 'practice'; startExam(1); });
   const home = await iconButton(pg, '#screenQuiz .back-btn');
   assert(home.icon && home.cls && home.text === '' && home.label === 'Home', 'a normal quiz after it: the back button is 🏠 again: ' + JSON.stringify(home));

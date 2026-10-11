@@ -24,10 +24,11 @@ function lineIconSvg(name) {
   const paths = LINE_ICON_PATHS[name].map(d => `<path d="${d}"/>`).join('');
   return `<svg class="line-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${paths}</svg>`;
 }
-// an icon button's name: aria-label for screen readers, title for the pointer tooltip
-function setButtonLabel(btn, label) {
-  btn.setAttribute('aria-label', label);
-  btn.setAttribute('title', label);
+// an element's accessible name (aria-label, for screen readers) and the same words as its pointer tooltip (title):
+// icon buttons and the role="img" Study pill (S-191)
+function setAccessibleName(el, label) {
+  el.setAttribute('aria-label', label);
+  el.setAttribute('title', label);
 }
 // static markup: <button data-icon="home"> gets its SVG at start-up (index.html keeps no inline SVG)
 function fillStaticIcons(root = document) {

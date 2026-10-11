@@ -167,7 +167,7 @@ function renderStudyProgress() {
   if (!el) return;
   const counts = { n: STUDY.filter(isFactMastered).length, total: STUDY.length };
   el.textContent = t('study.progress', counts);
-  setButtonLabel(el, t('study.progressLabel', counts));
+  setAccessibleName(el, t('study.progressLabel', counts));
 }
 
 // ── tab renderers: each returns { html, shown, total } ──

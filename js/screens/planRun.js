@@ -124,18 +124,20 @@ function planRunBackHtml(from) {
 }
 // the quiz header's 🏠 reads "← Today's tasks" in a plan session or mock (goHome goes back to the day there);
 // a fact's session is named like the Study one ("Fact Ch c #n", setExamLabel)
-// v1.2.0 (Q11): Home is an icon button; a plan's text back label keeps its words, so the label follows the button
+// v1.2.0 (Q11): Home is an icon button; a plan's text back label keeps its words, and those words name it (S-188: an
+// aria-label would hide the <span lang="en">Day n</span> language from screen readers)
 function setQuizBackText(back, html) {
   back.classList.add('plan-hit');
   back.classList.remove('icon-btn');
   back.innerHTML = html;
-  setButtonLabel(back, back.textContent);
+  back.removeAttribute('aria-label');
+  back.removeAttribute('title');
 }
 function setQuizBackHome(back) {
   back.classList.remove('plan-hit');
   back.classList.add('icon-btn');
   back.innerHTML = lineIconSvg('home');
-  setButtonLabel(back, t('common.homeLabel'));
+  setAccessibleName(back, t('common.homeLabel'));
 }
 function renderPlanQuizHeader() {
   const back = byId('screenQuiz').querySelector('.back-btn');
