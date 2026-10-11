@@ -2,7 +2,7 @@
 
 **日期**：2026-10-11
 **Branch**：`claude/global-font-size-feature-c96ajp`
-**Mockup**：`mockups/font-size-switch.html` v2.3（C1–C4 已套用；真 app 截圖，8 個畫面包括 ⚙ 設定 / ⓘ 關於 popover，320 / 375px × en / zh-HK × 細字 / 大字修正前 / 大字修正後；確認後喺 PR-B 刪）
+**Mockup**：`mockups/font-size-switch.html` v2.3（**v1.3.0 / PR-C 已刪**；C1–C4 已套用；真 app 截圖，8 個畫面包括 ⚙ 設定 / ⓘ 關於 popover，320 / 375px × en / zh-HK × 細字 / 大字修正前 / 大字修正後；確認後喺 PR-B 刪）
 **狀態**：Q1–Q6 用戶已逐條確認（grill-me）；第一版 mockup 經用戶 review（M1–M3），追加 Q7–Q11、L4b、L5，全部已確認；mockup comment C1–C4 已套用（v2.3）；Q12 分 3 個 PR；grill 完成，等用戶確認總結
 
 ---
@@ -29,6 +29,7 @@
 | C2 | 每日完成度日曆考試格（mockup v2 comment） | 考試日格**唔再顯示「🎯 Exam / 🎯 考試日」**（只剩日子 + 考試日底紋）；legend 改做「[底紋] 🎯 Exam day / 🎯 考試日」，**成組靠 legend 行最右**（左邊照舊 0% ■■■■ 100%；用 group + `margin-left: auto`）。實作：刪 `planCellHtml()` 嘅 `<small>`、`.plan-cell.exam small` CSS、locale `plan.calendar.examCell`；legend 用新 key（例如 `plan.calendar.legendExam`），唔改共用嘅 `plan.schedule.examDay`；格嘅 `aria-label` 照讀「考試日」 |
 | C3 | Quiz 題號（mockup v2.1 / v2.2 comment） | **平時照舊**「Question 1 of 24」／「第 1 題（共 24 題）」；**只有一行放唔落（會斷行）先**轉短版「Question 1/24」／「第 1/24 題」（mockup：只有 en 320px 大字會轉）。實作：新 locale key（例如 `quiz.questionOfShort`），`renderQuestion()` 後量度（Range 嘅行數 > 1 就換短版）；切換字型大小、語言、resize 時重新量度；原本 5 個測試期望字串唔使改，另加短版測試 |
 | C4 | Study tab（mockup v2.1 comment） | Chapters / Timeline / Geography / People **一律 icon 喺上、字喺下**（細字大字都係）；實作：locale `study.tab*` 拎走 emoji，icon 放 markup `<span class="tab-ic" aria-hidden="true">`，`.study-tab` 改 `flex-direction: column` |
+| C3b | 題號短版都放唔落（PR-C 測試發現，用戶決定） | 英文 320px 大字、未答題（題號行有較闊嘅「Translate」掣）時「Question 1/24」都放唔落：**接受短版斷兩行**，唔再縮 |
 | C5 | ⓘ / ⚙ 打開時顏色（PR-B review S-189 後用戶決定） | ⓘ 同 ⚙ **打開（同 hover）都變白**（`--text-inverse`）；平時 ⚙ 金色、ⓘ 淡白；同一時間只開一個 popover，開一個另一個閂 |
 | Q12 | 點分 PR（範圍擴大後） | **3 個 PR**，順序做，每個 merge 後同一條 branch 由最新 `main` 重開：**PR-A** token 化 refactor，畫面零改動（v1.1.2）→ **PR-B** ⚙ 設定 popover（語言 + 學習計劃搬入）、ⓘ 只做關於、Q11 icon 化、C2 日曆、C4 Study tab，未有字型大小（v1.2.0）→ **PR-C** 字型大小：⚙ 加 `[A｜A]`、大字模式、L4b、L5、C3 題號短版、`fontsize-test`，刪 mockup（v1.3.0） |
 
