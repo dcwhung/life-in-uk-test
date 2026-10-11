@@ -3,7 +3,7 @@
 // A: no timeline card is wider than the screen, so the page never scrolls sideways (390 / 375 / 360 / 320px)
 // B: every opened "💡 記憶法" table fits its card at 390px (narrower screens may fall back to in-table scroll)
 //    and every card starts TL_CARD_LEFT_PX from the screen's left edge
-// C: the dot is centred on the rail and on the year text's vertical middle, TL_YEAR_GAP_PX clear of the text
+// C: the dot is centred on the rail and on the year text's vertical middle, TL_YEAR_MIN_GAP_PX clear of the text
 // W-052: adjacent items touch (no margin collapses out of an item), so the rail runs on between cards
 // D: year text is --fs-sm; TL_YEAR_SPACE_ABOVE_PX above it (to the card before), TL_YEAR_SPACE_BELOW_PX below it
 const { chromium } = require('playwright-core');
@@ -14,11 +14,14 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
 const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('ok:', m); };
 
 const PX_TOLERANCE = 0.5;
-const TL_YEAR_GAP_PX = 6;
+const TL_YEAR_MIN_GAP_PX = 6; // dot ring to year text, at least (the text lines up with the card, ~18px)
+const TL_YEAR_TEXT_INSET_PX = 3; // year text starts this close to the card's left edge (padding + glyph side bearing)
 const TL_YEAR_SPACE_ABOVE_PX = 24; // previous card's margin (8px) + 16px; user: 2–3x the first 10px
 const TL_YEAR_SPACE_BELOW_PX = 16; // user: 2–3x the first 8px
 const NO_OVERFLOW_WIDTHS = [390, 375, 360, 320];
 const TABLE_FIT_WIDTHS = [390]; // narrower screens may fall back to in-table scroll (wider left gutter, user)
+// W-053: below 390px only these cards (widest tables: 10B, ⑤ inventors, Turner) may use the in-table scroll
+const TABLE_SCROLL_ALLOWED = { 375: ['8', '71', '72', '84', '95'], 360: ['8', '71', '72', '84', '87', '95'], 320: ['8', '71', '72', '84', '87', '95'] };
 const TL_CARD_LEFT_PX = 58; // screen edge to card: 16 page + 16 + 2 rail + 24 (user: double the first 30px)
 
 async function openTimeline(pg) {
@@ -45,6 +48,8 @@ async function checkWidth(b, width) {
   });
   assert(r.items > 0 && r.wide.length === 0 && r.docW <= r.vw, `${width}px: none of ${r.items} timeline cards is wider than the screen, page doesn't scroll sideways (doc ${r.docW}; wide: ${r.wide.slice(0, 6).join(', ')})`);
   assert(r.lefts.length === 1 && Math.abs(r.lefts[0] - TL_CARD_LEFT_PX) <= PX_TOLERANCE, `${width}px: every card starts ${TL_CARD_LEFT_PX}px from the screen edge (${r.lefts.join(', ')})`);
+  const scrollIds = r.scroll.map(x => x.split(' ')[0]);
+  if (TABLE_SCROLL_ALLOWED[width]) assert(scrollIds.every(id => TABLE_SCROLL_ALLOWED[width].includes(id)), `${width}px: only the allowed cards scroll inside their table (${r.scroll.join(', ')})`);
   if (TABLE_FIT_WIDTHS.includes(width)) assert(r.tables > 0 && r.scroll.length === 0, `${width}px: all ${r.tables} timeline 記憶法 tables fit their card (scroll: ${r.scroll.join(', ')})`);
   assert(errs.length === 0, `${width}px: no page errors ${errs.join('; ')}`);
   return pg;
@@ -71,7 +76,7 @@ async function checkYearLayout(pg) {
       return {
         year: y.textContent, trim: cs.textBoxTrim, fs: cs.fontSize, lines: new Set(rects.map(x => Math.round(x.top))).size,
         vOff: Math.abs(dotCy - (contentTop + contentBottom) / 2), hOff: Math.abs(dotCx - railCx), gap: textLeft - (dotLeft + dotW + ring),
-        below: card.top - contentBottom, above: prev ? contentTop - prev.bottom : null,
+        below: card.top - contentBottom, textToCard: textLeft - card.left, above: prev ? contentTop - prev.bottom : null,
       };
     });
     // W-052: each item starts where the one before it ends (the rail is the item's left border)
@@ -81,8 +86,10 @@ async function checkYearLayout(pg) {
   });
   const breaks = r.gaps.filter(g => g > PX_TOLERANCE);
   assert(r.gaps.length > 0 && breaks.length === 0, `rail runs on: all ${r.gaps.length} adjacent items touch (gaps: ${[...new Set(breaks.map(Math.round))].join(', ')}px x ${breaks.length})`);
-  const bad = r.rows.filter(d => d.trim !== 'trim-both' || d.vOff > PX_TOLERANCE || d.hOff > PX_TOLERANCE || d.gap < TL_YEAR_GAP_PX - PX_TOLERANCE);
-  assert(bad.length === 0, `dot centred on the rail and on the cap-trimmed year text, ${TL_YEAR_GAP_PX}px clear of it, all ${r.rows.length} years (bad: ${JSON.stringify(bad.slice(0, 3))})`);
+  const bad = r.rows.filter(d => d.trim !== 'trim-both' || d.vOff > PX_TOLERANCE || d.hOff > PX_TOLERANCE || d.gap < TL_YEAR_MIN_GAP_PX - PX_TOLERANCE);
+  assert(bad.length === 0, `dot centred on the rail and on the cap-trimmed year text, ${TL_YEAR_MIN_GAP_PX}px clear of it, all ${r.rows.length} years (bad: ${JSON.stringify(bad.slice(0, 3))})`);
+  const offCard = r.rows.filter(d => d.textToCard < 0 || d.textToCard > TL_YEAR_TEXT_INSET_PX + PX_TOLERANCE);
+  assert(offCard.length === 0, `year text lines up with its card's left edge (0–${TL_YEAR_TEXT_INSET_PX}px in; bad: ${JSON.stringify(offCard.slice(0, 3))})`);
   assert(r.rows.every(d => d.lines === 1), `every year label is one line above its card (two-line: ${r.rows.filter(d => d.lines > 1).map(d => d.year).join(', ')})`);
   assert(r.rows.every(d => d.fs === r.sm), `year text is --fs-sm (${r.sm}): ${[...new Set(r.rows.map(d => d.fs))].join(', ')}`);
   const offBelow = r.rows.filter(d => Math.abs(d.below - TL_YEAR_SPACE_BELOW_PX) > PX_TOLERANCE);

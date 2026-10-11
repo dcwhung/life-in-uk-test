@@ -46,7 +46,8 @@
    table push the card off screen). The rail is the item's left border; one item = year + card, and flow-root keeps
    the card's margin inside the item (W-052), so the rail runs on from item to item */
 .tl-item {
-  /* user: screen edge to card doubled (30px -> 58px): the rail moves in by --space-8, the card by --space-12 */
+  /* user: screen edge to card doubled (30px -> 58px): margin-left moves the rail 16px in and --tl-indent puts the card
+     24px past it (was 12px), so the card moves 28px in */
   --tl-rail: 2px; --tl-indent: var(--space-12);
   display: flow-root; margin-left: var(--space-8); border-left: var(--tl-rail) solid var(--border); padding-left: var(--tl-indent); position: relative;
 }
