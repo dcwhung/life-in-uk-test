@@ -33,7 +33,7 @@ LOCALES.en = {
     language: 'Language',
     langEn: 'EN',
     langZh: '中文',
-    // ⓘ popover "Features" section: the study plan switch, an On / Off pill after its name, then the note
+    // ⚙ settings popover (v1.2.0; ⓘ before) "Features" section: the study plan switch, an On / Off pill after its name, then the note
     features: 'Features',
     planFeature: '🗓️ Study plan',
     planOnPill: 'On',
@@ -231,7 +231,7 @@ LOCALES.en = {
     createText: "Tell us your exam date and how much time you have each day, and we'll build an exam strategy that sets out what to study and practise each day.",
     createGo: 'Create →',
     cardTitle: '🗓️ Study plan',
-    // toast after the ⓘ switch
+    // toast after the ⚙ switch (v1.2.0; ⓘ before)
     toastOff: 'Study plan turned off',
     toastOn: 'Study plan turned on: carry on where you left off',
     toastReset: 'Study plan reset: you can build a new one',
