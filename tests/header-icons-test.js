@@ -4,7 +4,7 @@ const path = require('path');
 // - Q11: every "Home" button is a 🏠 icon button (SVG, aria-label + title Home / 主頁), Plan day "Schedule" is 📅 and the
 //   schedule's "Change goal" is ✏️; each has a 44px tap area; a plan session's quiz back button keeps its words (named by
 //   them, S-188)
-// - Q11: the Study pill reads "🏆 n / 236" and is labelled "n of 236 facts mastered"
+// - Q11: the Study pill reads "🏆 n / 235" and is labelled "n of 235 facts mastered" (v1.2.1: 235 facts)
 // - C2: the calendar's exam cell shows only its day; the legend ends with "[pattern] 🎯 Exam day" at the right end
 // - C4: the four Study tabs are icon over label at every width
 // - 320 / 360 / 390px, en + zh-HK: these headers stay on one row and the page never scrolls sideways
@@ -91,8 +91,8 @@ async function checkStudyPill(pg, lang) {
   await fresh(pg, lang);
   await pg.evaluate(() => openStudy());
   const p = await pg.$eval('#studyProgress', e => ({ text: e.textContent, role: e.getAttribute('role'), label: e.getAttribute('aria-label'), title: e.title }));
-  const label = lang === 'en' ? '0 of 236 facts mastered' : '已掌握 0 / 236 條知識點';
-  assert(p.text === '🏆 0 / 236' && p.role === 'img' && p.label === label && p.title === label, `${lang}: Study pill 🏆 0 / 236, labelled ${label}: ` + JSON.stringify(p));
+  const label = lang === 'en' ? '0 of 235 facts mastered' : '已掌握 0 / 235 條知識點';
+  assert(p.text === '🏆 0 / 235' && p.role === 'img' && p.label === label && p.title === label, `${lang}: Study pill 🏆 0 / 235, labelled ${label}: ` + JSON.stringify(p));
 }
 
 async function checkStudyTabs(pg, lang, w) {

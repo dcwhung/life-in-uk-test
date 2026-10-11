@@ -53,6 +53,61 @@ function ensureLegacyMigrated() {
   } catch (e) {
     console.warn('localStorage migration skipped:', e);
   }
+  try {
+    migrateFactIds();
+  } catch (e) {
+    console.warn('fact id migration skipped:', e);
+  }
+}
+
+// ── v1.2.1: merged STUDY facts (FACT_ID_MERGES) — move fact-id keyed progress to the kept id, once per old id ──
+function migrateFactIds() {
+  if (typeof FACT_ID_MERGES === 'undefined') return;
+  const done = mergedFactIds();
+  const todo = Object.entries(FACT_ID_MERGES).map(([oldId, keptId]) => [Number(oldId), keptId]).filter(([oldId]) => !done.includes(oldId));
+  if (!todo.length) return;
+  const moved = FACT_ID_MAP_LS.map(key => rewriteStoredJson(key, v => mergeFactMap(v, todo)))
+    .concat(rewriteStoredJson(STUDY_PLAN_LS, v => mergePlanFacts(v, todo)));
+  // the marker is written only once something moved: storage with no old id stays untouched (and is checked again,
+  // so an old id a cached older page writes during the SW cutover still moves on the next load)
+  if (moved.some(Boolean)) localStorage.setItem(FACT_MERGE_LS, JSON.stringify([...done, ...todo.map(([oldId]) => oldId)]));
+}
+function mergedFactIds() {
+  try {
+    const ids = JSON.parse(localStorage.getItem(FACT_MERGE_LS));
+    return Array.isArray(ids) ? ids : [];
+  } catch { return []; }
+}
+// a value that does not parse is left as stored (the screen that owns it decides); fn returns undefined = no change.
+// Returns whether it wrote
+function rewriteStoredJson(key, fn) {
+  const name = LS_KEY_FALLBACK[key] || key, raw = localStorage.getItem(name);
+  if (raw === null) return false;
+  let value;
+  try { value = JSON.parse(raw); } catch { return false; }
+  const next = fn(value);
+  if (next === undefined) return false;
+  localStorage.setItem(name, JSON.stringify(next));
+  return true;
+}
+// { [factId]: mark }: the kept id keeps its own mark, else takes the merged one's (OR)
+function mergeFactMap(map, todo) {
+  if (!map || typeof map !== 'object' || Array.isArray(map)) return undefined;
+  const hits = todo.filter(([oldId]) => oldId in map);
+  hits.forEach(([oldId, keptId]) => { if (!map[keptId]) map[keptId] = map[oldId]; delete map[oldId]; });
+  return hits.length ? map : undefined;
+}
+// the saved plan's tasks list fact ids (read tasks): old → kept, no duplicate within a task
+function mergePlanFacts(plan, todo) {
+  if (!plan || !Array.isArray(plan.days)) return undefined;
+  const ids = new Map(todo);
+  let changed = false;
+  plan.days.forEach(day => (Array.isArray(day && day.tasks) ? day.tasks : []).forEach(task => {
+    if (!task || !Array.isArray(task.facts) || !task.facts.some(id => ids.has(id))) return;
+    task.facts = [...new Set(task.facts.map(id => (ids.has(id) ? ids.get(id) : id)))];
+    changed = true;
+  }));
+  return changed ? plan : undefined;
 }
 
 function migrateLegacyStorage() {

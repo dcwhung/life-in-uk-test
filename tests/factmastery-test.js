@@ -3,7 +3,7 @@ const path = require('path');
 // v0.63 (P3 T-204 / T-205): a Study fact is mastered when it is ticked by hand (study.mastered[id]) OR every
 // one of its source questions is 🏆 in Practice (factMastery(f).derived). The derived value is computed on render,
 // never stored. Derived: the ✓ becomes a 🏆 that cannot be pressed (aria-disabled, no data-action), the card dims
-// like a manual tick (Q7), Hide mastered hides both; Study header "🏆 n / 236" (O7; v1.2.0: "mastered" in its label).
+// like a manual tick (Q7), Hide mastered hides both; Study header "🏆 n / 235" (O7; v1.2.0: "mastered" in its label).
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
 const launchOpts = { args: ['--no-sandbox'] };
 if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_PATH;
@@ -14,7 +14,7 @@ const PARTIAL_FACT = 21;  // chapter 3, 8 sources — one mastered below
 const MANUAL_FACT = 4;    // chapter 2, ticked by hand
 const CHAPTER = 2;
 const STREAKS = { '4.6': 3, '6.5': 3, '17.8': 3, '4.16': 3 };
-const STUDY_TOTAL = 236;
+const STUDY_TOTAL = 235; // v1.2.1: #126 merged into #125
 
 const card = id => `#studyContent .fact[data-fact-id="${id}"]`;
 
@@ -57,9 +57,9 @@ async function checkManualCard(pg, derivedOpacity) {
 }
 
 async function checkProgressAndHide(pg) {
-  // v1.2.0 (Q11): the pill reads "🏆 n / 236"; "mastered" is its label / tooltip
+  // v1.2.0 (Q11): the pill reads "🏆 n / 235"; "mastered" is its label / tooltip
   const pill = await pg.$eval('#studyProgress', e => [e.textContent, e.getAttribute('aria-label'), e.getAttribute('title')]);
-  assert(pill[0] === `🏆 2 / ${STUDY_TOTAL}` && pill[1] === `2 of ${STUDY_TOTAL} facts mastered` && pill[2] === pill[1], 'header: 🏆 2 / 236, labelled "2 of 236 facts mastered" (1 derived + 1 ticked, O7): ' + pill.join(' | '));
+  assert(pill[0] === `🏆 2 / ${STUDY_TOTAL}` && pill[1] === `2 of ${STUDY_TOTAL} facts mastered` && pill[2] === pill[1], 'header: 🏆 2 / 235, labelled "2 of 235 facts mastered" (1 derived + 1 ticked, O7): ' + pill.join(' | '));
   const total = parseInt((await pg.$eval('#studyCount', e => e.textContent)).split('/')[1]);
   await pg.click('text=Hide mastered');
   const shown = await pg.$eval('#studyCount', e => e.textContent);

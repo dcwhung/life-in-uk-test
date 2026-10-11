@@ -17,11 +17,11 @@ const TZ_VARIANTS = ['Europe/London', 'Pacific/Auckland', 'America/Los_Angeles']
 const IS_CHILD = !!process.env.PLAN_TEST_CHILD;
 
 // headline numbers (SK-020: checked against the data on 2026-10-08, arch §0)
-const FACT_COUNT = 236;
+const FACT_COUNT = 235; // v1.2.1: #126 merged into #125
 const QUESTION_COUNT = 408;
 const CANON_COUNT = 389;
 const CANON_PER_CHAPTER = { 1: 9, 2: 11, 3: 161, 4: 106, 5: 102 };
-const FACTS_PER_CHAPTER = { 1: 2, 2: 4, 3: 91, 4: 68, 5: 71 };
+const FACTS_PER_CHAPTER = { 1: 2, 2: 4, 3: 91, 4: 67, 5: 71 }; // v1.2.1: Ch4 #126 merged into #125
 const MAX_SRC_PER_FACT = 8; // fact #21 (arch §0)
 const MAX_QIDS_PER_FACT = 6; // fact #21's 8 sources are 6 distinct English questions
 const STUDY_ORDER = [1, 2, 5, 4, 3]; // handoff §2.3
@@ -107,7 +107,7 @@ function checkHeadlineNumbers() {
   assert(same(Object.fromEntries(Object.entries(perCh).map(([ch, ks]) => [ch, ks.length])), CANON_PER_CHAPTER), 'canonical questions per chapter 9 / 11 / 161 / 106 / 102');
   const factsPerCh = {};
   STUDY.forEach(f => { factsPerCh[f.ch] = (factsPerCh[f.ch] || 0) + 1; });
-  assert(same(factsPerCh, FACTS_PER_CHAPTER), 'facts per chapter 2 / 4 / 91 / 68 / 71');
+  assert(same(factsPerCh, FACTS_PER_CHAPTER), 'facts per chapter 2 / 4 / 91 / 67 / 71');
   const qidsOf = g('planFactQids');
   const factOfKey = g('FACT_BY_QKEY');
   const all = STUDY.flatMap(f => qidsOf(f));
@@ -828,7 +828,7 @@ function checkOverview() {
   assert(nov.cells[18].examDay && nov.cells[18].iso === plan.goal.examDate && !nov.cells[19].inPlan, 'the exam day is marked; days after are out of the plan');
   assert(c(8).pct === 0 && c(12).pct === null, 'past days have a %, future days none');
   const k = g('planKpis')(plan, logWith('2026-10-08', ['1.0']), '2026-10-10');
-  assert(k.factsTotal === FACT_COUNT && k.qidsTotal === CANON_COUNT && k.qidsDone === 1 && k.dayNumber === 3 && k.totalDays === 42 && k.daysLeft === 40, 'KPIs: totals 236 / 389, Day 3 / 42, 40 days left');
+  assert(k.factsTotal === FACT_COUNT && k.qidsTotal === CANON_COUNT && k.qidsDone === 1 && k.dayNumber === 3 && k.totalDays === 42 && k.daysLeft === 40, 'KPIs: totals 235 / 389, Day 3 / 42, 40 days left');
   assert(k.mocksPlanned === tasksOf(plan, 'mock').length && k.safeMocks === 0, 'KPIs count planned mocks');
 }
 

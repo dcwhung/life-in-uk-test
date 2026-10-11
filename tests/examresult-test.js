@@ -84,7 +84,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
 
   // translation + note: separated block, one row per note line, bullets indented
   assert(await pg.$eval('#rv0 .rv-tr .rv-yue', e => e.textContent.startsWith('【廣東話翻譯】')), 'Cantonese translation in its own block, labelled 【廣東話翻譯】');
-  const noteIdx = await pg.evaluate(() => state.questions.findIndex(q => q.note && q.note.split('\n').some(l => /^\s*[•→]/.test(l))));
+  const noteIdx = await pg.evaluate(() => state.questions.findIndex(q => q.note && q.note.split('\n').filter(l => /^\s*[•→]/.test(l)).length >= 2));
   const noteLines = await pg.$$eval(`#rv${noteIdx} .rv-note-line`, els => els.map(e => e.className));
   assert(noteLines.length > 2 && noteLines.some(c => c.includes('bullet')), 'note split into rows with bullet indent');
   assert((await text(`#rv${noteIdx} .rv-note-label`)) === '💡 備注：', 'note label row');

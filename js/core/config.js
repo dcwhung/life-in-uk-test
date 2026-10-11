@@ -2,7 +2,7 @@
 // CONFIG — app-wide constants. sw.js loads this file with importScripts() to name its cache,
 // so it must stay worker-safe: plain constants only, no DOM and no question data.
 // ════════════════════════════════════════
-const APP_VERSION = '1.2.0';
+const APP_VERSION = '1.2.1';
 
 // ── modes and special set ids (state.examNum is 1..EXAM_COUNT or one of these) ──
 const PRACTICE_MODE = 'practice';
@@ -101,6 +101,12 @@ const MIGRATED_LS = LS_PREFIX + 'migrated';
 const MIGRATE_FALLBACK_LS = LS_PREFIX + 'migrateFallback';
 // object maps ("exam.idx" / fact id → record) merged per entry when both names exist; the rest (prefs) keep the new value
 const MERGE_LS = [STREAK_LS, FLAGS_LS, WRONG_LS, COMPLETED_LS, STUDY_LS.mastered, STUDY_LS.bookmarks];
+// v1.2.1: STUDY facts merged into another (old id → kept id). Stored progress keyed by fact id (Study marks, the
+// saved plan's read tasks) moves to the kept id once per old id; lifeuk.factIdsMerged lists the old ids already moved.
+// An old id is never reused for a new fact
+const FACT_ID_MERGES = { 126: 125 };
+const FACT_MERGE_LS = LS_PREFIX + 'factIdsMerged';
+const FACT_ID_MAP_LS = [STUDY_LS.mastered, STUDY_LS.bookmarks];
 // keys no version reads any more, removed on each load (reviewOrder: results-page sort chip, dropped in v0.53;
 // lifeuk.studyPlanPreview: the G31 ?preview=plan flag, dropped at release in v1.1.0, G42)
 const OBSOLETE_LS = ['reviewOrder', LS_PREFIX + 'studyPlanPreview'];
