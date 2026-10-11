@@ -49,7 +49,7 @@ function getLang() {
   }
   return uiLang;
 }
-// v0.65: the header pill (toggleLang in js/core/actions.js) calls this with en / zh-HK. Another language needs
+// v1.2.0: the ⚙ language row (chooseLang in js/core/actions.js; v0.65–v1.1: the header pill) calls this with en / zh-HK. Another language needs
 // locales/<code>.js loaded after locales/en.js and listed in index.html + sw.js SHELL.
 function setLang(lang) {
   if (!hasLocale(lang)) { console.warn('[i18n] no locale for', lang); return; }
@@ -60,16 +60,19 @@ function setLang(lang) {
 }
 function applyLanguage() {
   document.documentElement.lang = getLang();
-  syncLangPill();
+  syncLangSetting();
   applyStaticI18n();
   applyDocumentI18n();
 }
 
-// W-013: a shell whose locales/zh-HK.js failed has nothing to switch to, so hide the pill instead of a dead button;
-// a pre-v0.65 shell has no pill at all
-function syncLangPill() {
-  const pill = byId('langBtn');
-  if (pill) pill.hidden = !hasLocale(ZH_HK_LANG);
+// W-013: a shell whose locales/zh-HK.js failed has nothing to switch to, so the ⚙ language row hides instead of a dead
+// control (v1.2.0; the v0.65 header pill did the same); the pressed option is the current language. A pre-v1.2.0
+// shell has no row
+function syncLangSetting() {
+  const row = byId('settingsLangRow');
+  if (!row) return;
+  row.hidden = !hasLocale(ZH_HK_LANG);
+  row.querySelectorAll('[data-arg]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.arg === getLang())));
 }
 
 // ── static markup: data-i18n fills textContent; data-i18n-attr="placeholder:key;title:key" fills attributes ──

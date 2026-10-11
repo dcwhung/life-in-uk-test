@@ -35,6 +35,27 @@
 .info-pop h2 { font-size: var(--fs-2xl); font-weight: 800; margin-bottom: var(--space-3); }
 .info-pop p { font-size: var(--fs-base); color: var(--text-inverse-strong); line-height: 1.5; }
 
+/* settings popover (v1.2.0; mockup font-size-switch.html): the ⓘ popover's look, rows of setting + control */
+.set-row { display: flex; justify-content: space-between; align-items: center; gap: var(--space-6); padding: var(--space-5) 0; }
+.set-row + .set-row { border-top: 1px solid var(--gold-border); }
+.set-row > b { font-size: var(--fs-md); }
+/* segmented control: the pressed option is gold; each option keeps a 44px tall tap area */
+.seg { display: inline-flex; flex-shrink: 0; border: 1.5px solid var(--gold); border-radius: var(--radius-pill); }
+.seg button {
+  position: relative; display: grid; place-items: center;
+  min-width: 52px; height: 32px; padding: 0 var(--space-6);
+  background: transparent; border: 0; color: var(--gold-light);
+  font-size: var(--fs-sm); font-weight: 700; cursor: pointer;
+}
+.seg button::before { content: ''; position: absolute; left: 0; right: 0; top: -6px; bottom: -6px; }
+.seg button:first-child { border-radius: var(--radius-pill) 0 0 var(--radius-pill); }
+.seg button:last-child { border-radius: 0 var(--radius-pill) var(--radius-pill) 0; }
+.seg button + button { border-left: 1.5px solid var(--gold); }
+.seg button[aria-pressed="true"] { background: var(--gold); color: var(--navy); }
+.seg button:focus-visible { outline: 2px solid var(--text-inverse); outline-offset: -4px; }
+/* the study plan row moved here from the ⓘ popover (Q7): same rule, no gap above the row line */
+#settingsPop .plan-settings { margin-top: 0; padding-top: var(--space-5); }
+
 /* info popover badges */
 .hero-meta {
   display: flex; gap: var(--space-4); margin-top: var(--space-7); flex-wrap: wrap;

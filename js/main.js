@@ -53,6 +53,7 @@ function startApp() {
   byId('appVersionPop').textContent = 'v' + APP_VERSION;
   applyLanguage(); // <html lang>, data-i18n markup, <title> / meta, ⓘ popover counts
   byId('flagBtn').innerHTML = bookmarkSvg('', { decorative: true });
+  fillStaticIcons(); // v1.2.0: ⚙ and the icon-only screen-header buttons
   loadHomePrefs();
   renderPlanSettings();
   planWatchDay(); // G6: the plan's "today" follows local midnight

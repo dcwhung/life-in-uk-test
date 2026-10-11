@@ -160,10 +160,14 @@ function flashStudyFact(id) {
   setTimeout(() => el.classList.remove('flash'), FACT_HIGHLIGHT_MS);
 }
 
-// O7: "🏆 n / 236 mastered" over every fact. A cached pre-v0.63 index.html has no #studyProgress (SW cutover)
+// O7: "🏆 n / 236" over every fact (v1.2.0, Q11: "mastered" moved to the tooltip / label so the header fits one row).
+// A cached pre-v0.63 index.html has no #studyProgress (SW cutover)
 function renderStudyProgress() {
   const el = byId('studyProgress');
-  if (el) el.textContent = t('study.progress', { n: STUDY.filter(isFactMastered).length, total: STUDY.length });
+  if (!el) return;
+  const counts = { n: STUDY.filter(isFactMastered).length, total: STUDY.length };
+  el.textContent = t('study.progress', counts);
+  setButtonLabel(el, t('study.progressLabel', counts));
 }
 
 // ── tab renderers: each returns { html, shown, total } ──

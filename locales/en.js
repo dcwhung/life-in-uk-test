@@ -28,8 +28,11 @@ LOCALES.en = {
     installButton: 'Install',
     installDismiss: 'Dismiss',
     // header pill: names the language it switches to (the CJK 中 is whitelisted in tests/i18n-test.js)
-    langSwitch: '中',
-    langSwitchLabel: 'Switch to Chinese',
+    // v1.2.0: ⚙ settings popover (the language options name themselves in their own language)
+    settings: 'Settings',
+    language: 'Language',
+    langEn: 'EN',
+    langZh: '中文',
     // ⓘ popover "Features" section: the study plan switch, an On / Off pill after its name, then the note
     features: 'Features',
     planFeature: '🗓️ Study plan',
@@ -138,10 +141,10 @@ LOCALES.en = {
   study: {
     title: '📖 Study',
     search: 'Search facts (English / Cantonese)',
-    tabChapters: '📚 Chapters',
-    tabTimeline: '📅 Timeline',
-    tabGeo: '🗺️ Geography',
-    tabPeople: '👤 People',
+    tabChapters: 'Chapters', // v1.2.0 (C4): the tab icon sits above the label in index.html
+    tabTimeline: 'Timeline',
+    tabGeo: 'Geography',
+    tabPeople: 'People',
     hideMastered: '✓ Hide mastered',
     bookmarkedOnly: 'Bookmarked only',
     warsOnly: '⚔️ Wars only',
@@ -155,7 +158,8 @@ LOCALES.en = {
     mastered: 'Mastered',
     masteredDerived: '🏆 Mastered — every source question mastered',
     memoryAid: '💡 記憶法', // the memory notes are in Cantonese, like common.noteLabel
-    progress: '🏆 {n} / {total} mastered',
+    progress: '🏆 {n} / {total}', // v1.2.0 (Q11): the words are the pill's tooltip / label
+    progressLabel: '{n} of {total} facts mastered',
     // the fact's number within its chapter (chapterFactNumber); no UI text shows the global fact id (W-016)
     factId: '#{n}',
     // S-057: English in every language, like common.chapterShort
@@ -191,7 +195,7 @@ LOCALES.en = {
   },
 
   common: {
-    home: '← Home',
+    homeLabel: 'Home', // v1.2.0 (Q11): the 🏠 icon button's name
     practice: 'Practice',
     exam: 'Exam',
     examN: 'Exam {n}',
@@ -290,7 +294,7 @@ LOCALES.en = {
       streak: { one: '🔥 {n} day in a row at 100%', other: '🔥 {n} days in a row at 100%' },
       legendLow: '0%',
       legendHigh: '100%',
-      examCell: '🎯 Exam',
+      legendExam: '🎯 Exam day', // v1.2.0 (C2): the exam cell itself has no label any more
       ahead: 'ahead',
       cellLabel: '{day} · {date} · {status}',
     },
