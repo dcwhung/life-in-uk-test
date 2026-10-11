@@ -54,6 +54,10 @@
 .plan-stack .plan-presets.is-stacked { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .plan-levels { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .plan-levels.is-stacked { grid-template-columns: minmax(0, 1fr); }
+/* stacked (user): each card puts its icon left of the name and sub line, the group centred in the card */
+.plan-levels.is-stacked .mode-card { display: grid; grid-template-columns: auto auto; justify-content: center; align-items: center; column-gap: var(--space-6); padding-block: var(--space-6); text-align: left; }
+.plan-levels.is-stacked .mode-icon { grid-row: span 2; margin-bottom: 0; }
+.plan-levels.is-stacked .mode-title, .plan-levels.is-stacked .plan-level-sub { grid-column: 2; }
 .plan-date-pick { justify-self: end; display: flex; align-items: center; gap: var(--space-3); font-size: var(--fs-sm); color: var(--text-muted); white-space: nowrap; }
 .plan-date-pick input { border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: var(--space-3) var(--space-4); font-size: var(--fs-base); background: var(--card); color: var(--text); }
 .plan-range { width: 100%; accent-color: var(--navy); }
