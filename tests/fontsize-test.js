@@ -186,28 +186,43 @@ async function checkNoSideScroll(pg) {
   }
 }
 
-// W-056 (user: option V2): large text restacks the goal form — level cards one per row, the 4 date presets 2 × 2,
-// every other duration tick hidden at 359px and below — so no word breaks and no label touches the next
+// W-056 (user): in large text the goal form's 4 date presets and 3 level cards sit on one row whenever they fit and
+// wrap only when they do not (v1.3.0 first shipped a fixed 2 × 2 / one-per-row); nothing is cut; every other duration
+// tick is hidden at 359px and below so the labels never touch
+const rowsOf = (pg, box, item) => pg.evaluate(({ box, item }) => {
+  const el = document.querySelector(box);
+  const rows = new Set([...el.querySelectorAll(item)].map(e => Math.round(e.getBoundingClientRect().top))).size;
+  // the narrowest one-row width: a nowrap copy sized to its content (each item at its own minimum)
+  const copy = el.cloneNode(true);
+  Object.assign(copy.style, { position: 'absolute', visibility: 'hidden', display: 'flex', flexWrap: 'nowrap', width: 'max-content' });
+  [...copy.children].forEach(c => Object.assign(c.style, { flex: 'none', width: 'min-content' }));
+  el.parentElement.appendChild(copy);
+  const need = copy.getBoundingClientRect().width;
+  copy.remove();
+  const cut = [...el.querySelectorAll(item)].filter(e => e.scrollWidth > e.clientWidth + 1).length;
+  return { rows, fits: need <= el.clientWidth + 0.5, need: Math.round(need), have: el.clientWidth, cut };
+}, { box, item });
 async function checkGoalLayout(pg) {
-  for (const w of [320, 375]) {
+  for (const lang of LANGS) for (const w of [320, 375, 430, 600]) {
     await pg.setViewportSize({ width: w, height: 900 });
-    await fresh(pg);
+    await fresh(pg, lang);
     await chooseSize(pg, 'large');
     await pg.evaluate(() => openPlanGoal());
-    const r = await pg.evaluate(() => {
-      const cols = sel => getComputedStyle(document.querySelector(sel)).gridTemplateColumns.split(' ').length;
-      const ticks = [...document.querySelectorAll('.plan-ticks span')].filter(e => getComputedStyle(e).visibility !== 'hidden')
+    for (const [name, box, item] of [['presets', '.plan-presets', '.chip'], ['levels', '.plan-levels', '.mode-card']]) {
+      const r = await rowsOf(pg, box, item);
+      assert(r.cut === 0 && (r.fits ? r.rows === 1 : r.rows > 1), `W-056 ${lang} ${w}px large ${name}: one row when it fits, wraps only when it does not, nothing cut: ` + JSON.stringify(r));
+    }
+    if (w === 600) {
+      const one = await pg.evaluate(() => ['.plan-presets .chip', '.plan-levels .mode-card'].map(sel => new Set([...document.querySelectorAll(sel)].map(e => Math.round(e.getBoundingClientRect().top))).size));
+      assert(one.every(n => n === 1), `W-056 ${lang} 600px large: presets and level cards each on one row: ` + one);
+    }
+    const ticks = await pg.evaluate(() => {
+      const shown = [...document.querySelectorAll('.plan-ticks span')].filter(e => getComputedStyle(e).visibility !== 'hidden')
         .map(e => { const range = document.createRange(); range.selectNodeContents(e); return range.getBoundingClientRect(); });
-      const touching = ticks.some((a, i) => i > 0 && a.left < ticks[i - 1].right + 2);
-      const cut = [...document.querySelectorAll('.plan-presets .chip, .plan-levels .mode-card')].filter(e => e.scrollWidth > e.clientWidth + 1).length;
-      return { levels: cols('.plan-levels'), presets: cols('.plan-presets'), ticks: ticks.length, touching, cut };
+      return { n: shown.length, touching: shown.some((a, i) => i > 0 && a.left < shown[i - 1].right + 2) };
     });
-    assert(r.levels === 1 && r.presets === 2 && !r.touching && r.cut === 0 && r.ticks === (w <= 359 ? 4 : 7),
-      `W-056 ${w}px large: level cards one per row, presets 2 × 2, tick labels apart (${w <= 359 ? 4 : 7} shown), nothing cut: ` + JSON.stringify(r));
+    assert(!ticks.touching && ticks.n === (w <= 359 ? 4 : 7), `W-056 ${lang} ${w}px large: duration ticks apart (${w <= 359 ? 4 : 7} shown): ` + JSON.stringify(ticks));
   }
-  await chooseSize(pg, 'small');
-  const small = await pg.evaluate(() => getComputedStyle(document.querySelector('.plan-levels')).gridTemplateColumns.split(' ').length);
-  assert(small === 3, 'W-056: small text keeps the three level cards in a row');
 }
 
 // S-193: ⓘ keeps its 16px look; the tap area is 44px each way
