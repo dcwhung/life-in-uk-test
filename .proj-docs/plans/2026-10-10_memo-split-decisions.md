@@ -58,4 +58,5 @@
 | 29 | N19 法律原則同法院（14 題） | 建議拆三組：N19a 法律原則（2.22、5.23、11.10、15.8、14.19、14.8；4 行）、N19b 法院（7.6、3.14、16.5、6.17；4 行）、N19c 法律服務（1.17、14.22、14.17、17.16；3 行）；「項目 ｜ 註解」兩欄，註解有動詞；16.5 刪 Crown Court 一句 | 已確認 |
 | 30 | N20 人權同平等（8 題） | 建議拆：N20a 歐洲人權機構（8.14、15.18、6.23、9.16；Council of Europe / Convention / Court）、N20b 英國人權同平等（14.10、15.14、16.7、12.20；HRA 1998 / Equality Act 2010 / EHRC）；名太長，兩欄會壓到斷晒行，所以用「# ｜ 名稱 / 註解」（主字英文名，細字中文名 + 註解）；6.23、9.16 刪「2022 年起 46 個」註腳；用戶：拆法同格式 OK，註解（中文名之後嘅細字）用「• 」開頭 | 已確認 |
 | 30b | table 格入面 bullet 縮入 | 用戶：N20 bullet 要再縮入 → 建議改 app code：noteCellHtml 遇到「• 」開頭嘅細字加 class bullet；note.css `.note-cell-sub.bullet { padding-left: 1.8em; text-indent: -0.9em; }`（縮入兼懸掛縮排，斷行會對齊文字）；同 5B .cont 一齊做，要加測試 | 已確認 |
-| 31 | N21 國際組織（9 題） | 建議「# ｜ 名稱 / 註解」+ 縮入 bullet，5 行：Commonwealth、UN、UN Security Council（新加，10.19 用）、UN General Assembly、NATO；刪「2022 年起 56 個」 | 待確認 |
+| 31 | N21 國際組織（9 題） | 建議「# ｜ 名稱 / 註解」+ 縮入 bullet，5 行：Commonwealth、UN、UN Security Council（新加，10.19 用）、UN General Assembly、NATO；刪「2022 年起 56 個」；用戶改「• 54 個成員國」（刪「考試答」） | 已確認 |
+| 32 | N22 慈善同義工（6 題：4.5、11.5、12.16、9.13、3.7、15.15） | 建議「# ｜ 名稱 / 註解」+ 縮入 bullet，5 行：National Trust、Friends of the Earth、Age UK、NSPCC（寫埋英文全名）、National Citizen Service | 待確認 |
