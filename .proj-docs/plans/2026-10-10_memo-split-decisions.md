@@ -85,3 +85,4 @@
 | 44d | S4 | 由 #126 拆 4.4 → #126 已併入 #125（S3），S4 取消 | 取消 |
 | 44e | S5 | fact #133（3.8、12.11 Beefeaters；10.17 Crown Jewels，同屬 Tower of London，geo landmark）拆 10.17 → 建議唔拆（同一地標；一句講晒；已共用 N15）→ 用戶：唔拆 | 已確認 |
 | 44f | N24 紙幣行 | 唔跟新 fact 改，保留「最大面額 £50」+ 陷阱（對應 9.2） | 已確認 |
+| 44g | S6 | fact #181（16.8 首相角色、4.9 官邸 10 Downing Street；geo England landmark）拆 4.9 → 建議唔拆（同講首相、兩句；已共用 N17a）；拆嘅好處：Places tab 嘅地標卡只講 Downing Street | 待確認 |
