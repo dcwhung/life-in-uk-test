@@ -96,10 +96,12 @@
 
 ## Plans
 
+- [2026-10-12_handoff_memo-followup-apply.md](plans/2026-10-12_handoff_memo-followup-apply.md) — 記憶法跟進套用 handoff（E3 / E5 / E6 / E7 / F9 / 舊 4 組 67 題 note + fact #126 併入 #125 + migration；下一個 session 做）
+- [2026-10-12_memo-followup-spec.json](plans/2026-10-12_memo-followup-spec.json) — 記憶法跟進規格（67 題 note、8 個記憶法、#125 合併後 object；生成 script `2026-10-12_memo-followup-spec.gen.js`）
 - [2026-10-11_grill_font-size.md](plans/2026-10-11_grill_font-size.md) — 全域字型大小切換 grill（Q1–Q6：+2px、所有字、layout 跟住調、header A+/A− pill、先 mockup、PR-A v1.1.2 token 化 → PR-B v1.2.0）+ mockup 量度 L1–L6；mockup `mockups/font-size-switch.html`
 - [2026-10-11_memo-final-spec.json](plans/2026-10-11_memo-final-spec.json) — 記憶法 v2 最終規格（61 個記憶法、375 題；Q1 已套：8.15 → N8a）；v1.0.10 已寫入 `data/exams.js`，測試 fixture `tests/fixtures/memo-notes.json`（生成 script `2026-10-11_memo-final-spec.gen.js`）
 - [2026-10-11_handoff_memo-v2-apply.md](plans/2026-10-11_handoff_memo-v2-apply.md) — 記憶法 v2 套用 handoff（已喺 v1.0.10 完成）
-- [2026-10-10_memo-split-decisions.md](plans/2026-10-10_memo-split-decisions.md) — 記憶法逐組 review 決定紀錄（#1–#38 已套用；E3 / E5 / E6 / E7 / F9 / S1–S6 / 舊 4 組跟進中；S-168 已喺 v1.1.3 修）
+- [2026-10-10_memo-split-decisions.md](plans/2026-10-10_memo-split-decisions.md) — 記憶法逐組 review 決定紀錄（#1–#38 已套用；#39–#45a 跟進全部確認（S1、S2、S4–S6 唔做；S3 #126 併 #125）；S-168 已喺 v1.1.3 修）
 - [2026-10-10_plan-pr8-release.md](plans/2026-10-10_plan-pr8-release.md) — 溫習計劃 PR8 正式推出：`STUDY_PLAN_READY = true`、拎走 `?preview=plan`（G42）、刪 mockup、v1.1.0
 - [2026-10-10_plan_memo-v2.md](plans/2026-10-10_plan_memo-v2.md) — 記憶法 v2 + 相似題分組 deep check（proposal；42 組記憶法建議、S1–S6 fact 分組、X1–X10 資料問題；機讀 `2026-10-10_memo-v2-proposal.json`；review page `mockups/memo-v2-review.html`）
 - [2026-10-09_study-plan-i18n-pr6b.md](plans/2026-10-09_study-plan-i18n-pr6b.md)

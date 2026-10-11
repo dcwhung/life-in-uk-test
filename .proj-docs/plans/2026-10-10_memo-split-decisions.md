@@ -86,4 +86,4 @@
 | 44e | S5 | fact #133（3.8、12.11 Beefeaters；10.17 Crown Jewels，同屬 Tower of London，geo landmark）拆 10.17 → 建議唔拆（同一地標；一句講晒；已共用 N15）→ 用戶：唔拆 | 已確認 |
 | 44f | N24 紙幣行 | 唔跟新 fact 改，保留「最大面額 £50」+ 陷阱（對應 9.2） | 已確認 |
 | 44g | S6 | fact #181（16.8 首相角色、4.9 官邸 10 Downing Street；geo England landmark）拆 4.9 → 建議唔拆（同講首相、兩句；已共用 N17a）；拆嘅好處：Places tab 嘅地標卡只講 Downing Street → 用戶：唔拆 | 已確認 |
-| 45a | 舊 4 組 | 建議內容唔改，只跟新格式：刪句尾「；」/「。」；標題「Magna Carta 大憲章」「Margaret Thatcher 戴卓爾夫人」（刪逗號）、「陪審員」（刪 juror）；國會選舉同 N16b 650 重複但照留；要改 note-text-test | 待確認 |
+| 45a | 舊 4 組 | 建議內容唔改，只跟新格式：刪句尾「；」/「。」；標題「Magna Carta 大憲章」「Margaret Thatcher 戴卓爾夫人」（刪逗號）、「陪審員」（刪 juror）；國會選舉同 N16b 650 重複但照留；要改 note-text-test → 用戶 OK | 已確認 |
