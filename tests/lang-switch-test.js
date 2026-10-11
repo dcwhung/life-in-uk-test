@@ -24,6 +24,7 @@ const GUARD_MARGIN_MS = 50;
 // S-044: the ::before ring must make the hit area >= 44px; probe this far outside the visible ⚙
 const HIT_MIN_PX = 44;
 const HIT_PROBE_INSET_PX = 1;
+const COLOUR_SETTLE_MS = 300; // > the header buttons' 0.15s colour transition
 // S-045: glyph probe canvas; two different hanzi drawn the same means both are tofu (no CJK font installed)
 const GLYPH_PROBE_PX = 32;
 const GLYPH_PROBE_CHARS = ['中', '國'];
@@ -168,9 +169,24 @@ async function checkSettingsPopover(pg) {
   await pg.focus(LANG_OPTION(ZH_HK));
   await pg.keyboard.press('Escape');
   assert(!(await popShown(pg)) && await focused() === 'settingsBtn' && (await langOf(pg)).lang === EN, 'Esc closes the settings popover, focus back on ⚙, no switch');
+  // user (v1.2.0): only one popover at a time, and the open one's button turns white (ⓘ and ⚙ alike); the other is
+  // back to its own colour (⚙ gold, ⓘ muted white)
+  const colours = () => pg.evaluate(() => ({ gear: getComputedStyle(byId('settingsBtn')).color, info: getComputedStyle(byId('infoBtn')).color,
+    gold: getComputedStyle(document.documentElement).getPropertyValue('--gold-light').trim(), white: 'rgb(255, 255, 255)' }));
+  const rgbOf = hex => `rgb(${hex.slice(1).match(/../g).map(h => parseInt(h, 16)).join(', ')})`;
+  const settle = () => pg.waitForTimeout(COLOUR_SETTLE_MS); // the 0.15s colour transition
+  await pg.mouse.move(5, 600); // no hover colour in the way
   await pg.click(SETTINGS);
+  await pg.mouse.move(5, 600);
+  await settle();
+  let c = await colours();
+  assert(c.gear === c.white && c.info !== c.white, '⚙ open: ⚙ white, ⓘ not: ' + JSON.stringify(c));
   await pg.click('#infoBtn');
+  await pg.mouse.move(5, 600);
+  await settle();
+  c = await colours();
   assert(!(await popShown(pg)) && await pg.$eval('#infoPop', e => e.classList.contains('show')), 'only one popover at a time: ⓘ closes ⚙');
+  assert(c.info === c.white && c.gear === rgbOf(c.gold), 'ⓘ open: ⓘ white, ⚙ back to gold: ' + JSON.stringify(c));
   await pg.click(SETTINGS);
   assert(await popShown(pg) && !(await pg.$eval('#infoPop', e => e.classList.contains('show'))), '⚙ closes ⓘ');
   await pg.mouse.click(5, 600);

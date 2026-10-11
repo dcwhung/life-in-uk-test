@@ -6,7 +6,8 @@
   cursor: pointer;
   transition: color 0.15s;
 }
-.info-btn:hover, .info-btn.open { color: var(--gold-light); }
+/* v1.2.0 (user): an open header popover's button turns white, ⓘ and ⚙ alike (css/base/layout.css .settings-btn) */
+.info-btn:hover, .info-btn.open { color: var(--text-inverse); }
 .info-pop {
   display: none;
   /* v1.0.5 (user): the full width less a 16px gutter; wide screens line up with the 780px main column. 50% is of the
