@@ -1,11 +1,47 @@
 // ════════════════════════════════════════
 // PWA — service worker (sw.js at the site root) + install banner
 // ════════════════════════════════════════
+// A new version must reach an installed app without a manual reload (iOS standalone has none):
+// • check for an update whenever the app comes back to the foreground — iOS resumes a Home-screen app from
+//   memory, so there is no page load that would check on its own
+// • when the new worker takes over (sw.js: skipWaiting + clients.claim), reload once so the page runs the new
+//   files instead of the ones it already loaded. Only on Home: a reload elsewhere would drop a running quiz /
+//   plan session, so it waits until the user is back on Home
+const UPDATE_RELOAD_SCREEN = 'screenHome';
+let swReloadPending = false;
+let swHadController = false; // set at registration, then true after any takeover
+const isUpdateReloadSafe = () => byId(UPDATE_RELOAD_SCREEN).classList.contains('active');
+function reloadForUpdate() {
+  if (!swReloadPending || !isUpdateReloadSafe()) return;
+  swReloadPending = false;
+  location.reload();
+}
+function watchUpdateReloadScreen() {
+  // showScreen() toggles the .active class: reload as soon as Home is shown again
+  new MutationObserver(reloadForUpdate).observe(byId(UPDATE_RELOAD_SCREEN), { attributes: true, attributeFilter: ['class'] });
+}
+function onControllerChange() {
+  // the first install also fires controllerchange (clients.claim) but the page already runs the cached files
+  const wasControlled = swHadController;
+  swHadController = true;
+  if (!wasControlled) return;
+  swReloadPending = true;
+  reloadForUpdate();
+}
+function checkForUpdateOnResume(reg) {
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') reg.update().catch(() => {}); // offline: try again next time
+  });
+}
 function registerSW() {
   // file:// pages cannot register a service worker; skip instead of logging an error
   if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
+  swHadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
+  watchUpdateReloadScreen();
   // a version bump only changes the imported config.js, so update checks must bypass the HTTP cache
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' })
+    .then(checkForUpdateOnResume)
     .catch(e => console.warn('SW error:', e));
 }
 
