@@ -26,8 +26,10 @@ const L5_COUNT_W_PX = 128;
 
 const fresh = async (pg, lang = 'en') => {
   await pg.goto(APP_URL);
+  await pg.evaluate(ANSWER_FIRST_SINGLE);
   await pg.evaluate(() => localStorage.clear());
   await pg.goto(APP_URL);
+  await pg.evaluate(ANSWER_FIRST_SINGLE);
   if (lang !== 'en') await pg.evaluate(l => setLang(l), lang);
 };
 const sizeOf = pg => pg.evaluate(() => document.documentElement.dataset.fontSize || 'small');
@@ -88,6 +90,15 @@ async function checkZh(pg) {
   assert(await sizeOf(pg) === 'large', 'switching the language keeps large text');
 }
 
+// question 1 is a single-answer question (swapped in), answered right: the row shows ← → instead of Translate
+const ANSWER_FIRST_SINGLE = `window.answerFirstSingle = () => {
+  pendingMode = 'practice'; startExam(1);
+  const i = state.questions.findIndex(q => q.a.length === 1);
+  [state.questions[0], state.questions[i]] = [state.questions[i], state.questions[0]];
+  renderQuestion();
+  const q = state.questions[0];
+  selectOption(q.o.indexOf(q.a[0]));
+}`;
 // C3: the counter only turns short where the long one wraps
 const counter = pg => pg.evaluate(() => {
   const s = document.querySelector('#qNum > span');
@@ -102,8 +113,9 @@ async function checkCounter(pg) {
     await pg.setViewportSize({ width: w, height: 760 });
     await fresh(pg, lang);
     if (size === 'large') await chooseSize(pg, 'large');
-    // answered (the mockup's state): the row has the small ← → buttons
-    await pg.evaluate(() => { pendingMode = 'practice'; startExam(1); const q = state.questions[0]; selectOption(Math.max(0, q.o.indexOf(q.a[0]))); });
+    // answered (the mockup's state): the row has the small ← → buttons. A single-answer question goes first: a multi-answer
+    // one needs its Check button before it reveals, so the wide Translate button stays (the C3b case)
+    await pg.evaluate(() => { answerFirstSingle(); });
     const c = await counter(pg);
     assert(c.text === want && c.lines === 1, `C3 ${lang} ${w}px ${size}, answered: "${want}" on one line: ` + JSON.stringify(c));
   }
@@ -117,7 +129,7 @@ async function checkCounter(pg) {
   // the size switch and a resize re-measure it
   await pg.setViewportSize({ width: 390, height: 760 });
   await fresh(pg);
-  await pg.evaluate(() => { pendingMode = 'practice'; startExam(1); const q = state.questions[0]; selectOption(Math.max(0, q.o.indexOf(q.a[0]))); });
+  await pg.evaluate(() => { answerFirstSingle(); });
   await chooseSize(pg, 'large');
   await pg.setViewportSize({ width: 320, height: 760 });
   await pg.waitForTimeout(100);
