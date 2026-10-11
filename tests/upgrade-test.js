@@ -15,6 +15,8 @@ const { startPagesServer, appFiles } = require('./pages-server');
 //   6. v0.65 (T-008): an older cached shell without the zh-HK tag + a stored uiLang 'zh-HK' — en, no warning,
 //      the stored choice kept for the next full load
 //   7. W-013: the current shell whose locales/zh-HK.js failed to load — the ⚙ language row is hidden (not a dead control)
+//   8. W-055 (v1.2.0): a v1.1.2 cached shell (pinned 44816c6) + current js — main.js upgradeLegacyHeaderMarkup() hides
+//      the old language pill and turns the "← Home" buttons into 🏠 icon buttons; no raw keys, no [i18n] warnings
 // The v0.57 files come from git: V057_REF is the last v0.57 commit on main (merge of PR #29), pinned so a later
 // main does not silently turn this into a same-version test.
 const ROOT = path.resolve(__dirname, '..');
