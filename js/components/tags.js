@@ -87,12 +87,17 @@ function noteTableHtml(rows) {
     + `<tbody>${body.map(cells => rowHtml(cells, 'td')).join('')}</tbody></table></div>`;
 }
 // split on "<br>" first, then escape each part, so the only markup a note can add is the remark span.
-// v1.0.10: a remark starting with "• " is a bullet (.bullet: indented, hanging indent)
-const NOTE_CELL_BULLET = /^•\s/;
+// v1.0.10: a remark starting with "• " is a bullet (.bullet: indented, hanging indent). S-165: the "•" sits in a
+// fixed-width .note-mark box (like noteLineHtml), so the wrapped lines line up whatever the font's "• " width
+const NOTE_CELL_BULLET = /^•\s+/;
+function noteCellSubHtml(remark) {
+  const mark = remark.match(NOTE_CELL_BULLET);
+  if (!mark) return `<span class="note-cell-sub">${escapeHtml(remark)}</span>`;
+  return `<span class="note-cell-sub bullet"><span class="note-mark">• </span>${escapeHtml(remark.slice(mark[0].length))}</span>`;
+}
 function noteCellHtml(cell, tag) {
   const [main, ...remarks] = cell.split(NOTE_CELL_BREAK);
   if (!remarks.length) return `<${tag}>${escapeHtml(cell)}</${tag}>`;
-  const subClass = remark => (NOTE_CELL_BULLET.test(remark) ? 'note-cell-sub bullet' : 'note-cell-sub');
-  const subs = remarks.map(remark => `<span class="${subClass(remark)}">${escapeHtml(remark)}</span>`).join('');
+  const subs = remarks.map(noteCellSubHtml).join('');
   return `<${tag} class="multi">${escapeHtml(main)}${subs}</${tag}>`;
 }

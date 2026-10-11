@@ -3,6 +3,7 @@
 // v1.0.10: memo v2 (.proj-docs/plans/2026-10-11_memo-final-spec.json): 61 memos, 375 notes, 52 of them with a table
 // A: noteHtml unit (in the page, with the app's escapeHtml)  B: every memo's notes in data/exams.js
 // C: the Study card "💡 記憶法", the Practice answer box and the Results review fit every table at 390px
+//    and (CUI-0027) at 320px, where cells may wrap
 const { chromium } = require('playwright-core');
 const fs = require('fs');
 const path = require('path');
@@ -122,6 +123,8 @@ const FIT_JS = `(root) => [...root.querySelectorAll('.note-table-wrap')].map(w =
   const r = w.getBoundingClientRect(), p = w.parentElement.getBoundingClientRect();
   return { sw: w.scrollWidth, cw: w.clientWidth, over: r.right - p.right, left: p.left - r.left, docW: document.documentElement.scrollWidth, vw: innerWidth };
 })`;
+let fitWidth = 0;
+const FIT_WIDTHS = [390, 320]; // 390 = design width; 320 = narrowest supported phone (CUI-0027)
 const fits = list => list.length > 0 && list.every(f => f.sw <= f.cw && f.over <= 0.5 && f.left <= 0.5 && f.docW <= f.vw);
 
 async function checkPractice(pg) {
@@ -145,10 +148,10 @@ async function checkPractice(pg) {
       if (r.missing || !r.visible || !r.rows || !fits(r.fit)) bad.push(`${key} ${JSON.stringify(r)}`);
       if (g === MP_MEMO) mpLines.push([key, r.mpLines]);
     }
-    assert(bad.length === 0, `Practice answer box, memo ${g}: ${keys.length} tables fit 390px, no scroll (bad: ${bad.slice(0, 2).join(' | ')})`);
+    assert(bad.length === 0, `Practice answer box, memo ${g}: ${keys.length} tables fit ${fitWidth}px, no scroll (bad: ${bad.slice(0, 2).join(' | ')})`);
   }
   // user request: the 議員 cell is exactly "650" / "全英國 MP", the remark never wraps at 390px (e.g. E6 Q9)
-  assert(mpLines.length === GROUP_QUESTIONS[MP_MEMO].length && mpLines.every(([, n]) => n === 1), `Practice, memo ${MP_MEMO}: "全英國 MP" remark on one line in all ${mpLines.length} questions: ${JSON.stringify(mpLines)}`);
+  assert(mpLines.length === GROUP_QUESTIONS[MP_MEMO].length && mpLines.every(([, n]) => n === 1), `Practice, memo ${MP_MEMO}: "全英國 MP" remark on one line at ${fitWidth}px in all ${mpLines.length} questions: ${JSON.stringify(mpLines)}`);
 }
 
 async function checkResults(pg) {
@@ -168,7 +171,7 @@ async function checkResults(pg) {
       if (!fits(fit) || fit.length !== 1 || g === 'none') (bad[g] = bad[g] || []).push(`${key} ${JSON.stringify(fit)}`);
     }
   }
-  assert(seen === TOTAL_TABLE_QUESTIONS && Object.keys(bad).length === 0, `Results review: all ${seen} tables (${TABLE_MEMO_COUNT} memos) fit 390px, no scroll (bad: ${JSON.stringify(bad).slice(0, 300)})`);
+  assert(seen === TOTAL_TABLE_QUESTIONS && Object.keys(bad).length === 0, `Results review: all ${seen} tables (${TABLE_MEMO_COUNT} memos) fit ${fitWidth}px, no scroll (bad: ${JSON.stringify(bad).slice(0, 300)})`);
 }
 
 async function checkStudy(pg) {
@@ -194,7 +197,7 @@ async function checkStudy(pg) {
   const firstWithTable = g => Object.keys(NOTE_TABLES).find(k => tableRowsOf(NOTE_TABLES[k]).join('\n') === tableRowsOf(NOTE_TABLES[g]).join('\n'));
   for (const g of Object.keys(NOTE_TABLES).filter(k => firstWithTable(k) === k)) {
     const cards = r[g] || [], bad = cards.filter(c => !fits(c.fit));
-    assert(cards.length > 0 && bad.length === 0, `Study 💡 記憶法 (opened), memo ${g}: ${cards.length} cards, tables fit 390px, no scroll (bad: ${JSON.stringify(bad.slice(0, 2))})`);
+    assert(cards.length > 0 && bad.length === 0, `Study 💡 記憶法 (opened), memo ${g}: ${cards.length} cards, tables fit ${fitWidth}px, no scroll (bad: ${JSON.stringify(bad.slice(0, 2))})`);
   }
   assert(!r.undefined, `Study: every table shown belongs to one of the ${TABLE_MEMO_COUNT} memos`);
 }
@@ -232,9 +235,15 @@ async function checkStudy(pg) {
     && JSON.stringify(look.first) === JSON.stringify([w.navy, '700', w.divider]) && look.last === '0px' && look.thMulti === 'normal'
     && JSON.stringify(look.sub) === JSON.stringify(['block', w.xs, '400', w.muted]) && look.wrap === 'auto',
   'Theme B + V4 look: navy header + 2px navy rule, divider rows, last row no rule, navy bold first column, nowrap except th/td.multi, muted xs remarks: ' + JSON.stringify(look));
-  await checkPractice(pg);
-  await checkResults(pg);
-  await checkStudy(pg);
+  for (const width of FIT_WIDTHS) {
+    fitWidth = width;
+    await pg.setViewportSize({ width, height: 844 });
+    // fresh progress, so the practice pool still holds every question
+    await pg.evaluate(() => localStorage.clear()); await pg.reload();
+    await checkPractice(pg);
+    await checkResults(pg);
+    await checkStudy(pg);
+  }
   assert(errs.length === 0, 'no page errors: ' + errs.join('; '));
   await b.close();
   console.log('NOTE-TABLE PASS');

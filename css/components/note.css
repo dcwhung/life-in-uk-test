@@ -22,5 +22,10 @@
 .note-table th.multi, .note-table td.multi { white-space: normal; }
 /* V4 in-cell remark: its own line, small and muted, never bold (even in the bold first column) */
 .note-cell-sub { display: block; margin-top: var(--space-1); font-size: var(--fs-xs); font-weight: 400; color: var(--text-muted); line-height: 1.45; }
-/* v1.0.10 "• " remark: "•" about one character in, wrapped lines continue under its text (hanging indent) */
-.note-cell-sub.bullet { --cell-bullet-indent: 0.9em; padding-left: calc(2 * var(--cell-bullet-indent)); text-indent: calc(-1 * var(--cell-bullet-indent)); }
+/* v1.0.10 "• " remark: "•" about one character in, wrapped lines continue under its text (hanging indent);
+   S-165: the "•" sits in a .note-mark box exactly one indent wide, so the text starts at 2 indents in any font */
+.note-cell-sub.bullet { --note-indent: 0.9em; padding-left: calc(2 * var(--note-indent)); text-indent: calc(-1 * var(--note-indent)); }
+/* CUI-0027: below 360px (e.g. 320px phones) every cell may wrap, so no table needs to scroll sideways */
+@media (max-width: 359px) {
+  .note-table th, .note-table td { white-space: normal; }
+}

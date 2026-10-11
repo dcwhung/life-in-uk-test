@@ -2,7 +2,8 @@
 // A: a line with 8+ leading spaces and no marker = continuation line (.cont), its text lines up with the text after
 //    the "→" of the sub item above it (5B 都鐸王朝)
 // B: a "<br>" remark starting with "• " inside a table cell = .note-cell-sub.bullet, indented about one character
-//    under the cell's main line, with a hanging indent so a wrapped line continues under its text (N20–N24)
+//    under the cell's main line, with a hanging indent so a wrapped line continues under its text (N20–N24);
+//    S-165: the indent must not depend on the font's "• " width, so B runs in the app font, monospace and serif
 // C: the real 5B note in the Practice answer box at 390px keeps that alignment
 const { chromium } = require('playwright-core');
 const path = require('path');
@@ -78,29 +79,33 @@ async function checkCellUnit(pg) {
   assert(r.text[1] === '• 保障 <b>人權</b>' && r.bold === 0, 'bullet remark text is escaped and keeps its "•"');
 }
 
-async function checkCellLayout(pg) {
-  const r = await pg.evaluate(({ measureSrc, width }) => {
+const CELL_FONTS = ['', 'monospace', 'serif']; // '' = the app font stack
+async function checkCellLayout(pg, font) {
+  const r = await pg.evaluate(({ measureSrc, width, font }) => {
     const m = new Function('return ' + measureSrc)();
-    const host = document.createElement('div'); host.style.width = width + 'px'; document.body.appendChild(host);
+    const host = document.createElement('div'); host.style.width = width + 'px'; host.style.fontFamily = font; document.body.appendChild(host);
     const long = '• ' + '保障歐洲人嘅基本權利同自由'.repeat(4);
     host.innerHTML = noteHtml(`| # | 名稱 / 註解 |\n| 1 | Council of Europe：<br>歐洲委員會<br>• 唔係 EU 機構<br>${long} |`);
     const cell = host.querySelector('td.multi');
     const [plain, bullet, longSub] = cell.querySelectorAll('.note-cell-sub');
     const em = parseFloat(getComputedStyle(bullet).fontSize);
-    // text after "• ": the range starts after the marker and its space
-    const afterMark = sub => { const t = sub.firstChild, rg = document.createRange(); rg.setStart(t, 2); rg.setEnd(t, 3); return rg.getClientRects()[0].left; };
+    // first character of the remark text after "• " (in its own text node after a marker box, or at offset 2)
+    const afterMark = sub => {
+      const mark = sub.querySelector('.note-mark'), t = mark ? mark.nextSibling : sub.firstChild, at = mark ? 0 : 2;
+      const rg = document.createRange(); rg.setStart(t, at); rg.setEnd(t, at + 1); return rg.getClientRects()[0].left;
+    };
     const out = {
       em, main: m.firstLeft(cell.firstChild), plain: m.firstLeft(plain), bullet: m.firstLeft(bullet), bulletText: afterMark(bullet),
       longLines: m.lineCount(longSub), longText: afterMark(longSub), longLast: m.lastLeft(longSub),
     };
     host.remove();
     return out;
-  }, { measureSrc: MEASURE_JS, width: HOST_WIDTH_PX });
-  const indent = r.bullet - r.plain;
-  assert(Math.abs(r.plain - r.main) <= PX_TOLERANCE, `plain remark starts under the main line (${r.plain} vs ${r.main})`);
-  assert(indent >= 0.8 * r.em && indent <= 1.0 * r.em, `"•" sits about one character (0.9em) right of a plain remark: ${indent.toFixed(1)}px, em ${r.em}`);
+  }, { measureSrc: MEASURE_JS, width: HOST_WIDTH_PX, font });
+  const indent = r.bullet - r.plain, label = font || 'app font';
+  assert(Math.abs(r.plain - r.main) <= PX_TOLERANCE, `${label}: plain remark starts under the main line (${r.plain} vs ${r.main})`);
+  assert(indent >= 0.8 * r.em && indent <= 1.0 * r.em, `${label}: "•" sits about one character (0.9em) right of a plain remark: ${indent.toFixed(1)}px, em ${r.em}`);
   assert(r.longLines >= 2 && Math.abs(r.longLast - r.longText) <= PX_TOLERANCE,
-    `hanging indent: a wrapped bullet remark's next line starts under the text after "• " (${r.longLast} vs ${r.longText}, ${r.longLines} lines)`);
+    `${label}: hanging indent: a wrapped bullet remark's next line starts under the text after "• " (${r.longLast} vs ${r.longText}, ${r.longLines} lines)`);
 }
 
 async function checkTudorPractice(pg) {
@@ -133,7 +138,7 @@ async function checkTudorPractice(pg) {
   await checkLineUnit(pg);
   await checkLineLayout(pg);
   await checkCellUnit(pg);
-  await checkCellLayout(pg);
+  for (const font of CELL_FONTS) await checkCellLayout(pg, font);
   await checkTudorPractice(pg);
   assert(errs.length === 0, 'no page errors: ' + errs.join('; '));
   await b.close();
