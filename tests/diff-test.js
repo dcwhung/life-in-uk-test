@@ -23,14 +23,14 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(counts.length === 5 && counts.reduce((a, b) => a + b, 0) === 408, 'difficulty grid counts (Easy to Expert only): ' + counts.join('/'));
   const names = await pg.$$eval('#diffGrid .ch-name', els => els.map(e => e.textContent));
   assert(JSON.stringify(names) === JSON.stringify(['Easy', 'Basic', 'Medium', 'Hard', 'Expert']), 'English-only difficulty labels, no Hard & Expert row: ' + names);
-  await pg.screenshot({ path: 'shot-diff-home.png', fullPage: true });
+  await pg.screenshot({ path: path.join(__dirname, 'shot-diff-home.png'), fullPage: true });
 
   // practice by difficulty
   await pg.click('#diffGrid .diff-btn:nth-child(4)');
   assert(await pg.evaluate(() => difficultyQuestions(4).length > 24 && state.questions.length === 24 && state.questions.every(q => q.d === 4)), 'Hard set: round of 24, all d=4');
   assert((await pg.$eval('#quizLabel', e => e.textContent)) === '★★★★ Hard', 'Hard label');
   assert((await pg.$eval('#qNum .stars', e => e.textContent)).length === 5, 'stars shown on question card');
-  await pg.screenshot({ path: 'shot-diff-q.png' });
+  await pg.screenshot({ path: path.join(__dirname, 'shot-diff-q.png') });
   await pg.click('#screenQuiz .back-btn');
   await pg.click('#diffGrid .diff-btn:nth-child(2)');
   assert(await pg.evaluate(() => state.questions.every(q => q.d === 2)), 'level 2 set all d=2');
@@ -45,7 +45,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(rows.length >= 3 && rows.every(r => /\d+\/\d+ · \d+%/.test(r)), 'results by difficulty rows: ' + rows.join(' | '));
   const total = await pg.$$eval('.diff-pct', els => els.reduce((a, e) => a + parseInt(e.textContent.split('/')[1]), 0));
   assert(total === 24, 'breakdown totals 24');
-  await pg.screenshot({ path: 'shot-diff-result.png' });
+  await pg.screenshot({ path: path.join(__dirname, 'shot-diff-result.png') });
   await pg.click('#screenResult .another-btn >> nth=0');
 
   // study fact stars

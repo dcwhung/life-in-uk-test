@@ -47,7 +47,7 @@ const MAIN_MAX_PX = 780; // css/base/layout.css main max-width
   assert(Math.round(wide.width) === MAIN_MAX_PX && Math.round(wide.left) === Math.round(mainBox.left), `wide screen: popover ${MAIN_MAX_PX}px, aligned with main: ` + JSON.stringify(wide));
   assert(await arrowUnderInfo(), 'wide screen: the arrow points at ⓘ');
   await pg.setViewportSize({ width: 390, height: 844 });
-  await pg.screenshot({ path: 'shot-info.png' });
+  await pg.screenshot({ path: path.join(__dirname, 'shot-info.png') });
   await pg.click('#infoBtn');
   assert(!(await vis('#infoPop')), 'second click hides');
   await pg.click('#infoBtn');

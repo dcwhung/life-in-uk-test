@@ -59,7 +59,7 @@
    Exam mode's .done:hover (green fill) never meets this: .done buttons carry no mastery line */
 .exam-btn:hover .exam-mastery { color: var(--gold-light); }
 .exam-btn:hover .exam-mastery.zero { color: var(--text-inverse-muted); }
-.mode-icon { font-size: 26px; margin-bottom: var(--space-3); }
+.mode-icon { font-size: var(--fs-7xl); margin-bottom: var(--space-3); }
 .mode-title { font-size: var(--fs-md); font-weight: 700; color: var(--navy); }
 .mode-desc-panel {
   display: none;
@@ -128,8 +128,8 @@
 .my-tile.flagged { border-left: 4px solid var(--orange); }
 .my-tile.flagged .t-icon { background: var(--flag-bg); }
 .my-tile .t-icon svg { width: 17px; height: 17px; }
-.my-tile .t-num { font-size: 24px; font-weight: 900; color: var(--navy); line-height: 1; }
-.my-tile b { display: block; font-size: 13.5px; color: var(--navy); }
+.my-tile .t-num { font-size: var(--fs-6xl); font-weight: 900; color: var(--navy); line-height: 1; }
+.my-tile b { display: block; font-size: var(--fs-base-plus); color: var(--navy); }
 .my-tile .sub, .my-tile .t-note { display: block; font-size: var(--fs-xs); color: var(--text-muted); margin-top: var(--space-1); line-height: 1.4; }
 /* the wrong tile's note (only while it has questions, v0.70): same small text as .sub, set apart from the title above;
    text-wrap: pretty stops a lone "題。" on the last line (S-084), browsers without it wrap as before */

@@ -3,6 +3,7 @@
 body {
   /* v0.65: system CJK fonts for zh-HK after the Latin ones (no web font: offline, no dependency) */
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, 'PingFang HK', 'Noto Sans HK', 'Noto Sans CJK HK', 'Microsoft JhengHei', sans-serif;
+  font-size: var(--fs-xl); /* v1.1.2: the browser default 16px, as a token (unsized text inherits it) */
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;

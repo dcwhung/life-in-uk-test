@@ -19,7 +19,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.click('#studySubChips >> text=Scotland');
   assert((await count()) === '6 / 6 facts', 'geo Scotland 6: ' + await count());
   assert((await pg.$$('.study-group-title')).length === 1, 'only Scotland group shown');
-  await pg.screenshot({ path: 'shot-geo-sub.png' });
+  await pg.screenshot({ path: path.join(__dirname, 'shot-geo-sub.png') });
   await pg.fill('#studySearch', 'castle');
   assert(await pg.evaluate(() => document.getElementById('studyContent').textContent.includes('Edinburgh Castle')), 'search still finds within nation');
   await pg.fill('#studySearch', 'Tower');
@@ -32,7 +32,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   const names = await pg.$$eval('.fact-name', els => els.map(e => e.textContent));
   assert(names.length === 11 && names.includes('Charles Dickens') && names.includes('William Shakespeare'), 'writers 11: ' + names.join(', '));
   assert((await pg.$$('.study-group-title')).length === 1, 'only writers group shown');
-  await pg.screenshot({ path: 'shot-people-sub.png' });
+  await pg.screenshot({ path: path.join(__dirname, 'shot-people-sub.png') });
 
   await pg.click('.study-tab[data-tab="timeline"]');
   assert(await pg.$eval('#studySubChips', e => e.hidden && getComputedStyle(e).display === 'none'), 'timeline has no sub row (hidden attribute)');

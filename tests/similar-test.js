@@ -97,7 +97,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
     const nav = document.querySelector('#screenQuiz .nav-row'), box = document.getElementById('similarBox');
     return !!(nav.compareDocumentPosition(box) & Node.DOCUMENT_POSITION_FOLLOWING);
   }), 'Prev / Next sit above the similar section');
-  await pg.screenshot({ path: 'shot-similar.png', fullPage: true });
+  await pg.screenshot({ path: path.join(__dirname, 'shot-similar.png'), fullPage: true });
 
   // wrong answer also shows the section
   await openQ('practice', 12, 5);

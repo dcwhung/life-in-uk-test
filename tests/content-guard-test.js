@@ -99,6 +99,19 @@ function yueCountProblems(EXAMS) {
   return out;
 }
 
+// R4 (S-188, v1.1.4): 地方議會 means the Scottish / Welsh / NI parliaments (memo 4A, titled 四地議會 since v1.1.5,
+// S-193), so it may appear only in notes; "local council(s)" is 地區議會. S-191: a plain ban on question yue / oy / fact yue, so wording the English
+// regex would miss (no "local", line breaks) can't slip a 地方議會 option back in (5.22 read like the right answer)
+const DEVOLVED_TERM_YUE = '地方議會';
+function localCouncilProblems(EXAMS, STUDY) {
+  const out = [];
+  for (const [exam, qs] of Object.entries(EXAMS)) qs.forEach((q, i) => {
+    if (q.yue.includes(DEVOLVED_TERM_YUE)) out.push(`${questionLabel(exam, i)} yue: ${show(q.yue)}`);
+    q.oy.forEach((oy, j) => { if ((oy || '').includes(DEVOLVED_TERM_YUE)) out.push(`${questionLabel(exam, i)} oy[${j}]: ${show(oy)}`); });
+  });
+  STUDY.forEach((f, i) => { if (f.yue.includes(DEVOLVED_TERM_YUE)) out.push(`${factLabel(f, i)} yue: ${show(f.yue)}`); });
+  return out;
+}
 function report(title, problems) {
   if (!problems.length) return;
   console.log(`\n${title}: ${problems.length} difference(s)`);
@@ -134,6 +147,10 @@ const sameQuestion = sameQuestionProblems(EXAMS);
 report('same English question, different yue (R3)', sameQuestion);
 assert(sameQuestion.length === 0, 'R3: identical English questions have identical yue');
 assert(problems['translation shape'].length === 0, 'oy.length === o.length, oy / note / fact yue are strings');
+const localCouncil = localCouncilProblems(EXAMS, STUDY);
+report('local council translated as 地方議會 (R4)', localCouncil);
+assert(localCouncil.length === 0, 'R4: 地方議會 (memo 4A term for the devolved parliaments) appears only in notes; local councils read 地區議會');
+
 const answerCount = answerCountProblems(EXAMS);
 report('multi-answer question without a count word', answerCount);
 assert(answerCount.length === 0, 'every multi-answer question states how many to pick (two / three / four)');

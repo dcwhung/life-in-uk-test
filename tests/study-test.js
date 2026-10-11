@@ -71,7 +71,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   // home: chapter grid
   const counts = await pg.$$eval('#chapterGrid .ch-count', els => els.map(e => parseInt(e.textContent.split('/')[1])));
   assert(counts.length === 5 && counts.reduce((a, b) => a + b, 0) === 408, 'chapter grid 5 buttons, counts sum 408: ' + counts.join('/'));
-  await pg.screenshot({ path: 'shot-home.png', fullPage: true });
+  await pg.screenshot({ path: path.join(__dirname, 'shot-home.png'), fullPage: true });
 
   // chapter practice
   await pg.click('#ptabChapter');
@@ -101,7 +101,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.$eval('#studySearch', e => e.blur());
   await pg.click('#studySubChips .chip:nth-child(3)'); // Ch3
   assert((await count()) === '91 / 91 facts', 'Ch3 91 facts: ' + await count());
-  await pg.screenshot({ path: 'shot-chapters.png' });
+  await pg.screenshot({ path: path.join(__dirname, 'shot-chapters.png') });
   assert(await css('.tag.year', 'color') === await tokenRgb('--study-accent-strong') && await css('.tag.year', 'backgroundColor') === await tokenRgb('--study-accent-bg'), 'year tag uses study accent tokens');
   // v0.63 (P3 T-201 / T-202): the Study card is factCardHtml's full variant — O5 card shadow, Q6 "#id" small text first
   const shadowSm = await pg.evaluate(() => {
@@ -135,7 +135,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await checkChapterNumbers('en timeline');
   const years = await pg.$$eval('.tl-year', els => els.map(e => e.textContent));
   assert(years[0] === 'c. 4000 BC' && years.includes('1066') && years.includes('1215'), 'year labels: ' + years.slice(0, 6).join(','));
-  await pg.screenshot({ path: 'shot-timeline.png' });
+  await pg.screenshot({ path: path.join(__dirname, 'shot-timeline.png') });
   // v0.62 (P3 T-102, Q2-a): decoration is the navy --study-accent (fact border, year, dot); war stays red
   const accent = await tokenRgb('--study-accent');
   assert(accent === await tokenRgb('--navy-light'), '--study-accent is navy-light');
@@ -189,7 +189,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(nations.length === 5, 'geo 5 nation groups: ' + nations.join(' | '));
   await checkChapterNumbers('en geo');
   await checkGroupTitlesNoCount('en geo');
-  await pg.screenshot({ path: 'shot-geo.png' });
+  await pg.screenshot({ path: path.join(__dirname, 'shot-geo.png') });
   assert(await css('.study-sub-title', 'color') === accent, 'geography sub-title is study accent');
 
   await pg.click('.study-tab[data-tab="people"]');
@@ -198,7 +198,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(firstNames[0] === 'Julius Caesar' && firstNames[1] === 'Boudicca', 'monarchs chronological: ' + firstNames.join(', '));
   await checkChapterNumbers('en people');
   await checkGroupTitlesNoCount('en people');
-  await pg.screenshot({ path: 'shot-people.png' });
+  await pg.screenshot({ path: path.join(__dirname, 'shot-people.png') });
 
   // search
   await pg.click('.study-tab[data-tab="chapters"]');
