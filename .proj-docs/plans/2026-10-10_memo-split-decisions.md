@@ -81,4 +81,5 @@
 | 45 | 舊 4 組 | Magna Carta、國會選舉、Thatcher、陪審員（18 題）舊格式 | 未傾 |
 | 44a | S1 | fact #33（7.8，Ch3，y 1605，People Guy Fawkes）併入 #113（3.23、14.20，Ch4）→ 建議唔做：Timeline / People tab 會冇咗 Gunpowder Plot；同 F9（7.8 自己前綴）衝突同一知識點同一備註規則；要重生成 baseline + migrate 書籤 → 用戶睇完 fact 內容：唔做 | 已確認 |
 | 44b | S2 | fact #106（5.0 Easter 幾時、1.23 Lent）拆 1.23 出去做新 fact #237 → 建議唔拆：fact 只有一句、兩樣嘢互相解釋（Lent = Easter 之前 40 日），拆開 #237 要靠 Easter 先講得明；兩題已共用 N14 → 用戶：唔拆 | 已確認 |
-| 44c | S3 | fact #125（11.2 貨幣名、5.1 冇 25p 硬幣）拆 5.1 出去 → 建議唔拆：同一主題（英國貨幣）、fact 兩句；已共用 N24；成本同 S2 → 用戶：唔拆，但想 #125 加紙幣資訊（方案待揀：A 併 #126 入 #125、B #125 加一句紙幣面額、C 唔郁，#126 已經係下一張卡） | 已確認（紙幣待揀） |
+| 44c | S3 | fact #125（11.2 貨幣名、5.1 冇 25p 硬幣）拆 5.1 出去 → 建議唔拆：同一主題（英國貨幣）、fact 兩句；已共用 N24；成本同 S2 → 用戶：唔拆，但想 #125 加紙幣資訊（方案待揀：A 併 #126 入 #125、B #125 加一句紙幣面額、C 唔郁，#126 已經係下一張卡） → 用戶揀 A：#126 併入 #125（5 題：11.2、5.1、3.22、9.2、4.4；難度 ★★★★；刪 #126，書籤 / 已掌握 / 溫習計劃 migrate，重生成 content baseline）。en：「The UK currency is the pound sterling (£). Coins: 1p, 2p, 5p, 10p, 20p, 50p, £1 and £2 (there is no 25p coin). Notes: £5, £10, £20 and £50. Scotland and Northern Ireland have their own banknotes, which are valid everywhere in the UK.」yue：「英國貨幣係英鎊（pound sterling, £）。硬幣有 1p、2p、5p、10p、20p、50p、£1、£2，冇 25p。紙幣有 £5、£10、£20、£50。蘇格蘭同北愛爾蘭有自己嘅紙幣，全英國通用。」（刪 £100、唔提最高面值，紙幣格式跟硬幣） | 已確認 |
+| 44d | S4 | 由 #126 拆 4.4 → #126 已併入 #125（S3），S4 取消 | 取消 |
