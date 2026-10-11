@@ -33,6 +33,8 @@
   .answer-box { display: block; margin-bottom: 0; }
   /* PROPOSED app CSS (css/components/note.css) for 5B option A */
   .rv-note-line.cont { padding-left: calc(2 * var(--note-indent)); text-indent: 0; }
+  /* PROPOSED app CSS (css/components/note.css) for N20: bullet remark inside a table cell */
+  .note-cell-sub.bullet { padding-left: 1.8em; text-indent: -0.9em; }
   .q { font-size: 13px; font-weight: 600; margin: 0 0 8px; color: var(--navy); }
 </style>
 </head>
@@ -300,7 +302,7 @@ const GROUPS = [
     ['ok', 'N19a 法律原則（6 題）', '4 行', '記憶法（法律原則）：\n| 項目 | 註解 |\n| Habeas corpus<br>人身保護令 | 唔可以未經審訊就拘留人 |\n| Common law<br>普通法 | 根據法院判決同先例<br>唔係國會立法 |\n| Presumption of innocence<br>無罪推定 | 證明有罪之前當你無罪 |\n| Trial by jury<br>陪審團審訊 | 由一班市民決定有冇罪 |'],
     ['ok', 'N19b 法院（4 題）', '4 行', '記憶法（法院）：\n| 項目 | 註解 |\n| Criminal offence<br>刑事罪行 | 例如帶攻擊性武器 |\n| Small claims court<br>小額錢債審裁處 | 處理細額民事糾紛 |\n| Youth Court<br>少年法庭 | 審理 10–17 歲案件<br>由受訓裁判官<br>或者地區法官審 |\n| Supreme Court<br>最高法院 | 英國最高嘅法院<br>2009 年成立 |'],
     ['ok', 'N19c 法律服務（4 題）', '3 行', '記憶法（法律服務）：\n| 項目 | 註解 |\n| Solicitor<br>律師 | 提供法律意見、代表客戶<br>通常按時間收費 |\n| Legal aid<br>法律援助 | 幫負擔唔起嘅人<br>支付法律費用 |\n| Citizens Advice<br>公民諮詢局 | 提供免費、保密嘅意見 |']]],
-  ['N20 人權同平等 — 註解改 bullet',
+  ['N20 人權同平等 — bullet 縮入（要改 app code）',
    '原草稿 5 行 8 題；歐洲機構同英國法例好易撈亂，建議拆：N20a 歐洲人權機構（8.14、15.18、6.23、9.16）、N20b 英國人權同平等（14.10、15.14、16.7、12.20）。European Court of Human Rights 原本只喺備註，而家自己一行。',
    'What is the purpose of the Council of Europe? → To protect human rights and promote democracy',
    [['', '6.23、9.16 而家', '單句前綴', '唔係歐盟（European Union, EU）機構；47個成員國（考試以官方手冊嘅47個為準；2022年起46個）'],
@@ -343,7 +345,8 @@ function noteTableHtml(rows) {
 function noteCellHtml(cell, tag) {
   const [main, ...remarks] = cell.split(NOTE_CELL_BREAK);
   if (!remarks.length) return `<${tag}>${escapeHtml(cell)}</${tag}>`;
-  const subs = remarks.map(remark => `<span class="note-cell-sub">${escapeHtml(remark)}</span>`).join('');
+  // PROPOSED (N20): a remark starting with "•" = bullet line, indented with a hanging indent
+  const subs = remarks.map(remark => `<span class="note-cell-sub${/^•\s/.test(remark) ? ' bullet' : ''}">${escapeHtml(remark)}</span>`).join('');
   return `<${tag} class="multi">${escapeHtml(main)}${subs}</${tag}>`;
 }
 
