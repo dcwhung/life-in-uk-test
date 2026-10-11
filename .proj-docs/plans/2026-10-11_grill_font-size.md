@@ -2,7 +2,7 @@
 
 **日期**：2026-10-11
 **Branch**：`claude/global-font-size-feature-c96ajp`
-**Mockup**：`mockups/font-size-switch.html`（真 app 截圖，320 / 375px × en / zh-HK × 細字 / 大字修正前 / 大字修正後；確認後喺 PR-B 刪）
+**Mockup**：`mockups/font-size-switch.html` v2（真 app 截圖，8 個畫面包括 ⚙ 設定 / ⓘ 關於 popover，320 / 375px × en / zh-HK × 細字 / 大字修正前 / 大字修正後；確認後喺 PR-B 刪）
 **狀態**：Q1–Q6 用戶已逐條確認（grill-me）；第一版 mockup 經用戶 review（M1–M3），追加 Q7–Q11、L4b、L5，全部已確認；用戶仲有 UI mock comment 未講
 
 ---
