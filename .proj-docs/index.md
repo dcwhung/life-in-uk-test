@@ -2,10 +2,11 @@
 
 文件索引（同一日內按檔名倒序）。Review item ID：C / W / S 全局遞增，賦號前要 grep `.proj-docs/reviews/`。溫習計劃序列最新到 W-045、S-139（2026-10-09 plan PR7）；之後 S-140–S-145 用咗喺 v1.0.7 記憶法 table review（2026-10-10）；W-375 屬於另一個 session，唔好接住佢嘅號碼。
 
-**撞號注意（2026-10-10）**：plan PR7b review（`2026-10-09_review_plan-pr7b.md`）同時用咗 W-046–W-047、S-140–S-145，同 v1.0.7 記憶法 table review 嘅 S-140–S-145 重複；引用呢幾個 S 號要連報告名。之後新號由兩邊最大值之後開始（grep 全部報告）。另一個 session 用咗 S-146–S-152；plan PR7c review（2026-10-10）用 W-048、S-153–S-159（S-157 = S-154 follow-up；S-158–S-159 = runner fade follow-up）。plan 日程已完成變綠 review（G43，2026-10-10）用 W-049、S-160–S-164（S-164 = re-review 新增）。
+**撞號注意（2026-10-10）**：plan PR7b review（`2026-10-09_review_plan-pr7b.md`）同時用咗 W-046–W-047、S-140–S-145，同 v1.0.7 記憶法 table review 嘅 S-140–S-145 重複；引用呢幾個 S 號要連報告名。之後新號由兩邊最大值之後開始（grep 全部報告）。另一個 session 用咗 S-146–S-152；plan PR7c review（2026-10-10）用 W-048、S-153–S-159（S-157 = S-154 follow-up；S-158–S-159 = runner fade follow-up）。plan 日程已完成變綠 review（G43，2026-10-10）用 W-049、S-160–S-164（S-164 = re-review 新增）。v1.0.10 記憶法 v2 review（2026-10-11）用 S-165–S-168。
 
 ## Reviews
 
+- [2026-10-11_review_v1010.md](reviews/2026-10-11_review_v1010.md) — v1.0.10 記憶法 v2 套用（f209813；pass 96；0 C / 0 W；run-all 46/46；同意 4 題 untouched（3.13、9.14、12.5、12.18）跟 spec base；S-165 table 格「• 」備注 hanging indent 靠字形闊度、S-166 HANDOFF 測試套數、S-167 mockup / 決定紀錄只喺 plan branch、S-168 9.14 / 12.18 note 內容（待用戶決定））
 - [2026-10-10_review_plan-done-green.md](reviews/2026-10-10_review_plan-done-green.md) — 溫習計劃日程已完成變綠（G43，未升版；pass 91；W-049 錯過嘅模擬考日 / re-plan 前未完成強化日令該段永遠唔綠（待用戶決定）、S-160 性能、S-161 pill padding、S-162 模擬考段 navy 字、S-163 re-plan test；re-review + QA 2026-10-10（7de3447）pass 98：W-049 按用戶「只計做得到嘅日子」解決、S-160/161/163 解決、自己瀏覽器 QA（中途 re-plan + 先唔合格後合格）OK，新 S-164）
 - [2026-10-10_review_plan-pr7c.md](reviews/2026-10-10_review_plan-pr7c.md) — 溫習計劃 PR7c 閱讀任務已完成 tag + 最後一條未完成提示（G41，未升版；pass 91；W-048 🏆 卡褪色令 tag 得 2.4:1、S-153–S-156；S-154 follow-up（runner nav 一行）pass 99、S-157；runner fade follow-up（練習完成先褪色）pass 98、S-158–S-159）
 - [2026-10-10_review_v107.md](reviews/2026-10-10_review_v107.md) — v1.0.7 記憶法 table（pass 94；S-140–S-145：S-140/141/144 已修，S-142/143 延後）
