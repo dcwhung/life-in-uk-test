@@ -28,7 +28,7 @@ const tokens = pg => pg.evaluate(() => {
 
 // every distinct rgb() colour in a screenshot clip (decoded with a canvas in the page)
 async function coloursIn(pg, clip) {
-  const b64 = (await pg.screenshot({ clip })).toString('base64');
+  const b64 = (await pg.screenshot({ clip })).toString('base64'); // a Buffer: no file is written
   return pg.evaluate(async src => {
     const img = new Image();
     img.src = 'data:image/png;base64,' + src;

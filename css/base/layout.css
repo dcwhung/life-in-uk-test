@@ -9,6 +9,21 @@ body {
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
 }
+/* v1.4.3: a pull-down at the top (iOS PWA rubber-band) dragged the whole page, sticky header included, and showed --bg
+   between the navy status bar and the navy header. The root no longer bounces (Chrome, iOS 16+); inner scrollers keep
+   their own overscroll-behavior. */
+html { overscroll-behavior-y: none; }
+/* Where the root still bounces (older iOS), a navy band sits just above the document and moves with it, so the gap is
+   header-coloured. It is above the scroll origin, so it never scrolls into view, and a pull-up at the bottom still shows
+   --bg. Not an html background gradient: iOS ignores background-attachment: fixed, and a scrolling gradient tiles a
+   --bg strip above the top. */
+body::before {
+  content: '';
+  position: absolute; left: 0; right: 0; bottom: 100%;
+  height: 100vh;
+  background: var(--navy);
+  pointer-events: none;
+}
 /* form controls use the body font, not the UA default (Linux Chromium: Arial). Family only, not the `font`
    shorthand: that would also reset size / weight, and unsized controls (ⓘ, flag, unflag) would pick up their
    parent's size and weight instead of the UA 13.33px / 400 they render with today. */
