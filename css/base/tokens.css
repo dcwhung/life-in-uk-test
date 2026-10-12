@@ -155,6 +155,9 @@
   --plan-orange-text: #9a5408;
   /* Home plan card (navy-light): the progress bar track */
   --plan-home-track: rgba(255,255,255,0.18);
+  /* W-380: the desktop timeline's drill colour on that card, purple-light 70% on white worked out once (4.0:1 on
+     navy-light; purple-light itself is 2.5:1), so a browser without color-mix() draws the same tint */
+  --plan-cd-drill-tint: #b999da;
   /* exam day: amber with a fine gold lattice; days already gone sit on a lighter grey row */
   --plan-exam-bg: #f2a93b;
   --plan-exam-line: rgba(255,214,120,0.75);

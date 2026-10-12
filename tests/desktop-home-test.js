@@ -8,6 +8,8 @@
 //   ticks; the days-left label at the end under 28%; "Today" beside the marker; none on the exam day / after it); the
 //   buttons' bottom on the ring's; "Next" on one line while it fits, never cut; the phone keeps the % bar + countdown text
 // - F1: a finished plan offers "New plan" + "Schedule" only
+const fs = require('fs');
+const path = require('path');
 const dt = require('./desktop-helpers');
 const { assert } = dt;
 
@@ -210,6 +212,43 @@ async function checkNextLine(b) {
   await o.page.close();
 }
 
+// W-380: the plain timeline colours outside @supports (color-mix) are what an older browser (iPadOS 15) draws; each one
+// must stand off the navy card itself (never the card's own colour; ≥ 3:1, WCAG 1.4.11), translucent ones composited
+const FALLBACK_MIN_CONTRAST = 3;
+// the stylesheet is read here: file:// pages can't read their own cssRules
+const PLAN_CSS = path.join(__dirname, '..', 'css', 'screens', 'plan.css');
+const plainTimelineColours = () => {
+  const line = fs.readFileSync(PLAN_CSS, 'utf8').split('\n').find(l => /^\.plan-card \{[^}]*--plan-cd-learn:/.test(l)) || '';
+  return Object.fromEntries([...line.matchAll(/--plan-cd-(learn|drill|mock|rest):\s*([^;]+);/g)].map(m => [m[1], m[2].trim()]));
+};
+async function checkFallbackColours(b) {
+  const o = await openWithPlan(b, { days: 21, dayN: 9 });
+  const plain = plainTimelineColours();
+  const res = await o.page.evaluate(plain => {
+    const home = document.querySelector('#planCard .plan-home');
+    const rgba = c => { const m = c.match(/[\d.]+/g).map(Number); return { rgb: m.slice(0, 3), a: m.length > 3 ? m[3] : 1 }; };
+    const bg = rgba(getComputedStyle(home).backgroundColor).rgb;
+    const lum = rgb => rgb.map(v => v / 255).map(v => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))
+      .reduce((s, v, i) => s + v * [0.2126, 0.7152, 0.0722][i], 0);
+    const ratio = (x, y) => { const [hi, lo] = [lum(x), lum(y)].sort((p, q) => q - p); return (hi + 0.05) / (lo + 0.05); };
+    const probe = document.createElement('i');
+    home.appendChild(probe);
+    const out = ['learn', 'drill', 'mock', 'rest'].map(ph => {
+      const raw = plain[ph] || '';
+      probe.style.backgroundColor = raw;
+      const c = rgba(getComputedStyle(probe).backgroundColor);
+      const rgb = c.rgb.map((v, i) => Math.round(v * c.a + bg[i] * (1 - c.a)));
+      return { ph, raw, same: rgb.every((v, i) => v === bg[i]), ratio: ratio(rgb, bg) };
+    });
+    probe.remove();
+    return { found: out.every(r => r.raw), out };
+  }, plain);
+  assert(res.found, 'the plain (no color-mix) timeline colours are all set on .plan-card outside @supports');
+  res.out.forEach(r => assert(!r.raw.includes('color-mix') && !r.same && r.ratio >= FALLBACK_MIN_CONTRAST,
+    `no color-mix: ${r.ph} (${r.raw}) stands off the navy card, ${r.ratio.toFixed(2)}:1 ≥ ${FALLBACK_MIN_CONTRAST}:1`));
+  await o.page.close();
+}
+
 (async () => {
   const b = await dt.launch();
   try {
@@ -219,6 +258,7 @@ async function checkNextLine(b) {
     await checkCardActive(b);
     await checkCardBranches(b);
     await checkNextLine(b);
+    await checkFallbackColours(b);
     console.log('DESKTOP-HOME PASS');
   } catch (e) {
     console.error(e.message);
