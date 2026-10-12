@@ -26,7 +26,7 @@
    S-165: the "•" sits in a .note-mark box exactly one indent wide, so the text starts at 2 indents in any font */
 .note-cell-sub.bullet { --note-indent: 0.9em; padding-left: calc(2 * var(--note-indent)); text-indent: calc(-1 * var(--note-indent)); }
 /* CUI-0027: on narrow phones the cells' side padding halves, so every table fits without scrolling sideways; cells
-   keep nowrap, so short cells never break mid-word (W-050). CUI-0028 (v1.2.1): below 375px, not 360px, so memo ③'s
+   keep nowrap, so short cells never break mid-word (W-050). CUI-0028 (v1.3.2): below 375px, not 360px, so memo ③'s
    4-column table also fits a 360px Study card */
 @media (max-width: 374px) {
   .note-table th, .note-table td { padding-left: var(--space-2); padding-right: var(--space-2); }

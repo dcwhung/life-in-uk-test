@@ -73,6 +73,7 @@ function renderQuestion() {
   renderSimilar(q, revealed);
   renderExamTools(idx);
   renderNavButtons(idx, total, revealed);
+  fitQuestionCounter(); // C3: measured once the counter's row (bookmark, arrows) is final
 }
 // W-016: a fact set's "Ch c #n" is English in every language (S-057), so it goes in a lang="en" span;
 // built from text nodes, never innerHTML, so the locale string cannot inject markup
@@ -86,6 +87,16 @@ function setExamLabel(el, examNum) {
   numEl.textContent = num;
   el.replaceChildren(label.slice(0, at), numEl, label.slice(at + num.length));
 }
+// C3 (v1.3.0, user): "Question 1 of 24" unless it wraps (large text at 320px), then quiz.questionOfShort ("Question 1/24");
+// where even that wraps (the wide Translate button in the row) it stays short on two lines (user)
+function fitQuestionCounter() {
+  const counter = document.querySelector('#qNum > span[data-full]');
+  if (!counter) return;
+  counter.textContent = counter.dataset.full;
+  if (textLineCount(counter) > 1) counter.textContent = counter.dataset.short;
+}
+// a rotation / resize changes the room the counter has
+window.addEventListener('resize', () => { if (byId('screenQuiz').classList.contains('active')) fitQuestionCounter(); });
 function renderQuizHeader(q, idx, total) {
   const label = byId('quizLabel');
   if (state.examNum === ALL_EXAM && !isRandomExam(state.examNum)) label.textContent = t('quiz.allShuffled');
@@ -95,7 +106,10 @@ function renderQuizHeader(q, idx, total) {
   // progress: the question card's top border
   byId('progressFill').style.width = percent(idx + 1, total) + '%';
   // no "(select N)" hint: every multi-answer question already states its count (content-guard-test)
-  byId('qNum').innerHTML = `<span>${t('quiz.questionOf', { n: idx + 1, total })}</span>${starsHtml(q.d)}`;
+  const full = escapeHtml(t('quiz.questionOf', { n: idx + 1, total }));
+  // W-057: a pre-v1.3.0 locale has no short form; t() would return the key, so the long form stays
+  const shortKey = 'quiz.questionOfShort', shortText = t(shortKey, { n: idx + 1, total }), short = shortText === shortKey ? full : escapeHtml(shortText);
+  byId('qNum').innerHTML = `<span data-full="${full}" data-short="${short}">${full}</span>${starsHtml(q.d)}`;
   byId('qText').textContent = q.q;
 }
 function renderTranslation(q, revealed, yueOn) {

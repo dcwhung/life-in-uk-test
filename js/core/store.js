@@ -6,6 +6,23 @@ let practiceFlags = getLS(FLAGS_LS) || {};   // { "exam.idx": true } — practic
 let wrongList = getLS(WRONG_LS) || {};       // { "exam.idx": true } — practice + exam mistakes
 
 function saveStreaks() { setLS(STREAK_LS, streaks); }
+
+// v1.3.0: text size (⚙ settings). Small = the design sizes; large = <html data-font-size="large">, which moves every
+// --fs-* token up 2px (css/base/tokens.css). Nothing is written until the user picks; an unknown value reads as small
+function getFontSize() {
+  const size = getLS(FONT_SIZE_LS);
+  return FONT_SIZES.includes(size) ? size : FONT_SIZE_SMALL;
+}
+function applyFontSize() {
+  const root = document.documentElement;
+  if (getFontSize() === FONT_SIZE_LARGE) root.dataset.fontSize = FONT_SIZE_LARGE;
+  else delete root.dataset.fontSize;
+}
+function setFontSize(size) {
+  if (!FONT_SIZES.includes(size)) return;
+  setLS(FONT_SIZE_LS, size);
+  applyFontSize();
+}
 // G40 (user 2026-10-10): copies of one question text share a flag, so a toggle writes every copy
 // (questionCopies: js/domain/questions.js, loaded later; only called at run time)
 function setPracticeFlag(key, on) {

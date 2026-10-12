@@ -60,11 +60,11 @@ function ensureLegacyMigrated() {
   }
 }
 
-// ── v1.2.1: merged STUDY facts (FACT_ID_MERGES) — move fact-id keyed progress to the kept id, once per old id ──
+// ── v1.3.2: merged STUDY facts (FACT_ID_MERGES) — move fact-id keyed progress to the kept id, once per old id ──
 function migrateFactIds() {
   if (typeof FACT_ID_MERGES === 'undefined') return;
   const all = Object.entries(FACT_ID_MERGES).map(([oldId, keptId]) => [Number(oldId), keptId]);
-  // W-057: the plan moves on every load (an old id never comes back, so it is a no-op once clean): a still-open older
+  // W-060: the plan moves on every load (an old id never comes back, so it is a no-op once clean): a still-open older
   // tab may write its plan back with the old id after the marks moved, and a plan that does not parse is lost
   rewriteStoredJson(STUDY_PLAN_LS, v => mergePlanFacts(v, all));
   const done = mergedFactIds();
@@ -73,7 +73,7 @@ function migrateFactIds() {
   const results = FACT_ID_MAP_LS.map(key => rewriteStoredJson(key, v => mergeFactMap(v, todo)));
   // the marker (marks only) is written once something moved and nothing failed: storage with no old id stays untouched
   // (and is checked again, so an old id a cached older page writes during the SW cutover still moves on the next
-  // load); W-058: a name whose write failed still holds the old id, so the next load must try again
+  // load); W-061: a name whose write failed still holds the old id, so the next load must try again
   if (results.includes(REWRITE_FAILED) || !results.includes(REWRITE_DONE)) return;
   localStorage.setItem(FACT_MERGE_LS, JSON.stringify([...done, ...todo.map(([oldId]) => oldId)]));
 }
@@ -85,7 +85,7 @@ function mergedFactIds() {
 }
 // a value that does not parse is left as stored (the screen that owns it decides); fn returns undefined = no change.
 // Returns REWRITE_DONE / REWRITE_NONE / REWRITE_FAILED (a failed name outranks a done one).
-// S-195: with a legacy fallback both names are rewritten, so the next legacy merge cannot bring the old id back
+// S-208: with a legacy fallback both names are rewritten, so the next legacy merge cannot bring the old id back
 const REWRITE_DONE = 'done', REWRITE_NONE = 'none', REWRITE_FAILED = 'failed';
 function rewriteStoredJson(key, fn) {
   const results = [...new Set([key, LS_KEY_FALLBACK[key] || key])].map(name => rewriteStoredName(name, fn));
@@ -99,7 +99,7 @@ function rewriteStoredName(name, fn) {
   try { value = JSON.parse(raw); } catch { return REWRITE_NONE; }
   const next = fn(value);
   if (next === undefined) return REWRITE_NONE;
-  // S-199: one name that will not take the write (quota: often why a fallback exists) must not stop the other
+  // S-212: one name that will not take the write (quota: often why a fallback exists) must not stop the other
   try { localStorage.setItem(name, JSON.stringify(next)); } catch (e) { console.warn('fact id migration: ' + name, e); return REWRITE_FAILED; }
   return REWRITE_DONE;
 }
@@ -119,7 +119,7 @@ function mergePlanFacts(plan, todo) {
   plan.days.forEach(day => (Array.isArray(day && day.tasks) ? day.tasks : []).forEach(task => {
     if (!task || !Array.isArray(task.facts) || !task.facts.some(id => ids.has(id))) return;
     task.facts = [...new Set(task.facts.map(id => (ids.has(id) ? ids.get(id) : id)))];
-    if (task.anchor && typeof task.anchor === 'object') mergeFactMap(task.anchor, todo); // S-196
+    if (task.anchor && typeof task.anchor === 'object') mergeFactMap(task.anchor, todo); // S-209
     changed = true;
   }));
   return changed ? plan : undefined;

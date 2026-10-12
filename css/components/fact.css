@@ -75,7 +75,7 @@
 .fact-mem summary::before { content: '▸ '; }
 .fact-mem[open] summary::before { content: '▾ '; }
 .fact-mem-body { padding: 0 var(--space-6) var(--space-6); font-size: var(--fs-sm); line-height: 1.6; color: var(--text-muted); }
-/* CUI-0028 (v1.2.1, user option C): below 375px the memory box's side padding shrinks, so memo ③'s 4-column table fits
+/* CUI-0028 (v1.3.2, user option C): below 375px the memory box's side padding shrinks, so memo ③'s 4-column table fits
    the Study card at 320 / 360px without scrolling sideways */
 @media (max-width: 374px) {
   .fact-mem-body { padding-left: var(--space-2); padding-right: var(--space-2); }

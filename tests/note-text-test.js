@@ -1,5 +1,5 @@
 // Note text guard: the 4 text memory notes tidied in .proj-docs/plans/2026-10-10_handoff_note-text-cleanup.md §2,
-// restyled in v1.2.1 (.proj-docs/plans/2026-10-12_memo-followup-spec.json: no trailing 「；」/「。」, new titles)
+// restyled in v1.3.2 (.proj-docs/plans/2026-10-12_memo-followup-spec.json: no trailing 「；」/「。」, new titles)
 // (Magna Carta / 國會選舉 / 戴卓爾夫人 / 陪審員) must match the user-confirmed wording letter for letter,
 // and every question in a group must share the identical note (a drifted copy would show a stale mnemonic).
 const fs = require('fs');
@@ -12,7 +12,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
 // [exam, question number (1-based)] pairs per group, as listed in the handoff §2
 const GROUPS = [
   {
-    // v1.2.1 F9: single note (no memory method), Bonfire Night linked to the plot
+    // v1.3.2 F9: single note (no memory method), Bonfire Night linked to the plot
     name: 'Guy Fawkes 7.8',
     questions: [[7, 9]],
     note: [

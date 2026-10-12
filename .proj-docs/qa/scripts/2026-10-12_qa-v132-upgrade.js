@@ -1,4 +1,4 @@
-// v1.2.0 -> v1.2.1 upgrade E2E. argv: oldRoot newRoot mode(file|http) lang
+// v1.2.0 -> v1.3.2 upgrade E2E. argv: oldRoot newRoot mode(file|http) lang
 const { chromium } = require('playwright-core');
 const { execSync, spawn } = require('child_process');
 const fs = require('fs');
@@ -39,16 +39,16 @@ const check = (c, m) => { log((c ? 'ok:   ' : 'FAIL: ') + m); if (!c) process.ex
   log('v1.2.0 plan days', before.days, 'tasks with 126', before.with126, 'with 125', before.with125, 'both', before.both);
   check(before.with126.length > 0, 'v1.2.0 plan has a task with fact 126');
   if (MODE === 'http') { const sw = await pg.evaluate(async () => { const r = await navigator.serviceWorker.ready; return !!navigator.serviceWorker.controller || !!r.active; }); log('v1.2.0 SW active', sw); }
-  // --- swap to v1.2.1 and reload
+  // --- swap to v1.3.2 and reload
   swap(NEW);
   await pg.goto(URL);
   let ver = await pg.evaluate(() => APP_VERSION);
   log('after swap+reload version', ver);
   // http: the new SW installs, skipWaiting + claim, the app reloads itself on controllerchange — wait for it (no manual reloads)
-  for (let i = 0; i < 30 && ver !== '1.2.1'; i++) { await pg.waitForTimeout(1000); try { await pg.waitForLoadState('load'); ver = await pg.evaluate(() => APP_VERSION); } catch (e) { ver = 'nav'; } }
+  for (let i = 0; i < 30 && ver !== '1.3.2'; i++) { await pg.waitForTimeout(1000); try { await pg.waitForLoadState('load'); ver = await pg.evaluate(() => APP_VERSION); } catch (e) { ver = 'nav'; } }
   log(' version after waiting for SW cutover', ver, MODE === 'http' ? JSON.stringify(await pg.evaluate(async () => caches.keys())) : '');
   await pg.waitForTimeout(1500);
-  check(ver === '1.2.1', 'running v1.2.1');
+  check(ver === '1.3.2', 'running v1.3.2');
   const after = await pg.evaluate(() => {
     const g = k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return 'BAD'; } };
     const plan = g(STUDY_PLAN_LS);
@@ -58,7 +58,7 @@ const check = (c, m) => { log((c ? 'ok:   ' : 'FAIL: ') + m); if (!c) process.ex
       any126: tasks.some(t => (t.facts || []).includes(126) || (t.anchor && 126 in t.anchor)), dupTask,
       homeHasCreate: !!document.querySelector('.plan-cta'), homeCard: (document.querySelector('.plan-home') || {}).innerText };
   });
-  log('v1.2.1 storage', JSON.stringify({ ...after, homeCard: (after.homeCard || '').slice(0, 160) }));
+  log('v1.3.2 storage', JSON.stringify({ ...after, homeCard: (after.homeCard || '').slice(0, 160) }));
   check(after.mastered && after.mastered[125] && !(126 in after.mastered), '#125 mastered, no 126 key');
   check(after.bookmarks && after.bookmarks[125] && !(126 in after.bookmarks), '#125 bookmarked, no 126 key');
   check(after.marker === '[126]', 'marker lifeuk.factIdsMerged = [126]');

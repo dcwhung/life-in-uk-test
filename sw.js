@@ -54,6 +54,7 @@ const SHELL = [
   'js/components/modal.js',
   'js/components/popover.js',
   'js/components/factCard.js',
+  'js/components/fitRow.js',
   'js/components/switch.js',
   'js/components/toast.js',
   'js/screens/home.js',

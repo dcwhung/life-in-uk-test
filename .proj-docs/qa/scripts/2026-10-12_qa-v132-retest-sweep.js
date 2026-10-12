@@ -1,4 +1,4 @@
-// QA v1.2.1 re-test (CUI-0028 @ f7d08de): same as qa-v121-sweep.js, plus a 0-wide wrap (hidden screen) counts as bad
+// QA v1.3.2 re-test (CUI-0028 @ f7d08de): same as qa-v132-sweep.js, plus a 0-wide wrap (hidden screen) counts as bad
 const { chromium } = require('playwright-core');
 const ROOT = process.argv[2], WIDTHS = process.argv[3].split(',').map(Number), LANG = process.argv[4] || 'en';
 const FIT_JS = `(root) => [...root.querySelectorAll('.note-table-wrap')].map(w => {

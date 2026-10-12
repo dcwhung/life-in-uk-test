@@ -1,4 +1,4 @@
-// QA v1.2.1 re-test (CUI-0028): computed padding of Study card / memory box / note-table cells (Study, Practice, Results)
+// QA v1.3.2 re-test (CUI-0028): computed padding of Study card / memory box / note-table cells (Study, Practice, Results)
 // usage: node <this> <root> <w1,w2,..> [lang] -> one JSON line per width (compare HEAD vs origin/main)
 const { chromium } = require('playwright-core');
 const ROOT = process.argv[2], WIDTHS = process.argv[3].split(',').map(Number), LANG = process.argv[4] || 'en';

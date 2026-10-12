@@ -1,6 +1,6 @@
-// QA v1.2.1 re-test (W-058, 94ff6fd): v1.2.0 marks on 126 -> first v1.2.1 load where writing a mark key throws (quota)
+// QA v1.3.2 re-test (W-061, 94ff6fd): v1.2.0 marks on 126 -> first v1.3.2 load where writing a mark key throws (quota)
 // -> no marker; next load (quota freed) moves 126 -> 125 and writes the marker; a third load changes nothing.
-// argv: v120Root v121Root ; env S (scratch dir). Cases: Q1 mastered key throws, Q2 bookmarks key throws,
+// argv: v120Root v132Root ; env S (scratch dir). Cases: Q1 mastered key throws, Q2 bookmarks key throws,
 // Q3 mastered key throws on two loads in a row, then frees.
 const { chromium } = require('playwright-core');
 const { execSync } = require('child_process');

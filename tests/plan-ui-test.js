@@ -415,7 +415,8 @@ async function checkHiddenAttr(pg) {
   assert(shown.length === 0, '[hidden] elements are never displayed: ' + shown.join(', '));
 }
 // v1.0.2: the 4 presets share the card width equally, the date picker has its own row below them, and the 7 rest
-// day chips stay on one row
+// day chips stay on one row. v1.3.1 (user; replaces W-036's narrow squeeze): the presets keep the chip's padding and go
+// 2 × 2 when one row cannot hold their labels (js/components/fitRow.js; tests/fontsize-test.js checks the rule)
 const LAYOUT_TOLERANCE_PX = 1;
 async function checkGoalLayout(pg, where) {
   const r = await pg.evaluate(() => {
@@ -423,12 +424,15 @@ async function checkGoalLayout(pg, where) {
     const presets = [...document.querySelectorAll('#planDaysChips .chip')].map(rect), rest = [...document.querySelectorAll('#planRestChips .chip')].map(rect);
     const field = rect(byId('planDaysChips').closest('.plan-field')), pick = rect(document.querySelector('.plan-date-pick'));
     const clipped = [...document.querySelectorAll('#planDaysChips .chip, #planRestChips .chip')].filter(e => e.scrollWidth > e.clientWidth + 0.5).map(e => e.textContent);
-    return { widths: presets.map(p => p.width), tops: presets.map(p => p.top), left: presets[0].left - field.left, right: field.right - presets[3].right,
+    return { stacked: byId('planDaysChips').classList.contains('is-stacked'), widths: presets.map(p => p.width), tops: presets.map(p => p.top),
+      left: presets[0].left - field.left, right: field.right - Math.max(...presets.map(p => p.right)),
       pickBelow: pick.top >= Math.max(...presets.map(p => p.bottom)) - 0.5, restTops: rest.map(p => Math.round(p.top)), restRight: field.right - rest[6].right, clipped };
   });
   const tol = LAYOUT_TOLERANCE_PX;
-  assert(r.widths.length === 4 && r.widths.every(x => Math.abs(x - r.widths[0]) <= tol) && r.tops.every(x => Math.abs(x - r.tops[0]) <= tol),
-    `${where}: 4 preset chips of equal width on one row: ` + JSON.stringify(r));
+  const rowOf = i => (r.stacked ? Math.floor(i / 2) : 0), PER_ROW = r.stacked ? 2 : 4;
+  assert(r.widths.length === 4 && r.widths.every(x => Math.abs(x - r.widths[0]) <= tol)
+    && r.tops.every((x, i) => Math.abs(x - r.tops[rowOf(i) * PER_ROW]) <= tol) && (!r.stacked || r.tops[2] > r.tops[0] + tol),
+    `${where}: 4 preset chips of equal width, on one row or 2 × 2: ` + JSON.stringify(r));
   assert(Math.abs(r.left) <= tol && Math.abs(r.right) <= tol, `${where}: presets span the full card width: ` + JSON.stringify([r.left, r.right]));
   assert(r.pickBelow, `${where}: "or exam date" has its own row below the presets`);
   assert(r.restTops.length === 7 && new Set(r.restTops).size === 1 && r.restRight >= -tol, `${where}: all 7 rest day chips on one row: ` + JSON.stringify(r.restTops));

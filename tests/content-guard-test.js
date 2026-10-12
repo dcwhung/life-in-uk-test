@@ -164,7 +164,7 @@ const firstQuestion = test => Object.entries(EXAMS).flatMap(([exam, qs]) => qs.m
 const withNote = firstQuestion(q => q.note.length > 0);
 const emptied = examProblems(base.exams, mutatedExams(ex => { ex[withNote.exam][withNote.i].note = ''; }));
 assert(emptied.some(p => p.startsWith(questionLabel(withNote.exam, withNote.i))), `S-051: emptying the note of ${questionLabel(withNote.exam, withNote.i)} is reported`);
-// v1.2.1: every question now has a note, so the "'' -> text" case runs on a baseline copy where one note was empty
+// v1.3.2: every question now has a note, so the "'' -> text" case runs on a baseline copy where one note was empty
 const withoutNote = firstQuestion(q => q.note === '') || withNote;
 const emptyBase = JSON.parse(JSON.stringify(base.exams));
 emptyBase[withoutNote.exam][withoutNote.i]._noteNonEmpty = false;

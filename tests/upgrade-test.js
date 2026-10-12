@@ -17,6 +17,8 @@ const { startPagesServer, appFiles } = require('./pages-server');
 //   7. W-013: the current shell whose locales/zh-HK.js failed to load — the ⚙ language row is hidden (not a dead control)
 //   8. W-055 (v1.2.0): a v1.1.2 cached shell (pinned 44816c6) + current js — main.js upgradeLegacyHeaderMarkup() hides
 //      the old language pill and turns the "← Home" buttons into 🏠 icon buttons; no raw keys, no [i18n] warnings
+//   9. W-057 (v1.3.0): the current shell with one v1.2.0 file (store.js / i18n.js / locales/en.js) — still starts, ⚙
+//      opens, no raw counter key, no raw key in the text size row (S-201)
 // The v0.57 files come from git: V057_REF is the last v0.57 commit on main (merge of PR #29), pinned so a later
 // main does not silently turn this into a same-version test.
 const ROOT = path.resolve(__dirname, '..');
@@ -249,6 +251,65 @@ async function v112Shell(b) {
   await pg.close();
 }
 
+// W-058 (v1.3.1): a v1.3.0 cached index.html (no data-fit-row) + current css / js: the rows that replaced W-036 /
+// W-056 / the portrait rule still fit at 320px: the presets go 2 × 2 with no label cut, the level cards and the My Review
+// tiles stack
+const V130_SHELL_REF = '6daef71';
+const V130_SHELL_WRONG = JSON.stringify(Object.fromEntries(Array.from({ length: 30 }, (_, i) => [`1.${i + 1}`, true])));
+async function v130Shell(b) {
+  const dir = tmpDir('v130shell');
+  copyCurrent(dir);
+  fs.writeFileSync(path.join(dir, 'old.html'), execFileSync('git', ['-C', ROOT, 'show', `${V130_SHELL_REF}:index.html`]));
+  const pg = await b.newPage({ viewport: { width: 320, height: 640 } });
+  const errs = []; pg.on('pageerror', e => errs.push(e.message));
+  await pg.goto('file://' + path.join(dir, 'old.html'));
+  await seed(pg, { 'lifeuk.wrongList': V130_SHELL_WRONG });
+  await pg.waitForSelector('#examGrid .exam-btn', { state: 'attached' });
+  const stacked = sel => document.querySelector(sel).classList.contains('is-stacked');
+  await pg.evaluate(() => startMode('practice'));
+  assert(await pg.evaluate(stacked, '.my-grid'), 'v1.3.0 shell 320px: the My Review tiles stack');
+  await pg.evaluate(() => openPlanGoal());
+  const r = await pg.evaluate(() => ({
+    presets: byId('planDaysChips').classList.contains('is-stacked'), levels: byId('planLevelGrid').classList.contains('is-stacked'),
+    cut: [...document.querySelectorAll('#planDaysChips .chip, #planLevelGrid .mode-title')].filter(e => e.scrollWidth > e.clientWidth + 1).map(e => e.textContent),
+  }));
+  assert(r.presets && r.levels && r.cut.length === 0, 'v1.3.0 shell 320px: presets 2 × 2, level cards stacked, nothing cut: ' + JSON.stringify(r));
+  // S-207: the shim marks the same rows with the same texts as the current index.html
+  const current = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const shim = await pg.evaluate(() => LEGACY_FIT_ROWS.map(([row, texts]) => [document.querySelector(row).dataset.fitRow, texts]));
+  const marked = [...current.matchAll(/data-fit-row="([^"]+)"/g)].map(m => m[1]);
+  assert(shim.length === marked.length && shim.every(([, texts]) => marked.includes(texts)), 'v1.3.0 shell: LEGACY_FIT_ROWS matches index.html data-fit-row: ' + JSON.stringify({ shim, marked }));
+  assert(errs.length === 0, 'v1.3.0 shell: no page errors: ' + errs.join(' | '));
+  await pg.close();
+}
+
+// W-057 (v1.3.0): the current shell with ONE file still from v1.2.0 (an HTTP-cached file outside SW control, CUI-0004
+// style): old store.js (no applyFontSize) still starts Home; old i18n.js (no syncFontSetting) still opens ⚙; old
+// locales/en.js (no quiz.questionOfShort) never shows the raw key — the long counter stays
+const V120_REF = '2d0960c';
+const V120_SINGLES = ['js/core/store.js', 'js/core/i18n.js', 'locales/en.js'];
+async function v120SingleFile(b, file) {
+  const dir = tmpDir('v120one');
+  copyCurrent(dir);
+  fs.writeFileSync(path.join(dir, file), execFileSync('git', ['-C', ROOT, 'show', `${V120_REF}:${file}`]));
+  const pg = await b.newPage({ viewport: { width: 320, height: 760 } });
+  const errs = []; pg.on('pageerror', e => errs.push(e.message));
+  await pg.goto('file://' + path.join(dir, 'index.html'));
+  await pg.evaluate(() => { localStorage.clear(); localStorage.setItem('lifeuk.fontSize', JSON.stringify('large')); });
+  await pg.reload();
+  await pg.waitForSelector('#examGrid .exam-btn', { state: 'attached' });
+  await pg.click('#settingsBtn');
+  const opened = await pg.evaluate(() => byId('settingsPop').classList.contains('show'));
+  // S-201: the text size row never shows a raw key (hidden when its words or its code are missing)
+  const fontRow = await pg.evaluate(() => { const r = byId('settingsFontRow'); return r.hidden || !/\bapp\.font/.test(r.textContent + [...r.querySelectorAll('[aria-label]')].map(b => b.getAttribute('aria-label')).join()); });
+  assert(fontRow, `v1.2.0 ${file} + current files: the ⚙ text size row shows no raw key (or is hidden)`);
+  await pg.keyboard.press('Escape');
+  await pg.evaluate(() => { pendingMode = 'practice'; startExam(1); const q = state.questions[0]; selectOption(Math.max(0, q.o.indexOf(q.a[0]))); });
+  const counter = await pg.$eval('#qNum > span', e => e.textContent);
+  assert(opened && !counter.includes('quiz.') && errs.length === 0, `v1.2.0 ${file} + current files: Home starts, ⚙ opens, no raw counter key, no page errors: ` + JSON.stringify({ opened, counter, errs }));
+  await pg.close();
+}
+
 // 6. T-008: a v0.64-style shell (no locales/zh-HK.js tag, no language control: v1.2.0 drops the ⚙) running the current js while
 // lifeuk.uiLang says zh-HK — the language has no locale on that page, so it reads as en without warnings and
 // without rewriting the stored value; the current shell then opens in zh-HK
@@ -423,6 +484,8 @@ function checkV057Ref() {
   await i18nBootFailure(b, { tag: 'current shell, i18n.js missing', shell: 'index.html', missing: 'js/core/i18n.js' });
   await i18nBootFailure(b, { tag: 'current shell, locale missing', shell: 'index.html', missing: 'locales/en.js', knownError: ZH_HK_WITHOUT_EN_ERROR });
   await v112Shell(b);
+  for (const file of V120_SINGLES) await v120SingleFile(b, file);
+  await v130Shell(b);
   await oldShellZhHk(b);
   await zhHkLocaleMissing(b);
   console.log('UPGRADE PASS');

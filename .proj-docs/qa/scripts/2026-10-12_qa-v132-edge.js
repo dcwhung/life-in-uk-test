@@ -1,4 +1,4 @@
-// v1.2.1 fact-merge edge cases on file:// (argv: v121 root)
+// v1.3.2 fact-merge edge cases on file:// (argv: v132 root)
 const { chromium } = require('playwright-core');
 const URL = 'file://' + process.argv[2] + '/index.html';
 let fails = 0; const check = (c, m) => { console.log((c ? 'ok:   ' : 'FAIL: ') + m); if (!c) fails++; };
@@ -37,7 +37,7 @@ let fails = 0; const check = (c, m) => { console.log((c ? 'ok:   ' : 'FAIL: ') +
   await seed({ 'lifeuk.migrated': '1.2.0', 'lifeuk.factIdsMerged': '[126]', 'lifeuk.studyMastered': '{"126":true}' });
   s = await ls();
   console.log('info: E5 marker [126] + mastered {126} after load ->', s['lifeuk.studyMastered'], '(126 stays orphaned; documented residual)');
-  // E6: plan written back with 126 after the marker (W-057) moves on load
+  // E6: plan written back with 126 after the marker (W-060) moves on load
   await seed({});
   await pg.evaluate(() => { goHome(); setPlanFeature(true); openPlanGoal(); planCreate(); const p = JSON.parse(localStorage.getItem(STUDY_PLAN_LS));
     p.days.flatMap(d => d.tasks).filter(t => t.type === 'read' && t.facts.includes(125)).forEach(t => { t.facts = t.facts.map(x => (x === 125 ? 126 : x)); });

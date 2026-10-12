@@ -17,11 +17,11 @@ const TZ_VARIANTS = ['Europe/London', 'Pacific/Auckland', 'America/Los_Angeles']
 const IS_CHILD = !!process.env.PLAN_TEST_CHILD;
 
 // headline numbers (SK-020: checked against the data on 2026-10-08, arch §0)
-const FACT_COUNT = 235; // v1.2.1: #126 merged into #125
+const FACT_COUNT = 235; // v1.3.2: #126 merged into #125
 const QUESTION_COUNT = 408;
 const CANON_COUNT = 389;
 const CANON_PER_CHAPTER = { 1: 9, 2: 11, 3: 161, 4: 106, 5: 102 };
-const FACTS_PER_CHAPTER = { 1: 2, 2: 4, 3: 91, 4: 67, 5: 71 }; // v1.2.1: Ch4 #126 merged into #125
+const FACTS_PER_CHAPTER = { 1: 2, 2: 4, 3: 91, 4: 67, 5: 71 }; // v1.3.2: Ch4 #126 merged into #125
 const MAX_SRC_PER_FACT = 8; // fact #21 (arch §0)
 const MAX_QIDS_PER_FACT = 6; // fact #21's 8 sources are 6 distinct English questions
 const STUDY_ORDER = [1, 2, 5, 4, 3]; // handoff §2.3

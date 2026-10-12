@@ -1,4 +1,4 @@
-// QA v1.2.1 re-test (CUI-0028): Study memo ③ cards (opened) -> element screenshots + fit numbers; same cards rendered as
+// QA v1.3.2 re-test (CUI-0028): Study memo ③ cards (opened) -> element screenshots + fit numbers; same cards rendered as
 // study-plan reading cards (#screenPlanRun, factCardHtml full variant) -> fit numbers.
 // usage: node <this> <root> <w1,w2,..> <lang> <outDir|->
 const { chromium } = require('playwright-core');

@@ -14,7 +14,7 @@ const PARTIAL_FACT = 21;  // chapter 3, 8 sources — one mastered below
 const MANUAL_FACT = 4;    // chapter 2, ticked by hand
 const CHAPTER = 2;
 const STREAKS = { '4.6': 3, '6.5': 3, '17.8': 3, '4.16': 3 };
-const STUDY_TOTAL = 235; // v1.2.1: #126 merged into #125
+const STUDY_TOTAL = 235; // v1.3.2: #126 merged into #125
 
 const card = id => `#studyContent .fact[data-fact-id="${id}"]`;
 

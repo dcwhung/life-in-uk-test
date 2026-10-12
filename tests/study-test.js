@@ -19,7 +19,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   const css = (sel, prop) => pg.$eval(sel, (e, p) => getComputedStyle(e)[p], prop);
   // expected chapter number, counted here from STUDY (not from the app helper): position among the same-chapter facts
   const EXPECTED_NUM_JS = 'const f = STUDY.find(x => x.id === id); return STUDY.filter(x => x.ch === f.ch).indexOf(f) + 1;';
-  const STUDY_TOTAL = 235; // v1.2.1: #126 merged into #125
+  const STUDY_TOTAL = 235; // v1.3.2: #126 merged into #125
   // helper unit test: each chapter's first fact is 1, its last is the chapter total, every (ch, n) pair is unique
   async function checkChapterFactHelper() {
     const r = await pg.evaluate(src => {
