@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plan Home Ring</title>
+<style>
+  /* ── tokens copied from css/base/tokens.css ── */
+  :root {
+    --navy: #1a2744; --navy-light: #2e4080;
+    --gold: #c9a84c; --gold-light: #e8c97a; --green-light: #52b788;
+    --bg: #f0f2f7; --text: #1a2744; --text-muted: #5a6a8a;
+    --text-inverse: #fff; --text-inverse-strong: rgba(255,255,255,0.75); --text-inverse-faint: rgba(255,255,255,0.45);
+    --plan-heat-0: #e3e7f1; --plan-heat-1: #e8735f; --plan-heat-2: #f0a54a; --plan-heat-3: #c9cf4f; --plan-heat-4: var(--green-light);
+    --plan-home-track: rgba(255,255,255,0.18);
+    --radius: 14px; --radius-md: 10px; --radius-pill: 999px;
+    --fs-2xs: 10px; --fs-sm: 12px; --fs-md: 14px; --fs-lg: 15px;
+    --space-3: 6px; --space-4: 8px; --space-5: 10px; --space-6: 12px; --space-7: 14px; --space-8: 16px;
+    --shadow-sm: 0 2px 8px rgba(26,39,68,0.07);
+    /* proposed new token */
+    --plan-home-ring-size: 64px;
+    /* mockup-only chrome */
+    --mock-note-bg: #fffbea; --mock-note-border: #e8d48a; --mock-page: #e4e7ef;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--mock-page); color: var(--text); -webkit-font-smoothing: antialiased; padding: 24px 16px; }
+  h1 { font-size: 18px; margin-bottom: 4px; }
+  .lead { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; max-width: 1100px; }
+  .col h2 { font-size: 14px; margin-bottom: 4px; }
+  .col .tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-pill); background: var(--gold-light); margin-bottom: 10px; }
+  .col .tag.cur { background: #d5dae6; }
+  .state { font-size: 11px; font-weight: 700; color: var(--text-muted); margin: 14px 0 6px; text-transform: uppercase; letter-spacing: .04em; }
+  .note { margin-top: 12px; background: var(--mock-note-bg); border: 1px solid var(--mock-note-border); border-radius: 8px; padding: 10px 12px; font-size: 12px; line-height: 1.55; }
+  .note li { margin-left: 16px; }
+
+  /* ── existing card styles (css/screens/plan.css) ── */
+  .plan-home { display: grid; gap: var(--space-6); background: var(--navy-light); color: var(--text-inverse); border-radius: var(--radius); padding: var(--space-8); box-shadow: var(--shadow-sm); }
+  .plan-home-top { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-4); flex-wrap: wrap; }
+  .plan-home-ttl { font-size: var(--fs-lg); font-weight: 800; }
+  .plan-home-ttl span { color: var(--gold-light); }
+  .plan-home-cd { font-size: var(--fs-sm); color: var(--text-inverse-strong); line-height: 1.5; }
+  .plan-home-row { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-4); font-size: var(--fs-sm); }
+  .plan-home-pct { font-size: var(--fs-md); }
+  .plan-home-bar { height: 8px; border-radius: var(--radius-pill); background: var(--plan-home-track); overflow: hidden; }
+  .plan-home-bar i { display: block; height: 100%; border-radius: var(--radius-pill); }
+  .plan-home-next { font-size: var(--fs-sm); color: var(--text-inverse-strong); line-height: 1.5; }
+  .plan-home-next b { color: var(--text-inverse); }
+  .plan-home-acts { display: flex; gap: var(--space-4); flex-wrap: wrap; }
+  .plan-btn-gold { min-height: 44px; background: var(--gold); color: var(--navy); border: 0; border-radius: var(--radius-md); padding: var(--space-5) var(--space-8); font-size: var(--fs-md); font-weight: 800; }
+  .plan-btn-line { min-height: 44px; background: transparent; color: var(--text-inverse); border: 1.5px solid var(--text-inverse-faint); border-radius: var(--radius-md); padding: var(--space-5) var(--space-7); font-size: var(--fs-sm); font-weight: 700; }
+  .plan-home-bar i.h2 { background: var(--plan-heat-2); }
+  .plan-home-bar i.h4 { background: var(--plan-heat-4); }
+
+  /* ── NEW (proposal) ── */
+  .plan-home-acts.end { justify-content: flex-end; }                 /* buttons to the right */
+  .plan-home-today { display: flex; align-items: center; gap: var(--space-7); }   /* ring + text row */
+  .plan-home-today.rev { flex-direction: row-reverse; }              /* variant B: ring on the right */
+  .plan-home-today-txt { display: grid; gap: var(--space-3); min-width: 0; flex: 1; }
+  .plan-home-today-lbl { font-size: var(--fs-sm); font-weight: 700; color: var(--text-inverse); }
+  .plan-home-ring { width: var(--plan-home-ring-size); height: var(--plan-home-ring-size); flex-shrink: 0; }
+  .plan-home-ring circle { fill: none; stroke-width: 7; }
+  .plan-home-ring .track { stroke: var(--plan-home-track); }
+  .plan-home-ring .prog { stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; }
+  .plan-home-ring .prog.h2 { stroke: var(--plan-heat-2); }
+  .plan-home-ring .prog.h4 { stroke: var(--plan-heat-4); }
+  .plan-home-ring text { fill: var(--text-inverse); font-size: 15px; font-weight: 800; text-anchor: middle; dominant-baseline: central; }
+  .plan-home-ring text.done { font-size: 22px; }
+</style>
+</head>
+<body>
+<h1>🗓️ Home study plan card · Bar → Ring</h1>
+<p class="lead">Mockup only. Left = current (v-now); A = ring on the left; B = ring on the right. Each shows "in progress (45%)" and "done (100%)". Narrow your browser to ~375px to check phone width.</p>
+
+<div class="grid" id="grid"></div>
+
+<script>
+// mockup-only renderer: builds the 3 variants × 2 states from one data set
+const RING_R = 28, RING_BOX = 64;
+const STATES = [
+  { pct: 45, band: 'h2', next: 'Next: <b>Facts · Chapter 3</b> (continue from #12)', goKey: 'continue' },
+  { pct: 100, band: 'h4', next: '<b>✓ Done for today</b>, see you tomorrow', goKey: 'view' },
+];
+const LABELS = {
+  cur:  { continue: "Continue today's tasks →", view: "View today's tasks" },
+  next: { continue: 'Continue', view: "View today's tasks" },
+};
+function cardTop() {
+  return `<div class="plan-home-top"><span class="plan-home-ttl">🗓️ Study plan · <span>Day 4 / 13</span></span>`
+    + `<span class="plan-home-cd">10 days to the exam · 22/10</span></div>`;
+}
+function ring(s) {
+  const c = RING_BOX / 2;
+  const txt = s.pct === 100 ? `<text class="done" x="${c}" y="${c}">✓</text>` : `<text x="${c}" y="${c}">${s.pct}%</text>`;
+  return `<svg class="plan-home-ring" viewBox="0 0 ${RING_BOX} ${RING_BOX}" role="img" aria-label="Today's progress ${s.pct}%">`
+    + `<circle class="track" cx="${c}" cy="${c}" r="${RING_R}"/>`
+    + `<circle class="prog ${s.band}" cx="${c}" cy="${c}" r="${RING_R}" pathLength="100" stroke-dasharray="${s.pct} 100"/>`
+    + txt + `</svg>`;
+}
+function acts(labels, s, end) {
+  return `<div class="plan-home-acts${end ? ' end' : ''}"><button class="plan-btn-gold">${labels[s.goKey]}</button>`
+    + `<button class="plan-btn-line">Schedule</button></div>`;
+}
+function cardCurrent(s) {
+  return `<div class="plan-home">${cardTop()}`
+    + `<div class="plan-home-row"><span>Today's progress</span><b class="plan-home-pct">${s.pct}%</b></div>`
+    + `<div class="plan-home-bar"><i class="${s.band}" style="width:${s.pct}%"></i></div>`
+    + `<p class="plan-home-next">${s.next}</p>${acts(LABELS.cur, s, false)}</div>`;
+}
+function cardRing(s, rev) {
+  return `<div class="plan-home">${cardTop()}`
+    + `<div class="plan-home-today${rev ? ' rev' : ''}">${ring(s)}`
+    + `<div class="plan-home-today-txt"><span class="plan-home-today-lbl">Today's progress</span>`
+    + `<p class="plan-home-next">${s.next}</p></div></div>${acts(LABELS.next, s, true)}</div>`;
+}
+const VARIANTS = [
+  { title: 'Current', tag: 'Now', cur: true, render: cardCurrent,
+    notes: ['Bar + % on its own row', 'Buttons left-aligned', "Gold button: “Continue today's tasks →”"] },
+  { title: 'A · Ring on the left', tag: 'Proposal', render: s => cardRing(s, false),
+    notes: ['64px ring with the % inside (✓ at 100%), G27 band colour kept', 'Label + next step sit beside the ring → card is ~1 row shorter', 'Buttons right-aligned; gold reads “Continue”'] },
+  { title: 'B · Ring on the right', tag: 'Proposal', render: s => cardRing(s, true),
+    notes: ['Same as A, ring mirrored to the right', 'Text starts at the left edge like the title line', 'Ring lines up above the right-aligned buttons'] },
+];
+document.getElementById('grid').innerHTML = VARIANTS.map(v =>
+  `<div class="col"><h2>${v.title}</h2><span class="tag${v.cur ? ' cur' : ''}">${v.tag}</span>`
+  + STATES.map(s => `<div class="state">${s.pct === 100 ? 'Done' : 'In progress'} · ${s.pct}%</div>${v.render(s)}`).join('')
+  + `<div class="note"><ul>${v.notes.map(n => `<li>${n}</li>`).join('')}</ul></div></div>`
+).join('');
+</script>
+</body>

@@ -327,19 +327,50 @@ async function checkHomeCard(pg) {
   await fresh(pg);
   await seedPlan(pg);
   await pg.evaluate(() => leaveToHome());
-  const r = await pg.evaluate(() => ({
-    ttl: byId('planCard').querySelector('.plan-home-ttl').textContent, cd: byId('planCard').querySelector('.plan-home-cd').textContent,
-    pct: byId('planCard').querySelector('.plan-home-pct').textContent, bar: byId('planCard').querySelector('.plan-home-bar i').style.width,
-    next: byId('planCard').querySelector('.plan-home-next').textContent, go: byId('planCard').querySelector('[data-action="planContinue"]').textContent,
-    want: planDayCompletion(planLoad().days[3], planDayLog(planLoadLog(), '2026-10-01')).pct,
-  }));
+  const r = await pg.evaluate(() => {
+    const card = byId('planCard'), q = s => card.querySelector(s);
+    const box = e => e.getBoundingClientRect();
+    return {
+      ttl: q('.plan-home-ttl').textContent, cd: q('.plan-home-cd').textContent,
+      pct: q('.plan-home-ring-pct').textContent, offset: q('.plan-home-ring-prog').style.strokeDashoffset,
+      progCls: q('.plan-home-ring-prog').getAttribute('class'), ringLabel: q('.plan-home-ring').getAttribute('aria-label'),
+      ringRole: q('.plan-home-ring').getAttribute('role'), lbl: q('.plan-home-today-lbl').textContent,
+      ringLeft: box(q('.plan-home-ring')).left, nextRight: box(q('.plan-home-today .plan-home-next')).right,
+      ringSize: box(q('.plan-home-ring')).width, oldBar: !!q('.plan-home-bar'),
+      acts: getComputedStyle(q('.plan-home-acts')).justifyContent,
+      next: q('.plan-home-next').textContent, go: q('[data-action="planContinue"]').textContent,
+      want: planDayCompletion(planLoad().days[3], planDayLog(planLoadLog(), '2026-10-01')).pct,
+      // v1.5.0: 100 % shows ✓ in the ring (rendered straight from the helper: no need to finish a whole day)
+      // W-064: 0 % and 100 % straight from the helper (no need to build such a day): band, .empty / .done, text, label
+      ...Object.fromEntries([['zero', 0], ['full', PERCENT]].map(([k, pct]) => {
+        const d = document.createElement('div'); d.innerHTML = planHomePctHtml(pct);
+        const txt = d.querySelector('.plan-home-ring-pct');
+        return [k, { txt: txt.textContent, txtCls: txt.getAttribute('class'), label: d.querySelector('.plan-home-ring').getAttribute('aria-label'),
+          progCls: d.querySelector('.plan-home-ring-prog').getAttribute('class').split(' ') }];
+      })),
+    };
+  });
+  const band = await pg.evaluate(w => planPctBand(w), r.want);
   assert(r.ttl === '🗓️ Study plan · Day 4 / 31' && r.cd === '28 days to the exam · 29/10', 'Home card: Day n / N + countdown: ' + r.ttl + ' | ' + r.cd);
-  assert(r.pct === `${r.want}%` && r.bar === `${r.want}%`, `Home card: today ${r.want}% + bar`);
+  assert(r.pct === `${r.want}%` && r.offset === String(100 - r.want), `v1.5.0 Home card: today ${r.want}% in the ring, offset ${r.offset}`);
+  assert(r.progCls.split(' ').includes(`h${band}`) && !r.oldBar, `v1.5.0 Home card ring: G27 band h${band}, no bar: ` + r.progCls);
+  assert(r.ringRole === 'img' && r.ringLabel === `Today's progress ${r.want}%` && r.lbl === "Today's progress", 'v1.5.0 ring: role img + label: ' + r.ringLabel);
+  assert(r.ringSize === 64 && r.ringLeft >= r.nextRight, `v1.5.0 variant B: 64px ring right of the next step (${r.ringLeft} ≥ ${r.nextRight})`);
+  assert(r.full.txt === '✓' && r.full.label === "Today's progress 100%" && r.full.txtCls.split(' ').includes('done')
+    && r.full.progCls.includes('h4') && !r.full.progCls.includes('empty'), 'v1.5.0 / W-064: 100 % shows a large ✓ on a green h4 arc: ' + JSON.stringify(r.full));
+  assert(r.zero.txt === '0%' && r.zero.label === "Today's progress 0%" && r.zero.progCls.includes('h0') && r.zero.progCls.includes('empty')
+    && !r.zero.txtCls.split(' ').includes('done'), 'W-064: 0 % has an .empty h0 arc (no round-cap dot): ' + JSON.stringify(r.zero));
+  const zeroVis = await pg.evaluate(() => { const d = document.createElement('div'); d.className = 'plan-home'; d.innerHTML = planHomePctHtml(0);
+    byId('planCard').append(d); const v = getComputedStyle(d.querySelector('.plan-home-ring-prog')).visibility; d.remove(); return v; });
+  assert(zeroVis === 'hidden', 'W-064: the 0 % arc is not drawn: ' + zeroVis);
+  assert(r.acts === 'flex-end', 'v1.5.0: Home card buttons on the right: ' + r.acts);
   assert(/^Next: Read Ch 4 Modern society facts #\d+–\d+ \(continue from #\d+\)$/.test(r.next), 'Home card: next step, continue from #n: ' + r.next);
-  assert(r.go === "Continue today's tasks →", 'Home card: continue button');
+  assert(r.go === 'Continue →', 'v1.5.0 Home card: continue button: ' + r.go);
   assert(await hitOk(pg, '#planCard [data-action="planContinue"]') && await hitOk(pg, '#planCard [data-action="openPlanSchedule"]'), `Home card buttons: ${HIT_MIN_PX}px`);
   const low = (await contrastOf(pg, '#planCard .plan-home *')).filter(c => c.ratio < MIN_CONTRAST || !c.opaque);
   assert(low.length === 0, `Home card text ≥ ${MIN_CONTRAST}:1: ` + JSON.stringify(low));
+  const ringFill = await pg.$eval('#planCard .plan-home-ring-pct', e => getComputedStyle(e).fill);
+  assert(ringFill === 'rgb(255, 255, 255)', 'v1.5.0: ring % text fill is --text-inverse: ' + ringFill);
   // unreadable log: the card says so and points to ↺ Reset
   await pg.evaluate(() => { localStorage.setItem('lifeuk.studyPlanProgress', '{bad'); leaveToHome(); });
   assert((await text(pg, '#planCard')).includes('↺ Reset plan'), 'unreadable log: Home card hint: ' + await text(pg, '#planCard'));
@@ -348,6 +379,7 @@ async function checkHomeCard(pg) {
   await pg.evaluate(() => { localStorage.removeItem('lifeuk.studyPlanProgress'); leaveToHome(); });
   const rest = await text(pg, '#planCard');
   assert(rest.includes('Rest day today') && rest.includes('catch-up'), 'rest day: no %, next = catch-up: ' + rest);
+  assert(!(await pg.$('#planCard .plan-home-ring')), 'v1.5.0: a rest day has no ring');
 }
 
 async function checkCalendar(pg) {
