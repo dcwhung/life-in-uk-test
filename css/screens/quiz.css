@@ -8,6 +8,9 @@
   white-space: nowrap; flex-shrink: 0; /* C2: a wider text back button ("‹ 記憶法") at 320px wraps the label, never 練 / 習 */
 }
 .quiz-meta { display: flex; align-items: center; gap: var(--space-4); }
+/* S-241: the label is the flex item that gives way — it may shrink below its longest word and break inside it, so an
+   unbreakable title (en "🧠 CROWN DEPENDENCY" at 320px, large text) never pushes the badge into the right gutter */
+.quiz-label { min-width: 0; overflow-wrap: anywhere; }
 
 /* review round note (above the question card, right) */
 .round-row { display: flex; justify-content: flex-end; margin: calc(-1 * var(--space-2)) 0 var(--space-4); }
