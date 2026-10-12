@@ -160,7 +160,7 @@ function flashStudyFact(id) {
   setTimeout(() => el.classList.remove('flash'), FACT_HIGHLIGHT_MS);
 }
 
-// O7: "🏆 n / 236" over every fact (v1.2.0, Q11: "mastered" moved to the tooltip / label so the header fits one row).
+// O7: "🏆 n / STUDY.length" over every fact (v1.2.0, Q11: "mastered" moved to the tooltip / label so the header fits one row).
 // A cached pre-v0.63 index.html has no #studyProgress (SW cutover)
 function renderStudyProgress() {
   const el = byId('studyProgress');

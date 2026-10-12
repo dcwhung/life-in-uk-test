@@ -109,7 +109,7 @@ async function checkOtherScreens(pg, off) {
     pendingMode = 'practice'; startExam(12);
     state.current = state.questions.findIndex(q => q.origIdx === 5);
     renderQuestion();
-    const i = state.current, q = state.questions[i]; state.answers[i] = [...q.a]; revealAnswer();
+    const i = state.current, q = state.questions[i]; q.note = ''; state.answers[i] = [...q.a]; revealAnswer();
   });
   const sqm = { qy: await shownCount(pg, '#similarBox .sqm-qy'), fy: await shownCount(pg, '#similarBox .sqm-fact-yue'), en: await shownCount(pg, '#similarBox .sqm-fact-en') };
   assert(sqm.en === 1 && (off ? sqm.qy === 0 && sqm.fy === 0 : sqm.qy > 0 && sqm.fy === 1), `${tag}: Similar panel translations ${off ? 'hidden' : 'shown'}: ` + JSON.stringify(sqm));
@@ -117,18 +117,19 @@ async function checkOtherScreens(pg, off) {
   const st = { yue: await shownCount(pg, '.fact-yue'), all: await pg.$$eval('.fact-yue', e => e.length), mem: await pg.$$eval('.fact-mem', e => e.filter(x => x.getClientRects().length > 0).length) };
   assert(st.all > 0 && (off ? st.yue === 0 : st.yue === st.all) && st.mem > 0, `${tag}: Study fact cards: translations ${off ? 'hidden' : 'shown'}, memory aid shown: ` + JSON.stringify(st));
 }
-// a question with no note (Exam 6 · Q21): off leaves no empty divider / dashed review box
+// a question with no note: off leaves no empty divider / dashed review box. Since v1.3.2 every question has a note,
+// so the test blanks one (Exam 6 · Q21 in the quiz, the first question on the review) to keep the CSS guarded
 async function checkNoNote(pg) {
   await pg.evaluate(() => {
     pendingMode = 'practice'; startExam(6);
     state.current = state.questions.findIndex(q => q.origIdx === 20);
     renderQuestion();
-    const i = state.current, q = state.questions[i]; state.answers[i] = [...q.a]; revealAnswer();
+    const i = state.current, q = state.questions[i]; q.note = ''; state.answers[i] = [...q.a]; revealAnswer();
   });
   assert(await shownCount(pg, '#answerBox .divider') === 0 && await shownCount(pg, '#ansEn') === 1, 'off, no note: the answer box has no empty divider');
-  await pg.evaluate(() => { pendingMode = 'exam'; startExam(6); state.questions.forEach((q, i) => { state.answers[i] = [...q.a]; }); finishExam(); });
+  await pg.evaluate(() => { pendingMode = 'exam'; startExam(6); state.questions[0].note = ''; state.questions.forEach((q, i) => { state.answers[i] = [...q.a]; }); finishExam(); });
   const tr = await pg.evaluate(() => [...document.querySelectorAll('.rv-tr')].map(e => [!!e.querySelector('.rv-note'), e.getClientRects().length > 0]));
-  assert(tr.length === 24 && tr.every(([note, shown]) => note === shown), 'off, no note: the review hides only the empty dashed box: ' + tr.filter(x => !x[0]).length);
+  assert(tr.length === 24 && tr.some(([note]) => !note) && tr.every(([note, shown]) => note === shown), 'off, no note: the review hides only the empty dashed box: ' + tr.filter(x => !x[0]).length);
 }
 async function checkHidden(pg) {
   await fresh(pg);

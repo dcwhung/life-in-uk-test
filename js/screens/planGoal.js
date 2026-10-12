@@ -157,6 +157,7 @@ function renderPlanGoal() {
   renderPlanLevels();
   renderPlanFeasibility(todayIso);
   renderPlanCta(todayIso);
+  fitRows(byId('screenPlanGoal')); // v1.3.1: presets 2 × 2 / level cards one per row only when their texts do not fit
 }
 
 // ── inputs ──

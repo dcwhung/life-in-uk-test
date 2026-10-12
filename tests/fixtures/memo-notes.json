@@ -1,19 +1,20 @@
 {
- "_doc": "v1.0.10 記憶法 v2 定稿（由 .proj-docs/plans/2026-10-11_memo-final-spec.json 抽出）：memos = 每個記憶法嘅題目（key = exam.0-based index）同文字；prefixes = 記憶法前面保留嘅行；note = prefix + \"\\n\" + text。note-table-test / note-indent-test 用 v1.1.3：加 S168 地區議會（STUDY fact #203：9.14、12.18、12.5，review S-168，用戶 2026-10-11 揀 B 原版）。 v1.1.5：4A 表頭「地區」改「國家」（用戶 2026-10-11，同錯誤選項「威爾斯地區議會」分開）。 4A 標題「地方議會」改「四地議會」（S-193，用戶 2026-10-11，同 S168「地區議會」拉開）。",
+ "_doc": "v1.0.10 記憶法 v2 定稿（由 .proj-docs/plans/2026-10-11_memo-final-spec.json 抽出）：memos = 每個記憶法嘅題目（key = exam.0-based index）同文字；prefixes = 記憶法前面保留嘅行；note = prefix + \"\\n\" + text。note-table-test / note-indent-test 用 v1.1.3：加 S168 地區議會（STUDY fact #203：9.14、12.18、12.5，review S-168，用戶 2026-10-11 揀 B 原版）。 v1.1.5：4A 表頭「地區」改「國家」（用戶 2026-10-11，同錯誤選項「威爾斯地區議會」分開）。 4A 標題「地方議會」改「四地議會」（S-193，用戶 2026-10-11，同 S168「地區議會」拉開）。 v1.3.2：記憶法跟進（.proj-docs/plans/2026-10-12_memo-followup-spec.json）：4A +10.10、12.12（Devolution）、③ +6.20、13.12（語言欄）、10A +6.3（National Parks）、⑥ +1.7、11.8（Cenotaph）。",
  "memos": [
   {
    "id": "10A",
-   "title": "國家公園同山",
+   "title": "國家公園同山（+ E5）",
    "questions": [
-    "9.3",
-    "13.1",
-    "10.1",
     "3.12",
+    "4.8",
     "4.14",
     "7.10",
-    "4.8"
+    "9.3",
+    "10.1",
+    "13.1",
+    "6.3"
    ],
-   "text": "記憶法（國家公園同山）：\n| 名勝 | 國家 | 地點 |\n| Lake District<br>英格蘭最大國家公園 | England | National Park |\n| Loch Lomond & Trossachs<br>蘇格蘭國家公園 | Scotland | National Park |\n| Snowdonia<br>Snowdon 係威爾斯最高山 | Wales | National Park |\n| Ben Nevis<br>英國最高山 | Scotland | Highlands |"
+   "text": "記憶法（國家公園同山）：\n| 名勝 | 國家 | 地點 |\n| Lake District<br>英格蘭最大國家公園 | England | National Park |\n| Loch Lomond & Trossachs<br>蘇格蘭國家公園 | Scotland | National Park |\n| Snowdonia<br>Snowdon 係威爾斯最高山 | Wales | National Park |\n| Ben Nevis<br>英國最高山 | Scotland | Highlands |\n• National Parks（國家公園）\n    → 受保護嘅郊野\n    → England、Wales、Scotland 一共 15 個"
   },
   {
    "id": "10B",
@@ -107,18 +108,20 @@
   },
   {
    "id": "4A",
-   "title": "四地議會",
+   "title": "四地議會（+ E6）",
    "questions": [
-    "6.8",
-    "8.19",
-    "13.7",
     "4.20",
     "5.22",
+    "6.8",
     "7.17",
+    "8.19",
     "9.18",
-    "12.2"
+    "12.2",
+    "13.7",
+    "10.10",
+    "12.12"
    ],
-   "text": "記憶法（四地議會）：\n| 國家 | 議會 / 地點 | 議員 |\n| England | UK Parliament<br>Westminster | 650<br>全⁠英⁠國 MP |\n| Scotland | Scottish Parliament<br>蘇格蘭議會<br>Edinburgh（愛丁堡） | 129 |\n| Wales | Senedd<br>威爾斯議會，前稱 National Assembly for Wales<br>Cardiff（加的夫） | 60 |\n| N. Ireland | Northern Ireland Assembly<br>北愛爾蘭議會<br>Belfast（貝爾法斯特） | 90 |\n• England 冇自己嘅地方議會，由英國國會直接負責\n• Senedd 議員：考試答 60（2026 年選舉起增至 96）"
+   "text": "記憶法（四地議會）：\n| 國家 | 議會 / 地點 | 議員 |\n| England | UK Parliament<br>Westminster | 650<br>全⁠英⁠國 MP |\n| Scotland | Scottish Parliament<br>蘇格蘭議會<br>Edinburgh（愛丁堡） | 129 |\n| Wales | Senedd<br>威爾斯議會，前稱 National Assembly for Wales<br>Cardiff（加的夫） | 60 |\n| N. Ireland | Northern Ireland Assembly<br>北愛爾蘭議會<br>Belfast（貝爾法斯特） | 90 |\n• England 冇自己嘅地方議會，由英國國會直接負責\n• Senedd 議員：考試答 60（2026 年選舉起增至 96）\n• Devolution（權力下放）\n    → 中央將部分權力交俾三地議會\n    → 國防、外交、移民冇下放，由英國政府負責"
   },
   {
    "id": "4B",
@@ -232,7 +235,7 @@
   },
   {
    "id": "⑥",
-   "title": "全年節日",
+   "title": "全年節日（+ E7 Cenotaph）",
    "questions": [
     "2.14",
     "2.17",
@@ -248,9 +251,11 @@
     "14.13",
     "14.20",
     "16.17",
-    "17.22"
+    "17.22",
+    "1.7",
+    "11.8"
    ],
-   "text": "記憶法：\n| 日期 | 節日 |\n| 25/1 | Burns Night 彭斯之夜：<br>紀念蘇格蘭詩人 Robert Burns<br>佢寫咗 Auld Lang Syne |\n| 31/10 | Halloween 萬聖節前夕 |\n| 5/11 | Bonfire Night 篝火之夜：<br>又叫 Guy Fawkes Night<br>紀念 1605 年 Guy Fawkes 等人<br>火藥陰謀（Gunpowder Plot）失敗 |\n| 11/11 | Remembrance Day 國殤紀念日：<br>又叫 Armistice Day（停戰紀念日）<br>紀念 1918 年 11/11 上午 11 時一戰停戰同戰爭死難者；<br>戴紅罌粟花 |\n| 26/12 | Boxing Day 節禮日：<br>聖誕節翌日 |\n| 31/12 | Hogmanay 霍格莫尼：<br>蘇格蘭除夕 |"
+   "text": "記憶法：\n| 日期 | 節日 |\n| 25/1 | Burns Night 彭斯之夜：<br>紀念蘇格蘭詩人 Robert Burns<br>佢寫咗 Auld Lang Syne |\n| 31/10 | Halloween 萬聖節前夕 |\n| 5/11 | Bonfire Night 篝火之夜：<br>又叫 Guy Fawkes Night<br>紀念 1605 年 Guy Fawkes 等人<br>火藥陰謀（Gunpowder Plot）失敗 |\n| 11/11 | Remembrance Day 國殤紀念日：<br>又叫 Armistice Day（停戰紀念日）<br>紀念 1918 年 11/11 上午 11 時一戰停戰同戰爭死難者；<br>戴紅罌粟花<br>喺 London Whitehall（白廳）嘅<br>Cenotaph（戰爭紀念碑）獻花圈 |\n| 26/12 | Boxing Day 節禮日：<br>聖誕節翌日 |\n| 31/12 | Hogmanay 霍格莫尼：<br>蘇格蘭除夕 |"
   },
   {
    "id": "⑧",
@@ -298,7 +303,7 @@
   },
   {
    "id": "③",
-   "title": "首都 / 國花",
+   "title": "首都 / 國花（+ E3 語言）",
    "questions": [
     "2.16",
     "2.21",
@@ -310,9 +315,11 @@
     "9.0",
     "9.8",
     "9.19",
-    "9.23"
+    "9.23",
+    "6.20",
+    "13.12"
    ],
-   "text": "記憶法：\n| 國家 | 首都 | 國花 |\n| England | London<br>倫敦 | Tudor rose<br>都鐸玫瑰 |\n| Scotland | Edinburgh<br>愛丁堡 | Thistle<br>薊花 |\n| Wales | Cardiff<br>加的夫 | Daffodil<br>水仙花 |\n| N. Ireland | Belfast<br>貝爾法斯特 | Shamrock<br>三葉草 |"
+   "text": "記憶法：\n| 國家 | 首都 | 國花 | 語言 |\n| England | London<br>倫敦 | Tudor rose<br>都鐸玫瑰 | English<br>英文 |\n| Scotland | Edinburgh<br>愛丁堡 | Thistle<br>薊花 | Gaelic<br>蓋爾語 |\n| Wales | Cardiff<br>加的夫 | Daffodil<br>水仙花 | Welsh<br>威爾斯語 |\n| N. Ireland | Belfast<br>貝爾法斯特 | Shamrock<br>三葉草 | Irish Gaelic<br>愛爾蘭語 |\n• Gaelic 係凱爾特語，Scotland 同 Ireland 部分地區講"
   },
   {
    "id": "投票權",

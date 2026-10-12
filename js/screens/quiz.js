@@ -89,12 +89,6 @@ function setExamLabel(el, examNum) {
 }
 // C3 (v1.3.0, user): "Question 1 of 24" unless it wraps (large text at 320px), then quiz.questionOfShort ("Question 1/24");
 // where even that wraps (the wide Translate button in the row) it stays short on two lines (user)
-// how many lines an element's text runs to (here, not in core/utils.js: upgrade-test mixes in an old utils.js)
-function textLineCount(el) {
-  const range = document.createRange();
-  range.selectNodeContents(el);
-  return new Set([...range.getClientRects()].map(r => Math.round(r.top))).size;
-}
 function fitQuestionCounter() {
   const counter = document.querySelector('#qNum > span[data-full]');
   if (!counter) return;

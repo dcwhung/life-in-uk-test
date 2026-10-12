@@ -139,10 +139,12 @@ function renderReviewTile(id, n, iconHtml, title, bodyHtml) {
   el.disabled = !n;
   el.innerHTML = `<div class="t-top"><span class="t-icon">${iconHtml}</span><span class="t-num">${n}</span></div><b>${title}</b>${bodyHtml}`;
 }
+// v1.3.1 (user): the note may wrap to this many lines before the two tiles stack (js/components/fitRow.js)
+const MY_REVIEW_NOTE_LINES = 2;
 // v0.70: the count already shows in .t-num, so a non-empty tile only explains where wrong answers come from;
 // the empty tile only says there is nothing to review
 function wrongTileBody(n) {
-  return n ? `<span class="t-note">${t('home.myReviewNote', { max: PRACTICE_ROUND_MAX })}</span>`
+  return n ? `<span class="t-note" data-fit-lines="${MY_REVIEW_NOTE_LINES}">${t('home.myReviewNote', { max: PRACTICE_ROUND_MAX })}</span>`
     : `<span class="sub">${t('home.wrongEmpty')}</span>`;
 }
 // the count already shows in .t-num; only the empty tile needs a line (how to flag)
@@ -155,6 +157,7 @@ function renderMyReview() {
   byId('myReview').classList.toggle('show', pendingMode === PRACTICE_MODE && (wrongN + flagN) > 0);
   renderReviewTile('tileWrong', wrongN, '✗', t('home.wrongTitle'), wrongTileBody(wrongN));
   renderReviewTile('tileFlagged', flagN, bookmarkSvg('rv-flag-tile'), t('home.flaggedTitle'), flaggedTileBody(flagN));
+  fitRows(byId('myReview')); // v1.3.1: side by side unless a title or empty line would wrap, or the note pass MY_REVIEW_NOTE_LINES
 }
 function startWrongReview() { pendingMode = PRACTICE_MODE; startExam(WRONG_EXAM); }
 function startFlaggedPractice() { pendingMode = PRACTICE_MODE; startExam(FLAGGED_EXAM); }

@@ -114,7 +114,7 @@ async function checkOverview(pg) {
   assert(r.strat.length === 3 && r.strat.map(s => s[0].split(' ')[1]).join() === 'learn,drill,mock', 'strategy: three phases in order');
   assert(r.strat[0][2].startsWith('Day 1–') && r.strat[2][1].includes(`${r.mocks} timed exams`), 'strategy: day range + mock count: ' + JSON.stringify(r.strat));
   const stratText = await text(pg, '#planStrategy');
-  assert(stratText.includes('(236 facts · 389 Qs)') && stratText.includes('24 Qs, 45 minutes') && stratText.includes('18/24'), 'strategy: facts / Qs totals and the pass mark');
+  assert(stratText.includes('(235 facts · 389 Qs)') && stratText.includes('24 Qs, 45 minutes') && stratText.includes('18/24'), 'strategy: facts / Qs totals and the pass mark');
   // S-116: a question count next to a number reads "Qs" in English; prose ("redo questions") keeps the word
   assert(!/\d+ questions/.test(stratText) && stratText.includes('questions straight after reading'), 'strategy: counts use "Qs", prose keeps "questions": ' + stratText);
   const order = await pg.$$eval('#planOrder .plan-ord', els => els.map(e => [e.querySelector('b').textContent, e.querySelector('.plan-ord-why').textContent, e.querySelector('.plan-chw-c').textContent]));
