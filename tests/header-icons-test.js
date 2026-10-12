@@ -7,7 +7,7 @@ const path = require('path');
 //   them, S-188)
 // - Q11: the Study pill reads "🏆 n / 235" and is labelled "n of 235 facts mastered" (v1.3.2: 235 facts)
 // - C2: the calendar's exam cell shows only its day; the legend ends with "[pattern] 🎯 Exam day" at the right end
-// - C4: the four Study tabs are icon over label at every width
+// - C4: the Study tabs (five since v1.5.0, with 🧠 memo) are icon over label at every width
 // - 320 / 360 / 390px, en + zh-HK: these headers stay on one row and the page never scrolls sideways
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
 const launchOpts = { args: ['--no-sandbox'] };
@@ -103,7 +103,7 @@ async function checkStudyTabs(pg, lang, w) {
     return { above: !!a && !!b && a.bottom <= b.top + 1, centred: !!a && !!b && Math.abs((a.left + a.right) / 2 - (b.left + b.right) / 2) <= 1,
       hidden: !!ic && ic.getAttribute('aria-hidden') === 'true', text: label ? label.textContent : '' };
   }));
-  assert(tabs.length === 4 && tabs.every(t => t.above && t.centred && t.hidden && t.text && !/\p{Extended_Pictographic}/u.test(t.text)),
+  assert(tabs.length === 5 && tabs.every(t => t.above && t.centred && t.hidden && t.text && !/\p{Extended_Pictographic}/u.test(t.text)),
     `C4 ${lang} ${w}px: every Study tab is icon over label, the icon decorative: ` + JSON.stringify(tabs));
 }
 
