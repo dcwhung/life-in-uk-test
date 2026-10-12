@@ -251,6 +251,33 @@ async function v112Shell(b) {
   await pg.close();
 }
 
+// W-058 (v1.3.1): a v1.3.0 cached index.html (no data-fit-row) + current css / js: the rows that replaced W-036 /
+// W-056 / the portrait rule still fit at 320px: the presets go 2 × 2 with no label cut, the level cards and the My Review
+// tiles stack
+const V130_SHELL_REF = '6daef71';
+const V130_SHELL_WRONG = JSON.stringify(Object.fromEntries(Array.from({ length: 30 }, (_, i) => [`1.${i + 1}`, true])));
+async function v130Shell(b) {
+  const dir = tmpDir('v130shell');
+  copyCurrent(dir);
+  fs.writeFileSync(path.join(dir, 'old.html'), execFileSync('git', ['-C', ROOT, 'show', `${V130_SHELL_REF}:index.html`]));
+  const pg = await b.newPage({ viewport: { width: 320, height: 640 } });
+  const errs = []; pg.on('pageerror', e => errs.push(e.message));
+  await pg.goto('file://' + path.join(dir, 'old.html'));
+  await seed(pg, { 'lifeuk.wrongList': V130_SHELL_WRONG });
+  await pg.waitForSelector('#examGrid .exam-btn', { state: 'attached' });
+  const stacked = sel => document.querySelector(sel).classList.contains('is-stacked');
+  await pg.evaluate(() => startMode('practice'));
+  assert(await pg.evaluate(stacked, '.my-grid'), 'v1.3.0 shell 320px: the My Review tiles stack');
+  await pg.evaluate(() => openPlanGoal());
+  const r = await pg.evaluate(() => ({
+    presets: byId('planDaysChips').classList.contains('is-stacked'), levels: byId('planLevelGrid').classList.contains('is-stacked'),
+    cut: [...document.querySelectorAll('#planDaysChips .chip, #planLevelGrid .mode-title')].filter(e => e.scrollWidth > e.clientWidth + 1).map(e => e.textContent),
+  }));
+  assert(r.presets && r.levels && r.cut.length === 0, 'v1.3.0 shell 320px: presets 2 × 2, level cards stacked, nothing cut: ' + JSON.stringify(r));
+  assert(errs.length === 0, 'v1.3.0 shell: no page errors: ' + errs.join(' | '));
+  await pg.close();
+}
+
 // W-057 (v1.3.0): the current shell with ONE file still from v1.2.0 (an HTTP-cached file outside SW control, CUI-0004
 // style): old store.js (no applyFontSize) still starts Home; old i18n.js (no syncFontSetting) still opens ⚙; old
 // locales/en.js (no quiz.questionOfShort) never shows the raw key — the long counter stays
@@ -453,6 +480,7 @@ function checkV057Ref() {
   await i18nBootFailure(b, { tag: 'current shell, locale missing', shell: 'index.html', missing: 'locales/en.js', knownError: ZH_HK_WITHOUT_EN_ERROR });
   await v112Shell(b);
   for (const file of V120_SINGLES) await v120SingleFile(b, file);
+  await v130Shell(b);
   await oldShellZhHk(b);
   await zhHkLocaleMissing(b);
   console.log('UPGRADE PASS');
