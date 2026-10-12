@@ -28,7 +28,10 @@ const popGeometry = (page, popId, btnId) => page.evaluate(([p, bt]) => {
   probe.remove();
   return { gap,
     shown: pop.classList.contains('show'), pop: popBox, btn: box(btn),
-    inner: box(document.querySelector('.header-inner')), header: box(document.querySelector('header')),
+    // the content box (CUI-0031: .header-inner carries main's inline padding ≥ 1024px), where the logo and ⚙ sit
+    inner: (() => { const el = document.querySelector('.header-inner'), b = box(el), cs = getComputedStyle(el);
+      return { ...b, left: b.left + parseFloat(cs.paddingLeft), right: b.right - parseFloat(cs.paddingRight) }; })(),
+    header: box(document.querySelector('header')),
     arrowX: popBox.left + parseFloat(after.left) + parseFloat(after.width) / 2, vw: document.documentElement.clientWidth, vh: innerHeight,
   };
 }, [popId, btnId]);

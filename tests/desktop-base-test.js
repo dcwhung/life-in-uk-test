@@ -86,13 +86,12 @@ async function checkHeader(b) {
   for (const viewport of [dt.VIEWPORTS.small, dt.VIEWPORTS.wide, EXTRA_WIDE]) {
     const { page } = await dt.openDesktop(b, { viewport });
     const h = await headerBox(page);
-    const pad = await dt.measurePx(page, 'var(--space-10)');
     assert(near(h.header.height, SIZES['--header-h'] * DESKTOP_SCALE) && near(h.inner.height, SIZES['--header-h'] * DESKTOP_SCALE),
       `${viewport.width}px: header ${h.header.height}px high (58 × 1.2)`);
     assert(near(h.logo.width, SIZES['--header-logo-size'] * DESKTOP_SCALE) && near(h.gear.width, SIZES['--header-btn-size'] * DESKTOP_SCALE),
       `${viewport.width}px: logo ${h.logo.width}px, ⚙ ${h.gear.width}px (×1.2)`);
-    const innerW = Math.min(CONTENT_MAX_PX, h.vw - 2 * pad);
-    assert(near(h.inner.width, innerW) && near(h.inner.left, (h.vw - h.inner.width) / 2), `${viewport.width}px: header content ${h.inner.width}px wide, centred (max ${CONTENT_MAX_PX})`);
+    // CUI-0031: the header content box is laid out like main (at most 1280px wide with main's inline padding inside)
+    assert(near(h.inner.width, Math.min(CONTENT_MAX_PX, h.vw)) && near(h.inner.left, (h.vw - h.inner.width) / 2), `${viewport.width}px: header content ${h.inner.width}px wide, centred (max ${CONTENT_MAX_PX})`);
     assert(near(h.main.width, Math.min(CONTENT_MAX_PX, h.vw)) && near(h.main.left, (h.vw - h.main.width) / 2), `${viewport.width}px: main ${h.main.width}px wide, centred (max ${CONTENT_MAX_PX})`);
     await page.close();
   }
@@ -106,6 +105,44 @@ async function checkHeader(b) {
   await dt.setViewport(page, dt.VIEWPORTS.small);
   const dotMaxDesk = parseFloat(await page.$eval('#navDots .dot', e => getComputedStyle(e).maxWidth));
   assert(near(dotMaxDesk, SIZES['--dot-max-w'] * DESKTOP_SCALE), '1024px: the number dot cap ×1.2: ' + dotMaxDesk);
+  await page.close();
+}
+
+// CUI-0031 (user 2026-10-12: line them up): at any desktop width the header's logo and ⚙ sit on main's content edges
+// (the first card's left, main's content right), with no jump where the viewport passes 1280 + the padding
+const ALIGN_WIDTHS = [1024, 1280, 1328, 1440, 1920];
+const ALIGN_SLACK_PX = 0.5;
+const PHONE_HEADER_PAD_PX = 20;
+const edges = page => page.evaluate(() => {
+  const r = el => el.getBoundingClientRect();
+  const main = document.querySelector('main'), cs = getComputedStyle(main);
+  const card = byId('planCard');
+  return {
+    logo: r(document.querySelector('.logo-icon')).left, gear: r(byId('settingsBtn')).right,
+    cardLeft: r(card).left, cardRight: r(card).right, cardShown: r(card).width > 0,
+    mainLeft: r(main).left + parseFloat(cs.paddingLeft), mainRight: r(main).right - parseFloat(cs.paddingRight),
+    vw: document.documentElement.clientWidth,
+  };
+});
+async function checkHeaderAlign(b) {
+  const { page } = await dt.openDesktop(b, { viewport: dt.VIEWPORTS.wide });
+  for (const width of ALIGN_WIDTHS) {
+    await dt.setViewport(page, { width, height: 800 });
+    const e = await edges(page);
+    const ok = (a, c) => Math.abs(a - c) <= ALIGN_SLACK_PX;
+    assert(e.cardShown && ok(e.logo, e.cardLeft) && ok(e.logo, e.mainLeft),
+      `CUI-0031 ${width}px: the logo's left on the first card's / main's content left (${e.logo.toFixed(1)} / ${e.cardLeft.toFixed(1)} / ${e.mainLeft.toFixed(1)})`);
+    assert(ok(e.gear, e.mainRight) && ok(e.gear, e.cardRight),
+      `CUI-0031 ${width}px: ⚙'s right on main's content right / the card's right (${e.gear.toFixed(1)} / ${e.mainRight.toFixed(1)} / ${e.cardRight.toFixed(1)})`);
+  }
+  // below 1024px the header keeps its own 20px padding and the 780px column (the phone layout never changes)
+  for (const width of [dt.VIEWPORTS.belowDesktop.width, dt.VIEWPORTS.phone.width]) {
+    await dt.setViewport(page, { width, height: 800 });
+    const e = await edges(page);
+    const was = (e.vw - Math.min(PHONE_CONTENT_MAX_PX, e.vw - 2 * PHONE_HEADER_PAD_PX)) / 2;
+    assert(Math.abs(e.logo - was) <= PX_EPSILON && Math.abs(e.vw - e.gear - was) <= PX_EPSILON,
+      `${width}px: the logo / ⚙ stay ${was}px in, as before (${e.logo} / ${e.vw - e.gear})`);
+  }
   await page.close();
 }
 
@@ -339,6 +376,7 @@ function checkFiles() {
   const b = await dt.launch();
   await checkTokens(b);
   await checkHeader(b);
+  await checkHeaderAlign(b);
   await checkNoSideScroll(b);
   await checkShell(b);
   await checkFitSteps(b);
