@@ -845,6 +845,15 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
   .optB .plan-day-side .plan-day-d { width: 100%; padding: var(--space-2) var(--space-3); white-space: nowrap; }
   .optB .plan-day-d small { display: inline; font-size: inherit; font-weight: 600; }
   .optB .plan-day-side .plan-pill { max-width: none; white-space: nowrap; }
+  /* rev 4 (user): every card keeps the status pill's row (empty when the day has none), so all task lists start on one line */
+  .optB .plan-day-side .plan-pill.pill-slot { visibility: hidden; }
+  /* rev 4 (user): folded study order names the chapters; "Ch 1 + Ch 2" takes two lines, "+" hanging so both names
+     start at one edge */
+  .optB .plan-ord-mini-name { white-space: normal; }
+  .optB .plan-ord-mini li { align-content: start; } /* one-line names sit on the same top line as the two-line one */
+  .optB .mini-chs { display: grid; grid-template-columns: auto auto; column-gap: 0.35em; justify-content: center; text-align: left; line-height: 1.35; }
+  .optB .mini-chs .plus { grid-column: 1; }
+  .optB .mini-chs .ch { grid-column: 2; }
   /* rev 3 (user): the gold chapter lines keep one blank line under the tasks and sit on every card's bottom edge */
   .optB .plan-day-tasks { display: flex; flex-direction: column; }
   .optB .plan-day-chs { margin-top: auto; padding-top: 1.45em; }
@@ -879,7 +888,7 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
 <body>
 
 <div class="mock-bar">
-  <b>v2.0.0 Desktop · Mockup 3/12 · Plan Schedule（你的進度表）· rev 3：B 對齊 + scroll 提示</b>
+  <b>v2.0.0 Desktop · Mockup 3/12 · Plan Schedule（你的進度表）· rev 4：任務對齊 + 收起時顯示章節名</b>
   <div class="mock-row"><span class="lbl">語言</span><button class="mock-tab on" data-k="lang" data-v="en">EN</button><button class="mock-tab" data-k="lang" data-v="zh">中文</button>
     <span class="lbl" style="margin-left:10px">⚙ 大字</span><button class="mock-tab on" data-k="large" data-v="off">關</button><button class="mock-tab" data-k="large" data-v="on">開</button>
     <span class="lbl" style="margin-left:10px">兩張說明卡</span><button class="mock-tab on" data-k="fold" data-v="expanded">展開</button><button class="mock-tab" data-k="fold" data-v="collapsed">收起</button></div>
@@ -929,6 +938,7 @@ const OPTIONS = [
       <li><b>溫習次序</b>每格得四分一闊，所以進度 bar 改為成格闊，數量放喺 bar 下面（4 條 bar 仍然一樣長、同一個起點）。</li>
       <li><b>每日任務</b>：成個計劃由左向右 scroll，一日一欄（240px），1280px 大約一次見到 5 日；每個 Week 係一組，「WEEK n」喺組頂，碌嘅時候會黐住左邊。打開時會碌到今日。可以用 trackpad／shift + 滾輪／拖 scrollbar 碌，平板就用手指掃。</li>
       <li><b>最底</b>：「查看今日任務」同「重設」並排。</li>
+      <li><b>rev 4</b>：冇「今日」pill 嘅日子都留返 pill 嗰行位，所以每張卡嘅任務都喺同一條線開始；溫習次序收起時，點下面顯示章節全名，「Ch 1 + Ch 2」分兩行，「+」凸出喺左邊，兩個章節名同一個起點。</li>
       <li><b>rev 3</b>：溫習次序 4 個章節嘅標題、說明、bar 各自對齊同一條線（CSS subgrid）；每日卡頂改為一行置中「Day 1 – 12/10 Mon」（中文用「Day 1 · 12/10 一」，因為「– 12/10 一」睇落似兩條橫線），今日／% 喺下一行置中；金色章節同上面任務空一行，而且每張卡都貼底對齊；有未顯示嘅日子嗰邊會有淡出效果同 ‹ › 掣（撳一下碌大約一版）。</li>
       <li>留意：每日卡高度跟最長嗰日，所以短嘅日子下面會有空位；6 個月嘅計劃大約有 180 欄，要碌好耐，app 實作時打開會直接跳去今日。</li></ul>`,
     render: p => `${p.header}${p.title}${p.phases}${p.order}${p.daily}<div class="foot">${p.cta}${p.reset}</div>`,
@@ -976,6 +986,23 @@ function dateOneLine(list) {
     small.textContent = (S.lang === 'zh' ? '· ' : '– ') + small.textContent;
   });
 }
+// option B rev 4: an invisible pill in each card without one, so every task list starts on the same line
+function pillSlots(list) {
+  list.querySelectorAll('.plan-day-side').forEach(side => {
+    if (side.querySelector('.plan-pill')) return;
+    side.insertAdjacentHTML('beforeend', '<span class="plan-pill pill-slot" aria-hidden="true">&nbsp;</span>');
+  });
+}
+// option B rev 4: the folded study order shows the chapter names (from the screen-reader text the app already renders),
+// one chapter per line, "+" hanging in front of the second
+function miniNames(root) {
+  root.querySelectorAll('.optB .plan-ord-mini li').forEach(li => {
+    const full = li.querySelector('.plan-sr'), name = li.querySelector('.plan-ord-mini-name');
+    if (!full || !name) return;
+    const chs = full.textContent.split(' + ');
+    name.innerHTML = '<span class="mini-chs">' + chs.map((c, i) => `<span class="plus">${i ? '+' : ''}</span><span class="ch">${c}</span>`).join('') + '</span>';
+  });
+}
 // option B rev 3: wrap the scroller, add ‹ › buttons, and mark which sides still have days off-screen
 const SCROLL_PAGE_SHARE = 0.85;
 function addScrollCues(list) {
@@ -998,7 +1025,8 @@ function addScrollCues(list) {
 function render() {
   document.getElementById('opts').innerHTML = OPTIONS.map(o => `<section class="opt"><div class="opt-title">${o.title}${o.rec ? '<span class="rec">建議</span>' : ''}</div>
     <div class="ann">${o.ann}</div>${WIDTHS.map(w => frame(o, w)).join('')}</section>`).join('');
-  document.querySelectorAll('.optB .plan-day-scroll').forEach(list => { groupWeeks(list); dateOneLine(list); addScrollCues(list); });
+  document.querySelectorAll('.optB .plan-day-scroll').forEach(list => { groupWeeks(list); dateOneLine(list); pillSlots(list); addScrollCues(list); });
+  miniNames(document);
   fitFrames();
 }
 // "適合畫面": scale each frame down to the page width (never up); the box takes the scaled height so nothing overlaps
