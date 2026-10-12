@@ -246,7 +246,10 @@ function renderPlanRun() {
   const badgeKey = PLAN_RUN_BADGE_KEYS[ctx.task.type] || 'common.practice';
   byId('planRunBadge').textContent = t(badgeKey);
   if (view.kind === PLAN_RUN_VIEW.facts) renderPlanFacts(view, ctx); else renderPlanDone(view, ctx);
+  planRunDesktop = typeof isDesktop === 'function' && isDesktop();
+  if (planRunDesktop) planWrapFactScroll();
   planRunRestoreFocus(focusKey);
+  desktopRefit('screenPlanRun', planRunRefit); // v2.0.0 desktop: the fact panel's fades
 }
 function renderPlanDone(view, ctx) {
   const todayIso = planTodayIso(), viewIso = view.from || todayIso;
@@ -471,3 +474,33 @@ function planResultRowHtml(correct, total) {
     : `<button type="button" class="nav-btn plan-hit" data-action="planRetryMock">${t('plan.run.mockRetake', { exam: t('common.randomExam') })}</button>`;
   return `<p class="plan-note${passed ? '' : ' warn'}" role="status">${note}</p><div class="nav-row">${retake}${back(passed ? '' : ' secondary')}</div>`;
 }
+
+// ── v2.0.0 desktop (≥ 1024px; handoff §3 #6, mockup desktop-plan-run.html A rev 4): a centred reading column, one
+// screen high (.is-fit). A fact card keeps its top row and "Appears in" + Practise row; the fact text and memory aid
+// between them scroll in their own panel (fading at the bottom while more is below), so the note and Prev / Next stay
+// on the screen. A finished task's Result card fills the height left. The phone renders the card as before ──
+let planRunDesktop = false; // the body was drawn for the desktop layout
+const PLAN_FACT_FIXED = ':scope > .fact-top, :scope > .fact-src';
+function planWrapFactScroll() {
+  const fact = byId('planRunBody').querySelector(':scope > .fact');
+  if (!fact) return;
+  const fade = document.createElement('div'), panel = document.createElement('div');
+  fade.className = 'fit-fade plan-fact-fade';
+  panel.className = 'fit-panel plan-fact-scroll';
+  fade.append(panel);
+  const fixed = new Set(fact.querySelectorAll(PLAN_FACT_FIXED));
+  panel.append(...[...fact.children].filter(el => !fixed.has(el)));
+  const top = fact.querySelector(':scope > .fact-top');
+  if (top) top.after(fade); else fact.prepend(fade);
+}
+function planRunRefit(desktop) {
+  if (desktop !== planRunDesktop && planRunView) { renderPlanRun(); return; } // redrawn for the other layout
+}
+// the memory aid opening / closing changes the panel's length: its fades follow
+function planRunWatchToggle() {
+  const body = byId('planRunBody');
+  if (!body) return;
+  body.addEventListener('toggle', () => { if (typeof refreshFades === 'function') refreshFades(body); }, true);
+  byId('screenPlanRun').classList.add('is-fit'); // one screen high from 1024px (css/components/fit.css); nothing below
+}
+planRunWatchToggle();

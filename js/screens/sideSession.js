@@ -4,7 +4,8 @@
 // Each question once, listed order; the last one offers "↩ Back" instead of results.
 // ════════════════════════════════════════
 const SESSION_RETURN_KIND = { quiz: 'quiz', study: 'study', plan: 'plan', memo: 'memo' };
-// null | { kind: 'quiz', state } | { kind: 'study', scrollY, factId }
+// null | { kind: 'quiz', state } | { kind: 'study', scrollY, factId } — scrollY = the page's, or on desktop the card
+//        panel's offset (js/screens/study.js studyScrollTop)
 //      | { kind: 'plan', date, taskIndex, type, ch, from, … } — a study plan task (js/screens/planRun.js): date = the plan
 //        day it counts for (G5), type = PLAN_TASK, from = the day screen to go back to (null = today); a round adds
 //        retry / round / rounds, review mode (G17) review / page / pages / wrong; fact / pos = one fact of a reading or
@@ -60,7 +61,7 @@ const SESSION_RETURNS = {
   [SESSION_RETURN_KIND.study]: ret => {
     showScreen('screenStudy');
     renderStudy();
-    window.scrollTo(0, ret.scrollY);
+    setStudyScroll(ret.scrollY);
     flashStudyFact(ret.factId);
   },
   // a plan task goes back to the day screen it was opened from (its last question normally offers the next round)
@@ -78,7 +79,7 @@ function isStudyReturn(ret) { return ret !== null && ret.kind === SESSION_RETURN
 // CUI-0010: a second call while already on the way back to Study (double tap / key repeat on the fact card's
 // "▶ Practise") keeps the saved Study scroll — window.scrollY belongs to the quiz screen by then
 function studyReturnPoint(factId) {
-  return isStudyReturn(sessionReturn) ? sessionReturn : { kind: SESSION_RETURN_KIND.study, scrollY: window.scrollY, factId };
+  return isStudyReturn(sessionReturn) ? sessionReturn : { kind: SESSION_RETURN_KIND.study, scrollY: studyScrollTop(), factId };
 }
 // Study fact → its source questions (f.src order, each distinct question once: G40 asks one copy of a repeated
 // text), header "Fact Ch c #n" (W-016); ↩ Back returns to Study at the same scroll.

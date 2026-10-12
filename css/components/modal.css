@@ -28,3 +28,12 @@
 /* W-043 (user): keyboard focus also thickens the border inward (2 → 3px, still one line, no outer ring), so focus
    differs from hover (tint only) and does not rest on the tint's 1.11:1 alone */
 .modal-card.danger #confirmCancel:focus-visible { box-shadow: inset 0 0 0 1px var(--red); }
+
+/* ── v2.0.0 desktop (≥ 1024px; mockup mockups/v2.0.0/desktop-overlays.html A): the phone card ×1.2, centred ── */
+@media (min-width: 1024px) {
+  .modal-card {
+    max-width: calc(360px * var(--desktop-scale));
+    padding: calc(22px * var(--desktop-scale)) var(--space-10) calc(18px * var(--desktop-scale));
+  }
+  .modal-msg { margin-bottom: calc(18px * var(--desktop-scale)); }
+}

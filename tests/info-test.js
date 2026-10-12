@@ -5,9 +5,11 @@ const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..',
 const launchOpts = { args: ['--no-sandbox'] };
 if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_PATH;
 const POP_GUTTER_PX = 16; // the popover's side gap on a phone (user: use the full width)
-const WIDE_PX = 1024;
+// v2.0.0: 1024px and up is the desktop layout (1280px column; the ⓘ / ⚙ popovers sit under their buttons there, a
+// desktop suite's job), so the widest pre-desktop width keeps checking the 780px column
+const WIDE_PX = 1023;
 const ARROW_TOL_PX = 2;
-const MAIN_MAX_PX = 780; // css/base/layout.css main max-width
+const MAIN_MAX_PX = 780; // css/base/tokens.css --content-max-w below 1024px
 (async () => {
   const b = seedLegacyDefaults(await chromium.launch(launchOpts));
   const pg = await b.newPage({ viewport: { width: 390, height: 844 } });

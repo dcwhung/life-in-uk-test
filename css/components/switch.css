@@ -21,3 +21,14 @@
 .switch[aria-checked="true"] i { transform: translateX(22px); }
 .switch:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { .switch, .switch i { transition: none; } }
+
+/* ── v2.0.0 desktop (≥ 1024px): the switch ×1.2 (.proj-docs/plans/2026-10-12_desktop-px-inventory.md, Lane C);
+   the knob's travel = track − knob − 2 × inset, so it still meets the right edge ── */
+@media (min-width: 1024px) {
+  .switch { width: calc(52px * var(--desktop-scale)); height: calc(30px * var(--desktop-scale)); }
+  .switch i {
+    top: calc(3px * var(--desktop-scale)); left: calc(3px * var(--desktop-scale));
+    width: calc(24px * var(--desktop-scale)); height: calc(24px * var(--desktop-scale));
+  }
+  .switch[aria-checked="true"] i { transform: translateX(calc(22px * var(--desktop-scale))); }
+}

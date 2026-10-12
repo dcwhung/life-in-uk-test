@@ -31,3 +31,9 @@
 @media (max-width: 374px) {
   .note-table th, .note-table td { padding-left: var(--space-2); padding-right: var(--space-2); }
 }
+
+/* v2.0.0 desktop (≥ 1024px; .proj-docs/plans/2026-10-12_desktop-px-inventory.md, Lane B): the blank line between note
+   paragraphs ×1.2 */
+@media (min-width: 1024px) {
+  .rv-note-gap { height: calc(6px * var(--desktop-scale)); }
+}

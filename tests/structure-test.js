@@ -181,6 +181,21 @@ const TOKEN_SAMPLES = [
   { css: ['/* --c: 1px */ d { top: var(--c, 0); }'], gaps: '--c', why: 'a "definition" inside a comment' },
 ];
 
+// S-232: line numbers of color-mix() uses outside an @supports block that tests color-mix
+function unguardedColorMix(source) {
+  const css = source.replace(/\/\*[\s\S]*?\*\//g, c => c.replace(/[^\n]/g, ' ')); // comments out, lines kept
+  const out = [];
+  let depth = 0, guardDepth = -1, line = 1;
+  for (let i = 0; i < css.length; i++) {
+    const ch = css[i];
+    if (ch === '\n') line++;
+    else if (ch === '{') { if (guardDepth < 0 && /@supports[^{]*color-mix\([^{]*$/.test(css.slice(css.lastIndexOf('}', i) + 1, i))) guardDepth = depth; depth++; }
+    else if (ch === '}') { depth--; if (depth === guardDepth) guardDepth = -1; }
+    else if (css.startsWith('color-mix(', i) && guardDepth < 0 && !/@supports[^{]*$/.test(css.slice(css.lastIndexOf('}', i) + 1, i))) out.push(line);
+  }
+  return out;
+}
+
 (async () => {
   const inline = sources.flatMap(f => fs.readFileSync(f, 'utf8').split('\n')
     .map((line, i) => (/\son[a-z]+\s*=\s*["'`]/.test(line) ? `${rel(f)}:${i + 1}` : null)).filter(Boolean));
@@ -229,6 +244,10 @@ const TOKEN_SAMPLES = [
     + (tokenMisses.length ? ': ' + tokenMisses.join(', ') : ''));
   const tokenGaps = undefinedTokens(cssFiles(path.join(ROOT, 'css')).map(f => fs.readFileSync(f, 'utf8')));
   assert(tokenGaps.length === 0, 'every var(--x) in css has a --x definition' + (tokenGaps.length ? ': ' + tokenGaps.join(', ') : ''));
+  // S-232: color-mix() only inside @supports (color: color-mix(…)), so a browser without it keeps the plain fallback
+  // declared outside (a custom property never rejects an unknown function, so a fallback before it would not help)
+  const unguardedMix = cssFiles(path.join(ROOT, 'css')).flatMap(f => unguardedColorMix(fs.readFileSync(f, 'utf8')).map(line => `${rel(f)}:${line}`));
+  assert(unguardedMix.length === 0, 'every color-mix() sits in an @supports (color: color-mix(…)) block' + (unguardedMix.length ? ': ' + unguardedMix.join(', ') : ''));
 
   // v0.62 (P3 Q2-a): purple means Cantonese only — Study / Home chrome uses the navy --study-accent* tokens;
   // the only purple rules left in these files are the Cantonese lines .fact-yue / .sqm-fact-yue (v0.63: fact.css)

@@ -30,6 +30,7 @@ function finishExam() {
   renderResults();
   showScreen('screenResult');
   window.scrollTo(0, 0);
+  desktopRefit('screenResult', fitResult); // the screen is shown only now: measure it again
 }
 // draws the results from reviewItems without recording anything (also used to re-render on a language change)
 function renderResults() {
@@ -40,6 +41,8 @@ function renderResults() {
   byId('diffTable').innerHTML = diffTableHtml();
   renderResultDots();
   renderReview();
+  arrangeResult(deskOn());
+  desktopRefit('screenResult', fitResult);
 }
 function recordExamResults() {
   // practice adds wrong answers as it goes; exam adds the answered-but-wrong ones here (unanswered are not added)
@@ -155,6 +158,7 @@ function setReviewFilter(key) {
   const hadFocus = byId('reviewOrder').contains(document.activeElement);
   reviewFilter = key;
   renderReview();
+  if (typeof refreshFades === 'function') refreshFades(byId('screenResult')); // v2.0.0 desktop: the list panel's fades
   if (hadFocus) byId('reviewOrder').querySelector(`[data-arg="${key}"]`).focus();
 }
 function visibleReviewItems() {
@@ -187,6 +191,61 @@ function reviewChipsHtml() {
 function renderReview() {
   byId('reviewOrder').innerHTML = reviewChipsHtml();
   byId('reviewList').innerHTML = visibleReviewItems().map(reviewItemHtml).join('');
+}
+
+// ── v2.0.0 desktop (≥ 1024px): mockups/v2.0.0/desktop-result.html A rev 5 (helpers in js/components/deskPlace.js) ──
+// left 5/12: the score card with Retry / Another inside it, then By difficulty at the bottom (never scrolls);
+// right 7/12: Review Answers, the list in a fading scroll panel. The second button row (below the list) is not
+// shown: the card's pair stays in view
+let resultDesk = null; // built on the first desktop render (S-238, as the quiz's S-233: never on a phone)
+function buildResultDesk() {
+  const screen = byId('screenResult');
+  const [diffTitle, reviewTitle] = screen.querySelectorAll(':scope > .section-title');
+  const moved = {
+    card: screen.querySelector('.result-card'), diffTitle, diff: byId('diffTable'), actions: screen.querySelector('.result-actions'),
+    reviewTitle, order: byId('reviewOrder'), list: byId('reviewList'),
+  };
+  Object.values(moved).forEach(deskRemember);
+  const d = {
+    moved, cols: deskEl('div', 'result-cols'), left: deskEl('div', 'result-left fit-panel'), right: deskEl('div', 'result-right'),
+    // C-006: the left column's fade wrapper (step ④ only: until then the column never scrolls)
+    leftWrap: deskEl('div', 'result-left-wrap fit-fade'),
+    listWrap: deskEl('div', 'result-review-wrap fit-fade'), panel: deskEl('div', 'result-review-panel fit-panel'),
+  };
+  d.leftWrap.append(d.left);
+  d.listWrap.append(d.panel);
+  d.cols.append(d.leftWrap, d.right);
+  d.cols.hidden = true;
+  deskHome(moved.card).before(d.cols); // where the card starts on the phone (under the time-up line)
+  screen.classList.add('is-fit'); // css/components/fit.css: one screen high from 1024px only
+  return d;
+}
+function arrangeResult(desktop) {
+  if (!desktop && !resultDesk) return; // S-238: a phone that never was desktop has nothing to put back
+  const d = resultDesk || (resultDesk = buildResultDesk()), m = d.moved;
+  d.cols.hidden = !desktop;
+  // S-228: focus back once every box is in the document
+  deskKeepFocus(() => {
+    if (!desktop) { deskRestore(Object.values(m)); return; }
+    // the card's last child (mockup: inside the card, after the plan row); left alone when already there (focus)
+    if (m.card.lastElementChild !== m.actions) m.card.append(m.actions);
+    deskFill(d.left, [m.card, m.diffTitle, m.diff]);
+    deskFill(d.panel, [m.list]);
+    deskFill(d.right, [m.reviewTitle, m.order, d.listWrap]);
+  });
+}
+// mockup fitLeft(): the left column and the card must not scroll. ① smaller score, closer By difficulty rows →
+// ② tighter card gaps → ③ smaller emoji / score (1024px English large text) → ④ (C-006: a short laptop window,
+// 1366 × 657, or 1024 × 600) still too tall: the card stops clipping and grows to its content, and the left column
+// scrolls with fades, so Retry / Another (inside the card, mockup rev 5) can always be scrolled to and focused
+const RESULT_FIT_STEPS = ['is-compact', 'is-compact2', 'is-compact3'];
+const RESULT_SCROLL_STEP = 'is-scroll';
+function fitResult(desktop) {
+  arrangeResult(desktop);
+  if (!resultDesk) return; // S-238: nothing built yet, nothing to fit
+  const { left, leftWrap, moved: { card } } = resultDesk;
+  // the card clips (overflow hidden) until step ④: measure it too (S-229)
+  fitSteps(left, [...RESULT_FIT_STEPS, [leftWrap, RESULT_SCROLL_STEP]], { measure: () => overflowsY(left) || overflowsY(card) });
 }
 
 function retryExam() {

@@ -67,3 +67,77 @@
 @media (max-width: 360px) {
   .result-sub { font-size: var(--fs-sm); }
 }
+
+/* ════════ v2.0.0 desktop (≥ 1024px; handoff .proj-docs/plans/2026-10-12_handoff_desktop-layout.md §3 #10) ════════
+   mockups/v2.0.0/desktop-result.html A rev 5. One screen high (.screen.is-fit, css/components/fit.css);
+   js/screens/result.js moves the card, By difficulty and the review into .result-cols (and back below 1024px) */
+@media (min-width: 1024px) {
+  /* off-scale px ×1.2 (.proj-docs/plans/2026-10-12_desktop-px-inventory.md, Lane B) */
+  .result-card { padding: calc(32px * var(--desktop-scale)) var(--space-12); }
+  .review-item { padding: var(--space-8) calc(18px * var(--desktop-scale)); }
+  /* the review scrolls in its own panel (no sticky header over it): a jumped-to item clears the panel's top fade */
+  .review-item { scroll-margin-top: var(--fit-fade-h); }
+  .diff-row { grid-template-columns: calc(82px * var(--desktop-scale)) 1fr calc(82px * var(--desktop-scale)); }
+  .diff-bar { height: calc(8px * var(--desktop-scale)); }
+
+  #screenResult.is-fit > * { flex: none; }
+  #screenResult.is-fit > .result-cols { flex: 1 1 auto; min-height: 0; }
+  #screenResult > .nav-row { display: none; } /* one set of buttons: the pair inside the card */
+  .result-cols { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--space-10); }
+  .result-left, .result-right { display: flex; flex-direction: column; min-height: 0; gap: var(--space-6); }
+  /* C-006: the left column is a .fit-panel in a .fit-fade, but only scrolls at step ④ (.is-scroll); until then the
+     card shrinks into the room (overflow hidden) and no scrollbar room is kept */
+  .result-left-wrap { min-height: 0; --fit-panel-gutter: 0px; }
+  .result-left-wrap:not(.is-scroll) > .result-left { overflow: visible; } /* the card's shadow is not clipped */
+  .result-left-wrap.is-scroll { --fit-panel-gutter: var(--space-3); }
+  .result-left-wrap.is-scroll > .result-left > .result-card { flex: none; overflow: visible; }
+  /* focus / scrollIntoView stop clear of the fades, so a focused button is never under one */
+  .result-left-wrap.is-scroll :is(button, a) { scroll-margin-block: var(--fit-fade-h); }
+  .result-left > *, .result-right > * { flex: none; margin-bottom: 0; }
+  .result-cols .section-title { margin-bottom: calc(-1 * var(--space-2)); }
+  .result-review-wrap { flex: 1 1 auto; }
+  .result-review-panel .review-list { margin: 0; }
+
+  /* rev 3 / rev 4: By difficulty at the bottom, the score card takes the space above it; roomy fixed gaps and the
+     space left over shared out above the emoji, the dots and the buttons (auto margins); the emoji big on its own line */
+  .result-left { gap: var(--space-5); }
+  .result-left > .result-card {
+    flex: 1 1 auto; min-height: 0; overflow: hidden; margin: 0;
+    display: flex; flex-direction: column; padding: var(--space-8);
+  }
+  .result-left .result-emoji { font-size: var(--fs-display); line-height: 1; margin: auto 0 var(--space-6); }
+  .result-left .result-label { margin: var(--space-6) 0 var(--space-3); }
+  .result-left .result-sub { padding-bottom: var(--space-7); }
+  .result-left .rdots-wrap { margin-top: auto; padding-top: var(--space-7); }
+  .result-left .rmeta { margin-top: var(--space-5); }
+  .result-left .result-card > .result-actions { margin: auto 0 0; padding-top: var(--space-8); }
+  .result-left .result-actions .nav-btn { flex: 1; white-space: nowrap; padding: var(--space-4) var(--space-6); }
+  .result-left > .diff-table { margin: 0; }
+  /* rev 5: one blank line between the score card and the By difficulty title */
+  .result-left > .result-card + .section-title { margin-top: calc(var(--fs-base) * 1.5); }
+
+  /* fitResult() ① the score a step smaller, By difficulty rows closer (the card's gaps and emoji keep their size) */
+  .result-left.is-compact { gap: var(--space-4); }
+  .result-left.is-compact .result-score { font-size: var(--fs-display-sm); }
+  .result-left.is-compact .diff-row { padding: var(--space-2) 0; }
+  .result-left.is-compact .result-emoji { margin-bottom: var(--space-4); }
+  .result-left.is-compact > .result-card { padding-top: var(--space-6); padding-bottom: var(--space-6); }
+  /* ② the fixed gaps tighten */
+  .result-left.is-compact2 > .result-card { padding-top: var(--space-5); padding-bottom: var(--space-5); }
+  .result-left.is-compact2 .result-emoji { margin-bottom: var(--space-2); }
+  .result-left.is-compact2 .result-label { margin: var(--space-2) 0 var(--space-1); }
+  .result-left.is-compact2 .result-sub { padding-bottom: var(--space-3); }
+  .result-left.is-compact2 .rdots-wrap { padding-top: var(--space-3); }
+  .result-left.is-compact2 .rmeta { margin-top: var(--space-3); }
+  .result-left.is-compact2 .result-card > .result-actions { padding-top: var(--space-5); }
+  /* ③ (1024px English large text) emoji and score smaller still, tighter dots */
+  .result-left.is-compact3 .result-score { font-size: var(--fs-7xl); }
+  .result-left.is-compact3 .result-emoji { font-size: var(--fs-display-sm); margin-bottom: 0; }
+  .result-left.is-compact3 .rdots { --dots-gap: var(--space-2); }
+  .result-left.is-compact3 > .result-card { padding-left: var(--space-5); padding-right: var(--space-5); }
+  .result-left.is-compact3 .rdot { max-width: calc(26px * var(--desktop-scale)); }
+  .result-left.is-compact3 .result-label { margin: var(--space-1) 0 0; }
+  /* (not in the mockup, which had no Practice result) a Practice result of Exam 1–17 adds the mastered line and its
+     counts legend wraps at 1024px large text: the By difficulty rows close up once more */
+  .result-left.is-compact3 .diff-row { padding: var(--space-1) 0; }
+}

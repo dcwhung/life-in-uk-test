@@ -16,3 +16,8 @@
 }
 @keyframes toastIn { from { opacity: 0; transform: translate(-50%, 8px); } to { opacity: 1; transform: translate(-50%, 0); } }
 @media (prefers-reduced-motion: reduce) { .toast { animation: none; } }
+
+/* ── v2.0.0 desktop (≥ 1024px; mockup mockups/v2.0.0/desktop-overlays.html A): still bottom centre, sizes ×1.2 ── */
+@media (min-width: 1024px) {
+  .toast { max-width: calc(100vw - 32px * var(--desktop-scale)); padding: var(--space-5) calc(18px * var(--desktop-scale)); }
+}

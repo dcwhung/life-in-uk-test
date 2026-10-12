@@ -30,6 +30,10 @@ const LATE_BOOT_SCRIPTS = [
   { src: 'js/screens/planDay.js', ready: () => typeof openPlanDay === 'function' },
   // PR6a: every Practice render asks planRun.js about a plan task session (header, notes, last button)
   { src: 'js/screens/planRun.js', ready: () => typeof renderPlanRunNotes === 'function' },
+  // v2.0.0: the desktop fits (render tails, i18n.js rerenderCurrentScreen) call runRefits / onRefit
+  { src: 'js/components/fit.js', ready: () => typeof runRefits === 'function' },
+  // v2.0.0: the screens move parts into desktop columns and register their fits through it (W-377)
+  { src: 'js/components/deskPlace.js', ready: () => typeof deskKeepFocus === 'function' },
 ];
 // shown when the scripts still fail after one reload; t() is not available then, so it cannot be a locale key
 const I18N_BOOT_FALLBACK_MSG = 'The app could not finish loading. Please check your connection and reload the page.';
@@ -123,7 +127,8 @@ function clearI18nBootRetry() {
 
 // Same cutover for styles: v0.63 moved the .fact* / .sqm-fact* rules out of study.css / quiz.css into fact.css,
 // which an older cached index.html never links — add the <link> so Study and the Similar Core Fact keep their look
-const LATE_BOOT_STYLES = ['css/components/fact.css', 'css/components/switch.css', 'css/components/toast.css', 'css/screens/plan.css'];
+// v2.0.0: fit.css holds the desktop one-screen shell and panel fades
+const LATE_BOOT_STYLES = ['css/components/fact.css', 'css/components/switch.css', 'css/components/toast.css', 'css/screens/plan.css', 'css/components/fit.css'];
 function addMissingBootStyles() {
   LATE_BOOT_STYLES.filter(href => !document.querySelector(`link[rel="stylesheet"][href="${href}"]`)).forEach(href => {
     const el = document.createElement('link');

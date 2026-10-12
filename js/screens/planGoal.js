@@ -158,6 +158,7 @@ function renderPlanGoal() {
   renderPlanFeasibility(todayIso);
   renderPlanCta(todayIso);
   fitRows(byId('screenPlanGoal')); // v1.3.1: presets 2 × 2 / level cards one per row only when their texts do not fit
+  desktopRefit('screenPlanGoal', planGoalRefit); // v2.0.0 desktop columns + fits
 }
 
 // ── inputs ──
@@ -221,4 +222,48 @@ function planCreate() {
   if (!old) clearStudyPlan();
   writeStudyPlan(plan);
   openPlanSchedule();
+}
+
+// ── v2.0.0 desktop (≥ 1024px; handoff §3 #2, mockup desktop-plan-goal.html A rev 2): 🏠 / steps / title across; the 3
+// question cards 7/12 | "Is there enough time?" + the hint + Build 5/12, sticky under the header. The presets and the
+// exam date share one row while no preset chip is cut (the fitRow rule), else two rows as on the phone ──
+const PLAN_STACKED_CLASS = 'is-stacked';
+const PLAN_LEVEL_SUB_LINES_DESKTOP = 2;
+function planGoalColumns() {
+  const cards = [...byId('screenPlanGoal').querySelectorAll('.plan-stack > .plan-card-box')];
+  return { key: 'planGoal', boxClass: 'plan-cols plan-goal-cols', columns: [
+    { cls: 'plan-col plan-goal-form', parts: cards.slice(0, -1) },
+    { cls: 'plan-col plan-goal-side', parts: [cards[cards.length - 1], byId('planGoalHint'), byId('planCreateBtn')] },
+  ] };
+}
+function fitPlanDateRow(desktop) {
+  const row = byId('screenPlanGoal').querySelector('.plan-date-row'), presets = byId('planDaysChips');
+  row.classList.remove(PLAN_STACKED_CLASS);
+  presets.classList.remove(PLAN_STACKED_CLASS);
+  if (desktop && row.getClientRects().length) {
+    row.classList.toggle(PLAN_STACKED_CLASS, [...presets.querySelectorAll('.chip')].some(c => c.scrollWidth > c.clientWidth + 1));
+  }
+  fitRow(presets); // two rows and still cut: the presets go 2 × 2 as on the phone
+}
+// CUI-0032 (user 2026-10-12): the three level cards side by side and a sub line wraps → the three sub lines step down
+// together (one size, css .plan-levels.is-sub-tight / -tighter) until each runs to one line; the last step is --fs-3xs.
+// When even that wraps, the designed size stays and the line wraps (a smaller wrapped line buys nothing)
+const PLAN_LEVEL_SUB_STEPS = ['is-sub-tight', 'is-sub-tighter'];
+const PLAN_LEVEL_SUB_ONE_LINE = 1;
+function fitPlanLevels() {
+  const grid = byId('planLevelGrid'), subs = [...grid.querySelectorAll('.plan-level-sub')];
+  grid.classList.remove(...PLAN_LEVEL_SUB_STEPS); // stacked or not is decided at the designed size, as on the phone
+  fitRow(grid); // the cards' width changed with the columns
+  if (typeof fitSteps !== 'function') return; // W-057: an HTTP-cached pre-v2.0.0 shell has no js/components/fit.js
+  const wraps = () => !grid.classList.contains(PLAN_STACKED_CLASS) && subs.some(sub => textLineCount(sub) > PLAN_LEVEL_SUB_ONE_LINE);
+  const used = fitSteps(grid, PLAN_LEVEL_SUB_STEPS, { anyWidth: true, measure: wraps });
+  if (used === PLAN_LEVEL_SUB_STEPS.length && wraps()) grid.classList.remove(...PLAN_LEVEL_SUB_STEPS);
+}
+function planGoalRefit(desktop) {
+  if (typeof setDesktopColumns !== 'function') return; // W-057: without js/components/deskPlace.js the phone layout stays
+  setDesktopColumns(planGoalColumns(), desktop);
+  fitPlanDateRow(desktop);
+  // mockup 1024px frame: the three level cards stay in a row with a sub line on up to 2 lines; the phone keeps 1
+  byId('planLevelGrid').querySelectorAll('.plan-level-sub').forEach(sub => { sub.dataset.fitLines = desktop ? PLAN_LEVEL_SUB_LINES_DESKTOP : 1; });
+  fitPlanLevels();
 }

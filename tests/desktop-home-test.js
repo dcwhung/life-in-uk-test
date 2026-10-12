@@ -1,0 +1,322 @@
+// v2.0.0 desktop layout, Lane A — Home (handoff .proj-docs/plans/2026-10-12_handoff_desktop-layout.md §3 #1 / #4, §4 F7 /
+// F8; Design Origin: mockups/v2.0.0/desktop-home.html A rev 3, desktop-home-plan.html A rev 7 + Ring + T):
+// - ≥ 1024px: the plan card across the top; left rail 5/12 (modes, description, hint / reset) | right 7/12 (My Review,
+//   practice tabs, sets); no sideways scroll at 1024 × 768 / 1280 × 800, EN / 中, small / large text, translation on / off
+// - F8: the rail is sticky while it fits the viewport; taller (a short window, large text + 中文) it scrolls with the page
+// - below 1024px every part is back in its phone place and order (the phone layout never changes)
+// - F7: the navy card shows today's ring and the countdown timeline (≤ 42 days a cell a day; longer a bar a phase + month
+//   ticks; the days-left label at the end under 28%; "Today" beside the marker; none on the exam day / after it); the
+//   buttons' bottom on the ring's; "Next" on one line while it fits, never cut; the phone keeps main's v1.5.1 compact
+//   card (ring beside the title + countdown text, .plan-home-head); F7's own ring is .plan-home-desk-ring and its wording
+//   the mockup's ("Continue today's tasks →", "✓ Done for today, see you tomorrow"); crossing 1024px redraws the card
+// - F1: a finished plan offers "New plan" + "Schedule" only
+const fs = require('fs');
+const path = require('path');
+const dt = require('./desktop-helpers');
+const { assert } = dt;
+
+const PX = 1;
+const near = (a, b, slack = PX) => Math.abs(a - b) <= slack;
+const GOAL = { dailyMins: 120, restDays: [0], level: 'none' };
+const RAIL_SHARE = 5 / 12;
+const PER_DAY_MAX = 42;
+const SHORT_WINDOW = { width: 1024, height: 600 };
+
+// a plan of `days` days whose Day `dayN` is today (dayN > days: after the plan; restToday: today is a rest day);
+// a few wrong answers and a flag so My Review shows
+const seedHome = (page, { plan = null } = {}) => page.evaluate(plan => {
+  ['1.0', '1.1', '2.3'].forEach(k => { wrongList[k] = true; });
+  practiceFlags['4.5'] = true;
+  if (plan) {
+    const today = planTodayIso(), start = isoAddDays(today, 1 - plan.dayN);
+    const restDays = plan.restToday ? [isoWeekday(today)] : plan.goal.restDays;
+    writeStudyPlan(buildPlan({ ...plan.goal, restDays, examDate: isoAddDays(start, plan.days) }, start));
+    writePlanLog(planEmptyLog());
+  }
+  leaveToHome();
+}, plan && { goal: GOAL, days: 21, dayN: 9, ...plan });
+
+const layout = page => page.evaluate(() => {
+  const box = el => { if (!el) return null; const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height }; };
+  const cols = document.querySelector('.home-cols'), rail = document.querySelector('.home-rail');
+  return {
+    cols: box(cols), rail: box(rail), main: box(document.querySelector('.home-main')), card: box(byId('planCard')),
+    gap: cols ? parseFloat(getComputedStyle(cols).columnGap) : 0, railPos: rail ? getComputedStyle(rail).position : null,
+    railHas: rail ? ['modeDesc', 'practiceReset', 'examReset'].every(id => rail.contains(byId(id))) && !!rail.querySelector('.mode-grid') : false,
+    mainHas: ['myReview', 'practiceTabs', 'secDifficulty', 'secChapter', 'secExam'].every(id => document.querySelector('.home-main') && document.querySelector('.home-main').contains(byId(id))),
+  };
+});
+// the phone order: every part a direct child of #screenHome, in index.html order
+const phoneOrder = page => page.evaluate(() => {
+  const home = byId('screenHome');
+  const ids = ['installBanner', 'modeDesc', 'myReview', 'practiceByTitle', 'practiceTabs', 'secDifficulty', 'secChapter', 'secExam', 'practiceReset', 'examReset'];
+  const kids = [...home.children];
+  const at = ids.map(id => kids.indexOf(byId(id)));
+  return !document.querySelector('.home-cols') && at.every(i => i >= 0) && at.every((i, k) => k === 0 || i > at[k - 1])
+    && kids.indexOf(home.querySelector('.mode-grid')) < at[1];
+});
+
+async function checkColumns(b) {
+  await dt.forEachCase(b, async ({ page, label, errors }) => {
+    await seedHome(page);
+    const side = await dt.noHorizontalScroll(page);
+    assert(side.ok, `${label}: Home has no sideways scroll (${side.detail})`);
+    const l = await layout(page);
+    assert(l.cols && l.railHas && l.mainHas, `${label}: rail = modes / description / hint + reset, right = My Review / tabs / sets`);
+    const want = (l.cols.width - l.gap) * RAIL_SHARE;
+    assert(near(l.rail.width, want, 2) && near(l.rail.left, l.cols.left) && near(l.main.right, l.cols.right), `${label}: rail 5/12 (${Math.round(l.rail.width)} ≈ ${Math.round(want)}), right 7/12`);
+    assert(near(l.card.left, l.cols.left) && near(l.card.right, l.cols.right) && l.card.bottom <= l.cols.top, `${label}: the create card runs across the top`);
+    assert(errors.length === 0, `${label}: no page errors ` + errors.join(' | '));
+  });
+}
+
+// F8: sticky while it fits; a rail taller than the window scrolls with the page
+async function checkSticky(b) {
+  const { page } = await dt.openDesktop(b, { viewport: dt.VIEWPORTS.small });
+  await seedHome(page);
+  let l = await layout(page);
+  assert(l.railPos === 'sticky', '1024 × 768 en: the rail is sticky');
+  await page.evaluate(() => byId('modeExam').click()); // the exam list is short: give the page room to scroll
+  await page.evaluate(() => byId('modePractice').click());
+  await page.evaluate(() => byId('ptabExam').click());
+  await page.evaluate(() => window.scrollTo(0, 400));
+  const pinned = await page.evaluate(() => {
+    const rail = document.querySelector('.home-rail').getBoundingClientRect(), header = document.querySelector('header').getBoundingClientRect();
+    return { top: rail.top, header: header.bottom, scrolled: scrollY };
+  });
+  assert(pinned.scrolled > 0 && pinned.top >= pinned.header, 'scrolled: the rail stays under the header: ' + JSON.stringify(pinned));
+  await page.close();
+  for (const { lang, fontSize } of [{ lang: 'zh-HK', fontSize: 'large' }, { lang: 'en', fontSize: 'large' }]) {
+    const short = await dt.openDesktop(b, { viewport: SHORT_WINDOW, lang, fontSize });
+    await seedHome(short.page);
+    l = await layout(short.page);
+    const tall = l.rail.height + (l.rail.top - 0) > SHORT_WINDOW.height;
+    assert(tall && l.railPos === 'static', `F8 ${SHORT_WINDOW.width} × ${SHORT_WINDOW.height} ${lang} large: the rail (${Math.round(l.rail.height)}px) is taller than the window, so it is not sticky`);
+    await dt.setViewport(short.page, dt.VIEWPORTS.wide);
+    l = await layout(short.page);
+    assert(l.railPos === 'sticky', `F8 ${lang} large: back to sticky once the window is tall enough (1280 × 800)`);
+    await short.page.close();
+  }
+}
+
+// below 1024px the parts go back to their phone order; above, into the columns again
+async function checkBreakpoint(b) {
+  const { page } = await dt.openDesktop(b, { viewport: dt.VIEWPORTS.wide });
+  await seedHome(page, { plan: {} });
+  assert(!(await phoneOrder(page)), '1280px: columns on');
+  await dt.setViewport(page, dt.VIEWPORTS.belowDesktop);
+  assert(await phoneOrder(page), '1023px: every part back in its phone place and order');
+  const cardKind = () => page.evaluate(() => {
+    const q = s => document.querySelector('#planCard ' + s);
+    return { head: !!q('.plan-home-head .plan-home-ring'), hasRing: !!q('.plan-home.has-ring'), cd: !!q('.plan-home-cd'),
+      deskRing: !!q('.plan-home-desk-ring'), timeline: !!q('.plan-cd'), bar: !!q('.plan-home-bar'),
+      go: (q('.plan-btn-gold') || {}).textContent, goKey: t('plan.home.continue'), goDeskKey: t('plan.home.continueToday') };
+  });
+  const phoneCard = await cardKind();
+  assert(phoneCard.head && phoneCard.hasRing && phoneCard.cd && !phoneCard.deskRing && !phoneCard.timeline && !phoneCard.bar && phoneCard.go === phoneCard.goKey,
+    '1023px: the card is redrawn as v1.5.1 (ring beside the title + countdown text, "Continue →"): ' + JSON.stringify(phoneCard));
+  await dt.setViewport(page, dt.VIEWPORTS.small);
+  const l = await layout(page);
+  assert(l.cols && l.railHas && l.mainHas && !(await phoneOrder(page)), '1024px again: columns back');
+  const deskCard = await cardKind();
+  assert(!deskCard.head && !deskCard.hasRing && !deskCard.cd && deskCard.deskRing && deskCard.timeline && deskCard.go === deskCard.goDeskKey,
+    '1024px again: the card is redrawn as F7 (timeline + its own ring, "Continue today\'s tasks →"): ' + JSON.stringify(deskCard));
+  await page.close();
+  const phone = await dt.openDesktop(b, { viewport: dt.VIEWPORTS.phone });
+  await seedHome(phone.page, { plan: {} });
+  assert(await phoneOrder(phone.page), '390px: phone order, no column boxes');
+  await phone.page.close();
+}
+
+// ── F7: the navy card ──
+const card = page => page.evaluate(() => {
+  const el = byId('planCard'), q = s => el.querySelector(s), box = e => (e ? e.getBoundingClientRect() : null);
+  const cd = q('.plan-cd'), ring = q('.plan-home-desk-ring'), acts = q('.plan-home-acts'), next = q('.plan-home-next');
+  const lbl = q('.plan-cd-today-lbl'), left = q('.plan-cd-left-lbl'), track = q('.plan-cd-track');
+  const overlap = (a, b) => !!a && !!b && a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1;
+  const inside = (a, b) => !!a && !!b && a.left >= b.left - 1 && a.right <= b.right + 1;
+  return {
+    cd: !!cd, long: !!cd && cd.classList.contains('long'), cells: cd ? cd.querySelectorAll('.plan-cd-track > i').length : 0,
+    future: cd ? cd.querySelectorAll('.plan-cd-track > i.future').length : 0, ticks: cd ? cd.querySelectorAll('.plan-cd-tick').length : 0,
+    ticksInside: cd ? [...cd.querySelectorAll('.plan-cd-tick')].every(t => inside(box(t), box(cd))) : true,
+    labelEnd: !!left && left.classList.contains('end'), labelsApart: !overlap(box(lbl), box(left)),
+    todayInside: !!lbl && inside(box(lbl), box(cd)), leftText: left ? left.textContent : '',
+    markerAt: cd ? (box(q('.plan-cd-today')).left + 1 - box(track).left) / box(track).width * 100 : null, at: cd ? Number(cd.dataset.at) : null,
+    ring: ring ? ring.tagName.toLowerCase() : null, ringText: ring ? ring.textContent : '', rest: !!q('.plan-home-rest'),
+    ringBottom: box(ring) && box(ring).bottom, actsBottom: box(acts) && box(acts).bottom,
+    bar: !!q('.plan-home-bar'), cdText: !!q('.plan-home-cd'), phoneRing: !!q('.plan-home-ring') || !!q('.plan-home-head'),
+    nextCut: !!next && next.scrollWidth > next.clientWidth + 1, nextWrapped: !!next && next.classList.contains('is-wrapped'),
+    acts: [...el.querySelectorAll('.plan-home-acts button')].map(btn => btn.dataset.action),
+    sr: cd ? cd.querySelector('.plan-sr').textContent : '',
+  };
+});
+async function openWithPlan(b, plan, opts = {}) {
+  const opened = await dt.openDesktop(b, { viewport: dt.VIEWPORTS.wide, ...opts });
+  await seedHome(opened.page, { plan });
+  return opened;
+}
+async function checkCardActive(b) {
+  await dt.forEachCase(b, async ({ page, label, errors }) => {
+    await seedHome(page, { plan: {} });
+    const c = await card(page);
+    assert(c.cd && !c.long && c.cells === 21 && c.future === 12, `${label}: 21 days, Day 9: a cell a day, 12 still to come`);
+    assert(c.ring === 'svg' && !c.bar && !c.cdText && !c.phoneRing, `${label}: F7's ring (not v1.5.1's head ring); the timeline instead of the countdown text`);
+    assert(near(c.ringBottom, c.actsBottom), `${label}: the buttons' bottom on the ring's (${Math.round(c.actsBottom)} / ${Math.round(c.ringBottom)})`);
+    assert(near(c.markerAt, c.at, 0.5) && c.labelsApart && c.todayInside, `${label}: the gold marker at today (${c.markerAt.toFixed(1)}% ≈ ${c.at.toFixed(1)}%), labels apart and inside`);
+    assert(!c.nextCut, `${label}: "Next" is never cut (${c.nextWrapped ? 'wrapped' : 'one line'})`);
+    assert(c.leftText.includes('13') && c.sr.includes('13'), `${label}: 13 days to the exam (bracket + screen-reader line)`);
+    const side = await dt.noHorizontalScroll(page);
+    assert(side.ok && errors.length === 0, `${label}: no sideways scroll, no page errors ` + errors.join(' | '));
+  }, { translations: [true] });
+}
+async function checkCardBranches(b) {
+  let o = await openWithPlan(b, { days: 21, dayN: 1 });
+  let c = await card(o.page);
+  assert(c.cd && c.future === 20 && near(c.at, 0, 0.01) && c.todayInside && c.labelsApart, 'Day 1: marker at the start, "Today" on its right, inside the bar');
+  await o.page.close();
+  o = await openWithPlan(b, { days: 21, dayN: 19 });
+  c = await card(o.page);
+  assert(c.labelEnd && c.labelsApart && c.todayInside, 'Day 19 / 21 (span 14% < 28%): the days-left label at the end, off "Today"');
+  await o.page.close();
+  o = await openWithPlan(b, { days: 21, dayN: 9 }, { viewport: dt.VIEWPORTS.small, lang: 'zh-HK', fontSize: 'large' });
+  c = await card(o.page);
+  assert(!c.labelEnd && c.labelsApart, '1024 中 large, Day 9: the label centred in the bracket');
+  await o.page.close();
+  o = await openWithPlan(b, { days: PER_DAY_MAX, dayN: 10 });
+  c = await card(o.page);
+  assert(c.cd && !c.long && c.cells === PER_DAY_MAX && c.ticks === 0, `${PER_DAY_MAX} days (6 weeks): still a cell a day, no month ticks`);
+  await o.page.close();
+  for (const [days, dayN] of [[90, 40], [181, 60], [181, 170]]) {
+    o = await openWithPlan(b, { days, dayN });
+    c = await card(o.page);
+    assert(c.cd && c.long && c.cells < days && c.ticks >= 2 && c.ticksInside, `${days} days, Day ${dayN}: a bar a phase (${c.cells}), ${c.ticks} month ticks inside the timeline`);
+    assert(c.labelsApart && c.todayInside && c.labelEnd === (100 - c.at < 28), `${days} days, Day ${dayN}: labels apart, end label ${c.labelEnd}`);
+    await o.page.close();
+  }
+  o = await openWithPlan(b, { days: 21, dayN: 9, restToday: true });
+  c = await card(o.page);
+  assert(c.cd && c.rest && c.ring === 'span', 'a rest day: 😴 in the ring\'s place, the timeline stays');
+  await o.page.close();
+  o = await openWithPlan(b, { days: 21, dayN: 22 });
+  c = await card(o.page);
+  assert(!c.cd && !c.ring && !c.bar, 'the exam day: no timeline, no ring');
+  await o.page.close();
+  o = await openWithPlan(b, { days: 21, dayN: 25 });
+  c = await card(o.page);
+  assert(!c.cd && !c.ring && JSON.stringify(c.acts) === JSON.stringify(['openPlanGoal', 'openPlanSchedule']), 'plan finished: no timeline / ring; F1 "New plan" + "Schedule"');
+  await o.page.close();
+  // all done today: F7 keeps the mockup's line (its ring shows 100%, not ✓); the phone's v1.5.1 card says "See you tomorrow"
+  o = await openWithPlan(b, { days: 21, dayN: 9 });
+  const done = await o.page.evaluate(() => ({ desk: planNextHtml(null, null, { kind: PLAN_NEXT.done }, true), phone: planNextHtml(null, null, { kind: PLAN_NEXT.done }) }));
+  assert(done.desk === '<b>✓ Done for today</b>, see you tomorrow' && done.phone === 'See you tomorrow', 'all done today: F7 "✓ Done for today, see you tomorrow", phone "See you tomorrow": ' + JSON.stringify(done));
+  await o.page.close();
+  o = await openWithPlan(b, { days: 21, dayN: 0 });
+  c = await card(o.page);
+  assert(!c.cd && !c.ring && c.cdText, 'before the start: the countdown text, no timeline / ring');
+  await o.page.close();
+}
+// "Next" stays on one line while it fits; a long one at 1024 large wraps instead of being cut
+async function checkNextLine(b) {
+  const o = await openWithPlan(b, { days: 21, dayN: 9 }, { viewport: dt.VIEWPORTS.small, fontSize: 'large' });
+  await o.page.evaluate(() => {
+    const next = document.querySelector('#planCard .plan-home-next');
+    next.innerHTML += ' — a much longer line than the card can hold on one line at this width, to make it wrap';
+    runRefits();
+  });
+  const c = await card(o.page);
+  assert(c.nextWrapped && !c.nextCut, '1024 large: a "Next" too long for one line wraps, never cut');
+  await o.page.close();
+}
+
+// W-380: the plain timeline colours outside @supports (color-mix) are what an older browser (iPadOS 15) draws; each one
+// must stand off the navy card itself (never the card's own colour; ≥ 3:1, WCAG 1.4.11), translucent ones composited
+const FALLBACK_MIN_CONTRAST = 3;
+// CUI-0030: the rest day is meant to sit quiet on the navy card (white 30%, user 2026-10-12: exempt from the 3:1), but
+// a past learn day and a rest day must still tell apart at a glance (they were 1.14:1 with the color-mix tint)
+const LEARN_REST_MIN_CONTRAST = 1.8;
+const QUIET_PHASES = ['rest'];
+// the stylesheet is read here: file:// pages can't read their own cssRules
+const PLAN_CSS = path.join(__dirname, '..', 'css', 'screens', 'plan.css');
+const plainTimelineColours = () => {
+  const line = fs.readFileSync(PLAN_CSS, 'utf8').split('\n').find(l => /^\.plan-card \{[^}]*--plan-cd-learn:/.test(l)) || '';
+  return Object.fromEntries([...line.matchAll(/--plan-cd-(learn|drill|mock|rest):\s*([^;]+);/g)].map(m => [m[1], m[2].trim()]));
+};
+// CUI-0030: one set of colours in every browser: no --plan-cd-* is ever re-set to a color-mix() (an @supports tint)
+const mixedTimelineColours = () => [...fs.readFileSync(PLAN_CSS, 'utf8').matchAll(/--plan-cd-[a-z]+:\s*color-mix/g)].length;
+async function checkFallbackColours(b) {
+  assert(mixedTimelineColours() === 0, 'CUI-0030: the timeline colours are plain tokens in every browser (no color-mix() override)');
+  const o = await openWithPlan(b, { days: 21, dayN: 9 });
+  const plain = plainTimelineColours();
+  const res = await o.page.evaluate(plain => {
+    const home = document.querySelector('#planCard .plan-home');
+    const rgba = c => { const m = c.match(/[\d.]+/g).map(Number); return { rgb: m.slice(0, 3), a: m.length > 3 ? m[3] : 1 }; };
+    const bg = rgba(getComputedStyle(home).backgroundColor).rgb;
+    const lum = rgb => rgb.map(v => v / 255).map(v => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))
+      .reduce((s, v, i) => s + v * [0.2126, 0.7152, 0.0722][i], 0);
+    const ratio = (x, y) => { const [hi, lo] = [lum(x), lum(y)].sort((p, q) => q - p); return (hi + 0.05) / (lo + 0.05); };
+    const over = c => { const x = rgba(c); return x.rgb.map((v, i) => Math.round(v * x.a + bg[i] * (1 - x.a))); };
+    const probe = document.createElement('i');
+    home.appendChild(probe);
+    const out = ['learn', 'drill', 'mock', 'rest'].map(ph => {
+      const raw = plain[ph] || '';
+      probe.style.backgroundColor = raw;
+      const rgb = over(getComputedStyle(probe).backgroundColor);
+      return { ph, raw, rgb, same: rgb.every((v, i) => v === bg[i]), ratio: ratio(rgb, bg) };
+    });
+    probe.remove();
+    // what is drawn: every past cell's fill and every day still to come's outline (box-shadow colour), by phase
+    const drawn = {};
+    document.querySelectorAll('.plan-cd-track > i').forEach(el => {
+      const ph = ['learn', 'drill', 'mock', 'rest'].find(p => el.classList.contains(`plan-cd-${p}`));
+      const future = el.classList.contains('future'), cs = getComputedStyle(el);
+      const key = `${ph}${future ? 'Next' : ''}`;
+      (drawn[key] = drawn[key] || new Set()).add(over(future ? cs.boxShadow.match(/rgba?\([^)]*\)/)[0] : cs.backgroundColor).join());
+    });
+    const shown = Object.fromEntries(Object.entries(drawn).map(([k, v]) => [k, [...v]]));
+    const learnRest = shown.learn && shown.rest ? ratio(shown.learn[0].split(',').map(Number), shown.rest[0].split(',').map(Number)) : 0;
+    return { found: out.every(r => r.raw), out, shown, learnRest };
+  }, plain);
+  assert(res.found, 'the plain (no color-mix) timeline colours are all set on .plan-card');
+  res.out.forEach(r => {
+    const quiet = QUIET_PHASES.includes(r.ph);
+    assert(!r.raw.includes('color-mix') && !r.same && (quiet || r.ratio >= FALLBACK_MIN_CONTRAST),
+      `${r.ph} (${r.raw}) stands off the navy card, ${r.ratio.toFixed(2)}:1${quiet ? ' (quiet: only ≠ the card)' : ` ≥ ${FALLBACK_MIN_CONTRAST}:1`}`);
+  });
+  const want = Object.fromEntries(res.out.map(r => [r.ph, r.rgb.join()]));
+  const s = res.shown;
+  assert(s.learn && s.rest && s.restNext && s.drillNext && s.mockNext, 'Day 9 / 21: past learn and rest cells, rest / drill / mock still to come');
+  Object.entries(s).forEach(([k, v]) => {
+    const ph = k.replace('Next', '');
+    assert(v.length === 1 && v[0] === want[ph], `every ${k.endsWith('Next') ? 'future ' + ph + ' outline' : 'past ' + ph + ' fill'} takes the ${ph} colour (${v.join(' / ')} = ${want[ph]})`);
+  });
+  assert(res.learnRest >= LEARN_REST_MIN_CONTRAST, `CUI-0030: a past learn day and a rest day tell apart, ${res.learnRest.toFixed(2)}:1 ≥ ${LEARN_REST_MIN_CONTRAST}:1`);
+  await o.page.close();
+  // a learn day still to come (Day 3: learn runs on past Day 8): its outline is the same light blue
+  const early = await openWithPlan(b, { days: 21, dayN: 3 });
+  const next = await early.page.evaluate(() => {
+    const el = document.querySelector('.plan-cd-track > i.plan-cd-learn.future');
+    return el ? getComputedStyle(el).boxShadow.match(/rgba?\([^)]*\)/)[0].match(/\d+/g).slice(0, 3).join() : null;
+  });
+  assert(next === want.learn, `a future learn outline takes the learn colour (${next} = ${want.learn})`);
+  await early.page.close();
+}
+
+(async () => {
+  const b = await dt.launch();
+  try {
+    await checkColumns(b);
+    await checkSticky(b);
+    await checkBreakpoint(b);
+    await checkCardActive(b);
+    await checkCardBranches(b);
+    await checkNextLine(b);
+    await checkFallbackColours(b);
+    console.log('DESKTOP-HOME PASS');
+  } catch (e) {
+    console.error(e.message);
+    console.log('DESKTOP-HOME FAIL');
+    process.exitCode = 1;
+  } finally {
+    await b.close();
+  }
+})();

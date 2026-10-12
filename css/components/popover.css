@@ -113,3 +113,28 @@
 .install-close::before { content: ''; position: absolute; inset: -8px; }
 .install-close:hover { color: var(--text-inverse); }
 .install-close:focus-visible { outline: 2px solid var(--text-inverse); outline-offset: 1px; }
+
+/* ── v2.0.0 desktop (≥ 1024px; mockup mockups/v2.0.0/desktop-overlays.html A, user 2026-10-12) ──
+   Each popover is a fixed-width card under its own button instead of spanning the width: ⓘ hangs from the header
+   content's left edge (560px × 1.2), ⚙ from its right edge (420px × 1.2). --info-pop-side = the header content's edge
+   (CUI-0031: the centred 1280px column less main's inline padding, as .header-inner; 50% is of the header, S-125). The arrow still comes from
+   js/components/popover.js pointArrowAt, re-measured on resize. Mockup placePops: 10px under the header (the 10px
+   space step, ×1.2 like every gap here) */
+@media (min-width: 1024px) {
+  .info-pop {
+    --info-pop-side: max(var(--space-8), calc(50% - var(--content-max-w) / 2 + var(--space-8)));
+    --info-pop-gap: var(--space-5);
+    --info-arrow-x: calc(150px * var(--desktop-scale));
+    --info-arrow-size: calc(12px * var(--desktop-scale));
+    top: calc(var(--header-h) + var(--info-pop-gap));
+    padding: var(--space-8) var(--space-10); /* mockup .app .info-pop */
+  }
+  #infoPop { right: auto; width: calc(560px * var(--desktop-scale)); }
+  #settingsPop { left: auto; width: calc(420px * var(--desktop-scale)); }
+  .info-pop::after { top: calc(-7px * var(--desktop-scale)); }
+  /* hard-coded sizes ×1.2 (.proj-docs/plans/2026-10-12_desktop-px-inventory.md, Lane C) */
+  .seg button { min-width: calc(52px * var(--desktop-scale)); height: calc(32px * var(--desktop-scale)); }
+  .install-banner { padding: var(--space-8) calc(18px * var(--desktop-scale)); }
+  .install-btn { padding: calc(9px * var(--desktop-scale)) var(--space-8); }
+  .install-close { width: calc(28px * var(--desktop-scale)); height: calc(28px * var(--desktop-scale)); }
+}
