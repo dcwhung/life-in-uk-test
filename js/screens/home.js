@@ -133,10 +133,12 @@ function renderReviewTile(id, n, iconHtml, title, bodyHtml) {
   el.disabled = !n;
   el.innerHTML = `<div class="t-top"><span class="t-icon">${iconHtml}</span><span class="t-num">${n}</span></div><b>${title}</b>${bodyHtml}`;
 }
+// v1.3.1 (user): the note may wrap to this many lines before the two tiles stack (js/components/fitRow.js)
+const MY_REVIEW_NOTE_LINES = 2;
 // v0.70: the count already shows in .t-num, so a non-empty tile only explains where wrong answers come from;
 // the empty tile only says there is nothing to review
 function wrongTileBody(n) {
-  return n ? `<span class="t-note">${t('home.myReviewNote', { max: PRACTICE_ROUND_MAX })}</span>`
+  return n ? `<span class="t-note" data-fit-lines="${MY_REVIEW_NOTE_LINES}">${t('home.myReviewNote', { max: PRACTICE_ROUND_MAX })}</span>`
     : `<span class="sub">${t('home.wrongEmpty')}</span>`;
 }
 // the count already shows in .t-num; only the empty tile needs a line (how to flag)
