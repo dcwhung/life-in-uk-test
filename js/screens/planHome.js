@@ -3,7 +3,7 @@
 // (on by default; off asks first, G15; v1.4.0: the Cantonese translation switch beside it), the Home card above "Choose Mode" (handoff §2.1; mockup step ⓪): the dashed
 // gold "create" card without a plan; with one the navy card: Day n / N, days to the exam, today's % + bar, the next
 // step, continue / view today + schedule; the exam day (G16) and, after it, "plan finished" with a summary and
-// new plan / change goal. The card is created only while it shows, so Home's DOM is unchanged while hidden.
+// new plan / schedule (v2.0.0 F1: no change goal). The card is created only while it shows, so Home's DOM is unchanged while hidden.
 // planWatchDay (G6): the plan's "today" moves at local midnight with the app open and on return to the foreground.
 // ════════════════════════════════════════
 const PLAN_CARD_ID = 'planCard';
@@ -167,14 +167,15 @@ function planExamDayHtml() {
   return `<p class="plan-home-next"><b>${t('plan.home.examDayText')}</b></p>`
     + planHomeActsHtml(planHomeBtn('openPlanDay', t('plan.home.viewDay'), true), planHomeBtn('openPlanSchedule', t('plan.schedule.name')));
 }
-// G16: after the exam: a summary, then a new plan / change goal; the schedule and calendar stay readable
+// G16: after the exam: a summary, then a new plan; the schedule and calendar stay readable. v2.0.0 F1 (user 2026-10-12):
+// no "Change goal" any more: once the plan is over, changing its goal is the same as building a new plan
 function planEndedHtml(plan, log, todayIso) {
   const k = planKpis(plan, log, todayIso);
   const mocks = t('plan.home.endedMocks', { n: k.safeMocks, safe: PLAN_SAFE_SCORE, total: REAL_TEST_SIZE }); // S-116
   const summary = t('plan.home.endedSummary', { avg: k.avgPct, facts: k.factsDone, factsTotal: k.factsTotal,
     qs: k.qidsDone, qsTotal: k.qidsTotal, mocks });
   return `<p class="plan-home-next">${summary}</p>` + planHomeActsHtml(planHomeBtn('openPlanGoal', t('plan.home.newPlan'), true),
-    planHomeBtn('planEditGoal', t('plan.schedule.editGoal')), planHomeBtn('openPlanSchedule', t('plan.schedule.name')));
+    planHomeBtn('openPlanSchedule', t('plan.schedule.name')));
 }
 function planCardEl() {
   let el = byId(PLAN_CARD_ID);
