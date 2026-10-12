@@ -19,6 +19,10 @@ const { startPagesServer, appFiles } = require('./pages-server');
 //      the old language pill and turns the "← Home" buttons into 🏠 icon buttons; no raw keys, no [i18n] warnings
 //   9. W-057 (v1.3.0): the current shell with one v1.2.0 file (store.js / i18n.js / locales/en.js) — still starts, ⚙
 //      opens, no raw counter key, no raw key in the text size row (S-201)
+//  10. W-057 (v1.4.0): the current shell with one v1.3.0 file (store.js / planHome.js / locales/en.js / actions.js) — still starts, ⚙
+//      opens, the translation row is hidden (no dead switch, no raw key), translations show
+//      (S-205 / R2-1: the en.js mix with a stored "off" keeps the original Home Practice line; the Study search placeholder is
+//      that file's own static study.search, no raw key)
 // The v0.57 files come from git: V057_REF is the last v0.57 commit on main (merge of PR #29), pinned so a later
 // main does not silently turn this into a same-version test.
 const ROOT = path.resolve(__dirname, '..');
@@ -310,6 +314,42 @@ async function v120SingleFile(b, file) {
   await pg.close();
 }
 
+// 10. W-057 (v1.4.0): the current shell with ONE file still from v1.3.0 (pinned 6daef71, the v1.3.0 merge): old
+// store.js (no switch code) / planHome.js (no row renderer) / locales/en.js (no row words) / actions.js (S-203: no
+// toggleTranslation handler) hide the ⚙ translation row
+// instead of a dead / raw one; a stored "off" is simply not applied on that page
+const V130_REF = '6daef71';
+const V130_SINGLES = ['js/core/store.js', 'js/screens/planHome.js', 'locales/en.js', 'js/core/actions.js'];
+async function v130SingleFile(b, file) {
+  const dir = tmpDir('v130one');
+  copyCurrent(dir);
+  fs.writeFileSync(path.join(dir, file), execFileSync('git', ['-C', ROOT, 'show', `${V130_REF}:${file}`]));
+  const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
+  const errs = []; pg.on('pageerror', e => errs.push(e.message));
+  await pg.goto('file://' + path.join(dir, 'index.html'));
+  await pg.evaluate(() => localStorage.clear());
+  await pg.reload();
+  await pg.waitForSelector('#examGrid .exam-btn', { state: 'attached' });
+  await pg.click('#settingsBtn');
+  const r = await pg.evaluate(() => ({ opened: byId('settingsPop').classList.contains('show'), row: byId('settingsTransRow').hidden,
+    shown: byId('settingsTransRow').getClientRects().length > 0, attr: document.documentElement.hasAttribute('data-translation') }));
+  assert(r.opened && r.row && !r.shown && !r.attr && errs.length === 0, `v1.3.0 ${file} + current files: ⚙ opens, translation row hidden, translations on, no page errors: ` + JSON.stringify({ ...r, errs }));
+  if (file === 'locales/en.js') {
+    // S-205: a stored "off" (picked on a v1.4.0 page) + the v1.3.0 en.js (no home.practiceDescNoYueHtml) — the Home
+    // Practice description keeps the original sentence instead of the raw key
+    await pg.evaluate(() => localStorage.setItem('lifeuk.translation', JSON.stringify('off')));
+    await pg.reload();
+    await pg.waitForSelector('#examGrid .exam-btn', { state: 'attached' });
+    const off = await pg.evaluate(() => ({ attr: document.documentElement.dataset.translation || '', desc: byId('modeDesc').textContent }));
+    assert(off.attr === 'off' && !off.desc.includes('home.') && off.desc.includes('Practice') && errs.length === 0, `S-205 v1.3.0 ${file} + stored off: Home shows no raw key: ` + JSON.stringify({ ...off, errs }));
+    // R2-1: the placeholder is the static study.search of whichever en.js is loaded — the pinned v1.3.0 file still
+    // carries its own v1.3.0 wording (a cached file cannot be rewritten); no raw key, no dead study.searchNoYue lookup
+    const ph = await pg.evaluate(() => ({ ph: byId('studySearch').placeholder, own: t('study.search') }));
+    assert(ph.ph === ph.own && !ph.ph.includes('study.') && ph.ph.startsWith('Search facts'), `R2-1 v1.3.0 ${file} + stored off: the Study search placeholder is that locale's study.search, no raw key: ` + JSON.stringify(ph));
+  }
+  await pg.close();
+}
+
 // 6. T-008: a v0.64-style shell (no locales/zh-HK.js tag, no language control: v1.2.0 drops the ⚙) running the current js while
 // lifeuk.uiLang says zh-HK — the language has no locale on that page, so it reads as en without warnings and
 // without rewriting the stored value; the current shell then opens in zh-HK
@@ -485,6 +525,7 @@ function checkV057Ref() {
   await i18nBootFailure(b, { tag: 'current shell, locale missing', shell: 'index.html', missing: 'locales/en.js', knownError: ZH_HK_WITHOUT_EN_ERROR });
   await v112Shell(b);
   for (const file of V120_SINGLES) await v120SingleFile(b, file);
+  for (const file of V130_SINGLES) await v130SingleFile(b, file);
   await v130Shell(b);
   await oldShellZhHk(b);
   await zhHkLocaleMissing(b);

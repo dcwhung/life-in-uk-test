@@ -54,8 +54,8 @@
       <div class="hero-badge" data-i18n="app.infoOffline"></div>
     </div>
   </div>
-  <!-- v1.2.0: settings popover (js/components/popover.js; ⚙ opens it, a choice closes it): language, text size (v1.3.0) + the study plan
-       switch (moved from ⓘ). The plan row keeps its v1.0 ids (js/screens/planHome.js renderPlanSettings) -->
+  <!-- v1.2.0: settings popover (js/components/popover.js; ⚙ opens it, a choice closes it): language, text size (v1.3.0), Cantonese translation (v1.4.0) +
+       the study plan switch (moved from ⓘ). The plan row keeps its v1.0 ids (js/screens/planHome.js renderPlanSettings) -->
   <div class="info-pop" id="settingsPop" role="dialog" data-i18n-attr="aria-label:app.settings">
     <h2 data-i18n="app.settings"></h2>
     <div class="set-row" id="settingsLangRow">
@@ -73,10 +73,16 @@
         <button type="button" class="seg-a-lg" data-action="chooseFontSize" data-arg="large" data-i18n-attr="aria-label:app.fontLarge;title:app.fontLarge">A</button>
       </span>
     </div>
-    <!-- study plan: "Features" switch (hidden until the entry is ready) -->
-    <div class="plan-settings" id="infoPlanRow" hidden>
+    <!-- "Features" switches (js/screens/planHome.js): v1.4.0 Cantonese translation (shown by renderTranslationSetting
+         whatever the plan does, so a pre-v1.4.0 planHome.js leaves no dead row), the study plan
+         (hidden until the entry is ready; v1.4.0: #infoPlanRow is the row itself, the title stays) -->
+    <div class="plan-settings" id="settingsFeatures">
       <div class="plan-settings-title" data-i18n="app.features"></div>
-      <div class="plan-setting-row">
+      <div class="plan-setting-row" id="settingsTransRow" hidden>
+        <span><b data-i18n="app.translationFeature"></b><span class="feature-pill" id="settingsTransPill"></span><span class="plan-setting-note" id="settingsTransStatus"></span></span>
+        <span id="settingsTransSwitch"></span>
+      </div>
+      <div class="plan-setting-row" id="infoPlanRow" hidden>
         <span><b data-i18n="app.planFeature"></b><span class="feature-pill" id="infoPlanPill"></span><span class="plan-setting-note" id="infoPlanStatus"></span></span>
         <span id="infoPlanSwitch"></span>
       </div>

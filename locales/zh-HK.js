@@ -39,6 +39,10 @@ LOCALES['zh-HK'] = {
     planOnNote: '已在主頁顯示',
     planOffNote: '所有計劃項目已隱藏',
     planSwitchLabel: '溫習計劃功能',
+    translationFeature: '🌐 廣東話翻譯',
+    translationOnNote: '題目、答案及重點均顯示廣東話翻譯',
+    translationOffNote: '所有廣東話翻譯已隱藏',
+    translationSwitchLabel: '廣東話翻譯功能',
   },
 
   home: {
@@ -47,6 +51,8 @@ LOCALES['zh-HK'] = {
     modePractice: '練習',
     modeExam: '模擬考試',
     practiceDescHtml: '<strong>練習</strong> — 每題作答後即時顯示答案及廣東話翻譯。可按難度、章節或試卷選題，並顯示各組掌握進度。',
+    // W-058: translation switched off (v1.4.0)
+    practiceDescNoYueHtml: '<strong>練習</strong> — 每題作答後即時顯示答案。可按難度、章節或試卷選題，並顯示各組掌握進度。',
     examDescHtml: '<strong>模擬考試</strong> — 仿照真實考試作答全部 {n} 題，可返回修改答案。於最後一題提交後，即可查看分數及答案。',
     myReview: '我的複習',
     practiceBy: '練習分類',
@@ -139,7 +145,7 @@ LOCALES['zh-HK'] = {
 
   study: {
     title: '📖 溫習',
-    search: '搜尋知識點（英文／廣東話）',
+    search: '搜尋知識點', // R2-1: never mentions English / Cantonese (matching still covers both)
     tabChapters: '章節',
     tabTimeline: '時間線',
     tabGeo: '地理',

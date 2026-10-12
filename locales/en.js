@@ -44,6 +44,11 @@ LOCALES.en = {
     planOnNote: 'Now showing on the home screen',
     planOffNote: 'All plan items are now hidden',
     planSwitchLabel: 'Study plan feature',
+    // v1.4.0: the Cantonese translation switch (same On / Off pill words as the plan row: app.planOnPill / planOffPill)
+    translationFeature: '🌐 Translation',
+    translationOnNote: 'Cantonese shown with questions, answers and facts',
+    translationOffNote: 'All Cantonese translations are hidden',
+    translationSwitchLabel: 'Cantonese translation',
   },
 
   home: {
@@ -52,6 +57,8 @@ LOCALES.en = {
     modePractice: 'Practice',
     modeExam: 'Exam',
     practiceDescHtml: '<strong>Practice</strong> — See the answer and Cantonese translation immediately after each question. Pick a set by difficulty, chapter or exam; each shows how much you have mastered.',
+    // W-058: translation switched off (v1.4.0)
+    practiceDescNoYueHtml: '<strong>Practice</strong> — See the answer immediately after each question. Pick a set by difficulty, chapter or exam; each shows how much you have mastered.',
     examDescHtml: '<strong>Exam</strong> — Answer all {n} questions like the real test; you can go back and change answers. Submit on the last question to see your score and answers.',
     myReview: 'My Review',
     practiceBy: 'Practice By',
@@ -144,7 +151,7 @@ LOCALES.en = {
 
   study: {
     title: '📖 Study',
-    search: 'Search facts (English / Cantonese)',
+    search: 'Search facts', // R2-1: never mentions English / Cantonese (matching still covers both)
     tabChapters: 'Chapters', // v1.2.0 (C4): the tab icon sits above the label in index.html
     tabTimeline: 'Timeline',
     tabGeo: 'Geography',

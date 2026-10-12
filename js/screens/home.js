@@ -2,7 +2,13 @@
 // HOME — mode cards, practice set grids, My Review tiles, reset rows
 // ════════════════════════════════════════
 const MODE_DESC_HTML = {
-  [PRACTICE_MODE]: () => t('home.practiceDescHtml'),
+  // W-058: translation off (v1.4.0) drops the "Cantonese translation" promise; a pre-v1.4.0 store.js reads as on (W-057)
+  // S-205: a pre-v1.4.0 locale has no no-translation wording — keep the original sentence rather than a raw key
+  [PRACTICE_MODE]: () => {
+    const descKey = typeof isTranslationOn !== 'function' || isTranslationOn() ? 'home.practiceDescHtml' : 'home.practiceDescNoYueHtml';
+    const desc = t(descKey);
+    return desc === descKey ? t('home.practiceDescHtml') : desc;
+  },
   [EXAM_MODE]: () => t('home.examDescHtml', { n: REAL_TEST_SIZE }),
 };
 const DEFAULT_MODE = PRACTICE_MODE;
