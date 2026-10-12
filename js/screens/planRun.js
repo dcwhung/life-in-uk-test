@@ -128,13 +128,13 @@ function planRunBackHtml(from) {
 // aria-label would hide the <span lang="en">Day n</span> language from screen readers)
 function setQuizBackText(back, html) {
   back.classList.add('plan-hit');
-  back.classList.remove('icon-btn');
+  back.classList.remove('icon-btn', 'memo-back');
   back.innerHTML = html;
   back.removeAttribute('aria-label');
   back.removeAttribute('title');
 }
 function setQuizBackHome(back) {
-  back.classList.remove('plan-hit');
+  back.classList.remove('plan-hit', 'memo-back');
   back.classList.add('icon-btn');
   back.innerHTML = lineIconSvg('home');
   setAccessibleName(back, t('common.homeLabel'));
@@ -143,6 +143,7 @@ function renderPlanQuizHeader() {
   const back = byId('screenQuiz').querySelector('.back-btn');
   const session = isPlanSession(), plan = session || isPlanMock();
   if (plan) setQuizBackText(back, planRunBackHtml((session ? sessionReturn : planMockRun).from));
+  else if (isMemoSession()) setQuizBackMemo(back); // C2: "‹ Memory" back to the group (js/screens/memo.js)
   else setQuizBackHome(back);
   if (!session) return;
   if (planRunPart(sessionReturn).fact !== undefined) setExamLabel(byId('quizLabel'), FACT_PREFIX + sessionReturn.fact);

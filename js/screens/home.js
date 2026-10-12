@@ -165,6 +165,8 @@ function startFlaggedPractice() { pendingMode = PRACTICE_MODE; startExam(FLAGGED
 // ── back to home (asks first while an exam is running) ──
 function goHome() {
   if (isPlanSession()) { planBackToDay(); return; } // the quiz header reads "← Today's tasks" in a plan task
+  // C2: a memo test's header reads "‹ Memory": back to the group, nothing recorded. W-057: a cached pre-v1.6.1 sideSession.js
+  if (typeof isMemoSession === 'function' && isMemoSession()) { leaveMemoTest(); return; }
   if (isExamRunning()) {
     showConfirm({ title: t('modal.leaveTitle'), message: t('modal.leaveMessage'),
       okLabel: t('modal.leaveOk'), cancelLabel: t('modal.leaveCancel'), onOk: isPlanMock() ? planLeaveMock : leaveToHome, focusCancel: true });

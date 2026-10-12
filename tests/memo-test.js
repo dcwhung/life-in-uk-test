@@ -244,17 +244,24 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   await pg.evaluate(() => { setLang('en'); rerenderCurrentScreen(); });
   assert((await quizBack()).text === '‹ Memory' && await pg.evaluate(() => state.current === 1), 'C2: back to en, still on question 2');
   await pg.evaluate(() => window.scrollTo(0, 300));
-  await pg.dblclick('#screenQuiz .quiz-header .back-btn'); // the 2nd tap lands on #screenMemo's own ‹ back: guarded
+  await pg.click('#screenQuiz .quiz-header .back-btn');
   const left = await pg.evaluate(() => ({ screen: document.querySelector('.screen.active').id, ret: sessionReturn, start: !!document.querySelector('#memoBody .memo-start'),
     pct: !!document.querySelector('#memoBody .memo-pct'), focus: document.activeElement === byId('memoTitle'), y: window.scrollY, title: byId('memoTitle').textContent }));
   assert(left.screen === 'screenMemo' && left.ret === null && left.start && !left.pct && left.title === juryTitle,
-    'C2: ‹ Memory (double tap) → the same group\'s look view (hook + table), not Study, return point cleared: ' + JSON.stringify(left));
+    'C2: ‹ Memory → the same group\'s look view (hook + table), not Study, return point cleared: ' + JSON.stringify(left));
   assert(left.y === 0 && left.focus, 'C2: back on the group screen at the top, focus on the group title');
   assert(JSON.stringify(await stored()) === progressBefore, 'C2: leaving mid-way records no memo level / due');
   // another memo test, then other sessions: Home is back, and nothing of the memo return lingers
   await pg.click('.memo-start');
   await pg.waitForTimeout(GUARD_WAIT_MS);
   assert((await quizBack()).memo, 'C2: a new memo test shows ‹ Memory again');
+  // a double tap: the 2nd tap lands on #screenMemo's own ‹ back (same spot) and is ignored (CUI-0011 guard)
+  await pg.dblclick('#screenQuiz .quiz-header .back-btn');
+  assert(await pg.evaluate(() => document.querySelector('.screen.active').id === 'screenMemo' && sessionReturn === null && !!document.querySelector('#memoBody .memo-start')),
+    'C2: double tap on ‹ Memory stays on the group\'s look view (not Study)');
+  assert(JSON.stringify(await stored()) === progressBefore, 'C2: still nothing recorded');
+  await pg.click('.memo-start');
+  await pg.waitForTimeout(GUARD_WAIT_MS);
   await pg.evaluate(() => startFactPractice(21)); // switching sessions straight from a memo test
   qb = await quizBack();
   assert(!qb.memo && qb.icon && qb.label === 'Home' && await homeShown(), 'C2: Study fact practice after it: 🏠 Home again: ' + JSON.stringify(qb));

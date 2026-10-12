@@ -130,6 +130,25 @@ function startMemoTest() {
   if (!g) return;
   startSideSession(MEMO_PREFIX + g.id, memoTestPick(g).map(toQuestionItem), { kind: SESSION_RETURN_KIND.memo, id: g.id });
 }
+// C2 (user): in a test the quiz header's back button (data-action goHome) reads "‹ Memory" like the group screen's
+// .memo-back, and its words name it (no aria-label / title, as a plan's text back button: S-188)
+function setQuizBackMemo(back) {
+  back.classList.remove('plan-hit', 'icon-btn');
+  back.classList.add('memo-back');
+  back.textContent = t('memo.backButton');
+  back.removeAttribute('aria-label');
+  back.removeAttribute('title');
+}
+// C2: leave a test mid-way (goHome while isMemoSession): back to the same group's look view, recording nothing (no memo
+// level / due; answers already given keep their practice streaks like any side session). The return point is cleared first,
+// so a later session or Practice exam is a normal one; a second tap lands on #screenMemo (double tap guard, actions.js)
+function leaveMemoTest() {
+  const ret = sessionReturn;
+  clearSideSession();
+  stopExamTimer();
+  Object.assign(memoView, { id: ret.id, step: MEMO_STEP.look, result: null });
+  showMemo();
+}
 // Recorded once per finished test: returnFromSideSession clears the return point before calling here, and a second tap
 // on ↩ Back lands on this screen (double tap guard). Scored over the answered (revealed) questions only (user, S-232);
 // nothing answered → nothing recorded, the result says so
