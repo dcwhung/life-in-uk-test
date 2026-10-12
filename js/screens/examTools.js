@@ -30,6 +30,8 @@ function renderExamTimer(left) {
   const el = byId('examTimer');
   el.textContent = t('exam.timer', { time: `${pad2(Math.floor(left / SECONDS_PER_MINUTE))}:${pad2(left % SECONDS_PER_MINUTE)}` });
   el.classList.toggle('warn', left <= EXAM_WARN_SECONDS);
+  // v2.0.0 desktop (F6): the rail's big timer is the clock there (js/screens/quiz.js); W-057 guard for a mixed cache
+  if (typeof syncExamTimerCopy === 'function') syncExamTimerCopy();
 }
 function examTick() {
   const left = examSecondsLeft();

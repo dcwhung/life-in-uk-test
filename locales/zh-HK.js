@@ -80,6 +80,7 @@ LOCALES['zh-HK'] = {
     questionOf: '第 {n} 題（共 {total} 題）',
     questionOfShort: '第 {n}/{total} 題',
     allShuffled: '全部試題（隨機排序）',
+    answerTab: '答案', // v2.0.0 desktop: the right column's tab beside Similar Questions (F5)
     translate: '翻譯',
     hideTranslation: '隱藏翻譯',
     previous: '上一題',

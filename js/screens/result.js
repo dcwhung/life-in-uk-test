@@ -30,6 +30,7 @@ function finishExam() {
   renderResults();
   showScreen('screenResult');
   window.scrollTo(0, 0);
+  desktopRefit('screenResult', fitResult); // the screen is shown only now: measure it again
 }
 // draws the results from reviewItems without recording anything (also used to re-render on a language change)
 function renderResults() {
@@ -40,6 +41,8 @@ function renderResults() {
   byId('diffTable').innerHTML = diffTableHtml();
   renderResultDots();
   renderReview();
+  arrangeResult(deskOn());
+  desktopRefit('screenResult', fitResult);
 }
 function recordExamResults() {
   // practice adds wrong answers as it goes; exam adds the answered-but-wrong ones here (unanswered are not added)
@@ -155,6 +158,7 @@ function setReviewFilter(key) {
   const hadFocus = byId('reviewOrder').contains(document.activeElement);
   reviewFilter = key;
   renderReview();
+  if (typeof refreshFades === 'function') refreshFades(byId('screenResult')); // v2.0.0 desktop: the list panel's fades
   if (hadFocus) byId('reviewOrder').querySelector(`[data-arg="${key}"]`).focus();
 }
 function visibleReviewItems() {
@@ -187,6 +191,52 @@ function reviewChipsHtml() {
 function renderReview() {
   byId('reviewOrder').innerHTML = reviewChipsHtml();
   byId('reviewList').innerHTML = visibleReviewItems().map(reviewItemHtml).join('');
+}
+
+// ── v2.0.0 desktop (≥ 1024px): mockups/v2.0.0/desktop-result.html A rev 5 (helpers in js/screens/quiz.js) ──
+// left 5/12: the score card with Retry / Another inside it, then By difficulty at the bottom (never scrolls);
+// right 7/12: Review Answers, the list in a fading scroll panel. The second button row (below the list) is not
+// shown: the card's pair stays in view
+let resultDesk = null;
+function buildResultDesk() {
+  const screen = byId('screenResult');
+  const [diffTitle, reviewTitle] = screen.querySelectorAll(':scope > .section-title');
+  const moved = {
+    card: screen.querySelector('.result-card'), diffTitle, diff: byId('diffTable'), actions: screen.querySelector('.result-actions'),
+    reviewTitle, order: byId('reviewOrder'), list: byId('reviewList'),
+  };
+  Object.values(moved).forEach(deskRemember);
+  const d = {
+    moved, cols: deskEl('div', 'result-cols'), left: deskEl('div', 'result-left'), right: deskEl('div', 'result-right'),
+    listWrap: deskEl('div', 'result-review-wrap fit-fade'), panel: deskEl('div', 'result-review-panel fit-panel'),
+  };
+  d.listWrap.append(d.panel);
+  d.cols.append(d.left, d.right);
+  d.cols.hidden = true;
+  deskHomes.get(moved.card).before(d.cols); // where the card starts on the phone (under the time-up line)
+  screen.classList.add('is-fit'); // css/components/fit.css: one screen high from 1024px only
+  return d;
+}
+function arrangeResult(desktop) {
+  const d = resultDesk || (resultDesk = buildResultDesk()), m = d.moved;
+  d.cols.hidden = !desktop;
+  if (!desktop) { deskRestore(Object.values(m)); return; }
+  // the card's last child (mockup: inside the card, after the plan row); left alone when already there (focus)
+  if (m.card.lastElementChild !== m.actions) m.card.append(m.actions);
+  deskFill(d.left, [m.card, m.diffTitle, m.diff]);
+  deskFill(d.panel, [m.list]);
+  deskFill(d.right, [m.reviewTitle, m.order, d.listWrap]);
+}
+// mockup fitLeft(): the left column and the card must not scroll. ① smaller score, closer By difficulty rows →
+// ② tighter card gaps → ③ smaller emoji / score (1024px English large text)
+const RESULT_FIT_STEPS = ['is-compact', 'is-compact2', 'is-compact3'];
+function fitResult(desktop) {
+  arrangeResult(desktop);
+  const { left, moved: { card } } = resultDesk;
+  RESULT_FIT_STEPS.forEach(cls => left.classList.remove(cls));
+  if (!desktop || !left.getClientRects().length) return;
+  const over = () => overflowsY(left) || overflowsY(card); // the card clips (overflow hidden): measure it too
+  RESULT_FIT_STEPS.find(cls => { if (!over()) return true; left.classList.add(cls); return false; });
 }
 
 function retryExam() {
