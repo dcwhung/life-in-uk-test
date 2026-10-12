@@ -1575,13 +1575,17 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
   .exC .quiz-header .exam-timer { display: none !important; }
   .exC .exam-panel .big-timer { justify-self: stretch; text-align: center; justify-content: center; }
   .exC .exam-panel .dots-meta { margin-top: 1lh; }
+  /* rev 3 (user): the rail panel fills the column's height; on the last question a Submit button sits at its bottom
+     (it opens the same confirm modal as the card's ✓) */
+  .exC .col > .exam-panel { flex: 1 1 auto !important; align-content: start; grid-template-rows: auto auto auto 1fr auto; }
+  .exC .exam-panel .exam-submit { align-self: end; width: 100%; min-height: calc(44px * var(--k)); }
 
 </style>
 </head>
 <body>
 
 <div class="mock-bar">
-  <b>v2.0.0 Desktop · Mockup 9/12 · Quiz（模擬考試）· rev 2：C 計時器全闊</b>
+  <b>v2.0.0 Desktop · Mockup 9/12 · Quiz（模擬考試）· rev 3：左欄填滿 + 最後一題交卷掣</b>
   <div class="mock-row"><span class="lbl">語言</span><button class="mock-tab on" data-k="lang" data-v="en">EN</button><button class="mock-tab" data-k="lang" data-v="zh">中文</button><span class="lbl" style="margin-left:10px">⚙ 大字</span><button class="mock-tab on" data-k="large" data-v="off">關</button><button class="mock-tab" data-k="large" data-v="on">開</button></div>
   <div class="mock-row"><span class="lbl">狀態</span><button class="mock-tab on" data-k="st" data-v="answered">答咗 5 題 + 標記</button><button class="mock-tab" data-k="st" data-v="q">未答</button><button class="mock-tab" data-k="st" data-v="last">最後一題（交卷）</button><button class="mock-tab" data-k="st" data-v="modal">交卷確認</button></div>
   <div class="mock-row"><span class="lbl">縮放</span><button class="mock-tab on" data-k="zoom" data-v="fit">適合畫面</button><button class="mock-tab" data-k="zoom" data-v="100">100%</button></div>
@@ -1688,6 +1692,8 @@ function examParts() {
   p.modal = S.st === 'modal' ? DATA[S.lang].modal.replace('class="modal-backdrop', 'class="modal-backdrop show') : '';
   return p;
 }
+const SUBMIT = { en: 'Submit', zh: '提交' };   // quiz.submit (en / zh-HK)
+const submitBtn = () => (S.st === 'last' || S.st === 'modal') ? `<span></span><button class="nav-btn exam-submit">${SUBMIT[S.lang]}</button>` : '';
 const VH = { 1024: 768, 1280: 800 };
 const left = p => `<div class="col col-left">${panel(p.cardNoDots + p.options)}</div>`;
 const OPTIONS = [
@@ -1706,10 +1712,11 @@ const OPTIONS = [
   },
   {
     id: 'C', cls: 'optA exC', vh: VH, title: 'C · 左欄導覽（計時器 + 題號點 6 × 4 + 數量）｜右邊作答',
-    ann: `<ul><li><b>rev 2</b>：右上角「EXAM 1」隔籬嘅細計時器拎走（左欄大計時器係唯一一個）；大計時器用盡左欄闊度；數量同題號點之間最少空一行。</li>
+    ann: `<ul><li><b>rev 3</b>：左欄 panel 用盡高度；去到最後一題，左欄最底出現「交卷」掣（同題目卡右上 ✓ 一樣，撳咗出確認視窗）。</li>
+      <li><b>rev 2</b>：右上角「EXAM 1」隔籬嘅細計時器拎走（左欄大計時器係唯一一個）；大計時器用盡左欄闊度；數量同題號點之間最少空一行。</li>
       <li>冇頂部題號點 bar；左欄（3/12）係考試導覽：大計時器、題號點排 6 × 4、已答／未答／已標記；右邊（9/12）作答。</li>
       <li>好處：題號點大粒啲，易撳；作答欄最高。弱點：同練習畫面嘅框架唔一樣。</li></ul>`,
-    render: p => `<div class="quiz-screen">${p.header}${p.round}<div class="cols"><div class="col"><div class="exam-panel">${p.timerBig}${p.dots}${p.meta}</div></div>${left(p)}</div></div>${p.modal}`,
+    render: p => `<div class="quiz-screen">${p.header}${p.round}<div class="cols"><div class="col"><div class="exam-panel">${p.timerBig}${p.dots}${p.meta}${submitBtn()}</div></div>${left(p)}</div></div>${p.modal}`,
   },
 ];
 
