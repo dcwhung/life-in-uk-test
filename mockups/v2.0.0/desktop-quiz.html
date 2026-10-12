@@ -1455,7 +1455,8 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
   .optA .dots-bar { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: var(--space-12); align-items: center; }
   .optA .dots-bar .nav-dots { grid-template-columns: repeat(24, minmax(0, 1fr)); margin: 0; }
   .optA .dots-bar .dot { max-width: calc(30px * var(--k)); }
-  .optA .dots-bar .dots-meta { margin: 0; padding: 0; border: 0; display: grid; grid-template-columns: auto auto; column-gap: var(--space-8); row-gap: var(--space-2); justify-content: start; font-size: var(--fs-xs); }
+  .optA .dots-bar .dots-meta { margin: 0; padding: 0; border: 0; display: grid; grid-template-columns: auto auto; grid-template-rows: auto auto; grid-auto-flow: column; column-gap: var(--space-8); row-gap: var(--space-2); justify-content: start; font-size: var(--fs-xs); }
+  /* rev 7 (user): filled down the columns, so the rows read Correct · Unanswered / Wrong · Flagged */
   .optA .dots-bar .dots-meta .sep { display: none; }
   .optA .dots-bar .dots-meta > span { white-space: nowrap; }
   /* A rev 2 (user): the question + 4 options (with translations) taller than the left column → options 2 × 2 */
@@ -1500,7 +1501,7 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
 <body>
 
 <div class="mock-bar">
-  <b>v2.0.0 Desktop · Mockup 8/12 · Quiz（練習）· rev 6：題號點左右分欄</b>
+  <b>v2.0.0 Desktop · Mockup 8/12 · Quiz（練習）· rev 7：數量 答啱·未答／答錯·已標記</b>
   <div class="mock-row"><span class="lbl">語言</span><button class="mock-tab on" data-k="lang" data-v="en">EN</button><button class="mock-tab" data-k="lang" data-v="zh">中文</button><span class="lbl" style="margin-left:10px">翻譯</span><button class="mock-tab on" data-k="yue" data-v="on">開</button><button class="mock-tab" data-k="yue" data-v="off">關</button><span class="lbl" style="margin-left:10px">⚙ 大字</span><button class="mock-tab on" data-k="large" data-v="off">關</button><button class="mock-tab" data-k="large" data-v="on">開</button></div>
   <div class="mock-row"><span class="lbl">Tab 樣式（A）</span><button class="mock-tab on" data-k="tabs" data-v="s">S · 柔和（揀咗）</button><button class="mock-tab" data-k="tabs" data-v="u">U · 底線</button><button class="mock-tab" data-k="tabs" data-v="f">F · 文件夾</button><span class="lbl" style="margin-left:10px"></span><span class="lbl">狀態</span><button class="mock-tab on" data-k="st" data-v="wrong">答錯（答案 + 相似題目）</button><button class="mock-tab" data-k="st" data-v="right">答啱（長選項）</button><button class="mock-tab" data-k="st" data-v="q">未答</button><button class="mock-tab" data-k="st" data-v="qYue">未答 + Translate</button></div>
   <div class="mock-row"><span class="lbl">縮放</span><button class="mock-tab on" data-k="zoom" data-v="fit">適合畫面</button><button class="mock-tab" data-k="zoom" data-v="100">100%</button></div>
@@ -1588,7 +1589,7 @@ const VH = { 1024: 768, 1280: 800 };
 const OPTIONS = [
   {
     id: 'A', cls: 'optA', rec: true, vh: VH, title: 'A · 左邊作答｜右邊答案 + 相似題目',
-    ann: `<ul><li><b>rev 6</b>：題號點條 bar 分左右：左邊 24 粒排一行用盡闊度；右邊數量排 2 × 2（答啱 · 答錯／未答 · 已標記）。</li>
+    ann: `<ul><li><b>rev 6</b>：題號點條 bar 分左右：左邊 24 粒排一行用盡闊度；右邊數量排 2 × 2。<b>rev 7</b>：答錯同未答對調，變成「答啱 · 未答／答錯 · 已標記」。</li>
       <li><b>rev 5</b>：tab 用 <b>S 柔和</b>。相似題目卡頂（🗺️、標題、「Same fact, asked differently」、+3）唔再喺 pane 入面重覆，搬咗入 tab（副題做第二行細字）；pane 直接由核心知識點開始，tab 同下面框嘅間距同「答案」一樣。</li>
       <li><b>rev 4</b>：tab 唔再用大按鈕，改為輕身 tab，頂部「Tab 樣式」比較 3 款：<b>U 底線</b>（揀咗嘅有粗底線）、<b>F 文件夾</b>（揀咗嘅有框，同下面條線連埋）、<b>S 柔和</b>（淺灰底 bar，揀咗嘅白卡凸出）。長選項喺左欄碌：用戶接受。</li>
       <li><b>rev 3</b>：右欄改為兩個 tab「💡 答案｜🧩 相似題目（數量）」，撳就轉（可以喺 frame 入面撳試）；每個 tab 有自己嘅碌動 panel。「答案」係新文字（相似題目沿用現有字）。</li>
