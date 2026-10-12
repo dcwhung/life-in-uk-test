@@ -1435,10 +1435,27 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
   .study-col { display: grid; gap: var(--space-6); align-content: start; min-width: 0; }
   .study-col > .chip-row, .study-col > .study-tabs, .study-col > .study-search, .study-col > .study-count { margin-bottom: 0; }
 
-  /* ════════ option A: left rail (search, tabs 2 × 2, chips, count; sticky) | right: the cards in one column ════════ */
-  .optA .cols, .optC .cols { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: var(--space-12); align-items: start; }
-  .optA .rail, .optC .rail { position: sticky; top: var(--space-10); }
-  .optA .rail .study-tabs, .optC .rail .study-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* ════════ option A rev 2 (user): one screen high; left 20% = search, tabs, chapter / group chips, count, and the
+     filter buttons (Hide mastered, Bookmarked only, Wars only) stacked full width at its bottom; right = the cards
+     in a panel that scrolls on its own ════════ */
+  .optA .study-a { height: 100%; display: flex; flex-direction: column; }
+  .optA .study-a > .quiz-header { flex: none; }
+  .optA .study-a > .cols { flex: 1; min-height: 0; display: grid; grid-template-columns: 20% minmax(0, 1fr); gap: var(--space-10); align-items: stretch; }
+  .optA .rail { display: flex; flex-direction: column; gap: var(--space-6); min-height: 0; overflow-y: auto; }
+  .optA .rail > * { margin-bottom: 0; flex: none; }
+  .optA .rail .study-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .optA .rail #studyChips { margin-top: auto; flex-direction: column; flex-wrap: nowrap; align-items: stretch; }
+  .optA .rail #studyChips .chip { width: 100%; }
+  .optA .right { position: relative; min-height: 0; }
+  .optA .right > .scroller { height: 100%; overflow-y: auto; overscroll-behavior: contain; padding-right: var(--space-3); }
+  .optA .right::before, .optA .right::after { content: ''; position: absolute; left: 0; right: var(--space-3); height: calc(40px * var(--k)); z-index: 2; pointer-events: none; opacity: 0; transition: opacity 0.2s; }
+  .optA .right::before { top: 0; background: linear-gradient(var(--bg), transparent); }
+  .optA .right::after { bottom: 0; background: linear-gradient(transparent, var(--bg)); }
+  .optA .right.can-up::before, .optA .right.can-down::after { opacity: 1; }
+
+  .optC .cols { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: var(--space-12); align-items: start; }
+  .optC .rail { position: sticky; top: var(--space-10); }
+  .optC .rail .study-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
   /* ════════ option B: toolbar across (search | 4 tabs), chips row, cards in two columns ════════ */
   .optB .bar { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: var(--space-8); align-items: center; margin-bottom: var(--space-6); }
@@ -1453,7 +1470,7 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
 <body>
 
 <div class="mock-bar">
-  <b>v2.0.0 Desktop · Mockup 7/12 · Study（溫習）</b>
+  <b>v2.0.0 Desktop · Mockup 7/12 · Study（溫習）· rev 2：A 左 20% + 一屏 + 卡 panel 可碌</b>
   <div class="mock-row"><span class="lbl">語言</span><button class="mock-tab on" data-k="lang" data-v="en">EN</button><button class="mock-tab" data-k="lang" data-v="zh">中文</button><span class="lbl" style="margin-left:10px">翻譯</span><button class="mock-tab on" data-k="yue" data-v="on">開</button><button class="mock-tab" data-k="yue" data-v="off">關</button><span class="lbl" style="margin-left:10px">⚙ 大字</span><button class="mock-tab on" data-k="large" data-v="off">關</button><button class="mock-tab" data-k="large" data-v="on">開</button></div>
   <div class="mock-row"><span class="lbl">Tab</span><button class="mock-tab on" data-k="tab" data-v="chapters">📚 章節（Ch 5）</button><button class="mock-tab" data-k="tab" data-v="timeline">📅 時間線</button><button class="mock-tab" data-k="tab" data-v="geo">🗺️ 地理</button><button class="mock-tab" data-k="tab" data-v="people">👤 人物</button></div>
   <div class="mock-row"><span class="lbl">縮放</span><button class="mock-tab on" data-k="zoom" data-v="fit">適合畫面</button><button class="mock-tab" data-k="zoom" data-v="100">100%</button></div>
@@ -1485,13 +1502,26 @@ function parts() {
   return { header: q('.quiz-header'), search: q('.study-search'), tabs: q('.study-tabs'), chips: q('#studyChips'),
     sub: q('#studySubChips'), count: q('.study-count'), content: content.outerHTML };
 }
+// option A rev 2: fades at the ends of the card panel while more cards are out of view
+function afterRender() {
+  document.querySelectorAll('.optA .right > .scroller').forEach(sc => {
+    const wrap = sc.parentElement;
+    const update = () => {
+      wrap.classList.toggle('can-up', sc.scrollTop > 1);
+      wrap.classList.toggle('can-down', sc.scrollTop + sc.clientHeight < sc.scrollHeight - 1);
+    };
+    sc.addEventListener('scroll', update, { passive: true });
+    requestAnimationFrame(update);
+  });
+}
 const OPTIONS = [
   {
     id: 'A', cls: 'optA', rec: true, title: 'A · 沿用 Home A：左欄搜尋 + 篩選，右欄知識點卡',
-    ann: `<ul><li><b>左（4/12，sticky）</b>：搜尋、4 個 tab（2 × 2）、篩選 chip、章節／分類 chip、「n / n 項」：全部係「揀睇乜」嘅控制，碌落去都一直喺度。</li>
-      <li><b>右（8/12）</b>：知識點卡一欄，同手機一樣；時間線照舊有直線同年份。</li>
+    vh: { 1024: 768, 1280: 800 },
+    ann: `<ul><li><b>rev 2</b>：成頁一屏高（frame 用真實畫面高度）。<b>左欄佔 20%</b>：搜尋、4 個 tab（2 × 2）、章節／分類 chip、「n / n 項」；左欄最底係「隱藏已掌握／只看書籤／只看戰爭」打直排、用盡闊度。<b>右欄</b>：知識點卡一欄，喺自己個 panel 入面碌（上下淡出），頁面本身唔碌。</li>
+      <li>時間線照舊有直線同年份。</li>
       <li>好處：同其他畫面一致；碌好長嘅 list 時可以隨時轉 tab／chip。弱點：一屏見到嘅卡數同手機差唔多。</li></ul>`,
-    render: p => `${p.header}<div class="cols"><div class="study-col rail">${p.search}${p.tabs}${p.chips}${p.sub}${p.count}</div><div class="study-col">${p.content}</div></div>`,
+    render: p => `<div class="study-a">${p.header}<div class="cols"><div class="rail">${p.search}${p.tabs}${p.sub}${p.count}${p.chips}</div><div class="right"><div class="scroller">${p.content}</div></div></div></div>`,
   },
   {
     id: 'B', cls: 'optB twocol', title: 'B · 頂部工具列，知識點卡排兩欄',
