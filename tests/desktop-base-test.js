@@ -363,7 +363,7 @@ async function checkLateFit(b) {
 // "add a new file" rules (HANDOFF.md): index.html tag, sw.js SHELL, LATE_BOOT_*, APP_VERSION
 function checkFiles() {
   const html = read('index.html'), sw = read('sw.js'), main = read('js/main.js');
-  assert(/APP_VERSION = '2\.0\.0'/.test(read('js/core/config.js')), 'APP_VERSION 2.0.0');
+  assert(/APP_VERSION = '2\.\d+\.\d+'/.test(read('js/core/config.js')), 'APP_VERSION 2.x (the desktop layout came in 2.0.0)');
   for (const f of ['js/components/fit.js', 'css/components/fit.css', 'js/components/deskPlace.js']) {
     assert(html.includes(`"${f}"`) && sw.includes(`'${f}'`) && main.includes(`'${f}'`), `${f}: index.html tag, sw.js SHELL, js/main.js LATE_BOOT list`);
   }
