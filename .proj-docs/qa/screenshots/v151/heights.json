@@ -1,0 +1,226 @@
+[
+ {
+  "lang": "en",
+  "size": "small",
+  "state": "zero",
+  "v150": 209,
+  "v151": 170,
+  "d": -39
+ },
+ {
+  "lang": "en",
+  "size": "small",
+  "state": "mid",
+  "v150": 209,
+  "v151": 188,
+  "d": -21
+ },
+ {
+  "lang": "en",
+  "size": "small",
+  "state": "full",
+  "v150": 209,
+  "v151": 170,
+  "d": -39
+ },
+ {
+  "lang": "en",
+  "size": "small",
+  "state": "rest",
+  "v150": 208,
+  "v151": 208,
+  "d": 0
+ },
+ {
+  "lang": "en",
+  "size": "small",
+  "state": "exam",
+  "v150": 137,
+  "v151": 137,
+  "d": 0
+ },
+ {
+  "lang": "en",
+  "size": "small",
+  "state": "ended",
+  "v150": 174,
+  "v151": 174,
+  "d": 0
+ },
+ {
+  "lang": "en",
+  "size": "small",
+  "state": "notStarted",
+  "v150": 163,
+  "v151": 163,
+  "d": 0
+ },
+ {
+  "lang": "en",
+  "size": "large",
+  "state": "zero",
+  "v150": 214,
+  "v151": 194,
+  "d": -20
+ },
+ {
+  "lang": "en",
+  "size": "large",
+  "state": "mid",
+  "v150": 214,
+  "v151": 194,
+  "d": -20
+ },
+ {
+  "lang": "en",
+  "size": "large",
+  "state": "full",
+  "v150": 213,
+  "v151": 173,
+  "d": -40
+ },
+ {
+  "lang": "en",
+  "size": "large",
+  "state": "rest",
+  "v150": 220,
+  "v151": 220,
+  "d": 0
+ },
+ {
+  "lang": "en",
+  "size": "large",
+  "state": "exam",
+  "v150": 141,
+  "v151": 141,
+  "d": 0
+ },
+ {
+  "lang": "en",
+  "size": "large",
+  "state": "ended",
+  "v150": 234,
+  "v151": 234,
+  "d": 0
+ },
+ {
+  "lang": "en",
+  "size": "large",
+  "state": "notStarted",
+  "v150": 170,
+  "v151": 170,
+  "d": 0
+ },
+ {
+  "lang": "zh-HK",
+  "size": "small",
+  "state": "zero",
+  "v150": 184,
+  "v151": 170,
+  "d": -14
+ },
+ {
+  "lang": "zh-HK",
+  "size": "small",
+  "state": "mid",
+  "v150": 184,
+  "v151": 188,
+  "d": 4
+ },
+ {
+  "lang": "zh-HK",
+  "size": "small",
+  "state": "full",
+  "v150": 184,
+  "v151": 170,
+  "d": -14
+ },
+ {
+  "lang": "zh-HK",
+  "size": "small",
+  "state": "rest",
+  "v150": 185,
+  "v151": 185,
+  "d": 0
+ },
+ {
+  "lang": "zh-HK",
+  "size": "small",
+  "state": "exam",
+  "v150": 138,
+  "v151": 138,
+  "d": 0
+ },
+ {
+  "lang": "zh-HK",
+  "size": "small",
+  "state": "ended",
+  "v150": 156,
+  "v151": 156,
+  "d": 0
+ },
+ {
+  "lang": "zh-HK",
+  "size": "small",
+  "state": "notStarted",
+  "v150": 138,
+  "v151": 138,
+  "d": 0
+ },
+ {
+  "lang": "zh-HK",
+  "size": "large",
+  "state": "zero",
+  "v150": 219,
+  "v151": 194,
+  "d": -25
+ },
+ {
+  "lang": "zh-HK",
+  "size": "large",
+  "state": "mid",
+  "v150": 219,
+  "v151": 194,
+  "d": -25
+ },
+ {
+  "lang": "zh-HK",
+  "size": "large",
+  "state": "full",
+  "v150": 216,
+  "v151": 173,
+  "d": -43
+ },
+ {
+  "lang": "zh-HK",
+  "size": "large",
+  "state": "rest",
+  "v150": 225,
+  "v151": 225,
+  "d": 0
+ },
+ {
+  "lang": "zh-HK",
+  "size": "large",
+  "state": "exam",
+  "v150": 144,
+  "v151": 144,
+  "d": 0
+ },
+ {
+  "lang": "zh-HK",
+  "size": "large",
+  "state": "ended",
+  "v150": 165,
+  "v151": 165,
+  "d": 0
+ },
+ {
+  "lang": "zh-HK",
+  "size": "large",
+  "state": "notStarted",
+  "v150": 173,
+  "v151": 173,
+  "d": 0
+ }
+]
