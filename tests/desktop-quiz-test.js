@@ -161,6 +161,19 @@ async function checkPhone(b) {
   await page.close();
 }
 
+// S-228: moving the options across 1024px keeps keyboard focus where it was
+async function checkFocusKept(b) {
+  const { page, errors } = await dt.openDesktop(b, { viewport: dt.VIEWPORTS.belowDesktop });
+  await startSet(page, 'practice', EXAM_ONE);
+  await page.focus('#opt0');
+  await dt.setViewport(page, dt.VIEWPORTS.wide);
+  assert(await page.evaluate(() => document.activeElement && document.activeElement.id) === 'opt0' && await page.evaluate(() => !!byId('opt0').closest('.quiz-main')), 'S-228 1023 → 1280: #opt0 moved into the column and still has focus');
+  await dt.setViewport(page, dt.VIEWPORTS.belowDesktop);
+  assert(await page.evaluate(() => document.activeElement && document.activeElement.id) === 'opt0' && await page.evaluate(() => !byId('opt0').closest('.quiz-main')), 'S-228 1280 → 1023: back in its phone place, still focused');
+  assert(errors.length === 0, 'no page error: ' + errors.join(' | '));
+  await page.close();
+}
+
 // switching settings on an open quiz re-runs the fit (onRefit)
 async function checkRefit(b) {
   const { page, errors } = await dt.openDesktop(b, { viewport: dt.VIEWPORTS.small });
@@ -183,6 +196,7 @@ async function checkRefit(b) {
   });
   await checkPhone(b);
   await checkRefit(b);
+  await checkFocusKept(b);
   await b.close();
   console.log('DESKTOP-QUIZ PASS');
 })().catch(e => { console.error(e.message || e); process.exit(1); });

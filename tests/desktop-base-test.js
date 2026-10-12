@@ -259,14 +259,72 @@ async function checkRefit(b) {
   await page.close();
 }
 
+// S-233: a fit that renders (and so calls runRefits() again) does not start a nested run
+async function checkRefitGuard(b) {
+  const { page } = await dt.openDesktop(b, { viewport: dt.VIEWPORTS.small });
+  const calls = await page.evaluate(() => {
+    let n = 0;
+    onRefit(() => { n++; runRefits(); });
+    runRefits();
+    return n;
+  });
+  assert(calls === 1, `S-233: runRefits() inside a fit does not nest (${calls} run)`);
+  await page.close();
+}
+
+// W-377 / S-235 / S-228: js/components/deskPlace.js, the one way a screen moves parts into desktop columns
+async function checkDeskPlace(b) {
+  const { page, errors } = await dt.openDesktop(b, { viewport: dt.VIEWPORTS.wide });
+  await page.evaluate(() => {
+    const host = document.createElement('div');
+    host.id = 'placeHost';
+    host.innerHTML = '<p id="pA">a</p><button id="pB">b</button><p id="pC">c</p>';
+    document.body.append(host);
+  });
+  const spec = "({ key: 'probe', boxClass: 'probe-cols', columns: [{ cls: 'probe-l', parts: [byId('pA')] }, { cls: 'probe-r', parts: [byId('pB'), byId('pC')] }] })";
+  const look = () => page.evaluate(() => ({ html: [...byId('placeHost').childNodes].filter(n => n.nodeType === 1).map(n => n.id || n.className).join(' '),
+    focus: document.activeElement && document.activeElement.id, box: window.probeBox && window.probeBox.isConnected }));
+  await page.evaluate(sp => { byId('pB').focus(); window.probeBox = setDesktopColumns(eval(sp), true); }, spec);
+  let l = await look();
+  assert(l.html === 'probe-cols' && l.focus === 'pB', 'setDesktopColumns on: the parts in their columns, focus kept (S-228): ' + JSON.stringify(l));
+  await page.evaluate(sp => setDesktopColumns(eval(sp), false), spec);
+  l = await look();
+  assert(l.html === 'pA pB pC' && !l.box && l.focus === 'pB', 'off: each part back in its place, the box out of the DOM, focus kept: ' + JSON.stringify(l));
+  const same = await page.evaluate(sp => setDesktopColumns(eval(sp), true) === window.probeBox, spec);
+  assert(same, 'on again: the same box is reused (built once)');
+  assert(errors.length === 0, 'no page error: ' + errors.join(' | '));
+  await page.close();
+}
+
+// W-377: a cached shell whose fit.js arrives late (js/main.js LATE_BOOT_SCRIPTS, after the screens): the screens'
+// fits still register (lazily, at their first render), so the desktop layout works from the first screen
+async function checkLateFit(b) {
+  const ctx = await b.newContext({ viewport: dt.VIEWPORTS.wide });
+  let blocked = 0;
+  await ctx.route('**/js/components/fit.js', route => (blocked++ ? route.continue() : route.abort()));
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on('pageerror', e => errors.push(e.message));
+  await page.goto(dt.APP_URL);
+  await page.waitForFunction(() => typeof runRefits === 'function' && byId('examGrid').children.length > 0);
+  await dt.nextFrame(page);
+  assert(blocked >= 2, 'fit.js failed once and was loaded late');
+  assert(await page.evaluate(() => !!document.querySelector('#screenHome .home-cols')), 'W-377 late fit.js: Home still gets its desktop columns');
+  await page.evaluate(() => { pendingMode = 'practice'; startExam(1); });
+  assert(await page.evaluate(() => !!byId('navDots').closest('.quiz-dots-bar')), 'W-377 late fit.js: the quiz desktop layout too');
+  assert(errors.length === 0, 'no page error: ' + errors.join(' | '));
+  await ctx.close();
+}
+
 // "add a new file" rules (HANDOFF.md): index.html tag, sw.js SHELL, LATE_BOOT_*, APP_VERSION
 function checkFiles() {
   const html = read('index.html'), sw = read('sw.js'), main = read('js/main.js');
   assert(/APP_VERSION = '2\.0\.0'/.test(read('js/core/config.js')), 'APP_VERSION 2.0.0');
-  for (const f of ['js/components/fit.js', 'css/components/fit.css']) {
+  for (const f of ['js/components/fit.js', 'css/components/fit.css', 'js/components/deskPlace.js']) {
     assert(html.includes(`"${f}"`) && sw.includes(`'${f}'`) && main.includes(`'${f}'`), `${f}: index.html tag, sw.js SHELL, js/main.js LATE_BOOT list`);
   }
   assert(html.indexOf('js/components/fit.js') < html.indexOf('js/screens/home.js'), 'fit.js loads before the screens');
+  assert(html.indexOf('js/components/deskPlace.js') < html.indexOf('js/screens/home.js'), 'deskPlace.js loads before the screens');
 }
 
 (async () => {
@@ -279,6 +337,9 @@ function checkFiles() {
   await checkFitSteps(b);
   await checkFades(b);
   await checkRefit(b);
+  await checkRefitGuard(b);
+  await checkDeskPlace(b);
+  await checkLateFit(b);
   await b.close();
   console.log('PASS');
 })().catch(e => { console.error(e.message || e); process.exit(1); });

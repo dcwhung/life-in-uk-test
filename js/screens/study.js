@@ -158,16 +158,14 @@ function ensureStudyLayout() {
   const cols = wrapStudyEl('study-cols fit-grow', [rail, wrapStudyEl('study-main fit-fade', [content])]);
   screen.append(cols);
   screen.classList.add('is-fit');
-  // a cached pre-v2.0.0 shell may run without fit.js (js/main.js LATE_BOOT_SCRIPTS loads it after this file)
-  if (typeof onRefit === 'function') onRefit(placeStudyFilterChips, 'screenStudy');
 }
 // desktop: the filter chips sit at the rail's foot, after the count; phone: above the sub chips as before. The node
 // moves (not css order) so the Tab order follows what is seen; it only moves when its place is wrong
 function placeStudyFilterChips(desktop) {
   const chips = byId('studyChips'), count = byId('studyCount'), sub = byId('studySubChips');
   if (!chips || !count || !sub) return;
-  if (desktop && count.nextElementSibling !== chips) count.after(chips);
-  if (!desktop && chips.nextElementSibling !== sub) sub.before(chips);
+  if (desktop && count.nextElementSibling !== chips) deskKeepFocus(() => count.after(chips)); // S-228
+  if (!desktop && chips.nextElementSibling !== sub) deskKeepFocus(() => sub.before(chips));
 }
 // the cards scroll in their panel on desktop and with the page on a phone (js/screens/sideSession.js keeps the
 // offset across a fact's Practice session)
@@ -193,7 +191,7 @@ function renderStudy() {
   renderStudyProgress();
   byId('studyContent').innerHTML =
     shown ? html : `<div class="study-empty">${t('study.empty')}</div>`;
-  if (typeof runRefits === 'function') runRefits();
+  desktopRefit('screenStudy', placeStudyFilterChips); // registered lazily (js/components/deskPlace.js)
 }
 
 // Q8: after ↩ Back from a fact session its card flashes gold; R-010: when the restored scroll no longer shows it

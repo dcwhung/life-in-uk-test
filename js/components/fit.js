@@ -58,13 +58,22 @@ function refreshFades(root = document) { root.querySelectorAll(FADE_PANEL_SELECT
 
 // fn(isDesktop()) runs on every refit; with a screenId only while that screen is the active one. Below 1024px it is
 // still called (with false), so a fit can take its desktop steps off when the window narrows
+// S-233: a fit that renders (Home's plan card) calls runRefits() again from its render tail; that inner call is
+// skipped (the outer run is still going through every fit), so runs never nest
 const refits = [];
+let refitting = false;
 function onRefit(fn, screenId) { refits.push({ fn, screenId }); }
 function runRefits() {
-  const active = document.querySelector('.screen.active');
-  const desktop = isDesktop();
-  refits.filter(r => !r.screenId || (active && active.id === r.screenId)).forEach(r => r.fn(desktop));
-  refreshFades();
+  if (refitting) return;
+  refitting = true;
+  try {
+    const active = document.querySelector('.screen.active');
+    const desktop = isDesktop();
+    refits.filter(r => !r.screenId || (active && active.id === r.screenId)).forEach(r => r.fn(desktop));
+    refreshFades();
+  } finally {
+    refitting = false;
+  }
 }
 // resize fires many times while a window is dragged: one run per frame
 let refitFrame = 0;

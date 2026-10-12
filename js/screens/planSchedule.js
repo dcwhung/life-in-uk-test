@@ -56,7 +56,7 @@ function renderPlanSchedule() {
   renderPlanOrder(log, doneSets);
   Object.keys(PLAN_FOLD_TOGGLES).forEach(applyPlanFold);
   byId('planDayList').innerHTML = planDayListHtml(plan, log, planTodayIso());
-  if (typeof runRefits === 'function') runRefits(); // v2.0.0 desktop: the sideways day list (planScheduleRefit)
+  desktopRefit('screenPlanSchedule', planScheduleRefit); // v2.0.0 desktop: the sideways day list
 }
 // language switch / new day: re-rendered in place, the day list stays where it was scrolled. It returns to the first
 // row in view (not the raw scrollTop): rows far from today have estimated heights until laid out (O-1)
@@ -398,13 +398,15 @@ function planPlaceTodayCta(desktop) {
   const cta = byId('screenPlanSchedule').querySelector('.plan-block[data-action="openPlanDay"]');
   const card = byId('planDayList').closest('.plan-card-box');
   if (!cta || !card) return;
-  if (desktop && cta.parentElement !== card) card.append(cta);
-  if (!desktop && cta.parentElement === card) card.after(cta);
+  if (desktop && cta.parentElement !== card) deskKeepFocus(() => card.append(cta)); // S-228
+  if (!desktop && cta.parentElement === card) deskKeepFocus(() => card.after(cta));
 }
 function planScheduleRefit(desktop) {
-  if (desktop !== planScheduleDesktop && planLoad()) { renderPlanSchedule(); planScrollToToday(); return; } // the other layout's list
+  // the other layout's list: redrawn here (its own render tail's refit run is skipped inside this one, S-233)
+  const redraw = desktop !== planScheduleDesktop && !!planLoad();
+  if (redraw) renderPlanSchedule();
   if (desktop) planWrapScrollCues(); else planUnwrapScrollCues();
   planPlaceTodayCta(desktop);
   planUpdateScrollCues();
+  if (redraw) planScrollToToday();
 }
-if (typeof onRefit === 'function') onRefit(planScheduleRefit, 'screenPlanSchedule');

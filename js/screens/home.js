@@ -96,7 +96,7 @@ function renderModeSelection() {
   renderPlanCard(); // study plan entry above "Choose Mode" (only while planVisible)
   renderPracticeViews(isPractice);
   renderResetRows(isPractice);
-  if (typeof runRefits === 'function') runRefits(); // v2.0.0 desktop columns + fits (homeRefit); a pre-v2.0.0 shell has no fit.js
+  desktopRefit('screenHome', homeRefit); // v2.0.0 desktop columns + fits (js/components/deskPlace.js: no-op without fit.js)
 }
 function renderPracticeViews(isPractice) {
   PRACTICE_VIEWS.forEach(v => {
@@ -186,7 +186,7 @@ function leaveToHome() {
 // ── v2.0.0 desktop (≥ 1024px; handoff §3 #1 / #4, mockups desktop-home.html A rev 3 + desktop-home-plan.html A rev 7):
 // the plan card across the top; left rail 5/12 (modes, description, hint / reset), right 7/12 (My Review, practice
 // tabs, sets). The rail is sticky while it fits the viewport; taller (⚙ large text + zh-HK) it scrolls with the page
-// (F8). Below 1024px the parts go back to their phone order (js/components/fitRow.js setDesktopColumns) ──
+// (F8). Below 1024px the parts go back to their phone order (js/components/deskPlace.js setDesktopColumns) ──
 const HOME_TALL_CLASS = 'is-tall';
 function homeColumns() {
   const home = byId('screenHome');
@@ -207,7 +207,7 @@ function fitHomeRail(box) {
   const headerH = document.querySelector('header').getBoundingClientRect().height;
   rail.classList.toggle(HOME_TALL_CLASS, top + rail.offsetHeight + (top - headerH) > window.innerHeight);
 }
-// W-057-style mixed caches: a pre-v2.0.0 fitRow.js / planHome.js lacks the desktop helpers, so the phone layout stays
+// W-057-style mixed caches: without deskPlace.js / a v2.0.0 planHome.js the desktop helpers are missing: the phone layout stays
 const homeDesktopReady = () => typeof setDesktopColumns === 'function' && typeof planCardDrawnForDesktop === 'function';
 function homeRefit(desktop) {
   if (!homeDesktopReady()) return;
@@ -219,4 +219,3 @@ function homeRefit(desktop) {
   fitPlanCard(desktop);
   fitHomeRail(box);
 }
-if (typeof onRefit === 'function') onRefit(homeRefit, 'screenHome');

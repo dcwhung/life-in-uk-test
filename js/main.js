@@ -32,6 +32,8 @@ const LATE_BOOT_SCRIPTS = [
   { src: 'js/screens/planRun.js', ready: () => typeof renderPlanRunNotes === 'function' },
   // v2.0.0: the desktop fits (render tails, i18n.js rerenderCurrentScreen) call runRefits / onRefit
   { src: 'js/components/fit.js', ready: () => typeof runRefits === 'function' },
+  // v2.0.0: the screens move parts into desktop columns and register their fits through it (W-377)
+  { src: 'js/components/deskPlace.js', ready: () => typeof deskKeepFocus === 'function' },
 ];
 // shown when the scripts still fail after one reload; t() is not available then, so it cannot be a locale key
 const I18N_BOOT_FALLBACK_MSG = 'The app could not finish loading. Please check your connection and reload the page.';

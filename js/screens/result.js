@@ -193,7 +193,7 @@ function renderReview() {
   byId('reviewList').innerHTML = visibleReviewItems().map(reviewItemHtml).join('');
 }
 
-// ── v2.0.0 desktop (≥ 1024px): mockups/v2.0.0/desktop-result.html A rev 5 (helpers in js/screens/quiz.js) ──
+// ── v2.0.0 desktop (≥ 1024px): mockups/v2.0.0/desktop-result.html A rev 5 (helpers in js/components/deskPlace.js) ──
 // left 5/12: the score card with Retry / Another inside it, then By difficulty at the bottom (never scrolls);
 // right 7/12: Review Answers, the list in a fading scroll panel. The second button row (below the list) is not
 // shown: the card's pair stays in view
@@ -216,19 +216,22 @@ function buildResultDesk() {
   d.listWrap.append(d.panel);
   d.cols.append(d.leftWrap, d.right);
   d.cols.hidden = true;
-  deskHomes.get(moved.card).before(d.cols); // where the card starts on the phone (under the time-up line)
+  deskHome(moved.card).before(d.cols); // where the card starts on the phone (under the time-up line)
   screen.classList.add('is-fit'); // css/components/fit.css: one screen high from 1024px only
   return d;
 }
 function arrangeResult(desktop) {
   const d = resultDesk || (resultDesk = buildResultDesk()), m = d.moved;
   d.cols.hidden = !desktop;
-  if (!desktop) { deskRestore(Object.values(m)); return; }
-  // the card's last child (mockup: inside the card, after the plan row); left alone when already there (focus)
-  if (m.card.lastElementChild !== m.actions) m.card.append(m.actions);
-  deskFill(d.left, [m.card, m.diffTitle, m.diff]);
-  deskFill(d.panel, [m.list]);
-  deskFill(d.right, [m.reviewTitle, m.order, d.listWrap]);
+  // S-228: focus back once every box is in the document
+  deskKeepFocus(() => {
+    if (!desktop) { deskRestore(Object.values(m)); return; }
+    // the card's last child (mockup: inside the card, after the plan row); left alone when already there (focus)
+    if (m.card.lastElementChild !== m.actions) m.card.append(m.actions);
+    deskFill(d.left, [m.card, m.diffTitle, m.diff]);
+    deskFill(d.panel, [m.list]);
+    deskFill(d.right, [m.reviewTitle, m.order, d.listWrap]);
+  });
 }
 // mockup fitLeft(): the left column and the card must not scroll. ① smaller score, closer By difficulty rows →
 // ② tighter card gaps → ③ smaller emoji / score (1024px English large text) → ④ (C-006: a short laptop window,

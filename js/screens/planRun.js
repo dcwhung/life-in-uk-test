@@ -249,7 +249,7 @@ function renderPlanRun() {
   planRunDesktop = typeof isDesktop === 'function' && isDesktop();
   if (planRunDesktop) planWrapFactScroll();
   planRunRestoreFocus(focusKey);
-  if (typeof runRefits === 'function') runRefits(); // v2.0.0 desktop: the fact panel's fades (planRunRefit)
+  desktopRefit('screenPlanRun', planRunRefit); // v2.0.0 desktop: the fact panel's fades
 }
 function renderPlanDone(view, ctx) {
   const todayIso = planTodayIso(), viewIso = view.from || todayIso;
@@ -504,4 +504,3 @@ function planRunWatchToggle() {
   byId('screenPlanRun').classList.add('is-fit'); // one screen high from 1024px (css/components/fit.css); nothing below
 }
 planRunWatchToggle();
-if (typeof onRefit === 'function') onRefit(planRunRefit, 'screenPlanRun');

@@ -88,6 +88,12 @@ Mockup 嘅做法：每個 frame 用 `.app { --k: 1.2; --lg: 0px; --fs-x: calc((N
 
 建議抽一個共用 helper（例如 `fitSteps(el, ['is-compact', 'is-compact2'])`）。所有 fit 都要喺 render 尾、resize、轉語言／字體大小／翻譯之後再行。
 
+**實作（review 修正輪，W-377／S-235／S-228／C-006）：**
+- `js/components/fit.js`：`fitSteps(el, steps, { measure })`（S-229：Result 用 `measure` 一齊量分數卡）；`runRefits()` 有 `refitting` guard，fit 入面 render 再 call 唔會 nested（S-233）。
+- `js/components/deskPlace.js`：搬 DOM 入欄嘅唯一做法。`deskRemember`（comment marker 記原位）／`deskFill`（已經喺位唔搬）／`deskRestore`；`setDesktopColumns(spec, on)`（Home、Plan Goal、Plan Day：box 建立一次後保留，< 1024 拎走）；`desktopRefit(screenId, fit)`（lazy register：第一次 render 先 `onRefit`，舊 cache 遲載 `fit.js` 都即時生效）；所有搬動經 `deskKeepFocus` 保住 keyboard focus（`focus({ preventScroll: true })`）。
+- 幾時用邊種：桌面次序同 phone 唔同、或者元素按狀態轉欄（Quiz、Result、Home、Plan Goal、Plan Day）→ `deskPlace` 搬元素；phone 次序已經係桌面次序，只係要包一個 box（Study `.study-cols`、Flagged `.flagged-wrap`）→ 永久 wrapper，< 1024 用 `display: contents` 唔畫嘢。
+- Result ④（C-006）：①–③ 之後仍然放唔落（1366 × 657、1280 × 720 大字、1024 × 600）→ 左欄 `.result-left-wrap.is-scroll`：卡片唔再裁、跟內容高，左欄變 `.fit-panel` 捲 + 淡出；Retry／Another 仍然喺卡入面（mockup rev 5），focus 時 `scroll-margin` 避開淡出。
+
 ---
 
 ## 6. 實作建議（俾 Architect 參考，未定）

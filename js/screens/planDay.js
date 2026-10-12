@@ -40,7 +40,7 @@ function renderPlanDay() {
   else renderPlanDayBody(plan, log, iso, todayIso);
   renderPlanCalendar(plan, log, iso, todayIso);
   renderPlanKpis(plan, log, todayIso);
-  if (typeof runRefits === 'function') runRefits(); // v2.0.0 desktop columns + the task panel (planDayRefit)
+  desktopRefit('screenPlanDay', planDayRefit); // v2.0.0 desktop columns + the task panel
 }
 // the calendar opens a day: the page moves to the top and focus to the new day's heading
 function planOpenDayFromCalendar(iso) {
@@ -342,8 +342,12 @@ function planDayPanel(body) {
   body.append(panel);
   return panel;
 }
+// S-228: the moves below keep keyboard focus (a focused task button stays focused across 1024px)
 function planDayRefit(desktop) {
-  if (typeof setDesktopColumns !== 'function') return; // a pre-v2.0.0 cached fitRow.js: the phone layout stays
+  if (typeof setDesktopColumns !== 'function') return; // W-057: without js/components/deskPlace.js the phone layout stays
+  deskKeepFocus(() => planDayPlace(desktop));
+}
+function planDayPlace(desktop) {
   const list = byId('planTaskList'), today = planDayTodayCard();
   if (!desktop) { if (list.parentElement !== today) today.append(list); setDesktopColumns(planDayColumns(), false); return; }
   const box = setDesktopColumns(planDayColumns(), true), rail = box.firstElementChild, body = box.lastElementChild;
@@ -354,4 +358,3 @@ function planDayRefit(desktop) {
   panel.hidden = !hasTasks;
   if (hasTasks) rail.prepend(today); else body.prepend(today);
 }
-if (typeof onRefit === 'function') onRefit(planDayRefit, 'screenPlanDay');

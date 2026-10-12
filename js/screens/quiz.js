@@ -265,42 +265,13 @@ function prevQ() {
 
 // ════════════════════════════════════════
 // DESKTOP LAYOUT (v2.0.0, ≥ 1024px; handoff .proj-docs/plans/2026-10-12_handoff_desktop-layout.md §3 #8–#11)
-// index.html holds the phone order. From 1024px the Quiz / Result screens move some of their own elements (same ids,
-// so every render keeps writing to them) into columns built here once; below 1024px each goes back to its place
-// (a marker comment remembers it). The phone layout never changes. Shared by result.js / flagged.js (loaded later).
+// The Quiz / Result screens move some of their own elements into columns built once (js/components/deskPlace.js:
+// deskRemember / deskFill / deskRestore, desktopRefit); below 1024px each goes back to its phone place.
 // ════════════════════════════════════════
-const deskHomes = new Map(); // element → the comment that marks its phone place
-function deskOn() { return typeof isDesktop === 'function' && isDesktop(); } // W-057: a cached shell may lack fit.js
-function deskEl(tag, className, attrs = {}) {
-  const el = document.createElement(tag);
-  el.className = className;
-  Object.entries(attrs).forEach(([name, value]) => el.setAttribute(name, value));
-  return el;
-}
-// a missing element (null) is skipped everywhere: a cached older index.html may lack one (W-057; e.g. a pre-PR6a
-// shell has no #planPairNote)
-function deskRemember(el) {
-  if (!el || deskHomes.has(el)) return;
-  const marker = document.createComment(` phone place: ${el.id || el.className} `);
-  el.before(marker);
-  deskHomes.set(el, marker);
-}
-// parent's first children become els, in order; an element already in place is not touched (a move would drop focus)
-function deskFill(parent, els) {
-  els.filter(Boolean).forEach((el, i) => { if (parent.children[i] !== el) parent.insertBefore(el, parent.children[i] || null); });
-}
-function deskRestore(els) {
-  els.forEach(el => { const marker = el && deskHomes.get(el); if (marker && marker.nextSibling !== el) marker.after(el); });
-}
-// a screen's fit registers once (fit.js may load after the screens in a cached shell, main.js LATE_BOOT_SCRIPTS),
-// then every render tail re-runs the fits
-const deskFits = new Set();
-function desktopRefit(screenId, fit) {
-  if (typeof runRefits !== 'function') return;
-  if (!deskFits.has(screenId)) { deskFits.add(screenId); onRefit(fit, screenId); }
-  runRefits();
-}
-
+// ── Quiz: mockups/v2.0.0/desktop-quiz.html A rev 12 (Practice) and desktop-exam.html C rev 3 (Exam 1–17, Random) ──
+// practice: the number dots bar across the top; question card + options (7/12) | Answer · Similar tabs (5/12)
+// exam with the timer: rail (3/12: big timer, dots 6 × 4, counts, Submit on the last question) | question + options
+// other exam sets (no dots, no answer): the question + options column alone, centred
 // ── Quiz: mockups/v2.0.0/desktop-quiz.html A rev 12 (Practice) and desktop-exam.html C rev 3 (Exam 1–17, Random) ──
 // practice: the number dots bar across the top; question card + options (7/12) | Answer · Similar tabs (5/12)
 // exam with the timer: rail (3/12: big timer, dots 6 × 4, counts, Submit on the last question) | question + options
@@ -353,7 +324,7 @@ function buildQuizDesk() {
   d.tabSimilar.addEventListener('click', () => setQuizTab(QUIZ_TAB.similar));
   d.bar.hidden = true;
   d.cols.hidden = true;
-  deskHomes.get(moved.card).before(d.bar, d.cols); // above the card's phone place (under the notes, round row)
+  deskHome(moved.card).before(d.bar, d.cols); // above the card's phone place (under the notes, round row)
   screen.classList.add('is-fit'); // css/components/fit.css: one screen high from 1024px only
   return d;
 }
@@ -364,7 +335,11 @@ function quizDeskLayout(desktop) {
   return state.mode === PRACTICE_MODE ? 'practice' : 'plain';
 }
 function arrangeQuiz(desktop) {
-  const d = quizDeskParts(), m = d.moved, layout = quizDeskLayout(desktop);
+  const d = quizDeskParts();
+  deskKeepFocus(() => placeQuizParts(d, quizDeskLayout(desktop))); // S-228: focus back once every box is in the document
+}
+function placeQuizParts(d, layout) {
+  const m = d.moved;
   const screen = byId('screenQuiz');
   ['practice', 'rail', 'plain'].forEach(name => screen.classList.toggle('quiz-desk-' + name, layout === name));
   d.bar.hidden = layout !== 'practice';

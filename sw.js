@@ -59,6 +59,7 @@ const SHELL = [
   'js/components/switch.js',
   'js/components/toast.js',
   'js/components/fit.js',
+  'js/components/deskPlace.js',
   'js/screens/home.js',
   'js/screens/quiz.js',
   'js/screens/examTools.js',
