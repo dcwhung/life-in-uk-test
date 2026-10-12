@@ -273,29 +273,32 @@ function planDayRowHtml(day, i, log, todayIso, todayIndex) {
   const when = planWhen(day.date, todayIso);
   const far = Math.abs(i - todayIndex) > PLAN_NEAR_ROWS ? ' plan-far' : '';
   const pillHtml = planDayPillHtml(day, planDayLog(log, day.date), when);
-  return planWeekHtml(i) + planDayRowOpen(day.phase + (when ? ' ' + when : '') + far, day.date) + planDateBoxHtml(i + 1, day.date, { pillHtml, dayN: i + 1 })
+  return planDayRowOpen(day.phase + (when ? ' ' + when : '') + far, day.date) + planDateBoxHtml(i + 1, day.date, { pillHtml, dayN: i + 1 })
     + `<span class="plan-day-tasks">${planDayTasksHtml(day)}</span></button>`;
 }
 // G16: the exam day ends the list (amber lattice, 🎯), with what to bring
 function planExamRowHtml(plan, todayIso) {
   const iso = plan.goal.examDate, when = planWhen(iso, todayIso);
   const icon = `<span aria-hidden="true">${PLAN_EXAM_ICON}</span>`;
-  return planWeekHtml(plan.days.length) + planDayRowOpen('exam' + (when ? ' ' + when : ''), iso) + planDateBoxHtml(icon, iso, { extraClass: ' plan-exam-pat' })
+  return planDayRowOpen('exam' + (when ? ' ' + when : ''), iso) + planDateBoxHtml(icon, iso, { extraClass: ' plan-exam-pat' })
     + `<span class="plan-day-tasks"><span class="plan-day-t"><b>${t('plan.schedule.examDay')}</b></span>`
     + `<span class="plan-day-t"><span>${t('plan.schedule.examTip')}</span></span></span></button>`;
 }
+// rows[i] is Day i + 1 (the exam day last, at index plan.days.length); a WEEK label opens every PLAN_WEEK_DAYS rows
 function planDayListHtml(plan, log, todayIso) {
   const todayIndex = Math.min(plan.days.length, Math.max(0, planDayIndex(plan, todayIso))); // after the exam: its row
-  const html = plan.days.map((day, i) => planDayRowHtml(day, i, log, todayIso, todayIndex)).join('') + planExamRowHtml(plan, todayIso);
-  return planScheduleDesktop ? planGroupWeeksHtml(html) : html;
+  const rows = plan.days.map((day, i) => planDayRowHtml(day, i, log, todayIso, todayIndex)).concat(planExamRowHtml(plan, todayIso));
+  return planScheduleDesktop ? planWeekGroupsHtml(rows) : rows.map((row, i) => planWeekHtml(i) + row).join('');
 }
-// v2.0.0 desktop (mockup rev 2): each Week a group, its label over its days in a row (the phone: siblings)
-const PLAN_WEEK_OPEN = '<div class="plan-week"';
-function planGroupWeeksHtml(html) {
-  return html.split(new RegExp(`(?=${PLAN_WEEK_OPEN})`)).filter(Boolean).map(part => {
-    const head = part.startsWith(PLAN_WEEK_OPEN) ? part.slice(0, part.indexOf('</div>') + '</div>'.length) : '';
-    return `<div class="plan-wk">${head}<div class="plan-wk-days">${part.slice(head.length)}</div></div>`;
-  }).join('');
+// v2.0.0 desktop (mockup rev 2): each Week a group, its label over its days in a row (the phone: siblings).
+// S-230: grouped by index, never by cutting the html apart
+function planWeekGroupsHtml(rows) {
+  const groups = [];
+  for (let start = 0; start < rows.length; start += PLAN_WEEK_DAYS) {
+    const days = rows.slice(start, start + PLAN_WEEK_DAYS).join('');
+    groups.push(`<div class="plan-wk">${planWeekHtml(start)}<div class="plan-wk-days">${days}</div></div>`);
+  }
+  return groups.join('');
 }
 // opens the list at today, just below its sticky WEEK heading, without moving the page itself (G16: after the exam,
 // at the exam day); instant, not the list's smooth scrolling
