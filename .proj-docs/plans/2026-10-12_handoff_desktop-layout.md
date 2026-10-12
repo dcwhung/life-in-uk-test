@@ -146,3 +146,19 @@ Mockup 嘅做法：每個 frame 用 `.app { --k: 1.2; --lg: 0px; --fs-x: calc((N
 - Mockup 內容係 v1.4.0 render 出嚟，`main` 而家係 v1.4.3。v1.4.1 加咗翻譯 toast，v1.4.3 修咗 iOS overscroll，都唔影響 layout 決定。
 - Mockup 嘅生成 script 放喺 session scratchpad，已經冇咗；mockup HTML 本身係完整、自足嘅檔案，就係設計來源。
 - 0 題 Flagged：首頁「已標記」掣 0 題時係 disabled，只有喺 Flagged 頁取消晒最後一題先會見到空白提示。
+
+---
+
+## 11. Merge `main` v1.4.4–v1.6.0 入 v2.0.0（用戶 2026-10-12 決定）
+
+`main` 喺 `930ab4a` 之後加咗 v1.4.4 Flagged sticky、v1.5.0 / v1.5.1 主頁計劃卡 ring、v1.6.0 記憶法溫習（Study 第 5 個 tab + `#screenMemo`）。整合規則：
+
+| 項目 | ≥ 1024px（desktop） | < 1024px（手機） | 實作 |
+|---|---|---|---|
+| 主頁計劃卡 | F7（`desktop-home-plan.html`）：計劃名 · Day → 下一步 → 倒數時間軸 + ring + 兩粒掣；字眼跟 mockup：「繼續今日任務 →」（`plan.home.continueToday`）、全部做完「✓ 今日已完成，明日再來」（`plan.home.doneHtml`，因為 F7 ring 顯示 %，唔係 ✓） | v1.5.1 精簡卡：ring 喺標題 + 倒數旁邊（`.plan-home-head`、`.has-ring`）、「繼續 →」、做完「明日再來」 | `planHome.js`：手機 ring = `planHomeRingHtml` / `.plan-home-ring`（main 原樣）；F7 ring 改名 `planHomeDeskRingHtml` / `.plan-home-desk-ring`，兩個 ring 嘅 CSS 唔再撞（main 嘅 `.plan-home-ring circle { stroke-width: 7 }` 唔會落到 F7）。跨 1024 由 `home.js` 重畫張卡（`planCardDrawnForDesktop`，原有機制）。desktop `.plan-home-acts` 用返 `justify-content: flex-start`（唔跟 v1.5.0 手機嘅 flex-end） |
+| Study tab | 2 + 2 + 1：保留 2 × 2，🧠 記憶法自己一行橫跨左欄全闊 | main 原樣：5 個 tab 一行（`grid-auto-flow: column`） | `css/screens/study.css`：`.study-rail .study-tabs { grid-auto-flow: row }` + `.study-tab[data-tab="memo"] { grid-column: 1 / -1 }`。記憶法 tab 冇篩選 chip（行收埋），chapter chip 跟 sub chip 規則 |
+| 記憶法畫面 `#screenMemo` | **Design Origin: `baseline: Plan Run desktop 置中欄（用戶 2026-10-12 決定，冇 mockup）`**：同 Plan Run 一樣置中一欄（最闊 760px × `--desktop-scale`）、一屏高（`.is-fit`）；記憶法 / 單題 note / 結果 panel 放得落就自己高度，放唔落就喺 panel 入面碌（`.memo-scroll` = `.fit-fade`，card 色淡出），「記住咗，開始試」／再溫／下一組 一直喺畫面；字同間距跟 token ×1.2，寫死 px ×1.2（卡左邊 4px、bar 6px、step 7px、錯題 list 18px、‹ 掣 44px 撳位） | main 原樣（頁面碌，wrapper 冇樣式） | `js/screens/memo.js` `memoScrollHtml` / `memoMarkFit`、`css/screens/memo.css` desktop block。由 Study 開組再 ‹ 返嚟：desktop 記住卡 panel 嘅位（`studyScrollTop` / `setStudyScroll`），手機照舊記頁面 scroll |
+| Flagged | Flagged B（panel 碌）；v1.4.4 嘅 pinned block 喺 desktop 關咗：`.flagged-top` static、冇負 margin、`scroll-padding-top: auto`（ResizeObserver 照行，`--flagged-top-h` 冇人用） | v1.4.4 原樣：`.flagged-top` sticky | `css/screens/flagged.css` desktop block |
+| 版本 | `APP_VERSION = '2.0.0'` | | |
+
+測試：`desktop-home-test`（1023px 係 v1.5.1 卡、1024px 返 F7、F7 冇 head ring、做完字眼）、`desktop-study-test`（5 個 tab 2 + 2 + 1、tab 字放得落、記憶法 tab 1024 / 1280 × EN / 中 × 大字冇橫向 scroll）、新 `desktop-memo-test`（置中欄 ≤ 912px、一屏高、panel 碌 + 淡出、掣喺畫面、所有掣撳得到、‹ 返 Study 保留 panel 位、390px 照舊）、`desktop-short-test`（加 Study 記憶法 tab、記憶法睇 / 結果）、`desktop-result-test`（desktop Flagged pinned block 關咗）。Baseline：`.proj-docs/design-baselines/2026-10-12_desktop-{home-plan-merged,study-memo,memo-look,memo-result}-{1024,1280}.png`（中文大字；`home-plan-merged` = merge 後嘅 F7 卡，原有 `desktop-home-plan-*.png` 保留）。
