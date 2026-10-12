@@ -9,7 +9,8 @@ const MEMO_INTERVALS = [1, 3, 7, 14];          // days until the next review on 
 const MEMO_MAX_LV = MEMO_INTERVALS.length;     // Lv4 = known
 const MEMO_PASS_RATIO = 0.7;                   // a test at or above this moves the group up one level
 const MEMO_TEST_SIZE = 5;                      // distinct questions per test (fewer when the group has fewer)
-const MEMO_RETRY_DAYS = 1;                     // a failed test: same level, due again tomorrow
+const MEMO_RETRY_DAYS = 1;                     // a failed test: due again tomorrow...
+const MEMO_FAIL_DROP = 1;                      // ...one level lower (user, review W-064: at every level; Lv0 stays Lv0)
 const MEMO_SINGLE_ID = 'single';               // the group of questions with no memory note (each shows its own note)
 const MEMO_STATUS = { due: 'due', new: 'new', learning: 'learning', done: 'done' };
 const MEMO_STATUS_ORDER = [MEMO_STATUS.due, MEMO_STATUS.new, MEMO_STATUS.learning, MEMO_STATUS.done]; // list order
@@ -69,13 +70,15 @@ function memoLoadProgress() {
 }
 function memoRecord(progress, id) { return progress[id] || null; }
 function memoPassed(correct, total) { return total > 0 && correct / total >= MEMO_PASS_RATIO; }
-// one finished test: a pass moves up a level (Lv4 stays Lv4) and waits that level's interval; a fail keeps the level
-// and comes back tomorrow. Returns { passed, prevLv, lv, due }
-function recordMemoResult(id, correct, total, today) {
+// one finished test, scored over the questions answered (user, review S-232: skipped ones do not count): a pass moves
+// up a level (Lv4 stays Lv4) and waits that level's interval; a fail drops a level (W-064, so a Lv4 fail is never
+// "known") and comes back tomorrow. Returns { passed, prevLv, lv, due }, or null when nothing was answered: no record
+function recordMemoResult(id, correct, answered, today) {
+  if (!answered) return null;
   const progress = memoLoadProgress();
   const prevLv = (memoRecord(progress, id) || { lv: 0 }).lv;
-  const passed = memoPassed(correct, total);
-  const lv = passed ? Math.min(prevLv + 1, MEMO_MAX_LV) : prevLv;
+  const passed = memoPassed(correct, answered);
+  const lv = passed ? Math.min(prevLv + 1, MEMO_MAX_LV) : Math.max(prevLv - MEMO_FAIL_DROP, 0);
   const due = isoAddDays(today, passed ? MEMO_INTERVALS[lv - 1] : MEMO_RETRY_DAYS);
   progress[id] = { lv, due };
   setLS(MEMO_PROGRESS_LS, progress);

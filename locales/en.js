@@ -205,6 +205,9 @@ LOCALES.en = {
     resultPass: 'Test {correct}/{total} (≥ {pct}%) → up to Lv{lv}',
     resultKeep: 'Test {correct}/{total} (≥ {pct}%) → stays at Lv{lv}',
     resultFail: 'Test {correct}/{total} · below {pct}%, review again tomorrow',
+    resultFailDrop: 'Test {correct}/{total} · below {pct}%, down to Lv{lv}, review again tomorrow', // W-064: a fail drops a level
+    noAnswers: 'No answers were recorded — nothing changed.', // S-232: skipped questions do not count
+    tomorrow: 'Tomorrow', // W-065: the schedule box of the level due again tomorrow
     lv: 'Lv{lv}',
     days: { one: '{n} day', other: '{n} days' },
     wrongTitle: 'Look at these again:',

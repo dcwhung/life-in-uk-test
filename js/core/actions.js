@@ -79,7 +79,8 @@ const ACTIONS = {
   startFlaggedPractice: () => startFlaggedPractice(),
   unflagFromList: el => unflagFromList(el.dataset.arg),
   // study
-  studySetTab: el => studySetTab(el.dataset.arg),
+  // S-230: a tab the loaded study.js has no renderer for (an HTTP-cached pre-v1.5.0 file under the memo tab) does nothing
+  studySetTab: el => { if (Object.prototype.hasOwnProperty.call(STUDY_RENDERERS, el.dataset.arg)) studySetTab(el.dataset.arg); },
   studySetChapter: el => studySetChapter(numArg(el)),
   studySetNation: el => studySetNation(el.dataset.arg),
   studySetGroup: el => studySetGroup(el.dataset.arg),

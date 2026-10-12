@@ -69,9 +69,14 @@ function openMemoGroup(id) {
   if (!memoShellReady() || !memoGroupById(id)) return;
   if (byId('screenStudy').classList.contains('active')) memoView.listScrollY = window.scrollY;
   Object.assign(memoView, { id, step: MEMO_STEP.look, result: null });
+  showMemo();
+}
+// a new view of the group screen: top of the page, focus on the group title (S-227; showScreen dropped the old focus)
+function showMemo() {
   showScreen('screenMemo');
   renderMemo();
   window.scrollTo(0, 0);
+  byId('memoTitle').focus({ preventScroll: true });
 }
 function memoBack() {
   showScreen('screenStudy');
@@ -80,8 +85,7 @@ function memoBack() {
 }
 function memoLook() {
   Object.assign(memoView, { step: MEMO_STEP.look, result: null });
-  renderMemo();
-  window.scrollTo(0, 0);
+  showMemo();
 }
 function renderMemo() {
   const g = memoGroupById(memoView.id);
@@ -91,7 +95,8 @@ function renderMemo() {
 }
 // ① look / ② test (n); after a test both read done, the test with its score
 function memoStepsHtml(g) {
-  const r = memoView.result, done = memoView.step === MEMO_STEP.result;
+  // a test with nothing answered recorded nothing (S-232): its step is not done
+  const r = memoView.result, done = memoView.step === MEMO_STEP.result && !r.none;
   const look = done ? t('memo.stepLookDone') : t('memo.stepLook');
   const test = done ? t('memo.stepTestDone', { correct: r.correct, total: r.total }) : t('memo.stepTest', { n: Math.min(g.count, MEMO_TEST_SIZE) });
   return `<div class="memo-step ${done ? 'ok' : 'on'}">${escapeHtml(look)}</div><div class="memo-step${done ? ' ok' : ''}">${escapeHtml(test)}</div>`;
@@ -123,32 +128,39 @@ function memoLookHtml(g) {
 function startMemoTest() {
   const g = memoGroupById(memoView.id);
   if (!g) return;
-  startSideSession(MEMO_PREFIX + g.id, memoTestPick(g).map(toQuestionItem), { kind: SESSION_RETURN_KIND.memo, id: g.id, recorded: false });
+  startSideSession(MEMO_PREFIX + g.id, memoTestPick(g).map(toQuestionItem), { kind: SESSION_RETURN_KIND.memo, id: g.id });
 }
-// unanswered questions count as wrong; recorded once per finished test (the return point carries the flag)
+// Recorded once per finished test: returnFromSideSession clears the return point before calling here, and a second tap
+// on ↩ Back lands on this screen (double tap guard). Scored over the answered (revealed) questions only (user, S-232);
+// nothing answered → nothing recorded, the result says so
 function finishMemoTest(ret) {
-  if (ret.recorded) return;
-  ret.recorded = true;
-  const wrong = state.questions.filter((q, i) => !isCorrectAnswer(q, state.answers[i]));
-  const total = state.questions.length, correct = total - wrong.length;
+  const answered = state.questions.map((q, i) => ({ q, i })).filter(({ i }) => i in state.revealed);
+  const wrong = answered.filter(({ q, i }) => !isCorrectAnswer(q, state.answers[i])).map(({ q }) => ({ q: q.q, yue: q.yue }));
+  const total = answered.length, correct = total - wrong.length;
   const rec = recordMemoResult(ret.id, correct, total, planTodayIso());
-  Object.assign(memoView, { id: ret.id, step: MEMO_STEP.result, result: { ...rec, correct, total, wrong: wrong.map(q => ({ q: q.q, yue: q.yue })) } });
-  showScreen('screenMemo');
-  renderMemo();
-  window.scrollTo(0, 0);
+  Object.assign(memoView, { id: ret.id, step: MEMO_STEP.result, result: rec ? { ...rec, correct, total, wrong } : { none: true } });
+  showMemo();
 }
 
 // ── result ──
 function memoVerdictText(r) {
   const params = { correct: r.correct, total: r.total, pct: Math.round(MEMO_PASS_RATIO * PERCENT), lv: r.lv };
-  if (!r.passed) return t('memo.resultFail', params);
+  if (!r.passed) return r.lv < r.prevLv ? t('memo.resultFailDrop', params) : t('memo.resultFail', params);
   return r.lv > r.prevLv ? t('memo.resultPass', params) : t('memo.resultKeep', params);
 }
-// Lv1..Lv4 with their wait; levels below the reached one are past (green), the reached one is next (orange)
-function memoScheduleHtml(lv) {
+// Lv1..Lv4 with their wait; levels below the new one are past (green). After a pass the new level is next (orange,
+// its interval); after a fail (W-065) it is due again tomorrow, so its box reads "Tomorrow" and no interval is next
+const MEMO_LV_STATE = { past: ' past', next: ' next', retry: ' retry', none: '' };
+function memoLevelState(level, r) {
+  if (level < r.lv) return MEMO_LV_STATE.past;
+  if (level > r.lv) return MEMO_LV_STATE.none;
+  return r.passed ? MEMO_LV_STATE.next : MEMO_LV_STATE.retry;
+}
+function memoScheduleHtml(r) {
   return MEMO_INTERVALS.map((days, i) => {
-    const level = i + 1, cls = level < lv ? ' past' : level === lv ? ' next' : '';
-    return `<div class="memo-lv${cls}"><b>${escapeHtml(t('memo.lv', { lv: level }))}</b>${escapeHtml(t('memo.days', { n: days }))}</div>`;
+    const level = i + 1, cls = memoLevelState(level, r);
+    const wait = cls === MEMO_LV_STATE.retry ? t('memo.tomorrow') : t('memo.days', { n: days });
+    return `<div class="memo-lv${cls}"><b>${escapeHtml(t('memo.lv', { lv: level }))}</b>${escapeHtml(wait)}</div>`;
   }).join('');
 }
 function memoWrongHtml(wrong) {
@@ -168,14 +180,15 @@ function memoLabelHtml(label, title) {
   if (at < 0) return escapeHtml(label);
   return escapeHtml(label.slice(0, at)) + `<span lang="zh-HK">${escapeHtml(title)}</span>` + escapeHtml(label.slice(at + title.length));
 }
-function memoResultActionsHtml(g) {
-  const next = memoNextGroup(g.id);
+function memoResultActionsHtml(g, withNext) {
+  const next = withNext ? memoNextGroup(g.id) : null;
   const nextBtn = next ? `<button class="nav-btn memo-next" type="button" data-action="openMemoGroup" data-arg="${escapeHtml(next.id)}">${memoLabelHtml(t('memo.next', { title: next.title }), next.title)}</button>` : '';
   return `<div class="memo-actions"><button class="nav-btn secondary memo-again" type="button" data-action="memoLook">${escapeHtml(t('memo.again'))}</button>${nextBtn}</div>`;
 }
 function memoResultHtml(g, r) {
+  if (r.none) return `<div class="memo-panel"><p class="memo-none">${escapeHtml(t('memo.noAnswers'))}</p></div>${memoResultActionsHtml(g, false)}`;
   return `<div class="memo-panel">
       <div class="memo-score${r.passed ? '' : ' fail'}"><div class="memo-pct">${percent(r.correct, r.total)}%</div><div class="memo-verdict">${escapeHtml(memoVerdictText(r))}</div></div>
-      <div class="memo-sched">${memoScheduleHtml(r.lv)}</div>${memoWrongHtml(r.wrong)}
-    </div>${memoResultActionsHtml(g)}`;
+      <div class="memo-sched">${memoScheduleHtml(r)}</div>${memoWrongHtml(r.wrong)}
+    </div>${memoResultActionsHtml(g, true)}`;
 }

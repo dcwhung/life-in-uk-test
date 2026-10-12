@@ -9,7 +9,7 @@ const SESSION_RETURN_KIND = { quiz: 'quiz', study: 'study', plan: 'plan', memo: 
 //        day it counts for (G5), type = PLAN_TASK, from = the day screen to go back to (null = today); a round adds
 //        retry / round / rounds, review mode (G17) review / page / pages / wrong; fact / pos = one fact of a reading or
 //        wrong-facts task (PR6b), back to that card when done
-//      | { kind: 'memo', id, recorded } — a memory-note group's test (v1.5.0, js/screens/memo.js): back to its result
+//      | { kind: 'memo', id } — a memory-note group's test (v1.5.0, js/screens/memo.js): back to its result
 let sessionReturn = null;
 function isSideSession() { return sessionReturn !== null; }
 function clearSideSession() { sessionReturn = null; }

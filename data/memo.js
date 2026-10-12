@@ -9,13 +9,13 @@
 // ════════════════════════════════════════
 const MEMO_GROUPS = [
   { id: 'uk-festivals', title: '英國節日', icon: '🎆', hook: '「25/1 彭斯、31/10 萬聖、5/11 篝火、11/11 紅花、26/12 節禮、31/12 除夕」\n→ 一頭一尾都係蘇格蘭：年頭 Burns Night，年尾 Hogmanay。' },
-  { id: 'vote', title: '投票權', icon: '🗳️', hook: '「89 冇票、32 中產、18 男21女30、28 打和、69 變 18」\n→ 1918 女性要 30 歲，十年後 1928 先同男人一樣 21。' },
+  { id: 'vote', title: '投票權', icon: '🗳️', hook: '「89 冇票、32 中產、18 男21女30、28 同齡、69 變 18」\n→ 1918 女性要 30 歲，十年後 1928 先同男人一樣 21。' },
   { id: 'parliament', title: '國會兩院', icon: '🏛️', hook: '「下議院 650 個 MP 係選出嚟；上議院唔使選：終身貴族、世襲 92、主教 26」\n→ 上議院審議同修訂法案，但唔可以拒絕財政法案。' },
   { id: 'nation-symbols', title: '四地象徵', icon: '🌼', hook: '「英格蘭玫瑰、蘇格蘭薊花、威爾斯水仙、北愛三葉草」\n→ 首都順住讀：London、Edinburgh、Cardiff、Belfast；Gaelic 係 Scotland 同 Ireland 部分地區講。' },
   { id: 'patron-saints', title: '守護聖人', icon: '😇', hook: '「3 月有兩個：David 1/3、Patrick 17/3；George 23/4 春天、Andrew 30/11 年尾」\n→ Union Jack = England、Scotland、Ireland 三個聖人十字，冇 Wales。' },
   { id: 'religious-festivals', title: '節日同假期', icon: '🎉', hook: '「Lent 40 日 → Easter；Ramadan 完 → Eid al-Fitr；Ibrahim → Eid ul Adha」\n→ Diwali 排燈 = Hindu + Sikh；Vaisakhi 4 月 = 淨係 Sikh。' },
   { id: 'ww2', title: '二次世界大戰', icon: '✈️', hook: '「39 入波蘭、40 邱吉爾 + Dunkirk + 空戰、40–41 Blitz、44 D-Day、45 VE 8/5 VJ 15/8」\n→ 先撤（Dunkirk）、再守（Battle of Britain）、後攻（D-Day）。' },
-  { id: 'early-britain', title: '早期英國', icon: '🏺', hook: '「凱撒 55 BC 打唔入，Claudius AD 43 先打得入」\n→ AD 60 Boudicca 反抗、AD 122 Hadrian 起長城、AD 410 羅馬人走，之後 Vikings 坐長船嚟。' },
+  { id: 'early-britain', title: '早期英國', icon: '🏺', hook: '「凱撒 55 BC 打唔入，Claudius AD 43 先打得入」\n→ AD 60 Boudicca 反抗、AD 122 Hadrian 起長城、AD 410 羅馬人走 → Jutes、Angles、Saxons 移入 → 之後 Vikings 坐長船嚟。' },
   { id: 'devolved', title: '四地議會', icon: '🏢', hook: '「蘇格蘭 129、北愛 90、威爾斯 60、全英國 650」\n→ England 冇自己嘅地方議會，由 Westminster 英國國會直接負責。' },
   { id: 'spain-france', title: '打敗西班牙同法國', icon: '⚓', hook: '「1588 打沉無敵艦隊、1805 Nelson 海上贏但陣亡、1815 Wellington 陸上滑鐵盧」\n→ 先西班牙、再法西聯合、最後法國（英法最後一戰）。' },
   { id: 'inventors', title: '發明家', icon: '💡', hook: '「Newton 引力 → Brunel 鐵路 → Bell 電話 → Fleming 盤尼西林 → Whittle 噴射引擎 → Crick DNA → Berners-Lee 萬維網」\n→ Bell 同 Fleming 都同蘇格蘭有關；Crick 同 James Watson 一齊發現 DNA 結構。' },

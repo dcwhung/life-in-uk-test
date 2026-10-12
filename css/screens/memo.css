@@ -83,6 +83,9 @@
 .memo-lv b { display: block; font-size: var(--fs-md); }
 .memo-lv.past { border-color: var(--memo-done); color: var(--green); }
 .memo-lv.next { border-color: var(--memo-due); color: var(--memo-due-text); background: var(--flag-bg); }
+/* W-065: after a fail the new level is due tomorrow: due colours, dashed (not an interval to wait) */
+.memo-lv.retry { border-color: var(--memo-due); border-style: dashed; color: var(--memo-due-text); background: var(--flag-bg); }
+.memo-none { margin: 0; text-align: center; color: var(--text-muted); padding: var(--space-6) 0; }
 .memo-wrong-title { font-weight: 800; color: var(--red); margin: 0 0 var(--space-3); }
 .memo-wrong { margin: 0; padding-left: 18px; }
 .memo-wrong li + li { margin-top: var(--space-3); }
