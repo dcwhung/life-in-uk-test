@@ -10,6 +10,28 @@
   outline: none;
 }
 .study-search:focus { border-color: var(--navy-light); }
+/* v1.6.1 (user, iPhone screenshots): the tabs and the chip rows under them stay pinned under the sticky app header while
+   the list scrolls under them; the 🏠 header and the search box scroll away (same on every tab). Same pattern as
+   Flagged (css/screens/flagged.css, v1.4.4): z-index above the list and below the app header (100), --bg so nothing
+   shows through. The negative margins reach over main's side padding and the search box's margin-bottom, and the
+   same padding puts them back, so the resting layout is unchanged and a stuck block keeps a --bg gap under the header
+   (the margins / padding must stay equal to main's --space-8 and .study-search's --space-6). flow-root keeps the last
+   chip row's margin-bottom inside the block, so the gap above the list is covered too. Timeline era bars (.tl-era)
+   and the memo "due today" banner are list rows: they scroll under the block, never stick. */
+.study-top {
+  display: flow-root;
+  position: sticky; top: var(--header-h); z-index: 1;
+  background: var(--bg);
+  margin: calc(-1 * var(--space-6)) calc(-1 * var(--space-8)) 0;
+  padding: var(--space-6) var(--space-8) 0;
+}
+/* keyboard focus and ↩ Back from a fact session (flashStudyFact scrollIntoView) stop below the header + pinned block */
+html:has(#screenStudy.active) { scroll-padding-top: calc(var(--header-h) + var(--study-top-h)); }
+/* a short screen (landscape phone) would spend most of its height on the pinned block: there it scrolls away (Flagged W-2) */
+@media (max-height: 500px) {
+  .study-top { position: static; }
+  html:has(#screenStudy.active) { scroll-padding-top: var(--header-h); }
+}
 /* O7: overall "🏆 n / 236 mastered" pill in the Study header (green = mastered, like the Practice 🏆) */
 .study-progress {
   font-size: var(--fs-sm); font-weight: 800; color: var(--green);

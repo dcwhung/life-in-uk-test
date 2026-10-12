@@ -186,16 +186,19 @@
 
     <input class="study-search" id="studySearch" type="search" data-i18n-attr="placeholder:study.search" data-input-action="studySetSearch">
 
-    <div class="study-tabs" id="studyTabs">
-      <button class="study-tab" data-tab="chapters" data-action="studySetTab" data-arg="chapters"><span class="tab-ic" aria-hidden="true">📚</span><span data-i18n="study.tabChapters"></span></button>
-      <button class="study-tab" data-tab="timeline" data-action="studySetTab" data-arg="timeline"><span class="tab-ic" aria-hidden="true">📅</span><span data-i18n="study.tabTimeline"></span></button>
-      <button class="study-tab" data-tab="geo" data-action="studySetTab" data-arg="geo"><span class="tab-ic" aria-hidden="true">🗺️</span><span data-i18n="study.tabGeo"></span></button>
-      <button class="study-tab" data-tab="people" data-action="studySetTab" data-arg="people"><span class="tab-ic" aria-hidden="true">👤</span><span data-i18n="study.tabPeople"></span></button>
-      <button class="study-tab" data-tab="memo" data-action="studySetTab" data-arg="memo"><span class="tab-ic" aria-hidden="true">🧠</span><span data-i18n="study.tabMemo"></span></button>
-    </div>
+    <!-- v1.6.1: tabs + chip rows pinned under the app header; the list scrolls under them (css/screens/study.css .study-top) -->
+    <div class="study-top">
+      <div class="study-tabs" id="studyTabs">
+        <button class="study-tab" data-tab="chapters" data-action="studySetTab" data-arg="chapters"><span class="tab-ic" aria-hidden="true">📚</span><span data-i18n="study.tabChapters"></span></button>
+        <button class="study-tab" data-tab="timeline" data-action="studySetTab" data-arg="timeline"><span class="tab-ic" aria-hidden="true">📅</span><span data-i18n="study.tabTimeline"></span></button>
+        <button class="study-tab" data-tab="geo" data-action="studySetTab" data-arg="geo"><span class="tab-ic" aria-hidden="true">🗺️</span><span data-i18n="study.tabGeo"></span></button>
+        <button class="study-tab" data-tab="people" data-action="studySetTab" data-arg="people"><span class="tab-ic" aria-hidden="true">👤</span><span data-i18n="study.tabPeople"></span></button>
+        <button class="study-tab" data-tab="memo" data-action="studySetTab" data-arg="memo"><span class="tab-ic" aria-hidden="true">🧠</span><span data-i18n="study.tabMemo"></span></button>
+      </div>
 
-    <div class="chip-row" id="studyChips"></div>
-    <div class="chip-row" id="studySubChips" hidden></div>
+      <div class="chip-row" id="studyChips"></div>
+      <div class="chip-row" id="studySubChips" hidden></div>
+    </div>
     <div class="study-count" id="studyCount"></div>
     <div id="studyContent"></div>
   </div>
