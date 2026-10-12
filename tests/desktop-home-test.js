@@ -6,7 +6,9 @@
 // - below 1024px every part is back in its phone place and order (the phone layout never changes)
 // - F7: the navy card shows today's ring and the countdown timeline (≤ 42 days a cell a day; longer a bar a phase + month
 //   ticks; the days-left label at the end under 28%; "Today" beside the marker; none on the exam day / after it); the
-//   buttons' bottom on the ring's; "Next" on one line while it fits, never cut; the phone keeps the % bar + countdown text
+//   buttons' bottom on the ring's; "Next" on one line while it fits, never cut; the phone keeps main's v1.5.1 compact
+//   card (ring beside the title + countdown text, .plan-home-head); F7's own ring is .plan-home-desk-ring and its wording
+//   the mockup's ("Continue today's tasks →", "✓ Done for today, see you tomorrow"); crossing 1024px redraws the card
 // - F1: a finished plan offers "New plan" + "Schedule" only
 const fs = require('fs');
 const path = require('path');
@@ -104,12 +106,21 @@ async function checkBreakpoint(b) {
   assert(!(await phoneOrder(page)), '1280px: columns on');
   await dt.setViewport(page, dt.VIEWPORTS.belowDesktop);
   assert(await phoneOrder(page), '1023px: every part back in its phone place and order');
-  const phoneCard = await page.evaluate(() => ({ bar: !!document.querySelector('#planCard .plan-home-bar'), cd: !!document.querySelector('#planCard .plan-home-cd'),
-    ring: !!document.querySelector('#planCard .plan-home-ring'), timeline: !!document.querySelector('#planCard .plan-cd') }));
-  assert(phoneCard.bar && phoneCard.cd && !phoneCard.ring && !phoneCard.timeline, '1023px: the card is redrawn with the % bar and countdown text: ' + JSON.stringify(phoneCard));
+  const cardKind = () => page.evaluate(() => {
+    const q = s => document.querySelector('#planCard ' + s);
+    return { head: !!q('.plan-home-head .plan-home-ring'), hasRing: !!q('.plan-home.has-ring'), cd: !!q('.plan-home-cd'),
+      deskRing: !!q('.plan-home-desk-ring'), timeline: !!q('.plan-cd'), bar: !!q('.plan-home-bar'),
+      go: (q('.plan-btn-gold') || {}).textContent, goKey: t('plan.home.continue'), goDeskKey: t('plan.home.continueToday') };
+  });
+  const phoneCard = await cardKind();
+  assert(phoneCard.head && phoneCard.hasRing && phoneCard.cd && !phoneCard.deskRing && !phoneCard.timeline && !phoneCard.bar && phoneCard.go === phoneCard.goKey,
+    '1023px: the card is redrawn as v1.5.1 (ring beside the title + countdown text, "Continue →"): ' + JSON.stringify(phoneCard));
   await dt.setViewport(page, dt.VIEWPORTS.small);
   const l = await layout(page);
   assert(l.cols && l.railHas && l.mainHas && !(await phoneOrder(page)), '1024px again: columns back');
+  const deskCard = await cardKind();
+  assert(!deskCard.head && !deskCard.hasRing && !deskCard.cd && deskCard.deskRing && deskCard.timeline && deskCard.go === deskCard.goDeskKey,
+    '1024px again: the card is redrawn as F7 (timeline + its own ring, "Continue today\'s tasks →"): ' + JSON.stringify(deskCard));
   await page.close();
   const phone = await dt.openDesktop(b, { viewport: dt.VIEWPORTS.phone });
   await seedHome(phone.page, { plan: {} });
@@ -120,7 +131,7 @@ async function checkBreakpoint(b) {
 // ── F7: the navy card ──
 const card = page => page.evaluate(() => {
   const el = byId('planCard'), q = s => el.querySelector(s), box = e => (e ? e.getBoundingClientRect() : null);
-  const cd = q('.plan-cd'), ring = q('.plan-home-ring'), acts = q('.plan-home-acts'), next = q('.plan-home-next');
+  const cd = q('.plan-cd'), ring = q('.plan-home-desk-ring'), acts = q('.plan-home-acts'), next = q('.plan-home-next');
   const lbl = q('.plan-cd-today-lbl'), left = q('.plan-cd-left-lbl'), track = q('.plan-cd-track');
   const overlap = (a, b) => !!a && !!b && a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1;
   const inside = (a, b) => !!a && !!b && a.left >= b.left - 1 && a.right <= b.right + 1;
@@ -133,7 +144,7 @@ const card = page => page.evaluate(() => {
     markerAt: cd ? (box(q('.plan-cd-today')).left + 1 - box(track).left) / box(track).width * 100 : null, at: cd ? Number(cd.dataset.at) : null,
     ring: ring ? ring.tagName.toLowerCase() : null, ringText: ring ? ring.textContent : '', rest: !!q('.plan-home-rest'),
     ringBottom: box(ring) && box(ring).bottom, actsBottom: box(acts) && box(acts).bottom,
-    bar: !!q('.plan-home-bar'), cdText: !!q('.plan-home-cd'),
+    bar: !!q('.plan-home-bar'), cdText: !!q('.plan-home-cd'), phoneRing: !!q('.plan-home-ring') || !!q('.plan-home-head'),
     nextCut: !!next && next.scrollWidth > next.clientWidth + 1, nextWrapped: !!next && next.classList.contains('is-wrapped'),
     acts: [...el.querySelectorAll('.plan-home-acts button')].map(btn => btn.dataset.action),
     sr: cd ? cd.querySelector('.plan-sr').textContent : '',
@@ -149,7 +160,7 @@ async function checkCardActive(b) {
     await seedHome(page, { plan: {} });
     const c = await card(page);
     assert(c.cd && !c.long && c.cells === 21 && c.future === 12, `${label}: 21 days, Day 9: a cell a day, 12 still to come`);
-    assert(c.ring === 'svg' && !c.bar && !c.cdText, `${label}: today's ring instead of the % bar; the timeline instead of the countdown text`);
+    assert(c.ring === 'svg' && !c.bar && !c.cdText && !c.phoneRing, `${label}: F7's ring (not v1.5.1's head ring); the timeline instead of the countdown text`);
     assert(near(c.ringBottom, c.actsBottom), `${label}: the buttons' bottom on the ring's (${Math.round(c.actsBottom)} / ${Math.round(c.ringBottom)})`);
     assert(near(c.markerAt, c.at, 0.5) && c.labelsApart && c.todayInside, `${label}: the gold marker at today (${c.markerAt.toFixed(1)}% ≈ ${c.at.toFixed(1)}%), labels apart and inside`);
     assert(!c.nextCut, `${label}: "Next" is never cut (${c.nextWrapped ? 'wrapped' : 'one line'})`);
@@ -193,6 +204,11 @@ async function checkCardBranches(b) {
   o = await openWithPlan(b, { days: 21, dayN: 25 });
   c = await card(o.page);
   assert(!c.cd && !c.ring && JSON.stringify(c.acts) === JSON.stringify(['openPlanGoal', 'openPlanSchedule']), 'plan finished: no timeline / ring; F1 "New plan" + "Schedule"');
+  await o.page.close();
+  // all done today: F7 keeps the mockup's line (its ring shows 100%, not ✓); the phone's v1.5.1 card says "See you tomorrow"
+  o = await openWithPlan(b, { days: 21, dayN: 9 });
+  const done = await o.page.evaluate(() => ({ desk: planNextHtml(null, null, { kind: PLAN_NEXT.done }, true), phone: planNextHtml(null, null, { kind: PLAN_NEXT.done }) }));
+  assert(done.desk === '<b>✓ Done for today</b>, see you tomorrow' && done.phone === 'See you tomorrow', 'all done today: F7 "✓ Done for today, see you tomorrow", phone "See you tomorrow": ' + JSON.stringify(done));
   await o.page.close();
   o = await openWithPlan(b, { days: 21, dayN: 0 });
   c = await card(o.page);

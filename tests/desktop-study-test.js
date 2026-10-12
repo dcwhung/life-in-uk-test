@@ -1,6 +1,6 @@
 // v2.0.0 desktop layout — Study (mockup mockups/v2.0.0/desktop-study.html A rev 4; handoff §3 #7, §5):
 // - one screen high: the page never scrolls; header row, then a 20% rail beside the card panel
-// - rail: search, tabs 2 × 2, sub chips (wrapped by text, each row filled: flex 1 1 auto), count, then the filter chips
+// - rail: search, tabs 2 × 2 + the memo tab (v1.6.0) on its own row across the rail (2 + 2 + 1, user 2026-10-12), sub chips (wrapped by text, each row filled: flex 1 1 auto), count, then the filter chips
 //   stacked full width at the rail's foot; a rail taller than the screen (1024px large text, People) scrolls itself
 // - cards: one column in a panel that scrolls on its own with top / bottom fades
 // - a new list starts at the panel top; ↩ Back from a fact's Practice returns to the panel offset
@@ -13,7 +13,7 @@ const PX_SLACK = 1.5;
 const FADE_WAIT_MS = 300;
 const LONG_CHAPTER = 5; // 71 facts: the panel scrolls at every size
 const FACT_ID = 21; // chapter 3, Magna Carta (tests/factsession-test.js)
-const TABS = ['chapters', 'timeline', 'geo', 'people'];
+const TABS = ['chapters', 'timeline', 'geo', 'people', 'memo'];
 
 const openTab = (page, tab) => page.evaluate(([tb, ch]) => {
   if (!byId('screenStudy').classList.contains('active')) openStudy();
@@ -34,7 +34,8 @@ const studyLayout = page => page.evaluate(() => {
   return {
     cols: box(cols), rail: box(rail), railScroll: [rail.scrollHeight, rail.clientHeight], railOverflow: getComputedStyle(rail).overflowY,
     sub: sub.hidden ? null : { box: box(sub), rows: Object.values(rows) },
-    chips: [...byId('studyChips').querySelectorAll('.chip')].map(box), chipsBox: box(byId('studyChips')),
+    chips: [...byId('studyChips').querySelectorAll('.chip')].map(box), chipsBox: byId('studyChips').hidden ? null : box(byId('studyChips')),
+    tabsFit: [...document.querySelectorAll('#studyTabs .study-tab')].every(t => t.scrollWidth <= t.clientWidth + 1),
     tabs, order, domChipsAfterCount: byId('studyCount').nextElementSibling === byId('studyChips'),
     panel: box(byId('studyContent')), main: box(document.querySelector('#screenStudy .study-main')),
   };
@@ -53,6 +54,12 @@ async function checkCase({ page, label, viewport, lang, fontSize, errors }) {
       `${where}: rail ${L.rail.width.toFixed(1)}px = 20% of ${L.cols.width.toFixed(1)}px, cards to its right`);
     assert(L.tabs[0].top === L.tabs[1].top && L.tabs[2].top === L.tabs[3].top && L.tabs[2].top > L.tabs[0].top && Math.abs(L.tabs[0].left - L.tabs[2].left) < PX_SLACK,
       `${where}: tabs 2 × 2`);
+    // v1.6.0 merge (user 2026-10-12): the 5th tab (🧠 memo) on a row of its own under the 2 × 2, as wide as the rail
+    const memoTab = L.tabs[4];
+    assert(L.tabs.length === 5 && memoTab.top > L.tabs[2].top && Math.abs(memoTab.left - L.tabs[0].left) < PX_SLACK
+      && Math.abs(memoTab.right - L.tabs[1].right) < PX_SLACK && Math.abs(memoTab.width - L.rail.width) <= PX_SLACK,
+      `${where}: tabs 2 + 2 + 1, the memo tab across the rail (${memoTab.width.toFixed(1)} / ${L.rail.width.toFixed(1)}px)`);
+    assert(L.tabsFit, `${where}: every tab label fits its tab`);
     const tops = L.order.map(o => o[1]);
     assert(tops.every((t, i) => i === 0 || t > tops[i - 1]) && L.domChipsAfterCount,
       `${where}: rail order search → tabs → sub chips → count → filter chips (DOM too): ${L.order.map(o => o[0]).join(' → ')}`);
@@ -63,7 +70,7 @@ async function checkCase({ page, label, viewport, lang, fontSize, errors }) {
     }
     const railFits = L.railScroll[0] <= L.railScroll[1] + dt.FIT_SLACK_PX;
     assert(['auto', 'scroll'].includes(L.railOverflow), `${where}: the rail can scroll on its own (overflow-y ${L.railOverflow})`);
-    if (railFits) {
+    if (railFits && L.chipsBox) { // the memo tab has no filter chips (v1.6.0: the row hides)
       assert(Math.abs(L.chipsBox.bottom - L.rail.bottom) <= PX_SLACK, `${where}: filter chips at the rail's foot (${L.chipsBox.bottom.toFixed(1)} / ${L.rail.bottom.toFixed(1)})`);
     }
     if (viewport.width === dt.DESKTOP_MIN_WIDTH && fontSize === 'large' && tab === 'people') {

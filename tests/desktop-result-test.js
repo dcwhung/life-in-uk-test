@@ -4,7 +4,8 @@
 // - Result: one screen high; left 5/12 = score card (Retry / Another exam inside it) + By difficulty, never scrolls
 //   (fitLeft() steps is-compact → is-compact2 → is-compact3); right 7/12 = Review Answers, its list scrolls in a panel;
 //   one set of buttons (the bottom pair is not shown)
-// - Flagged: one screen high; the practise button across the top; the list in 2 columns in a scrolling panel;
+// - Flagged: one screen high; the practise button across the top; the list in 2 columns in a scrolling panel (the
+//   v1.4.4 phone pin, .flagged-top sticky, is off here);
 //   unflagging the last one shows the empty hint
 // - C-006 / W-379: on a short laptop (1366 × 657, 1280 × 720) and at 1024 × 600, large text, 中, exam and practice:
 //   when even step ③ does not fit, the left column scrolls (fades) instead of cutting the card; Retry / Another stay
@@ -92,6 +93,17 @@ async function checkFlagged(page, label) {
   assert(grid.above && grid.startW >= grid.listW - 1, `${label}: the practise button spans the top`);
   const only = await dt.panelOnlyScroll(page, '#flaggedList');
   assert(only.ok, `${label}: the list scrolls in its own panel: ${only.detail}`);
+  // v1.4.4 merge: the phone's pinned block (.flagged-top sticky, reaching over main's padding, scroll-padding for focus)
+  // is the phone's; on desktop the list panel scrolls, so the block is plain: in flow, no offset, the header and
+  // practise button on main's content edges as before the merge
+  const top = await page.evaluate(() => {
+    const el = document.querySelector('#screenFlagged .flagged-top'), cs = getComputedStyle(el);
+    const scr = byId('screenFlagged').getBoundingClientRect(), r = el.getBoundingClientRect();
+    return { pos: cs.position, margin: cs.margin, left: r.left - scr.left, right: scr.right - r.right, top: r.top - scr.top,
+      pad: getComputedStyle(document.documentElement).scrollPaddingTop };
+  });
+  assert(top.pos === 'static' && Math.abs(top.left) < 1 && Math.abs(top.right) < 1 && Math.abs(top.top) < 1 && top.pad === 'auto',
+    `${label}: Flagged's v1.4.4 pinned block is off on desktop (the panel scrolls): ` + JSON.stringify(top));
   // unflag everything from the list: the empty hint
   await page.evaluate(() => { keysOf(practiceFlags).forEach(k => setPracticeFlag(k, false)); openFlagged(); });
   assert(await visible(page, '#flaggedList .empty-hint') && !(await visible(page, '#flaggedStart')), `${label}: 0 flagged → empty hint`);

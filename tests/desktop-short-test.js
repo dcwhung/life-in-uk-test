@@ -1,6 +1,7 @@
 // v2.0.0 desktop layout on short screens (W-379; handoff .proj-docs/plans/2026-10-12_handoff_desktop-layout.md §5 / §7):
 // a laptop at 1366 × 657 or 1280 × 720 (a 768px / 800px panel less the browser's bars) and the smallest desktop window
-// 1024 × 600. Every one-screen-high screen (Quiz Practice / Exam, Result, Flagged, Study, Plan Run) and Plan Day, in
+// 1024 × 600. Every one-screen-high screen (Quiz Practice / Exam, Result, Flagged, Study incl. the memo tab, the memo
+// group screen (v1.6.0), Plan Run) and Plan Day, in
 // EN / 中 with large text (the tallest content):
 // - no sideways page scroll
 // - every control on the screen can be reached: on screen, or inside a panel that scrolls to it (never cut off by a
@@ -41,6 +42,16 @@ const SCREENS = [
   ['flagged', page => page.evaluate(n => { allQuestions().slice(0, n).forEach(it => setPracticeFlag(qKey(it), true)); openFlagged(); }, FLAGGED_N)],
   ['study chapters', page => page.evaluate(ch => { openStudy(); studySetTab('chapters'); studySetChapter(ch); }, LONG_CHAPTER)],
   ['study people', page => page.evaluate(() => { openStudy(); studySetTab('people'); })],
+  // v1.6.0 memo (merged into v2.0.0): Study's memo tab and the group screen (centred column, Plan Run baseline)
+  ['study memo', page => page.evaluate(() => { openStudy(); studySetTab('memo'); })],
+  ['memo look (longest note)', page => page.evaluate(() => {
+    openMemoGroup(memoGroups().filter(g => g.body).sort((a, b) => b.body.length - a.body.length)[0].id);
+  })],
+  ['memo result (5 wrong)', page => page.evaluate(() => {
+    const wrong = allQuestions().slice(0, 5).map(it => ({ q: it.q.q, yue: it.q.yue || '' }));
+    Object.assign(memoView, { step: 'result', result: { passed: false, lv: 1, prevLv: 2, correct: 0, total: 5, wrong } });
+    showMemo();
+  })],
   ['plan day', async page => { await seedPlan(page); await page.evaluate(() => openPlanDay()); }],
   ['plan run', async page => {
     await seedPlan(page, { dayN: 1 });
