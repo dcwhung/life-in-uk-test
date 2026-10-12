@@ -196,13 +196,16 @@
   .plan-card { margin-bottom: var(--space-8); }
 
   /* ════════ option A: plan card across the top, laid out in one row: info | today's progress | buttons ════════ */
-  .optA .plan-card.wide .plan-home { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) auto; grid-template-areas: "top prog acts" "next prog acts"; column-gap: var(--space-12); row-gap: var(--space-3); align-items: center; }
+  /* rev 2 (user): left = name · Day + countdown, today's progress + bar under it, then "Next"; right = the buttons,
+     one per row, right-aligned and equally wide */
+  .optA .plan-card.wide .plan-home { grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: 1fr auto auto auto 1fr; grid-template-areas: ". acts" "top acts" "prog acts" "next acts" ". acts"; column-gap: var(--space-12); row-gap: var(--space-4); align-items: center; }
   .optA .plan-card.wide .plan-home-top { grid-area: top; }
+  .optA .plan-card.wide .plan-home-prog { grid-area: prog; display: grid; gap: var(--space-3); }
   .optA .plan-card.wide .plan-home-next { grid-area: next; }
-  .optA .plan-card.wide .plan-home-prog { grid-area: prog; display: grid; gap: var(--space-4); }
-  .optA .plan-card.wide .plan-home-acts { grid-area: acts; flex-wrap: nowrap; }
-  /* rest / exam day / ended: no progress block, the text takes its place */
-  .optA .plan-card.wide.no-prog .plan-home { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "top acts" "next acts"; }
+  .optA .plan-card.wide .plan-home-acts { grid-area: acts; flex-direction: column; flex-wrap: nowrap; align-items: stretch; align-self: center; }
+  .optA .plan-card.wide .plan-home-acts > span { justify-content: center; }
+  /* exam day / ended: no progress block; the text stays together in the middle when 3 buttons make the card taller */
+  .optA .plan-card.wide.no-prog .plan-home { grid-template-rows: 1fr auto auto 1fr; grid-template-areas: ". acts" "top acts" "next acts" ". acts"; }
 
   /* ════════ option B: plan card at the top of the left rail (as on the phone), right column unchanged ════════ */
   /* ════════ option C: plan card at the top of the right column, above My Review ════════ */
@@ -211,7 +214,7 @@
 <body>
 
 <div class="mock-bar">
-  <b>v2.0.0 Desktop · Mockup 4/12 · Home（有 plan）</b>
+  <b>v2.0.0 Desktop · Mockup 4/12 · Home（有 plan）· rev 2：A 改版</b>
   <div class="mock-row"><span class="lbl">語言</span><button class="mock-tab on" data-k="lang" data-v="en">EN</button><button class="mock-tab" data-k="lang" data-v="zh">中文</button>
     <span class="lbl" style="margin-left:10px">翻譯</span><button class="mock-tab on" data-k="yue" data-v="on">開</button><button class="mock-tab" data-k="yue" data-v="off">關</button>
     <span class="lbl" style="margin-left:10px">⚙ 大字</span><button class="mock-tab on" data-k="large" data-v="off">關</button><button class="mock-tab" data-k="large" data-v="on">開</button></div>
@@ -328,7 +331,7 @@ function planCard(wide) {
   if (st.pct === null) prog = `<div class="plan-home-prog"><div class="plan-home-row"><span>${P.rest}</span></div></div>`;
   else if (st.pct !== undefined) prog = `<div class="plan-home-prog"><div class="plan-home-row"><span>${P.pct}</span><b class="plan-home-pct">${st.pct}%</b></div><div class="plan-home-bar"><i class="h${st.band}" style="width:${st.pct}%"></i></div></div>`;
   const acts = `<div class="plan-home-acts">${st.acts.map(([k, gold]) => `<span class="${gold ? 'plan-btn-gold' : 'plan-btn-line'}" style="display:inline-flex;align-items:center">${P[k]}</span>`).join('')}</div>`;
-  const cls = 'plan-card' + (wide ? ' wide' : '') + (st.pct === undefined || st.pct === null ? ' no-prog' : '');
+  const cls = 'plan-card' + (wide ? ' wide' : '') + (st.pct === undefined ? ' no-prog' : '');
   return `<div class="${cls}"><div class="plan-home">${top}${prog}<p class="plan-home-next">${P[st.next]}</p>${acts}</div></div>`;
 }
 function modes() {
@@ -373,10 +376,10 @@ function resetBox(inline) {
 // ── the three options ──
 const OPTIONS = [
   {
-    id: 'A', cls: 'optA', rec: true, title: 'A · 計劃卡橫跨頂部，卡入面排成一行',
+    id: 'A', cls: 'optA', rec: true, title: 'A · 計劃卡橫跨頂部（rev 2：按你意見修改）',
     ann: `<ul><li>同未有計劃時嘅「建立溫習計劃」卡同一個位（頂部橫跨），轉態時版面唔會跳。</li>
-      <li>卡入面排成一行：<b>左</b>計劃名 + Day + 倒數 + 下一步｜<b>中</b>今日完成度 + bar｜<b>右</b>「繼續今日任務」+「進度表」掣。成張卡只係大約兩行高，下面嘅模式同題組唔使碌好遠先見到。</li>
-      <li>休息日／考試日／完結冇 bar，文字會用晒左邊位。</li></ul>`,
+      <li><b>rev 2</b>：<b>左</b>由上至下：計劃名 + Day + 倒數 → 今日完成度 + bar → 下一步；<b>右</b>：「繼續今日任務」同「進度表」上下兩行、一樣闊、靠右。</li>
+      <li>休息日冇 bar（只寫「今日是休息日」）；考試日同完結冇完成度嗰行，掣有 2–3 粒就排 2–3 行。</li></ul>`,
     render: () => `${planCard(true)}<div class="cols"><div class="rail">${modes()}${desc()}${resetBox(false)}</div>
       <div>${myReview(false)}${practiceBlock('')}</div></div>`,
   },
