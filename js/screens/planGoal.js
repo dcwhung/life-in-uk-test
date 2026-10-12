@@ -158,6 +158,7 @@ function renderPlanGoal() {
   renderPlanFeasibility(todayIso);
   renderPlanCta(todayIso);
   fitRows(byId('screenPlanGoal')); // v1.3.1: presets 2 × 2 / level cards one per row only when their texts do not fit
+  if (typeof runRefits === 'function') runRefits(); // v2.0.0 desktop columns + fits (planGoalRefit)
 }
 
 // ── inputs ──
@@ -222,3 +223,34 @@ function planCreate() {
   writeStudyPlan(plan);
   openPlanSchedule();
 }
+
+// ── v2.0.0 desktop (≥ 1024px; handoff §3 #2, mockup desktop-plan-goal.html A rev 2): 🏠 / steps / title across; the 3
+// question cards 7/12 | "Is there enough time?" + the hint + Build 5/12, sticky under the header. The presets and the
+// exam date share one row while no preset chip is cut (the fitRow rule), else two rows as on the phone ──
+const PLAN_STACKED_CLASS = 'is-stacked';
+const PLAN_LEVEL_SUB_LINES_DESKTOP = 2;
+function planGoalColumns() {
+  const cards = [...byId('screenPlanGoal').querySelectorAll('.plan-stack > .plan-card-box')];
+  return { key: 'planGoal', boxClass: 'plan-cols plan-goal-cols', columns: [
+    { cls: 'plan-col plan-goal-form', parts: cards.slice(0, -1) },
+    { cls: 'plan-col plan-goal-side', parts: [cards[cards.length - 1], byId('planGoalHint'), byId('planCreateBtn')] },
+  ] };
+}
+function fitPlanDateRow(desktop) {
+  const row = byId('screenPlanGoal').querySelector('.plan-date-row'), presets = byId('planDaysChips');
+  row.classList.remove(PLAN_STACKED_CLASS);
+  presets.classList.remove(PLAN_STACKED_CLASS);
+  if (desktop && row.getClientRects().length) {
+    row.classList.toggle(PLAN_STACKED_CLASS, [...presets.querySelectorAll('.chip')].some(c => c.scrollWidth > c.clientWidth + 1));
+  }
+  fitRow(presets); // two rows and still cut: the presets go 2 × 2 as on the phone
+}
+function planGoalRefit(desktop) {
+  if (typeof setDesktopColumns !== 'function') return; // a pre-v2.0.0 cached fitRow.js: the phone layout stays
+  setDesktopColumns(planGoalColumns(), desktop);
+  fitPlanDateRow(desktop);
+  // mockup 1024px frame: the three level cards stay in a row with a sub line on up to 2 lines; the phone keeps 1
+  byId('planLevelGrid').querySelectorAll('.plan-level-sub').forEach(sub => { sub.dataset.fitLines = desktop ? PLAN_LEVEL_SUB_LINES_DESKTOP : 1; });
+  fitRow(byId('planLevelGrid')); // the cards' width changed with the columns
+}
+if (typeof onRefit === 'function') onRefit(planGoalRefit, 'screenPlanGoal');

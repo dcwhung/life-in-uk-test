@@ -28,6 +28,7 @@ const DYNAMIC_PREFIXES = [
   'data.nations.', 'data.geoTypes.', 'data.people.',
   'data.weekdays.', 'data.planLevels.', // study plan: rest-day chips, level cards
   'data.months.', // study plan: the calendar's month title
+  'data.monthsShort.', // v2.0.0: the desktop Home card's timeline month ticks
 ];
 // G21 (study plan, arch R10): plan UI text in zh-HK is written Chinese, not the mockup's Cantonese; these keys
 // are scanned for colloquial words (question data yue / oy / note stays Cantonese and is not a locale key)
@@ -143,7 +144,8 @@ function zhHkChecks() {
   assert(extra.length === 0, `${ZH_HK} has no key en lacks` + (extra.length ? ': ' + extra.join(', ') : ''));
   const badParams = [...zhMap].flatMap(([k, v]) => paramProblems(k, enMap.get(k), v));
   assert(badParams.length === 0, `${ZH_HK} uses the same {params} as en per form` + (badParams.length ? ': ' + badParams.join(' / ') : ''));
-  const badTags = [...zhMap].filter(([k, v]) => /Html$/.test(k) && tagsOf(v) !== tagsOf(enMap.get(k))).map(([k]) => k);
+  // v2.0.0: a plural …Html value (plan.home.cdLeftHtml) compares its `other` form
+  const badTags = [...zhMap].filter(([k, v]) => /Html$/.test(k) && tagsOf(formsOf(v).other) !== tagsOf(formsOf(enMap.get(k)).other)).map(([k]) => k);
   assert(badTags.length === 0, `${ZH_HK} …Html values have en's tag sequence` + (badTags.length ? ': ' + badTags.join(', ') : ''));
   const markup = [...zhMap].filter(([k, v]) => !/Html$/.test(k) && Object.values(formsOf(v)).some(s => /<|&[a-z#]/i.test(s))).map(([k]) => k);
   assert(markup.length === 0, `${ZH_HK} values outside …Html keys have no tags or entities` + (markup.length ? ': ' + markup.join(', ') : ''));

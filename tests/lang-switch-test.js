@@ -570,7 +570,8 @@ async function checkMyReviewNarrow(pg, check, lang, tag) {
 // the wrong tile's note on two (MY_REVIEW_NOTE_LINES), else stacked, each the grid's full width; orientation plays no
 // part (768×1024 portrait sits side by side). 30 wrong + 8 flagged: the wrong tile shows its note
 const MY_REVIEW_STACKED = [{ width: 320, height: 640 }];
-const MY_REVIEW_SIDE = [{ width: 768, height: 1024 }, { width: 844, height: 390 }, { width: 1024, height: 768 }];
+// v2.0.0: 1024px and up is the desktop layout (its own rule: tests/desktop-home-test.js); the widest phone layout is 1023px
+const MY_REVIEW_SIDE = [{ width: 768, height: 1024 }, { width: 844, height: 390 }, { width: 1023, height: 768 }];
 const MY_REVIEW_NOTE_MAX_LINES = 2;
 // C-004: 0 flagged puts the empty line with its inline bookmark svg in the flagged tile; it still fits on one line
 const MY_REVIEW_FIT_SEEDS = [[MY_REVIEW_WRONG_N, MY_REVIEW_FLAG_N], [MY_REVIEW_WRONG_N, 0]];

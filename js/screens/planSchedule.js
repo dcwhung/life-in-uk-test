@@ -30,6 +30,7 @@ const PLAN_NEAR_ROWS = 14;
 // v1.0.4: each folding card's toggle (a button in its h3; aria-controls names the part it hides)
 const PLAN_FOLD_TOGGLES = { phases: 'planPhasesToggle', order: 'planOrderToggle' };
 let planFoldOpen = { phases: true, order: true }; // this visit's state: a re-render (language, new day) keeps it, never saved
+let planScheduleDesktop = false; // v2.0.0: the day list was drawn for the desktop layout (sideways, Week groups)
 
 function openPlanSchedule() {
   if (!planVisible()) return;
@@ -44,6 +45,7 @@ function openPlanSchedule() {
 function renderPlanSchedule() {
   const plan = planLoad();
   if (!plan) return;
+  planScheduleDesktop = typeof isDesktop === 'function' && isDesktop(); // the layout the list is drawn for
   const log = planLoadLogView() || planEmptyLog(); // an unreadable log shows as nothing answered (↺ Reset clears it)
   const phases = planPhaseDays(plan);
   byId('planSummary').textContent = planSummaryText(plan);
@@ -54,11 +56,14 @@ function renderPlanSchedule() {
   renderPlanOrder(log, doneSets);
   Object.keys(PLAN_FOLD_TOGGLES).forEach(applyPlanFold);
   byId('planDayList').innerHTML = planDayListHtml(plan, log, planTodayIso());
+  if (typeof runRefits === 'function') runRefits(); // v2.0.0 desktop: the sideways day list (planScheduleRefit)
 }
 // language switch / new day: re-rendered in place, the day list stays where it was scrolled. It returns to the first
 // row in view (not the raw scrollTop): rows far from today have estimated heights until laid out (O-1)
 function rerenderPlanSchedule() {
   const list = byId('planDayList');
+  // v2.0.0 desktop: the columns keep their width in every language, so the raw scrollLeft is the same place
+  if (planScheduleDesktop) { const left = list.scrollLeft; renderPlanSchedule(); planJumpListLeft(left); return; }
   const row = [...list.querySelectorAll('.plan-day')].find(r => r.offsetTop + r.offsetHeight > list.scrollTop);
   const anchor = row ? { iso: row.dataset.arg, delta: list.scrollTop - row.offsetTop } : null;
   renderPlanSchedule();
@@ -169,7 +174,10 @@ function planOrderStepHtml(chs, i, done) {
 // v1.0.4: the collapsed card's stepper: a numbered dot per step, a short label ("Ch 1 + 2") under it; screen readers get
 // the full chapter names instead
 function planOrderMiniHtml(chs, i, done) {
-  const short = [t('common.chapterShort', { n: chs[0] }), ...chs.slice(1)].join(' + ');
+  // v2.0.0 desktop (mockup rev 4): the full chapter names, one per line, "+" hanging before the second
+  const short = planScheduleDesktop
+    ? `<span class="plan-mini-chs">${chs.map((ch, k) => `<span class="plan-mini-plus">${k ? '+' : ''}</span><span>${planChapterText(ch)}</span>`).join('')}</span>`
+    : [t('common.chapterShort', { n: chs[0] }), ...chs.slice(1)].join(' + ');
   return `<li>${planOrderDotHtml(i, done)}`
     + `<span class="plan-ord-mini-name" lang="en" aria-hidden="true">${short}</span>`
     + `<span class="plan-sr" lang="en">${chs.map(planChapterText).join(' + ')}</span>${planDoneSrHtml(done)}</li>`;
@@ -241,9 +249,18 @@ function planWhen(iso, todayIso) {
   return iso < todayIso ? PLAN_WHEN.past : PLAN_WHEN.ahead;
 }
 // the row's left column: the date box with the day's status pill under it (pillHtml may be '')
-function planDateBoxHtml(top, iso, { extraClass = '', pillHtml = '' } = {}) {
-  const sub = `${planShortDate(iso)} ${t(`data.weekdays.${isoWeekday(iso)}`)}`;
-  return `<span class="plan-day-side"><span class="plan-day-d plan-num${extraClass}">${top}<small>${sub}</small></span>${pillHtml}</span>`;
+// desktop (v2.0.0, mockup rev 3 / 4): "Day n – 12/10 Mon" on one line (zh-HK "·": a dash before the one-stroke weekday reads as two dashes),
+// and an invisible pill where a day has none, so every column's tasks start on one line
+const PLAN_PILL_SLOT_HTML = '<span class="plan-pill plan-pill-slot" aria-hidden="true">&nbsp;</span>';
+const PLAN_DATE_DASH = { en: '–', other: '·' };
+function planDateBoxHtml(top, iso, { extraClass = '', pillHtml = '', dayN = 0 } = {}) {
+  let sub = `${planShortDate(iso)} ${t(`data.weekdays.${isoWeekday(iso)}`)}`;
+  if (planScheduleDesktop && dayN) {
+    top = `${t('plan.dayN', { n: dayN })} `;
+    sub = `${PLAN_DATE_DASH[getLang()] || PLAN_DATE_DASH.other} ${sub}`;
+  }
+  const pill = pillHtml || (planScheduleDesktop ? PLAN_PILL_SLOT_HTML : '');
+  return `<span class="plan-day-side"><span class="plan-day-d plan-num${extraClass}">${top}<small>${sub}</small></span>${pill}</span>`;
 }
 function planWeekHtml(i) {
   return i % PLAN_WEEK_DAYS ? '' : `<div class="plan-week" lang="en">${t('plan.schedule.week', { n: i / PLAN_WEEK_DAYS + 1 })}</div>`;
@@ -256,7 +273,7 @@ function planDayRowHtml(day, i, log, todayIso, todayIndex) {
   const when = planWhen(day.date, todayIso);
   const far = Math.abs(i - todayIndex) > PLAN_NEAR_ROWS ? ' plan-far' : '';
   const pillHtml = planDayPillHtml(day, planDayLog(log, day.date), when);
-  return planWeekHtml(i) + planDayRowOpen(day.phase + (when ? ' ' + when : '') + far, day.date) + planDateBoxHtml(i + 1, day.date, { pillHtml })
+  return planWeekHtml(i) + planDayRowOpen(day.phase + (when ? ' ' + when : '') + far, day.date) + planDateBoxHtml(i + 1, day.date, { pillHtml, dayN: i + 1 })
     + `<span class="plan-day-tasks">${planDayTasksHtml(day)}</span></button>`;
 }
 // G16: the exam day ends the list (amber lattice, 🎯), with what to bring
@@ -269,15 +286,40 @@ function planExamRowHtml(plan, todayIso) {
 }
 function planDayListHtml(plan, log, todayIso) {
   const todayIndex = Math.min(plan.days.length, Math.max(0, planDayIndex(plan, todayIso))); // after the exam: its row
-  return plan.days.map((day, i) => planDayRowHtml(day, i, log, todayIso, todayIndex)).join('') + planExamRowHtml(plan, todayIso);
+  const html = plan.days.map((day, i) => planDayRowHtml(day, i, log, todayIso, todayIndex)).join('') + planExamRowHtml(plan, todayIso);
+  return planScheduleDesktop ? planGroupWeeksHtml(html) : html;
+}
+// v2.0.0 desktop (mockup rev 2): each Week a group, its label over its days in a row (the phone: siblings)
+const PLAN_WEEK_OPEN = '<div class="plan-week"';
+function planGroupWeeksHtml(html) {
+  return html.split(new RegExp(`(?=${PLAN_WEEK_OPEN})`)).filter(Boolean).map(part => {
+    const head = part.startsWith(PLAN_WEEK_OPEN) ? part.slice(0, part.indexOf('</div>') + '</div>'.length) : '';
+    return `<div class="plan-wk">${head}<div class="plan-wk-days">${part.slice(head.length)}</div></div>`;
+  }).join('');
 }
 // opens the list at today, just below its sticky WEEK heading, without moving the page itself (G16: after the exam,
 // at the exam day); instant, not the list's smooth scrolling
 function planScrollToToday() {
   const list = byId('planDayList');
   const row = list.querySelector(`.plan-day.${PLAN_WHEN.today}`) || (planTodayIso() > planLoad().goal.examDate ? list.querySelector('.plan-day.exam') : null);
+  if (planScheduleDesktop) { planScrollLeftTo(row); return; }
   const head = list.querySelector('.plan-week');
   planJumpList(row ? row.offsetTop - (head ? head.offsetHeight : 0) : 0);
+}
+// v2.0.0 F3 (desktop): today's column the first one in view, clear of the left edge's fade (the day before shows
+// under it, a cue that there is more to the left); the page itself does not move
+function planScrollLeftTo(row) {
+  const list = byId('planDayList'), wrap = planScrollCuesWrap();
+  const fade = wrap ? parseFloat(getComputedStyle(wrap, '::before').width) || 0 : 0;
+  const at = row ? list.scrollLeft + row.getBoundingClientRect().left - list.getBoundingClientRect().left - fade : 0;
+  planJumpListLeft(Math.max(0, at));
+}
+function planJumpListLeft(left) {
+  const list = byId('planDayList');
+  list.classList.add('plan-jump');
+  list.scrollLeft = left;
+  list.classList.remove('plan-jump');
+  planUpdateScrollCues();
 }
 // the list scrolls smoothly for the user; a programmatic move jumps
 function planJumpList(top) {
@@ -304,3 +346,62 @@ function planReset() {
   window.scrollTo(0, 0); // the reset button sits at the bottom: show the create card that replaced the plan
   showToast(t('plan.toastReset'));
 }
+
+// ── v2.0.0 desktop (≥ 1024px; handoff §3 #3, mockup desktop-plan-schedule.html B rev 5): one column across; the phases
+// 3 across, the study order one row (1 › 2 › 3 › 4); the day list scrolls sideways, a column a day and a group a Week
+// (the label sticking to the left edge), fades and ‹ › buttons on a side with days out of view, and opens at today
+// (F3). "View today's tasks" sits in the Daily tasks card, bottom right. Below 1024px: the phone's list and order ──
+const PLAN_SCROLL_PAGE_SHARE = 0.85; // ‹ › scroll about a screenful of columns
+const PLAN_HSCROLL_CLASS = 'plan-hscroll';
+const PLAN_SCROLL_BTNS = [[-1, 'l', '‹'], [1, 'r', '›']];
+function planScrollCuesWrap() {
+  const list = byId('planDayList');
+  return list.parentElement.classList.contains(PLAN_HSCROLL_CLASS) ? list.parentElement : null;
+}
+// the ‹ › buttons are for the pointer (aria-hidden, out of the tab order): the list itself scrolls with the arrow keys
+function planScrollBtn(list, [dir, side, glyph]) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = `plan-hs-btn ${side}`;
+  btn.tabIndex = -1;
+  btn.setAttribute('aria-hidden', 'true');
+  btn.textContent = glyph;
+  btn.addEventListener('click', () => list.scrollBy({ left: dir * list.clientWidth * PLAN_SCROLL_PAGE_SHARE, behavior: 'smooth' }));
+  return btn;
+}
+function planWrapScrollCues() {
+  const list = byId('planDayList');
+  if (planScrollCuesWrap()) return;
+  const wrap = document.createElement('div');
+  wrap.className = PLAN_HSCROLL_CLASS;
+  list.before(wrap);
+  wrap.append(list, ...PLAN_SCROLL_BTNS.map(b => planScrollBtn(list, b)));
+  list.addEventListener('scroll', planUpdateScrollCues, { passive: true });
+}
+function planUnwrapScrollCues() {
+  const wrap = planScrollCuesWrap(), list = byId('planDayList');
+  if (!wrap) return;
+  list.removeEventListener('scroll', planUpdateScrollCues);
+  wrap.replaceWith(list);
+}
+function planUpdateScrollCues() {
+  const wrap = planScrollCuesWrap(), list = byId('planDayList');
+  if (!wrap) return;
+  wrap.classList.toggle('can-l', list.scrollLeft > 1);
+  wrap.classList.toggle('can-r', list.scrollLeft + list.clientWidth < list.scrollWidth - 1);
+}
+// "View today's tasks" into the Daily tasks card on desktop, back under it on the phone
+function planPlaceTodayCta(desktop) {
+  const cta = byId('screenPlanSchedule').querySelector('.plan-block[data-action="openPlanDay"]');
+  const card = byId('planDayList').closest('.plan-card-box');
+  if (!cta || !card) return;
+  if (desktop && cta.parentElement !== card) card.append(cta);
+  if (!desktop && cta.parentElement === card) card.after(cta);
+}
+function planScheduleRefit(desktop) {
+  if (desktop !== planScheduleDesktop && planLoad()) { renderPlanSchedule(); planScrollToToday(); return; } // the other layout's list
+  if (desktop) planWrapScrollCues(); else planUnwrapScrollCues();
+  planPlaceTodayCta(desktop);
+  planUpdateScrollCues();
+}
+if (typeof onRefit === 'function') onRefit(planScheduleRefit, 'screenPlanSchedule');
