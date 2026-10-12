@@ -1446,6 +1446,7 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
   .vwrap::after { bottom: 0; background: linear-gradient(transparent, var(--bg)); }
   .vwrap.can-up::before, .vwrap.can-down::after { opacity: 1; }
   .empty-slot { border: 2px dashed var(--border); border-radius: var(--radius); min-height: calc(160px * var(--k)); }
+  .col > .empty-slot { flex: 1 1 auto; }   /* rev 11 (user): the dashed box before answering fills the column's height */
   .col > .nav-row { margin-top: auto; }
 
   /* A rev 2 (user): the number dots + counts are their own row at the top, across both columns, 24 in one row */
@@ -1503,6 +1504,8 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
   .optA .rpane .sqm-head { display: none; }
   .optA .rpane .sqm, .optA .rpane .answer-box { margin: 0; }
   .optA.tab-s .rtabs { align-items: stretch; } /* both tabs one height (the Similar tab has two lines) */
+  /* rev 11 (user): the tab bar as wide as the box under it (the pane keeps a gutter for its scrollbar) */
+  .optA .rtabs { margin-right: var(--space-3); }
   .optA .rpane[hidden] { display: none !important; }
   /* A: left = question card + options + Prev / Next; right = answer box + Similar Questions (scroll) */
   .optA .cols { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
@@ -1516,7 +1519,7 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
 <body>
 
 <div class="mock-bar">
-  <b>v2.0.0 Desktop · Mockup 8/12 · Quiz（練習）· rev 10：盡量唔使碌</b>
+  <b>v2.0.0 Desktop · Mockup 8/12 · Quiz（練習）· rev 11：選項一律 2×2</b>
   <div class="mock-row"><span class="lbl">語言</span><button class="mock-tab on" data-k="lang" data-v="en">EN</button><button class="mock-tab" data-k="lang" data-v="zh">中文</button><span class="lbl" style="margin-left:10px">翻譯</span><button class="mock-tab on" data-k="yue" data-v="on">開</button><button class="mock-tab" data-k="yue" data-v="off">關</button><span class="lbl" style="margin-left:10px">⚙ 大字</span><button class="mock-tab on" data-k="large" data-v="off">關</button><button class="mock-tab" data-k="large" data-v="on">開</button></div>
   <div class="mock-row"><span class="lbl">Tab 樣式（A）</span><button class="mock-tab on" data-k="tabs" data-v="s">S · 柔和（揀咗）</button><button class="mock-tab" data-k="tabs" data-v="u">U · 底線</button><button class="mock-tab" data-k="tabs" data-v="f">F · 文件夾</button><span class="lbl" style="margin-left:10px"></span><span class="lbl">狀態</span><button class="mock-tab on" data-k="st" data-v="wrong">答錯（答案 + 相似題目）</button><button class="mock-tab" data-k="st" data-v="right">答啱（長選項）</button><button class="mock-tab" data-k="st" data-v="q">未答</button><button class="mock-tab" data-k="st" data-v="qYue">未答 + Translate</button></div>
   <div class="mock-row"><span class="lbl">縮放</span><button class="mock-tab on" data-k="zoom" data-v="fit">適合畫面</button><button class="mock-tab" data-k="zoom" data-v="100">100%</button></div>
@@ -1585,8 +1588,9 @@ function fitOptions() {
     if (!opts) return;
     opts.classList.remove('is-2x2', 'is-tight'); sc.classList.remove('is-compact');
     const over = () => sc.scrollHeight > sc.clientHeight + 1;
-    // rev 10: one height while it fits; then 2 × 2; then rows by content; then compact; then (last) the column scrolls
-    if (over()) opts.classList.add('is-2x2');
+    // rev 11: always 2 × 2 (also before answering), one height while it fits; then rows by content; then compact;
+    // then (last) the column scrolls
+    opts.classList.add('is-2x2');
     if (over()) opts.classList.add('is-tight');
     if (over()) sc.classList.add('is-compact');
   });
@@ -1608,7 +1612,8 @@ const VH = { 1024: 768, 1280: 800 };
 const OPTIONS = [
   {
     id: 'A', cls: 'optA', rec: true, vh: VH, title: 'A · 左邊作答｜右邊答案 + 相似題目',
-    ann: `<ul><li><b>rev 9</b>：左欄題目卡同選項預設各佔一半高度；邊個內容需要多過一半就自動攞多啲（另一邊讓位，但唔會細過自己內容）。4 個選項永遠一樣高，內容置頂。放唔落先轉 2 × 2。<b>rev 10</b>（目標：唔使碌）：2 × 2 一樣高都超出畫面，就改為每行按內容高度；再唔夠就收窄題目卡同選項嘅 padding／間距；最後先碌。</li>
+    ann: `<ul><li><b>rev 11</b>：選項未答都用 2 × 2；右邊未答時嘅虛線框填滿高度；「答案｜相似題目」tab bar 同下面個框一樣闊。</li>
+      <li><b>rev 9</b>：左欄題目卡同選項預設各佔一半高度；邊個內容需要多過一半就自動攞多啲（另一邊讓位，但唔會細過自己內容）。4 個選項永遠一樣高，內容置頂。放唔落先轉 2 × 2。<b>rev 10</b>（目標：唔使碌）：2 × 2 一樣高都超出畫面，就改為每行按內容高度；再唔夠就收窄題目卡同選項嘅 padding／間距；最後先碌。</li>
       <li><b>rev 8</b>：左欄唔要底部上一題／下一題，題目卡以下成個高度畀 4 個選項平均分（直排 4 行或 2 × 2 兩行一樣高，內容垂直置中）。<b>留意</b>：答咗之後題目卡右上有 ← → 快捷掣；但未答時嗰個位係「Translate」，冇 ← →，要跳題只可以撳頂部題號點。</li>
       <li><b>rev 6</b>：題號點條 bar 分左右：左邊 24 粒排一行用盡闊度；右邊數量排 2 × 2。<b>rev 7</b>：答錯同未答對調，變成「答啱 · 未答／答錯 · 已標記」。</li>
       <li><b>rev 5</b>：tab 用 <b>S 柔和</b>。相似題目卡頂（🗺️、標題、「Same fact, asked differently」、+3）唔再喺 pane 入面重覆，搬咗入 tab（副題做第二行細字）；pane 直接由核心知識點開始，tab 同下面框嘅間距同「答案」一樣。</li>
