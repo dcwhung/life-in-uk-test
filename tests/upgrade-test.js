@@ -386,6 +386,44 @@ async function v140SingleFile(b, file) {
   await pg.close();
 }
 
+// S-230 (v1.6.0): a pre-memo cached index.html (v1.4.3 here; main v1.5.0 has no memo markup either) (no memo tab, screen or memo scripts) + current js / css with the memo tab
+// stored: Study opens on Chapters (memoShellReady is not even defined there), no page errors
+const V143_REF = '930ab4a'; // main at v1.4.3
+const MEMO_PREFS = JSON.stringify({ tab: 'memo', memoChapter: 3 });
+async function v143Shell(b) {
+  const dir = tmpDir('v143shell');
+  copyCurrent(dir);
+  fs.writeFileSync(path.join(dir, 'old.html'), execFileSync('git', ['-C', ROOT, 'show', `${V143_REF}:index.html`]));
+  const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
+  const errs = []; pg.on('pageerror', e => errs.push(e.message));
+  await pg.goto('file://' + path.join(dir, 'old.html'));
+  await seed(pg, { 'lifeuk.studyPrefs': MEMO_PREFS });
+  await pg.waitForSelector('#examGrid .exam-btn', { state: 'attached' });
+  await pg.click('#modeStudy');
+  const r = await pg.evaluate(() => ({ tab: study.tab, facts: document.querySelectorAll('#studyContent .fact').length,
+    memoTab: !!document.querySelector('.study-tab[data-tab="memo"]'), memoJs: typeof memoShellReady }));
+  assert(r.tab === 'chapters' && r.facts > 0 && !r.memoTab && r.memoJs === 'undefined' && errs.length === 0,
+    'v1.4.3 shell + stored memo tab: Study opens on Chapters, no page errors: ' + JSON.stringify({ ...r, errs }));
+  await pg.close();
+}
+// S-230: the current shell with an HTTP-cached v1.4.3 study.js (no STUDY_RENDERERS.memo): tapping 🧠 does nothing
+async function v143StudyJs(b) {
+  const dir = tmpDir('v143study');
+  copyCurrent(dir);
+  fs.writeFileSync(path.join(dir, 'js/screens/study.js'), execFileSync('git', ['-C', ROOT, 'show', `${V143_REF}:js/screens/study.js`]));
+  const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
+  const errs = []; pg.on('pageerror', e => errs.push(e.message));
+  await pg.goto('file://' + path.join(dir, 'index.html'));
+  await seed(pg, { 'lifeuk.studyPrefs': MEMO_PREFS });
+  await pg.waitForSelector('#examGrid .exam-btn', { state: 'attached' });
+  await pg.click('#modeStudy');
+  await pg.waitForTimeout(400); // past the double tap guard (SCREEN_CHANGE_CLICK_GUARD_MS)
+  await pg.click('.study-tab[data-tab="memo"]');
+  const r = await pg.evaluate(() => ({ tab: study.tab, facts: document.querySelectorAll('#studyContent .fact').length }));
+  assert(r.tab === 'chapters' && r.facts > 0 && errs.length === 0, 'v1.4.3 study.js + current shell: 🧠 does nothing, no page errors: ' + JSON.stringify({ ...r, errs }));
+  await pg.close();
+}
+
 // 6. T-008: a v0.64-style shell (no locales/zh-HK.js tag, no language control: v1.2.0 drops the ⚙) running the current js while
 // lifeuk.uiLang says zh-HK — the language has no locale on that page, so it reads as en without warnings and
 // without rewriting the stored value; the current shell then opens in zh-HK
@@ -568,6 +606,8 @@ function checkV057Ref() {
   for (const file of Object.keys(V140_SINGLES)) await v140SingleFile(b, file);
   await oldShellZhHk(b);
   await zhHkLocaleMissing(b);
+  await v143Shell(b);
+  await v143StudyJs(b);
   console.log('UPGRADE PASS');
   await b.close();
   cleanUp();

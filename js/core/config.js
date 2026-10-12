@@ -2,7 +2,7 @@
 // CONFIG — app-wide constants. sw.js loads this file with importScripts() to name its cache,
 // so it must stay worker-safe: plain constants only, no DOM and no question data.
 // ════════════════════════════════════════
-const APP_VERSION = '1.5.1';
+const APP_VERSION = '1.6.0';
 
 // ── modes and special set ids (state.examNum is 1..EXAM_COUNT or one of these) ──
 const PRACTICE_MODE = 'practice';
@@ -15,6 +15,7 @@ const CHAPTER_PREFIX = 'ch';
 const DIFFICULTY_PREFIX = 'd';
 const FACT_PREFIX = 'f'; // + study fact id: that fact's source questions ('f21', a one-off session from Study)
 const PLAN_PREFIX = 'p'; // + plan Day n: a study plan task's side session ('p8', isPlanExam)
+const MEMO_PREFIX = 'memo-'; // + memory-note group id (data/memo.js): that group's test ('memo-vote', isMemoExam)
 
 // ── practice ──
 const MASTERY_STREAK = 3;
@@ -87,6 +88,8 @@ const STUDY_PLAN_LS = LS_PREFIX + 'studyPlan';
 const STUDY_PLAN_PROGRESS_LS = LS_PREFIX + 'studyPlanProgress';
 // v1.0.4: the plan identity (planIdentity) whose schedule was already opened once: later opens fold its cards
 const STUDY_PLAN_SEEN_LS = LS_PREFIX + 'studyPlanScheduleSeen';
+// v1.6.0: memory-note study (Study tab 5): { [group id]: { lv: 0..4, due: 'YYYY-MM-DD' } } (js/domain/memo.js); new key
+const MEMO_PROGRESS_LS = LS_PREFIX + 'memoProgress';
 const STUDY_LS = {
   prefs: LS_PREFIX + 'studyPrefs',
   mastered: LS_PREFIX + 'studyMastered',

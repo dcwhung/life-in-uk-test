@@ -1,5 +1,5 @@
 {
- "_doc": "v1.0.10 記憶法 v2 定稿（由 .proj-docs/plans/2026-10-11_memo-final-spec.json 抽出）：memos = 每個記憶法嘅題目（key = exam.0-based index）同文字；prefixes = 記憶法前面保留嘅行；note = prefix + \"\\n\" + text。note-table-test / note-indent-test 用 v1.1.3：加 S168 地區議會（STUDY fact #203：9.14、12.18、12.5，review S-168，用戶 2026-10-11 揀 B 原版）。 v1.1.5：4A 表頭「地區」改「國家」（用戶 2026-10-11，同錯誤選項「威爾斯地區議會」分開）。 4A 標題「地方議會」改「四地議會」（S-193，用戶 2026-10-11，同 S168「地區議會」拉開）。 v1.3.2：記憶法跟進（.proj-docs/plans/2026-10-12_memo-followup-spec.json）：4A +10.10、12.12（Devolution）、③ +6.20、13.12（語言欄）、10A +6.3（National Parks）、⑥ +1.7、11.8（Cenotaph）。",
+ "_doc": "v1.0.10 記憶法 v2 定稿（由 .proj-docs/plans/2026-10-11_memo-final-spec.json 抽出）：memos = 每個記憶法嘅題目（key = exam.0-based index）同文字；prefixes = 記憶法前面保留嘅行；note = prefix + \"\\n\" + text。note-table-test / note-indent-test 用 v1.1.3：加 S168 地區議會（STUDY fact #203：9.14、12.18、12.5，review S-168，用戶 2026-10-11 揀 B 原版）。 v1.1.5：4A 表頭「地區」改「國家」（用戶 2026-10-11，同錯誤選項「威爾斯地區議會」分開）。 4A 標題「地方議會」改「四地議會」（S-193，用戶 2026-10-11，同 S168「地區議會」拉開）。 v1.3.2：記憶法跟進（.proj-docs/plans/2026-10-12_memo-followup-spec.json）：4A +10.10、12.12（Devolution）、③ +6.20、13.12（語言欄）、10A +6.3（National Parks）、⑥ +1.7、11.8（Cenotaph）。 v1.5.0：5 個冇標題嘅記憶法加標題（記憶法 Study tab 用標題分組）：① 守護聖人、⑥ 英國節日、⑤ 發明家、③ 四地象徵、② 四地國教。",
  "memos": [
   {
    "id": "10A",
@@ -193,7 +193,7 @@
     "4.15",
     "11.15"
    ],
-   "text": "記憶法：\n| 國家 | 國教 | 教會 |\n| England | ✓ | Church of England<br>Henry VIII 創立；君主係最高領袖，Archbishop of Canterbury（坎特伯雷大主教）係精神領袖 |\n| Scotland | ✗ | Church of Scotland<br>Presbyterian（長老會），國家教會，唔係國教 |\n| Wales | ✗ | ✗ |\n| N. Ireland | ✗ | ✗ |"
+   "text": "記憶法（四地國教）：\n| 國家 | 國教 | 教會 |\n| England | ✓ | Church of England<br>Henry VIII 創立；君主係最高領袖，Archbishop of Canterbury（坎特伯雷大主教）係精神領袖 |\n| Scotland | ✗ | Church of Scotland<br>Presbyterian（長老會），國家教會，唔係國教 |\n| Wales | ✗ | ✗ |\n| N. Ireland | ✗ | ✗ |"
   },
   {
    "id": "⑨",
@@ -221,7 +221,7 @@
     "14.7",
     "7.23"
    ],
-   "text": "記憶法：\n| 年份 | 人物 | 發明 / 發現 |\n| 17 世紀 | Isaac Newton<br>牛頓 | 萬有引力、運動定律 |\n| 19 世紀 | I. K. Brunel<br>布魯內爾（工程師） | 橋、隧道、船<br>Great Western Railway |\n| 1876 | Alexander Graham Bell<br>貝爾（蘇格蘭裔） | 電話 |\n| 1928 | Alexander Fleming<br>弗萊明（蘇格蘭人） | 盤尼西林<br>Penicillin |\n| 1930s | Frank Whittle<br>惠特爾 | 噴射引擎<br>Jet engine |\n| 1953 | Francis Crick<br>克里克 | DNA 結構<br>同 James Watson 一齊發現 |\n| 1989 | Tim Berners-Lee<br>柏納斯-李 | 萬維網<br>World Wide Web |"
+   "text": "記憶法（發明家）：\n| 年份 | 人物 | 發明 / 發現 |\n| 17 世紀 | Isaac Newton<br>牛頓 | 萬有引力、運動定律 |\n| 19 世紀 | I. K. Brunel<br>布魯內爾（工程師） | 橋、隧道、船<br>Great Western Railway |\n| 1876 | Alexander Graham Bell<br>貝爾（蘇格蘭裔） | 電話 |\n| 1928 | Alexander Fleming<br>弗萊明（蘇格蘭人） | 盤尼西林<br>Penicillin |\n| 1930s | Frank Whittle<br>惠特爾 | 噴射引擎<br>Jet engine |\n| 1953 | Francis Crick<br>克里克 | DNA 結構<br>同 James Watson 一齊發現 |\n| 1989 | Tim Berners-Lee<br>柏納斯-李 | 萬維網<br>World Wide Web |"
   },
   {
    "id": "⑤N",
@@ -231,7 +231,7 @@
     "8.11",
     "8.21"
    ],
-   "text": "Isaac Newton（牛頓）喺 Lincolnshire（林肯郡）Woolsthorpe 出世，後來做過 Royal Mint（皇家鑄幣廠）嘅 Warden / Master\n記憶法：\n| 年份 | 人物 | 發明 / 發現 |\n| 17 世紀 | Isaac Newton<br>牛頓 | 萬有引力、運動定律 |\n| 19 世紀 | I. K. Brunel<br>布魯內爾（工程師） | 橋、隧道、船<br>Great Western Railway |\n| 1876 | Alexander Graham Bell<br>貝爾（蘇格蘭裔） | 電話 |\n| 1928 | Alexander Fleming<br>弗萊明（蘇格蘭人） | 盤尼西林<br>Penicillin |\n| 1930s | Frank Whittle<br>惠特爾 | 噴射引擎<br>Jet engine |\n| 1953 | Francis Crick<br>克里克 | DNA 結構<br>同 James Watson 一齊發現 |\n| 1989 | Tim Berners-Lee<br>柏納斯-李 | 萬維網<br>World Wide Web |"
+   "text": "Isaac Newton（牛頓）喺 Lincolnshire（林肯郡）Woolsthorpe 出世，後來做過 Royal Mint（皇家鑄幣廠）嘅 Warden / Master\n記憶法（發明家）：\n| 年份 | 人物 | 發明 / 發現 |\n| 17 世紀 | Isaac Newton<br>牛頓 | 萬有引力、運動定律 |\n| 19 世紀 | I. K. Brunel<br>布魯內爾（工程師） | 橋、隧道、船<br>Great Western Railway |\n| 1876 | Alexander Graham Bell<br>貝爾（蘇格蘭裔） | 電話 |\n| 1928 | Alexander Fleming<br>弗萊明（蘇格蘭人） | 盤尼西林<br>Penicillin |\n| 1930s | Frank Whittle<br>惠特爾 | 噴射引擎<br>Jet engine |\n| 1953 | Francis Crick<br>克里克 | DNA 結構<br>同 James Watson 一齊發現 |\n| 1989 | Tim Berners-Lee<br>柏納斯-李 | 萬維網<br>World Wide Web |"
   },
   {
    "id": "⑥",
@@ -255,7 +255,7 @@
     "1.7",
     "11.8"
    ],
-   "text": "記憶法：\n| 日期 | 節日 |\n| 25/1 | Burns Night 彭斯之夜：<br>紀念蘇格蘭詩人 Robert Burns<br>佢寫咗 Auld Lang Syne |\n| 31/10 | Halloween 萬聖節前夕 |\n| 5/11 | Bonfire Night 篝火之夜：<br>又叫 Guy Fawkes Night<br>紀念 1605 年 Guy Fawkes 等人<br>火藥陰謀（Gunpowder Plot）失敗 |\n| 11/11 | Remembrance Day 國殤紀念日：<br>又叫 Armistice Day（停戰紀念日）<br>紀念 1918 年 11/11 上午 11 時一戰停戰同戰爭死難者；<br>戴紅罌粟花<br>喺 London Whitehall（白廳）嘅<br>Cenotaph（戰爭紀念碑）獻花圈 |\n| 26/12 | Boxing Day 節禮日：<br>聖誕節翌日 |\n| 31/12 | Hogmanay 霍格莫尼：<br>蘇格蘭除夕 |"
+   "text": "記憶法（英國節日）：\n| 日期 | 節日 |\n| 25/1 | Burns Night 彭斯之夜：<br>紀念蘇格蘭詩人 Robert Burns<br>佢寫咗 Auld Lang Syne |\n| 31/10 | Halloween 萬聖節前夕 |\n| 5/11 | Bonfire Night 篝火之夜：<br>又叫 Guy Fawkes Night<br>紀念 1605 年 Guy Fawkes 等人<br>火藥陰謀（Gunpowder Plot）失敗 |\n| 11/11 | Remembrance Day 國殤紀念日：<br>又叫 Armistice Day（停戰紀念日）<br>紀念 1918 年 11/11 上午 11 時一戰停戰同戰爭死難者；<br>戴紅罌粟花<br>喺 London Whitehall（白廳）嘅<br>Cenotaph（戰爭紀念碑）獻花圈 |\n| 26/12 | Boxing Day 節禮日：<br>聖誕節翌日 |\n| 31/12 | Hogmanay 霍格莫尼：<br>蘇格蘭除夕 |"
   },
   {
    "id": "⑧",
@@ -299,7 +299,7 @@
     "5.13",
     "14.6"
    ],
-   "text": "記憶法：\n| 國家 | 聖人 | 日子 |\n| England | St George<br>聖佐治 | 23/4 |\n| Scotland | St Andrew<br>聖安德魯 | 30/11 |\n| Wales | St David<br>聖大衛 | 1/3 |\n| N. Ireland | St Patrick<br>聖柏德烈 | 17/3 |\n• Union Jack → 紅、白、藍，由三個聖人十字組成\n    → England 聖人十字：白底紅色十字\n    → Scotland 聖人十字：藍底白色 X 形十字\n    → Ireland 聖人十字：白底紅色 X 形十字\n    → 冇 Wales\n• St Andrew → 喺 X 形十字架上殉道，所以 Scotland 聖人十字係 X 形"
+   "text": "記憶法（守護聖人）：\n| 國家 | 聖人 | 日子 |\n| England | St George<br>聖佐治 | 23/4 |\n| Scotland | St Andrew<br>聖安德魯 | 30/11 |\n| Wales | St David<br>聖大衛 | 1/3 |\n| N. Ireland | St Patrick<br>聖柏德烈 | 17/3 |\n• Union Jack → 紅、白、藍，由三個聖人十字組成\n    → England 聖人十字：白底紅色十字\n    → Scotland 聖人十字：藍底白色 X 形十字\n    → Ireland 聖人十字：白底紅色 X 形十字\n    → 冇 Wales\n• St Andrew → 喺 X 形十字架上殉道，所以 Scotland 聖人十字係 X 形"
   },
   {
    "id": "③",
@@ -319,7 +319,7 @@
     "6.20",
     "13.12"
    ],
-   "text": "記憶法：\n| 國家 | 首都 | 國花 | 語言 |\n| England | London<br>倫敦 | Tudor rose<br>都鐸玫瑰 | English<br>英文 |\n| Scotland | Edinburgh<br>愛丁堡 | Thistle<br>薊花 | Gaelic<br>蓋爾語 |\n| Wales | Cardiff<br>加的夫 | Daffodil<br>水仙花 | Welsh<br>威爾斯語 |\n| N. Ireland | Belfast<br>貝爾法斯特 | Shamrock<br>三葉草 | Irish Gaelic<br>愛爾蘭語 |\n• Gaelic 係凱爾特語，Scotland 同 Ireland 部分地區講"
+   "text": "記憶法（四地象徵）：\n| 國家 | 首都 | 國花 | 語言 |\n| England | London<br>倫敦 | Tudor rose<br>都鐸玫瑰 | English<br>英文 |\n| Scotland | Edinburgh<br>愛丁堡 | Thistle<br>薊花 | Gaelic<br>蓋爾語 |\n| Wales | Cardiff<br>加的夫 | Daffodil<br>水仙花 | Welsh<br>威爾斯語 |\n| N. Ireland | Belfast<br>貝爾法斯特 | Shamrock<br>三葉草 | Irish Gaelic<br>愛爾蘭語 |\n• Gaelic 係凱爾特語，Scotland 同 Ireland 部分地區講"
   },
   {
    "id": "投票權",
