@@ -204,6 +204,18 @@
   .optA .plan-card.wide .plan-home-next { grid-area: next; }
   .optA .plan-card.wide .plan-home-acts { grid-area: acts; flex-direction: column; flex-wrap: nowrap; align-items: stretch; align-self: center; }
   .optA .plan-card.wide .plan-home-acts > span { justify-content: center; }
+  /* rev 3: ring instead of the bar — ring | name · Day + countdown, Next | buttons */
+  .optA .plan-card.wide.ring .plan-home { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-rows: 1fr auto auto 1fr; grid-template-areas: "prog . acts" "prog top acts" "prog next acts" "prog . acts"; }
+  .optA .plan-card.wide.ring .plan-home-ring { grid-area: prog; }
+  .plan-home-ring { width: calc(96px * var(--k)); height: calc(96px * var(--k)); align-self: center; }
+  .plan-home-ring circle { fill: none; stroke-width: 10; }
+  .plan-home-ring .trk { stroke: rgba(255,255,255,0.18); }
+  .plan-home-ring .prg { stroke-linecap: round; stroke-dasharray: 100; transform: rotate(-90deg); transform-origin: 50% 50%; }
+  .plan-home-ring .prg.empty { visibility: hidden; }
+  .plan-home-ring .prg.h1 { stroke: #e8735f; } .plan-home-ring .prg.h2 { stroke: #f0a54a; } .plan-home-ring .prg.h3 { stroke: #c9cf4f; } .plan-home-ring .prg.h4 { stroke: var(--green-light); }
+  .plan-home-ring .pct { fill: var(--text-inverse); font-size: 26px; font-weight: 800; }
+  .plan-home-ring .sub { fill: var(--text-inverse-muted); font-size: 11px; font-weight: 700; }
+  .plan-home-ring.rest { display: grid; place-items: center; font-size: calc(52px * var(--k)); line-height: 1; }
   /* exam day / ended: no progress block; the text stays together in the middle when 3 buttons make the card taller */
   .optA .plan-card.wide.no-prog .plan-home { grid-template-rows: 1fr auto auto 1fr; grid-template-areas: ". acts" "top acts" "next acts" ". acts"; }
 
@@ -214,7 +226,7 @@
 <body>
 
 <div class="mock-bar">
-  <b>v2.0.0 Desktop · Mockup 4/12 · Home（有 plan）· rev 2：A 改版</b>
+  <b>v2.0.0 Desktop · Mockup 4/12 · Home（有 plan）· rev 3：Ring 比較 + 完結冇「更改目標」</b>
   <div class="mock-row"><span class="lbl">語言</span><button class="mock-tab on" data-k="lang" data-v="en">EN</button><button class="mock-tab" data-k="lang" data-v="zh">中文</button>
     <span class="lbl" style="margin-left:10px">翻譯</span><button class="mock-tab on" data-k="yue" data-v="on">開</button><button class="mock-tab" data-k="yue" data-v="off">關</button>
     <span class="lbl" style="margin-left:10px">⚙ 大字</span><button class="mock-tab on" data-k="large" data-v="off">關</button><button class="mock-tab" data-k="large" data-v="on">開</button></div>
@@ -222,6 +234,7 @@
     <span class="lbl" style="margin-left:10px">My Review</span><button class="mock-tab on" data-k="review" data-v="on">有錯題／標記</button><button class="mock-tab" data-k="review" data-v="off">冇（新用家）</button>
     <span class="lbl" style="margin-left:10px">Install</span><button class="mock-tab on" data-k="install" data-v="off">隱藏</button><button class="mock-tab" data-k="install" data-v="on">顯示</button></div>
   <div class="mock-row"><span class="lbl">計劃卡</span><button class="mock-tab on" data-k="plan" data-v="progress">進行中 45%</button><button class="mock-tab" data-k="plan" data-v="carry">補做前一日</button><button class="mock-tab" data-k="plan" data-v="done">今日完成</button><button class="mock-tab" data-k="plan" data-v="rest">休息日</button><button class="mock-tab" data-k="plan" data-v="exam">考試日</button><button class="mock-tab" data-k="plan" data-v="ended">計劃完結</button></div>
+  <div class="mock-row"><span class="lbl">完成度</span><button class="mock-tab on" data-k="prog" data-v="bar">Bar</button><button class="mock-tab" data-k="prog" data-v="ring">Ring</button><span class="lbl" style="margin-left:6px;min-width:0;font-weight:500">（只影響方案 A）</span></div>
   <div class="mock-row"><span class="lbl">縮放</span><button class="mock-tab on" data-k="zoom" data-v="fit">適合畫面</button><button class="mock-tab" data-k="zoom" data-v="100">100%</button></div>
 </div>
 
@@ -240,7 +253,7 @@
 </div>
 
 <script>
-const S = { lang: 'en', yue: 'on', large: 'off', view: 'difficulty', review: 'on', install: 'off', plan: 'progress', zoom: 'fit' };
+const S = { lang: 'en', yue: 'on', large: 'off', view: 'difficulty', review: 'on', install: 'off', plan: 'progress', prog: 'bar', zoom: 'fit' };
 const WIDTHS = [1024, 1280];
 const T = {
   en: {
@@ -302,6 +315,7 @@ const PLAN_T = {
     carry: 'Next (catch-up, <span lang="en">Day 8</span>): <b>Read <span lang="en">Ch 3 History</span> facts #57–91</b> (continue from #74)',
     done: '<b>✓ Done for today</b>, see you tomorrow', examText: "<b>🎯 It's exam day today, good luck!</b>",
     endedSummary: 'Average 86% · 235 / 235 facts · 389 / 389 questions · 4 mocks at 21/24 or more',
+    ringSub: 'Done today',
     cont: "Continue today's tasks →", viewToday: "View today's tasks", viewDay: 'View today', schedule: 'Schedule', newPlan: 'New plan', editGoal: 'Change goal',
   },
   zh: {
@@ -311,6 +325,7 @@ const PLAN_T = {
     carry: '下一步（補做 <span lang="en">Day 8</span>）：<b>閱讀 <span lang="en">Ch 3 History</span> 知識點 #57–91</b>（由 #74 繼續）',
     done: '<b>✓ 今日已完成</b>，明日再來', examText: '<b>🎯 今日考試，加油！</b>',
     endedSummary: '平均完成度 86% · 知識點 235 / 235 條 · 題目 389 / 389 題 · 模擬考試達 21/24 或以上 4 次',
+    ringSub: '今日完成度',
     cont: '繼續今日任務 →', viewToday: '查看今日任務', viewDay: '查看今日', schedule: '進度表', newPlan: '建立新計劃', editGoal: '更改目標',
   },
 };
@@ -321,7 +336,8 @@ const PLAN_STATES = {
   done: { pct: 100, band: 4, next: 'done', acts: [['viewToday', true], ['schedule']] },
   rest: { pct: null, next: 'carry', acts: [['cont', true], ['schedule']] },
   exam: { pct: undefined, next: 'examText', tag: 'examDay', noCd: true, acts: [['viewDay', true], ['schedule']] },
-  ended: { pct: undefined, next: 'endedSummary', tag: 'ended', noCd: true, acts: [['newPlan', true], ['editGoal'], ['schedule']] },
+  // rev 3 (user): a finished plan drops "Change goal" (same as New plan once the plan is over) — a v2.0.0 change to planEndedHtml
+  ended: { pct: undefined, next: 'endedSummary', tag: 'ended', noCd: true, acts: [['newPlan', true], ['schedule']] },
 };
 // planHomeCardHtml (planHome.js), with today's % row + bar wrapped in .plan-home-prog so option A can place them
 function planCard(wide) {
@@ -331,8 +347,19 @@ function planCard(wide) {
   if (st.pct === null) prog = `<div class="plan-home-prog"><div class="plan-home-row"><span>${P.rest}</span></div></div>`;
   else if (st.pct !== undefined) prog = `<div class="plan-home-prog"><div class="plan-home-row"><span>${P.pct}</span><b class="plan-home-pct">${st.pct}%</b></div><div class="plan-home-bar"><i class="h${st.band}" style="width:${st.pct}%"></i></div></div>`;
   const acts = `<div class="plan-home-acts">${st.acts.map(([k, gold]) => `<span class="${gold ? 'plan-btn-gold' : 'plan-btn-line'}" style="display:inline-flex;align-items:center">${P[k]}</span>`).join('')}</div>`;
-  const cls = 'plan-card' + (wide ? ' wide' : '') + (st.pct === undefined ? ' no-prog' : '');
+  const ring = wide && S.prog === 'ring' && st.pct !== undefined;
+  if (ring) prog = planRing(st, P);
+  const cls = 'plan-card' + (wide ? ' wide' : '') + (st.pct === undefined ? ' no-prog' : '') + (ring ? ' ring' : '');
   return `<div class="${cls}"><div class="plan-home">${top}${prog}<p class="plan-home-next">${P[st.next]}</p>${acts}</div></div>`;
+}
+// rev 3: today's % as the Plan Day ring (index.html #planRing, plan.css .plan-ring*) on the navy card; a rest day shows 😴
+const RING_VIEW = 112, RING_C = 56, RING_R = 46;
+function planRing(st, P) {
+  if (st.pct === null) return `<div class="plan-home-ring rest" aria-hidden="true">😴</div>`;
+  return `<svg class="plan-home-ring" viewBox="0 0 ${RING_VIEW} ${RING_VIEW}" role="img" aria-label="${P.ringSub} ${st.pct}%">
+    <circle class="trk" cx="${RING_C}" cy="${RING_C}" r="${RING_R}"></circle>
+    <circle class="prg h${st.band}${st.pct ? '' : ' empty'}" cx="${RING_C}" cy="${RING_C}" r="${RING_R}" pathLength="100" style="stroke-dashoffset:${100 - st.pct}"></circle>
+    <text class="pct" x="${RING_C}" y="58" text-anchor="middle">${st.pct}%</text><text class="sub" x="${RING_C}" y="76" text-anchor="middle">${P.ringSub}</text></svg>`;
 }
 function modes() {
   const card = (icon, label, on) => `<div class="mode-card${on ? ' selected' : ''}"><div class="mode-icon">${icon}</div><div class="mode-title">${label}</div></div>`;
@@ -379,7 +406,9 @@ const OPTIONS = [
     id: 'A', cls: 'optA', rec: true, title: 'A · 計劃卡橫跨頂部（rev 2：按你意見修改）',
     ann: `<ul><li>同未有計劃時嘅「建立溫習計劃」卡同一個位（頂部橫跨），轉態時版面唔會跳。</li>
       <li><b>rev 2</b>：<b>左</b>由上至下：計劃名 + Day + 倒數 → 今日完成度 + bar → 下一步；<b>右</b>：「繼續今日任務」同「進度表」上下兩行、一樣闊、靠右。</li>
-      <li>休息日冇 bar（只寫「今日是休息日」）；考試日同完結冇完成度嗰行，掣有 2–3 粒就排 2–3 行。</li></ul>`,
+      <li>休息日冇 bar（只寫「今日是休息日」）；考試日同完結冇完成度嗰行。</li>
+      <li><b>rev 3</b>：頂部「完成度」toggle 可以轉做 <b>Ring</b>（同 Plan Day 嘅 ring 一樣），ring 放喺卡最左，文字喺中間，掣喺右；休息日 ring 位變 😴（同 Plan Day 一樣）。</li>
+      <li><b>rev 3 · 功能改動</b>：計劃完結之後拎走「更改目標」掣（計劃已完，改目標同建立新計劃一樣），淨低「建立新計劃」同「進度表」。實作要改 <code>planHome.js</code> <code>planEndedHtml</code>（手機版都會一齊改）。</li></ul>`,
     render: () => `${planCard(true)}<div class="cols"><div class="rail">${modes()}${desc()}${resetBox(false)}</div>
       <div>${myReview(false)}${practiceBlock('')}</div></div>`,
   },
