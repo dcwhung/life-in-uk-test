@@ -100,6 +100,34 @@ async function checkPlanAfterMarker(b, planRaw) {
   await pg.close();
 }
 
+// S-195 / S-199: the legacy migration could not write the new key (quota), so this load reads the old unprefixed key;
+// both names are rewritten, and a new name that still throws does not stop the old one in use being rewritten
+async function checkFallback(b) {
+  const pg = await b.newPage();
+  await pg.addInitScript(() => {
+    if (!sessionStorage.getItem('stubOn')) return;
+    const realSet = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (k, v) {
+      if (k === 'lifeuk.studyMastered') throw new DOMException('quota', 'QuotaExceededError');
+      return realSet.call(this, k, v);
+    };
+  });
+  await pg.goto(APP_URL);
+  await pg.evaluate(oldId => {
+    localStorage.clear();
+    // both names hold the old id and differ, so the legacy merge must write the new key (which throws) and the fact id
+    // migration then rewrites the new name first (throws again) before the old name this load reads
+    localStorage.setItem('studyMastered', JSON.stringify({ [oldId]: true, 7: true }));
+    localStorage.setItem('lifeuk.studyMastered', JSON.stringify({ 3: true, [oldId]: true }));
+    sessionStorage.setItem('stubOn', '1');
+  }, OLD_ID);
+  await pg.reload();
+  const r = await pg.evaluate(keptId => { openStudy(); return { legacy: localStorage.getItem('studyMastered'), fallback: LS_KEY_FALLBACK['lifeuk.studyMastered'], shown: !!study.mastered[keptId] }; }, KEPT_ID);
+  const legacy = JSON.parse(r.legacy || 'null');
+  assert(r.fallback === 'studyMastered' && legacy && legacy[KEPT_ID] && !(OLD_ID in legacy) && r.shown, `S-199: on the fallback key the mark moves to ${KEPT_ID} even though the new key throws (${r.legacy})`);
+  await pg.close();
+}
+
 async function checkOnce(b) {
   // marker already written (a later load): a 126 entry is not touched again; malformed values survive raw
   const seed = { [MARKER]: JSON.stringify([OLD_ID]), [MASTERED]: JSON.stringify({ [OLD_ID]: true }), [BOOKMARKS]: '{not json' };
@@ -130,6 +158,7 @@ async function checkOnce(b) {
   await checkMarks(b, planRaw);
   await checkPlanAfterMarker(b, planRaw);
   await checkOnce(b);
+  await checkFallback(b);
   await b.close();
   console.log('FACTMERGE PASS');
 })().catch(e => { console.error(e.message); process.exit(1); });

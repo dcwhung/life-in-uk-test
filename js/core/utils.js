@@ -94,7 +94,8 @@ function rewriteStoredName(name, fn) {
   try { value = JSON.parse(raw); } catch { return false; }
   const next = fn(value);
   if (next === undefined) return false;
-  localStorage.setItem(name, JSON.stringify(next));
+  // S-199: one name that will not take the write (quota: often why a fallback exists) must not stop the other
+  try { localStorage.setItem(name, JSON.stringify(next)); } catch (e) { console.warn('fact id migration: ' + name, e); return false; }
   return true;
 }
 // { [factId]: mark }: the kept id keeps its own mark, else takes the merged one's (OR)
