@@ -35,7 +35,7 @@
 | 9 | Quiz（Exam） | `desktop-exam.html` | ✅ 定案 C（rev 3）：一屏高；冇頂部題號點 bar；左欄（3/12）panel 用盡高度：大計時器全闊、題號點 6 × 4、（空一行）已答／未答／已標記，最後一題時最底「提交」掣（開同一個確認視窗）；右欄（9/12）題目卡 + 2×2 選項（沿用 Quiz Practice A 規則：預設各半、按內容讓位、盡量唔使碌、← → 常駐） |
 | 10 | Result | `desktop-result.html` | ✅ A rev 5 定案（左欄唔使碌；成績卡用盡難度表上面空間、內容寬鬆、🎯 大自己一行、掣入卡；成績卡同難度表之間空一行；難度表靠底；放唔落分三步收） |
 | 11 | Flagged（Wrong Review 直接開練習 = #8） | `desktop-flagged.html` | ✅ B 定案（練習掣橫跨頂部；清單 2 欄喺 panel 碌；0 題只會喺呢版取消晒最後一題先見到） |
-| 12 | 全局浮層（Modal / Toast / popover） | — | 未做 |
+| 12 | 全局浮層（⚙ / ⓘ / 確認框 / Toast / 安裝提示） | `desktop-overlays.html` | 待揀 |
 
 ## 實作備忘
 
