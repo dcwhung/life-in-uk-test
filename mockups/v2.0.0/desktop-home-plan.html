@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Desktop Home Plan Mockup</title>
+<!--
+  v2.0.0 desktop / tablet-landscape layout — mockup 4 of 12: Home with a study plan (the navy plan card).
+  Built on desktop-home.html (settled option A rev 3: top band, left rail = modes + description + hint / reset,
+  right = My Review + practice tabs + sets); only where the plan card goes changes per option. The plan card's
+  markup and texts follow js/screens/planHome.js (planHomeCardHtml) and its CSS css/screens/plan.css (.plan-home*).
+  Settled (grill 2026-10-12): ≥ 1024px uses the desktop layout; content max 1280px, centred; every --fs-* and
+  --space-* token ×1.2; ⚙ large text = (base + 2px) × 1.2. Colours / radii copied from css/base/tokens.css (v1.4.0).
+  Mockup-only: the frames, toggles and annotations (.mock-*, .frame*, .ann).
+-->
+<style>
+  :root {
+    --orange: #d9822b;
+    --navy: #1a2744; --navy-mid: #243460; --navy-light: #2e4080;
+    --gold: #c9a84c; --gold-light: #e8c97a;
+    --green: #2d6a4f; --green-light: #52b788;
+    --red: #922b21; --red-light: #e74c3c;
+    --purple: #6b3fa0;
+    --bg: #f0f2f7; --card: #ffffff; --text: #1a2744; --text-muted: #5a6a8a; --border: #dde2f0;
+    --text-inverse: #fff; --text-inverse-strong: rgba(255,255,255,0.75); --text-inverse-muted: rgba(255,255,255,0.6); --text-inverse-faint: rgba(255,255,255,0.45);
+    --danger-bg: #fdf0ef; --selected-bg: #f0f4ff; --flag-bg: #fdf3e8; --gold-bg: #fdf6e3; --gold-text: #8a6d1f;
+    --study-accent-strong: var(--navy-light);
+    --radius: 14px; --radius-md: 10px; --radius-sm: 8px; --radius-xs: 6px; --radius-pill: 999px; --radius-circle: 50%;
+    --shadow: 0 4px 24px rgba(26,39,68,0.10); --shadow-sm: 0 2px 8px rgba(26,39,68,0.07); --shadow-header: 0 2px 16px rgba(0,0,0,0.25);
+    /* mockup-only chrome */
+    --mock-page: #e4e7ef; --mock-note-bg: #fffbea; --mock-note-border: #e8d48a; --mock-frame-border: #c9cfdd;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, 'PingFang HK', 'Noto Sans HK', 'Microsoft JhengHei', sans-serif; background: var(--mock-page); color: var(--text); -webkit-font-smoothing: antialiased; }
+
+  /* ════════ mockup chrome ════════ */
+  .mock-bar { background: var(--navy); color: var(--text-inverse); padding: 10px 16px; font-size: 12px; position: sticky; top: 0; z-index: 50; box-shadow: var(--shadow-header); }
+  .mock-bar > b { color: var(--gold-light); font-size: 13px; }
+  .mock-row { display: flex; gap: 6px; margin-top: 7px; flex-wrap: wrap; align-items: center; }
+  .mock-row .lbl { color: var(--text-inverse-muted); margin-right: 2px; font-weight: 700; min-width: 64px; }
+  .mock-tab { background: transparent; border: 1.5px solid rgba(255,255,255,0.3); color: var(--text-inverse); border-radius: 999px; padding: 4px 11px; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+  .mock-tab.on { background: var(--gold); border-color: var(--gold); color: var(--navy); }
+  .page { padding: 16px; }
+  .brief { max-width: 1100px; background: var(--mock-note-bg); border: 1.5px solid var(--mock-note-border); border-radius: 10px; padding: 12px 14px; font-size: 13px; line-height: 1.6; margin-bottom: 18px; }
+  .brief h2 { font-size: 15px; margin-bottom: 4px; }
+  .brief ul { padding-left: 18px; }
+  .brief code { background: rgba(0,0,0,0.05); padding: 0 4px; border-radius: 4px; font-size: 12px; }
+  .opt { margin-bottom: 34px; }
+  .opt-title { font-size: 17px; font-weight: 800; color: var(--navy); margin-bottom: 4px; }
+  .opt-title .rec { font-size: 11px; background: var(--green); color: var(--text-inverse); border-radius: 999px; padding: 2px 9px; margin-left: 6px; vertical-align: 2px; }
+  .ann { font-size: 12.5px; color: var(--text-muted); line-height: 1.6; max-width: 1100px; margin-bottom: 10px; }
+  .ann b { color: var(--navy); }
+  .ann ul { padding-left: 18px; }
+  .frame-label { display: inline-block; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 999px; margin: 10px 0 6px; background: var(--text-muted); color: var(--text-inverse); }
+  .frame-box { overflow: hidden; }
+  .frame { background: var(--bg); border: 1px solid var(--mock-frame-border); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); transform-origin: top left; }
+
+  /* ════════ app tokens, desktop scale (per frame: --k = 1.2, --lg = 0 / 2px for ⚙ large text) ════════ */
+  .app {
+    --k: 1.2; --lg: 0px;
+    --fs-2xs: calc((10px + var(--lg)) * var(--k));
+    --fs-xs: calc((11px + var(--lg)) * var(--k));
+    --fs-sm: calc((12px + var(--lg)) * var(--k));
+    --fs-base: calc((13px + var(--lg)) * var(--k));
+    --fs-base-plus: calc((13.5px + var(--lg)) * var(--k));
+    --fs-md: calc((14px + var(--lg)) * var(--k));
+    --fs-lg: calc((15px + var(--lg)) * var(--k));
+    --fs-xl: calc((16px + var(--lg)) * var(--k));
+    --fs-5xl: calc((22px + var(--lg)) * var(--k));
+    --fs-6xl: calc((24px + var(--lg)) * var(--k));
+    --fs-7xl: calc((26px + var(--lg)) * var(--k));
+    --space-1: calc(2px * var(--k)); --space-2: calc(4px * var(--k)); --space-3: calc(6px * var(--k));
+    --space-4: calc(8px * var(--k)); --space-5: calc(10px * var(--k)); --space-6: calc(12px * var(--k));
+    --space-7: calc(14px * var(--k)); --space-8: calc(16px * var(--k)); --space-10: calc(20px * var(--k));
+    --space-12: calc(24px * var(--k));
+    --content-max: 1280px;
+    font-size: var(--fs-xl);
+    min-height: 100%;
+  }
+  .app.large { --lg: 2px; }
+
+  /* ── header (layout.css, ×1.2) ── */
+  .hdr { background: var(--navy); padding: 0 var(--space-10); box-shadow: var(--shadow-header); }
+  .hdr-in { max-width: var(--content-max); margin: 0 auto; height: calc(58px * var(--k)); display: flex; align-items: center; justify-content: space-between; }
+  .logo { display: flex; align-items: center; gap: var(--space-5); }
+  .logo-icon { width: calc(36px * var(--k)); height: calc(36px * var(--k)); border-radius: var(--radius-sm); background: var(--card); display: grid; place-items: center; overflow: hidden; }
+  .logo-icon img { width: 100%; height: 100%; display: block; }
+  .logo-text { color: var(--text-inverse); font-size: var(--fs-lg); font-weight: 700; display: flex; align-items: center; gap: var(--space-3); }
+  .logo-text .i { color: var(--text-inverse-muted); font-size: var(--fs-md); font-weight: 400; }
+  .logo-sub { color: var(--gold); font-size: var(--fs-xs); font-weight: 500; margin-top: 1px; }
+  .logo-sub .v { color: var(--text-inverse-faint); font-weight: 600; margin-left: var(--space-2); }
+  .gear { color: var(--gold-light); width: calc(32px * var(--k)); height: calc(32px * var(--k)); display: grid; place-items: center; }
+  .gear svg { width: 60%; height: 60%; fill: none; stroke: currentColor; stroke-width: 2; }
+
+  /* ── main column: 780px → var(--content-max) ── */
+  .main { max-width: var(--content-max); margin: 0 auto; padding: var(--space-10) var(--space-8) calc(60px * var(--k)); }
+  .section-title { font-size: var(--fs-base); font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: var(--space-6); }
+
+  /* ── install banner (popover.css) ── */
+  .install { display: flex; align-items: center; gap: var(--space-6); background: var(--navy); border-radius: var(--radius); padding: var(--space-6) var(--space-7); margin-bottom: var(--space-8); }
+  .install-text { flex: 1; }
+  .install-text strong { color: var(--text-inverse); font-size: var(--fs-md); display: block; margin-bottom: var(--space-1); }
+  .install-text span { color: var(--text-inverse-muted); font-size: var(--fs-sm); }
+  .install-btn { background: var(--gold); color: var(--navy); border: 0; border-radius: var(--radius-sm); padding: var(--space-4) var(--space-8); font: inherit; font-size: var(--fs-base); font-weight: 800; }
+  .install-x { color: var(--text-inverse-muted); font-size: var(--fs-md); }
+
+  /* ── plan create card (plan.css) ── */
+  .plan-cta { display: grid; grid-template-columns: calc(44px * var(--k)) minmax(0, 1fr) auto; gap: var(--space-6); align-items: center; background: var(--card); border: 2px dashed var(--gold); border-radius: var(--radius); padding: var(--space-7); margin-bottom: var(--space-8); }
+  .plan-cta-ic { width: calc(44px * var(--k)); height: calc(44px * var(--k)); border-radius: var(--radius-md); background: var(--gold-bg); display: grid; place-items: center; font-size: var(--fs-5xl); }
+  .plan-cta b { display: block; font-size: var(--fs-md); }
+  .plan-cta p { font-size: var(--fs-sm); color: var(--text-muted); line-height: 1.5; margin-top: var(--space-1); }
+  .plan-cta-go { background: var(--navy); color: var(--text-inverse); border-radius: var(--radius-pill); padding: calc(7px * var(--k)) var(--space-8); font-size: var(--fs-sm); font-weight: 800; white-space: nowrap; text-align: center; }
+  /* stacked: the button on its own row (today's 390px look, fitRow) */
+  .plan-cta.stack { grid-template-columns: calc(44px * var(--k)) minmax(0, 1fr); }
+  .plan-cta.stack .plan-cta-go { grid-column: 1 / -1; }
+
+  /* ── mode cards (home.css) ── */
+  .mode-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-5); margin-bottom: var(--space-6); }
+  .mode-card { background: var(--card); border-radius: var(--radius); padding: var(--space-8) var(--space-5); border: 2px solid var(--border); text-align: center; cursor: pointer; }
+  .mode-card.selected { border-color: var(--navy); background: var(--selected-bg); }
+  .mode-icon { font-size: var(--fs-7xl); margin-bottom: var(--space-3); }
+  .mode-title { font-size: var(--fs-md); font-weight: 700; color: var(--navy); }
+  .mode-desc { background: var(--card); border-left: 4px solid var(--navy); border-radius: var(--radius-md); padding: var(--space-6) var(--space-7); font-size: var(--fs-base); color: var(--text-muted); line-height: 1.55; margin-bottom: var(--space-12); }
+  .mode-desc strong { color: var(--navy); }
+
+  /* ── My Review tiles ── */
+  .my-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-5); margin-bottom: var(--space-10); }
+  .my-tile { background: var(--card); border: 2px solid var(--border); border-radius: 12px; padding: var(--space-6) var(--space-6) calc(11px * var(--k)); text-align: left; box-shadow: var(--shadow-sm); }
+  .my-tile .t-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-4); }
+  .my-tile .t-icon { width: calc(30px * var(--k)); height: calc(30px * var(--k)); border-radius: var(--radius-sm); display: grid; place-items: center; font-size: var(--fs-lg); font-weight: 900; }
+  .my-tile.wrong { border-left: 4px solid var(--red-light); }
+  .my-tile.wrong .t-icon { background: var(--danger-bg); color: var(--red-light); }
+  .my-tile.flagged { border-left: 4px solid var(--orange); }
+  .my-tile.flagged .t-icon { background: var(--flag-bg); }
+  .my-tile .t-icon svg { width: 57%; height: 57%; fill: var(--orange); }
+  .my-tile .t-num { font-size: var(--fs-6xl); font-weight: 900; color: var(--navy); line-height: 1; }
+  .my-tile b { display: block; font-size: var(--fs-base-plus); color: var(--navy); }
+  .my-tile .t-note { display: block; font-size: var(--fs-xs); color: var(--text-muted); margin-top: var(--space-3); line-height: 1.4; }
+  .my-grid.stack { grid-template-columns: minmax(0, 1fr); }
+
+  /* ── practice tabs + set lists ── */
+  .practice-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-3); margin-bottom: var(--space-7); }
+  .practice-tab { background: var(--card); border: 2px solid var(--border); border-radius: var(--radius-md); padding: calc(9px * var(--k)) var(--space-2); font: inherit; font-size: var(--fs-sm); font-weight: 700; color: var(--text-muted); text-align: center; cursor: pointer; }
+  .practice-tab.active { background: var(--navy); border-color: var(--navy); color: var(--text-inverse); }
+  .set-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); margin-bottom: var(--space-12); }
+  .set-btn { position: relative; overflow: hidden; background: var(--card); border: 2px solid var(--border); border-radius: var(--radius-md); padding: var(--space-5) var(--space-7); display: flex; align-items: center; gap: var(--space-5); font-size: var(--fs-base); color: var(--navy); }
+  .stars { color: var(--gold); letter-spacing: 1px; font-size: var(--fs-md); white-space: nowrap; flex: 1; }
+  .stars .off { color: var(--border); }
+  .diff-name { color: var(--text-muted); font-weight: 600; font-size: var(--fs-sm); white-space: nowrap; }
+  .ch-num { background: var(--study-accent-strong); color: var(--text-inverse); border-radius: var(--radius-xs); padding: calc(3px * var(--k)) var(--space-4); font-size: var(--fs-xs); font-weight: 800; flex-shrink: 0; }
+  .ch-name { font-weight: 700; flex: 1; }
+  .ch-count { color: var(--text-muted); font-size: var(--fs-sm); white-space: nowrap; }
+  /* tile variant (option B: one row of cards) */
+  .set-list.tiles { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .set-list.tiles .set-btn { flex-direction: column; align-items: flex-start; gap: var(--space-3); padding: var(--space-7); }
+  .set-list.tiles .stars { flex: none; }
+  .set-list.tiles .ch-name { flex: none; line-height: 1.35; }
+  .set-list.tiles .ch-count { margin-top: auto; }
+  /* two-column variant (option C) */
+  .set-list.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  /* ── exam grid ── */
+  .exam-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(calc(80px * var(--k)), 1fr)); gap: var(--space-4); margin-bottom: var(--space-12); }
+  .exam-btn { background: var(--card); border: 2px solid var(--border); border-radius: var(--radius-md); padding: var(--space-5) var(--space-3); font-size: var(--fs-base); font-weight: 700; color: var(--navy); text-align: center; }
+  .exam-btn.all { grid-column: 1 / -1; background: linear-gradient(135deg, var(--navy), var(--navy-mid)); color: var(--text-inverse); border-color: transparent; padding: var(--space-6); }
+  .exam-btn .sub { display: block; font-size: var(--fs-2xs); font-weight: 600; color: var(--text-inverse-muted); margin-top: var(--space-1); }
+
+  /* ── reset / hint box ── */
+  .reset-row { display: grid; gap: var(--space-5); background: var(--card); border: 1.5px dashed var(--border); border-radius: var(--radius-md); padding: var(--space-5) var(--space-7); font-size: var(--fs-sm); color: var(--text-muted); line-height: 1.5; }
+  .reset-row ul { padding-left: 1.2em; }
+  .reset-row b { color: var(--navy); }
+  .reset-btn { background: var(--card); border: 1.5px solid var(--red-light); color: var(--red); border-radius: var(--radius-sm); padding: var(--space-3) var(--space-6); font: inherit; font-size: var(--fs-sm); font-weight: 700; white-space: nowrap; }
+  .reset-row.inline { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+
+  /* ════════ option A: left rail (plan + mode) | right content ════════ */
+  .optA .cols { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--space-12); align-items: start; }
+  .optA .rail { position: sticky; top: var(--space-10); }
+  .optA .rail .mode-desc { margin-bottom: var(--space-8); }
+
+  /* ── plan card (plan.css .plan-home*, ×1.2) ── */
+  .plan-home { display: grid; gap: var(--space-6); background: var(--navy-light); color: var(--text-inverse); border-radius: var(--radius); padding: var(--space-8); box-shadow: var(--shadow-sm); }
+  .plan-home-top { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-4); flex-wrap: wrap; }
+  .plan-home-ttl { font-size: var(--fs-lg); font-weight: 800; }
+  .plan-home-ttl span { color: var(--gold-light); }
+  .plan-home-cd { font-size: var(--fs-sm); color: var(--text-inverse-strong); line-height: 1.5; }
+  .plan-home-row { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-4); font-size: var(--fs-sm); }
+  .plan-home-pct { font-size: var(--fs-md); }
+  .plan-home-bar { height: calc(8px * var(--k)); border-radius: var(--radius-pill); background: rgba(255,255,255,0.18); overflow: hidden; }
+  .plan-home-bar i { display: block; height: 100%; border-radius: var(--radius-pill); }
+  .plan-home-bar i.h1 { background: #e8735f; } .plan-home-bar i.h2 { background: #f0a54a; } .plan-home-bar i.h3 { background: #c9cf4f; } .plan-home-bar i.h4 { background: var(--green-light); }
+  .plan-home-next { font-size: var(--fs-sm); color: var(--text-inverse-strong); line-height: 1.5; }
+  .plan-home-next b { color: var(--text-inverse); }
+  .plan-home-acts { display: flex; gap: var(--space-4); flex-wrap: wrap; }
+  .plan-btn-gold { min-height: calc(44px * var(--k)); background: var(--gold); color: var(--navy); border: 0; border-radius: var(--radius-md); padding: var(--space-5) var(--space-8); font: inherit; font-size: var(--fs-md); font-weight: 800; }
+  .plan-btn-line { min-height: calc(44px * var(--k)); background: transparent; color: var(--text-inverse); border: 1.5px solid var(--text-inverse-faint); border-radius: var(--radius-md); padding: var(--space-5) var(--space-7); font: inherit; font-size: var(--fs-sm); font-weight: 700; }
+  .plan-card { margin-bottom: var(--space-8); }
+
+  /* ════════ option A: plan card across the top, laid out in one row: info | today's progress | buttons ════════ */
+  .optA .plan-card.wide .plan-home { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) auto; grid-template-areas: "top prog acts" "next prog acts"; column-gap: var(--space-12); row-gap: var(--space-3); align-items: center; }
+  .optA .plan-card.wide .plan-home-top { grid-area: top; }
+  .optA .plan-card.wide .plan-home-next { grid-area: next; }
+  .optA .plan-card.wide .plan-home-prog { grid-area: prog; display: grid; gap: var(--space-4); }
+  .optA .plan-card.wide .plan-home-acts { grid-area: acts; flex-wrap: nowrap; }
+  /* rest / exam day / ended: no progress block, the text takes its place */
+  .optA .plan-card.wide.no-prog .plan-home { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "top acts" "next acts"; }
+
+  /* ════════ option B: plan card at the top of the left rail (as on the phone), right column unchanged ════════ */
+  /* ════════ option C: plan card at the top of the right column, above My Review ════════ */
+</style></style>
+</head>
+<body>
+
+<div class="mock-bar">
+  <b>v2.0.0 Desktop · Mockup 4/12 · Home（有 plan）</b>
+  <div class="mock-row"><span class="lbl">語言</span><button class="mock-tab on" data-k="lang" data-v="en">EN</button><button class="mock-tab" data-k="lang" data-v="zh">中文</button>
+    <span class="lbl" style="margin-left:10px">翻譯</span><button class="mock-tab on" data-k="yue" data-v="on">開</button><button class="mock-tab" data-k="yue" data-v="off">關</button>
+    <span class="lbl" style="margin-left:10px">⚙ 大字</span><button class="mock-tab on" data-k="large" data-v="off">關</button><button class="mock-tab" data-k="large" data-v="on">開</button></div>
+  <div class="mock-row"><span class="lbl">狀態</span><button class="mock-tab on" data-k="view" data-v="difficulty">練習·難度</button><button class="mock-tab" data-k="view" data-v="chapter">練習·章節</button><button class="mock-tab" data-k="view" data-v="exam">練習·試卷</button><button class="mock-tab" data-k="view" data-v="examMode">模擬考試</button>
+    <span class="lbl" style="margin-left:10px">My Review</span><button class="mock-tab on" data-k="review" data-v="on">有錯題／標記</button><button class="mock-tab" data-k="review" data-v="off">冇（新用家）</button>
+    <span class="lbl" style="margin-left:10px">Install</span><button class="mock-tab on" data-k="install" data-v="off">隱藏</button><button class="mock-tab" data-k="install" data-v="on">顯示</button></div>
+  <div class="mock-row"><span class="lbl">計劃卡</span><button class="mock-tab on" data-k="plan" data-v="progress">進行中 45%</button><button class="mock-tab" data-k="plan" data-v="carry">補做前一日</button><button class="mock-tab" data-k="plan" data-v="done">今日完成</button><button class="mock-tab" data-k="plan" data-v="rest">休息日</button><button class="mock-tab" data-k="plan" data-v="exam">考試日</button><button class="mock-tab" data-k="plan" data-v="ended">計劃完結</button></div>
+  <div class="mock-row"><span class="lbl">縮放</span><button class="mock-tab on" data-k="zoom" data-v="fit">適合畫面</button><button class="mock-tab" data-k="zoom" data-v="100">100%</button></div>
+</div>
+
+<div class="page">
+  <div class="brief">
+    <h2>前提</h2>
+    <ul>
+      <li>Home 已經定案 <b>A</b>（mockup 1）：頂一條橫跨，左欄 = 選擇模式 + 模式說明 + 提示同重設，右欄 = My Review + 練習分類 tabs + 題組</li>
+      <li>有計劃之後，頂部嘅「建立溫習計劃」虛線卡會變成深藍色<b>計劃卡</b>（今日完成度、下一步、繼續／進度表掣）。呢份 mockup 只係決定張計劃卡放邊、點排</li>
+      <li>計劃卡有 6 個狀態（頂部 toggle）：進行中、補做前一日嘅任務、今日完成、休息日、考試日、計劃完結；文字同 app 一樣（<code>planHome.js</code>）</li>
+      <li>全局規則照舊：≥ 1024px、最闊 1280px、token ×1.2、⚙ 大字 (基礎 + 2px) × 1.2</li>
+    </ul>
+    <p style="margin-top:6px">每個方案都有 <b>1024px</b> 同 <b>1280px</b> 兩個 frame。請揀 A／B／C，或者話我知要改咩。</p>
+  </div>
+  <div id="opts"></div>
+</div>
+
+<script>
+const S = { lang: 'en', yue: 'on', large: 'off', view: 'difficulty', review: 'on', install: 'off', plan: 'progress', zoom: 'fit' };
+const WIDTHS = [1024, 1280];
+const T = {
+  en: {
+    sub: 'Exam Practice', chooseMode: 'Choose Mode', study: 'Study', practice: 'Practice', exam: 'Exam',
+    practiceDesc: '<strong>Practice</strong> — See the answer and Cantonese translation immediately after each question. Pick a set by difficulty, chapter or exam; each shows how much you have mastered.',
+    practiceDescNoYue: '<strong>Practice</strong> — See the answer immediately after each question. Pick a set by difficulty, chapter or exam; each shows how much you have mastered.',
+    examDesc: '<strong>Exam</strong> — Answer all 24 questions like the real test; you can go back and change answers. Submit on the last question to see your score and answers.',
+    myReview: 'My Review', wrong: 'Wrong answers', flagged: 'Flagged',
+    reviewNote: 'From Practice and Exam; cleared once you get them right here. Up to 24 per round.',
+    practiceBy: 'Practice By', tabs: ['Difficulty', 'Chapter', 'Exam'], selectExam: 'Select Exam',
+    diff: ['Easy', 'Basic', 'Medium', 'Hard', 'Expert'], examN: n => 'Exam ' + n,
+    random: '🎲 Random Exam', randomSub: '24 questions from 408',
+    hint: '<ul><li>Each round draws up to <b>24</b> unmastered questions, each asked once</li><li>Answer a question correctly <b>3 times in a row</b> to master it</li><li>Unmastered questions come back in the next round</li><li>Mastered questions are skipped until the whole set is mastered</li></ul>',
+    reset: '↺ Reset progress', examHint: 'Completed exams are marked with ✓.', resetDone: '↺ Reset completed exams',
+    planTitle: 'Create a study plan', planText: "Tell us your exam date and how much time you have each day, and we'll build an exam strategy that sets out what to study and practise each day.", planGo: 'Create →',
+    installTitle: 'Install for offline use', installText: 'Add to home screen to study without internet', installBtn: 'Install',
+  },
+  zh: {
+    sub: '應試練習', chooseMode: '選擇模式', study: '溫習', practice: '練習', exam: '模擬考試',
+    practiceDesc: '<strong>練習</strong> — 每題作答後即時顯示答案及廣東話翻譯。可按難度、章節或試卷選題，並顯示各組掌握進度。',
+    practiceDescNoYue: '<strong>練習</strong> — 每題作答後即時顯示答案。可按難度、章節或試卷選題，並顯示各組掌握進度。',
+    examDesc: '<strong>模擬考試</strong> — 仿照真實考試作答全部 24 題，可返回修改答案。於最後一題提交後，即可查看分數及答案。',
+    myReview: '我的複習', wrong: '錯題', flagged: '已標記',
+    reviewNote: '來自練習及模擬考試，於此答對後便會清除。每輪最多 24 題。',
+    practiceBy: '練習分類', tabs: ['難度', '章節', '試卷'], selectExam: '選擇試卷',
+    diff: ['容易', '基礎', '中等', '困難', '極難'], examN: n => 'Exam ' + n,
+    random: '🎲 隨機試卷', randomSub: '從 408 題中抽取 24 題',
+    hint: '<ul><li>每輪最多抽取 <b>24</b> 條未掌握的題目，每題出現一次</li><li>同一題<b>連續答對 3 次</b>即算掌握</li><li>未掌握的題目會於下一輪再出現</li><li>已掌握的題目會略過，直至整組全部掌握</li></ul>',
+    reset: '↺ 重設進度', examHint: '已完成的試卷會以 ✓ 標示。', resetDone: '↺ 重設已完成試卷',
+    planTitle: '建立溫習計劃', planText: '告訴我們考試日期及每日可用時間，我們會為你制定應試策略，編排每日的溫習及練習內容。', planGo: '建立 →',
+    installTitle: '安裝以便離線使用', installText: '加至主畫面，無需網絡亦可溫習', installBtn: '安裝',
+  },
+};
+const DIFF_COUNTS = [84, 91, 148, 66, 19];
+const CHAPTERS = [['Values & principles', 9], ['What is the UK?', 11], ['History', 167], ['Modern society', 113], ['Government & law', 108]];
+const EXAM_COUNT = 17;
+const STAR_MAX = 5;
+const GEAR = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
+const BOOKMARK = '<svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg>';
+
+const t = () => T[S.lang];
+const isPractice = () => S.view !== 'examMode';
+
+// ── shared parts ──
+function header() {
+  return `<div class="hdr"><div class="hdr-in"><div class="logo"><span class="logo-icon"><img src="../../icons/icon.svg" alt=""></span>
+    <div><div class="logo-text">Life in the UK Test <span class="i">ⓘ</span></div><div class="logo-sub">${t().sub}<span class="v">v2.0.0</span></div></div></div>
+    <span class="gear">${GEAR}</span></div></div>`;
+}
+function install() {
+  if (S.install !== 'on') return '';
+  return `<div class="install"><div class="install-text"><strong>${t().installTitle}</strong><span>${t().installText}</span></div><span class="install-btn">${t().installBtn}</span><span class="install-x">✕</span></div>`;
+}
+const PLAN_T = {
+  en: {
+    title: '🗓️ Study plan', dayOf: 'Day 9 / 21', examDay: 'Exam day', ended: 'Plan complete. Well done for all your hard work!',
+    cd: '13 days to the exam · 2/11', pct: "Today's progress", rest: 'Rest day today',
+    next: 'Next: <b>Practise <span lang="en">Ch 5 Government &amp; law</span> again: 22 Qs not yet mastered</b> (9 / 22 right)',
+    carry: 'Next (catch-up, <span lang="en">Day 8</span>): <b>Read <span lang="en">Ch 3 History</span> facts #57–91</b> (continue from #74)',
+    done: '<b>✓ Done for today</b>, see you tomorrow', examText: "<b>🎯 It's exam day today, good luck!</b>",
+    endedSummary: 'Average 86% · 235 / 235 facts · 389 / 389 questions · 4 mocks at 21/24 or more',
+    cont: "Continue today's tasks →", viewToday: "View today's tasks", viewDay: 'View today', schedule: 'Schedule', newPlan: 'New plan', editGoal: 'Change goal',
+  },
+  zh: {
+    title: '🗓️ 溫習計劃', dayOf: 'Day 9 / 21', examDay: '考試日', ended: '計劃已完結，辛苦你了！',
+    cd: '距離考試 13 日 · 2/11', pct: '今日完成度', rest: '今日是休息日',
+    next: '下一步：<b>再練習 <span lang="en">Ch 5 Government &amp; law</span>：22 題未掌握</b>（已答對 9 / 22 題）',
+    carry: '下一步（補做 <span lang="en">Day 8</span>）：<b>閱讀 <span lang="en">Ch 3 History</span> 知識點 #57–91</b>（由 #74 繼續）',
+    done: '<b>✓ 今日已完成</b>，明日再來', examText: '<b>🎯 今日考試，加油！</b>',
+    endedSummary: '平均完成度 86% · 知識點 235 / 235 條 · 題目 389 / 389 題 · 模擬考試達 21/24 或以上 4 次',
+    cont: '繼續今日任務 →', viewToday: '查看今日任務', viewDay: '查看今日', schedule: '進度表', newPlan: '建立新計劃', editGoal: '更改目標',
+  },
+};
+// per state: today's % (null = no bar), its colour band, the "next" line, the buttons
+const PLAN_STATES = {
+  progress: { pct: 45, band: 2, next: 'next', acts: [['cont', true], ['schedule']] },
+  carry: { pct: 0, band: 0, next: 'carry', acts: [['cont', true], ['schedule']] },
+  done: { pct: 100, band: 4, next: 'done', acts: [['viewToday', true], ['schedule']] },
+  rest: { pct: null, next: 'carry', acts: [['cont', true], ['schedule']] },
+  exam: { pct: undefined, next: 'examText', tag: 'examDay', noCd: true, acts: [['viewDay', true], ['schedule']] },
+  ended: { pct: undefined, next: 'endedSummary', tag: 'ended', noCd: true, acts: [['newPlan', true], ['editGoal'], ['schedule']] },
+};
+// planHomeCardHtml (planHome.js), with today's % row + bar wrapped in .plan-home-prog so option A can place them
+function planCard(wide) {
+  const P = PLAN_T[S.lang], st = PLAN_STATES[S.plan];
+  const top = `<div class="plan-home-top"><span class="plan-home-ttl">${P.title} · <span${st.tag ? '' : ' lang="en"'}>${st.tag ? P[st.tag] : P.dayOf}</span></span>${st.noCd ? '' : `<span class="plan-home-cd">${P.cd}</span>`}</div>`;
+  let prog = '';
+  if (st.pct === null) prog = `<div class="plan-home-prog"><div class="plan-home-row"><span>${P.rest}</span></div></div>`;
+  else if (st.pct !== undefined) prog = `<div class="plan-home-prog"><div class="plan-home-row"><span>${P.pct}</span><b class="plan-home-pct">${st.pct}%</b></div><div class="plan-home-bar"><i class="h${st.band}" style="width:${st.pct}%"></i></div></div>`;
+  const acts = `<div class="plan-home-acts">${st.acts.map(([k, gold]) => `<span class="${gold ? 'plan-btn-gold' : 'plan-btn-line'}" style="display:inline-flex;align-items:center">${P[k]}</span>`).join('')}</div>`;
+  const cls = 'plan-card' + (wide ? ' wide' : '') + (st.pct === undefined || st.pct === null ? ' no-prog' : '');
+  return `<div class="${cls}"><div class="plan-home">${top}${prog}<p class="plan-home-next">${P[st.next]}</p>${acts}</div></div>`;
+}
+function modes() {
+  const card = (icon, label, on) => `<div class="mode-card${on ? ' selected' : ''}"><div class="mode-icon">${icon}</div><div class="mode-title">${label}</div></div>`;
+  return `<div class="section-title">${t().chooseMode}</div><div class="mode-grid">${card('📖', t().study, false)}${card('📝', t().practice, isPractice())}${card('🎯', t().exam, !isPractice())}</div>`;
+}
+function desc() {
+  const html = isPractice() ? (S.yue === 'on' ? t().practiceDesc : t().practiceDescNoYue) : t().examDesc;
+  return `<div class="mode-desc">${html}</div>`;
+}
+function myReview(stack) {
+  if (!isPractice() || S.review !== 'on') return '';
+  return `<div class="section-title">${t().myReview}</div><div class="my-grid${stack ? ' stack' : ''}">
+    <div class="my-tile wrong"><div class="t-top"><span class="t-icon">✕</span><span class="t-num">12</span></div><b>${t().wrong}</b><span class="t-note">${t().reviewNote}</span></div>
+    <div class="my-tile flagged"><div class="t-top"><span class="t-icon">${BOOKMARK}</span><span class="t-num">5</span></div><b>${t().flagged}</b></div></div>`;
+}
+function stars(n) { return `<span class="stars">${'★'.repeat(n)}<span class="off">${'★'.repeat(STAR_MAX - n)}</span></span>`; }
+function count(n) { return `<span class="ch-count">0/${n} · 0%</span>`; }
+function setList(variant) {
+  const cls = variant ? ' ' + variant : '';
+  if (S.view === 'difficulty') {
+    return `<div class="set-list${cls}">${t().diff.map((d, i) => `<div class="set-btn">${stars(i + 1)}<span class="diff-name">${d}</span>${count(DIFF_COUNTS[i])}</div>`).join('')}</div>`;
+  }
+  if (S.view === 'chapter') {
+    return `<div class="set-list${cls}">${CHAPTERS.map(([name, n], i) => `<div class="set-btn"><span class="ch-num">Ch ${i + 1}</span><span class="ch-name">${name}</span>${count(n)}</div>`).join('')}</div>`;
+  }
+  const exams = Array.from({ length: EXAM_COUNT }, (_, i) => `<div class="exam-btn">${t().examN(i + 1)}</div>`).join('');
+  return `<div class="exam-grid"><div class="exam-btn all">${t().random}<span class="sub">${t().randomSub}</span></div>${exams}</div>`;
+}
+function practiceBlock(variant) {
+  const viewIdx = { difficulty: 0, chapter: 1, exam: 2 }[S.view];
+  if (!isPractice()) return `<div class="section-title">${t().selectExam}</div>${setList(variant)}`;
+  const tabs = t().tabs.map((l, i) => `<div class="practice-tab${i === viewIdx ? ' active' : ''}">${l}</div>`).join('');
+  return `<div class="section-title">${t().practiceBy}</div><div class="practice-tabs">${tabs}</div>${setList(variant)}`;
+}
+function resetBox(inline) {
+  const cls = 'reset-row' + (inline ? ' inline' : '');
+  if (isPractice()) return `<div class="${cls}"><div>${t().hint}</div><span class="reset-btn">${t().reset}</span></div>`;
+  return `<div class="${cls}"><span>${t().examHint}</span><span class="reset-btn">${t().resetDone}</span></div>`;
+}
+
+// ── the three options ──
+const OPTIONS = [
+  {
+    id: 'A', cls: 'optA', rec: true, title: 'A · 計劃卡橫跨頂部，卡入面排成一行',
+    ann: `<ul><li>同未有計劃時嘅「建立溫習計劃」卡同一個位（頂部橫跨），轉態時版面唔會跳。</li>
+      <li>卡入面排成一行：<b>左</b>計劃名 + Day + 倒數 + 下一步｜<b>中</b>今日完成度 + bar｜<b>右</b>「繼續今日任務」+「進度表」掣。成張卡只係大約兩行高，下面嘅模式同題組唔使碌好遠先見到。</li>
+      <li>休息日／考試日／完結冇 bar，文字會用晒左邊位。</li></ul>`,
+    render: () => `${planCard(true)}<div class="cols"><div class="rail">${modes()}${desc()}${resetBox(false)}</div>
+      <div>${myReview(false)}${practiceBlock('')}</div></div>`,
+  },
+  {
+    id: 'B', cls: 'optA', title: 'B · 計劃卡放喺左欄頂（同手機一樣直排）',
+    ann: `<ul><li>計劃卡唔再橫跨，放入左欄最頂，入面排法同手機一樣（直排）；右欄唔變。</li>
+      <li>好處：右邊嘅題組可以由最頂開始，第一眼見到嘅練習內容最多。弱點：左欄變得好長（計劃卡 + 模式 + 說明 + 提示），1024px 加大字嘅時候左欄可能高過畫面，sticky 會失效；同「未有計劃」時建立卡喺頂部橫跨嘅位置唔同。</li></ul>`,
+    render: () => `<div class="cols"><div class="rail">${planCard(false)}${modes()}${desc()}${resetBox(false)}</div>
+      <div>${myReview(false)}${practiceBlock('')}</div></div>`,
+  },
+  {
+    id: 'C', cls: 'optA', title: 'C · 計劃卡放喺右欄頂（My Review 上面）',
+    ann: `<ul><li>計劃卡放喺右欄最頂，同 My Review、題組喺同一欄：「今日要做咩」都集中喺右邊；左欄唔變。</li>
+      <li>好處：右欄由上至下 = 計劃 → 複習 → 自選練習，次序清楚。弱點：右欄最頂嘅位畀計劃卡佔咗，題組要碌落少少先見到；同「未有計劃」時建立卡嘅位置唔同。</li></ul>`,
+    render: () => `<div class="cols"><div class="rail">${modes()}${desc()}${resetBox(false)}</div>
+      <div>${planCard(false)}${myReview(false)}${practiceBlock('')}</div></div>`,
+  },
+];
+
+function frame(opt, w) {
+  const appCls = 'app ' + opt.cls + (S.large === 'on' ? ' large' : '');
+  return `<div class="frame-label">${w}px</div><div class="frame-box" data-w="${w}"><div class="frame" style="width:${w}px">
+    <div class="${appCls}" lang="${S.lang === 'zh' ? 'zh-HK' : 'en'}">${header()}<div class="main">${install()}${opt.render()}</div></div></div></div>`;
+}
+function render() {
+  document.getElementById('opts').innerHTML = OPTIONS.map(o => `<section class="opt"><div class="opt-title">${o.title}${o.rec ? '<span class="rec">建議</span>' : ''}</div>
+    <div class="ann">${o.ann}</div>${WIDTHS.map(w => frame(o, w)).join('')}</section>`).join('');
+  fitFrames();
+}
+// "適合畫面": scale each frame down to the page width (never up); the box takes the scaled height so nothing overlaps
+function fitFrames() {
+  document.querySelectorAll('.frame-box').forEach(box => {
+    const f = box.firstElementChild, w = Number(box.dataset.w);
+    const scale = S.zoom === 'fit' ? Math.min(1, box.parentElement.clientWidth / w) : 1;
+    f.style.transform = scale < 1 ? `scale(${scale})` : '';
+    box.style.height = scale < 1 ? f.offsetHeight * scale + 'px' : '';
+    box.style.overflowX = scale < 1 ? 'hidden' : 'auto';
+  });
+}
+document.querySelector('.mock-bar').addEventListener('click', e => {
+  const b = e.target.closest('.mock-tab');
+  if (!b) return;
+  S[b.dataset.k] = b.dataset.v;
+  document.querySelectorAll(`.mock-tab[data-k="${b.dataset.k}"]`).forEach(x => x.classList.toggle('on', x === b));
+  render();
+});
+window.addEventListener('resize', fitFrames);
+render();
+</script>
+</body>
+</html>
