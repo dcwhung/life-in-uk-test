@@ -62,3 +62,10 @@
 .rv-flag path, .chip-flag path, .rv-flag-tile path { fill: var(--orange); stroke: var(--orange); stroke-width: 2; stroke-linejoin: round; }
 .chip-flag { width: 13px; height: 13px; vertical-align: -2px; margin-right: 3px; }
 .chip.active .chip-flag path { fill: currentColor; stroke: currentColor; }
+
+/* v2.0.0 desktop (≥ 1024px; handoff §2): the screen-header buttons sit on every screen, so their off-scale paddings
+   (7px, 9px; the --space-* ones scale with the tokens) are ×1.2 here once rather than per screen */
+@media (min-width: 1024px) {
+  .back-btn { padding: calc(7px * var(--desktop-scale)) var(--space-7); }
+  .back-btn.icon-btn, .nav-btn.secondary.icon-btn { padding: var(--space-3) calc(9px * var(--desktop-scale)); }
+}

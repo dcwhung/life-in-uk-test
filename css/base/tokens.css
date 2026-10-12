@@ -105,6 +105,21 @@
   --space-10: 20px;
   --space-12: 24px;
 
+  /* v2.0.0 desktop layout (≥ 1024px; .proj-docs/plans/2026-10-12_handoff_desktop-layout.md §2): the block at the end of
+     this file scales the type and spacing scales and these sizes by --desktop-scale. Below 1024px they keep these values.
+     --content-max-w: header content + main column (desktop: 1280px, centred); --header-h: the header bar
+     (css/base/layout.css; the one-screen shell in css/components/fit.css subtracts it); --header-logo-size /
+     --header-btn-size: app icon and ⚙; --dot-max-w: the cap on a number dot (css/components/dots.css);
+     --main-pad-bottom: room under the last card */
+  --desktop-scale: 1.2;
+  --large-text-step: 2px; /* the large text block below adds this to every --fs-* step (written out there as literals) */
+  --content-max-w: 780px;
+  --header-h: 58px;
+  --header-logo-size: 36px;
+  --header-btn-size: 32px;
+  --dot-max-w: 30px;
+  --main-pad-bottom: 100px;
+
   /* switch (css/components/switch.css): the off track on a dark surface (the ⓘ popover) */
   --switch-track-inverse: rgba(255,255,255,0.25);
 
@@ -193,4 +208,54 @@
   --fs-display-sm: 44px;
   --fs-display: 54px;
   --fs-display-lg: 74px;
+}
+
+/* v2.0.0 desktop layout (user, grill Q2–Q6; handoff §2): from 1024px every --fs-* step, every --space-* step and the
+   header / dot sizes above are ×--desktop-scale (1.2); large text is (base + --large-text-step) × 1.2. The formula is the
+   mockups' (mockups/v2.0.0/desktop-*.html: --fs-x: calc((Npx + var(--lg)) * var(--k))); N is the v1.4 base value of the
+   :root block above. Below 1024px nothing here applies. Both selectors are listed so the large text block above (more
+   specific than :root) is overridden too */
+@media (min-width: 1024px) {
+  :root { --desktop-text-step: 0px; }
+  :root[data-font-size="large"] { --desktop-text-step: var(--large-text-step); }
+  :root, :root[data-font-size="large"] {
+    --fs-3xs: calc((9px + var(--desktop-text-step)) * var(--desktop-scale));
+    --fs-2xs: calc((10px + var(--desktop-text-step)) * var(--desktop-scale));
+    --fs-2xs-plus: calc((10.5px + var(--desktop-text-step)) * var(--desktop-scale));
+    --fs-xs: calc((11px + var(--desktop-text-step)) * var(--desktop-scale));
+    --fs-sm: calc((12px + var(--desktop-text-step)) * var(--desktop-scale));
+    --fs-sm-plus: calc((12.5px + var(--desktop-text-step)) * var(--desktop-scale));
+    --fs-base: calc((13px + var(--desktop-text-step)) * var(--desktop-scale));
+    --fs-base-plus: calc((13.5px + var(--desktop-text-step)) * var(--desktop-scale));
+    --fs-md: calc((14px + var(--desktop-text-step)) * var(--desktop-scale));
+    --fs-lg: calc((15px + var(--desktop-text-step)) * var(--desktop-scale));
+    --fs-xl: calc((16px + var(--desktop-text-step)) * var(--desktop-scale));
+    --fs-2xl: calc((17px + var(--desktop-text-step)) * var(--desktop-scale));
+    --fs-3xl: calc((19px + var(--desktop-text-step)) * var(--desktop-scale));
+    --fs-4xl: calc((20px + var(--desktop-text-step)) * var(--desktop-scale));
+    --fs-5xl: calc((22px + var(--desktop-text-step)) * var(--desktop-scale));
+    --fs-6xl: calc((24px + var(--desktop-text-step)) * var(--desktop-scale));
+    --fs-7xl: calc((26px + var(--desktop-text-step)) * var(--desktop-scale));
+    --fs-display-sm: calc((42px + var(--desktop-text-step)) * var(--desktop-scale));
+    --fs-display: calc((52px + var(--desktop-text-step)) * var(--desktop-scale));
+    --fs-display-lg: calc((72px + var(--desktop-text-step)) * var(--desktop-scale));
+  }
+  :root {
+    --space-1: calc(2px * var(--desktop-scale));
+    --space-2: calc(4px * var(--desktop-scale));
+    --space-3: calc(6px * var(--desktop-scale));
+    --space-4: calc(8px * var(--desktop-scale));
+    --space-5: calc(10px * var(--desktop-scale));
+    --space-6: calc(12px * var(--desktop-scale));
+    --space-7: calc(14px * var(--desktop-scale));
+    --space-8: calc(16px * var(--desktop-scale));
+    --space-10: calc(20px * var(--desktop-scale));
+    --space-12: calc(24px * var(--desktop-scale));
+    --content-max-w: 1280px; /* grill Q3: wider than this, the content centres */
+    --header-h: calc(58px * var(--desktop-scale));
+    --header-logo-size: calc(36px * var(--desktop-scale));
+    --header-btn-size: calc(32px * var(--desktop-scale));
+    --dot-max-w: calc(30px * var(--desktop-scale));
+    --main-pad-bottom: calc(100px * var(--desktop-scale));
+  }
 }

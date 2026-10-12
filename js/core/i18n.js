@@ -123,4 +123,7 @@ function rerenderCurrentScreen() {
   const active = document.querySelector('.screen.active');
   const rerender = active && SCREEN_RERENDER[active.id];
   if (rerender) rerender();
+  // v2.0.0: a language, text size or translation change re-measures the desktop fits (js/components/fit.js);
+  // a cached pre-v2.0.0 shell without fit.js has none to run
+  if (typeof runRefits === 'function') runRefits();
 }

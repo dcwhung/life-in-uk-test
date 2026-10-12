@@ -4,9 +4,9 @@
 .nav-dots, .rdots { --dots-gap: var(--space-3); --dot-fs: var(--fs-2xs-plus); }
 /* question navigator dots (quiz) */
 .nav-dots { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--dots-gap); margin-bottom: var(--space-4); }
-/* numbered dot: quiz navigator (.dot) and result dots (.rdot) share the shape */
+/* numbered dot: quiz navigator (.dot) and result dots (.rdot) share the shape; v2.0.0: the size cap is a token (×1.2 from 1024px) */
 .dot, .rdot {
-  aspect-ratio: 1; width: 100%; max-width: 30px; justify-self: center; padding: 0;
+  aspect-ratio: 1; width: 100%; max-width: var(--dot-max-w); justify-self: center; padding: 0;
   border-radius: var(--radius-circle); font-size: var(--dot-fs); font-weight: 800;
   display: flex; align-items: center; justify-content: center; cursor: pointer;
 }
