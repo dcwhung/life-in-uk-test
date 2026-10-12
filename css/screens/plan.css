@@ -591,6 +591,7 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
     --plan-day-col-w: calc(200px * var(--desktop-scale));
     display: flex; align-items: stretch; gap: var(--space-6); max-height: none; overflow-x: auto; overflow-y: hidden;
     margin-inline: 0; padding: 0 0 var(--space-4); scroll-snap-type: x proximity; scroll-behavior: smooth;
+    scroll-padding-inline: var(--plan-hscroll-fade-w); /* a column snaps clear of the edge fades (and F3's today) */
   }
   #screenPlanSchedule .plan-day-scroll.plan-jump { scroll-behavior: auto; }
   .plan-wk { flex: none; display: grid; grid-template-rows: auto 1fr; gap: var(--space-3); align-content: start; }
@@ -613,8 +614,9 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
   #screenPlanSchedule .plan-day-chs { margin-top: auto; padding-top: 1.45em; }
   /* edge fades + ‹ › while days are out of view on that side (planUpdateScrollCues: can-l / can-r) */
   .plan-hscroll { position: relative; min-width: 0; }
+  #screenPlanSchedule { --plan-hscroll-fade-w: calc(56px * var(--desktop-scale)); }
   .plan-hscroll::before, .plan-hscroll::after {
-    content: ''; position: absolute; top: 0; bottom: var(--space-4); width: calc(56px * var(--desktop-scale)); z-index: 4;
+    content: ''; position: absolute; top: 0; bottom: var(--space-4); width: var(--plan-hscroll-fade-w); z-index: 4;
     pointer-events: none; opacity: 0; transition: opacity var(--fit-fade-duration);
   }
   .plan-hscroll::before { left: 0; background: linear-gradient(to right, var(--card) 15%, transparent); }

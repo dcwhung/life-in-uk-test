@@ -103,7 +103,7 @@ const scheduleLook = page => page.evaluate(() => {
   const tops = cols.slice(0, 6).map(c => c.querySelector('.plan-day-tasks').getBoundingClientRect().top);
   return {
     todayInList: tb.left >= lb.left - 1 && tb.right <= lb.right + 1, todayInWindow: tb.left >= 0 && tb.right <= innerWidth,
-    first: Math.abs(tb.left - lb.left) < 30, colW: cols[0].getBoundingClientRect().width, sideways: list.scrollWidth > list.clientWidth,
+    first: tb.left - lb.left > 0 && tb.left - lb.left < 90, /* just clear of the 67px left fade */ colW: cols[0].getBoundingClientRect().width, sideways: list.scrollWidth > list.clientWidth,
     pageScrollTop: scrollY, weeks: list.querySelectorAll('.plan-wk').length, rowsInWeeks: cols.every(c => c.parentElement.classList.contains('plan-wk-days')),
     oneLine: cols.slice(0, 3).every(c => { const d = c.querySelector('.plan-day-d'); return d.getBoundingClientRect().height < 2 * parseFloat(getComputedStyle(d).lineHeight || 20) + 8; }),
     tasksOneLine: tops.every(t => Math.abs(t - tops[0]) < 1),
@@ -117,8 +117,9 @@ async function checkSchedule(b) {
   await dt.forEachCase(b, async ({ page, label, errors }) => {
     await seedPlan(page, { days: 21, dayN: 13 });
     await page.evaluate(() => openPlanSchedule());
+    await page.waitForTimeout(300); // scroll snapping (x proximity) settles: today must stay clear of the fade
     const side = await dt.noHorizontalScroll(page), s = await scheduleLook(page);
-    assert(side.ok && s.sideways && s.weeks === 4 && s.rowsInWeeks, `${label}: Schedule one column; the day list scrolls sideways in Week groups (page: ${side.detail})`);
+    assert(side.ok && s.sideways && s.weeks === 4 && s.rowsInWeeks, `${label}: Schedule one column; the day list scrolls sideways in Week groups (page: ${side.detail}; ${s.weeks} weeks, sideways ${s.sideways}, rows in weeks ${s.rowsInWeeks})`);
     assert(s.todayInList && s.todayInWindow && s.first && s.pageScrollTop === 0, `${label}: F3 opens with today's column first in view, the page not moved`);
     assert(near(s.colW, 240, 1) && s.oneLine && s.tasksOneLine, `${label}: 240px columns, "Day n – date" one line, tasks start on one line`);
     assert(s.cueL && s.cueR && s.ctaInCard && s.strats === 3 && s.order === 4, `${label}: ‹ › cues both sides; "View today's tasks" in the card; phases 3 across, order 4 across`);

@@ -306,11 +306,12 @@ function planScrollToToday() {
   const head = list.querySelector('.plan-week');
   planJumpList(row ? row.offsetTop - (head ? head.offsetHeight : 0) : 0);
 }
-// v2.0.0 F3 (desktop): today's column the first one in view (the page itself does not move)
+// v2.0.0 F3 (desktop): today's column the first one in view, clear of the left edge's fade (the day before shows
+// under it, a cue that there is more to the left); the page itself does not move
 function planScrollLeftTo(row) {
-  const list = byId('planDayList');
-  const gap = parseFloat(getComputedStyle(list).columnGap) || 0;
-  const at = row ? list.scrollLeft + row.getBoundingClientRect().left - list.getBoundingClientRect().left - gap : 0;
+  const list = byId('planDayList'), wrap = planScrollCuesWrap();
+  const fade = wrap ? parseFloat(getComputedStyle(wrap, '::before').width) || 0 : 0;
+  const at = row ? list.scrollLeft + row.getBoundingClientRect().left - list.getBoundingClientRect().left - fade : 0;
   planJumpListLeft(Math.max(0, at));
 }
 function planJumpListLeft(left) {
