@@ -813,7 +813,19 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
   /* ════════ option A: header across; left rail (today ring, carry alert, calendar, overall) | right: tasks ════════ */
   .optA .cols { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--space-12); align-items: start; }
   .optA .rail, .optA .body { display: grid; gap: var(--space-8); min-width: 0; }
-  .optA .rail { position: sticky; top: var(--space-10); }
+  /* rev 2 (user): the task panel is never taller than the left column; a longer list scrolls inside it. The right
+     column is out of the row's height (absolute), so the left column alone sets it; a short list keeps its own height */
+  .optA .cols { align-items: stretch; }
+  .optA .body { position: relative; display: block; }
+  .optA .body > .vscroll { position: absolute; inset: 0; }
+  .optA .vscroll > .scroller { max-height: 100%; overflow-y: auto; overscroll-behavior: contain; border-radius: var(--radius); }
+  /* fades top / bottom while more tasks are above / below */
+  .optA .vscroll::before, .optA .vscroll::after { content: ''; position: absolute; left: 0; right: 0; height: calc(48px * var(--k)); z-index: 2; pointer-events: none; opacity: 0; transition: opacity 0.2s; }
+  .optA .vscroll::before { top: 0; border-radius: var(--radius) var(--radius) 0 0; background: linear-gradient(var(--card) 20%, transparent); }
+  .optA .vscroll::after { bottom: 0; border-radius: 0 0 var(--radius) var(--radius); background: linear-gradient(transparent, var(--card) 80%); }
+  .optA .vscroll.can-up::before, .optA .vscroll.can-down::after { opacity: 1; }
+  .optA .vscroll-hint { position: absolute; left: 50%; bottom: var(--space-4); z-index: 3; transform: translateX(-50%); display: none; padding: var(--space-2) var(--space-6); border-radius: var(--radius-pill); background: var(--navy); color: var(--text-inverse); font-size: var(--fs-xs); font-weight: 700; box-shadow: var(--shadow-sm); white-space: nowrap; }
+  .optA .vscroll.can-down .vscroll-hint { display: block; }
 
   /* ════════ option B: today's head across (ring | info), tasks in 2 columns, calendar | overall side by side ════════ */
   .optB .plan-tasks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-5); align-items: stretch; }
@@ -830,7 +842,7 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
 <body>
 
 <div class="mock-bar">
-  <b>v2.0.0 Desktop · Mockup 5/12 · Plan Day（今日任務）</b>
+  <b>v2.0.0 Desktop · Mockup 5/12 · Plan Day（今日任務）· rev 2：任務 panel 可碌</b>
   <div class="mock-row"><span class="lbl">語言</span><button class="mock-tab on" data-k="lang" data-v="en">EN</button><button class="mock-tab" data-k="lang" data-v="zh">中文</button>
     <span class="lbl" style="margin-left:10px">⚙ 大字</span><button class="mock-tab on" data-k="large" data-v="off">關</button><button class="mock-tab" data-k="large" data-v="on">開</button></div>
   <div class="mock-row"><span class="lbl">狀態</span><button class="mock-tab on" data-k="st" data-v="day9">今日 Day 9（有補做）</button><button class="mock-tab" data-k="st" data-v="day1">今日 Day 1（全新）</button><button class="mock-tab" data-k="st" data-v="rest">休息日（之後）</button><button class="mock-tab" data-k="st" data-v="past">已過嘅日子</button><button class="mock-tab" data-k="st" data-v="exam">考試日</button></div>
@@ -872,15 +884,29 @@ function parts() {
     todayAll: html(today).replace(/<\/div>\s*$/, html(tasks) + '</div>') };
 }
 
+const HINT = { en: '↓ More tasks', zh: '↓ 仲有任務' };
+// option A rev 2: mark which ends of the task panel still have tasks out of view
+function addVScrollCues(root) {
+  root.querySelectorAll('.optA .vscroll').forEach(wrap => {
+    const sc = wrap.querySelector('.scroller');
+    const update = () => {
+      wrap.classList.toggle('can-up', sc.scrollTop > 1);
+      wrap.classList.toggle('can-down', sc.scrollTop + sc.clientHeight < sc.scrollHeight - 1);
+    };
+    sc.addEventListener('scroll', update, { passive: true });
+    update();
+  });
+}
 const OPTIONS = [
   {
     id: 'A', cls: 'optA', rec: true, title: 'A · 沿用 Home A：左欄今日概況 + 日曆 + 整體進度，右欄任務',
     ann: `<ul><li><b>頂</b>：🏠、‹ 今日任務 ›、📅，同手機一樣。</li>
       <li><b>左欄（5/12，sticky）</b>：今日 ring + 階段 + 提示、補做提示、每日完成度日曆、整體進度：全部係「睇」嘅資料。</li>
+      <li><b>rev 2</b>：任務 panel 最高只會同左欄一樣高；任務多過嗰個高度（例如 Day 9 有 22 項補做）就喺 panel 入面碌，上下有淡出效果，底部有「↓ 仲有任務」提示；任務少就照原本高度，唔會拉長。</li>
       <li>休息日／考試日冇任務：嗰日張卡（😴／考試日橫額）就放喺右欄，唔會留空。</li>
       <li><b>右欄（7/12）</b>：任務 list：全部係「做」嘅嘢，由上至下逐項撳「開始」。補做任務好多嘅時候（Day 9 有 22 項）只係右欄長，左邊一直睇得到 ring 同日曆。</li></ul>`,
     // a day with no tasks (rest, exam day): its card (banner / 😴) takes the right column instead
-    render: p => `${p.header}<div class="cols"><div class="rail">${p.tasks ? p.head : ''}${p.carry}${p.cal}${p.kpi}</div><div class="body">${p.tasks || p.head}</div></div>`,
+    render: p => `${p.header}<div class="cols"><div class="rail">${p.tasks ? p.head : ''}${p.carry}${p.cal}${p.kpi}</div><div class="body"><div class="vscroll"><div class="scroller">${p.tasks || p.head}</div><span class="vscroll-hint">${HINT[S.lang]}</span></div></div></div>`,
   },
   {
     id: 'B', cls: 'optB', title: 'B · 單欄全闊，任務排兩欄',
@@ -909,6 +935,7 @@ function frame(opt, w) {
 function render() {
   document.getElementById('opts').innerHTML = OPTIONS.map(o => `<section class="opt"><div class="opt-title">${o.title}${o.rec ? '<span class="rec">建議</span>' : ''}</div>
     <div class="ann">${o.ann}</div>${WIDTHS.map(w => frame(o, w)).join('')}</section>`).join('');
+  addVScrollCues(document);
   fitFrames();
 }
 // "適合畫面": scale each frame down to the page width (never up); the box takes the scaled height so nothing overlaps

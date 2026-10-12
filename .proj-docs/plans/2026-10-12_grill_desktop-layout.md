@@ -28,7 +28,7 @@
 | 2 | Plan Goal | `desktop-plan-goal.html` | ✅ 定案 A（rev 2）：頂部 🏠／步驟／標題橫跨；左欄（7/12）3 張問題卡；右欄（5/12，sticky）「時間是否足夠？」+ 建立掣；預設 chip 同考試日期放得落就一行，放唔落（任何 chip 會被切）就兩行（fitRow 規則；1024px 兩行、1280px 一行） |
 | 3 | Plan Schedule | `desktop-plan-schedule.html` | ✅ 定案 B（rev 5）：單欄全闊；三個階段說明 3 欄；溫習次序一行 1 › 2 › 3 › 4（標題／說明／bar subgrid 對齊；收起時顯示章節全名，Ch 1 + Ch 2 兩行、「+」凸出）；每日任務成個計劃左右 scroll（一日一欄 240px、每 Week 一組、標籤黐左、淡出 + ‹ › 掣、「Day n – 日期」一行置中、pill 行留位令任務同一條線開始、金色章節空一行貼底）；「查看今日任務」喺每日任務卡右下；重設自成一行 |
 | 4 | Home（有 plan） | `desktop-home-plan.html` | ✅ 定案 A（rev 7）+ Ring + 時間軸：計劃卡橫跨頂部；行次 = 計劃名 · Day n / N → 下一步（一行，放唔落先斷行）→ 倒數時間軸 + 中間 ring → 右邊兩粒掣（同 ring 底對齊）；下面同 Home A 一樣 |
-| 5 | Plan Day | `desktop-plan-day.html` | 待揀 |
+| 5 | Plan Day | `desktop-plan-day.html` | 待揀（rev 2：A：任務 panel 最高同左欄一樣，長過就 panel 內碌 + 上下淡出 + 「↓ 仲有任務」） |
 | 6 | Plan Run | — | 未做 |
 | 7 | Study | — | 未做 |
 | 8 | Quiz（Practice） | — | 未做 |
