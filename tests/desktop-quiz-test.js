@@ -260,6 +260,134 @@ async function checkRefit(b) {
   await page.close();
 }
 
+// v2.0.1: the desktop panes are built once and kept from question to question, so a new question must open each
+// pane at the top (not where the last question's pane was scrolled to); within one question a tab swap keeps each
+// pane's own scroll. ← → (the card's quick buttons) and the number dots both count as a new question
+const PANE = { answer: '#quizPaneAnswer', similar: '#quizPaneSimilar', main: '.quiz-main' };
+// which questions overflow each pane once answered (and the main column before answering); leaves them unanswered
+const probeOverflow = page => page.evaluate(() => {
+  const over = el => el.scrollHeight > el.clientHeight + 1;
+  const out = state.questions.map((q, i) => {
+    goToQuestion(i);
+    const main = over(document.querySelector('.quiz-main'));
+    state.answers[i] = [...q.a];
+    revealAnswer();
+    const answer = over(byId('quizPaneAnswer'));
+    let similar = false;
+    if (!byId('quizTabSimilar').hidden) {
+      setQuizTab('similar');
+      similar = over(byId('quizPaneSimilar'));
+      setQuizTab('answer');
+    }
+    delete state.answers[i];
+    delete state.revealed[i];
+    return { main, answer, similar };
+  });
+  goToQuestion(0);
+  return out;
+});
+// two different questions that both overflow `pane`, the second right after the first when `adjacent` (for →)
+function pickPair(probe, pane, used, adjacent) {
+  const ok = i => i >= 0 && i < probe.length && probe[i][pane] && !used.has(i);
+  for (let i = 0; i < probe.length; i++) {
+    if (!ok(i)) continue;
+    const j = adjacent ? (ok(i + 1) ? i + 1 : -1) : probe.findIndex((_, n) => n !== i && n !== i + 1 && ok(n));
+    if (j >= 0) { used.add(i).add(j); return [i, j]; }
+  }
+  return null;
+}
+const scrollToBottom = async (page, sel) => {
+  await page.$eval(sel, el => { el.scrollTop = el.scrollHeight; });
+  await dt.nextFrame(page);
+};
+// halfway (not the bottom: the panel's height may change by a few px between tabs, which would move a bottom position)
+const scrollToMiddle = async (page, sel) => {
+  await page.$eval(sel, el => { el.scrollTop = Math.floor((el.scrollHeight - el.clientHeight) / 2); });
+  await dt.nextFrame(page);
+};
+const paneState = (page, sel) => page.$eval(sel, el => {
+  const wrap = el.closest('.fit-fade');
+  return { top: Math.round(el.scrollTop), up: wrap.classList.contains('can-up'), down: wrap.classList.contains('can-down'), over: el.scrollHeight > el.clientHeight + 1 };
+});
+async function goTo(page, from, to, how) {
+  if (how === 'quick') { assert(to === from + 1, 'quick → goes to the next question'); await page.click('#quickNext'); }
+  else await page.locator('#navDots .dot').nth(to).click();
+  assert(await page.evaluate(n => state.current === n, to), `moved to Q${to + 1} by ${how === 'quick' ? '→' : 'the number dot'}`);
+}
+
+async function checkPaneTopOnNewQuestion(b, viewport) {
+  const { page, errors, label } = await dt.openDesktop(b, { viewport, lang: 'zh-HK', fontSize: 'large' });
+  await startSet(page, 'practice', EXAM_ONE);
+  const probe = await probeOverflow(page);
+  const used = new Set();
+  for (const [pane, how] of [['answer', 'quick'], ['answer', 'dot'], ['similar', 'quick'], ['similar', 'dot']]) {
+    const pair = pickPair(probe, pane, used, how === 'quick') || pickPair(probe, pane, new Set(), how === 'quick');
+    assert(pair, `${label}: two questions whose ${pane} pane scrolls (${how})`);
+    const [from, to] = pair;
+    const sel = PANE[pane];
+    await page.evaluate(i => { delete state.answers[i]; delete state.revealed[i]; goToQuestion(i); }, from);
+    await answerCurrent(page);
+    if (pane === 'similar') await page.click('#quizTabSimilar');
+    await scrollToBottom(page, sel);
+    const before = await paneState(page, sel);
+    assert(before.top > 0 && before.up, `${label}: Q${from + 1} ${pane} pane scrolled down (${before.top}px, can-up)`);
+    await page.evaluate(i => { delete state.answers[i]; delete state.revealed[i]; }, to);
+    await goTo(page, from, to, how);
+    await answerCurrent(page);
+    if (pane === 'similar') await page.click('#quizTabSimilar');
+    await dt.nextFrame(page);
+    const after = await paneState(page, sel);
+    assert(after.top === 0 && !after.up && after.down === after.over,
+      `${label}: v2.0.1 Q${from + 1} → Q${to + 1} (${how === 'quick' ? '→' : 'dot'}), answered: the ${pane} pane starts at the top, fades follow: ${JSON.stringify(after)}`);
+  }
+  // within one question a tab swap keeps each pane's scroll (setQuizTab does not re-render)
+  const i = probe.findIndex(p => p.answer && p.similar);
+  assert(i >= 0, `${label}: a question whose Answer and Similar panes both scroll`);
+  await page.evaluate(n => { delete state.answers[n]; delete state.revealed[n]; goToQuestion(n); }, i);
+  await answerCurrent(page);
+  await scrollToMiddle(page, PANE.answer);
+  const kept = (await paneState(page, PANE.answer)).top;
+  await page.click('#quizTabSimilar');
+  await scrollToMiddle(page, PANE.similar);
+  const keptSimilar = (await paneState(page, PANE.similar)).top;
+  await page.click('#quizTabAnswer');
+  await dt.nextFrame(page);
+  const back = await paneState(page, PANE.answer);
+  assert(kept > 0 && Math.abs(back.top - kept) <= 1 && back.up, `${label}: same question, Answer → Similar → Answer keeps the Answer pane at ${kept}px (${back.top})`);
+  await page.click('#quizTabSimilar');
+  await dt.nextFrame(page);
+  const backSimilar = await paneState(page, PANE.similar);
+  assert(keptSimilar > 0 && Math.abs(backSimilar.top - keptSimilar) <= 1, `${label}: same question, the Similar pane keeps ${keptSimilar}px (${backSimilar.top})`);
+  assert(errors.length === 0, 'no page error: ' + errors.join(' | '));
+  await page.close();
+}
+
+// the left column scrolls only after fit step ③ (1024 × 600, 中文, large text): a new question starts it at the top
+async function checkMainTopOnNewQuestion(b) {
+  const { page, errors, label } = await dt.openDesktop(b, { viewport: dt.VIEWPORTS.tiny, lang: 'zh-HK', fontSize: 'large' });
+  await startSet(page, 'practice', EXAM_ONE);
+  const probe = await probeOverflow(page);
+  const longs = probe.map((p, i) => p.main && i).filter(i => i !== false);
+  assert(longs.length > 0, `${label}: a question whose left column scrolls (${longs.map(i => 'Q' + (i + 1)).join(' ')})`);
+  for (const how of ['quick', 'dot']) {
+    const from = how === 'quick' ? longs.find(i => i + 1 < probe.length) : longs[0];
+    if (from === undefined) { console.log(`skip: ${label}: the only long question is the last one (no →)`); continue; }
+    // the dot goes to another long question when there is one, else to any other question
+    const to = how === 'quick' ? from + 1 : (longs.find(i => i !== from) ?? (from + 2) % probe.length);
+    await page.evaluate(n => goToQuestion(n), from);
+    await scrollToBottom(page, PANE.main);
+    const before = await paneState(page, PANE.main);
+    assert(before.top > 0 && before.up, `${label}: Q${from + 1} left column scrolled down (${before.top}px)`);
+    await goTo(page, from, to, how);
+    await dt.nextFrame(page);
+    const after = await paneState(page, PANE.main);
+    assert(after.top === 0 && !after.up && after.down === after.over,
+      `${label}: Q${from + 1} → Q${to + 1} (${how === 'quick' ? '→' : 'dot'}${probe[to].main ? ', also long' : ''}): the left column starts at the top: ${JSON.stringify(after)}`);
+  }
+  assert(errors.length === 0, 'no page error: ' + errors.join(' | '));
+  await page.close();
+}
+
 (async () => {
   const b = await dt.launch();
   await dt.forEachCase(b, async ({ page, label, errors, lang, translation }) => {
@@ -273,6 +401,9 @@ async function checkRefit(b) {
   await checkFocusKept(b);
   await checkTabKeys(b);
   await checkSubmitLabel(b);
+  await checkPaneTopOnNewQuestion(b, dt.VIEWPORTS.wide);
+  await checkPaneTopOnNewQuestion(b, dt.VIEWPORTS.small);
+  await checkMainTopOnNewQuestion(b);
   await b.close();
   console.log('DESKTOP-QUIZ PASS');
 })().catch(e => { console.error(e.message || e); process.exit(1); });
