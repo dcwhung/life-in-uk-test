@@ -31,13 +31,15 @@
 | 5 | Plan Day | `desktop-plan-day.html` | ✅ 定案 A（rev 4）：頂部 🏠 ‹ 日子 › 📅；左欄（5/12）今日 ring + 階段 + 提示、補做提示、日曆、整體進度；右欄（7/12）任務 list，panel 最高同左欄一樣，長過就 panel 內碌（上下淡出 + 「↓ 仲有任務」）；冇任務嘅日子（休息／考試）嗰日張卡放右欄；整體進度 3 格 subgrid 對齊（標題、說明向下），手機版一齊改 |
 | 6 | Plan Run | `desktop-plan-run.html` | ✅ 定案 A（rev 4）：置中閱讀欄（最闊 760px × 1.2）、成頁一屏高；知識點卡入面知識點 + 記憶法喺可碌 panel（底部淡出），「出現於」+ 練習掣喺卡底，提示 + 上一張／下一張貼畫面底；任務完成：結果卡填滿中間高度（內容置中），提示 + 下一個 + 兩粒掣貼底 |
 | 7 | Study | `desktop-study.html` | ✅ 定案 A（rev 4）：一屏高；左欄 20%：搜尋、tab 2×2、章節／地區／人物 chip（跟字長換行 + 每行撐滿 `flex: 1 1 auto`）、數量，篩選掣（隱藏已掌握／只看書籤／只看戰爭）打直全闊貼左欄底；右欄知識點卡一欄，panel 自己碌（上下淡出）；左欄太長（1024px 大字人物 tab）時左欄自己碌 |
-| 8 | Quiz（Practice） | `desktop-quiz.html` | 待揀（rev 11：選項一律 2×2（未答都係）；右邊虛線框填滿高度；tab bar 同下面框一樣闊；rev 10：目標唔使碌：一樣高 → 2×2 → 每行按內容 → 收窄 padding → 最後先碌，所有測試狀態都唔使碌；rev 9：題目卡同選項預設各半、按內容自動讓位，選項置頂；rev 8：左欄冇底部上一題／下一題；rev 7：數量排 答啱·未答／答錯·已標記；rev 6：題號點 bar 分左右：24 粒一行｜數量 2×2；rev 5：S 柔和 tab；相似題目卡頭（icon／標題／副題／+n）搬入 tab，pane 由核心知識點開始，間距同答案一致；rev 4：輕身 tab 3 款（U 底線／F 文件夾／S 柔和）比較；長選項 2×2 都放唔落就左欄碌（用戶接受）；rev 3：右欄「答案｜相似題目」兩個 tab；rev 2：A 題號點 24 粒一行喺頂；左欄題目 + 選項放唔落就 2×2，再放唔落先 panel 碌） |
+| 8 | Quiz（Practice） | `desktop-quiz.html` | 待揀（rev 12：desktop ← → 快捷掣常駐（未答都喺 Translate 旁）；rev 11：選項一律 2×2（未答都係）；右邊虛線框填滿高度；tab bar 同下面框一樣闊；rev 10：目標唔使碌：一樣高 → 2×2 → 每行按內容 → 收窄 padding → 最後先碌，所有測試狀態都唔使碌；rev 9：題目卡同選項預設各半、按內容自動讓位，選項置頂；rev 8：左欄冇底部上一題／下一題；rev 7：數量排 答啱·未答／答錯·已標記；rev 6：題號點 bar 分左右：24 粒一行｜數量 2×2；rev 5：S 柔和 tab；相似題目卡頭（icon／標題／副題／+n）搬入 tab，pane 由核心知識點開始，間距同答案一致；rev 4：輕身 tab 3 款（U 底線／F 文件夾／S 柔和）比較；長選項 2×2 都放唔落就左欄碌（用戶接受）；rev 3：右欄「答案｜相似題目」兩個 tab；rev 2：A 題號點 24 粒一行喺頂；左欄題目 + 選項放唔落就 2×2，再放唔落先 panel 碌） |
 | 9 | Quiz（Exam） | — | 未做 |
 | 10 | Result | — | 未做 |
 | 11 | Flagged / Wrong Review | — | 未做 |
 | 12 | 全局浮層（Modal / Toast / popover） | — | 未做 |
 
 ## 實作備忘
+
+- **Quiz desktop（≥ 1024px，用戶 2026-10-12）**：左欄冇底部上一題／下一題；題目卡右上 `.quick-nav`（← →）常駐，未答時都同 Translate 並排（手機版維持而家：答咗先出現）。右欄「答案｜相似題目」tab 用新 i18n key（答案 / Answer）。
 
 - **Plan Day「整體進度」3 格對齊（用戶 2026-10-12，所有闊度包括手機）**：`css/screens/plan.css` `.plan-stats` 用 subgrid（`grid-template-rows: auto auto auto` + `.plan-stat { grid-row: span 3; grid-template-rows: subgrid }`），標題／數字／說明各自同一條線；標題同說明 `align-self: end`（rev 4：標題貼住數字、說明貼底）。`.plan-stats` 亦用喺 Plan Goal「時間是否足夠？」：實作時要確認嗰度（desktop 右欄 2 + 1 排法）唔受影響或者一齊對齊；冇 subgrid 嘅 browser 維持而家樣。
 
