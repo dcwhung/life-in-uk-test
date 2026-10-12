@@ -301,6 +301,7 @@ LOCALES.en = {
         other: "{n} unfinished tasks from earlier days were carried over to today, marked with their day. They don't count towards today's %.",
       },
       examAhead: '🎯 Exam day',
+      moreTasks: '↓ More tasks', // v2.0.0 (desktop): the task panel has more below
     },
     // completion calendar (one month at a time) and overall progress
     calendar: {

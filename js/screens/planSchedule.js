@@ -249,7 +249,7 @@ function planWhen(iso, todayIso) {
   return iso < todayIso ? PLAN_WHEN.past : PLAN_WHEN.ahead;
 }
 // the row's left column: the date box with the day's status pill under it (pillHtml may be '')
-// desktop (v2.0.0, mockup rev 3 / 4): "Day n – 12/10 Mon" on one line (zh-HK "·": "– 12/10 一" reads as two dashes),
+// desktop (v2.0.0, mockup rev 3 / 4): "Day n – 12/10 Mon" on one line (zh-HK "·": a dash before the one-stroke weekday reads as two dashes),
 // and an invisible pill where a day has none, so every column's tasks start on one line
 const PLAN_PILL_SLOT_HTML = '<span class="plan-pill plan-pill-slot" aria-hidden="true">&nbsp;</span>';
 const PLAN_DATE_DASH = { en: '–', other: '·' };

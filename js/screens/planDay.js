@@ -40,6 +40,7 @@ function renderPlanDay() {
   else renderPlanDayBody(plan, log, iso, todayIso);
   renderPlanCalendar(plan, log, iso, todayIso);
   renderPlanKpis(plan, log, todayIso);
+  if (typeof runRefits === 'function') runRefits(); // v2.0.0 desktop columns + the task panel (planDayRefit)
 }
 // the calendar opens a day: the page moves to the top and focus to the new day's heading
 function planOpenDayFromCalendar(iso) {
@@ -316,3 +317,40 @@ function renderPlanKpis(plan, log, todayIso) {
     + planKpiRowHtml(t('plan.kpi.mocks', { safe: PLAN_SAFE_SCORE, n: REAL_TEST_SIZE }), k.safeMocks, k.mocksPlanned);
   rows.querySelectorAll('.plan-meter-fill').forEach(el => { el.style.width = el.dataset.pct + '%'; });
 }
+
+// ── v2.0.0 desktop (≥ 1024px; handoff §3 #5 / §5, mockup desktop-plan-day.html A rev 4): 🏠 ‹ day › 📅 across; left
+// 5/12: today's ring + phase + hint, the carry-over alert, the calendar, overall progress; right 7/12: the task list in
+// its own panel, never taller than the left column (a longer list scrolls inside it, fades top / bottom and "↓ More
+// tasks" while more is below). A day without tasks (rest, exam day) puts its card in the right column instead. Below
+// 1024px the list goes back into the today card and every card to its phone place ──
+const PLAN_DAY_PANEL_CLASS = 'plan-day-panel';
+function planDayColumns() {
+  const stack = byId('screenPlanDay').querySelector('.plan-stack');
+  const cards = [...stack.querySelectorAll(':scope > .plan-card-box')];
+  return { key: 'planDay', boxClass: 'plan-cols plan-day-cols', columns: [
+    { cls: 'plan-col plan-day-rail', parts: [cards[0], byId('planCarryAlert'), cards[1], cards[2]] },
+    { cls: 'plan-day-body', parts: [] },
+  ] };
+}
+function planDayTodayCard() { return byId('planDayHead').closest('.plan-card-box'); }
+function planDayPanel(body) {
+  let panel = body.querySelector(`.${PLAN_DAY_PANEL_CLASS}`);
+  if (panel) return panel;
+  panel = document.createElement('div');
+  panel.className = `${PLAN_DAY_PANEL_CLASS} fit-fade`;
+  panel.innerHTML = `<div class="fit-panel plan-day-scroller"><div class="plan-card-box"></div></div><span class="plan-more-hint" aria-hidden="true"></span>`;
+  body.append(panel);
+  return panel;
+}
+function planDayRefit(desktop) {
+  const list = byId('planTaskList'), today = planDayTodayCard();
+  if (!desktop) { if (list.parentElement !== today) today.append(list); setDesktopColumns(planDayColumns(), false); return; }
+  const box = setDesktopColumns(planDayColumns(), true), rail = box.firstElementChild, body = box.lastElementChild;
+  const panel = planDayPanel(body);
+  panel.querySelector('.plan-card-box').append(list);
+  panel.querySelector('.plan-more-hint').textContent = t('plan.day.moreTasks');
+  const hasTasks = list.children.length > 0;
+  panel.hidden = !hasTasks;
+  if (hasTasks) rail.prepend(today); else body.prepend(today);
+}
+if (typeof onRefit === 'function') onRefit(planDayRefit, 'screenPlanDay');

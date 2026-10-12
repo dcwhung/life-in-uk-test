@@ -638,3 +638,39 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
   #screenPlanSchedule .plan-day-scroll { scroll-behavior: auto; }
   .plan-hscroll::before, .plan-hscroll::after { transition: none; }
 }
+
+/* ── Plan Day (mockup desktop-plan-day.html A rev 4; js/screens/planDay.js planDayRefit) ── */
+@media (min-width: 1024px) {
+  /* the left column alone sets the row's height: the right column's panel is out of the flow (absolute), at most
+     that tall; a short list keeps its own height */
+  .plan-day-cols { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); align-items: stretch; }
+  .plan-day-body { position: relative; display: grid; gap: var(--space-8); align-content: start; min-width: 0; }
+  .plan-day-panel { --fit-fade-color: var(--card); --fit-fade-h: calc(48px * var(--desktop-scale)); --fit-panel-gutter: 0px; position: absolute; inset: 0; }
+  .plan-day-body > .plan-card-box ~ .plan-day-panel { position: static; } /* a day without tasks: its card instead */
+  .plan-day-panel > .fit-panel { flex: 0 1 auto; max-height: 100%; border-radius: var(--radius); }
+  .plan-day-panel::before { border-radius: var(--radius) var(--radius) 0 0; }
+  .plan-day-panel::after { border-radius: 0 0 var(--radius) var(--radius); }
+  .plan-more-hint {
+    position: absolute; left: 50%; bottom: var(--space-4); z-index: 3; transform: translateX(-50%); display: none;
+    padding: var(--space-2) var(--space-6); border-radius: var(--radius-pill); background: var(--navy); color: var(--text-inverse);
+    font-size: var(--fs-xs); font-weight: 700; box-shadow: var(--shadow-sm); white-space: nowrap; pointer-events: none;
+  }
+  .plan-day-panel.can-down .plan-more-hint { display: block; }
+}
+
+/* ── Plan Run (mockup desktop-plan-run.html A rev 4; js/screens/planRun.js planWrapFactScroll): a centred reading
+   column one screen high; the fact panel scrolls, the note and Prev / Next stay at the bottom ── */
+@media (min-width: 1024px) {
+  #screenPlanRun.is-fit > * { width: 100%; max-width: calc(760px * var(--desktop-scale)); margin-inline: auto; }
+  #screenPlanRun.is-fit > .quiz-header { flex: none; }
+  #screenPlanRun.is-fit > .plan-run-body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+  .plan-run-body > * { flex: none; }
+  .plan-run-body > .fact { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+  .plan-run-body > .fact > .fact-top, .plan-run-body > .fact > .fact-src { flex: none; }
+  .plan-run-body > .fact > .fact-src { margin-top: auto; }
+  .plan-run-body > .sqm { flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+  .plan-fact-fade { --fit-fade-color: var(--card); --fit-fade-h: calc(40px * var(--desktop-scale)); flex: 0 1 auto; }
+  .plan-fact-fade::before { display: none; } /* only the bottom fade (mockup) */
+  /* a finished task: the Result card takes the height left, its content centred */
+  .plan-run-body > .result-card { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+}

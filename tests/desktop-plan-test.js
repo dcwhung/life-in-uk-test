@@ -150,12 +150,84 @@ async function checkSchedule(b) {
   await page.close();
 }
 
+// ── Plan Day A rev 4 ──
+const dayLook = page => page.evaluate(() => {
+  const r = e => (e ? e.getBoundingClientRect() : null);
+  const rail = document.querySelector('.plan-day-rail'), panel = document.querySelector('.plan-day-panel'), sc = document.querySelector('.plan-day-scroller');
+  return { rail: r(rail), panel: panel && !panel.hidden ? r(panel) : null, sc: r(sc), scrolls: !!sc && sc.scrollHeight > sc.clientHeight + 1,
+    hint: !!panel && getComputedStyle(panel.querySelector('.plan-more-hint')).display !== 'none',
+    listInPanel: !!sc && sc.contains(byId('planTaskList')), todayInRail: !!rail && rail.contains(byId('planDayHead')),
+    todayInBody: !!document.querySelector('.plan-day-body') && document.querySelector('.plan-day-body').contains(byId('planDayHead')) };
+});
+async function checkDay(b) {
+  await dt.forEachCase(b, async ({ page, label, errors }) => {
+    await seedPlan(page, { days: 21, dayN: 9 }); // nothing done: earlier days' tasks are carried over, a long list
+    await page.evaluate(() => openPlanDay());
+    const side = await dt.noHorizontalScroll(page), d = await dayLook(page);
+    const l = await colBoxes(page, '.plan-day-cols');
+    assert(side.ok && l && shareOk(l, 5 / 12) && d.listInPanel && d.todayInRail, `${label}: Day ring / calendar / overall 5/12 | tasks 7/12`);
+    assert(d.sc.height <= d.rail.height + PX && d.scrolls && d.hint, `${label}: the long task panel is no taller than the left column (${Math.round(d.sc.height)} / ${Math.round(d.rail.height)}), scrolls in itself, "↓ More tasks"`);
+    await page.$eval('.plan-day-scroller', sc => { sc.scrollTop = sc.scrollHeight; });
+    await dt.nextFrame(page);
+    assert(!(await dayLook(page)).hint, `${label}: at the bottom the hint goes`);
+    assert(errors.length === 0, `${label}: no page errors ` + errors.join(' | '));
+  }, { translations: [true] });
+  const { page } = await dt.openDesktop(b, { viewport: dt.VIEWPORTS.wide });
+  await seedPlan(page, { days: 21, dayN: 1 });
+  await page.evaluate(() => openPlanDay());
+  let d = await dayLook(page);
+  assert(d.sc.height < d.rail.height - 50 && !d.scrolls && !d.hint, 'Day 1: a short list keeps its own height, no hint');
+  await page.evaluate(() => openPlanDay(planLoad().goal.examDate));
+  d = await dayLook(page);
+  assert(!d.panel && d.todayInBody, 'the exam day (no tasks): its card in the right column, no task panel');
+  await page.evaluate(() => { const rest = planLoad().days.find(x => x.phase === 'rest'); openPlanDay(rest.date); });
+  d = await dayLook(page);
+  assert(!d.panel && d.todayInBody, 'a rest day: its 😴 card in the right column');
+  await page.evaluate(() => openPlanDay());
+  await dt.setViewport(page, dt.VIEWPORTS.belowDesktop);
+  const phone = await page.evaluate(() => byId('planTaskList').parentElement === byId('planDayHead').closest('.plan-card-box') && !document.querySelector('.plan-day-cols'));
+  assert(phone && await phoneStack(page, 'screenPlanDay'), '1023px: the task list back in the today card, phone order');
+  await page.close();
+}
+
+// ── Plan Run A rev 4: one screen high, only the fact panel scrolls ──
+async function checkRun(b) {
+  await dt.forEachCase(b, async ({ page, label, errors }) => {
+    await seedPlan(page, { days: 21, dayN: 1 });
+    await page.evaluate(() => { openPlanDay(); document.querySelector('#planTaskList .plan-task-btn').click(); });
+    await page.evaluate(() => document.querySelectorAll('#planRunBody details.fact-mem').forEach(x => { x.open = true; }));
+    await dt.nextFrame(page);
+    const side = await dt.noHorizontalScroll(page);
+    const r = await dt.panelOnlyScroll(page, '.plan-fact-scroll');
+    const col = await page.evaluate(() => {
+      const body = byId('planRunBody').getBoundingClientRect(), nav = document.querySelector('#planRunBody .plan-run-nav').getBoundingClientRect();
+      return { w: body.width, centred: Math.abs(body.left + body.width / 2 - innerWidth / 2) < 2, navBottom: nav.bottom, inner: innerHeight, fade: document.querySelector('.plan-fact-fade').classList.contains('can-down') };
+    });
+    assert(side.ok && r.ok, `${label}: Run one screen high; the memory aid scrolls in the fact panel (${r.detail})`);
+    assert(col.w <= 760 * 1.2 + PX && col.centred && col.navBottom <= col.inner && col.fade, `${label}: centred column ≤ 912px, Prev / Next on screen, bottom fade`);
+    assert(errors.length === 0, `${label}: no page errors ` + errors.join(' | '));
+  });
+  const { page } = await dt.openDesktop(b, { viewport: dt.VIEWPORTS.small, lang: 'zh-HK', fontSize: 'large' });
+  await seedPlan(page, { days: 21, dayN: 1 });
+  await page.evaluate(() => { openPlanDay(); const btn = document.querySelector('#planTaskList .plan-task-btn'); planShowTaskDone(btn.dataset.arg, Number(btn.dataset.task), null); });
+  const done = await page.evaluate(() => {
+    const card = document.querySelector('#planRunBody .result-card').getBoundingClientRect(), nav = document.querySelector('#planRunBody .nav-row').getBoundingClientRect();
+    return { card: card.height, navBottom: nav.bottom, inner: innerHeight };
+  });
+  assert((await dt.pageNotScrolling(page)).ok && done.card > 200 && done.navBottom <= done.inner, '1024 中 large, task done: the Result card fills the height, buttons on screen: ' + JSON.stringify(done));
+  await dt.setViewport(page, dt.VIEWPORTS.belowDesktop);
+  assert(await page.evaluate(() => !document.querySelector('.plan-fact-scroll')), '1023px: the phone card');
+  await page.close();
+}
+
 (async () => {
   const b = await dt.launch();
   try {
     await checkStatTiles(b);
     await checkGoal(b);
     await checkSchedule(b);
+    await checkDay(b);
+    await checkRun(b);
     console.log('DESKTOP-PLAN PASS');
   } catch (e) {
     console.error(e.message);

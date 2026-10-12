@@ -282,6 +282,7 @@ LOCALES['zh-HK'] = {
       doneDay: '🎉 這日的任務已全部完成！',
       carryAlert: '之前有 {n} 項未完成的任務，已自動加入今日並標示原本日子；補做不計入今日完成度。',
       examAhead: '🎯 考試日',
+      moreTasks: '↓ 還有任務',
     },
     calendar: {
       title: '每日完成度',
