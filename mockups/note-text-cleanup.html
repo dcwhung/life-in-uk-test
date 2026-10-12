@@ -71,7 +71,7 @@ function noteLineHtml(line) {
 }
 const noteHtml = note => note.split('\n').map(l => (l.trim() ? noteLineHtml(l) : '<div class="rv-note-gap"></div>')).join('');
 const box = (cls, label, note) => `<div class="phone ${cls}"><h2>${label}</h2><div class="answer-box"><div class="ans-label">✓ Correct</div>
-  <div class="ans-note" lang="zh-HK"><strong>💡 備注：</strong><div class="ans-note-text">${noteHtml(note)}</div></div></div></div>`;
+  <div class="ans-note" lang="zh-HK"><strong>💡 備註：</strong><div class="ans-note-text">${noteHtml(note)}</div></div></div></div>`;
 document.getElementById('groups').innerHTML = GROUPS.map(([t, before, after]) =>
   `<div class="group"><div class="group-title">${t}</div>${box('before', '整理前（而家）', before)}${box('after', '整理後（建議）', after)}</div>`).join('');
 </script>

@@ -154,6 +154,12 @@ function zhHkChecks() {
   assert(scanned > 50 && spoken.length === 0, `${ZH_HK} study plan text (${scanned} keys) has no colloquial words (G21)` + (spoken.length ? ': ' + spoken.join(', ') : ''));
   // v1.2.0: the ⚙ language options name themselves in their own language, the same in every locale
   assert(['en', 'zh'].every(l => (l === 'en' ? enMap : zhMap).get('app.langEn') === 'EN' && (l === 'en' ? enMap : zhMap).get('app.langZh') === '中文'), 'language options read EN / 中文 in both locales');
+  // v1.4.1: the note label is written 備註 (註 = annotation), never the variant 備 + 注 (U+6CE8), in every locale string
+  const WRONG_NOTE = '\u5099\u6ce8'; // escaped so a repo-wide grep for the wrong form stays empty
+  const wrongNote = [['en', enMap], [ZH_HK, zhMap]].flatMap(([l, m]) => [...m]
+    .filter(([, v]) => Object.values(formsOf(v)).some(s => s.includes(WRONG_NOTE))).map(([k]) => `${l} ${k}`));
+  assert(wrongNote.length === 0, `no locale string contains ${WRONG_NOTE}` + (wrongNote.length ? ': ' + wrongNote.join(', ') : ''));
+  assert(enMap.get('common.noteLabel') === '💡 備註：' && zhMap.get('common.noteLabel') === '💡 備註：', 'noteLabel reads 💡 備註： in both locales');
 }
 
 async function runtimeChecks(en) {
