@@ -48,8 +48,9 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(cls[0] === 'ok flag' && cls[1] === 'bad' && cls[2] === '' && cls[5] === 'flag current', 'dot states: ' + cls.slice(0, 6));
   assert(await pg.$eval('#navDots .dot:nth-child(1)', e => getComputedStyle(e).backgroundColor === 'rgb(82, 183, 136)' && getComputedStyle(e).borderTopColor === 'rgb(217, 130, 43)'), 'right + flagged: green fill, orange border');
   assert(await pg.$eval('#navDots .dot:nth-child(2)', e => getComputedStyle(e).backgroundColor === 'rgb(231, 76, 60)'), 'wrong: red fill');
-  assert((await text('#dotsMeta')) === 'Correct 1 | Wrong 1 | Unanswered 22 | Flagged 2', 'counts: ' + await text('#dotsMeta'));
-  assert(await pg.$eval('#dotsMeta', e => new Set([...e.children].map(c => Math.round(c.getBoundingClientRect().top))).size === 1), 'counts fit one line at 390px');
+  // v1.6.1: two fixed rows, Correct + Unanswered / Wrong + Flagged (layout at every width: legend-test)
+  const metaRows = () => pg.$$eval('#dotsMeta > .lg-row', els => els.map(e => e.textContent.replace(/\s+/g, ' ').trim()).join(' / '));
+  assert((await metaRows()) === 'Correct 1 | Unanswered 22 / Wrong 1 | Flagged 2', 'counts: ' + await metaRows());
   assert((await pg.$$('.score-pill')).length === 0, 'score pill removed (counts show it)');
 
   // tap a dot to jump, also forward to an unanswered question

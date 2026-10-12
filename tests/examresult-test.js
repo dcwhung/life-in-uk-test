@@ -51,7 +51,9 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   const dots = await pg.$$eval('#resultDots .rdot', els => els.map(e => e.className.replace('rdot', '').trim()));
   assert(dots.length === 24, '24 result dots');
   assert(dots[0] === 'ok' && dots[1] === 'ok flag' && dots[2] === 'bad flag' && dots[6] === 'bad' && dots[17] === 'skip', 'dot states: ' + dots.slice(0, 3) + ' / ' + dots[6] + ' / ' + dots[17]);
-  assert((await text('#resultDotsMeta')) === 'Correct 17 | Wrong 6 | Unanswered 1 | Flagged 5', 'counts line');
+  // v1.6.1: two fixed rows, Correct + Unanswered / Wrong + Flagged (layout at every width: legend-test)
+  const metaRows = await pg.$$eval('#resultDotsMeta > .lg-row', els => els.map(e => e.textContent.replace(/\s+/g, ' ').trim()).join(' / '));
+  assert(metaRows === 'Correct 17 | Unanswered 1 / Wrong 6 | Flagged 5', 'counts rows: ' + metaRows);
 
   // CUI-0012: 320px — the 12-column grid stays inside the result card, no page side-scroll, dots still round with the number inside
   await pg.setViewportSize({ width: 320, height: 844 });

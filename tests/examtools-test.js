@@ -35,7 +35,9 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert((await pg.$$('#navDots .dot')).length === 24, '24 numbered dots');
   assert((await pg.$$eval('#navDots .dot', els => els.map(e => e.textContent).join(','))) === Array.from({ length: 24 }, (_, i) => i + 1).join(','), 'dots numbered 1–24');
   assert((await dotCls())[0] === 'current', 'dot 1 is current');
-  assert((await text('#dotsMeta')).replace(/\s+/g, ' ') === 'Answered 0 | Unanswered 24 | Flagged 0', 'counts: 0 / 24 / 0');
+  // v1.6.1: two fixed rows, Answered + Unanswered / Flagged (layout at every width: legend-test)
+  const metaRows = () => pg.$$eval('#dotsMeta > .lg-row', els => els.map(e => e.textContent.replace(/\s+/g, ' ').trim()).join(' / '));
+  assert((await metaRows()) === 'Answered 0 | Unanswered 24 / Flagged 0', 'counts: 0 / 24 / 0');
   assert(await vis('#flagBtn') && (await pg.$eval('#flagBtn', e => e.getAttribute('aria-label'))) === 'Flag for review', 'flag button (bookmark) visible before answering');
 
   // answer Q1, flag Q1 (answered + flagged = solid orange) and Q3 (unanswered + flagged = orange outline)
@@ -49,7 +51,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(cls[0] === 'done flag' && cls[1] === '' && cls[2] === 'flag current', 'dot states: answered+flagged / empty / flagged+current: ' + cls.slice(0, 3));
   assert(await pg.$eval('#navDots .dot:nth-child(1)', e => getComputedStyle(e).backgroundColor !== getComputedStyle(e).borderColor ? false : getComputedStyle(e).backgroundColor !== 'rgb(255, 255, 255)'), 'answered + flagged: solid fill');
   assert(await pg.$eval('#navDots .dot:nth-child(3)', e => getComputedStyle(e).backgroundColor === 'rgb(255, 255, 255)' && getComputedStyle(e).borderColor !== 'rgb(221, 226, 240)'), 'unanswered + flagged: outline only');
-  assert((await text('#dotsMeta')).replace(/\s+/g, ' ') === 'Answered 1 | Unanswered 23 | Flagged 2', 'counts update');
+  assert((await metaRows()) === 'Answered 1 | Unanswered 23 / Flagged 2', 'counts update');
   await pg.click('#flagBtn');
   assert((await dotCls())[2] === 'current', 'flag toggles off');
   await pg.click('#flagBtn');
