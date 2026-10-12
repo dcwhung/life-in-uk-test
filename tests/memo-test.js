@@ -352,6 +352,35 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   await pg.evaluate(() => { setFontSize('small'); setLang('en'); });
   await pg.setViewportSize({ width: 390, height: 844 });
 
+  // ── S-238 (b9443f4): at 320px, large text, every group's test header keeps the mode badge (Practice / 練習) on one line,
+  // on the same row as the memo back button and inside the screen; the set label wraps instead. (Not asserted: the header's
+  // own scrollWidth — en "🧠 CROWN DEPENDENCY" has one unbreakable word that pushes the badge ~8px into the right gutter) ──
+  await pg.setViewportSize({ width: 320, height: 568 });
+  const badgeBad = [];
+  for (const lang of ['en', 'zh-HK']) {
+    await pg.evaluate(l => { setFontSize('large'); setLang(l); }, lang);
+    badgeBad.push(...await pg.evaluate(() => {
+      const out = [];
+      const lines = el => { const r = document.createRange(); r.selectNodeContents(el); return new Set([...r.getClientRects()].map(x => Math.round(x.top))).size; };
+      MEMO_GROUPS.forEach(g => {
+        openMemoGroup(g.id);
+        startMemoTest();
+        const header = document.querySelector('#screenQuiz .quiz-header');
+        const back = header.querySelector('.back-btn').getBoundingClientRect(), badge = byId('modeBadge');
+        const bd = badge.getBoundingClientRect();
+        const sameRow = bd.top < back.bottom && bd.bottom > back.top;
+        if (!isMemoSession() || lines(badge) !== 1 || !sameRow || bd.right > window.innerWidth) {
+          out.push(`${getLang()} ${g.id}: lines ${lines(badge)}, same row ${sameRow}, badge right ${Math.round(bd.right)}`);
+        }
+        goHome(); // a memo test: back to the group's look view, nothing recorded
+      });
+      return out;
+    }));
+  }
+  assert(badgeBad.length === 0 && await noHScroll(), 'S-238: 320px large text: mode badge on one line beside the memo back button in every group test (en / zh-HK) ' + badgeBad.slice(0, 5).join('; '));
+  await pg.evaluate(() => { setFontSize('small'); setLang('en'); memoBack(); });
+  await pg.setViewportSize({ width: 390, height: 844 });
+
   // stored prefs / progress junk never breaks the tab
   await pg.evaluate(([k]) => { localStorage.setItem(k, '{bad'); localStorage.setItem('lifeuk.studyPrefs', JSON.stringify({ tab: 'memo', memoChapter: 'x' })); }, [MEMO_LS]);
   await pg.reload(); await pg.click('#modeStudy');
