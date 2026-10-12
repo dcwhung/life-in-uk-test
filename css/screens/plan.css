@@ -444,7 +444,12 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
    nothing here applies. Hard-coded px ×--desktop-scale (.proj-docs/plans/2026-10-12_desktop-px-inventory.md) ════════ */
 /* timeline phase colours on the navy card (mockup desktop-home-plan.html rev 4: the schedule's learn colour is the
    card's own navy, so lighter tints, mixed from the palette (no colour literals outside tokens.css); days still to come are an outline in their colour, a faded fill vanishes on navy) */
-.plan-card { --plan-cd-learn: color-mix(in srgb, var(--navy-light) 45%, var(--person-bg)); --plan-cd-drill: color-mix(in srgb, var(--purple-light) 70%, var(--card)); --plan-cd-mock: var(--orange); --plan-cd-rest: var(--text-inverse-faint); --plan-cd-line: 1.5px; }
+.plan-card { --plan-cd-learn: var(--navy-light); --plan-cd-drill: var(--purple-light); --plan-cd-mock: var(--orange); --plan-cd-rest: var(--text-inverse-faint); --plan-cd-line: 1.5px; }
+/* S-232: the tints only where color-mix() works; a custom property never rejects an unknown function, so without
+   @supports an older browser would keep the color-mix() text and draw the runs transparent (the plain colours above stay) */
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .plan-card { --plan-cd-learn: color-mix(in srgb, var(--navy-light) 45%, var(--person-bg)); --plan-cd-drill: color-mix(in srgb, var(--purple-light) 70%, var(--card)); }
+}
 @media (min-width: 1024px) {
   /* ── Home: create card (mockup desktop-home.html) and the navy card (desktop-home-plan.html A rev 7 + Ring + T) ── */
   .plan-cta { grid-template-columns: calc(44px * var(--desktop-scale)) minmax(0, 1fr) auto; }
