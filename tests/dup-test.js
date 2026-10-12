@@ -353,13 +353,13 @@ async function checkWording(pg) {
   const w = await pg.evaluate(() => {
     setLang('zh-HK');
     const out = { today: t('plan.run.allDoneToday'), day: t('plan.run.allDoneDayHtml', { day: 'X' }),
-      home: t('plan.home.doneHtml'), mock: t('plan.run.mockPassNote'), pill: t('plan.status.done') };
+      home: t('plan.home.seeTomorrow'), mock: t('plan.run.mockPassNote'), pill: t('plan.status.done') };
     setLang('en');
-    return { ...out, en: t('plan.run.allDoneToday'), enHome: t('plan.home.doneHtml'), enMock: t('plan.run.mockPassNote'), enPill: t('plan.status.done'), v: APP_VERSION };
+    return { ...out, en: t('plan.run.allDoneToday'), enHome: t('plan.home.seeTomorrow'), enMock: t('plan.run.mockPassNote'), enPill: t('plan.status.done'), v: APP_VERSION };
   });
   assert(w.today === '今日任務已全部完成！' && w.day === 'X 任務已全部完成！', 'zh-HK 「已全部完成」: ' + JSON.stringify(w));
-  assert(w.home === '<b>✓ 今日已完成</b>，明日再來' && w.mock === '✓ 模擬考試任務已完成' && w.pill === '✓ 已完成', 'zh-HK 「已完成」 (home card, mock pass, day pill): ' + JSON.stringify(w));
-  assert(w.en === "All of today's tasks are done!" && w.enHome === '<b>✓ Done for today</b>, see you tomorrow' && w.enMock === '✓ Mock exam task done', 'en unchanged: ' + w.enPill);
+  assert(w.home === '明日再來' && w.mock === '✓ 模擬考試任務已完成' && w.pill === '✓ 已完成', 'zh-HK 「已完成」 (mock pass, day pill; v1.5.1 home card: 「明日再來」): ' + JSON.stringify(w));
+  assert(w.en === "All of today's tasks are done!" && w.enHome === 'See you tomorrow' && w.enMock === '✓ Mock exam task done', 'en unchanged: ' + w.enPill);
   assert(w.enPill === '✓ Done', 'en day pill unchanged');
   assert(w.v === APP_VERSION_FILE, 'APP_VERSION matches config.js: ' + w.v);
 }
