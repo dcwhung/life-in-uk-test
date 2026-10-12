@@ -151,7 +151,7 @@ function renderMyReview() {
   byId('myReview').classList.toggle('show', pendingMode === PRACTICE_MODE && (wrongN + flagN) > 0);
   renderReviewTile('tileWrong', wrongN, '✗', t('home.wrongTitle'), wrongTileBody(wrongN));
   renderReviewTile('tileFlagged', flagN, bookmarkSvg('rv-flag-tile'), t('home.flaggedTitle'), flaggedTileBody(flagN));
-  fitRows(byId('myReview')); // v1.3.1: side by side unless a title or empty line would wrap (the long note may)
+  fitRows(byId('myReview')); // v1.3.1: side by side unless a title or empty line would wrap, or the note pass MY_REVIEW_NOTE_LINES
 }
 function startWrongReview() { pendingMode = PRACTICE_MODE; startExam(WRONG_EXAM); }
 function startFlaggedPractice() { pendingMode = PRACTICE_MODE; startExam(FLAGGED_EXAM); }

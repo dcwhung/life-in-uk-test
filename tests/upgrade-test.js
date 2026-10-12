@@ -274,6 +274,11 @@ async function v130Shell(b) {
     cut: [...document.querySelectorAll('#planDaysChips .chip, #planLevelGrid .mode-title')].filter(e => e.scrollWidth > e.clientWidth + 1).map(e => e.textContent),
   }));
   assert(r.presets && r.levels && r.cut.length === 0, 'v1.3.0 shell 320px: presets 2 × 2, level cards stacked, nothing cut: ' + JSON.stringify(r));
+  // S-207: the shim marks the same rows with the same texts as the current index.html
+  const current = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const shim = await pg.evaluate(() => LEGACY_FIT_ROWS.map(([row, texts]) => [document.querySelector(row).dataset.fitRow, texts]));
+  const marked = [...current.matchAll(/data-fit-row="([^"]+)"/g)].map(m => m[1]);
+  assert(shim.length === marked.length && shim.every(([, texts]) => marked.includes(texts)), 'v1.3.0 shell: LEGACY_FIT_ROWS matches index.html data-fit-row: ' + JSON.stringify({ shim, marked }));
   assert(errs.length === 0, 'v1.3.0 shell: no page errors: ' + errs.join(' | '));
   await pg.close();
 }
