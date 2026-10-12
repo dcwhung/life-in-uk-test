@@ -235,7 +235,7 @@ LOCALES.en = {
     difficultyTitle: 'Difficulty {d}/{max}',
     // Cantonese section labels stay in Chinese in en (whitelisted in tests/i18n-test.js)
     yueTitle: '【廣東話翻譯】',
-    noteLabel: '💡 備注：',
+    noteLabel: '💡 備註：',
   },
 
   plan: {

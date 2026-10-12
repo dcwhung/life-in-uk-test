@@ -15,7 +15,7 @@ LOCALES['zh-HK'] = {
     name: 'Life in the UK Test',
     sub: '應試練習',
     about: '關於本程式',
-    infoIntro: '收錄 {n} 條 lifeintheuktestweb.co.uk 官方風格題目，附廣東話翻譯及備注。',
+    infoIntro: '收錄 {n} 條 lifeintheuktestweb.co.uk 官方風格題目，附廣東話翻譯及備註。',
     infoExams: '📋 {n} 份試卷',
     infoChapters: '📚 {n} 個章節',
     infoQuestions: '❓ {n} 題',
@@ -225,7 +225,7 @@ LOCALES['zh-HK'] = {
     streak: '🔥 {n}/{max}',
     difficultyTitle: '難度 {d}/{max}',
     yueTitle: '【廣東話翻譯】',
-    noteLabel: '💡 備注：',
+    noteLabel: '💡 備註：',
   },
 
   plan: {
