@@ -134,6 +134,18 @@ function paramProblems(key, enValue, zhValue) {
     return paramsOf(text) === paramsOf(want) ? [] : [`${key}.${form}: {${paramsOf(text)}} vs en {${paramsOf(want)}}`];
   });
 }
+function tagProblems(key, enValue, zhValue) {
+  const en = formsOf(enValue), zh = formsOf(zhValue);
+  const forms = [...new Set([...Object.keys(en), ...Object.keys(zh)])];
+  return forms.filter(form => tagsOf(en[form] ?? en.other ?? '') !== tagsOf(zh[form] ?? zh.other ?? '')).map(form => `${key}.${form}`);
+}
+// [en, zh, tags match?]
+const TAG_SAMPLES = [
+  [{ one: '<b>1</b> day', other: '<b>{n}</b> days' }, { other: '<b>{n}</b> 日' }, true],
+  [{ one: '1 day', other: '<b>{n}</b> days' }, { other: '<b>{n}</b> 日' }, false],
+  ['<b>{n}</b>', '{n}', false],
+  ['<b>{n}</b>', '<b>{n}</b>', true],
+];
 function zhHkChecks() {
   const locales = loadLocales();
   const zh = locales[ZH_HK];
@@ -144,8 +156,11 @@ function zhHkChecks() {
   assert(extra.length === 0, `${ZH_HK} has no key en lacks` + (extra.length ? ': ' + extra.join(', ') : ''));
   const badParams = [...zhMap].flatMap(([k, v]) => paramProblems(k, enMap.get(k), v));
   assert(badParams.length === 0, `${ZH_HK} uses the same {params} as en per form` + (badParams.length ? ': ' + badParams.join(' / ') : ''));
-  // v2.0.0: a plural …Html value (plan.home.cdLeftHtml) compares its `other` form
-  const badTags = [...zhMap].filter(([k, v]) => /Html$/.test(k) && tagsOf(formsOf(v).other) !== tagsOf(formsOf(enMap.get(k)).other)).map(([k]) => k);
+  // v2.0.0 / S-234: a plural …Html value (plan.home.cdLeftHtml): every form on either side has the tags of the other
+  // locale's same form (or its `other` when that locale has no such form), so en "1 day" cannot lose a tag
+  const sampleTagMisses = TAG_SAMPLES.filter(([en, zh, want]) => (tagProblems('sample', en, zh).length === 0) !== want);
+  assert(sampleTagMisses.length === 0, `…Html tag guard reads ${TAG_SAMPLES.length} in-memory samples right`);
+  const badTags = [...zhMap].filter(([k]) => /Html$/.test(k)).flatMap(([k, v]) => tagProblems(k, enMap.get(k), v));
   assert(badTags.length === 0, `${ZH_HK} …Html values have en's tag sequence` + (badTags.length ? ': ' + badTags.join(', ') : ''));
   const markup = [...zhMap].filter(([k, v]) => !/Html$/.test(k) && Object.values(formsOf(v)).some(s => /<|&[a-z#]/i.test(s))).map(([k]) => k);
   assert(markup.length === 0, `${ZH_HK} values outside …Html keys have no tags or entities` + (markup.length ? ': ' + markup.join(', ') : ''));
