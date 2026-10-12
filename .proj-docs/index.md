@@ -111,6 +111,10 @@
 - [2026-10-06_qa_v061-pwa.md](qa/2026-10-06_qa_v061-pwa.md)
 - [2026-10-06_qa_v060-fixes_batch.md](qa/2026-10-06_qa_v060-fixes_batch.md)
 
+## Deploys
+
+- [2026-10-12_deploy_v150.md](deploys/2026-10-12_deploy_v150.md) — v1.5.0 主頁計劃卡今日進度環 deploy（PR #103，`a191835`；Pages run 38277273934 success；smoke 12/12 + plan-day PASS 喺 a191835 tree；live host 被 session proxy 擋（403），未直接 probe）
+
 ## Plans
 
 - [2026-10-12_handoff_memo-followup-apply.md](plans/2026-10-12_handoff_memo-followup-apply.md) + [2026-10-12_memo-followup-spec.json](plans/2026-10-12_memo-followup-spec.json) — 記憶法跟進（67 題 note、#126 併入 #125 + migration）；v1.3.2 已套用（#125 d 用 5，見 HANDOFF v1.3.2）；review 過程喺 branch `claude/relaxed-hamilton-3x7vm6`
