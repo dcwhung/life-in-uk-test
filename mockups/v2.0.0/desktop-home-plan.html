@@ -238,6 +238,9 @@
   /* ring: name and Next run across the text + ring columns; the ring sits beside the countdown */
   .optA .plan-card.wide.ring .plan-home { grid-template-columns: minmax(0, 1fr) auto auto; grid-template-rows: 1fr auto auto auto 1fr; grid-template-areas: ". . acts" "top top acts" "next next acts" "cd prog acts" ". . acts"; }
   .optA .plan-card.wide.ring .plan-home-ring { margin-top: var(--space-3); }
+  /* rev 7 (user): the buttons sit in the ring's row, their bottom on the ring's bottom */
+  .optA .plan-card.wide.ring.has-cd .plan-home { grid-template-areas: ". . ." "top top ." "next next ." "cd prog acts" ". . ."; }
+  .optA .plan-card.wide.ring.has-cd .plan-home-acts { align-self: end; }
   /* ring without the timeline (countdown as text): the ring sits beside the name and Next instead */
   .optA .plan-card.wide.ring:not(.has-cd) .plan-home { grid-template-rows: 1fr auto auto 1fr; grid-template-areas: ". prog acts" "top prog acts" "next prog acts" ". prog acts"; }
   .optA .plan-card.wide.ring .plan-home-ring { grid-area: prog; }
@@ -260,7 +263,7 @@
 <body>
 
 <div class="mock-bar">
-  <b>v2.0.0 Desktop · Mockup 4/12 · Home（有 plan）· rev 6：下一步一行 + 今日標喺 bar 上</b>
+  <b>v2.0.0 Desktop · Mockup 4/12 · Home（有 plan）· rev 7：掣同 ring 底對齊</b>
   <div class="mock-row"><span class="lbl">語言</span><button class="mock-tab on" data-k="lang" data-v="en">EN</button><button class="mock-tab" data-k="lang" data-v="zh">中文</button>
     <span class="lbl" style="margin-left:10px">翻譯</span><button class="mock-tab on" data-k="yue" data-v="on">開</button><button class="mock-tab" data-k="yue" data-v="off">關</button>
     <span class="lbl" style="margin-left:10px">⚙ 大字</span><button class="mock-tab on" data-k="large" data-v="off">關</button><button class="mock-tab" data-k="large" data-v="on">開</button></div>
@@ -505,6 +508,7 @@ const OPTIONS = [
     ann: `<ul><li>同未有計劃時嘅「建立溫習計劃」卡同一個位（頂部橫跨），轉態時版面唔會跳。</li>
       <li><b>rev 2</b>：<b>左</b>由上至下：計劃名 + Day + 倒數 → 今日完成度 + bar → 下一步；<b>右</b>：「繼續今日任務」同「進度表」上下兩行、一樣闊、靠右。</li>
       <li>休息日冇 bar（只寫「今日是休息日」）；考試日同完結冇完成度嗰行。</li>
+      <li><b>rev 7</b>：Ring 版右邊兩粒掣同 ring 底部對齊。</li>
       <li><b>rev 6</b>：「下一步」搬到計劃名下面，一行顯示；時間軸唔再寫 Day n，只係喺 bar 上面、金色線左邊寫「今日」。</li>
       <li><b>rev 5 · 倒數時間軸</b>：目的係一眼睇到仲有幾多日考試。時間軸上面有條金色括號，由今日去到考試，上面用金色大字寫剩低幾多日；bar 按階段上色（讀 + 練／強化／模擬），已過實色、未到外框；金色直線同下面嘅「今日 · Day n」標住今日；兩頭係開始日同 🎯 考試日。</li>
       <li><b>長計劃</b>（頂部「計劃長度」試 3 個月／半年）：6 星期或以內一日一格；再長就唔再逐日畫，每個階段一段連續 bar（休息日併入），下面加月份刻度。剩餘日數嘅括號太窄（少過 bar 嘅 28%）時，數字會靠右對齊考試日，唔會擠爆。Ring 放中間（文字｜ring｜掣）。</li>
