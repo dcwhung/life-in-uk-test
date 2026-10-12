@@ -300,6 +300,15 @@ async function v130SingleFile(b, file) {
   const r = await pg.evaluate(() => ({ opened: byId('settingsPop').classList.contains('show'), row: byId('settingsTransRow').hidden,
     shown: byId('settingsTransRow').getClientRects().length > 0, attr: document.documentElement.hasAttribute('data-translation') }));
   assert(r.opened && r.row && !r.shown && !r.attr && errs.length === 0, `v1.3.0 ${file} + current files: ⚙ opens, translation row hidden, translations on, no page errors: ` + JSON.stringify({ ...r, errs }));
+  if (file === 'locales/en.js') {
+    // S-205: a stored "off" (picked on a v1.4.0 page) + the v1.3.0 en.js (no home.practiceDescNoYueHtml) — the Home
+    // Practice description keeps the original sentence instead of the raw key
+    await pg.evaluate(() => localStorage.setItem('lifeuk.translation', JSON.stringify('off')));
+    await pg.reload();
+    await pg.waitForSelector('#examGrid .exam-btn', { state: 'attached' });
+    const off = await pg.evaluate(() => ({ attr: document.documentElement.dataset.translation || '', desc: byId('modeDesc').textContent }));
+    assert(off.attr === 'off' && !off.desc.includes('home.') && off.desc.includes('Practice') && errs.length === 0, `S-205 v1.3.0 ${file} + stored off: Home shows no raw key: ` + JSON.stringify({ ...off, errs }));
+  }
   await pg.close();
 }
 
