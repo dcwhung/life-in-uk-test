@@ -105,6 +105,10 @@
   --space-10: 20px;
   --space-12: 24px;
 
+  /* app header bar height (css/base/layout.css .header-inner); screens that pin a block under the sticky header
+     (css/screens/flagged.css .flagged-top) stick at this offset */
+  --header-h: 58px;
+
   /* switch (css/components/switch.css): the off track on a dark surface (the ⓘ popover) */
   --switch-track-inverse: rgba(255,255,255,0.25);
 
