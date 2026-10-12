@@ -174,7 +174,7 @@ LOCALES['zh-HK'] = {
     chapterFactId: 'Ch {ch} #{n}',
   },
 
-  // v1.6.0: memory-note study (Study tab 5); the step / button words follow the user's mockup (memo-study.html v2)
+  // v1.6.0: memory-note study (Study tab 5); the step / button words follow the user's memo mockup v2 (deleted at release; design: .proj-docs/design-baselines/2026-10-12_memo-*.png)
   memo: {
     search: '搜尋記憶法',
     count: '{shown} / {total} 組',

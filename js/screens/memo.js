@@ -1,5 +1,5 @@
 // ════════════════════════════════════════
-// MEMO SCREEN — memory-note study (v1.6.0, mockup mockups/memo-study.html v2): Study tab 5 lists the groups
+// MEMO SCREEN — memory-note study (v1.6.0, memo mockup v2 (deleted at release; design: .proj-docs/design-baselines/2026-10-12_memo-*.png)): Study tab 5 lists the groups
 // (js/domain/memo.js); a group opens #screenMemo: ① look (the memory hook + the memory note) → ② test (a side session on
 // the quiz screen, js/screens/sideSession.js) → result (score, new level, next review) on the same screen.
 // ════════════════════════════════════════

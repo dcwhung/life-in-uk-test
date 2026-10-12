@@ -157,7 +157,7 @@ LOCALES.en = {
     search: 'Search facts', // R2-1: never mentions English / Cantonese (matching still covers both)
     tabChapters: 'Chapters', // v1.2.0 (C4): the tab icon sits above the label in index.html
     tabTimeline: 'Timeline',
-    tabGeo: 'Geo', // v1.6.0: short, as in the memo mockup, so five tabs fit one row at 360px
+    tabGeo: 'Geo', // v1.6.0: short, as in the memo mockup v2 (deleted), so five tabs fit one row at 360px
     tabPeople: 'People',
     tabMemo: 'Memory', // v1.6.0: memory-note groups (memo.*)
     hideMastered: '✓ Hide mastered',

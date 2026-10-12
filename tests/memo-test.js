@@ -1,4 +1,4 @@
-// Memory-note study (v1.6.0, mockup mockups/memo-study.html v2: pick a group → look → test → result): Study tab 5 "🧠",
+// Memory-note study (v1.6.0, memo mockup v2 (deleted at release; design: .proj-docs/design-baselines/2026-10-12_memo-*.png): pick a group → look → test → result): Study tab 5 "🧠",
 // the group list (chapter chips, search, due banner, status cards), the group screen (#screenMemo: hook + memory note,
 // test via the side session, result + schedule), stored progress, 360px fit, en + zh-HK strings and lang marks.
 const { chromium } = require('playwright-core');
