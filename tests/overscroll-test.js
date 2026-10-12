@@ -96,6 +96,15 @@ async function checkBottomEdge(pg, tk, vp, label) {
   assert(only(edge, tk.bg), `${label}: the bottom of the viewport is --bg, no navy band: ` + edge.slice(0, 5).join(' / '));
 }
 
+// CUI-0029: print pages end where the content ends, so the canvas shows below it on the last page; with background
+// graphics on, a navy canvas filled that space. In print the canvas is --bg again
+async function checkPrint(pg, tk) {
+  await pg.emulateMedia({ media: 'print' });
+  const html = await pg.evaluate(() => getComputedStyle(document.documentElement).backgroundColor);
+  await pg.emulateMedia({ media: 'screen' });
+  assert(html === tk.bg, 'print: html background is --bg, no navy below the content on the last page: ' + html);
+}
+
 async function checkSticky(pg) {
   const top = await pg.evaluate(async () => {
     window.scrollTo(0, 500);
@@ -125,6 +134,7 @@ async function checkSticky(pg) {
   await checkPullUp(phone, tk, PHONE);
   await checkBottomEdge(phone, tk, PHONE, 'long page scrolled to the end');
   await checkSticky(phone);
+  await checkPrint(phone, tk);
 
   const tall = await open(TALL);
   const short = await tall.evaluate(h => document.documentElement.scrollHeight <= h, TALL.height);

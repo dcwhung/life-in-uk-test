@@ -17,6 +17,9 @@ body {
    a bounce at the bottom shows navy too. */
 html { overscroll-behavior-y: none; background: var(--navy); }
 body { overscroll-behavior-y: none; }
+/* CUI-0029: print pages end where the content ends, so the canvas shows below it on the last page; keep it --bg there
+   (no bounce to cover in print) */
+@media print { html { background: var(--bg); } }
 /* form controls use the body font, not the UA default (Linux Chromium: Arial). Family only, not the `font`
    shorthand: that would also reset size / weight, and unsized controls (ⓘ, flag, unflag) would pick up their
    parent's size and weight instead of the UA 13.33px / 400 they render with today. */
