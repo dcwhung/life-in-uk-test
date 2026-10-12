@@ -125,6 +125,14 @@ async function checkFallback(b) {
   const r = await pg.evaluate(keptId => { openStudy(); return { legacy: localStorage.getItem('studyMastered'), fallback: LS_KEY_FALLBACK['lifeuk.studyMastered'], shown: !!study.mastered[keptId] }; }, KEPT_ID);
   const legacy = JSON.parse(r.legacy || 'null');
   assert(r.fallback === 'studyMastered' && legacy && legacy[KEPT_ID] && !(OLD_ID in legacy) && r.shown, `S-199: on the fallback key the mark moves to ${KEPT_ID} even though the new key throws (${r.legacy})`);
+  // W-058 / S-200: the new name still held 126 when its write failed, so no marker yet; once the quota frees, the next
+  // load merges the names and moves 126 then (a marker written too early would leave 126 for good)
+  const marker1 = await pg.evaluate(k => localStorage.getItem(k), MARKER);
+  assert(marker1 === null, `W-058: no marker while a name could not be rewritten (${marker1})`);
+  await pg.evaluate(() => sessionStorage.removeItem('stubOn'));
+  await pg.reload();
+  const after = await pg.evaluate(() => ({ marks: JSON.parse(localStorage.getItem('lifeuk.studyMastered') || 'null'), marker: localStorage.getItem('lifeuk.factIdsMerged') }));
+  assert(after.marks && after.marks[KEPT_ID] && !(OLD_ID in after.marks) && after.marker, `W-058: after the quota frees, the merged marks hold ${KEPT_ID}, not ${OLD_ID}, and the marker is written: ${JSON.stringify(after)}`);
   await pg.close();
 }
 

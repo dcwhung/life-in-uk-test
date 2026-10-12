@@ -70,10 +70,12 @@ function migrateFactIds() {
   const done = mergedFactIds();
   const todo = all.filter(([oldId]) => !done.includes(oldId));
   if (!todo.length) return;
-  const moved = FACT_ID_MAP_LS.map(key => rewriteStoredJson(key, v => mergeFactMap(v, todo)));
-  // the marker (marks only) is written once something moved: storage with no old id stays untouched (and is checked
-  // again, so an old id a cached older page writes during the SW cutover still moves on the next load)
-  if (moved.some(Boolean)) localStorage.setItem(FACT_MERGE_LS, JSON.stringify([...done, ...todo.map(([oldId]) => oldId)]));
+  const results = FACT_ID_MAP_LS.map(key => rewriteStoredJson(key, v => mergeFactMap(v, todo)));
+  // the marker (marks only) is written once something moved and nothing failed: storage with no old id stays untouched
+  // (and is checked again, so an old id a cached older page writes during the SW cutover still moves on the next
+  // load); W-058: a name whose write failed still holds the old id, so the next load must try again
+  if (results.includes(REWRITE_FAILED) || !results.includes(REWRITE_DONE)) return;
+  localStorage.setItem(FACT_MERGE_LS, JSON.stringify([...done, ...todo.map(([oldId]) => oldId)]));
 }
 function mergedFactIds() {
   try {
@@ -82,21 +84,24 @@ function mergedFactIds() {
   } catch { return []; }
 }
 // a value that does not parse is left as stored (the screen that owns it decides); fn returns undefined = no change.
-// Returns whether it wrote.
+// Returns REWRITE_DONE / REWRITE_NONE / REWRITE_FAILED (a failed name outranks a done one).
 // S-195: with a legacy fallback both names are rewritten, so the next legacy merge cannot bring the old id back
+const REWRITE_DONE = 'done', REWRITE_NONE = 'none', REWRITE_FAILED = 'failed';
 function rewriteStoredJson(key, fn) {
-  return [...new Set([key, LS_KEY_FALLBACK[key] || key])].map(name => rewriteStoredName(name, fn)).some(Boolean);
+  const results = [...new Set([key, LS_KEY_FALLBACK[key] || key])].map(name => rewriteStoredName(name, fn));
+  if (results.includes(REWRITE_FAILED)) return REWRITE_FAILED;
+  return results.includes(REWRITE_DONE) ? REWRITE_DONE : REWRITE_NONE;
 }
 function rewriteStoredName(name, fn) {
   const raw = localStorage.getItem(name);
-  if (raw === null) return false;
+  if (raw === null) return REWRITE_NONE;
   let value;
-  try { value = JSON.parse(raw); } catch { return false; }
+  try { value = JSON.parse(raw); } catch { return REWRITE_NONE; }
   const next = fn(value);
-  if (next === undefined) return false;
+  if (next === undefined) return REWRITE_NONE;
   // S-199: one name that will not take the write (quota: often why a fallback exists) must not stop the other
-  try { localStorage.setItem(name, JSON.stringify(next)); } catch (e) { console.warn('fact id migration: ' + name, e); return false; }
-  return true;
+  try { localStorage.setItem(name, JSON.stringify(next)); } catch (e) { console.warn('fact id migration: ' + name, e); return REWRITE_FAILED; }
+  return REWRITE_DONE;
 }
 // { [factId]: mark }: the kept id keeps its own mark, else takes the merged one's (OR)
 function mergeFactMap(map, todo) {
