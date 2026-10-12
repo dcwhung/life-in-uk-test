@@ -113,7 +113,8 @@
 .my-review.show { display: block; }
 .my-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-5); margin-bottom: var(--space-10); }
 /* v1.3.1 (user; replaces v1.0.3's portrait / landscape rule): side by side while each tile's title and empty line fit
-   on one line, else stacked, each full width (js/components/fitRow.js) */
+   on one line and the wrong tile's note on two (MY_REVIEW_NOTE_LINES in home.js), else stacked, each full width
+   (js/components/fitRow.js) */
 .my-grid.is-stacked { grid-template-columns: minmax(0, 1fr); }
 /* grid stretches both tiles to one height; flex column keeps a short tile's content at the top
    (a <button> centres its content vertically by default) */
