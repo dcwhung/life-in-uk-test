@@ -5,6 +5,7 @@
   border-radius: 20px;
   padding: var(--space-2) var(--space-6);
   font-size: var(--fs-xs); font-weight: 700;
+  white-space: nowrap; flex-shrink: 0; /* C2: a wider text back button ("‹ 記憶法") at 320px wraps the label, never 練 / 習 */
 }
 .quiz-meta { display: flex; align-items: center; gap: var(--space-4); }
 
