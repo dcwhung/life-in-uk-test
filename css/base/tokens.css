@@ -158,6 +158,11 @@
   /* W-380: the desktop timeline's drill colour on that card, purple-light 70% on white worked out once (4.0:1 on
      navy-light; purple-light itself is 2.5:1), so a browser without color-mix() draws the same tint */
   --plan-cd-drill-tint: #b999da;
+  /* CUI-0030 (user 2026-10-12, option B): the timeline's learn colour, one light blue in every browser (mockup
+     desktop-home-plan.html --cd-learn, a shade lighter: 4.6:1 on navy-light, 2.0:1 off the rest day below) */
+  --plan-cd-learn-tint: #9fb0f0;
+  /* CUI-0030: a rest day sits quiet on that card (mockup --cd-rest, white 30%: 2.3:1 on navy-light, exempt from 3:1) */
+  --plan-cd-rest-tint: rgba(255,255,255,0.30);
   /* exam day: amber with a fine gold lattice; days already gone sit on a lighter grey row */
   --plan-exam-bg: #f2a93b;
   --plan-exam-line: rgba(255,214,120,0.75);

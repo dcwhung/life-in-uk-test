@@ -215,13 +215,20 @@ async function checkNextLine(b) {
 // W-380: the plain timeline colours outside @supports (color-mix) are what an older browser (iPadOS 15) draws; each one
 // must stand off the navy card itself (never the card's own colour; ≥ 3:1, WCAG 1.4.11), translucent ones composited
 const FALLBACK_MIN_CONTRAST = 3;
+// CUI-0030: the rest day is meant to sit quiet on the navy card (white 30%, user 2026-10-12: exempt from the 3:1), but
+// a past learn day and a rest day must still tell apart at a glance (they were 1.14:1 with the color-mix tint)
+const LEARN_REST_MIN_CONTRAST = 1.8;
+const QUIET_PHASES = ['rest'];
 // the stylesheet is read here: file:// pages can't read their own cssRules
 const PLAN_CSS = path.join(__dirname, '..', 'css', 'screens', 'plan.css');
 const plainTimelineColours = () => {
   const line = fs.readFileSync(PLAN_CSS, 'utf8').split('\n').find(l => /^\.plan-card \{[^}]*--plan-cd-learn:/.test(l)) || '';
   return Object.fromEntries([...line.matchAll(/--plan-cd-(learn|drill|mock|rest):\s*([^;]+);/g)].map(m => [m[1], m[2].trim()]));
 };
+// CUI-0030: one set of colours in every browser: no --plan-cd-* is ever re-set to a color-mix() (an @supports tint)
+const mixedTimelineColours = () => [...fs.readFileSync(PLAN_CSS, 'utf8').matchAll(/--plan-cd-[a-z]+:\s*color-mix/g)].length;
 async function checkFallbackColours(b) {
+  assert(mixedTimelineColours() === 0, 'CUI-0030: the timeline colours are plain tokens in every browser (no color-mix() override)');
   const o = await openWithPlan(b, { days: 21, dayN: 9 });
   const plain = plainTimelineColours();
   const res = await o.page.evaluate(plain => {
@@ -231,22 +238,51 @@ async function checkFallbackColours(b) {
     const lum = rgb => rgb.map(v => v / 255).map(v => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))
       .reduce((s, v, i) => s + v * [0.2126, 0.7152, 0.0722][i], 0);
     const ratio = (x, y) => { const [hi, lo] = [lum(x), lum(y)].sort((p, q) => q - p); return (hi + 0.05) / (lo + 0.05); };
+    const over = c => { const x = rgba(c); return x.rgb.map((v, i) => Math.round(v * x.a + bg[i] * (1 - x.a))); };
     const probe = document.createElement('i');
     home.appendChild(probe);
     const out = ['learn', 'drill', 'mock', 'rest'].map(ph => {
       const raw = plain[ph] || '';
       probe.style.backgroundColor = raw;
-      const c = rgba(getComputedStyle(probe).backgroundColor);
-      const rgb = c.rgb.map((v, i) => Math.round(v * c.a + bg[i] * (1 - c.a)));
-      return { ph, raw, same: rgb.every((v, i) => v === bg[i]), ratio: ratio(rgb, bg) };
+      const rgb = over(getComputedStyle(probe).backgroundColor);
+      return { ph, raw, rgb, same: rgb.every((v, i) => v === bg[i]), ratio: ratio(rgb, bg) };
     });
     probe.remove();
-    return { found: out.every(r => r.raw), out };
+    // what is drawn: every past cell's fill and every day still to come's outline (box-shadow colour), by phase
+    const drawn = {};
+    document.querySelectorAll('.plan-cd-track > i').forEach(el => {
+      const ph = ['learn', 'drill', 'mock', 'rest'].find(p => el.classList.contains(`plan-cd-${p}`));
+      const future = el.classList.contains('future'), cs = getComputedStyle(el);
+      const key = `${ph}${future ? 'Next' : ''}`;
+      (drawn[key] = drawn[key] || new Set()).add(over(future ? cs.boxShadow.match(/rgba?\([^)]*\)/)[0] : cs.backgroundColor).join());
+    });
+    const shown = Object.fromEntries(Object.entries(drawn).map(([k, v]) => [k, [...v]]));
+    const learnRest = shown.learn && shown.rest ? ratio(shown.learn[0].split(',').map(Number), shown.rest[0].split(',').map(Number)) : 0;
+    return { found: out.every(r => r.raw), out, shown, learnRest };
   }, plain);
-  assert(res.found, 'the plain (no color-mix) timeline colours are all set on .plan-card outside @supports');
-  res.out.forEach(r => assert(!r.raw.includes('color-mix') && !r.same && r.ratio >= FALLBACK_MIN_CONTRAST,
-    `no color-mix: ${r.ph} (${r.raw}) stands off the navy card, ${r.ratio.toFixed(2)}:1 ≥ ${FALLBACK_MIN_CONTRAST}:1`));
+  assert(res.found, 'the plain (no color-mix) timeline colours are all set on .plan-card');
+  res.out.forEach(r => {
+    const quiet = QUIET_PHASES.includes(r.ph);
+    assert(!r.raw.includes('color-mix') && !r.same && (quiet || r.ratio >= FALLBACK_MIN_CONTRAST),
+      `${r.ph} (${r.raw}) stands off the navy card, ${r.ratio.toFixed(2)}:1${quiet ? ' (quiet: only ≠ the card)' : ` ≥ ${FALLBACK_MIN_CONTRAST}:1`}`);
+  });
+  const want = Object.fromEntries(res.out.map(r => [r.ph, r.rgb.join()]));
+  const s = res.shown;
+  assert(s.learn && s.rest && s.restNext && s.drillNext && s.mockNext, 'Day 9 / 21: past learn and rest cells, rest / drill / mock still to come');
+  Object.entries(s).forEach(([k, v]) => {
+    const ph = k.replace('Next', '');
+    assert(v.length === 1 && v[0] === want[ph], `every ${k.endsWith('Next') ? 'future ' + ph + ' outline' : 'past ' + ph + ' fill'} takes the ${ph} colour (${v.join(' / ')} = ${want[ph]})`);
+  });
+  assert(res.learnRest >= LEARN_REST_MIN_CONTRAST, `CUI-0030: a past learn day and a rest day tell apart, ${res.learnRest.toFixed(2)}:1 ≥ ${LEARN_REST_MIN_CONTRAST}:1`);
   await o.page.close();
+  // a learn day still to come (Day 3: learn runs on past Day 8): its outline is the same light blue
+  const early = await openWithPlan(b, { days: 21, dayN: 3 });
+  const next = await early.page.evaluate(() => {
+    const el = document.querySelector('.plan-cd-track > i.plan-cd-learn.future');
+    return el ? getComputedStyle(el).boxShadow.match(/rgba?\([^)]*\)/)[0].match(/\d+/g).slice(0, 3).join() : null;
+  });
+  assert(next === want.learn, `a future learn outline takes the learn colour (${next} = ${want.learn})`);
+  await early.page.close();
 }
 
 (async () => {
