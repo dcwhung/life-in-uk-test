@@ -1,0 +1,44 @@
+# v2.0.0 Desktop / Tablet 橫版 layout — grill 決定（2026-10-12）
+
+目標：功能完全不變，喺 PC／平板橫放按畫面闊度用盡空間，字同間距放大。
+
+## 決定
+
+| # | 決定 | 結果 |
+|---|---|---|
+| Q1 | 排版方案 | B 分欄：token 放大，再逐個畫面改做分欄或者 grid（唔用 zoom） |
+| Q2 | Breakpoint | ≥ 1024px 先用 desktop layout；< 1024px（手機、直放平板）維持 v1.4.0 |
+| Q3 | 最闊 | 內容（header + main）最闊 1280px，再闊就置中 |
+| Q4 | 字體 | ≥ 1024px 所有 `--fs-*` ×1.2 |
+| Q5 | ⚙ 大字疊加 | 桌面大字 = (基礎 + 2px) × 1.2 |
+| Q6 | 間距／icon | `--space-*`、icon、header 高度、題號點上限都 ×1.2 |
+| Q7 | 第一份 mockup | Home |
+| Q8 | PR | 12 份 mockup 全部 approve 之後先開一個 PR |
+| Q9 | Mockup 形式 | 每份 2–3 個方案，每個方案有 1024 / 1280px frame |
+| Q10 | 次序 | 跟 user flow（見下表） |
+| Q11 | 語言 | Mockup 有 EN / 中文、翻譯開 / 關、⚙ 大字 toggle |
+| — | Mockup 位置 | `mockups/v2.0.0/desktop-*.html` |
+| — | 唔包 | 鍵盤快捷鍵、hover 專用新功能、直放平板 layout |
+
+## Mockup 進度
+
+| # | 畫面 | 檔案 | 狀態 |
+|---|---|---|---|
+| 1 | Home（未有 plan） | `desktop-home.html` | ✅ 定案 A（rev 3）：計劃卡橫向一行；左欄（5/12，sticky）選擇模式 + 模式說明 + 提示同重設；右欄（7/12）My Review + 練習分類 tabs + 題組 |
+| 2 | Plan Goal | `desktop-plan-goal.html` | 待揀 |
+| 3 | Plan Schedule | — | 未做 |
+| 4 | Home（有 plan） | — | 未做 |
+| 5 | Plan Day | — | 未做 |
+| 6 | Plan Run | — | 未做 |
+| 7 | Study | — | 未做 |
+| 8 | Quiz（Practice） | — | 未做 |
+| 9 | Quiz（Exam） | — | 未做 |
+| 10 | Result | — | 未做 |
+| 11 | Flagged / Wrong Review | — | 未做 |
+| 12 | 全局浮層（Modal / Toast / popover） | — | 未做 |
+
+## 實作備忘
+
+- Home A 左欄 sticky：⚙ 大字 + 中文時左欄可能高過畫面，實作要處理（例如左欄高過 viewport 就取消 sticky）。
+- PR description：`Design Origin: mockup: mockups/v2.0.0/desktop-*.html`。
+- 要加 1024 / 1280px Playwright test 同 screenshot baseline；現有 390px test 唔使改。
