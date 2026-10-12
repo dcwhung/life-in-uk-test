@@ -51,6 +51,8 @@ LOCALES['zh-HK'] = {
     modePractice: '練習',
     modeExam: '模擬考試',
     practiceDescHtml: '<strong>練習</strong> — 每題作答後即時顯示答案及廣東話翻譯。可按難度、章節或試卷選題，並顯示各組掌握進度。',
+    // W-058: translation switched off (v1.4.0)
+    practiceDescNoYueHtml: '<strong>練習</strong> — 每題作答後即時顯示答案。可按難度、章節或試卷選題，並顯示各組掌握進度。',
     examDescHtml: '<strong>模擬考試</strong> — 仿照真實考試作答全部 {n} 題，可返回修改答案。於最後一題提交後，即可查看分數及答案。',
     myReview: '我的複習',
     practiceBy: '練習分類',

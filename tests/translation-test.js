@@ -158,6 +158,25 @@ async function checkZh(pg) {
   assert(!/app\./.test(en.text + en.aria) && en.text.includes('Off'), 'en after zh-HK: row re-rendered in English: ' + JSON.stringify(en));
 }
 
+// W-058: the Home Practice description promises the Cantonese translation only while it is on; the switch re-renders
+// Home at once (both languages)
+async function checkHomeDesc(pg) {
+  const desc = () => pg.$eval('#modeDesc', e => e.textContent);
+  for (const [lang, word] of [['en', 'Cantonese'], ['zh-HK', '廣東話']]) {
+    await fresh(pg);
+    await pg.evaluate(l => setLang(l), lang);
+    const on = await desc();
+    assert(on.includes(word), `W-058 ${lang}: translation on: the Practice description mentions ${word}: ` + on);
+    await toggleTranslation(pg);
+    const off = await desc();
+    assert(off.length > 0 && !off.includes(word) && !/home\./.test(off), `W-058 ${lang}: translation off: the Practice description re-renders without ${word}: ` + off);
+    await pg.reload();
+    assert(!(await desc()).includes(word), `W-058 ${lang}: off after a reload: still no ${word}`);
+    await toggleTranslation(pg);
+    assert((await desc()).includes(word), `W-058 ${lang}: back on: ${word} returns`);
+  }
+}
+
 // the plan row hides with the release flag off; the Features title and the translation row stay
 async function checkPlanHidden(pg) {
   await fresh(pg);
@@ -179,6 +198,7 @@ async function checkPlanHidden(pg) {
   await checkConfirmOpen(pg);
   await checkHidden(pg);
   await checkZh(pg);
+  await checkHomeDesc(pg);
   await checkPlanHidden(pg);
   assert(errs.length === 0, 'no page errors: ' + errs.join(' | '));
   await b.close();
