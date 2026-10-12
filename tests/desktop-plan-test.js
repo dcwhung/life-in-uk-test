@@ -50,10 +50,55 @@ async function checkStatTiles(b) {
   }
 }
 
+// ── column boxes: share of the row, and the phone DOM back below 1024px ──
+const colBoxes = (page, boxSel) => page.evaluate(sel => {
+  const box = document.querySelector(sel);
+  if (!box) return null;
+  const r = e => e.getBoundingClientRect();
+  return { box: r(box), cols: [...box.children].map(c => ({ ...r(c).toJSON(), pos: getComputedStyle(c).position })), gap: parseFloat(getComputedStyle(box).columnGap) };
+}, boxSel);
+const shareOk = (l, share) => near(l.cols[0].width, (l.box.width - l.gap) * share, 2);
+// every child of the screen's .plan-stack is a direct child again (no column box left)
+const phoneStack = (page, screen) => page.evaluate(id => !document.querySelector(`#${id} .plan-cols`)
+  && [...document.querySelectorAll(`#${id} .plan-card-box`)].every(c => c.parentElement.classList.contains('plan-stack')), screen);
+
+// ── Plan Goal A rev 2 ──
+const goalLook = page => page.evaluate(() => {
+  const row = document.querySelector('#screenPlanGoal .plan-date-row'), chips = [...byId('planDaysChips').querySelectorAll('.chip')];
+  const pick = document.querySelector('#screenPlanGoal .plan-date-pick').getBoundingClientRect();
+  return { stacked: row.classList.contains('is-stacked'), cut: chips.some(c => c.scrollWidth > c.clientWidth + 1),
+    oneRow: chips.every(c => near(c.getBoundingClientRect().top, pick.top, 20)),
+    steps: document.querySelector('#screenPlanGoal .plan-steps').getBoundingClientRect().width,
+    btnInSide: !!document.querySelector('.plan-goal-side #planCreateBtn') && !!document.querySelector('.plan-goal-side .plan-stats'),
+    levelsStacked: byId('planLevelGrid').classList.contains('is-stacked') };
+  function near(a, b, s) { return Math.abs(a - b) <= s; }
+});
+async function checkGoal(b) {
+  await dt.forEachCase(b, async ({ page, label, errors, viewport, lang, fontSize }) => {
+    await page.evaluate(() => openPlanGoal());
+    const side = await dt.noHorizontalScroll(page);
+    const l = await colBoxes(page, '.plan-goal-cols'), g = await goalLook(page);
+    assert(side.ok && l && shareOk(l, 7 / 12) && l.cols[1].pos === 'sticky' && g.btnInSide, `${label}: Goal questions 7/12 | feasibility + Build 5/12 (sticky), no sideways scroll`);
+    assert(near(g.steps, l.box.width), `${label}: steps bar across both columns`);
+    assert(!g.cut && g.stacked !== g.oneRow, `${label}: presets + date ${g.stacked ? 'two rows' : 'one row'}, no chip cut`);
+    if (viewport.width === 1280 && lang === 'en' && fontSize === 'small') assert(!g.stacked, '1280 en small: presets and date share one row (mockup)');
+    if (viewport.width === 1024 && lang === 'en') assert(g.stacked, '1024 en: two rows (a chip would be cut, mockup)');
+    if (fontSize === 'small') assert(!g.levelsStacked, `${label}: the three level cards in a row`);
+    assert(errors.length === 0, `${label}: no page errors ` + errors.join(' | '));
+  }, { translations: [true] });
+  const { page } = await dt.openDesktop(b, { viewport: dt.VIEWPORTS.wide });
+  await page.evaluate(() => openPlanGoal());
+  await dt.setViewport(page, dt.VIEWPORTS.belowDesktop);
+  assert(await phoneStack(page, 'screenPlanGoal'), 'Goal 1023px: the cards back in their phone order');
+  assert(!(await goalLook(page)).stacked, 'Goal 1023px: the desktop date-row rule is off');
+  await page.close();
+}
+
 (async () => {
   const b = await dt.launch();
   try {
     await checkStatTiles(b);
+    await checkGoal(b);
     console.log('DESKTOP-PLAN PASS');
   } catch (e) {
     console.error(e.message);

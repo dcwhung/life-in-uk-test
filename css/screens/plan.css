@@ -509,4 +509,57 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
   .plan-cd-tick { position: absolute; top: 0; padding-left: 3px; border-left: 1px solid var(--text-inverse-faint); line-height: 1.2; white-space: nowrap; }
   .plan-cd-tick.end { transform: translateX(-100%); padding: 0 3px 0 0; border-left: 0; border-right: 1px solid var(--text-inverse-faint); }
   .plan-cd-ends { display: flex; justify-content: space-between; gap: var(--space-4); }
+
+  /* ── shared: the plan screens' column boxes (js/components/fitRow.js setDesktopColumns) and hard-coded px ×1.2 ── */
+  .plan-cols { display: grid; gap: var(--space-12); align-items: start; min-width: 0; }
+  .plan-col { display: grid; gap: var(--space-8); align-content: start; min-width: 0; }
+  .plan-steps i { height: calc(4px * var(--desktop-scale)); }
+  .feature-pill { vertical-align: calc(2px * var(--desktop-scale)); padding: calc(1px * var(--desktop-scale)) var(--space-4); }
+  .plan-ticks { height: calc(16px * var(--desktop-scale)); }
+  .plan-meter { height: calc(10px * var(--desktop-scale)); }
+  .plan-pill { padding: calc(3px * var(--desktop-scale)) var(--space-5); }
+  .nav-btn.plan-small { padding: calc(7px * var(--desktop-scale)) var(--space-7); }
+  .plan-strat { grid-template-columns: calc(30px * var(--desktop-scale)) minmax(0, 1fr); }
+  .plan-strat-n { width: calc(30px * var(--desktop-scale)); height: calc(30px * var(--desktop-scale)); }
+  .plan-ord { grid-template-columns: calc(26px * var(--desktop-scale)) minmax(0, 1fr); }
+  .plan-ord-n { width: calc(26px * var(--desktop-scale)); height: calc(26px * var(--desktop-scale)); }
+  .plan-chw { --plan-chw-count-w: calc(112px * var(--desktop-scale)); }
+  :root[data-font-size="large"] .plan-chw { --plan-chw-count-w: calc(128px * var(--desktop-scale)); }
+  .plan-chw-bar { height: calc(8px * var(--desktop-scale)); }
+  .plan-fold-chev { width: calc(28px * var(--desktop-scale)); height: calc(28px * var(--desktop-scale)); }
+  .plan-fold-chev svg { width: calc(14px * var(--desktop-scale)); height: calc(14px * var(--desktop-scale)); }
+  .plan-ord-mini { --plan-ord-dot: calc(22px * var(--desktop-scale)); }
+  .plan-legend i { width: calc(12px * var(--desktop-scale)); height: calc(12px * var(--desktop-scale)); }
+  .plan-day { --plan-day-side-w: calc(72px * var(--desktop-scale)); }
+  .plan-day-tasks { gap: calc(3px * var(--desktop-scale)); }
+  .plan-exam-pat, .plan-cell.plan-exam-pat { background-size: calc(8px * var(--desktop-scale)) calc(8px * var(--desktop-scale)); }
+  .plan-legend .plan-swatch.plan-exam-pat { background-size: calc(4px * var(--desktop-scale)) calc(4px * var(--desktop-scale)); }
+  .plan-cell.rest { background: repeating-linear-gradient(45deg, var(--bg), var(--bg) calc(4px * var(--desktop-scale)), var(--plan-rest-line) calc(4px * var(--desktop-scale)), var(--plan-rest-line) calc(6px * var(--desktop-scale))); }
+  .plan-task { grid-template-columns: calc(40px * var(--desktop-scale)) minmax(0, 1fr) auto; }
+  .plan-task-ic { width: calc(40px * var(--desktop-scale)); height: calc(40px * var(--desktop-scale)); }
+  :root[data-font-size="large"] .plan-task { grid-template-columns: calc(32px * var(--desktop-scale)) minmax(0, 1fr); }
+  :root[data-font-size="large"] .plan-task-ic { width: calc(32px * var(--desktop-scale)); height: calc(32px * var(--desktop-scale)); }
+  .plan-mini { height: calc(5px * var(--desktop-scale)); }
+  .plan-tag { padding: calc(1px * var(--desktop-scale)) calc(7px * var(--desktop-scale)); vertical-align: calc(1px * var(--desktop-scale)); }
+  .plan-alert { grid-template-columns: calc(22px * var(--desktop-scale)) minmax(0, 1fr); }
+  .plan-run-meter { height: calc(5px * var(--desktop-scale)); }
+
+  /* ── Plan Goal (mockup desktop-plan-goal.html A rev 2): questions 7/12 | feasibility + Build 5/12 (sticky) ── */
+  .plan-goal-cols { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
+  .plan-goal-side { position: sticky; top: calc(var(--header-h) + var(--space-10)); }
+  .plan-goal-cols .plan-card-box { align-content: start; }
+  /* the side column is narrower than the phone's card: the 3 tiles go 2 + 1 (F2 rows, the third under a gap row) */
+  .plan-goal-side .plan-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .plan-goal-side .plan-stats .plan-stat:last-child { grid-column: 1 / -1; }
+  /* presets + "or exam date" on one row; a preset chip would be cut: two rows (js/screens/planGoal.js fitPlanDateRow) */
+  #screenPlanGoal .plan-date-row { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--space-6); }
+  #screenPlanGoal .plan-date-row .plan-date-pick { justify-self: auto; }
+  #screenPlanGoal .plan-date-row.is-stacked { grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
+  #screenPlanGoal .plan-date-row.is-stacked .plan-date-pick { justify-self: end; }
+}
+@supports (grid-template-rows: subgrid) {
+  @media (min-width: 1024px) {
+    .plan-goal-side .plan-stats { grid-template-rows: auto auto auto var(--plan-stats-gap) auto auto auto; }
+    .plan-goal-side .plan-stats .plan-stat:last-child { grid-row: 5 / span 3; }
+  }
 }
