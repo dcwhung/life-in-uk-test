@@ -178,17 +178,23 @@
   .optC .cols { display: grid; grid-template-columns: minmax(0, 1fr) calc(300px * var(--k)); gap: var(--space-12); align-items: start; }
   .optC .aside { position: sticky; top: var(--space-10); display: grid; gap: var(--space-8); }
   .optC .aside .mode-desc, .optC .aside .my-grid { margin-bottom: 0; }
+
+  /* ════════ option D: horizontal plan card, then modes (stacked) | desc + hint | tabs + sets ════════ */
+  .optD .cols { display: grid; grid-template-columns: calc(150px * var(--k)) minmax(0, 1fr) minmax(0, 1.45fr); gap: var(--space-10); align-items: start; }
+  .optD .mode-grid { grid-template-columns: minmax(0, 1fr); margin-bottom: 0; }
+  .optD .sticky { position: sticky; top: var(--space-10); display: grid; gap: var(--space-8); }
+  .optD .sticky .mode-desc { margin-bottom: 0; }
 </style>
 </head>
 <body>
 
 <div class="mock-bar">
-  <b>v2.0.0 Desktop · Mockup 1/12 · Home（未有 plan）</b>
+  <b>v2.0.0 Desktop · Mockup 1/12 · Home（未有 plan）· rev 2：加 D</b>
   <div class="mock-row"><span class="lbl">語言</span><button class="mock-tab on" data-k="lang" data-v="en">EN</button><button class="mock-tab" data-k="lang" data-v="zh">中文</button>
     <span class="lbl" style="margin-left:10px">翻譯</span><button class="mock-tab on" data-k="yue" data-v="on">開</button><button class="mock-tab" data-k="yue" data-v="off">關</button>
     <span class="lbl" style="margin-left:10px">⚙ 大字</span><button class="mock-tab on" data-k="large" data-v="off">關</button><button class="mock-tab" data-k="large" data-v="on">開</button></div>
   <div class="mock-row"><span class="lbl">狀態</span><button class="mock-tab on" data-k="view" data-v="difficulty">練習·難度</button><button class="mock-tab" data-k="view" data-v="chapter">練習·章節</button><button class="mock-tab" data-k="view" data-v="exam">練習·試卷</button><button class="mock-tab" data-k="view" data-v="examMode">模擬考試</button>
-    <span class="lbl" style="margin-left:10px">My Review</span><button class="mock-tab on" data-k="review" data-v="off">冇（新用家）</button><button class="mock-tab" data-k="review" data-v="on">有錯題／標記</button>
+    <span class="lbl" style="margin-left:10px">My Review</span><button class="mock-tab on" data-k="review" data-v="on">有錯題／標記</button><button class="mock-tab" data-k="review" data-v="off">冇（新用家）</button>
     <span class="lbl" style="margin-left:10px">Install</span><button class="mock-tab on" data-k="install" data-v="off">隱藏</button><button class="mock-tab" data-k="install" data-v="on">顯示</button></div>
   <div class="mock-row"><span class="lbl">縮放</span><button class="mock-tab on" data-k="zoom" data-v="fit">適合畫面</button><button class="mock-tab" data-k="zoom" data-v="100">100%</button></div>
 </div>
@@ -202,13 +208,13 @@
       <li>所有 <code>--fs-*</code>、<code>--space-*</code>、icon、header 高度 <b>×1.2</b>；⚙ 大字 = (基礎 + 2px) × 1.2（頂部 toggle 可以試）</li>
       <li>功能、文字、狀態全部不變，只係改排位</li>
     </ul>
-    <p style="margin-top:6px">每個方案都有 <b>1024px</b>（iPad 橫放／細 laptop）同 <b>1280px</b>（到上限）兩個 frame。請揀 A／B／C，或者話我知要改咩。</p>
+    <p style="margin-top:6px">每個方案都有 <b>1024px</b>（iPad 橫放／細 laptop）同 <b>1280px</b>（到上限）兩個 frame。請揀 A／B／C／D，或者話我知要改咩。My Review 預設顯示（12 錯題、5 已標記），頂部可以切返做新用家。</p>
   </div>
   <div id="opts"></div>
 </div>
 
 <script>
-const S = { lang: 'en', yue: 'on', large: 'off', view: 'difficulty', review: 'off', install: 'off', zoom: 'fit' };
+const S = { lang: 'en', yue: 'on', large: 'off', view: 'difficulty', review: 'on', install: 'off', zoom: 'fit' };
 const WIDTHS = [1024, 1280];
 const T = {
   en: {
@@ -329,6 +335,17 @@ const OPTIONS = [
       <li>好處：主欄乾淨，My Review 一直睇得到。弱點：模式說明離咗模式卡，因果關係冇咁直接；1024px 時主欄只係大約 560px。</li></ul>`,
     render: () => `<div class="cols"><div>${planCta(false)}${modes()}${practiceBlock('two')}</div>
       <div class="aside">${desc()}${myReview(true)}${resetBox(false)}</div></div>`,
+  },
+  {
+    id: 'D', cls: 'optD', title: 'D · 計劃卡橫向 + 三欄（你提出）',
+    ann: `<ul><li><b>頂</b>：建立計劃卡變成橫向一行（icon｜文字｜掣），佔滿成個闊度。</li>
+      <li><b>左欄（180px）</b>：選擇模式三粒掣打直排。</li>
+      <li><b>中欄</b>：模式說明、提示同重設。左同中欄都係 sticky，右邊碌落去嘅時候仍然睇得到。</li>
+      <li><b>右欄（最闊）</b>：My Review（你冇指定放邊，我暫時放喺右欄頂，因為佢屬於練習）、練習分類 tabs、題組 list／試卷 grid。</li>
+      <li>留意：1024px 時右欄大約 430px，試卷 grid 大約 4 欄；模擬考試模式下，中欄得說明同「重設已完成試卷」，會比較空。</li></ul>`,
+    render: () => `${planCta(false)}<div class="cols"><div class="sticky">${modes()}</div>
+      <div class="sticky">${desc()}${resetBox(false)}</div>
+      <div>${myReview(false)}${practiceBlock('')}</div></div>`,
   },
 ];
 
