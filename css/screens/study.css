@@ -25,8 +25,32 @@
   margin: calc(-1 * var(--space-6)) calc(-1 * var(--space-8)) 0;
   padding: var(--space-6) var(--space-8) 0;
 }
+/* W-068 (user decision): on the Study screen (pinned or not) each chip row is ONE line that scrolls sideways instead of
+   wrapping into 2–4 rows, so the pinned block stays ~160–170px on small phones. The row reaches over the block's side padding
+   to the screen edge (the gutter becomes its scroll-padding, so chips start / stop where they did and an active or focused
+   chip is scrolled clear of the edges); a chip cut at the edge fades out there (--chip-row-fade over the gutter), which
+   shows the row scrolls. The scrollbar is hidden (swipe / Shift+wheel / keyboard focus scroll it). overflow-x clips the
+   y axis too, so the row pads 2px above and below for the focus ring (and takes it off the margin under it). The ::after
+   spacer keeps the end gutter (some engines drop a scroller's inline-end padding); the gap before it is taken off. */
+.study-top .chip-row {
+  --chip-row-fade: var(--space-8);
+  flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  margin: 0 calc(-1 * var(--chip-row-fade)) var(--space-6);
+  padding: var(--space-1) 0 var(--space-1) var(--chip-row-fade);
+  scroll-padding-inline: var(--chip-row-fade);
+  -webkit-mask-image: linear-gradient(to right, transparent, var(--mask-opaque) var(--chip-row-fade), var(--mask-opaque) calc(100% - var(--chip-row-fade)), transparent);
+  mask-image: linear-gradient(to right, transparent, var(--mask-opaque) var(--chip-row-fade), var(--mask-opaque) calc(100% - var(--chip-row-fade)), transparent);
+}
+.study-top .chip-row::-webkit-scrollbar { display: none; }
+.study-top .chip-row::after { content: ''; flex: 0 0 calc(var(--chip-row-fade) - var(--space-3)); }
+.study-top .chip { flex-shrink: 0; white-space: nowrap; }
 /* keyboard focus and ↩ Back from a fact session (flashStudyFact scrollIntoView) stop below the header + pinned block */
 html:has(#screenStudy.active) { scroll-padding-top: calc(var(--header-h) + var(--study-top-h)); }
+/* W-068: a tab / chip focused inside the pinned block is already in view; with the padding above, the focus scroll would
+   pull the page up by a block height on every Tab press. While keyboard focus is in the block, only the header counts
+   (:focus-visible: a tapped chip keeps focus, and flashStudyFact must still clear the block after it) */
+html:has(#screenStudy.active .study-top :focus-visible) { scroll-padding-top: var(--header-h); }
 /* a short screen (landscape phone) would spend most of its height on the pinned block: there it scrolls away (Flagged W-2) */
 @media (max-height: 500px) {
   .study-top { position: static; }

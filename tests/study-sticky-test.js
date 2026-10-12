@@ -260,28 +260,37 @@ async function chipScrollChecks(browser) {
   await pg.evaluate(() => openStudy());
   p = await chipRowProblems(pg);
   assert(p.length === 0 && await pg.evaluate(() => window.scrollY) === 0, 'W-068: after a reload the selected chip is in view, page still at the top ' + p.join('; '));
-  // a re-render mid-list (language change) keeps the page where it was
-  await pg.evaluate(() => window.scrollTo(0, 2000));
-  const y = await pg.evaluate(() => window.scrollY);
+  // a re-render mid-list with the row swiped back to its start: the row scrolls to the active chip, the page does not move
+  const moved = await pg.evaluate(() => {
+    window.scrollTo(0, document.documentElement.scrollHeight / 2);
+    const y = window.scrollY;
+    byId('studySubChips').scrollLeft = 0;
+    rerenderCurrentScreen();
+    return window.scrollY - y;
+  });
+  p = await chipRowProblems(pg);
+  assert(moved === 0 && p.length === 0, `W-068: re-render while scrolled: page does not move (${moved}px), active chip in view ` + p.join('; '));
   await pg.evaluate(() => setLang('zh-HK'));
   p = await chipRowProblems(pg);
-  assert(await pg.evaluate(() => window.scrollY) === y && p.length === 0, 'W-068: re-render while scrolled: page does not move, active chip in view ' + p.join('; '));
+  assert(p.length === 0, 'W-068: language change: active chip still in view ' + p.join('; '));
   await pg.evaluate(() => setLang('en'));
-  // keyboard: Tab along the people group chips: each focused chip is fully inside its row, the page never scrolls sideways
-  await pg.evaluate(() => document.querySelector('#studySubChips .chip').focus());
+  // keyboard, list scrolled under the pinned block: Tab along the people group chips: each focused chip is fully inside
+  // its row (a half-shown one too), and the page does not move (sideways or up: the chip is already in view)
+  const y0 = await pg.evaluate(() => { window.scrollTo(0, document.documentElement.scrollHeight / 2); document.querySelector('#studySubChips .chip').focus(); return window.scrollY; });
   const n = await pg.$$eval('#studySubChips .chip', els => els.length);
   const bad = [];
   for (let i = 1; i < n; i++) {
     await pg.keyboard.press('Tab');
-    const f = await pg.evaluate(() => {
+    const f = await pg.evaluate(y0 => {
       const el = document.activeElement, row = el.closest('#studySubChips');
       if (!row) return 'left the row';
       const a = el.getBoundingClientRect(), r = row.getBoundingClientRect();
-      return a.left >= r.left - 1 && a.right <= r.right + 1 && window.scrollX === 0 ? '' : `${el.textContent} ${Math.round(a.left)}-${Math.round(a.right)}`;
-    });
+      const inRow = a.left >= r.left - 1 && a.right <= r.right + 1;
+      return inRow && window.scrollX === 0 && window.scrollY === y0 ? '' : `${el.textContent.trim()} ${Math.round(a.left)}-${Math.round(a.right)} page ${window.scrollX},${window.scrollY - y0}`;
+    }, y0);
     if (f) bad.push(f);
   }
-  assert(bad.length === 0, 'W-068: Tab through the chip row: every focused chip scrolls into view ' + bad.join('; '));
+  assert(bad.length === 0, 'W-068: Tab through the chip row (list scrolled): every focused chip scrolls into view, page stays put ' + bad.join('; '));
   await pg.close();
 }
 
