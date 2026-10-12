@@ -30,7 +30,7 @@ const FALLBACK_TOLERANCE_PX = 1.5;
 const NO_OVERFLOW_WIDTHS = [390, 375, 360, 320];
 const TABLE_FIT_WIDTHS = [390]; // narrower screens may fall back to in-table scroll (wider left gutter, user)
 // W-053: below 390px only these cards (widest tables: 10B, ⑤ inventors, Turner) may use the in-table scroll
-const TABLE_SCROLL_ALLOWED = { 375: ['8', '71', '72', '84', '95'], 360: ['8', '71', '72', '84', '87', '95'], 320: ['8', '71', '72', '84', '87', '95'] };
+const TABLE_SCROLL_ALLOWED = { 375: ['8', '71', '72', '84', '95'], 360: [], 320: ['8', '71', '72', '84', '87', '95'] }; // S-202 (v1.2.1): CUI-0028 made 360px fit, so none may scroll there
 const TL_CARD_LEFT_PX = 58; // screen edge to card: 16 page + 16 + 2 rail + 24 (user: double the first 30px)
 
 async function openTimeline(pg) {
