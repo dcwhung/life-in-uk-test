@@ -25,8 +25,8 @@
 | # | 畫面 | 檔案 | 狀態 |
 |---|---|---|---|
 | 1 | Home（未有 plan） | `desktop-home.html` | ✅ 定案 A（rev 3）：計劃卡橫向一行；左欄（5/12，sticky）選擇模式 + 模式說明 + 提示同重設；右欄（7/12）My Review + 練習分類 tabs + 題組 |
-| 2 | Plan Goal | `desktop-plan-goal.html` | 待揀 |
-| 3 | Plan Schedule | — | 未做 |
+| 2 | Plan Goal | `desktop-plan-goal.html` | ✅ 定案 A（rev 2）：頂部 🏠／步驟／標題橫跨；左欄（7/12）3 張問題卡；右欄（5/12，sticky）「時間是否足夠？」+ 建立掣；預設 chip 同考試日期放得落就一行，放唔落（任何 chip 會被切）就兩行（fitRow 規則；1024px 兩行、1280px 一行） |
+| 3 | Plan Schedule | `desktop-plan-schedule.html` | 待揀 |
 | 4 | Home（有 plan） | — | 未做 |
 | 5 | Plan Day | — | 未做 |
 | 6 | Plan Run | — | 未做 |
