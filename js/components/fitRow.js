@@ -8,11 +8,18 @@
 // ════════════════════════════════════════
 const FIT_ROW_STACKED_CLASS = 'is-stacked';
 const FIT_ROW_DEFAULT_LINES = 1;
-// how many lines an element's text runs to (also the C3 quiz counter's check)
+// how many lines an element's text runs to (also the C3 quiz counter's check). C-004: an inline svg sits a pixel off
+// the text beside it, so lines are not told apart by exact tops: a box opens a new line only when its middle is below
+// the line so far (still right with a line-height tighter than the text, where lines overlap a little)
 function textLineCount(el) {
   const range = document.createRange();
   range.selectNodeContents(el);
-  return new Set([...range.getClientRects()].map(r => Math.round(r.top))).size;
+  const boxes = [...range.getClientRects()].filter(r => r.height > 0).sort((a, b) => a.top - b.top);
+  let lines = 0, lineBottom = -Infinity;
+  for (const box of boxes) {
+    if ((box.top + box.bottom) / 2 > lineBottom) { lines++; lineBottom = box.bottom; } else lineBottom = Math.max(lineBottom, box.bottom);
+  }
+  return lines;
 }
 function fitsLines(el) {
   const maxLines = Number(el.dataset.fitLines) || FIT_ROW_DEFAULT_LINES;

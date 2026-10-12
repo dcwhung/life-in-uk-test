@@ -195,7 +195,7 @@ const CHIP_PAD_PX = 12;
 const ALIGN_TOL_PX = 1;
 const fitState = (pg, box, texts) => pg.evaluate(({ box, texts }) => {
   const row = document.querySelector(box);
-  const lines = el => { const r = document.createRange(); r.selectNodeContents(el); return new Set([...r.getClientRects()].map(x => Math.round(x.top))).size; };
+  const lines = el => { const h = el.getBoundingClientRect().height, ws = el.style.whiteSpace; el.style.whiteSpace = 'nowrap'; const one = el.getBoundingClientRect().height; el.style.whiteSpace = ws; return Math.max(1, Math.round(h / one)); };
   const bad = () => [...row.querySelectorAll(texts)].filter(e => lines(e) > 1 || e.scrollWidth > e.clientWidth + 1).length;
   const tops = sel => [...new Set([...row.querySelectorAll(sel)].map(e => Math.round(e.getBoundingClientRect().top)))];
   const stacked = row.classList.contains('is-stacked');
