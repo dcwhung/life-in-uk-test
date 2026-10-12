@@ -67,7 +67,8 @@ function renderStudyMemo() {
 // from the Study list (remember its scroll) or from a result's "Next" (keep the list's scroll)
 function openMemoGroup(id) {
   if (!memoShellReady() || !memoGroupById(id)) return;
-  if (byId('screenStudy').classList.contains('active')) memoView.listScrollY = window.scrollY;
+  // v2.0.0 desktop: the Study cards scroll in their panel, not the page (js/screens/study.js studyScrollTop)
+  if (byId('screenStudy').classList.contains('active')) memoView.listScrollY = typeof studyScrollTop === 'function' ? studyScrollTop() : window.scrollY;
   Object.assign(memoView, { id, step: MEMO_STEP.look, result: null });
   showMemo();
 }
@@ -81,7 +82,7 @@ function showMemo() {
 function memoBack() {
   showScreen('screenStudy');
   renderStudy(); // study.tab is still the memo tab; statuses may have changed
-  window.scrollTo(0, memoView.listScrollY);
+  if (typeof setStudyScroll === 'function') setStudyScroll(memoView.listScrollY); else window.scrollTo(0, memoView.listScrollY);
 }
 function memoLook() {
   Object.assign(memoView, { step: MEMO_STEP.look, result: null });
@@ -92,6 +93,7 @@ function renderMemo() {
   byId('memoTitle').textContent = g.icon + ' ' + g.title;
   byId('memoSteps').innerHTML = memoStepsHtml(g);
   byId('memoBody').innerHTML = memoView.step === MEMO_STEP.result ? memoResultHtml(g, memoView.result) : memoLookHtml(g);
+  if (typeof refreshFades === 'function') refreshFades(byId('memoBody')); // v2.0.0 desktop: the panel's fades
 }
 // ① look / ② test (n); after a test both read done, the test with its score
 function memoStepsHtml(g) {
@@ -102,6 +104,18 @@ function memoStepsHtml(g) {
   return `<div class="memo-step ${done ? 'ok' : 'on'}">${escapeHtml(look)}</div><div class="memo-step${done ? ' ok' : ''}">${escapeHtml(test)}</div>`;
 }
 
+// v2.0.0 desktop (≥ 1024px; Design Origin: baseline: Plan Run's desktop centred column, user 2026-10-12, no mockup): the
+// screen is one screen high in a centred column (css/screens/memo.css); a long note / result scrolls in its panel
+// (.fit-panel) with fades (.fit-fade, js/components/fit.js), so the buttons under it stay on the screen. Below 1024px
+// the wrapper draws nothing and the page scrolls as before
+function memoScrollHtml(panel) { return `<div class="memo-scroll fit-fade">${panel}</div>`; }
+// one screen high from 1024px (css/components/fit.css .screen.is-fit); a cached older index.html has no #screenMemo
+function memoMarkFit() {
+  const screen = byId('screenMemo');
+  if (screen) screen.classList.add('is-fit');
+}
+memoMarkFit();
+
 // ── ① look ──
 function memoHookHtml(g) {
   if (!g.hook) return '';
@@ -109,14 +123,14 @@ function memoHookHtml(g) {
 }
 // the memory note without its heading line (the screen title already names the group), like the Study fact card
 function memoNoteHtml(g) {
-  return `<div class="memo-panel memo-note" lang="zh-HK">${noteHtml(g.body.split('\n').slice(1).join('\n'))}</div>`;
+  return memoScrollHtml(`<div class="memo-panel memo-note fit-panel" lang="zh-HK">${noteHtml(g.body.split('\n').slice(1).join('\n'))}</div>`);
 }
 // the single-note group: each distinct question (English) with its own note
 function memoSingleHtml(g) {
   const items = questionGroups(g.qkeys).map(keys => questionByKey(keys[0]).q).map(q =>
     `<div class="memo-single-item"><div class="memo-single-q" lang="en">${escapeHtml(q.q)}</div>`
     + `<div class="memo-single-note" lang="zh-HK">${noteHtml(q.note)}</div></div>`);
-  return `<div class="memo-panel memo-single">${items.join('')}</div>`;
+  return memoScrollHtml(`<div class="memo-panel memo-single fit-panel">${items.join('')}</div>`);
 }
 function memoLookHtml(g) {
   const body = g.body ? memoNoteHtml(g) : memoSingleHtml(g);
@@ -187,8 +201,8 @@ function memoResultActionsHtml(g, withNext) {
 }
 function memoResultHtml(g, r) {
   if (r.none) return `<div class="memo-panel"><p class="memo-none">${escapeHtml(t('memo.noAnswers'))}</p></div>${memoResultActionsHtml(g, false)}`;
-  return `<div class="memo-panel">
+  return memoScrollHtml(`<div class="memo-panel fit-panel">
       <div class="memo-score${r.passed ? '' : ' fail'}"><div class="memo-pct">${percent(r.correct, r.total)}%</div><div class="memo-verdict">${escapeHtml(memoVerdictText(r))}</div></div>
       <div class="memo-sched">${memoScheduleHtml(r)}</div>${memoWrongHtml(r.wrong)}
-    </div>${memoResultActionsHtml(g, true)}`;
+    </div>`) + memoResultActionsHtml(g, true);
 }

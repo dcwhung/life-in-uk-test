@@ -86,7 +86,7 @@
 
 /* ── v2.0.0 desktop (≥ 1024px; mockup mockups/v2.0.0/desktop-study.html A rev 4) ──
    One screen high (.screen.is-fit, css/components/fit.css): the header row, then a 20% rail beside the card panel.
-   Rail: search, tabs 2 × 2, sub chips (wrapped by their text, then each row filled), count, and the filter chips
+   Rail: search, tabs 2 × 2 (+ the memo tab across, v1.6.0), sub chips (wrapped by their text, then each row filled), count, and the filter chips
    stacked full width at its foot; when it is taller than the screen (1024px, large text, People) it scrolls itself.
    Cards: one column in a .fit-panel that scrolls on its own, fading at the top / bottom */
 @media (min-width: 1024px) {
@@ -100,7 +100,10 @@
   }
   /* the rail's gap spaces its rows (the phone margins would double it); nothing shrinks, the rail scrolls instead */
   #screenStudy .study-rail > * { margin-bottom: 0; flex: none; }
-  #screenStudy .study-rail .study-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* tabs 2 × 2; v1.6.0 merge (user 2026-10-12): the 5th tab (🧠 memo) on a row of its own across the rail (2 + 2 + 1).
+     The phone's one-row grid (chips.css: grid-auto-flow column) flows by row here */
+  #screenStudy .study-rail .study-tabs { grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #screenStudy .study-rail .study-tab[data-tab="memo"] { grid-column: 1 / -1; }
   #screenStudy .study-rail #studyChips { margin-top: auto; flex-direction: column; flex-wrap: nowrap; align-items: stretch; }
   #screenStudy .study-rail #studyChips .chip { width: 100%; }
   /* rev 4 (user): wrap by text width as on the phone, then the chips of each row grow to fill it */

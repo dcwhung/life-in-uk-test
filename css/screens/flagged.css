@@ -45,6 +45,11 @@ html:has(#screenFlagged.active) { scroll-padding-top: calc(var(--header-h) + var
   .flag-item .fi-yue { margin-top: calc(3px * var(--desktop-scale)); }
   .flag-item button svg { width: calc(20px * var(--desktop-scale)); height: calc(20px * var(--desktop-scale)); }
 
+  /* v1.4.4 merge: the phone's pinned block is off here: the page does not scroll (the list panel does), so the block
+     stays in flow on main's content edges with no reach-over or focus padding (the ResizeObserver's --flagged-top-h
+     is then unused) */
+  .flagged-top { position: static; margin: 0; padding: 0; background: none; }
+  html:has(#screenFlagged.active) { scroll-padding-top: auto; }
   #screenFlagged.is-fit > * { flex: none; }
   #screenFlagged.is-fit > .flagged-wrap { flex: 1 1 auto; }
   #flaggedList.fit-panel { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: start; gap: var(--space-4) var(--space-6); }
