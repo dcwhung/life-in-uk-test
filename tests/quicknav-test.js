@@ -1,4 +1,5 @@
 const { chromium } = require('playwright-core');
+const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.2: keep the old en + small first run
 const path = require('path');
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
 const launchOpts = { args: ['--no-sandbox'] };
@@ -7,7 +8,7 @@ const SUBPIXEL_TOLERANCE_PX = 0.5; // Chromium lays out in fractions of a px; ab
 const NARROW_WIDTHS = [320, 360];
 const VIEWPORT_H = 844;
 (async () => {
-  const b = await chromium.launch(launchOpts);
+  const b = seedLegacyDefaults(await chromium.launch(launchOpts));
   const pg = await b.newPage({ viewport: { width: 390, height: VIEWPORT_H } });
   const errs = []; pg.on('pageerror', e => errs.push(e.message));
   const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('ok:', m); };

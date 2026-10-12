@@ -1,4 +1,5 @@
 const { chromium } = require('playwright-core');
+const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.2: keep the old en + small first run
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -154,10 +155,16 @@ function zhHkChecks() {
   assert(scanned > 50 && spoken.length === 0, `${ZH_HK} study plan text (${scanned} keys) has no colloquial words (G21)` + (spoken.length ? ': ' + spoken.join(', ') : ''));
   // v1.2.0: the ⚙ language options name themselves in their own language, the same in every locale
   assert(['en', 'zh'].every(l => (l === 'en' ? enMap : zhMap).get('app.langEn') === 'EN' && (l === 'en' ? enMap : zhMap).get('app.langZh') === '中文'), 'language options read EN / 中文 in both locales');
+  // v1.4.1: the note label is written 備註 (註 = annotation), never the variant 備 + 注 (U+6CE8), in every locale string
+  const WRONG_NOTE = '\u5099\u6ce8'; // escaped so a repo-wide grep for the wrong form stays empty
+  const wrongNote = [['en', enMap], [ZH_HK, zhMap]].flatMap(([l, m]) => [...m]
+    .filter(([, v]) => Object.values(formsOf(v)).some(s => s.includes(WRONG_NOTE))).map(([k]) => `${l} ${k}`));
+  assert(wrongNote.length === 0, `no locale string contains ${WRONG_NOTE}` + (wrongNote.length ? ': ' + wrongNote.join(', ') : ''));
+  assert(enMap.get('common.noteLabel') === '💡 備註：' && zhMap.get('common.noteLabel') === '💡 備註：', 'noteLabel reads 💡 備註： in both locales');
 }
 
 async function runtimeChecks(en) {
-  const b = await chromium.launch(launchOpts);
+  const b = seedLegacyDefaults(await chromium.launch(launchOpts));
   const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
   const errs = []; pg.on('pageerror', e => errs.push(e.message));
   const warns = []; pg.on('console', m => { if (m.type() === 'warning') warns.push(m.text()); });
@@ -235,21 +242,21 @@ async function runtimeChecks(en) {
   assert((await text('#studyChips .chip:first-child')) === 'ZZ hide', 'setLang re-renders the current screen (Study chips)');
   assert((await text('#studyChips .chip:nth-child(2)')) === en.study.bookmarkedOnly, 'key missing in zz falls back to en');
   assert(warns.some(w => w.includes('[i18n] missing key') && w.includes('study.bookmarkedOnly')), 'fallback to en warns');
-  // an unknown language is ignored; a stored language without a locale reads as en
+  // an unknown language is ignored; a stored language without a locale reads as the first-run language (v1.4.2: zh-HK)
   await pg.evaluate(() => setLang('xx'));
   assert(await pg.evaluate(() => getLang() === 'zz'), 'setLang ignores a language with no locale');
   await pg.reload();
-  assert(await pg.evaluate(() => getLang() === 'en' && document.documentElement.lang === 'en'), 'stored language without a locale falls back to en');
-  // Object prototype keys are not locales (LOCALES is a plain object): a stored one loads as en without warnings
+  assert(await pg.evaluate(() => getLang() === 'zh-HK' && document.documentElement.lang === 'zh-HK'), 'stored language without a locale falls back to zh-HK (INITIAL_LANG)');
+  // Object prototype keys are not locales (LOCALES is a plain object): a stored one loads as zh-HK (v1.4.2) without warnings
   for (const protoKey of ['constructor', '__proto__']) {
     await pg.evaluate(k => localStorage.setItem('lifeuk.uiLang', JSON.stringify(k)), protoKey);
     warns.length = 0;
     await pg.reload();
-    assert(await pg.evaluate(() => getLang() === 'en' && document.documentElement.lang === 'en'), `stored '${protoKey}' loads as en`);
+    assert(await pg.evaluate(() => getLang() === 'zh-HK' && document.documentElement.lang === 'zh-HK'), `stored '${protoKey}' loads as zh-HK`);
     assert(warns.filter(w => w.includes('[i18n]')).length === 0, `stored '${protoKey}' logs no i18n warnings (${warns.length})`);
   }
   await pg.evaluate(() => setLang('toString'));
-  assert(await pg.evaluate(() => getLang() === 'en' && localStorage.getItem('lifeuk.uiLang') !== JSON.stringify('toString')), "setLang('toString') is ignored");
+  assert(await pg.evaluate(() => getLang() === 'zh-HK' && localStorage.getItem('lifeuk.uiLang') !== JSON.stringify('toString')), "setLang('toString') is ignored");
   await pg.evaluate(() => setLang('en'));
   assert(await pg.evaluate(() => localStorage.getItem('lifeuk.uiLang') === JSON.stringify('en')), 'setLang(en) persists');
 

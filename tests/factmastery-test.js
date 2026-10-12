@@ -1,4 +1,5 @@
 const { chromium } = require('playwright-core');
+const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.2: keep the old en + small first run
 const path = require('path');
 // v0.63 (P3 T-204 / T-205): a Study fact is mastered when it is ticked by hand (study.mastered[id]) OR every
 // one of its source questions is 🏆 in Practice (factMastery(f).derived). The derived value is computed on render,
@@ -79,7 +80,7 @@ async function checkReset(pg) {
 }
 
 (async () => {
-  const b = await chromium.launch(launchOpts);
+  const b = seedLegacyDefaults(await chromium.launch(launchOpts));
   const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
   const errs = [];
   pg.on('pageerror', e => errs.push(e.message));

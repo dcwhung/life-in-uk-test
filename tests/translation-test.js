@@ -1,4 +1,5 @@
 const { chromium } = require('playwright-core');
+const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.2: keep the old en + small first run
 const path = require('path');
 // v1.4.0: Cantonese translation on / off (⚙ → Features → "🌐 Translation", on by default; user-confirmed):
 // - off hides every translation: the quiz Translate button, the question / option / answer translations, the results
@@ -26,6 +27,8 @@ const attrOff = pg => pg.evaluate(() => document.documentElement.dataset.transla
 const popShown = pg => pg.$eval('#settingsPop', e => e.getClientRects().length > 0);
 // the number of matching elements that take up room on the page
 const shownCount = (pg, sel) => pg.$$eval(sel, els => els.filter(e => e.getClientRects().length > 0).length);
+const toastShown = pg => pg.$eval('#appToast', e => !e.hidden && e.getClientRects().length > 0);
+const toastText = pg => pg.$eval('#appToast', e => e.textContent);
 async function toggleTranslation(pg) {
   await pg.click('#settingsBtn');
   await pg.click(SWITCH);
@@ -81,6 +84,31 @@ async function checkConfirmOpen(pg) {
   await pg.evaluate(() => { showConfirm({ title: 'x', message: 'y', okLabel: 'ok', cancelLabel: 'no', onOk: () => {} }); });
   await pg.evaluate(s => document.querySelector(s).click(), SWITCH);
   assert(!(await attrOff(pg)) && await stored(pg) === null, 'R-002: with the confirm modal open the switch does nothing');
+  assert(!(await toastShown(pg)), 'R-002: no toast when the confirm modal blocks the switch: ' + JSON.stringify(await toastText(pg)));
+}
+
+// v1.4.1: the switch shows a toast like the study plan switch (js/components/toast.js), both languages, no raw key;
+// a stale locale (no toast key) shows no toast rather than the raw key
+const TOAST_WORDS = {
+  en: { off: 'Cantonese translation turned off', on: 'Cantonese translation turned on' },
+  'zh-HK': { off: '已關閉廣東話翻譯', on: '已開啟廣東話翻譯' },
+};
+async function checkToast(pg) {
+  for (const lang of ['en', 'zh-HK']) {
+    await fresh(pg);
+    await pg.evaluate(l => setLang(l), lang);
+    assert(!(await toastShown(pg)), `toast ${lang}: none before the switch`);
+    await toggleTranslation(pg);
+    const off = await toastText(pg);
+    assert(await toastShown(pg) && off === TOAST_WORDS[lang].off && !/app\./.test(off), `toast ${lang}: off: "${TOAST_WORDS[lang].off}": ` + off);
+    await toggleTranslation(pg);
+    const on = await toastText(pg);
+    assert(await toastShown(pg) && on === TOAST_WORDS[lang].on && !/app\./.test(on), `toast ${lang}: on: "${TOAST_WORDS[lang].on}": ` + on);
+  }
+  await fresh(pg);
+  await pg.evaluate(() => { delete LOCALES.en.app.translationToastOff; });
+  await toggleTranslation(pg);
+  assert(await attrOff(pg) && !(await toastShown(pg)), 'toast: a stale locale (no key) switches off with no raw-key toast: ' + JSON.stringify(await toastText(pg)));
 }
 
 // every translation hidden with the switch off, the notes kept; on again restores them
@@ -235,11 +263,12 @@ async function checkPlanHidden(pg) {
 }
 
 (async () => {
-  const b = await chromium.launch(launchOpts);
+  const b = seedLegacyDefaults(await chromium.launch(launchOpts));
   const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
   const errs = []; pg.on('pageerror', e => errs.push(e.message));
   await checkSwitch(pg);
   await checkConfirmOpen(pg);
+  await checkToast(pg);
   await checkHidden(pg);
   await checkZh(pg);
   await checkHomeDesc(pg);

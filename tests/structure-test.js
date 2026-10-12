@@ -1,4 +1,5 @@
 const { chromium } = require('playwright-core');
+const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.2: keep the old en + small first run
 const fs = require('fs');
 const path = require('path');
 // Code structure guards: no inline event handlers, short functions, index.html holds only markup,
@@ -327,7 +328,7 @@ const TOKEN_SAMPLES = [
   assert(factRules('css/screens/study.css') === 0 && factRules('css/screens/quiz.css') === 0 && factRules('css/components/fact.css') > 0,
     '.fact* / .sqm-fact* rules live in css/components/fact.css only');
 
-  const b = await chromium.launch(launchOpts);
+  const b = seedLegacyDefaults(await chromium.launch(launchOpts));
   const pg = await b.newPage();
   const errs = [];
   pg.on('pageerror', e => errs.push('pageerror: ' + e.message));
@@ -368,9 +369,14 @@ const TOKEN_SAMPLES = [
   // S-190: whitelist, not a pattern for bad paths — every screenshot() call's path must be path.join(__dirname, …)
   // or path.join(SHOTS, …) (plan-run2-test's opt-in folder), whatever key order or quoting it uses
   const SAFE_SHOT_PATH = /\bpath\s*:\s*path\.join\(\s*(__dirname|SHOTS)\b/;
+  // v1.4.3: an inline options object that never mentions path returns a Buffer and writes no file (overscroll-test reads
+  // pixels that way); a variable or spread could carry a path, so it still has to match SAFE_SHOT_PATH. The call regex
+  // runs on to a second ')', so only the text up to the first one is the options
+  const NO_FILE_SHOT = /^\s*\{[^}.]*\}\s*$/;
+  const writesNoFile = arg => { const opts = arg.split(')')[0]; return NO_FILE_SHOT.test(opts) && !/\bpath\b/.test(opts); };
   const relativeShots = fs.readdirSync(testDir).filter(f => f.endsWith('.js')).flatMap(f => {
     const src = fs.readFileSync(path.join(testDir, f), 'utf8');
-    return [...src.matchAll(/\.screenshot\(([^)]*\)?[^)]*)\)/g)].filter(m => !SAFE_SHOT_PATH.test(m[1])).map(m => `${f}: ${m[0].slice(0, 60)}`);
+    return [...src.matchAll(/\.screenshot\(([^)]*\)?[^)]*)\)/g)].filter(m => !SAFE_SHOT_PATH.test(m[1]) && !writesNoFile(m[1])).map(m => `${f}: ${m[0].slice(0, 60)}`);
   });
   assert(relativeShots.length === 0, `screenshot paths are absolute (path.join(__dirname, …)), not relative to the cwd: ${relativeShots.join(', ')}`);
   await b.close();

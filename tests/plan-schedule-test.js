@@ -1,4 +1,5 @@
 const { chromium } = require('playwright-core');
+const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.2: keep the old en + small first run
 const fs = require('fs');
 const path = require('path');
 // Study plan PR4 (T-319–T-322; handoff §2.3, grill G7 / G16 / G27 / G30 / G34; PR3 S-110 / S-112, PR1 QA O-1):
@@ -613,7 +614,7 @@ function checkWiring() {
 
 async function main() {
   checkWiring();
-  const b = await chromium.launch(launchOpts);
+  const b = seedLegacyDefaults(await chromium.launch(launchOpts));
   const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
   const errs = [];
   pg.on('pageerror', e => errs.push(e.message));

@@ -1,4 +1,5 @@
 const { chromium } = require('playwright-core');
+const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.2: keep the old en + small first run
 const path = require('path');
 // v1.0.6 (user): destructive confirms (study plan off / reset, practice / completed exam resets) are red: red title,
 // red Confirm, red single-line Cancel (focus shown as a tint, no outer ring); every modal's message is justified with
@@ -39,7 +40,7 @@ async function open(pg, fn) {
 }
 
 (async () => {
-  const b = await chromium.launch(launchOpts);
+  const b = seedLegacyDefaults(await chromium.launch(launchOpts));
   const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
   const errs = []; pg.on('pageerror', e => errs.push(e.message));
   for (const [name, fn] of DANGER) {

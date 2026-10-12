@@ -1,4 +1,5 @@
 const { chromium } = require('playwright-core');
+const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.2: keep the old en + small first run
 const path = require('path');
 // v1.0.4 (user's request, preview approved): the schedule's "Three phases" and "Study order" cards fold.
 // - the first open after creating a plan or changing its goal shows both cards expanded; every later open starts
@@ -165,7 +166,7 @@ async function checkWidths(pg) {
 }
 
 async function main() {
-  const b = await chromium.launch(launchOpts);
+  const b = seedLegacyDefaults(await chromium.launch(launchOpts));
   const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
   const errs = [];
   pg.on('pageerror', e => errs.push(e.message));

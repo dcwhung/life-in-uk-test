@@ -1,4 +1,5 @@
 const { chromium } = require('playwright-core');
+const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.2: keep the old en + small first run
 const path = require('path');
 // v1.2.0 (font size plan PR-B; mockup mockups/font-size-switch.html, grill .proj-docs/plans/2026-10-11_grill_font-size.md):
 // - Q11: every "Home" button is a 🏠 icon button (SVG, aria-label + title Home / 主頁), Plan day "Schedule" is 📅 and the
@@ -139,7 +140,7 @@ async function checkHeaderRows(pg, lang, w) {
 }
 
 (async () => {
-  const b = await chromium.launch(launchOpts);
+  const b = seedLegacyDefaults(await chromium.launch(launchOpts));
   const errs = [];
   for (const lang of LANGS) {
     const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
