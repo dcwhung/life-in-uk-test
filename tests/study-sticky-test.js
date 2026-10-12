@@ -206,6 +206,86 @@ async function factReturnChecks(pg) {
     `W-067: ↩ Back from fact practice: card top below the pinned block ${JSON.stringify(r)}`);
 }
 
+// CUI-0034 (QA v1.6.1 F-1; user 2026-10-12: align the card top): on small phones with large text a People card can be
+// taller than the room under the pinned block. Its "▶ Practise" sits at the bottom, so the card top is behind the block
+// when it is tapped; after ↩ Back the card's top (year / title) must sit right under the block, even if its bottom (▶)
+// then goes off-screen. The real path: DOM click (no Playwright auto-scroll), skip to the last question, ↩ Back.
+const TALL_VIEWPORTS = [{ width: 320, height: 568 }, { width: 360, height: 640 }];
+const TALL_BOTTOM_GAP_PX = 12; // the card's ▶ just above the screen's bottom edge, as tapped
+async function factReturnTo(pg, id) {
+  await pg.evaluate(id => document.querySelector(`#studyContent .fact[data-fact-id="${id}"] [data-action="startFactPractice"]`).click(), id);
+  await pg.waitForTimeout(GUARD_WAIT_MS);
+  for (let i = 0; i < MAX_SKIPS && !(await pg.evaluate(() => state.current === state.questions.length - 1)); i++) {
+    await pg.evaluate(() => byId('nextBtn').click());
+  }
+  await pg.evaluate(() => byId('nextBtn').click()); // ↩ Back on the last question
+}
+async function tallCardReturnChecks(browser) {
+  for (const vp of TALL_VIEWPORTS) for (const lang of LANGS) {
+    const label = `CUI-0034 ${vp.width}x${vp.height} ${lang} large`;
+    const pg = await browser.newPage({ viewport: vp });
+    await pg.goto(APP_URL);
+    await pg.evaluate(l => { localStorage.setItem('lifeuk.uiLang', JSON.stringify(l)); localStorage.setItem('lifeuk.fontSize', JSON.stringify('large')); }, lang);
+    await pg.reload();
+    await openTab(pg, 'people');
+    await toBottom(pg); // pinned: the block's real height
+    const pre = await pg.evaluate(gap => {
+      const blockBottom = () => document.querySelector('#screenStudy .study-top').getBoundingClientRect().bottom;
+      const room = innerHeight - blockBottom();
+      const card = [...document.querySelectorAll('#studyContent .fact[data-fact-id]')]
+        .filter(c => c.querySelector('[data-action="startFactPractice"]'))
+        .find(c => c.getBoundingClientRect().height > room + 20);
+      if (!card) return null;
+      window.scrollBy(0, card.getBoundingClientRect().bottom - (innerHeight - gap));
+      return { id: card.dataset.factId, h: Math.round(card.getBoundingClientRect().height), room: Math.round(room),
+        top: Math.round(card.getBoundingClientRect().top), block: Math.round(blockBottom()) };
+    }, TALL_BOTTOM_GAP_PX);
+    assert(pre && pre.top < pre.block - TOLERANCE_PX, `${label} precondition: a card taller than the room under the block, its top behind the block ${JSON.stringify(pre)}`);
+    await factReturnTo(pg, pre.id);
+    const r = await pg.evaluate(id => {
+      const card = document.querySelector(`#studyContent .fact[data-fact-id="${id}"]`);
+      const c = card.getBoundingClientRect();
+      const block = document.querySelector('#screenStudy .study-top').getBoundingClientRect().bottom;
+      const hit = document.elementFromPoint(c.left + c.width / 2, c.top + 6);
+      return { screen: document.querySelector('.screen.active').id, card: Math.round(c.top), block: Math.round(block), topShown: !!hit && card.contains(hit), flash: card.classList.contains('flash') };
+    }, pre.id);
+    assert(r.screen === 'screenStudy' && Math.abs(r.card - r.block) <= TOLERANCE_PX && r.topShown && r.flash,
+      `${label}: ↩ Back puts the tall card's top right under the pinned block ${JSON.stringify(r)}`);
+    await pg.close();
+  }
+}
+// CUI-0034 on desktop (≥ 1024px): the cards scroll in their panel; after ↩ Back the card's top sits below the panel's
+// top fade (the title clear of it), whether the card was above the panel's top or further down
+const DESKTOP_RETURN_VP = { width: 1280, height: 800 };
+async function desktopFactReturnChecks(browser) {
+  const pg = await browser.newPage({ viewport: DESKTOP_RETURN_VP });
+  await pg.goto(APP_URL);
+  await pg.evaluate(() => { localStorage.setItem('lifeuk.uiLang', JSON.stringify('en')); localStorage.setItem('lifeuk.fontSize', JSON.stringify('large')); });
+  await pg.reload();
+  await openTab(pg, 'people');
+  const id = await pg.evaluate(([idx, dy]) => {
+    const panel = byId('studyContent');
+    const card = [...panel.querySelectorAll('.fact[data-fact-id]')].filter(c => c.querySelector('[data-action="startFactPractice"]'))[idx];
+    panel.scrollTop += card.getBoundingClientRect().top - panel.getBoundingClientRect().top + dy; // card top above the panel
+    return card.dataset.factId;
+  }, [FACT_CARD_INDEX, CARD_UNDER_HEADER_PX]);
+  await factReturnTo(pg, id);
+  const r = await pg.evaluate(id => {
+    const panel = byId('studyContent');
+    const main = document.querySelector('#screenStudy .study-main');
+    const probe = document.createElement('div'); // --fit-fade-h is a calc(): resolve it as a height
+    probe.style.cssText = 'position:absolute;visibility:hidden;height:var(--fit-fade-h)';
+    main.append(probe);
+    const fade = probe.getBoundingClientRect().height;
+    probe.remove();
+    const c = document.querySelector(`#studyContent .fact[data-fact-id="${id}"]`).getBoundingClientRect();
+    return { screen: document.querySelector('.screen.active').id, gap: Math.round(c.top - panel.getBoundingClientRect().top), fade: Math.round(fade), page: window.scrollY };
+  }, id);
+  assert(r.screen === 'screenStudy' && r.page === 0 && r.fade > 0 && Math.abs(r.gap - r.fade) <= TOLERANCE_PX + 1,
+    `CUI-0034 desktop 1280x800: ↩ Back puts the card's top just below the panel's top fade ${JSON.stringify(r)}`);
+  await pg.close();
+}
+
 // S-239: Hide mastered / Bookmarked (studyToggle) and the memo chapter chips also start the new list under the block
 async function toggleChipChecks(pg) {
   await openTab(pg, 'chapters'); // openStudy reloads the marks: bookmark some facts after it, so "Bookmarked" lists a few
@@ -445,7 +525,8 @@ async function desktopChecks(browser) {
 
   // review follow-up checks (W-067 / W-068) are collected: each prints its own ok / FAIL, the run fails if any failed
   const failures = [];
-  for (const check of [() => factReturnChecks(pg), () => chipScrollChecks(browser), () => budgetChecks(browser), () => widthChecks(browser), () => desktopChecks(browser)]) {
+  for (const check of [() => factReturnChecks(pg), () => chipScrollChecks(browser), () => budgetChecks(browser), () => widthChecks(browser), () => desktopChecks(browser),
+    () => tallCardReturnChecks(browser), () => desktopFactReturnChecks(browser)]) {
     try { await check(); } catch (e) { failures.push(e.message); console.log(e.message); }
   }
   if (failures.length) throw new Error(failures.join('\n'));
