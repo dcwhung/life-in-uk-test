@@ -201,28 +201,23 @@
   .plan-card { --cd-learn: #8fa3ec; --cd-drill: #c39bf0; --cd-mock: var(--orange); --cd-rest: rgba(255,255,255,0.3); }
   .cd-learn { --c: var(--cd-learn); } .cd-drill { --c: var(--cd-drill); } .cd-mock { --c: var(--cd-mock); } .cd-rest { --c: var(--cd-rest); }
   /* done days and today are solid; days still to come are an outline in their phase colour (a faded fill vanishes on navy) */
-  .cd-track > i, .cd-dot-row > i { background: var(--c); }
-  .cd-track > i.future, .cd-dot-row > i.future { background: transparent; box-shadow: inset 0 0 0 1.5px var(--c); }
-  /* T · timeline: the plan's days as one bar in phase colours, today marked, the exam at the end */
-  .cd-line { display: grid; gap: var(--space-2); font-size: var(--fs-xs); color: var(--text-inverse-muted); }
-  .cd-track { position: relative; display: flex; gap: 2px; height: calc(8px * var(--k)); margin-top: calc(14px * var(--k)); }
-  .cd-track > i { height: 100%; border-radius: 2px; }
-  .cd-today { position: absolute; top: calc(-14px * var(--k)); transform: translateX(-50%); font-size: var(--fs-2xs); font-weight: 800; color: var(--gold-light); white-space: nowrap; }
-  .cd-today::after { content: ''; position: absolute; left: 50%; top: 100%; width: 2px; height: calc(14px * var(--k)); background: var(--gold-light); transform: translateX(-50%); }
+  .cd-track > i { background: var(--c); }
+  .cd-track > i.future { background: transparent; box-shadow: inset 0 0 0 1.5px var(--c); }
+  /* T · timeline (rev 5): the whole plan as one bar in phase colours; above it a bracket from today to the exam with the
+     days left in large gold; under it today's marker label, month ticks on long plans, then start and exam dates */
+  .cd-line { position: relative; display: grid; gap: var(--space-2); padding-top: calc(var(--fs-lg) * 1.5 + var(--space-3)); font-size: var(--fs-xs); color: var(--text-inverse-muted); }
+  .cd-left { position: absolute; top: 0; right: 0; height: calc(var(--fs-lg) * 1.5 + var(--space-2)); border: 2px solid var(--gold-light); border-bottom: 0; border-radius: 4px 4px 0 0; }
+  .cd-left-lbl { position: absolute; bottom: calc(100% - var(--fs-lg) * 1.2); left: 50%; transform: translate(-50%, 50%); padding: 0 var(--space-3); background: var(--navy-light); color: var(--text-inverse); font-size: var(--fs-md); white-space: nowrap; }
+  .cd-left-lbl.end { left: auto; right: 0; transform: translate(0, 50%); }
+  .cd-left-lbl b { color: var(--gold-light); font-size: var(--fs-5xl); font-weight: 900; vertical-align: -0.08em; }
+  .cd-track { position: relative; display: flex; gap: 2px; height: calc(10px * var(--k)); }
+  .cd-line.long .cd-track { gap: 1px; }
+  .cd-track > i { height: 100%; border-radius: 2px; min-width: 0; }
+  .cd-today { position: absolute; top: -3px; bottom: -3px; width: 3px; margin-left: -1px; border-radius: 2px; background: var(--gold-light); }
+  .cd-under { position: relative; height: calc(var(--fs-xs) * 1.4); }
+  .cd-tick { position: absolute; top: 0; padding-left: 3px; border-left: 1px solid var(--text-inverse-faint); line-height: 1.2; white-space: nowrap; }
+  .cd-today-lbl { position: absolute; top: 0; transform: translateX(-50%); padding: 0 var(--space-2); background: var(--navy-light); color: var(--gold-light); font-weight: 800; white-space: nowrap; z-index: 1; }
   .cd-ends { display: flex; justify-content: space-between; }
-  .cd-ends b { color: var(--text-inverse); }
-  /* D · day dots: one square per day, past solid, future faded, today ringed in gold, then 🎯 */
-  .cd-dots { display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap; font-size: var(--fs-sm); color: var(--text-inverse-strong); }
-  .cd-dot-row { display: flex; gap: calc(3px * var(--k)); align-items: center; }
-  .cd-dot-row > i { width: calc(11px * var(--k)); height: calc(11px * var(--k)); border-radius: 3px; }
-  .cd-dot-row > i.today { outline: 2px solid var(--gold-light); outline-offset: 1px; }
-  .cd-dot-row > span { font-size: var(--fs-sm); margin-left: 2px; }
-  .cd-dots b { color: var(--text-inverse); }
-  /* N · big number: "13" large in gold, the words small beside it */
-  .plan-home-cd.cd-num { display: inline-flex; align-items: baseline; gap: var(--space-3); }
-  .cd-num b { font-size: var(--fs-6xl); font-weight: 900; color: var(--gold-light); line-height: 1; }
-
-
   /* ════════ option A: plan card across the top, laid out in one row: info | today's progress | buttons ════════ */
   /* rev 2 (user): left = name · Day + countdown, today's progress + bar under it, then "Next"; right = the buttons,
      one per row, right-aligned and equally wide */
@@ -250,12 +245,12 @@
 
   /* ════════ option B: plan card at the top of the left rail (as on the phone), right column unchanged ════════ */
   /* ════════ option C: plan card at the top of the right column, above My Review ════════ */
-</style></style>
+</style>
 </head>
 <body>
 
 <div class="mock-bar">
-  <b>v2.0.0 Desktop · Mockup 4/12 · Home（有 plan）· rev 4：Ring 放中間 + 倒數視覺化</b>
+  <b>v2.0.0 Desktop · Mockup 4/12 · Home（有 plan）· rev 5：倒數時間軸（長計劃）</b>
   <div class="mock-row"><span class="lbl">語言</span><button class="mock-tab on" data-k="lang" data-v="en">EN</button><button class="mock-tab" data-k="lang" data-v="zh">中文</button>
     <span class="lbl" style="margin-left:10px">翻譯</span><button class="mock-tab on" data-k="yue" data-v="on">開</button><button class="mock-tab" data-k="yue" data-v="off">關</button>
     <span class="lbl" style="margin-left:10px">⚙ 大字</span><button class="mock-tab on" data-k="large" data-v="off">關</button><button class="mock-tab" data-k="large" data-v="on">開</button></div>
@@ -264,7 +259,8 @@
     <span class="lbl" style="margin-left:10px">Install</span><button class="mock-tab on" data-k="install" data-v="off">隱藏</button><button class="mock-tab" data-k="install" data-v="on">顯示</button></div>
   <div class="mock-row"><span class="lbl">計劃卡</span><button class="mock-tab on" data-k="plan" data-v="progress">進行中 45%</button><button class="mock-tab" data-k="plan" data-v="carry">補做前一日</button><button class="mock-tab" data-k="plan" data-v="done">今日完成</button><button class="mock-tab" data-k="plan" data-v="rest">休息日</button><button class="mock-tab" data-k="plan" data-v="exam">考試日</button><button class="mock-tab" data-k="plan" data-v="ended">計劃完結</button></div>
   <div class="mock-row"><span class="lbl">完成度</span><button class="mock-tab on" data-k="prog" data-v="bar">Bar</button><button class="mock-tab" data-k="prog" data-v="ring">Ring</button><span class="lbl" style="margin-left:6px;min-width:0;font-weight:500">（只影響方案 A）</span>
-    <span class="lbl" style="margin-left:10px">倒數</span><button class="mock-tab on" data-k="cd" data-v="text">文字（現狀）</button><button class="mock-tab" data-k="cd" data-v="timeline">T · 時間軸</button><button class="mock-tab" data-k="cd" data-v="dots">D · 日點</button><button class="mock-tab" data-k="cd" data-v="num">N · 大數字</button></div>
+    <span class="lbl" style="margin-left:10px">倒數</span><button class="mock-tab on" data-k="cd" data-v="timeline">T · 時間軸</button><button class="mock-tab" data-k="cd" data-v="text">文字（現狀）</button>
+    <span class="lbl" style="margin-left:10px">計劃長度</span><button class="mock-tab on" data-k="len" data-v="21">21 日</button><button class="mock-tab" data-k="len" data-v="90">3 個月</button><button class="mock-tab" data-k="len" data-v="183">半年</button></div>
   <div class="mock-row"><span class="lbl">縮放</span><button class="mock-tab on" data-k="zoom" data-v="fit">適合畫面</button><button class="mock-tab" data-k="zoom" data-v="100">100%</button></div>
 </div>
 
@@ -283,7 +279,7 @@
 </div>
 
 <script>
-const S = { lang: 'en', yue: 'on', large: 'off', view: 'difficulty', review: 'on', install: 'off', plan: 'progress', prog: 'bar', cd: 'text', zoom: 'fit' };
+const S = { lang: 'en', yue: 'on', large: 'off', view: 'difficulty', review: 'on', install: 'off', plan: 'progress', prog: 'bar', cd: 'timeline', len: '21', zoom: 'fit' };
 const WIDTHS = [1024, 1280];
 const T = {
   en: {
@@ -345,7 +341,8 @@ const PLAN_T = {
     carry: 'Next (catch-up, <span lang="en">Day 8</span>): <b>Read <span lang="en">Ch 3 History</span> facts #57–91</b> (continue from #74)',
     done: '<b>✓ Done for today</b>, see you tomorrow', examText: "<b>🎯 It's exam day today, good luck!</b>",
     endedSummary: 'Average 86% · 235 / 235 facts · 389 / 389 questions · 4 mocks at 21/24 or more',
-    ringSub: 'Done today', cdToday: 'Today · Day 9', cdStart: 'Start 12/10', cdExam: '🎯 Exam 2/11', cdLeft: '<b>13 days</b> to the exam', cdNum: ['13', 'days to the exam · 2/11'],
+    ringSub: 'Done today', cdToday: n => `Today · Day ${n}`, cdStart: d => `Start ${d}`, cdExam: d => `🎯 Exam ${d}`,
+    cdLeft: n => `<b>${n}</b> days to the exam`, cdText: (n, d) => `${n} days to the exam · ${d}`, month: m => ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m],
     cont: "Continue today's tasks →", viewToday: "View today's tasks", viewDay: 'View today', schedule: 'Schedule', newPlan: 'New plan', editGoal: 'Change goal',
   },
   zh: {
@@ -355,7 +352,8 @@ const PLAN_T = {
     carry: '下一步（補做 <span lang="en">Day 8</span>）：<b>閱讀 <span lang="en">Ch 3 History</span> 知識點 #57–91</b>（由 #74 繼續）',
     done: '<b>✓ 今日已完成</b>，明日再來', examText: '<b>🎯 今日考試，加油！</b>',
     endedSummary: '平均完成度 86% · 知識點 235 / 235 條 · 題目 389 / 389 題 · 模擬考試達 21/24 或以上 4 次',
-    ringSub: '今日完成度', cdToday: '今日 · Day 9', cdStart: '開始 12/10', cdExam: '🎯 考試 2/11', cdLeft: '距離考試 <b>13 日</b>', cdNum: ['13', '日後考試 · 2/11'],
+    ringSub: '今日完成度', cdToday: n => `今日 · Day ${n}`, cdStart: d => `開始 ${d}`, cdExam: d => `🎯 考試 ${d}`,
+    cdLeft: n => `距離考試 <b>${n}</b> 日`, cdText: (n, d) => `距離考試 ${n} 日 · ${d}`, month: m => `${m + 1}月`,
     cont: '繼續今日任務 →', viewToday: '查看今日任務', viewDay: '查看今日', schedule: '進度表', newPlan: '建立新計劃', editGoal: '更改目標',
   },
 };
@@ -369,29 +367,65 @@ const PLAN_STATES = {
   // rev 3 (user): a finished plan drops "Change goal" (same as New plan once the plan is over) — a v2.0.0 change to planEndedHtml
   ended: { pct: undefined, next: 'endedSummary', tag: 'ended', noCd: true, acts: [['newPlan', true], ['schedule']] },
 };
-// rev 4: the demo plan (desktop-plan-schedule.html): 21 days + the exam on 2/11; today = Day 9; Days 7 / 14 / 21 rest
-const CD_DAYS = 21, CD_TODAY = 9, CD_REST = [7, 14, 21];
-const CD_PHASE = n => (CD_REST.includes(n) ? 'rest' : n <= 8 ? 'learn' : n <= 16 ? 'drill' : 'mock');
-function cdDay(n) { return `cd-${CD_PHASE(n)}${n > CD_TODAY ? ' future' : ''}${n === CD_TODAY ? ' today' : ''}`; }
+// rev 5: demo plans of 21 days / 3 months / half a year (the longest the goal form allows), all starting 12/10/2026,
+// the exam the day after the last plan day; phases split like the 21-day schedule (8 / 8 / 4 of 21), every 7th day rest
+const CD_START = new Date(2026, 9, 12);
+const CD_TODAY_AT = { 21: 9, 90: 40, 183: 60 };          // which day "today" is in each demo
+const CD_LEARN_SHARE = 8 / 21, CD_DRILL_SHARE = 16 / 21, CD_REST_EVERY = 7;
+const CD_PER_DAY_MAX = 42;                              // up to 6 weeks: one cell per day; longer: one bar per phase
+const CD_LABEL_CENTRE_MIN = 28;                         // % of the bar: a shorter "days left" span puts its label at the end
+const cdLen = () => Number(S.len);
+const cdToday = () => CD_TODAY_AT[S.len];
+const cdLeftDays = () => cdLen() + 1 - cdToday();
+const cdDate = n => { const d = new Date(CD_START); d.setDate(d.getDate() + n - 1); return d; };   // day n of the plan
+const cdShort = d => `${d.getDate()}/${d.getMonth() + 1}`;
+function cdPhase(n) {
+  if (n % CD_REST_EVERY === 0) return 'rest';
+  const share = n / cdLen();
+  return share <= CD_LEARN_SHARE ? 'learn' : share <= CD_DRILL_SHARE ? 'drill' : 'mock';
+}
+// runs of days drawn as one piece: one per day while short; when long, one per phase and done / to come (rest days take
+// the phase they sit in). Today counts as done (solid); its gold marker is drawn separately
+function cdRuns() {
+  const perDay = cdLen() <= CD_PER_DAY_MAX, runs = [];
+  for (let n = 1; n <= cdLen(); n++) {
+    const own = cdPhase(n), last = runs[runs.length - 1];
+    const phase = !perDay && own === 'rest' && last ? last.phase : own;
+    const future = n > cdToday();
+    if (!perDay && last && last.phase === phase && last.future === future) { last.days++; continue; }
+    runs.push({ phase, future, days: 1 });
+  }
+  return runs;
+}
+// month starts (long plans only) as ticks + labels under the bar
+function cdMonthTicks(P) {
+  if (cdLen() <= CD_PER_DAY_MAX) return '';
+  let html = '';
+  for (let n = 2; n <= cdLen(); n++) {
+    const d = cdDate(n);
+    if (d.getDate() !== 1) continue;
+    html += `<span class="cd-tick" style="left:${((n - 1) / cdLen()) * 100}%">${P.month(d.getMonth())}</span>`;
+  }
+  return html;
+}
 function countdown(P) {
-  if (S.cd === 'timeline') {
-    const segs = Array.from({ length: CD_DAYS }, (_, i) => `<i class="${cdDay(i + 1)}" style="flex:1"></i>`).join('');
-    const at = ((CD_TODAY - 0.5) / CD_DAYS) * 100;
-    return `<div class="cd-line"><div class="cd-track">${segs}<span class="cd-today" style="left:${at}%">${P.cdToday}</span></div>
-      <div class="cd-ends"><span>${P.cdStart}</span><span>${P.cdLeft} · ${P.cdExam}</span></div></div>`;
-  }
-  if (S.cd === 'dots') {
-    const dots = Array.from({ length: CD_DAYS }, (_, i) => `<i class="${cdDay(i + 1)}"></i>`).join('');
-    return `<div class="cd-dots"><span class="cd-dot-row">${dots}<span>🎯</span></span><span>${P.cdLeft} · 2/11</span></div>`;
-  }
-  return '';
+  if (S.cd !== 'timeline') return '';
+  const len = cdLen(), today = cdToday(), left = cdLeftDays();
+  const at = ((today - 1) / len) * 100;                 // today's left edge: the span to the exam starts here
+  const runs = cdRuns().map(r => `<i class="cd-${r.phase}${r.future ? ' future' : ''}" style="flex:${r.days}"></i>`).join('');
+  const span = 100 - at, labelCls = span < CD_LABEL_CENTRE_MIN ? 'cd-left-lbl end' : 'cd-left-lbl';
+  return `<div class="cd-line${len > CD_PER_DAY_MAX ? ' long' : ''}">
+    <div class="cd-left" style="left:${at}%"><span class="${labelCls}">${P.cdLeft(left)}</span></div>
+    <div class="cd-track">${runs}<span class="cd-today" style="left:${at}%"></span></div>
+    <div class="cd-under">${cdMonthTicks(P)}<span class="cd-today-lbl" style="left:${at}%">${P.cdToday(today)}</span></div>
+    <div class="cd-ends"><span>${P.cdStart(cdShort(CD_START))}</span><span>${P.cdExam(cdShort(cdDate(len + 1)))}</span></div></div>`;
 }
 // planHomeCardHtml (planHome.js), with today's % row + bar wrapped in .plan-home-prog so option A can place them
 function planCard(wide) {
   const P = PLAN_T[S.lang], st = PLAN_STATES[S.plan];
-  const cdText = S.cd === 'num' ? `<span class="plan-home-cd cd-num"><b>${P.cdNum[0]}</b>${P.cdNum[1]}</span>` : `<span class="plan-home-cd">${P.cd}</span>`;
-  const cdInTop = !st.noCd && (S.cd === 'text' || S.cd === 'num');
-  const top = `<div class="plan-home-head"><div class="plan-home-top"><span class="plan-home-ttl">${P.title} · <span${st.tag ? '' : ' lang="en"'}>${st.tag ? P[st.tag] : P.dayOf}</span></span>${cdInTop ? cdText : ''}</div>${st.noCd ? '' : countdown(P)}</div>`;
+  const cdText = `<span class="plan-home-cd">${P.cdText(cdLeftDays(), cdShort(cdDate(cdLen() + 1)))}</span>`;
+  const cdInTop = !st.noCd && S.cd === 'text';
+  const top = `<div class="plan-home-head"><div class="plan-home-top"><span class="plan-home-ttl">${P.title} · <span${st.tag ? '' : ' lang="en"'}>${st.tag ? P[st.tag] : `Day ${cdToday()} / ${cdLen()}`}</span></span>${cdInTop ? cdText : ''}</div>${st.noCd ? '' : countdown(P)}</div>`;
   let prog = '';
   if (st.pct === null) prog = `<div class="plan-home-prog"><div class="plan-home-row"><span>${P.rest}</span></div></div>`;
   else if (st.pct !== undefined) prog = `<div class="plan-home-prog"><div class="plan-home-row"><span>${P.pct}</span><b class="plan-home-pct">${st.pct}%</b></div><div class="plan-home-bar"><i class="h${st.band}" style="width:${st.pct}%"></i></div></div>`;
@@ -456,7 +490,8 @@ const OPTIONS = [
     ann: `<ul><li>同未有計劃時嘅「建立溫習計劃」卡同一個位（頂部橫跨），轉態時版面唔會跳。</li>
       <li><b>rev 2</b>：<b>左</b>由上至下：計劃名 + Day + 倒數 → 今日完成度 + bar → 下一步；<b>右</b>：「繼續今日任務」同「進度表」上下兩行、一樣闊、靠右。</li>
       <li>休息日冇 bar（只寫「今日是休息日」）；考試日同完結冇完成度嗰行。</li>
-      <li><b>rev 4</b>：Ring 改放中間（文字｜ring｜掣）。頂部「倒數」toggle 試 3 種將「距離考試 13 日 · 2/11」視覺化嘅方法：<b>T 時間軸</b>（成個計劃一條 bar，按階段上色，已過實色、未到外框，金色線標今日，尾係考試日）、<b>D 日點</b>（一日一格，同時間軸一樣上色，今日金框，最尾 🎯）、<b>N 大數字</b>（「13」大字金色，其餘細字）。考試日同計劃完結唔顯示倒數。</li>
+      <li><b>rev 5 · 倒數時間軸</b>：目的係一眼睇到仲有幾多日考試。時間軸上面有條金色括號，由今日去到考試，上面用金色大字寫剩低幾多日；bar 按階段上色（讀 + 練／強化／模擬），已過實色、未到外框；金色直線同下面嘅「今日 · Day n」標住今日；兩頭係開始日同 🎯 考試日。</li>
+      <li><b>長計劃</b>（頂部「計劃長度」試 3 個月／半年）：6 星期或以內一日一格；再長就唔再逐日畫，每個階段一段連續 bar（休息日併入），下面加月份刻度。剩餘日數嘅括號太窄（少過 bar 嘅 28%）時，數字會靠右對齊考試日，唔會擠爆。Ring 放中間（文字｜ring｜掣）。</li>
       <li><b>rev 3</b>：頂部「完成度」toggle 可以轉做 <b>Ring</b>（同 Plan Day 嘅 ring 一樣），ring 放喺卡最左，文字喺中間，掣喺右；休息日 ring 位變 😴（同 Plan Day 一樣）。</li>
       <li><b>rev 3 · 功能改動</b>：計劃完結之後拎走「更改目標」掣（計劃已完，改目標同建立新計劃一樣），淨低「建立新計劃」同「進度表」。實作要改 <code>planHome.js</code> <code>planEndedHtml</code>（手機版都會一齊改）。</li></ul>`,
     render: () => `${planCard(true)}<div class="cols"><div class="rail">${modes()}${desc()}${resetBox(false)}</div>
