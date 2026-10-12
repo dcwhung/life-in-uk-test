@@ -62,6 +62,8 @@ function applyLanguage() {
   document.documentElement.lang = getLang();
   syncLangSetting();
   applyStaticI18n();
+  // S-202: the Study search placeholder follows the translation switch (study.js loads later; W-057 guard)
+  if (typeof syncStudySearchPlaceholder === 'function') syncStudySearchPlaceholder();
   applyDocumentI18n();
 }
 

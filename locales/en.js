@@ -152,6 +152,7 @@ LOCALES.en = {
   study: {
     title: '📖 Study',
     search: 'Search facts (English / Cantonese)',
+    searchNoYue: 'Search facts', // S-202: translation off
     tabChapters: 'Chapters', // v1.2.0 (C4): the tab icon sits above the label in index.html
     tabTimeline: 'Timeline',
     tabGeo: 'Geography',

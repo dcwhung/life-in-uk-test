@@ -177,6 +177,44 @@ async function checkHomeDesc(pg) {
   }
 }
 
+// S-202 (user 2026-10-12): with translation off the Study search placeholder no longer mentions English / Cantonese —
+// on load, at once on the switch (any screen), after a reload and after a language switch (applyStaticI18n rewrites
+// the data-i18n-attr placeholder; the off wording must win). Matching itself is unchanged: Cantonese still finds facts
+const SEARCH_PLACEHOLDER = {
+  en: { on: 'Search facts (English / Cantonese)', off: 'Search facts' },
+  'zh-HK': { on: '搜尋知識點（英文／廣東話）', off: '搜尋知識點' },
+};
+async function checkStudySearch(pg) {
+  const ph = () => pg.$eval('#studySearch', e => e.placeholder);
+  for (const lang of ['en', 'zh-HK']) {
+    const want = SEARCH_PLACEHOLDER[lang];
+    await fresh(pg);
+    await pg.evaluate(l => setLang(l), lang);
+    assert(await ph() === want.on, `S-202 ${lang}: translation on: placeholder "${want.on}": ` + await ph());
+    await toggleTranslation(pg); // on Home: the hidden Study input still follows
+    assert(await ph() === want.off, `S-202 ${lang}: off from Home: placeholder "${want.off}": ` + await ph());
+    await pg.evaluate(() => openStudy());
+    assert(await ph() === want.off, `S-202 ${lang}: off: Study opens with "${want.off}": ` + await ph());
+    await toggleTranslation(pg);
+    assert(await ph() === want.on, `S-202 ${lang}: back on from Study without reload: "${want.on}": ` + await ph());
+    await toggleTranslation(pg);
+    assert(await ph() === want.off, `S-202 ${lang}: off again from Study without reload: "${want.off}": ` + await ph());
+    await pg.reload();
+    assert(await ph() === want.off, `S-202 ${lang}: off after a reload: "${want.off}": ` + await ph());
+    const other = lang === 'en' ? 'zh-HK' : 'en';
+    await pg.evaluate(() => openStudy());
+    await pg.evaluate(l => setLang(l), other);
+    assert(await ph() === SEARCH_PLACEHOLDER[other].off, `S-202 ${lang} → ${other} while off (on Study): "${SEARCH_PLACEHOLDER[other].off}": ` + await ph());
+    await pg.evaluate(() => goHome());
+    await pg.evaluate(l => setLang(l), lang);
+    assert(await ph() === want.off, `S-202 ${other} → ${lang} while off (on Home): "${want.off}": ` + await ph());
+  }
+  // matching is unchanged: off still finds facts by their Cantonese
+  await pg.evaluate(() => { openStudy(); byId('studySearch').value = '國王'; studySetSearch('國王'); });
+  const found = await pg.$$eval('#studyContent .fact-id', els => els.length);
+  assert(found > 0, 'S-202: translation off: a Cantonese search still finds facts: ' + found);
+}
+
 // the plan row hides with the release flag off; the Features title and the translation row stay
 async function checkPlanHidden(pg) {
   await fresh(pg);
@@ -199,6 +237,7 @@ async function checkPlanHidden(pg) {
   await checkHidden(pg);
   await checkZh(pg);
   await checkHomeDesc(pg);
+  await checkStudySearch(pg);
   await checkPlanHidden(pg);
   assert(errs.length === 0, 'no page errors: ' + errs.join(' | '));
   await b.close();

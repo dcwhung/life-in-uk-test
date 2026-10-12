@@ -21,6 +21,7 @@ const { startPagesServer, appFiles } = require('./pages-server');
 //      opens, no raw counter key, no raw key in the text size row (S-201)
 //  10. W-057 (v1.4.0): the current shell with one v1.3.0 file (store.js / planHome.js / locales/en.js / actions.js) — still starts, ⚙
 //      opens, the translation row is hidden (no dead switch, no raw key), translations show
+//      (S-205 / S-202: the en.js mix with a stored "off" keeps the original Home Practice line and Study search placeholder)
 // The v0.57 files come from git: V057_REF is the last v0.57 commit on main (merge of PR #29), pinned so a later
 // main does not silently turn this into a same-version test.
 const ROOT = path.resolve(__dirname, '..');
@@ -308,6 +309,9 @@ async function v130SingleFile(b, file) {
     await pg.waitForSelector('#examGrid .exam-btn', { state: 'attached' });
     const off = await pg.evaluate(() => ({ attr: document.documentElement.dataset.translation || '', desc: byId('modeDesc').textContent }));
     assert(off.attr === 'off' && !off.desc.includes('home.') && off.desc.includes('Practice') && errs.length === 0, `S-205 v1.3.0 ${file} + stored off: Home shows no raw key: ` + JSON.stringify({ ...off, errs }));
+    // S-202: the Study search placeholder keeps the original wording (no study.searchNoYue in that locale)
+    const ph = await pg.$eval('#studySearch', e => e.placeholder);
+    assert(ph === 'Search facts (English / Cantonese)', `S-202 v1.3.0 ${file} + stored off: the Study search placeholder shows no raw key: ` + ph);
   }
   await pg.close();
 }
