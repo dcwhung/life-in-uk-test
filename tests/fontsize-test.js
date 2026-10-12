@@ -251,6 +251,30 @@ async function checkGoalLayout(pg) {
   }
 }
 
+// S-203: an open goal screen fits again on resize, a language switch and a text size switch (no reopen)
+async function checkGoalRefit(pg) {
+  const levels = () => pg.evaluate(() => byId('planLevelGrid').classList.contains('is-stacked'));
+  await pg.setViewportSize({ width: 600, height: 900 });
+  await fresh(pg, 'en');
+  await pg.evaluate(() => openPlanGoal());
+  assert(!(await levels()), 'S-203 small en 600px: level cards in one row');
+  await pg.setViewportSize({ width: 320, height: 900 });
+  await pg.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
+  assert(await levels(), 'S-203 resize to 320px on the open screen: level cards stack');
+  await pg.setViewportSize({ width: 430, height: 900 });
+  await pg.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
+  assert(await levels(), 'S-203 small en 430px: level cards still stacked');
+  await pg.evaluate(() => setLang('zh-HK'));
+  assert(!(await levels()), 'S-203 switch to zh-HK at 430px on the open screen: level cards back in one row');
+  await chooseSize(pg, 'large');
+  assert(!(await levels()), 'S-203 large zh-HK 430px on the open screen: still one row');
+  await pg.setViewportSize({ width: 375, height: 900 });
+  await pg.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
+  assert(await levels(), 'S-203 large zh-HK 375px: level cards stack');
+  await chooseSize(pg, 'small');
+  assert(!(await levels()), 'S-203 switch to small text at 375px on the open screen: level cards back in one row');
+}
+
 // S-193: ⓘ keeps its 16px look; the tap area is 44px each way
 async function checkInfoHit(pg) {
   await pg.setViewportSize({ width: 390, height: 760 });
@@ -273,6 +297,7 @@ async function checkInfoHit(pg) {
   await checkCounter(pg);
   await checkPlanLayout(pg);
   await checkGoalLayout(pg);
+  await checkGoalRefit(pg);
   await checkNoSideScroll(pg);
   await checkInfoHit(pg);
   assert(errs.length === 0, 'no page errors: ' + errs.join(' | '));
