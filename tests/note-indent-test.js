@@ -6,7 +6,7 @@
 //    S-165: the indent must not depend on the font's "• " width, so B runs in the app font, monospace and serif
 // C: the real 5B note in the Practice answer box at 390px keeps that alignment
 const { chromium } = require('playwright-core');
-const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.1: keep the old en + small first run
+const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.2: keep the old en + small first run
 const path = require('path');
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
 const launchOpts = { args: ['--no-sandbox'] };

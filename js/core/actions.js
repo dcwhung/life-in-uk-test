@@ -7,6 +7,15 @@ const numArg = el => Number(el.dataset.arg);
 // Exam 1–17 are numbers; 'all' and the other set ids stay strings (isNumberedExam checks the type)
 const examArg = el => (/^\d+$/.test(el.dataset.arg) ? Number(el.dataset.arg) : el.dataset.arg);
 
+// v1.4.1: a toast like the study plan switch (planHome.js setPlanFeature). W-057: guard against a cached file mix without toast.js;
+// a stale locale without the key shows nothing rather than the raw key
+function showTranslationToast(on) {
+  if (typeof showToast !== 'function') return;
+  const toastKey = on ? 'app.translationToastOn' : 'app.translationToastOff';
+  const message = t(toastKey);
+  if (message !== toastKey) showToast(message);
+}
+
 const ACTIONS = {
   // header + home
   toggleInfo: () => toggleInfo(),
@@ -35,9 +44,11 @@ const ACTIONS = {
   toggleTranslation: () => {
     if (isConfirmOpen() || typeof setTranslationOn !== 'function') return; // W-057: a pre-v1.4.0 store.js has no switch
     setSettingsOpen(false);
-    setTranslationOn(!isTranslationOn());
+    const on = !isTranslationOn();
+    setTranslationOn(on);
     renderTranslationSetting();
     rerenderCurrentScreen();
+    showTranslationToast(on);
   },
   install: () => promptInstall(),
   dismissInstall: () => dismissInstallBanner(),

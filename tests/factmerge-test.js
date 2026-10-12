@@ -7,7 +7,7 @@
 // W-060 / S-209 (review v1.3.2): plans move on every load (marker only for marks); wrong-answer anchors move too
 // D: the data side: #126 is gone, #125 holds the merged fact, other ids keep their numbers
 const { chromium } = require('playwright-core');
-const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.1: keep the old en + small first run
+const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.2: keep the old en + small first run
 const path = require('path');
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
 const launchOpts = { args: ['--no-sandbox'] };

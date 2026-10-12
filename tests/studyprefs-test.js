@@ -1,5 +1,5 @@
 const { chromium } = require('playwright-core');
-const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.1: keep the old en + small first run
+const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.2: keep the old en + small first run
 const path = require('path');
 // CUI-0003: a stale or hand-edited lifeuk.studyPrefs must never blank the Study screen;
 // unknown values fall back to the defaults, valid ones are kept.

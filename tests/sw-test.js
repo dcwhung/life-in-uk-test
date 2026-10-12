@@ -1,5 +1,5 @@
 const { chromium } = require('playwright-core');
-const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.1: keep the old en + small first run
+const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.2: keep the old en + small first run
 const fs = require('fs');
 const os = require('os');
 const path = require('path');

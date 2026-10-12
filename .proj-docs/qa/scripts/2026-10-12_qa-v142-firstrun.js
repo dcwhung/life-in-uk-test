@@ -1,7 +1,7 @@
-// QA v1.4.1: first-run defaults (zh-HK + large) with a FRESH, UNSEEDED browser context.
+// QA v1.4.2: first-run defaults (zh-HK + large) with a FRESH, UNSEEDED browser context.
 // Every screen at 320 / 390 / 768: h-scroll, elements past the viewport, clipped text, raw i18n keys, {param} leftovers,
-// <html lang>, data-font-size, storage untouched. Screenshots -> ./shots/v141-*.png
-//   NODE_PATH=... CHROMIUM_PATH=... node 2026-10-12_qa-v141-firstrun.js
+// <html lang>, data-font-size, storage untouched. Screenshots -> ./shots/v142-*.png
+//   NODE_PATH=... CHROMIUM_PATH=... node 2026-10-12_qa-v142-firstrun.js
 const { chromium } = require('playwright-core');
 const path = require('path');
 const APP = process.env.APP_URL || 'file://' + path.resolve(__dirname, '../../../index.html');
@@ -43,7 +43,7 @@ const probe = pg => pg.evaluate(() => {
 
 async function check(pg, w, name, opts = {}) {
   const p = await probe(pg);
-  await pg.screenshot({ path: `${SHOTS}/v141-${w}-${name}.png`, fullPage: !!opts.full });
+  await pg.screenshot({ path: `${SHOTS}/v142-${w}-${name}.png`, fullPage: !!opts.full });
   const ok = p.hs <= 0 && p.past.length === 0 && p.clipped.length === 0 && p.raw.length === 0 && p.params.length === 0
     && p.cjk > 0 && p.lang === 'zh-HK' && p.font === 'large' && p.stored[0] === null && p.stored[1] === null;
   log(ok, `${w} ${name}: hs=${p.hs} cjk=${p.cjk} lang=${p.lang} font=${p.font} stored=${JSON.stringify(p.stored)}`,

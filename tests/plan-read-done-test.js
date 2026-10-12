@@ -1,5 +1,5 @@
 const { chromium } = require('playwright-core');
-const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.1: keep the old en + small first run
+const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.2: keep the old en + small first run
 const path = require('path');
 // Study plan PR7c (grill G41, user report 2026-10-10; G3 / G37: a fact counts as read only when all its questions are
 // right today or 🏆): the reading runner tells which facts are done and how many are left.

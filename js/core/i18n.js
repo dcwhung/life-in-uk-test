@@ -38,14 +38,14 @@ function t(key, params = {}) {
   return interpolate(text, params);
 }
 
-// ── language: stored as lifeuk.uiLang; nothing stored or a stored language with no locale reads as INITIAL_LANG (v1.4.1: zh-HK) ──
+// ── language: stored as lifeuk.uiLang; nothing stored or a stored language with no locale reads as INITIAL_LANG (v1.4.2: zh-HK) ──
 let uiLang = null;
 // own keys only: LOCALES is a plain object, so 'constructor' / '__proto__' would otherwise count as locales
 const hasLocale = lang => Object.prototype.hasOwnProperty.call(LOCALES, lang);
 function getLang() {
   if (uiLang === null) {
     const stored = getLS(UI_LANG_LS);
-    // W-057: a pre-v1.4.1 config.js (mixed SW / HTTP cache) has no INITIAL_LANG, so it keeps the old en first run
+    // W-057: a pre-v1.4.2 config.js (mixed SW / HTTP cache) has no INITIAL_LANG, so it keeps the old en first run
     const initial = typeof INITIAL_LANG !== 'undefined' ? INITIAL_LANG : DEFAULT_LANG;
     uiLang = hasLocale(stored) ? stored : (hasLocale(initial) ? initial : DEFAULT_LANG);
   }

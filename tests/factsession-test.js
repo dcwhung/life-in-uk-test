@@ -1,5 +1,5 @@
 const { chromium } = require('playwright-core');
-const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.1: keep the old en + small first run
+const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.2: keep the old en + small first run
 const path = require('path');
 // v0.62 (P3 Lane C2): fact → source questions session engine (no entry button yet; PR-3 adds it).
 // Set id FACT_PREFIX + id ('f21', header "Fact Ch 3 #15", W-016: the chapter number, never the global id); startFactPractice(id) runs f.src once each in Practice,

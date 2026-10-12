@@ -1,5 +1,5 @@
 const { chromium } = require('playwright-core');
-const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.1: keep the old en + small first run
+const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.2: keep the old en + small first run
 const fs = require('fs');
 const path = require('path');
 // Study plan PR4 (T-319–T-322; handoff §2.3, grill G7 / G16 / G27 / G30 / G34; PR3 S-110 / S-112, PR1 QA O-1):

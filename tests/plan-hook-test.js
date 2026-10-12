@@ -1,5 +1,5 @@
 const { chromium } = require('playwright-core');
-const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.1: keep the old en + small first run
+const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.2: keep the old en + small first run
 const path = require('path');
 // Study plan PR2 (T-309–T-313; arch §D, §E.1, §E.5): the answer / exam hooks that feed the plan log.
 // Written before the UI (PR2): a plan is seeded with evaluate, the clock is fixed with page.clock.

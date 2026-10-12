@@ -12,7 +12,7 @@
 //    fallback works with the font the test runs on, not with SF Pro; real Safari < 18.2 still needs a manual look
 // D: year text is --fs-sm; TL_YEAR_SPACE_ABOVE_PX above it (to the card before), TL_YEAR_SPACE_BELOW_PX below it
 const { chromium } = require('playwright-core');
-const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.1: keep the old en + small first run
+const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.2: keep the old en + small first run
 const fs = require('fs');
 const path = require('path');
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');

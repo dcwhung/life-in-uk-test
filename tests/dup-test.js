@@ -1,5 +1,5 @@
 const { chromium } = require('playwright-core');
-const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.1: keep the old en + small first run
+const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.2: keep the old en + small first run
 const fs = require('fs');
 const path = require('path');
 // v1.0.8 (G40, user 2026-10-09): some questions have the same text in several exams (17 facts, 19 extra keys).

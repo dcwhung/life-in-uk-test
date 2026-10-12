@@ -1,5 +1,5 @@
 const { chromium } = require('playwright-core');
-const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.1: keep the old en + small first run
+const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.2: keep the old en + small first run
 const path = require('path');
 // Study plan PR5 (T-323–T-328; handoff §2.1 / §2.4, grill G2–G9 / G14 / G16 / G21 / G23–G25 / G27 / G29; PR4 S-115):
 // the day screen ("Today's tasks" / Day n), the completion calendar, the overall progress card and the full

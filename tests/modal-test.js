@@ -1,5 +1,5 @@
 const { chromium } = require('playwright-core');
-const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.1: keep the old en + small first run
+const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.2: keep the old en + small first run
 const path = require('path');
 // v1.0.6 (user): destructive confirms (study plan off / reset, practice / completed exam resets) are red: red title,
 // red Confirm, red single-line Cancel (focus shown as a tint, no outer ring); every modal's message is justified with

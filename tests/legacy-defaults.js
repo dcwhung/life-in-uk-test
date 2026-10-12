@@ -1,4 +1,4 @@
-// v1.4.1: the first run is zh-HK + large text (tests/default-settings-test.js). Suites written for the old first run
+// v1.4.2: the first run is zh-HK + large text (tests/default-settings-test.js). Suites written for the old first run
 // (en + small) keep their assertions by seeding those two values on every page before the app's scripts run.
 // A key the suite (or the app) already wrote is left alone, so ⚙ choices and stored-value checks still work, and a
 // localStorage.clear() followed by a navigation is seeded again. A suite that checks the real first run sets
@@ -25,7 +25,7 @@ function seedLegacyDefaults(browser) {
   browser.newPage = async (...args) => {
     const ctx = await browser.newContext(...args);
     const page = await ctx.newPage();
-    // S-221: like Playwright's own browser.newPage(), closing the page closes the context it owns
+    // S-222: like Playwright's own browser.newPage(), closing the page closes the context it owns
     page.once('close', () => { ctx.close().catch(() => {}); });
     return page;
   };

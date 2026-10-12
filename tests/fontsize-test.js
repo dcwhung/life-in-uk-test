@@ -1,10 +1,10 @@
 const { chromium } = require('playwright-core');
-const { seedLegacyDefaults, NO_SEED_SS } = require('./legacy-defaults'); // v1.4.1: keep the old en + small first run
+const { seedLegacyDefaults, NO_SEED_SS } = require('./legacy-defaults'); // v1.4.2: keep the old en + small first run
 const fs = require('fs');
 const path = require('path');
 // v1.3.0 (font size plan PR-C; mockup mockups/font-size-switch.html, grill .proj-docs/plans/2026-10-11_grill_font-size.md):
-// - Q1 / Q2: two text sizes; small (the default until v1.4.1) is today's look, large is every --fs-* token + 2px, all text included
-// - v1.4.1: large is the first-run default (user-approved); the rest of this suite seeds the old small (tests/legacy-defaults.js)
+// - Q1 / Q2: two text sizes; small (the default until v1.4.2) is today's look, large is every --fs-* token + 2px, all text included
+// - v1.4.2: large is the first-run default (user-approved); the rest of this suite seeds the old small (tests/legacy-defaults.js)
 // - Q8 / Q10: ⚙ → "Text size" [ A | A ] (small A / large A, the current one pressed); a choice closes the popover and
 //   focus goes back to ⚙; nothing is written until the user picks (lifeuk.fontSize), the choice survives a reload
 // - Q3 / M2: large text keeps the layout: L4b (plan task card: "Start ›" under the text), L5 (study order count column
@@ -49,13 +49,13 @@ const tokens = pg => pg.evaluate(names => {
   return Object.fromEntries(names.map(n => [n, parseFloat(cs.getPropertyValue(n))]));
 }, FS_TOKENS);
 
-// v1.4.1: default large (first run, nothing stored), the row, a choice, storage, reload, back to small. The real first
+// v1.4.2: default large (first run, nothing stored), the row, a choice, storage, reload, back to small. The real first
 // run, so the legacy small seed is off here; the language stays en (only the text size default is under test)
 async function checkSwitch(pg) {
   await pg.goto(APP_URL);
   await pg.evaluate(([ss, langKey]) => { sessionStorage.setItem(ss, '1'); localStorage.clear(); localStorage.setItem(langKey, JSON.stringify('en')); }, [NO_SEED_SS, 'lifeuk.uiLang']);
   await pg.goto(APP_URL);
-  assert(await sizeOf(pg) === 'large' && await stored(pg) === null, 'v1.4.1 default: large text, nothing stored');
+  assert(await sizeOf(pg) === 'large' && await stored(pg) === null, 'v1.4.2 default: large text, nothing stored');
   await pg.click('#settingsBtn');
   const row = await pg.evaluate(() => [...document.querySelectorAll('#settingsFontRow [data-arg]')].map(b => {
     const r = b.getBoundingClientRect();
@@ -86,7 +86,7 @@ async function checkSwitch(pg) {
   assert(await sizeOf(pg) === 'small' && await stored(pg) === JSON.stringify('small'), 'reload: small text kept');
   await pg.evaluate(k => localStorage.setItem(k, '"huge"'), FONT_LS);
   await pg.reload();
-  assert(await sizeOf(pg) === 'large', 'an unknown stored value reads as large (the v1.4.1 default)');
+  assert(await sizeOf(pg) === 'large', 'an unknown stored value reads as large (the v1.4.2 default)');
   await pg.evaluate(ss => sessionStorage.removeItem(ss), NO_SEED_SS);
 }
 

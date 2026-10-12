@@ -1,5 +1,5 @@
 const { chromium } = require('playwright-core');
-const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.1: keep the old en + small first run
+const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.2: keep the old en + small first run
 const path = require('path');
 // Study plan PR6a (T-329–T-334; handoff §2.5, arch §E.1 / §E.4, grill G2–G5 / G8 / G9 / G17 / G23 / G26):
 // the runner for question tasks (practise / drill / clear wrong answers). It is the Practice screen itself

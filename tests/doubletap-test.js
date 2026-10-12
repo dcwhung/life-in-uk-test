@@ -1,5 +1,5 @@
 const { chromium } = require('playwright-core');
-const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.1: keep the old en + small first run
+const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.2: keep the old en + small first run
 const path = require('path');
 // v0.64 (CUI-0011): a double tap / double click on a button that opens a new screen must not let the
 // second tap act on that screen. "▶ Practise" on a Study fact card and the Home Practice › By Exam

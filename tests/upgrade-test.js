@@ -1,5 +1,5 @@
 const { chromium } = require('playwright-core');
-const { seedLegacyDefaults, LEGACY_DEFAULTS, NO_SEED_SS } = require('./legacy-defaults'); // v1.4.1: keep the old en + small first run
+const { seedLegacyDefaults, LEGACY_DEFAULTS, NO_SEED_SS } = require('./legacy-defaults'); // v1.4.2: keep the old en + small first run
 const { execFileSync } = require('child_process');
 const fs = require('fs');
 const os = require('os');
@@ -24,7 +24,7 @@ const { startPagesServer, appFiles } = require('./pages-server');
 //      opens, the translation row is hidden (no dead switch, no raw key), translations show
 //      (S-205 / R2-1: the en.js mix with a stored "off" keeps the original Home Practice line; the Study search placeholder is
 //      that file's own static study.search, no raw key)
-//  11. v1.4.1: the current shell with one v1.4.0 file (config.js: no INITIAL_LANG / DEFAULT_FONT_SIZE; i18n.js; store.js),
+//  11. v1.4.2: the current shell with one v1.4.0 file (config.js: no INITIAL_LANG / DEFAULT_FONT_SIZE; i18n.js; store.js),
 //      nothing stored (legacy seed off) — still starts with no page errors; each old file keeps its own first-run default
 // The v0.57 files come from git: V057_REF is the last v0.57 commit on main (merge of PR #29), pinned so a later
 // main does not silently turn this into a same-version test.
@@ -63,7 +63,7 @@ const showV057 = file => execFileSync('git', ['-C', ROOT, 'show', `${V057_REF}:$
 const emptyDir = dir => fs.readdirSync(dir).forEach(f => fs.rmSync(path.join(dir, f), { recursive: true, force: true }));
 
 // the legacy en + small seed (tests/legacy-defaults.js) is test scaffolding, not app storage: left out of a dump.
-// S-218: a case that runs with the seed off (noSeed) dumps every key, so an app write to lifeuk.uiLang / lifeuk.fontSize fails it
+// S-219: a case that runs with the seed off (noSeed) dumps every key, so an app write to lifeuk.uiLang / lifeuk.fontSize fails it
 const dump = (pg, { raw = false } = {}) => pg.evaluate(skip => Object.fromEntries(Object.keys(localStorage).filter(k => !skip.includes(k)).sort()
   .map(k => [k, localStorage.getItem(k)])), raw ? [] : Object.keys(LEGACY_DEFAULTS));
 const rawDump = pg => dump(pg, { raw: true });
@@ -358,7 +358,7 @@ async function v130SingleFile(b, file) {
   await pg.close();
 }
 
-// 11. v1.4.1: the current shell with ONE file still from v1.4.0 (pinned 2839741, the v1.4.0 merge) and nothing stored.
+// 11. v1.4.2: the current shell with ONE file still from v1.4.0 (pinned 2839741, the v1.4.0 merge) and nothing stored.
 // The first-run language / text size constants are new in config.js, so i18n.js / store.js read them behind a typeof
 // guard (W-057): an old config.js keeps the old en + small first run instead of a ReferenceError
 const V140_REF = '2839741';
@@ -440,7 +440,7 @@ async function oppositeMix(b) {
   const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
   const errs = []; pg.on('pageerror', e => errs.push(e.message));
   await pg.goto('file://' + path.join(dir, 'index.html'));
-  await noSeed(pg); // S-218: every key counts
+  await noSeed(pg); // S-219: every key counts
   await seed(pg, LEGACY);
   assert((await text(pg, '#examGrid .exam-btn.all .exam-mastery')).startsWith('3/408'), 'opposite mix: v0.57 keys read (3/408)');
   assert(JSON.stringify(await rawDump(pg)) === JSON.stringify(Object.fromEntries(Object.entries(LEGACY).sort())), 'opposite mix: storage untouched');
@@ -503,7 +503,7 @@ async function swUpgrade(b) {
     const pg = await ctx.newPage();
     const errs = []; pg.on('pageerror', e => errs.push(e.message));
     await pg.goto(base);
-    await noSeed(pg); // S-218: the real upgrade runs on a true first-run storage, and every dump below counts every key
+    await noSeed(pg); // S-219: the real upgrade runs on a true first-run storage, and every dump below counts every key
     assert(await waitForCache(pg, 'lifeuk-v0.57'), 'v0.57 SW installed and controlling');
     await seed(pg, { ...LEGACY, ...FOREIGN });
     const ls57 = await rawDump(pg); const ui57 = await captureUI(pg);

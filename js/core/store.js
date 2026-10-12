@@ -9,11 +9,11 @@ function saveStreaks() { setLS(STREAK_LS, streaks); }
 
 // v1.3.0: text size (⚙ settings). Small = the design sizes; large = <html data-font-size="large">, which moves every
 // --fs-* token up 2px (css/base/tokens.css). Nothing is written until the user picks; nothing stored or an unknown value
-// reads as DEFAULT_FONT_SIZE (v1.4.1: large)
+// reads as DEFAULT_FONT_SIZE (v1.4.2: large)
 function getFontSize() {
   const size = getLS(FONT_SIZE_LS);
   if (FONT_SIZES.includes(size)) return size;
-  // W-057: a pre-v1.4.1 config.js (mixed SW / HTTP cache) has no DEFAULT_FONT_SIZE, so it keeps the old small first run
+  // W-057: a pre-v1.4.2 config.js (mixed SW / HTTP cache) has no DEFAULT_FONT_SIZE, so it keeps the old small first run
   return typeof DEFAULT_FONT_SIZE !== 'undefined' ? DEFAULT_FONT_SIZE : FONT_SIZE_SMALL;
 }
 function applyFontSize() {

@@ -1,6 +1,6 @@
-// QA v1.4.1: persistence, existing users, toggles regression and edge cases (fresh, UNSEEDED contexts).
-//   NODE_PATH=... CHROMIUM_PATH=... node 2026-10-12_qa-v141-persist.js
-// MIX_DIR (optional): a scratch copy of the repo with js/core/config.js from 2839741 (pre-v1.4.1, W-057 guard check)
+// QA v1.4.2: persistence, existing users, toggles regression and edge cases (fresh, UNSEEDED contexts).
+//   NODE_PATH=... CHROMIUM_PATH=... node 2026-10-12_qa-v142-persist.js
+// MIX_DIR (optional): a scratch copy of the repo with js/core/config.js from 2839741 (pre-v1.4.2, W-057 guard check)
 const { chromium } = require('playwright-core');
 const path = require('path');
 const APP = process.env.APP_URL || 'file://' + path.resolve(__dirname, '../../../index.html');
@@ -44,7 +44,7 @@ const seed = (lang, font) => [`(() => { if (!sessionStorage.getItem('s')) { sess
     s = await st(pg);
     log(s.lang === 'en' && s.font === 'small' && /Language/.test(s.settings), 'P1 en + small survive 2 reloads', s);
     await pg.click('#settingsBtn'); log(await pressed(pg) === 'en,small', 'P1 ⚙ presses en + small after reload');
-    await pg.screenshot({ path: `${SHOTS}/v141-390-persist-en-small.png` });
+    await pg.screenshot({ path: `${SHOTS}/v142-390-persist-en-small.png` });
     log(errs.length === 0, 'P1 no page errors', errs);
   });
 
@@ -74,7 +74,7 @@ const seed = (lang, font) => [`(() => { if (!sessionStorage.getItem('s')) { sess
         `P3 existing user ${lang}/${font} unaffected`, s);
       if (lang === 'en' && font === 'small') {
         await pg.click('#settingsBtn'); log(await pressed(pg) === 'en,small', 'P3 ⚙ presses en + small for existing user');
-        await pg.keyboard.press('Escape'); await pg.screenshot({ path: `${SHOTS}/v141-390-existing-en-small.png` });
+        await pg.keyboard.press('Escape'); await pg.screenshot({ path: `${SHOTS}/v142-390-existing-en-small.png` });
       }
     }, { init: seed(lang, font) });
   }
@@ -129,10 +129,10 @@ const seed = (lang, font) => [`(() => { if (!sessionStorage.getItem('s')) { sess
   await withPage(b, async pg => {
     const html = require('fs').readFileSync(path.resolve(__dirname, '../../../index.html'), 'utf8');
     log(/<html lang="zh-HK">/.test(html), 'E4 static <html lang="zh-HK"> before JS');
-    const s = await st(pg); console.log('     note S-220 <title> =', JSON.stringify(s.title));
+    const s = await st(pg); console.log('     note S-221 <title> =', JSON.stringify(s.title));
   });
 
-  // E5: W-057 mixed cache — pre-v1.4.1 config.js with current i18n.js / store.js
+  // E5: W-057 mixed cache — pre-v1.4.2 config.js with current i18n.js / store.js
   if (process.env.MIX_DIR) {
     await withPage(b, async (pg, errs) => {
       const s = await st(pg);

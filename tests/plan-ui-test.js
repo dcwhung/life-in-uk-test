@@ -1,5 +1,5 @@
 const { chromium } = require('playwright-core');
-const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.1: keep the old en + small first run
+const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.2: keep the old en + small first run
 const path = require('path');
 // Study plan PR3 (T-314–T-318; handoff §2.1 / §2.2, grill G13 / G15 / G28 / G31): the ⓘ switch, the home
 // "create a study plan" card and the goal screen. The entry is open since v1.1.0 (STUDY_PLAN_READY = true, PR8);

@@ -1,7 +1,7 @@
 const { chromium } = require('playwright-core');
 const fs = require('fs');
 const path = require('path');
-// v1.4.1: first-run defaults (user-approved): with nothing stored, the UI is Traditional Chinese (zh-HK) and the text is
+// v1.4.2: first-run defaults (user-approved): with nothing stored, the UI is Traditional Chinese (zh-HK) and the text is
 // large; Cantonese translation and the study plan stay on. Nothing is written until the user picks, a choice survives a
 // reload, and a stored language with no locale reads as zh-HK. DEFAULT_LANG stays en: it is the fallback for keys a
 // language lacks (js/core/i18n.js resolveKey), not the first-run language (INITIAL_LANG)
