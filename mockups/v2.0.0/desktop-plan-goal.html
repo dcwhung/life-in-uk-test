@@ -155,6 +155,12 @@
   .optA .cols { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--space-12); align-items: start; }
   .optA .form, .optA .side { display: grid; gap: var(--space-8); }
   .optA .side { position: sticky; top: var(--space-10); }
+  /* rev 2 (user): presets and the exam date picker share one row */
+  .optA .plan-date-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--space-6); }
+  .optA .plan-date-pick { justify-self: auto; }
+  /* doesn't fit (a chip would be cut): back to two rows, as js/components/fitRow.js does today */
+  .optA .plan-date-row.is-stacked { grid-template-columns: minmax(0, 1fr); }
+  .optA .plan-date-row.is-stacked .plan-date-pick { justify-self: end; }
 
   /* ════════ option B: one centred column (no wider than a form needs) ════════ */
   .optB .plan-stack { max-width: calc(640px * var(--k)); margin: 0 auto; }
@@ -166,7 +172,7 @@
 <body>
 
 <div class="mock-bar">
-  <b>v2.0.0 Desktop · Mockup 2/12 · Plan Goal（訂立目標）</b>
+  <b>v2.0.0 Desktop · Mockup 2/12 · Plan Goal（訂立目標）· rev 2：A 考試日期一行</b>
   <div class="mock-row"><span class="lbl">語言</span><button class="mock-tab on" data-k="lang" data-v="en">EN</button><button class="mock-tab" data-k="lang" data-v="zh">中文</button>
     <span class="lbl" style="margin-left:10px">⚙ 大字</span><button class="mock-tab on" data-k="large" data-v="off">關</button><button class="mock-tab" data-k="large" data-v="on">開</button></div>
   <div class="mock-row"><span class="lbl">時間</span><button class="mock-tab on" data-k="feas" data-v="ok">✓ 充裕</button><button class="mock-tab" data-k="feas" data-v="tight">△ 剛好</button><button class="mock-tab" data-k="feas" data-v="short">✕ 不足</button><button class="mock-tab" data-k="feas" data-v="blocked">溫習日太少（錯誤提示）</button>
@@ -256,8 +262,8 @@ function daysCard() {
   const chips = t().presets.map((p, i) => `<span class="chip${i === st().preset ? ' active' : ''}">${p}</span>`).join('');
   return `<div class="plan-card-box"><div class="plan-field">
     <div class="plan-field-label"><span>${t().daysLabel}</span><span class="plan-val">${t().days(st().days)}</span></div>
-    <div class="plan-presets">${chips}</div>
-    <div class="plan-date-pick">${t().orDate} <span class="inp">02/11/2026 📅</span></div>
+    <div class="plan-date-row"><div class="plan-presets">${chips}</div>
+    <div class="plan-date-pick">${t().orDate} <span class="inp">02/11/2026 📅</span></div></div>
     ${isEdit() ? `<p class="plan-muted">${t().editDateNote}</p>` : ''}</div></div>`;
 }
 function timeCard() {
@@ -295,6 +301,7 @@ const OPTIONS = [
     id: 'A', cls: 'optA', rec: true, title: 'A · 沿用 Home A：頂一條，下面左邊 form、右邊結果',
     ann: `<ul><li><b>頂</b>：🏠、步驟、進度條、標題同簡介，佔滿成個闊度（同 Home 嘅計劃卡位置一樣）。</li>
       <li><b>左欄（7/12）</b>：3 張問題卡（考試日期、每日時間＋休息日、程度）。程度卡有位，三張排一行。</li>
+      <li><b>rev 2</b>：4 個預設 chip 同「或考試日期」排喺同一行（B／C 維持兩行）。用現有 <code>fitRow</code> 規則：放得落先排一行，任何一粒 chip 會被切就自動分返兩行。實測：<b>1024px 放唔落</b>（左欄得大約 520px，要大約 590px），所以兩行；<b>1280px 放得落</b>；1280px 加 ⚙ 大字（英文）又會分返兩行。</li>
       <li><b>右欄（5/12，sticky）</b>：「時間是否足夠？」同「建立進度表」掣。改左邊任何嘢，右邊即刻見到結果；掣亦一直睇得到，唔使碌到底。</li>
       <li>右欄窄過現在嘅手機版卡，所以 3 個數字格會排做 2 + 1（同手機 390px 一樣）。</li></ul>`,
     render: () => `<div class="plan-stack">${head()}<div class="cols"><div class="form">${daysCard()}${timeCard()}${levelCard(false)}</div>
@@ -325,7 +332,16 @@ function render() {
   fitFrames();
 }
 // "適合畫面": scale each frame down to the page width (never up); the box takes the scaled height so nothing overlaps
+// option A rev 2: one row only while no preset chip is cut (the fitRow rule)
+function fitDateRows() {
+  document.querySelectorAll('.optA .plan-date-row').forEach(row => {
+    row.classList.remove('is-stacked');
+    const cut = [...row.querySelectorAll('.chip')].some(c => c.scrollWidth > c.clientWidth + 1);
+    row.classList.toggle('is-stacked', cut);
+  });
+}
 function fitFrames() {
+  fitDateRows();
   document.querySelectorAll('.frame-box').forEach(box => {
     const f = box.firstElementChild, w = Number(box.dataset.w);
     const scale = S.zoom === 'fit' ? Math.min(1, box.parentElement.clientWidth / w) : 1;
