@@ -94,6 +94,69 @@ async function checkGoal(b) {
   await page.close();
 }
 
+// ── CUI-0032 (user 2026-10-12): three level cards side by side and a sub line wraps → every sub line steps down
+// together (one size for the three) until each runs to one line; not below --fs-3xs: when even that wraps, the designed
+// size stays and the line wraps. Stacked cards are left alone ──
+const levelSubs = page => page.evaluate(() => {
+  const grid = byId('planLevelGrid'), probe = document.createElement('i');
+  const px = v => { probe.style.fontSize = v; document.body.appendChild(probe); const n = parseFloat(getComputedStyle(probe).fontSize); probe.remove(); return n; };
+  const subs = [...grid.querySelectorAll('.plan-level-sub')];
+  return { stacked: grid.classList.contains('is-stacked'), lines: subs.map(textLineCount),
+    sizes: subs.map(el => parseFloat(getComputedStyle(el).fontSize)), designed: px('var(--fs-2xs)'), floor: px('var(--fs-3xs)') };
+});
+const oneSize = l => l.sizes.every(v => v === l.sizes[0]);
+async function checkLevelSubs(b) {
+  const cases = [
+    // QA repro: Advanced "Have tried a mock exam" took 2 lines at 1024 EN
+    { viewport: dt.VIEWPORTS.small, lang: 'en', fontSize: 'small', fits: true, shrinks: true },
+    { viewport: dt.VIEWPORTS.small, lang: 'zh-HK', fontSize: 'small', fits: true, shrinks: false },
+    { viewport: { width: 1140, height: 800 }, lang: 'en', fontSize: 'large', fits: true, shrinks: true },
+    // large EN at 1024: even --fs-3xs wraps → the designed size, wrapped, never below the floor
+    { viewport: dt.VIEWPORTS.small, lang: 'en', fontSize: 'large', fits: false, shrinks: false },
+    { viewport: dt.VIEWPORTS.wide, lang: 'en', fontSize: 'large', fits: true, shrinks: false },
+  ];
+  for (const c of cases) {
+    const { page, errors, label } = await dt.openDesktop(b, c);
+    await page.evaluate(() => openPlanGoal());
+    const l = await levelSubs(page);
+    assert(!l.stacked && oneSize(l) && l.sizes[0] >= l.floor, `CUI-0032 ${label}: three cards in a row, one sub size for the three (${l.sizes.join(' / ')}px, floor ${l.floor}px)`);
+    if (c.fits) assert(l.lines.every(n => n === 1), `CUI-0032 ${label}: every sub line on one line (${l.lines.join(' / ')})`);
+    else assert(l.lines.some(n => n > 1), `CUI-0032 ${label}: too long even at the floor: still wraps (${l.lines.join(' / ')})`);
+    assert(c.shrinks ? l.sizes[0] < l.designed : l.sizes[0] === l.designed,
+      `CUI-0032 ${label}: sub size ${l.sizes[0]}px ${c.shrinks ? '<' : '='} the designed ${l.designed}px`);
+    assert(errors.length === 0, `${label}: no page errors ` + errors.join(' | '));
+    await page.close();
+  }
+  // refits: resize, language and text size changes size the sub lines again
+  const { page } = await dt.openDesktop(b, { viewport: dt.VIEWPORTS.wide });
+  await page.evaluate(() => openPlanGoal());
+  let l = await levelSubs(page);
+  assert(l.sizes[0] === l.designed && l.lines.every(n => n === 1), 'CUI-0032 1280 en: the designed size, one line each');
+  await dt.setViewport(page, dt.VIEWPORTS.small);
+  await page.waitForTimeout(100);
+  l = await levelSubs(page);
+  assert(oneSize(l) && l.sizes[0] < l.designed && l.lines.every(n => n === 1), `CUI-0032 resized to 1024: steps down to one line (${l.sizes[0]}px)`);
+  await page.evaluate(() => setLang('zh-HK'));
+  l = await levelSubs(page);
+  assert(l.sizes[0] === l.designed && l.lines.every(n => n === 1), `CUI-0032 1024 → 中文: back to the designed size (${l.sizes[0]}px)`);
+  await page.evaluate(() => { setLang('en'); setFontSize('large'); rerenderCurrentScreen(); });
+  l = await levelSubs(page);
+  assert(l.sizes[0] === l.designed && l.sizes[0] >= l.floor && l.lines.some(n => n > 1), `CUI-0032 1024 en → large text: the floor still wraps, the designed size (${l.sizes[0]}px)`);
+  await dt.setViewport(page, dt.VIEWPORTS.wide);
+  await page.waitForTimeout(100);
+  l = await levelSubs(page);
+  assert(l.sizes[0] === l.designed && l.lines.every(n => n === 1), 'CUI-0032 back to 1280: the designed size');
+  await page.close();
+  // below 1024px nothing changes: the phone's level cards keep their one-line rule (stack when a line wraps)
+  for (const [width, lang] of [[390, 'en'], [390, 'zh-HK'], [600, 'en'], [dt.VIEWPORTS.belowDesktop.width, 'en']]) {
+    const o = await dt.openDesktop(b, { viewport: { width, height: 844 }, lang });
+    await o.page.evaluate(() => openPlanGoal());
+    l = await levelSubs(o.page);
+    assert(l.sizes.every(v => v === l.designed) && (l.stacked || l.lines.every(n => n === 1)), `CUI-0032 ${width}px ${lang}: the designed sub size (${l.sizes.join(' / ')}px), as before`);
+    await o.page.close();
+  }
+}
+
 // ── Plan Schedule B rev 5 + F3 ──
 const scheduleLook = page => page.evaluate(() => {
   const list = byId('planDayList'), lb = list.getBoundingClientRect();
@@ -228,6 +291,7 @@ async function checkRun(b) {
   try {
     await checkStatTiles(b);
     await checkGoal(b);
+    await checkLevelSubs(b);
     await checkSchedule(b);
     await checkDay(b);
     await checkRun(b);

@@ -78,6 +78,10 @@
 .chip.plan-rest { padding-inline: 0; text-align: center; white-space: nowrap; }
 .chip.plan-rest.active { background: var(--red); border-color: var(--red); }
 .plan-level-sub { display: block; font-size: var(--fs-2xs); color: var(--text-muted); line-height: 1.4; font-weight: 500; }
+/* CUI-0032 (user 2026-10-12): side by side, a wrapping sub line steps the three down together, to --fs-3xs at most
+   (js/screens/planGoal.js fitPlanLevels); stacked cards keep the designed size */
+.plan-levels:not(.is-stacked).is-sub-tight .plan-level-sub { font-size: calc((var(--fs-2xs) + var(--fs-3xs)) / 2); }
+.plan-levels:not(.is-stacked).is-sub-tighter .plan-level-sub { font-size: var(--fs-3xs); }
 
 /* feasibility: stats, meter, pill */
 .plan-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); }
