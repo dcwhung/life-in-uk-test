@@ -115,6 +115,7 @@
 
 ## Deploys
 
+- [2026-10-12_deploy_v151.md](deploys/2026-10-12_deploy_v151.md) — v1.5.1 主頁計劃卡精簡（環入標題列）deploy（PR #104，`40e310d`；Pages run 38285293229 success；smoke 18/18 + plan-day PASS 喺 40e310d tree；live host 被 session proxy 擋，未直接 probe）
 - [2026-10-12_deploy_v150.md](deploys/2026-10-12_deploy_v150.md) — v1.5.0 主頁計劃卡今日進度環 deploy（PR #103，`a191835`；Pages run 38277273934 success；smoke 12/12 + plan-day PASS 喺 a191835 tree；live host 被 session proxy 擋（403），未直接 probe）
 
 ## Plans
