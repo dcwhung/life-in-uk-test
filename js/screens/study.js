@@ -73,14 +73,17 @@ function openStudy() {
   byId('studySearch').value = study.search;
   showScreen('screenStudy');
   renderStudy();
-  window.scrollTo(0, 0);
+  setStudyScroll(0);
 }
-function studySetTab(tab) { study.tab = tab; studySavePrefs(); renderStudy(); }
-function studySetChapter(ch) { study.chapter = ch; studySavePrefs(); renderStudy(); }
-function studySetNation(n) { study.nation = n; studySavePrefs(); renderStudy(); }
-function studySetGroup(g) { study.group = g; studySavePrefs(); renderStudy(); }
-function studySetSearch(v) { study.search = v.trim().toLowerCase(); renderStudy(); }
-function studyToggle(key) { study[key] = !study[key]; studySavePrefs(); renderStudy(); }
+// a new list (tab, chip, filter, search) starts at its top. On a phone the controls sit above the list, so the page
+// is near the top already; on desktop they stay beside the card panel, which would otherwise keep the old offset
+function renderNewStudyList() { renderStudy(); studyPanel().scrollTop = 0; }
+function studySetTab(tab) { study.tab = tab; studySavePrefs(); renderNewStudyList(); }
+function studySetChapter(ch) { study.chapter = ch; studySavePrefs(); renderNewStudyList(); }
+function studySetNation(n) { study.nation = n; studySavePrefs(); renderNewStudyList(); }
+function studySetGroup(g) { study.group = g; studySavePrefs(); renderNewStudyList(); }
+function studySetSearch(v) { study.search = v.trim().toLowerCase(); renderNewStudyList(); }
+function studyToggle(key) { study[key] = !study[key]; studySavePrefs(); renderNewStudyList(); }
 // kind: 'mastered' | 'bookmarks' — per-fact marks, saved straight away
 function studyToggleMark(kind, id) {
   const marks = study[kind];
@@ -135,7 +138,49 @@ function studySubChipsHtml() {
   return '';
 }
 
+// ── v2.0.0 desktop layout (≥ 1024px; mockup mockups/v2.0.0/desktop-study.html A rev 4, css/screens/study.css) ──
+// One screen high: a left rail (20%: search, tabs, sub chips, count, then the filter chips at its foot) beside the
+// card panel, which scrolls on its own with fades (js/components/fit.js). index.html keeps the flat phone markup, so
+// the wrappers are added here once; below 1024px they are display: contents and the phone layout is unchanged.
+const STUDY_RAIL_IDS = ['studySearch', 'studyTabs', 'studyChips', 'studySubChips', 'studyCount'];
+function wrapStudyEl(cls, children) {
+  const box = document.createElement('div');
+  box.className = cls;
+  box.append(...children);
+  return box;
+}
+function ensureStudyLayout() {
+  const screen = byId('screenStudy');
+  if (screen.querySelector('.study-cols')) return;
+  const content = byId('studyContent');
+  const rail = wrapStudyEl('study-rail', STUDY_RAIL_IDS.map(byId).filter(Boolean));
+  content.classList.add('fit-panel');
+  const cols = wrapStudyEl('study-cols fit-grow', [rail, wrapStudyEl('study-main fit-fade', [content])]);
+  screen.append(cols);
+  screen.classList.add('is-fit');
+  // a cached pre-v2.0.0 shell may run without fit.js (js/main.js LATE_BOOT_SCRIPTS loads it after this file)
+  if (typeof onRefit === 'function') onRefit(placeStudyFilterChips, 'screenStudy');
+}
+// desktop: the filter chips sit at the rail's foot, after the count; phone: above the sub chips as before. The node
+// moves (not css order) so the Tab order follows what is seen; it only moves when its place is wrong
+function placeStudyFilterChips(desktop) {
+  const chips = byId('studyChips'), count = byId('studyCount'), sub = byId('studySubChips');
+  if (!chips || !count || !sub) return;
+  if (desktop && count.nextElementSibling !== chips) count.after(chips);
+  if (!desktop && chips.nextElementSibling !== sub) sub.before(chips);
+}
+// the cards scroll in their panel on desktop and with the page on a phone (js/screens/sideSession.js keeps the
+// offset across a fact's Practice session)
+const studyPanel = () => byId('studyContent');
+const studyPanelScrolls = () => typeof isDesktop === 'function' && isDesktop();
+function studyScrollTop() { return studyPanelScrolls() ? studyPanel().scrollTop : window.scrollY; }
+function setStudyScroll(y) {
+  studyPanel().scrollTop = studyPanelScrolls() ? y : 0;
+  window.scrollTo(0, studyPanelScrolls() ? 0 : y);
+}
+
 function renderStudy() {
+  ensureStudyLayout();
   document.querySelectorAll('.study-tab').forEach(t =>
     t.classList.toggle('active', t.dataset.tab === study.tab));
   byId('studyChips').innerHTML = studyChipsHtml();
@@ -148,6 +193,7 @@ function renderStudy() {
   renderStudyProgress();
   byId('studyContent').innerHTML =
     shown ? html : `<div class="study-empty">${t('study.empty')}</div>`;
+  if (typeof runRefits === 'function') runRefits();
 }
 
 // Q8: after ↩ Back from a fact session its card flashes gold; R-010: when the restored scroll no longer shows it

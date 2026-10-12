@@ -80,3 +80,40 @@
 .tl-item.war .tl-year::after { background: var(--red-light); box-shadow: 0 0 0 var(--tl-dot-ring) var(--red-light); }
 .tl-body .fact { margin-bottom: var(--space-4); }
 
+/* v2.0.0 desktop layout wrappers (js/screens/study.js ensureStudyLayout): below 1024px they draw nothing, so the
+   phone page keeps its v1.4 flow (search, tabs, chips, count, cards down the page) */
+.study-cols, .study-rail, .study-main { display: contents; }
+
+/* ── v2.0.0 desktop (≥ 1024px; mockup mockups/v2.0.0/desktop-study.html A rev 4) ──
+   One screen high (.screen.is-fit, css/components/fit.css): the header row, then a 20% rail beside the card panel.
+   Rail: search, tabs 2 × 2, sub chips (wrapped by their text, then each row filled), count, and the filter chips
+   stacked full width at its foot; when it is taller than the screen (1024px, large text, People) it scrolls itself.
+   Cards: one column in a .fit-panel that scrolls on its own, fading at the top / bottom */
+@media (min-width: 1024px) {
+  #screenStudy > .quiz-header { flex: none; }
+  #screenStudy .study-cols {
+    display: grid; grid-template-columns: 20% minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); gap: var(--space-10); align-items: stretch;
+  }
+  #screenStudy .study-rail {
+    display: flex; flex-direction: column; gap: var(--space-6);
+    min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  }
+  /* the rail's gap spaces its rows (the phone margins would double it); nothing shrinks, the rail scrolls instead */
+  #screenStudy .study-rail > * { margin-bottom: 0; flex: none; }
+  #screenStudy .study-rail .study-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #screenStudy .study-rail #studyChips { margin-top: auto; flex-direction: column; flex-wrap: nowrap; align-items: stretch; }
+  #screenStudy .study-rail #studyChips .chip { width: 100%; }
+  /* rev 4 (user): wrap by text width as on the phone, then the chips of each row grow to fill it */
+  #screenStudy .study-rail #studySubChips .chip { flex: 1 1 auto; }
+  #screenStudy .study-main { display: flex; --fit-fade-h: calc(40px * var(--desktop-scale)); } /* mockup .right fades */
+
+  /* hard-coded sizes ×1.2 (.proj-docs/plans/2026-10-12_desktop-px-inventory.md, Lane C); the :first-child margins
+     above keep winning (more specific) */
+  .study-search { padding: calc(11px * var(--desktop-scale)) var(--space-7); }
+  .study-progress { padding: calc(3px * var(--desktop-scale)) var(--space-5); }
+  .study-group-title { margin: calc(22px * var(--desktop-scale)) 0 var(--space-5); }
+  .study-empty { padding: calc(30px * var(--desktop-scale)) 0; }
+  .tl-era { margin: calc(22px * var(--desktop-scale)) 0 var(--space-6); }
+  .tl-year { --tl-dot: calc(10px * var(--desktop-scale)); }
+}
+
