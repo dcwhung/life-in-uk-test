@@ -43,6 +43,8 @@ LOCALES['zh-HK'] = {
     translationOnNote: '題目、答案及重點均顯示廣東話翻譯',
     translationOffNote: '所有廣東話翻譯已隱藏',
     translationSwitchLabel: '廣東話翻譯功能',
+    translationToastOn: '已開啟廣東話翻譯',
+    translationToastOff: '已關閉廣東話翻譯',
   },
 
   home: {

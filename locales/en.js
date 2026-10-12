@@ -49,6 +49,9 @@ LOCALES.en = {
     translationOnNote: 'Cantonese shown with questions, answers and facts',
     translationOffNote: 'All Cantonese translations are hidden',
     translationSwitchLabel: 'Cantonese translation',
+    // v1.4.1: toast after the switch (like plan.toastOn / plan.toastOff)
+    translationToastOn: 'Cantonese translation turned on',
+    translationToastOff: 'Cantonese translation turned off',
   },
 
   home: {
