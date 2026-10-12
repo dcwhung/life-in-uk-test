@@ -1,0 +1,79 @@
+// v2.0.0 desktop layout on short screens (W-379; handoff .proj-docs/plans/2026-10-12_handoff_desktop-layout.md §5 / §7):
+// a laptop at 1366 × 657 or 1280 × 720 (a 768px / 800px panel less the browser's bars) and the smallest desktop window
+// 1024 × 600. Every one-screen-high screen (Quiz Practice / Exam, Result, Flagged, Study, Plan Run) and Plan Day, in
+// EN / 中 with large text (the tallest content):
+// - no sideways page scroll
+// - every control on the screen can be reached: on screen, or inside a panel that scrolls to it (never cut off by a
+//   box that clips without scrolling, never under something else)
+const dt = require('./desktop-helpers');
+const { assert } = dt;
+
+const EXAM_ONE = 1;
+const FLAGGED_N = 14;
+const LONG_CHAPTER = 5;
+const GOAL = { dailyMins: 120, restDays: [0], level: 'none' };
+
+const seedPlan = (page, { days = 21, dayN = 9 } = {}) => page.evaluate(({ days, dayN, goal }) => {
+  const today = planTodayIso(), start = isoAddDays(today, 1 - dayN);
+  writeStudyPlan(buildPlan({ ...goal, examDate: isoAddDays(start, days) }, start));
+  writePlanLog(planEmptyLog());
+}, { days, dayN, goal: GOAL });
+
+// [what, open(page)]: each leaves its screen active
+const SCREENS = [
+  ['quiz practice, unanswered', page => page.evaluate(n => { pendingMode = 'practice'; startExam(n); }, EXAM_ONE)],
+  ['quiz practice, answered', page => page.evaluate(() => {
+    const q = state.questions[state.current];
+    state.answers[state.current] = [...q.a];
+    revealAnswer();
+  })],
+  ['quiz exam, last question', page => page.evaluate(n => { pendingMode = 'exam'; startExam(n); goToQuestion(state.questions.length - 1); }, EXAM_ONE)],
+  ['result exam', page => page.evaluate(n => {
+    pendingMode = 'exam'; startExam(n);
+    state.questions.forEach((q, i) => { if (i < 20) state.answers[i] = [...q.a]; });
+    finishExam();
+  }, EXAM_ONE)],
+  ['result practice', page => page.evaluate(n => {
+    pendingMode = 'practice'; startExam(n);
+    state.questions.forEach((q, i) => { state.answers[i] = [...q.a]; state.revealed[i] = true; });
+    finishExam();
+  }, EXAM_ONE)],
+  ['flagged', page => page.evaluate(n => { allQuestions().slice(0, n).forEach(it => setPracticeFlag(qKey(it), true)); openFlagged(); }, FLAGGED_N)],
+  ['study chapters', page => page.evaluate(ch => { openStudy(); studySetTab('chapters'); studySetChapter(ch); }, LONG_CHAPTER)],
+  ['study people', page => page.evaluate(() => { openStudy(); studySetTab('people'); })],
+  ['plan day', async page => { await seedPlan(page); await page.evaluate(() => openPlanDay()); }],
+  ['plan run', async page => {
+    await seedPlan(page, { dayN: 1 });
+    await page.evaluate(() => { openPlanDay(); document.querySelector('#planTaskList .plan-task-btn').click(); });
+  }],
+];
+
+(async () => {
+  const b = await dt.launch();
+  let failed = false;
+  try {
+    for (const viewport of dt.SHORT_VIEWPORTS) {
+      for (const lang of dt.LANGS) {
+        const { page, errors, label } = await dt.openDesktop(b, { viewport, lang, fontSize: 'large' });
+        for (const [what, open] of SCREENS) {
+          await open(page);
+          await dt.nextFrame(page);
+          const side = await dt.noHorizontalScroll(page);
+          assert(side.ok, `${label} ${what}: no sideways scroll (${side.detail})`);
+          const reach = await dt.controlsReachable(page);
+          assert(reach.ok && reach.count > 0, `${label} ${what}: every control reachable (${reach.detail})`);
+        }
+        assert(errors.length === 0, `${label}: no page errors ` + errors.join(' | '));
+        await page.close();
+      }
+    }
+    console.log('DESKTOP-SHORT PASS');
+  } catch (e) {
+    failed = true;
+    console.error(e.message);
+    console.log('DESKTOP-SHORT FAIL');
+  } finally {
+    await b.close();
+    if (failed) process.exitCode = 1;
+  }
+})();
