@@ -172,7 +172,7 @@
   /* ════════ option A: left rail (plan + mode) | right content ════════ */
   .optA .cols { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--space-12); align-items: start; }
   .optA .rail { position: sticky; top: var(--space-10); }
-  .optA .rail .mode-desc { margin-bottom: 0; }
+  .optA .rail .mode-desc { margin-bottom: var(--space-8); }
 
   /* ════════ option C: main | right aside (desc, My Review, hint) ════════ */
   .optC .cols { display: grid; grid-template-columns: minmax(0, 1fr) calc(300px * var(--k)); gap: var(--space-12); align-items: start; }
@@ -189,7 +189,7 @@
 <body>
 
 <div class="mock-bar">
-  <b>v2.0.0 Desktop · Mockup 1/12 · Home（未有 plan）· rev 2：加 D</b>
+  <b>v2.0.0 Desktop · Mockup 1/12 · Home（未有 plan）· rev 3：A 改版</b>
   <div class="mock-row"><span class="lbl">語言</span><button class="mock-tab on" data-k="lang" data-v="en">EN</button><button class="mock-tab" data-k="lang" data-v="zh">中文</button>
     <span class="lbl" style="margin-left:10px">翻譯</span><button class="mock-tab on" data-k="yue" data-v="on">開</button><button class="mock-tab" data-k="yue" data-v="off">關</button>
     <span class="lbl" style="margin-left:10px">⚙ 大字</span><button class="mock-tab on" data-k="large" data-v="off">關</button><button class="mock-tab" data-k="large" data-v="on">開</button></div>
@@ -313,13 +313,13 @@ function resetBox(inline) {
 // ── the three options ──
 const OPTIONS = [
   {
-    id: 'A', cls: 'optA', rec: true, title: 'A · 左右兩欄：左邊入口，右邊內容',
-    ann: `<ul><li><b>左欄（5/12）</b>：建立計劃卡、選擇模式、模式說明。左欄用 <code>sticky</code>，右邊長 list 碌落去嘅時候，左欄都仲睇得到。</li>
-      <li><b>右欄（7/12）</b>：My Review、練習分類 tabs、題組 list、提示同重設。題組 list 維持一行一個（同手機一樣，容易掃），試卷 grid 自動排多幾欄。</li>
-      <li>流程係「左揀模式 → 右揀題組」，第一眼就睇得晒全部。之後 Plan Home（#4）同 Quiz 都可以沿用呢個左右框架。</li>
-      <li>弱點：1024px 時左欄大約 380px，計劃卡個掣要自己佔一行（同手機現狀一樣）。</li></ul>`,
-    render: () => `<div class="cols"><div class="rail">${planCta(true)}${modes()}${desc()}</div>
-      <div>${myReview(false)}${practiceBlock('')}${resetBox(false)}</div></div>`,
+    id: 'A', cls: 'optA', rec: true, title: 'A · 計劃卡橫向 + 左右兩欄（rev 3：按你意見修改）',
+    ann: `<ul><li><b>頂</b>：建立計劃卡變成橫向一行（icon｜文字｜掣），佔滿成個闊度。</li>
+      <li><b>左欄（5/12，sticky）</b>：選擇模式、模式說明、提示同重設，「點樣玩」嘅資訊全部集中喺左邊。</li>
+      <li><b>右欄（7/12）</b>：My Review、練習分類 tabs、題組 list／試卷 grid，淨係擺揀題嘅嘢。</li>
+      <li>留意：⚙ 大字加中文時，左欄會比較長；因為佢係 sticky，如果左欄高過畫面，就會跟成頁一齊碌（實作時用 <code>max-height</code> 處理）。</li></ul>`,
+    render: () => `${planCta(false)}<div class="cols"><div class="rail">${modes()}${desc()}${resetBox(false)}</div>
+      <div>${myReview(false)}${practiceBlock('')}</div></div>`,
   },
   {
     id: 'B', cls: 'optB', title: 'B · 單欄加闊，內容變成橫向 grid',
