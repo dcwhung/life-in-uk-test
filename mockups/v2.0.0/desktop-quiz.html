@@ -578,6 +578,38 @@
   .note-table th, .note-table td { padding-left: var(--space-2); padding-right: var(--space-2); }
 }
 
+/* ── copied: css/components/modal.css (":root[data-font-size=large]" → ".app.large") ── */
+/* in-app confirm modal (replaces the browser's confirm box in exam mode) */
+.modal-backdrop {
+  position: fixed; inset: 0; z-index: 300; /* above the sticky header (100) and info popover (200) */
+  background: var(--overlay);
+  display: none; align-items: center; justify-content: center; padding: var(--space-8);
+}
+.modal-backdrop.show { display: flex; animation: slideIn 0.18s ease; }
+.modal-card {
+  background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+  width: 100%; max-width: 360px; padding: 22px var(--space-10) 18px; text-align: center;
+}
+.modal-title { font-size: var(--fs-2xl); font-weight: 800; color: var(--navy); margin-bottom: var(--space-4); }
+.modal-msg { font-size: var(--fs-md); color: var(--text-muted); line-height: 1.55; margin-bottom: 18px; white-space: pre-line;
+  text-align: justify; text-align-last: left; hyphens: auto; } /* v1.0.6 (user): justified, last line on the left; the title stays centred; S-133: hyphens close wide English gaps (needs lang, set on <html>) */
+.modal-actions { display: flex; gap: var(--space-5); }
+.modal-actions .nav-btn { flex: 1; }
+
+/* v1.0.6 (user): destructive confirm (showConfirm danger: study plan off / reset, practice / completed exam resets):
+   red title, red Confirm, red single-line Cancel. Cancel takes focus on open, so its focus stays inside the border
+   (user: single line, no outer ring); Confirm keeps a red ring */
+.modal-card.danger .modal-title { color: var(--red); }
+.modal-card.danger #confirmOk { background: var(--red); }
+.modal-card.danger #confirmOk:hover { background: var(--red-dark); }
+.modal-card.danger #confirmOk:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+.modal-card.danger #confirmCancel { color: var(--red); border-color: var(--red); }
+.modal-card.danger #confirmCancel:hover,
+.modal-card.danger #confirmCancel:focus-visible { background: var(--danger-bg); color: var(--red); border-color: var(--red); outline: none; }
+/* W-043 (user): keyboard focus also thickens the border inward (2 → 3px, still one line, no outer ring), so focus
+   differs from hover (tint only) and does not rest on the tint's 1.11:1 alone */
+.modal-card.danger #confirmCancel:focus-visible { box-shadow: inset 0 0 0 1px var(--red); }
+
 /* ── copied: css/components/switch.css (":root[data-font-size=large]" → ".app.large") ── */
 /* ── SWITCH (js/components/switch.js; mockup .sp-switch) ── */
 .switch {
@@ -1522,7 +1554,7 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
 <body>
 
 <div class="mock-bar">
-  <b>v2.0.0 Desktop · Mockup 8/12 · Quiz（練習）· rev 12：← → 常駐</b>
+  <b>v2.0.0 Desktop · Mockup 8/12 · Quiz（練習）· ✅ 定案 A rev 12</b>
   <div class="mock-row"><span class="lbl">語言</span><button class="mock-tab on" data-k="lang" data-v="en">EN</button><button class="mock-tab" data-k="lang" data-v="zh">中文</button><span class="lbl" style="margin-left:10px">翻譯</span><button class="mock-tab on" data-k="yue" data-v="on">開</button><button class="mock-tab" data-k="yue" data-v="off">關</button><span class="lbl" style="margin-left:10px">⚙ 大字</span><button class="mock-tab on" data-k="large" data-v="off">關</button><button class="mock-tab" data-k="large" data-v="on">開</button></div>
   <div class="mock-row"><span class="lbl">Tab 樣式（A）</span><button class="mock-tab on" data-k="tabs" data-v="s">S · 柔和（揀咗）</button><button class="mock-tab" data-k="tabs" data-v="u">U · 底線</button><button class="mock-tab" data-k="tabs" data-v="f">F · 文件夾</button><span class="lbl" style="margin-left:10px"></span><span class="lbl">狀態</span><button class="mock-tab on" data-k="st" data-v="wrong">答錯（答案 + 相似題目）</button><button class="mock-tab" data-k="st" data-v="right">答啱（長選項）</button><button class="mock-tab" data-k="st" data-v="q">未答</button><button class="mock-tab" data-k="st" data-v="qYue">未答 + Translate</button></div>
   <div class="mock-row"><span class="lbl">縮放</span><button class="mock-tab on" data-k="zoom" data-v="fit">適合畫面</button><button class="mock-tab" data-k="zoom" data-v="100">100%</button></div>
