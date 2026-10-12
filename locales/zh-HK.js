@@ -88,7 +88,7 @@ LOCALES['zh-HK'] = {
     finish: '完成',
     prevButton: '← 上一題',
     nextButton: '下一題 →',
-    backButton: '↩ 返回',
+    backButton: '返回',
     finishButton: '完成 ✓',
     correct: '✓ 正確！',
     wrong: '✗ 錯誤',

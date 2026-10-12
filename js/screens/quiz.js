@@ -168,13 +168,19 @@ function renderAnswerTranslation(q) {
 function renderNavButtons(idx, total, revealed) {
   const next = nextAction(idx, total);
   ['prevBtn', 'quickPrev'].forEach(id => { byId(id).disabled = idx === 0; });
-  byId('nextBtn').textContent = next.label;
+  renderNextButton(byId('nextBtn'), next);
   const quickNext = byId('quickNext');
-  quickNext.textContent = next.symbol;
+  quickNext.innerHTML = lineIconSvg(next.icon); // C1: a line icon, never a glyph (iOS draws "↩" as an emoji)
   quickNext.title = next.title;
   quickNext.setAttribute('aria-label', next.title);
   // quick pair: practice once revealed (Translate holds the spot before that); exam always (no Translate there)
   byId('quickNav').classList.toggle('visible', revealed || state.mode === EXAM_MODE);
+}
+// the bottom button: its words, plus a line icon in front when the action has one (side session Back, C1)
+function renderNextButton(btn, next) {
+  btn.classList.toggle('with-icon', !!next.labelIcon);
+  if (next.labelIcon) btn.innerHTML = lineIconSvg(next.labelIcon) + `<span>${escapeHtml(next.label)}</span>`;
+  else btn.textContent = next.label;
 }
 // review sets bigger than one round: "Round 1 of N · 24 of your T wrong answers" above the question card
 function renderRoundNote() {
@@ -191,13 +197,16 @@ function renderRoundNote() {
 
 // ── answering ──
 // what "Next" does on this question: next question, finish the set, or leave the side session (similar / fact)
-// label = bottom button, symbol + title = quick button in the question header
+// label (+ labelIcon) = bottom button, icon + title = quick button in the question header (LINE_ICON_PATHS names)
+const QUICK_ICON = { prev: 'arrowLeft', next: 'arrowRight', finish: 'check', back: 'returnLeft' };
 function nextAction(idx, total) {
-  if (idx < total - 1) return { label: t('quiz.nextButton'), symbol: '→', title: t('quiz.next'), run: nextQ };
+  if (idx < total - 1) return { label: t('quiz.nextButton'), icon: QUICK_ICON.next, title: t('quiz.next'), run: nextQ };
   if (isPlanSession()) return planNextAction();
-  if (isSideSession()) return { label: t('quiz.backButton'), symbol: '↩', title: t('quiz.back'), run: returnFromSideSession };
-  if (state.mode === EXAM_MODE) return { label: t('exam.submit'), symbol: '✓', title: t('exam.submit'), run: submitExam };
-  return { label: t('quiz.finishButton'), symbol: '✓', title: t('quiz.finish'), run: finishExam };
+  if (isSideSession()) {
+    return { label: t('quiz.backButton'), labelIcon: QUICK_ICON.back, icon: QUICK_ICON.back, title: t('quiz.back'), run: returnFromSideSession };
+  }
+  if (state.mode === EXAM_MODE) return { label: t('exam.submit'), icon: QUICK_ICON.finish, title: t('exam.submit'), run: submitExam };
+  return { label: t('quiz.finishButton'), icon: QUICK_ICON.finish, title: t('quiz.finish'), run: finishExam };
 }
 function runNextAction() { nextAction(state.current, state.questions.length).run(); }
 
