@@ -821,6 +821,13 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
   /* rev 2 (user): study order in one row, 1 › 2 › 3 › 4 */
   .optB .plan-order { grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: var(--space-12); position: relative; }
   .optB .plan-ord { position: relative; }
+  /* rev 3 (user): the 4 steps share 3 rows (name / reason / bar) so every name starts on one line and every bar sits
+     on one bottom line, however long the texts above them */
+  .optB .plan-order { grid-template-rows: auto auto auto; row-gap: var(--space-2); }
+  .optB .plan-ord { grid-row: span 3; grid-template-rows: subgrid; row-gap: var(--space-2); }
+  .optB .plan-ord-n { grid-row: 1; }
+  .optB .plan-ord-body { grid-row: 1 / -1; grid-template-rows: subgrid; row-gap: var(--space-2); }
+  .optB .plan-chw { align-self: end; padding-top: var(--space-3); }
   /* a quarter row is too narrow for the bar + fixed count column: bar across, count under it */
   .optB .plan-chw { grid-template-columns: minmax(0, 1fr); row-gap: var(--space-2); }
   .optB .plan-chw-c { text-align: left; }
@@ -829,11 +836,29 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
   .optB .plan-day-scroll { --day-w: calc(200px * var(--k)); display: flex; align-items: stretch; gap: var(--space-6); max-height: none; overflow-x: auto; overflow-y: hidden; margin-inline: 0; padding: 0 0 var(--space-4); scroll-snap-type: x proximity; }
   /* each Week is a group: its label on top (sticks to the left edge while the week scrolls past), its days in a row */
   .optB .plan-wk { flex: none; display: grid; gap: var(--space-3); align-content: start; }
-  .optB .plan-wk .plan-week { position: sticky; left: 0; justify-self: start; margin: 0; padding: 0 var(--space-2); background: var(--card); }
+  .optB .plan-wk .plan-week { position: sticky; left: 0; z-index: 6; justify-self: start; margin: 0; padding: 0 var(--space-2); background: var(--card); }
   .optB .plan-wk-days { display: flex; gap: var(--space-3); align-items: stretch; }
-  .optB .plan-day { flex: none; width: var(--day-w); display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; margin: 0; padding: var(--space-5); border: 1px solid var(--border); border-radius: var(--radius-sm); scroll-snap-align: start; }
-  .optB .plan-day-side { grid-template-columns: auto auto; justify-content: start; align-items: center; justify-items: start; }
-  .optB .plan-day-side .plan-day-d { width: auto; padding: var(--space-2) var(--space-5); }
+  .optB .plan-wk { grid-template-rows: auto 1fr; }
+  .optB .plan-day { flex: none; width: var(--day-w); display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr; align-content: stretch; align-items: stretch; margin: 0; padding: var(--space-5); border: 1px solid var(--border); border-radius: var(--radius-sm); scroll-snap-align: start; }
+  /* rev 3 (user): "Day 1 – 12/10 Mon" on one centred line, the status pill centred under it */
+  .optB .plan-day-side { grid-template-columns: minmax(0, 1fr); justify-items: center; }
+  .optB .plan-day-side .plan-day-d { width: 100%; padding: var(--space-2) var(--space-3); white-space: nowrap; }
+  .optB .plan-day-d small { display: inline; font-size: inherit; font-weight: 600; }
+  .optB .plan-day-side .plan-pill { max-width: none; white-space: nowrap; }
+  /* rev 3 (user): the gold chapter lines keep one blank line under the tasks and sit on every card's bottom edge */
+  .optB .plan-day-tasks { display: flex; flex-direction: column; }
+  .optB .plan-day-chs { margin-top: auto; padding-top: 1.45em; }
+  /* rev 3 (user): edge fades + ‹ › buttons while more days are off-screen on that side */
+  .optB .hscroll { position: relative; min-width: 0; } /* a grid item: without min-width 0 it grows to the whole plan's width */
+  .optB .hscroll::before, .optB .hscroll::after { content: ''; position: absolute; top: 0; bottom: var(--space-4); width: calc(56px * var(--k)); z-index: 4; pointer-events: none; opacity: 0; transition: opacity 0.2s; }
+  .optB .hscroll::before { left: 0; background: linear-gradient(to right, var(--card) 15%, transparent); }
+  .optB .hscroll::after { right: 0; background: linear-gradient(to left, var(--card) 15%, transparent); }
+  .optB .hscroll.can-l::before, .optB .hscroll.can-r::after { opacity: 1; }
+  .optB .hs-btn { position: absolute; top: 50%; z-index: 5; width: calc(36px * var(--k)); height: calc(36px * var(--k)); transform: translateY(-50%); border: 1.5px solid var(--border); border-radius: var(--radius-circle); background: var(--card); color: var(--navy); box-shadow: var(--shadow-sm); font-size: var(--fs-4xl); font-weight: 800; line-height: 1; cursor: pointer; display: none; place-items: center; padding-bottom: 0.1em; }
+  .optB .hs-btn:hover { background: var(--navy); color: var(--text-inverse); }
+  .optB .hs-btn.l { left: calc(-1 * var(--space-4)); }
+  .optB .hs-btn.r { right: calc(-1 * var(--space-4)); }
+  .optB .hscroll.can-l .hs-btn.l, .optB .hscroll.can-r .hs-btn.r { display: grid; }
   .optB .plan-day.plan-far { content-visibility: visible; }
   .optB .scroll-hint { font-size: var(--fs-xs); color: var(--text-muted); text-align: right; }
   .optB .foot { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-8); align-items: stretch; }
@@ -854,7 +879,7 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
 <body>
 
 <div class="mock-bar">
-  <b>v2.0.0 Desktop · Mockup 3/12 · Plan Schedule（你的進度表）· rev 2：B 改版</b>
+  <b>v2.0.0 Desktop · Mockup 3/12 · Plan Schedule（你的進度表）· rev 3：B 對齊 + scroll 提示</b>
   <div class="mock-row"><span class="lbl">語言</span><button class="mock-tab on" data-k="lang" data-v="en">EN</button><button class="mock-tab" data-k="lang" data-v="zh">中文</button>
     <span class="lbl" style="margin-left:10px">⚙ 大字</span><button class="mock-tab on" data-k="large" data-v="off">關</button><button class="mock-tab" data-k="large" data-v="on">開</button>
     <span class="lbl" style="margin-left:10px">兩張說明卡</span><button class="mock-tab on" data-k="fold" data-v="expanded">展開</button><button class="mock-tab" data-k="fold" data-v="collapsed">收起</button></div>
@@ -904,6 +929,7 @@ const OPTIONS = [
       <li><b>溫習次序</b>每格得四分一闊，所以進度 bar 改為成格闊，數量放喺 bar 下面（4 條 bar 仍然一樣長、同一個起點）。</li>
       <li><b>每日任務</b>：成個計劃由左向右 scroll，一日一欄（240px），1280px 大約一次見到 5 日；每個 Week 係一組，「WEEK n」喺組頂，碌嘅時候會黐住左邊。打開時會碌到今日。可以用 trackpad／shift + 滾輪／拖 scrollbar 碌，平板就用手指掃。</li>
       <li><b>最底</b>：「查看今日任務」同「重設」並排。</li>
+      <li><b>rev 3</b>：溫習次序 4 個章節嘅標題、說明、bar 各自對齊同一條線（CSS subgrid）；每日卡頂改為一行置中「Day 1 – 12/10 Mon」（中文用「Day 1 · 12/10 一」，因為「– 12/10 一」睇落似兩條橫線），今日／% 喺下一行置中；金色章節同上面任務空一行，而且每張卡都貼底對齊；有未顯示嘅日子嗰邊會有淡出效果同 ‹ › 掣（撳一下碌大約一版）。</li>
       <li>留意：每日卡高度跟最長嗰日，所以短嘅日子下面會有空位；6 個月嘅計劃大約有 180 欄，要碌好耐，app 實作時打開會直接跳去今日。</li></ul>`,
     render: p => `${p.header}${p.title}${p.phases}${p.order}${p.daily}<div class="foot">${p.cta}${p.reset}</div>`,
   },
@@ -940,10 +966,39 @@ function groupWeeks(list) {
     } else if (days) days.append(el);
   });
 }
+// option B rev 3: "Day n – date" on one line (the app renders "n<small>date</small>"; exam / special days stay as they are)
+function dateOneLine(list) {
+  list.querySelectorAll('.plan-day-d').forEach(d => {
+    const n = d.firstChild, small = d.querySelector('small');
+    if (!n || n.nodeType !== Node.TEXT_NODE || !/^\d+$/.test(n.textContent.trim()) || !small) return;
+    n.textContent = 'Day ' + n.textContent.trim() + ' ';
+    // zh-HK weekdays are 一…日: "– 12/10 一" reads as two dashes, so Chinese takes "·"
+    small.textContent = (S.lang === 'zh' ? '· ' : '– ') + small.textContent;
+  });
+}
+// option B rev 3: wrap the scroller, add ‹ › buttons, and mark which sides still have days off-screen
+const SCROLL_PAGE_SHARE = 0.85;
+function addScrollCues(list) {
+  const wrap = document.createElement('div');
+  wrap.className = 'hscroll';
+  list.replaceWith(wrap);
+  wrap.innerHTML = '<button type="button" class="hs-btn l" aria-label="Earlier days">‹</button><button type="button" class="hs-btn r" aria-label="Later days">›</button>';
+  wrap.prepend(list);
+  const update = () => {
+    wrap.classList.toggle('can-l', list.scrollLeft > 1);
+    wrap.classList.toggle('can-r', list.scrollLeft + list.clientWidth < list.scrollWidth - 1);
+  };
+  wrap.querySelectorAll('.hs-btn').forEach(b => b.addEventListener('click', () => {
+    const dir = b.classList.contains('l') ? -1 : 1;
+    list.scrollBy({ left: dir * list.clientWidth * SCROLL_PAGE_SHARE, behavior: 'smooth' });
+  }));
+  list.addEventListener('scroll', update, { passive: true });
+  update();
+}
 function render() {
   document.getElementById('opts').innerHTML = OPTIONS.map(o => `<section class="opt"><div class="opt-title">${o.title}${o.rec ? '<span class="rec">建議</span>' : ''}</div>
     <div class="ann">${o.ann}</div>${WIDTHS.map(w => frame(o, w)).join('')}</section>`).join('');
-  document.querySelectorAll('.optB .plan-day-scroll').forEach(groupWeeks);
+  document.querySelectorAll('.optB .plan-day-scroll').forEach(list => { groupWeeks(list); dateOneLine(list); addScrollCues(list); });
   fitFrames();
 }
 // "適合畫面": scale each frame down to the page width (never up); the box takes the scaled height so nothing overlaps
