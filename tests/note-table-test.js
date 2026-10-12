@@ -6,6 +6,7 @@
 // C: the Study card "💡 記憶法", the Practice answer box and the Results review fit every table at 390px
 //    and (CUI-0027) at 320px; cells without "<br>" stay on one line at both widths (W-050)
 const { chromium } = require('playwright-core');
+const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.2: keep the old en + small first run
 const fs = require('fs');
 const path = require('path');
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
@@ -210,7 +211,7 @@ async function checkStudy(pg) {
 }
 
 (async () => {
-  const b = await chromium.launch(launchOpts);
+  const b = seedLegacyDefaults(await chromium.launch(launchOpts));
   const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
   const errs = []; pg.on('pageerror', e => errs.push(e.message));
   await pg.goto(APP_URL);

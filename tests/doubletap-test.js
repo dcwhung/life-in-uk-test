@@ -1,4 +1,5 @@
 const { chromium } = require('playwright-core');
+const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.2: keep the old en + small first run
 const path = require('path');
 // v0.64 (CUI-0011): a double tap / double click on a button that opens a new screen must not let the
 // second tap act on that screen. "▶ Practise" on a Study fact card and the Home Practice › By Exam
@@ -237,7 +238,7 @@ async function checkNegativeGapFailsOpen(pg) {
 }
 
 (async () => {
-  const b = await chromium.launch(launchOpts);
+  const b = seedLegacyDefaults(await chromium.launch(launchOpts));
   const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
   const touchCtx = await b.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
   const touchPg = await touchCtx.newPage();

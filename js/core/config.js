@@ -2,7 +2,7 @@
 // CONFIG — app-wide constants. sw.js loads this file with importScripts() to name its cache,
 // so it must stay worker-safe: plain constants only, no DOM and no question data.
 // ════════════════════════════════════════
-const APP_VERSION = '1.4.1';
+const APP_VERSION = '1.4.2';
 
 // ── modes and special set ids (state.examNum is 1..EXAM_COUNT or one of these) ──
 const PRACTICE_MODE = 'practice';
@@ -59,6 +59,9 @@ const INSTALL_TOUCH_QUERY = '(pointer: coarse)';
 // ── i18n (js/core/i18n.js; strings in locales/*.js) ──
 const DEFAULT_LANG = 'en';   // also the fallback for keys a language lacks
 const ZH_HK_LANG = 'zh-HK';  // v0.65: the other UI language (header pill toggles between the two)
+// v1.4.2: the first-run UI language (nothing stored, or a stored language with no locale); DEFAULT_LANG stays the
+// fallback for missing keys
+const INITIAL_LANG = ZH_HK_LANG;
 
 // ── localStorage keys ──
 // the origin (dcwhung.github.io) is shared with other apps, so every key carries our own prefix
@@ -68,11 +71,12 @@ const FLAGS_LS = LS_PREFIX + 'practiceFlags';
 const WRONG_LS = LS_PREFIX + 'wrongList';
 const COMPLETED_LS = LS_PREFIX + 'completedExams';
 const HOME_PREFS_LS = LS_PREFIX + 'homePrefs';
-const UI_LANG_LS = LS_PREFIX + 'uiLang';   // v0.59: UI language (v0.65: header pill; v1.2.0: ⚙ settings)
+const UI_LANG_LS = LS_PREFIX + 'uiLang';   // v0.59: UI language (v0.65: header pill; v1.2.0: ⚙ settings); not written until the user picks (INITIAL_LANG)
 const FONT_SIZE_SMALL = 'small';
 const FONT_SIZE_LARGE = 'large';
 const FONT_SIZES = [FONT_SIZE_SMALL, FONT_SIZE_LARGE];
-const FONT_SIZE_LS = LS_PREFIX + 'fontSize';   // v1.3.0: text size (⚙ settings): FONT_SIZE_SMALL (default, not written) / FONT_SIZE_LARGE
+const DEFAULT_FONT_SIZE = FONT_SIZE_LARGE;   // v1.4.2: the first-run text size (v1.3.0–v1.4.1: small)
+const FONT_SIZE_LS = LS_PREFIX + 'fontSize';   // v1.3.0: text size (⚙ settings): FONT_SIZE_SMALL / FONT_SIZE_LARGE; not written until the user picks (DEFAULT_FONT_SIZE)
 const TRANSLATION_ON = 'on';
 const TRANSLATION_OFF = 'off';
 const TRANSLATION_LS = LS_PREFIX + 'translation';   // v1.4.0: Cantonese translation (⚙ Features): TRANSLATION_ON (default, not written) / TRANSLATION_OFF

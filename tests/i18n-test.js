@@ -1,4 +1,5 @@
 const { chromium } = require('playwright-core');
+const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.2: keep the old en + small first run
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -163,7 +164,7 @@ function zhHkChecks() {
 }
 
 async function runtimeChecks(en) {
-  const b = await chromium.launch(launchOpts);
+  const b = seedLegacyDefaults(await chromium.launch(launchOpts));
   const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
   const errs = []; pg.on('pageerror', e => errs.push(e.message));
   const warns = []; pg.on('console', m => { if (m.type() === 'warning') warns.push(m.text()); });
@@ -241,21 +242,21 @@ async function runtimeChecks(en) {
   assert((await text('#studyChips .chip:first-child')) === 'ZZ hide', 'setLang re-renders the current screen (Study chips)');
   assert((await text('#studyChips .chip:nth-child(2)')) === en.study.bookmarkedOnly, 'key missing in zz falls back to en');
   assert(warns.some(w => w.includes('[i18n] missing key') && w.includes('study.bookmarkedOnly')), 'fallback to en warns');
-  // an unknown language is ignored; a stored language without a locale reads as en
+  // an unknown language is ignored; a stored language without a locale reads as the first-run language (v1.4.2: zh-HK)
   await pg.evaluate(() => setLang('xx'));
   assert(await pg.evaluate(() => getLang() === 'zz'), 'setLang ignores a language with no locale');
   await pg.reload();
-  assert(await pg.evaluate(() => getLang() === 'en' && document.documentElement.lang === 'en'), 'stored language without a locale falls back to en');
-  // Object prototype keys are not locales (LOCALES is a plain object): a stored one loads as en without warnings
+  assert(await pg.evaluate(() => getLang() === 'zh-HK' && document.documentElement.lang === 'zh-HK'), 'stored language without a locale falls back to zh-HK (INITIAL_LANG)');
+  // Object prototype keys are not locales (LOCALES is a plain object): a stored one loads as zh-HK (v1.4.2) without warnings
   for (const protoKey of ['constructor', '__proto__']) {
     await pg.evaluate(k => localStorage.setItem('lifeuk.uiLang', JSON.stringify(k)), protoKey);
     warns.length = 0;
     await pg.reload();
-    assert(await pg.evaluate(() => getLang() === 'en' && document.documentElement.lang === 'en'), `stored '${protoKey}' loads as en`);
+    assert(await pg.evaluate(() => getLang() === 'zh-HK' && document.documentElement.lang === 'zh-HK'), `stored '${protoKey}' loads as zh-HK`);
     assert(warns.filter(w => w.includes('[i18n]')).length === 0, `stored '${protoKey}' logs no i18n warnings (${warns.length})`);
   }
   await pg.evaluate(() => setLang('toString'));
-  assert(await pg.evaluate(() => getLang() === 'en' && localStorage.getItem('lifeuk.uiLang') !== JSON.stringify('toString')), "setLang('toString') is ignored");
+  assert(await pg.evaluate(() => getLang() === 'zh-HK' && localStorage.getItem('lifeuk.uiLang') !== JSON.stringify('toString')), "setLang('toString') is ignored");
   await pg.evaluate(() => setLang('en'));
   assert(await pg.evaluate(() => localStorage.getItem('lifeuk.uiLang') === JSON.stringify('en')), 'setLang(en) persists');
 

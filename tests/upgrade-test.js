@@ -1,4 +1,5 @@
 const { chromium } = require('playwright-core');
+const { seedLegacyDefaults, LEGACY_DEFAULTS, NO_SEED_SS } = require('./legacy-defaults'); // v1.4.2: keep the old en + small first run
 const { execFileSync } = require('child_process');
 const fs = require('fs');
 const os = require('os');
@@ -23,6 +24,8 @@ const { startPagesServer, appFiles } = require('./pages-server');
 //      opens, the translation row is hidden (no dead switch, no raw key), translations show
 //      (S-205 / R2-1: the en.js mix with a stored "off" keeps the original Home Practice line; the Study search placeholder is
 //      that file's own static study.search, no raw key)
+//  11. v1.4.2: the current shell with one v1.4.0 file (config.js: no INITIAL_LANG / DEFAULT_FONT_SIZE; i18n.js; store.js),
+//      nothing stored (legacy seed off) — still starts with no page errors; each old file keeps its own first-run default
 // The v0.57 files come from git: V057_REF is the last v0.57 commit on main (merge of PR #29), pinned so a later
 // main does not silently turn this into a same-version test.
 const ROOT = path.resolve(__dirname, '..');
@@ -59,7 +62,12 @@ const extractV057 = dir => execFileSync('sh', ['-c', `git -C "${ROOT}" archive $
 const showV057 = file => execFileSync('git', ['-C', ROOT, 'show', `${V057_REF}:${file}`]);
 const emptyDir = dir => fs.readdirSync(dir).forEach(f => fs.rmSync(path.join(dir, f), { recursive: true, force: true }));
 
-const dump = pg => pg.evaluate(() => Object.fromEntries(Object.keys(localStorage).sort().map(k => [k, localStorage.getItem(k)])));
+// the legacy en + small seed (tests/legacy-defaults.js) is test scaffolding, not app storage: left out of a dump.
+// S-219: a case that runs with the seed off (noSeed) dumps every key, so an app write to lifeuk.uiLang / lifeuk.fontSize fails it
+const dump = (pg, { raw = false } = {}) => pg.evaluate(skip => Object.fromEntries(Object.keys(localStorage).filter(k => !skip.includes(k)).sort()
+  .map(k => [k, localStorage.getItem(k)])), raw ? [] : Object.keys(LEGACY_DEFAULTS));
+const rawDump = pg => dump(pg, { raw: true });
+const noSeed = pg => pg.evaluate(ss => sessionStorage.setItem(ss, '1'), NO_SEED_SS);
 const seed = async (pg, kv) => {
   await pg.evaluate(kv => { localStorage.clear(); for (const [k, v] of Object.entries(kv)) localStorage.setItem(k, v); }, kv);
   await pg.reload();
@@ -350,6 +358,34 @@ async function v130SingleFile(b, file) {
   await pg.close();
 }
 
+// 11. v1.4.2: the current shell with ONE file still from v1.4.0 (pinned 2839741, the v1.4.0 merge) and nothing stored.
+// The first-run language / text size constants are new in config.js, so i18n.js / store.js read them behind a typeof
+// guard (W-057): an old config.js keeps the old en + small first run instead of a ReferenceError
+const V140_REF = '2839741';
+const V140_SINGLES = {
+  'js/core/config.js': { lang: 'en', size: 'small' },     // new i18n.js / store.js, no INITIAL_LANG / DEFAULT_FONT_SIZE
+  'js/core/i18n.js': { lang: 'en', size: 'large' },       // old getLang() (en), new store.js
+  'js/core/store.js': { lang: 'zh-HK', size: 'small' },   // new getLang(), old getFontSize() (small)
+};
+async function v140SingleFile(b, file) {
+  const dir = tmpDir('v140one');
+  copyCurrent(dir);
+  fs.writeFileSync(path.join(dir, file), execFileSync('git', ['-C', ROOT, 'show', `${V140_REF}:${file}`]));
+  const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
+  const errs = []; pg.on('pageerror', e => errs.push(e.message));
+  await pg.goto('file://' + path.join(dir, 'index.html'));
+  await pg.evaluate(ss => { sessionStorage.setItem(ss, '1'); localStorage.clear(); }, NO_SEED_SS);
+  await pg.reload();
+  await pg.waitForSelector('#examGrid .exam-btn', { state: 'attached' });
+  await pg.click('#settingsBtn');
+  const r = await pg.evaluate(() => ({ opened: byId('settingsPop').classList.contains('show'), lang: getLang(), html: document.documentElement.lang,
+    size: document.documentElement.dataset.fontSize || 'small' }));
+  const want = V140_SINGLES[file];
+  assert(r.opened && r.lang === want.lang && r.html === want.lang && r.size === want.size && errs.length === 0,
+    `v1.4.0 ${file} + current files, nothing stored: starts in ${want.lang} + ${want.size}, ⚙ opens, no page errors: ` + JSON.stringify({ ...r, errs }));
+  await pg.close();
+}
+
 // 6. T-008: a v0.64-style shell (no locales/zh-HK.js tag, no language control: v1.2.0 drops the ⚙) running the current js while
 // lifeuk.uiLang says zh-HK — the language has no locale on that page, so it reads as en without warnings and
 // without rewriting the stored value; the current shell then opens in zh-HK
@@ -404,9 +440,10 @@ async function oppositeMix(b) {
   const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
   const errs = []; pg.on('pageerror', e => errs.push(e.message));
   await pg.goto('file://' + path.join(dir, 'index.html'));
+  await noSeed(pg); // S-219: every key counts
   await seed(pg, LEGACY);
   assert((await text(pg, '#examGrid .exam-btn.all .exam-mastery')).startsWith('3/408'), 'opposite mix: v0.57 keys read (3/408)');
-  assert(JSON.stringify(await dump(pg)) === JSON.stringify(Object.fromEntries(Object.entries(LEGACY).sort())), 'opposite mix: storage untouched');
+  assert(JSON.stringify(await rawDump(pg)) === JSON.stringify(Object.fromEntries(Object.entries(LEGACY).sort())), 'opposite mix: storage untouched');
   assert(errs.length === 0, 'opposite mix: no page errors: ' + errs.join(' | '));
   await pg.close();
 }
@@ -466,16 +503,17 @@ async function swUpgrade(b) {
     const pg = await ctx.newPage();
     const errs = []; pg.on('pageerror', e => errs.push(e.message));
     await pg.goto(base);
+    await noSeed(pg); // S-219: the real upgrade runs on a true first-run storage, and every dump below counts every key
     assert(await waitForCache(pg, 'lifeuk-v0.57'), 'v0.57 SW installed and controlling');
     await seed(pg, { ...LEGACY, ...FOREIGN });
-    const ls57 = await dump(pg); const ui57 = await captureUI(pg);
+    const ls57 = await rawDump(pg); const ui57 = await captureUI(pg);
     assert(await pg.evaluate(() => APP_VERSION) === '0.57' && ls57.practiceStreak === LEGACY.practiceStreak, 'v0.57 running on the legacy keys');
     emptyDir(dir); copyCurrent(dir);
     await pg.reload();
     assert(await waitForCache(pg, 'lifeuk-v' + CURRENT_VERSION), `v${CURRENT_VERSION} SW activated, v0.57 cache deleted`);
     await pg.reload();
     assert(await pg.evaluate(() => APP_VERSION) === CURRENT_VERSION, `reload: v${CURRENT_VERSION} js runs`);
-    const ls = await dump(pg);
+    const ls = await rawDump(pg);
     assert(LEGACY_NAMES.every(k => ls[P + k] === LEGACY[k]), 'every legacy value byte-exact under lifeuk.*');
     assert(LEGACY_NAMES.every(k => !(k in ls)) && !('reviewOrder' in ls), 'legacy keys + reviewOrder gone');
     assert(Object.entries(FOREIGN).every(([k, v]) => ls[k] === v), "other apps' keys byte-identical");
@@ -485,14 +523,14 @@ async function swUpgrade(b) {
     const diffs = Object.keys(ui57).filter(k => JSON.stringify(ui57[k]) !== JSON.stringify(ui[k]));
     assert(diffs.length === 0, 'UI identical before / after the upgrade' + (diffs.length ? ': ' + diffs.join(', ') : ''));
     await pg.reload();
-    assert(JSON.stringify(await dump(pg)) === JSON.stringify(ls), 'another reload: storage unchanged');
+    assert(JSON.stringify(await rawDump(pg)) === JSON.stringify(ls), 'another reload: storage unchanged');
     // PR2 (arch R3): with no plan, the answer / submit hooks add no study plan key — the marker stays the only new key
     await pg.evaluate(() => {
       pendingMode = 'practice'; startExam('ch2');
       const q = state.questions[0]; state.answers[0] = [...q.a]; revealAnswer();
       startExam(3, EXAM_MODE); finishExam(); leaveToHome();
     });
-    const after = Object.keys(await dump(pg)).filter(k => !(k in FOREIGN) && !(k.startsWith(P) && k.slice(P.length) in LEGACY));
+    const after = Object.keys(await rawDump(pg)).filter(k => !(k in FOREIGN) && !(k.startsWith(P) && k.slice(P.length) in LEGACY));
     assert(JSON.stringify(after) === JSON.stringify([MARKER]), 'no plan: after an answer + an exam submit the only new key is still the marker: ' + after);
     assert(errs.length === 0, 'upgrade: no page errors: ' + errs.join(' | '));
     await ctx.close();
@@ -512,7 +550,7 @@ function checkV057Ref() {
 
 (async () => {
   checkV057Ref();
-  const b = await chromium.launch(launchOpts);
+  const b = seedLegacyDefaults(await chromium.launch(launchOpts));
   await mixedShell(b);
   await prePlanUiShell(b);
   await pr3Shell(b);
@@ -527,6 +565,7 @@ function checkV057Ref() {
   for (const file of V120_SINGLES) await v120SingleFile(b, file);
   for (const file of V130_SINGLES) await v130SingleFile(b, file);
   await v130Shell(b);
+  for (const file of Object.keys(V140_SINGLES)) await v140SingleFile(b, file);
   await oldShellZhHk(b);
   await zhHkLocaleMissing(b);
   console.log('UPGRADE PASS');

@@ -1,4 +1,5 @@
 const { chromium } = require('playwright-core');
+const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.2: keep the old en + small first run
 const path = require('path');
 // v0.65 (T-007): switching the language (v1.2.0: ⚙ settings → EN / 中文; v0.65–v1.1 the header pill). It switches
 // <html lang> and lifeuk.uiLang, and re-renders the current screen in place: on every screen the plan's
@@ -771,7 +772,7 @@ const CHECKS = [
 ];
 
 async function main() {
-  const b = await chromium.launch(launchOpts);
+  const b = seedLegacyDefaults(await chromium.launch(launchOpts));
   const pg = await b.newPage({ viewport: WIDE });
   const ctx = { errs: [], warns: [] };
   pg.on('pageerror', e => ctx.errs.push(e.message));

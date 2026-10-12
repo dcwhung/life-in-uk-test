@@ -1,4 +1,5 @@
 const { chromium } = require('playwright-core');
+const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.2: keep the old en + small first run
 const fs = require('fs');
 const path = require('path');
 // Code structure guards: no inline event handlers, short functions, index.html holds only markup,
@@ -327,7 +328,7 @@ const TOKEN_SAMPLES = [
   assert(factRules('css/screens/study.css') === 0 && factRules('css/screens/quiz.css') === 0 && factRules('css/components/fact.css') > 0,
     '.fact* / .sqm-fact* rules live in css/components/fact.css only');
 
-  const b = await chromium.launch(launchOpts);
+  const b = seedLegacyDefaults(await chromium.launch(launchOpts));
   const pg = await b.newPage();
   const errs = [];
   pg.on('pageerror', e => errs.push('pageerror: ' + e.message));
