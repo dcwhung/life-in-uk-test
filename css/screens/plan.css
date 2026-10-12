@@ -438,3 +438,75 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
   .plan-today-info { justify-items: center; }
 }
 @media (prefers-reduced-motion: reduce) { .plan-day-scroll { scroll-behavior: auto; } .plan-ring-prog { transition: none; } }
+
+/* ════════ v2.0.0 desktop (≥ 1024px; handoff .proj-docs/plans/2026-10-12_handoff_desktop-layout.md §3–§5, Lane A;
+   Design Origin: mockups/v2.0.0/desktop-home-plan.html, desktop-plan-{goal,schedule,day,run}.html). Below 1024px
+   nothing here applies. Hard-coded px ×--desktop-scale (.proj-docs/plans/2026-10-12_desktop-px-inventory.md) ════════ */
+/* timeline phase colours on the navy card (mockup desktop-home-plan.html rev 4: the schedule's learn colour is the
+   card's own navy, so lighter tints, mixed from the palette (no colour literals outside tokens.css); days still to come are an outline in their colour, a faded fill vanishes on navy) */
+.plan-card { --plan-cd-learn: color-mix(in srgb, var(--navy-light) 45%, var(--person-bg)); --plan-cd-drill: color-mix(in srgb, var(--purple-light) 70%, var(--card)); --plan-cd-mock: var(--orange); --plan-cd-rest: var(--text-inverse-faint); --plan-cd-line: 1.5px; }
+@media (min-width: 1024px) {
+  /* ── Home: create card (mockup desktop-home.html) and the navy card (desktop-home-plan.html A rev 7 + Ring + T) ── */
+  .plan-cta { grid-template-columns: calc(44px * var(--desktop-scale)) minmax(0, 1fr) auto; }
+  .plan-cta-ic { width: calc(44px * var(--desktop-scale)); height: calc(44px * var(--desktop-scale)); }
+  .plan-cta-go { padding: calc(7px * var(--desktop-scale)) var(--space-8); }
+  .plan-home-bar { height: calc(8px * var(--desktop-scale)); }
+  .plan-btn-gold, .plan-btn-line { min-height: calc(44px * var(--desktop-scale)); display: inline-flex; align-items: center; justify-content: center; }
+  /* one row: text | buttons; rows with nothing in them take no room (row gap 0, top margins), the text stays in the
+     middle when the buttons are taller (exam day, plan finished, not started) */
+  .plan-home {
+    grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: 1fr auto auto auto 1fr;
+    grid-template-areas: ". acts" "top acts" "next acts" "warn acts" ". acts";
+    column-gap: var(--space-12); row-gap: 0; align-items: center;
+  }
+  .plan-home-top { grid-area: top; }
+  .plan-home-next { grid-area: next; margin-top: var(--space-3); white-space: nowrap; min-width: 0; overflow: hidden; }
+  .plan-home-next.is-wrapped { white-space: normal; } /* doesn't fit one line (⚙ large en at 1024px): wraps, never cut */
+  .plan-home-warn { grid-area: warn; margin-top: var(--space-4); }
+  .plan-home-acts { grid-area: acts; flex-direction: column; flex-wrap: nowrap; align-items: stretch; }
+  /* a plan day: name · Day, Next across text + ring; the timeline, the ring and the buttons (bottom on the ring's) */
+  .plan-home:has(> .plan-cd) {
+    grid-template-columns: minmax(0, 1fr) auto auto; grid-template-rows: auto auto auto auto;
+    grid-template-areas: "top top ." "next next ." "cd prog acts" "warn warn warn";
+  }
+  .plan-home:has(> .plan-cd) .plan-home-acts { align-self: end; }
+  .plan-home-ring { grid-area: prog; margin-top: var(--space-3); width: calc(96px * var(--desktop-scale)); height: calc(96px * var(--desktop-scale)); align-self: center; }
+  .plan-home-ring .plan-ring-track { stroke: var(--plan-home-track); }
+  .plan-home-ring .plan-ring-pct { fill: var(--text-inverse); }
+  .plan-home-ring .plan-ring-sub { fill: var(--text-inverse-muted); }
+  .plan-home-rest { display: grid; place-items: center; font-size: var(--fs-display); line-height: 1; }
+
+  /* the countdown timeline (rev 5–7): the bracket over the bar from today to the exam, its label in the bracket's
+     middle (at the end while the span is under 28%: .end); the bar in phase colours; the gold marker with "Today" on
+     its left (its right on the first days: .after); month ticks on a long plan; start and exam dates at the two ends */
+  .plan-cd {
+    --plan-cd-at: 0%; --plan-cd-bracket-h: calc(var(--fs-lg) * 1.5 + var(--space-2));
+    grid-area: cd; position: relative; display: grid; gap: var(--space-2); margin-top: var(--space-4); min-width: 0;
+    padding-top: calc(var(--fs-lg) * 1.5 + var(--space-3)); font-size: var(--fs-xs); color: var(--text-inverse-muted);
+  }
+  .plan-cd-left { position: absolute; top: 0; left: var(--plan-cd-at); right: 0; height: var(--plan-cd-bracket-h); border: 2px solid var(--gold-light); border-bottom: 0; border-radius: var(--radius-xs) var(--radius-xs) 0 0; }
+  .plan-cd-left-lbl {
+    position: absolute; bottom: calc(100% - var(--fs-lg) * 1.2); left: 50%; transform: translate(-50%, 50%);
+    padding: 0 var(--space-3); background: var(--navy-light); color: var(--text-inverse); font-size: var(--fs-md); white-space: nowrap;
+  }
+  .plan-cd-left-lbl.end { left: auto; right: 0; transform: translate(0, 50%); }
+  .plan-cd-left-lbl b { color: var(--gold-light); font-size: var(--fs-5xl); font-weight: 900; vertical-align: -0.08em; }
+  .plan-cd-track { position: relative; display: flex; gap: var(--space-1); height: calc(10px * var(--desktop-scale)); }
+  .plan-cd.long .plan-cd-track { gap: 1px; }
+  .plan-cd-track > i { flex: 1 1 0; min-width: 0; height: 100%; border-radius: 2px; background: var(--plan-cd-c); }
+  .plan-cd-track > i.future { background: transparent; box-shadow: inset 0 0 0 var(--plan-cd-line) var(--plan-cd-c); }
+  .plan-cd-learn { --plan-cd-c: var(--plan-cd-learn); }
+  .plan-cd-drill { --plan-cd-c: var(--plan-cd-drill); }
+  .plan-cd-mock { --plan-cd-c: var(--plan-cd-mock); }
+  .plan-cd-rest { --plan-cd-c: var(--plan-cd-rest); }
+  .plan-cd-today { position: absolute; top: calc(-3px * var(--desktop-scale)); bottom: calc(-3px * var(--desktop-scale)); left: var(--plan-cd-at); width: 3px; margin-left: -1px; border-radius: 2px; background: var(--gold-light); }
+  .plan-cd-today-lbl {
+    position: absolute; bottom: calc(100% + 3px); right: calc(100% - var(--plan-cd-at)); margin-right: var(--space-3);
+    color: var(--gold-light); font-size: var(--fs-xs); font-weight: 800; line-height: 1; white-space: nowrap;
+  }
+  .plan-cd-today-lbl.after { right: auto; left: var(--plan-cd-at); margin-right: 0; margin-left: var(--space-3); }
+  .plan-cd-under { position: relative; height: calc(var(--fs-xs) * 1.4); }
+  .plan-cd-tick { position: absolute; top: 0; padding-left: 3px; border-left: 1px solid var(--text-inverse-faint); line-height: 1.2; white-space: nowrap; }
+  .plan-cd-tick.end { transform: translateX(-100%); padding: 0 3px 0 0; border-left: 0; border-right: 1px solid var(--text-inverse-faint); }
+  .plan-cd-ends { display: flex; justify-content: space-between; gap: var(--space-4); }
+}

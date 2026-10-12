@@ -270,6 +270,10 @@ LOCALES.en = {
       // S-116: its own key, so the count picks one / other (t() reads params.n)
       endedMocks: { one: '{n} mock at {safe}/{total} or more', other: '{n} mocks at {safe}/{total} or more' },
       newPlan: 'New plan',
+      // v2.0.0 F7 (desktop): the countdown timeline over the plan (its marker reads plan.calendar.today)
+      cdLeftHtml: { one: '<b>{n}</b> day to the exam', other: '<b>{n}</b> days to the exam' },
+      cdStart: 'Start {date}',
+      cdExam: '🎯 Exam {date}',
       logBroken: "Your progress record can't be read. Tap “↺ Reset plan” on the schedule to clear it, then create a new plan.",
     },
     // day screen (handoff §2.4; mockup step ③); Day n stays English (lang="en")
@@ -545,6 +549,7 @@ LOCALES.en = {
       reformer: { label: '✊ Reformers & others', chip: '✊ Reformers' },
     },
     // study plan: rest-day chips (0 = Sunday, as Date.getDay) and the level cards (PLAN_LEVELS keys)
+    monthsShort: { 1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: 'Jun', 7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec' }, // v2.0.0 timeline ticks
     months: { 1: 'January', 2: 'February', 3: 'March', 4: 'April', 5: 'May', 6: 'June', 7: 'July', 8: 'August', 9: 'September', 10: 'October', 11: 'November', 12: 'December' },
     weekdays: { 0: 'Sun', 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat' },
     planLevels: {

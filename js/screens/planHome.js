@@ -92,6 +92,7 @@ function setPlanFeature(on) {
   renderPlanSettings();
   renderPlanCard();
   renderResultPlanRow(); // QA O-3: a plan mock's result page stays (W-031), its plan row follows the switch
+  if (typeof runRefits === 'function') runRefits(); // v2.0.0: the card's desktop fits (home.js homeRefit)
   const toastKey = on ? 'plan.toastOn' : 'plan.toastOff';
   showToast(t(toastKey));
 }
@@ -106,25 +107,28 @@ function planCreateCardHtml() {
     + `<span><b>${t('plan.createTitle')}</b><span class="plan-muted">${t('plan.createText')}</span></span>`
     + `<span class="plan-cta-go">${t('plan.createGo')}</span></button>`;
 }
-// the navy card (handoff §2.1): top line, then today / the exam day / "plan finished", then the actions
-function planHomeCardHtml(plan, todayIso) {
+// the navy card (handoff §2.1): top line, then today / the exam day / "plan finished", then the actions.
+// desktop (v2.0.0 F7, ≥ 1024px): today's ring and the countdown timeline instead of the % bar and countdown text
+function planHomeCardHtml(plan, todayIso, desktop = false) {
   const status = planStatus(plan, todayIso), stored = planLoadLogView(), log = stored || planEmptyLog();
   let body;
   if (status === PLAN_STATUS.ended) body = planEndedHtml(plan, log, todayIso);
   else if (status === PLAN_STATUS.examDay) body = planExamDayHtml();
-  else body = planActiveHtml(plan, log, todayIso);
+  else body = planActiveHtml(plan, log, todayIso, desktop);
   // PR4 review: an unreadable log reads as nothing answered; say where to clear it
   const warn = stored ? '' : `<p class="plan-home-warn">${t('plan.home.logBroken')}</p>`;
-  return `<div class="plan-home">${planHomeTopHtml(plan, todayIso, status)}${body}${warn}</div>`;
+  const timeline = desktop && status === PLAN_STATUS.active && !!planCountdown(plan, todayIso);
+  return `<div class="plan-home">${planHomeTopHtml(plan, todayIso, status, timeline)}${body}${warn}</div>`;
 }
-function planHomeTopHtml(plan, todayIso, status) {
+// timeline: the desktop countdown timeline says how many days are left, so the top line drops its countdown text
+function planHomeTopHtml(plan, todayIso, status, timeline = false) {
   const total = plan.days.length;
   const n = Math.min(total, Math.max(1, planDayNumber(plan, todayIso)));
   let tag = `<span lang="en">${t('plan.dayOf', { n, total })}</span>`;
   if (status === PLAN_STATUS.examDay) tag = `<span>${t('plan.schedule.examDay')}</span>`;
   if (status === PLAN_STATUS.ended) tag = `<span>${t('plan.home.endedTitle')}</span>`;
   const left = Math.max(0, isoDiffDays(todayIso, plan.goal.examDate));
-  const cd = status === PLAN_STATUS.active ? `<span class="plan-home-cd">${t('plan.daysLeft', { n: left, date: planShortDate(plan.goal.examDate) })}</span>` : '';
+  const cd = status === PLAN_STATUS.active && !timeline ? `<span class="plan-home-cd">${t('plan.daysLeft', { n: left, date: planShortDate(plan.goal.examDate) })}</span>` : '';
   return `<div class="plan-home-top"><span class="plan-home-ttl">${t('plan.cardTitle')}${LIST_SEP}${tag}</span>${cd}</div>`;
 }
 function planHomeBtn(action, labelText, gold = false) {
@@ -133,16 +137,93 @@ function planHomeBtn(action, labelText, gold = false) {
 function planHomeActsHtml(...btns) { return `<div class="plan-home-acts">${btns.join('')}</div>`; }
 // "Continue" opens the next task itself, whatever its type (planRun.js planOpenTask)
 const PLAN_HOME_GO = { done: { action: 'openPlanDay', labelKey: 'plan.home.viewToday' }, next: { action: 'planContinue', labelKey: 'plan.home.continue' } };
-function planActiveHtml(plan, log, todayIso) {
+function planActiveHtml(plan, log, todayIso, desktop = false) {
   const day = planDayAt(plan, todayIso);
   const schedule = planHomeBtn('openPlanSchedule', t('plan.schedule.name'));
   if (!day) return `<p class="plan-home-next">${t('plan.home.notStarted', { date: planShortDate(plan.start) })}</p>${planHomeActsHtml(schedule)}`;
   const pct = planDayCompletion(day, planDayLog(log, todayIso)).pct;
   const next = planNextStep(plan, log, todayIso);
   const go = next.kind === PLAN_NEXT.done ? PLAN_HOME_GO.done : PLAN_HOME_GO.next;
-  return planHomePctHtml(pct) + `<p class="plan-home-next">${planNextHtml(plan, log, next)}</p>`
-    + planHomeActsHtml(planHomeBtn(go.action, t(go.labelKey), true), schedule);
+  const nextHtml = `<p class="plan-home-next">${planNextHtml(plan, log, next)}</p>`;
+  const acts = planHomeActsHtml(planHomeBtn(go.action, t(go.labelKey), true), schedule);
+  if (desktop) return nextHtml + planCountdownHtml(plan, todayIso) + planHomeRingHtml(pct) + acts;
+  return planHomePctHtml(pct) + nextHtml + acts;
 }
+// ── v2.0.0 F7 (desktop; grill 2026-10-12 implementation notes, mockup desktop-home-plan.html A rev 7): today's ring and the
+// countdown timeline. The ring is Plan Day's (.plan-ring) on the navy card; a rest day shows 😴 in its place ──
+const PLAN_HOME_RING = { view: 112, c: 56, r: 46, pctY: 58, subY: 76 }; // = index.html #planRing
+function planHomeRingHtml(pct) {
+  if (pct === null) return `<span class="plan-home-ring plan-home-rest" aria-hidden="true">${PLAN_REST_ICON}</span><span class="plan-sr">${t('plan.home.restToday')}</span>`;
+  const { view, c, r, pctY, subY } = PLAN_HOME_RING;
+  const pctText = t('plan.status.pct', { n: pct }), sub = t('plan.day.ringToday');
+  return `<svg class="plan-ring plan-home-ring" viewBox="0 0 ${view} ${view}" role="img" aria-label="${escapeHtml(`${sub} ${pctText}`)}">`
+    + `<circle class="plan-ring-track" cx="${c}" cy="${c}" r="${r}"></circle>`
+    + `<circle class="plan-ring-prog h${planPctBand(pct)}${pct ? '' : ' empty'}" cx="${c}" cy="${c}" r="${r}" pathLength="${PERCENT}" data-pct="${pct}"></circle>`
+    + `<text class="plan-ring-pct plan-num" x="${c}" y="${pctY}" text-anchor="middle">${pctText}</text>`
+    + `<text class="plan-ring-sub" x="${c}" y="${subY}" text-anchor="middle">${sub}</text></svg>`;
+}
+// the whole plan as one bar in phase colours (planCountdown: a cell a day up to 6 weeks, else a bar a phase + month
+// ticks); a gold bracket from today to the exam with the days left; "Today" over the gold marker; start and exam dates.
+// Positions go in as data-* and are applied after render (planApplyCardSizes), as the % bars; screen readers get the
+// countdown sentence the phone shows instead of the drawing
+function planCountdownHtml(plan, todayIso) {
+  const cd = planCountdown(plan, todayIso);
+  if (!cd) return '';
+  const runs = cd.runs.map(r => `<i class="plan-cd-${r.phase}${r.future ? ' future' : ''}" data-flex="${r.days}"></i>`).join('');
+  const ticks = cd.months.map(m => `<span class="plan-cd-tick" data-at="${m.at}">${t(`data.monthsShort.${m.month}`)}</span>`).join('');
+  return `<div class="plan-cd${cd.perDay ? '' : ' long'}" data-at="${cd.at}">`
+    + `<span class="plan-sr">${t('plan.daysLeft', { n: cd.left, date: planShortDate(cd.exam) })}</span>`
+    + `<div class="plan-cd-left" aria-hidden="true"><span class="plan-cd-left-lbl${cd.labelEnd ? ' end' : ''}">${t('plan.home.cdLeftHtml', { n: cd.left })}</span></div>`
+    + `<div class="plan-cd-track" aria-hidden="true">${runs}<span class="plan-cd-today"></span><span class="plan-cd-today-lbl">${t('plan.calendar.today')}</span></div>`
+    + (ticks ? `<div class="plan-cd-under" aria-hidden="true">${ticks}</div>` : '')
+    + `<div class="plan-cd-ends" aria-hidden="true"><span>${t('plan.home.cdStart', { date: planShortDate(cd.start) })}</span>`
+    + `<span>${t('plan.home.cdExam', { date: planShortDate(cd.exam) })}</span></div></div>`;
+}
+function planApplyCardSizes(el) {
+  el.querySelectorAll('.plan-home-bar i').forEach(i => { i.style.width = i.dataset.pct + '%'; }); // as #progressFill
+  el.querySelectorAll('.plan-home-ring .plan-ring-prog').forEach(c => { c.style.strokeDashoffset = PERCENT - Number(c.dataset.pct); });
+  el.querySelectorAll('.plan-cd').forEach(cd => cd.style.setProperty('--plan-cd-at', cd.dataset.at + '%'));
+  el.querySelectorAll('.plan-cd-track > i').forEach(i => { i.style.flexGrow = i.dataset.flex; });
+  el.querySelectorAll('.plan-cd-tick').forEach(s => { s.style.left = s.dataset.at + '%'; });
+}
+// desktop fits (home.js homeRefit, after every render): "Next" stays on one line while it fits, else wraps (never cut);
+// the timeline's labels stay inside it and off each other (planFitCountdown)
+const PLAN_HOME_WRAPPED_CLASS = 'is-wrapped';
+const PLAN_CD_LABEL_AFTER_CLASS = 'after';
+const PLAN_CD_TICK_END_CLASS = 'end';
+function fitPlanCard(desktop) {
+  const el = byId(PLAN_CARD_ID);
+  if (!el) return;
+  el.querySelectorAll('.plan-home-next').forEach(n => {
+    n.classList.remove(PLAN_HOME_WRAPPED_CLASS);
+    if (desktop) n.classList.toggle(PLAN_HOME_WRAPPED_CLASS, n.scrollWidth > n.clientWidth + 1);
+  });
+  el.querySelectorAll('.plan-cd').forEach(planFitCountdown);
+}
+const planRectsOverlap = (a, b) => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+// "Today" sits left of the marker; on the first days (no room there) on its right. Near the exam the days-left label,
+// at the bracket's end, may reach back over the marker: "Today" then moves left of that label (still beside the gold
+// bracket that starts at the marker). A month tick whose label would run past the bar's end hangs to the left
+function planFitCountdown(cd) {
+  const lbl = cd.querySelector('.plan-cd-today-lbl'), left = cd.querySelector('.plan-cd-left-lbl');
+  lbl.classList.remove(PLAN_CD_LABEL_AFTER_CLASS);
+  lbl.style.removeProperty('right');
+  const box = cd.getBoundingClientRect();
+  if (lbl.getBoundingClientRect().left < box.left) lbl.classList.add(PLAN_CD_LABEL_AFTER_CLASS);
+  const leftBox = left.getBoundingClientRect();
+  if (planRectsOverlap(lbl.getBoundingClientRect(), leftBox)) {
+    lbl.classList.remove(PLAN_CD_LABEL_AFTER_CLASS);
+    const track = cd.querySelector('.plan-cd-track').getBoundingClientRect();
+    lbl.style.right = `${track.right - leftBox.left}px`; // the label's own margin keeps the gap
+  }
+  cd.querySelectorAll('.plan-cd-tick').forEach(tick => {
+    tick.classList.remove(PLAN_CD_TICK_END_CLASS);
+    tick.classList.toggle(PLAN_CD_TICK_END_CLASS, tick.getBoundingClientRect().right > box.right);
+  });
+}
+// the layout the card was last drawn for: home.js redraws it when the window crosses 1024px
+let planCardDesktop = false;
+function planCardDrawnForDesktop() { return planCardDesktop; }
 // today's own % (G8: carry-over not counted) + a G27 bar; a rest day has none
 function planHomePctHtml(pct) {
   if (pct === null) return `<div class="plan-home-row"><span>${t('plan.home.restToday')}</span></div>`;
@@ -192,8 +273,9 @@ function renderPlanCard() {
   const el = planCardEl();
   if (!el) return;
   const plan = ensurePlanToday(); // G9: the card's first render of a day fixes today's contents (no plan: no write)
-  el.innerHTML = plan ? planHomeCardHtml(plan, planTodayIso()) : planCreateCardHtml();
-  el.querySelectorAll('.plan-home-bar i').forEach(i => { i.style.width = i.dataset.pct + '%'; }); // as #progressFill
+  planCardDesktop = typeof isDesktop === 'function' && isDesktop(); // a pre-v2.0.0 cached shell has no fit.js
+  el.innerHTML = plan ? planHomeCardHtml(plan, planTodayIso(), planCardDesktop) : planCreateCardHtml();
+  planApplyCardSizes(el);
 }
 
 // ── G6: a new local day while the app is open (midnight timer) or after it comes back to the foreground ──
@@ -224,7 +306,7 @@ function planCheckNewDay() {
 }
 // the screens that show "today"; another screen (an exam running) is left alone and catches up when it opens
 const PLAN_NEW_DAY_RENDER = {
-  screenHome: () => renderPlanCard(),
+  screenHome: () => { renderPlanCard(); if (typeof runRefits === 'function') runRefits(); },
   screenPlanDay: () => { ensurePlanToday(); renderPlanDay(); }, // a day being looked at stays; "today" moves on
   screenPlanSchedule: () => rerenderPlanSchedule(),
   screenPlanGoal: () => renderPlanGoal(), // S-111: the date limits move with the day
