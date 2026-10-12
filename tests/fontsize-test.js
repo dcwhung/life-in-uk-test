@@ -6,7 +6,7 @@ const path = require('path');
 // - Q8 / Q10: ⚙ → "Text size" [ A | A ] (small A / large A, the current one pressed); a choice closes the popover and
 //   focus goes back to ⚙; nothing is written until the user picks (lifeuk.fontSize), the choice survives a reload
 // - Q3 / M2: large text keeps the layout: L4b (plan task card: "Start ›" under the text), L5 (study order count column
-//   128px), W-056 (goal form restacked, user option V2), 320–400px en + zh-HK never scroll sideways on 13 screens (S-195)
+//   128px), v1.3.1 goal form rows fit their texts (replaces W-056 / C7), 320–400px en + zh-HK never scroll sideways on 13 screens (S-195)
 // - C3: the quiz counter reads "Question 1 of 24" unless that wraps, then "Question 1/24" ("第 1/24 題"); where even the
 //   short form wraps (320px large, the wide "Translate" button in the row) it stays short on two lines (user)
 // - S-193: ⓘ has a 44px tap area
@@ -186,28 +186,93 @@ async function checkNoSideScroll(pg) {
   }
 }
 
-// W-056 (user: option V2): large text restacks the goal form — level cards one per row, the 4 date presets 2 × 2,
-// every other duration tick hidden at 359px and below — so no word breaks and no label touches the next
+// v1.3.1 (user; replaces W-056's / C7's wrap-when-it-does-not-fit): in either text size the goal form's rows follow
+// what their texts need (js/components/fitRow.js). The 4 date presets keep the chip's own side padding and sit on one
+// row unless a label would then wrap or be cut, else 2 × 2; the 3 level cards sit on one row unless a name or sub line
+// would wrap, else one per row with the icon left of the text, the icons in one column and the texts on one left edge.
+// Nothing is cut either way; every other duration tick is hidden at 359px and below in large text
+const CHIP_PAD_PX = 12;
+const ALIGN_TOL_PX = 1;
+const fitState = (pg, box, texts) => pg.evaluate(({ box, texts }) => {
+  const row = document.querySelector(box);
+  const lines = el => { const h = el.getBoundingClientRect().height, ws = el.style.whiteSpace; el.style.whiteSpace = 'nowrap'; const one = el.getBoundingClientRect().height; el.style.whiteSpace = ws; return Math.max(1, Math.round(h / one)); };
+  const bad = () => [...row.querySelectorAll(texts)].filter(e => lines(e) > 1 || e.scrollWidth > e.clientWidth + 1).length;
+  const tops = sel => [...new Set([...row.querySelectorAll(sel)].map(e => Math.round(e.getBoundingClientRect().top)))];
+  const stacked = row.classList.contains('is-stacked');
+  const now = { bad: bad(), rows: tops(':scope > *').length };
+  row.classList.remove('is-stacked');
+  const oneRow = bad();
+  row.classList.toggle('is-stacked', stacked);
+  return { stacked, oneRow, ...now };
+}, { box, texts });
+const levelCardShape = pg => pg.evaluate(() => [...document.querySelectorAll('.plan-levels .mode-card')].map(card => {
+  const r = el => card.querySelector(el).getBoundingClientRect();
+  const icon = r('.mode-icon'), title = r('.mode-title'), sub = r('.plan-level-sub');
+  return { iconX: Math.round((icon.left + icon.right) / 2), iconRight: icon.right, textLeft: Math.round(title.left), subLeft: Math.round(sub.left),
+    iconMidY: (icon.top + icon.bottom) / 2, textTop: title.top, textBottom: sub.bottom };
+}));
+async function checkGoalPresets(pg, tag) {
+  const r = await fitState(pg, '.plan-presets', '.chip');
+  const pads = await pg.$$eval('.plan-presets .chip', cs => cs.map(c => parseFloat(getComputedStyle(c).paddingLeft)));
+  assert(pads.every(p => p === CHIP_PAD_PX), `${tag} presets keep the chip's ${CHIP_PAD_PX}px side padding: ` + pads);
+  assert(r.bad === 0 && (r.stacked ? r.oneRow > 0 && r.rows === 2 : r.rows === 1),
+    `${tag} presets: one row while every label fits, else 2 × 2; nothing cut: ` + JSON.stringify(r));
+}
+async function checkGoalLevels(pg, tag) {
+  const r = await fitState(pg, '.plan-levels', '.mode-title, .plan-level-sub');
+  assert(r.bad === 0 && (r.stacked ? r.oneRow > 0 && r.rows === 3 : r.rows === 1),
+    `${tag} levels: one row while every name and sub line fits, else one per row; nothing wraps: ` + JSON.stringify(r));
+  if (!r.stacked) return;
+  const cards = await levelCardShape(pg), tol = ALIGN_TOL_PX;
+  const same = k => Math.max(...cards.map(c => c[k])) - Math.min(...cards.map(c => c[k])) <= tol;
+  const beside = cards.every(c => c.iconRight <= c.textLeft && c.subLeft === c.textLeft && c.iconMidY > c.textTop && c.iconMidY < c.textBottom);
+  assert(beside && same('iconX') && same('textLeft'), `${tag} stacked levels: icon left of the text, icons in one column, texts on one edge: ` + JSON.stringify(cards));
+}
 async function checkGoalLayout(pg) {
-  for (const w of [320, 375]) {
+  for (const size of ['small', 'large']) for (const lang of LANGS) for (const w of [320, 375, 430, 600]) {
     await pg.setViewportSize({ width: w, height: 900 });
-    await fresh(pg);
-    await chooseSize(pg, 'large');
+    await fresh(pg, lang);
+    if (size === 'large') await chooseSize(pg, 'large');
     await pg.evaluate(() => openPlanGoal());
-    const r = await pg.evaluate(() => {
-      const cols = sel => getComputedStyle(document.querySelector(sel)).gridTemplateColumns.split(' ').length;
-      const ticks = [...document.querySelectorAll('.plan-ticks span')].filter(e => getComputedStyle(e).visibility !== 'hidden')
+    const tag = `v1.3.1 ${size} ${lang} ${w}px`;
+    await checkGoalPresets(pg, tag);
+    await checkGoalLevels(pg, tag);
+    if (size === 'large' && w === 600) {
+      const one = await pg.evaluate(() => ['.plan-presets .chip', '.plan-levels .mode-card'].map(sel => new Set([...document.querySelectorAll(sel)].map(e => Math.round(e.getBoundingClientRect().top))).size));
+      assert(one.every(n => n === 1), `${tag}: presets and level cards each on one row: ` + one);
+    }
+    if (size === 'small') continue;
+    const ticks = await pg.evaluate(() => {
+      const shown = [...document.querySelectorAll('.plan-ticks span')].filter(e => getComputedStyle(e).visibility !== 'hidden')
         .map(e => { const range = document.createRange(); range.selectNodeContents(e); return range.getBoundingClientRect(); });
-      const touching = ticks.some((a, i) => i > 0 && a.left < ticks[i - 1].right + 2);
-      const cut = [...document.querySelectorAll('.plan-presets .chip, .plan-levels .mode-card')].filter(e => e.scrollWidth > e.clientWidth + 1).length;
-      return { levels: cols('.plan-levels'), presets: cols('.plan-presets'), ticks: ticks.length, touching, cut };
+      return { n: shown.length, touching: shown.some((a, i) => i > 0 && a.left < shown[i - 1].right + 2) };
     });
-    assert(r.levels === 1 && r.presets === 2 && !r.touching && r.cut === 0 && r.ticks === (w <= 359 ? 4 : 7),
-      `W-056 ${w}px large: level cards one per row, presets 2 × 2, tick labels apart (${w <= 359 ? 4 : 7} shown), nothing cut: ` + JSON.stringify(r));
+    assert(!ticks.touching && ticks.n === (w <= 359 ? 4 : 7), `W-056 ${lang} ${w}px large: duration ticks apart (${w <= 359 ? 4 : 7} shown): ` + JSON.stringify(ticks));
   }
+}
+
+// S-203: an open goal screen fits again on resize, a language switch and a text size switch (no reopen)
+async function checkGoalRefit(pg) {
+  const levels = () => pg.evaluate(() => byId('planLevelGrid').classList.contains('is-stacked'));
+  await pg.setViewportSize({ width: 600, height: 900 });
+  await fresh(pg, 'en');
+  await pg.evaluate(() => openPlanGoal());
+  assert(!(await levels()), 'S-203 small en 600px: level cards in one row');
+  await pg.setViewportSize({ width: 320, height: 900 });
+  await pg.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
+  assert(await levels(), 'S-203 resize to 320px on the open screen: level cards stack');
+  await pg.setViewportSize({ width: 430, height: 900 });
+  await pg.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
+  assert(await levels(), 'S-203 small en 430px: level cards still stacked');
+  await pg.evaluate(() => setLang('zh-HK'));
+  assert(!(await levels()), 'S-203 switch to zh-HK at 430px on the open screen: level cards back in one row');
+  await chooseSize(pg, 'large');
+  assert(!(await levels()), 'S-203 large zh-HK 430px on the open screen: still one row');
+  await pg.setViewportSize({ width: 375, height: 900 });
+  await pg.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
+  assert(await levels(), 'S-203 large zh-HK 375px: level cards stack');
   await chooseSize(pg, 'small');
-  const small = await pg.evaluate(() => getComputedStyle(document.querySelector('.plan-levels')).gridTemplateColumns.split(' ').length);
-  assert(small === 3, 'W-056: small text keeps the three level cards in a row');
+  assert(!(await levels()), 'S-203 switch to small text at 375px on the open screen: level cards back in one row');
 }
 
 // S-193: ⓘ keeps its 16px look; the tap area is 44px each way
@@ -232,6 +297,7 @@ async function checkInfoHit(pg) {
   await checkCounter(pg);
   await checkPlanLayout(pg);
   await checkGoalLayout(pg);
+  await checkGoalRefit(pg);
   await checkNoSideScroll(pg);
   await checkInfoHit(pg);
   assert(errs.length === 0, 'no page errors: ' + errs.join(' | '));

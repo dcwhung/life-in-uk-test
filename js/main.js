@@ -13,6 +13,8 @@ const LATE_BOOT_SCRIPTS = [
   { src: 'js/core/i18n.js', ready: () => typeof t === 'function' },
   { src: 'js/screens/sideSession.js', ready: () => typeof isSideSession === 'function' },
   { src: 'js/components/factCard.js', ready: () => typeof factCardHtml === 'function' },
+  // v1.3.1: rows that stack when their texts do not fit (goal form, My Review) and the quiz counter's line count
+  { src: 'js/components/fitRow.js', ready: () => typeof fitRows === 'function' },
   // study plan (PR2 answer hooks call recordPlanAnswer from mastery.js / result.js): plan.js before planProgress.js
   { src: 'js/domain/plan.js', ready: () => typeof buildPlan === 'function' },
   { src: 'js/domain/planProgress.js', ready: () => typeof recordPlanAnswer === 'function' },
@@ -66,8 +68,22 @@ function upgradeLegacyHeaderMarkup() {
   });
 }
 
+// W-058 (v1.3.1): a v1.3.0 cached index.html has no data-fit-row, and the rules that kept those rows in shape (W-036,
+// W-056, the portrait My Review rule) are gone from the css: mark the rows here (same selectors as index.html)
+const LEGACY_FIT_ROWS = [
+  ['#planDaysChips', '.chip'],
+  ['#planLevelGrid', '.mode-title, .plan-level-sub'],
+  ['#myReview .my-grid', '.my-tile b, .my-tile .sub, .my-tile .t-note'],
+];
+function upgradeLegacyFitRows() {
+  LEGACY_FIT_ROWS.forEach(([rowSel, textSel]) => {
+    const row = document.querySelector(rowSel);
+    if (row && !row.dataset.fitRow) row.dataset.fitRow = textSel;
+  });
+}
 function startApp() {
   upgradeLegacyHeaderMarkup();
+  upgradeLegacyFitRows();
   // v1.3.0: before anything renders at the default size; W-057: an HTTP-cached pre-v1.3.0 store.js has no text size
   if (typeof applyFontSize === 'function') applyFontSize();
   byId('appVersion').textContent = 'v' + APP_VERSION;

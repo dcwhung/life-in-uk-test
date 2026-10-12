@@ -518,7 +518,7 @@ async function checkMyReviewIn(pg, lang, tag) {
   assert(v.outside.length === 0, `${tag}: no note outside the tiles: ` + JSON.stringify(v.outside));
   assert(v.wrong.sub === null, `${tag}: 30 wrong → no "to clear" line under the title (v0.70): ${v.wrong.sub}`);
   assert(!v.flagged.text.includes(FLAGGED_8[lang]) && !v.flagged.subVisible, `${tag}: 8 flagged → no "${FLAGGED_8[lang]}", no visible .sub: ${v.flagged.text}`);
-  // v1.0.3: side by side (landscape) the tiles match heights; stacked (portrait) each keeps its own
+  // side by side the tiles match heights; stacked each keeps its own
   assert(v.stacked || v.wrong.height === v.flagged.height, `${tag}: side-by-side tiles are the same height (${v.wrong.height} / ${v.flagged.height})`);
 }
 async function checkMyReviewEmptyIn(pg, lang, tag) {
@@ -565,38 +565,63 @@ async function checkMyReviewNarrow(pg, check, lang, tag) {
     await pg.setViewportSize(WIDE);
   }
 }
-// v1.0.3 (user): portrait stacks the two tiles, each the grid's full width; landscape keeps them side by side
-const MY_REVIEW_PORTRAIT = [{ width: 320, height: 640 }, { width: 390, height: 844 }, { width: 768, height: 1024 }];
-const MY_REVIEW_LANDSCAPE = [{ width: 844, height: 390 }, { width: 1024, height: 768 }];
+// v1.3.1 (user; replaces v1.0.3's portrait / landscape rule): side by side while each tile's title fits on one line and
+// the wrong tile's note on two (MY_REVIEW_NOTE_LINES), else stacked, each the grid's full width; orientation plays no
+// part (768×1024 portrait sits side by side). 30 wrong + 8 flagged: the wrong tile shows its note
+const MY_REVIEW_STACKED = [{ width: 320, height: 640 }];
+const MY_REVIEW_SIDE = [{ width: 768, height: 1024 }, { width: 844, height: 390 }, { width: 1024, height: 768 }];
+const MY_REVIEW_NOTE_MAX_LINES = 2;
+// C-004: 0 flagged puts the empty line with its inline bookmark svg in the flagged tile; it still fits on one line
+const MY_REVIEW_FIT_SEEDS = [[MY_REVIEW_WRONG_N, MY_REVIEW_FLAG_N], [MY_REVIEW_WRONG_N, 0]];
 const MY_REVIEW_TOLERANCE_PX = 1;
 // both My Review lists emptied (storage and memory), back on Home
 const clearMyReview = pg => pg.evaluate(() => {
   localStorage.removeItem('lifeuk.wrongList'); localStorage.removeItem('lifeuk.practiceFlags');
   wrongList = {}; practiceFlags = {}; leaveToHome();
 });
-async function checkMyReviewOrientation(pg) {
-  await seedMyReview(pg, MY_REVIEW_WRONG_N, MY_REVIEW_FLAG_N);
+// lines each named text runs to in the current layout, and in the side-by-side one (.is-stacked off for the measure).
+// S-202: counted apart from the app's Range rects (its height against a nowrap copy of itself), so a rect quirk in
+// fitRow.js cannot hide here too
+const myReviewLines = pg => pg.evaluate(() => {
+  const grid = document.querySelector('#myReview .my-grid');
+  const lines = el => { const h = el.getBoundingClientRect().height, ws = el.style.whiteSpace; el.style.whiteSpace = 'nowrap'; const one = el.getBoundingClientRect().height; el.style.whiteSpace = ws; return Math.max(1, Math.round(h / one)); };
+  const note = grid.querySelector('.t-note'), subs = [...grid.querySelectorAll('.my-tile .sub')];
+  const measure = () => ({ title: Math.max(...[...grid.querySelectorAll('.my-tile b'), ...subs].map(lines)), note: note ? lines(note) : 0 });
+  const stacked = grid.classList.contains('is-stacked');
+  grid.classList.remove('is-stacked');
+  const side = measure();
+  grid.classList.toggle('is-stacked', stacked);
+  return { stacked, side };
+});
+const nextFrame = pg => pg.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
+async function checkMyReviewFit(pg) {
+  for (const [wrongN, flagN] of MY_REVIEW_FIT_SEEDS) await checkMyReviewFitWith(pg, wrongN, flagN);
+}
+async function checkMyReviewFitWith(pg, wrongN, flagN) {
+  await seedMyReview(pg, wrongN, flagN);
   const layout = () => pg.evaluate(() => {
     const r = id => byId(id).getBoundingClientRect(), grid = document.querySelector('#myReview .my-grid').getBoundingClientRect();
     const w = r('tileWrong'), f = r('tileFlagged');
     return { grid: Math.round(grid.width), w: [Math.round(w.left), Math.round(w.width), Math.round(w.bottom)], f: [Math.round(f.left), Math.round(f.width), Math.round(f.top)], sameTop: Math.round(w.top) === Math.round(f.top) };
   });
-  const tol = MY_REVIEW_TOLERANCE_PX;
+  const tol = MY_REVIEW_TOLERANCE_PX, maxNote = MY_REVIEW_NOTE_MAX_LINES;
   for (const lang of [EN, ZH_HK]) {
     await pg.evaluate(l => { setLang(l); leaveToHome(); startMode('practice'); }, lang);
-    for (const vp of MY_REVIEW_PORTRAIT) {
-      await pg.setViewportSize(vp);
-      const l = await layout();
+    for (const vp of MY_REVIEW_STACKED) {
+      await pg.setViewportSize(vp); await nextFrame(pg);
+      const l = await layout(), m = await myReviewLines(pg);
       assert(l.f[2] >= l.w[2] && Math.abs(l.w[1] - l.grid) <= tol && Math.abs(l.f[1] - l.grid) <= tol,
-        `My Review ${lang} ${vp.width}×${vp.height} portrait: tiles stacked, each the grid's full width: ` + JSON.stringify(l));
+        `My Review ${wrongN}/${flagN} ${lang} ${vp.width}×${vp.height}: tiles stacked, each the grid's full width: ` + JSON.stringify(l));
+      assert(m.side.title > 1 || m.side.note > maxNote, `My Review ${wrongN}/${flagN} ${lang} ${vp.width}px: stacked only because side by side a title or empty line or the note would wrap too far: ` + JSON.stringify(m));
     }
-    for (const vp of MY_REVIEW_LANDSCAPE) {
-      await pg.setViewportSize(vp);
-      const l = await layout();
+    for (const vp of MY_REVIEW_SIDE) {
+      await pg.setViewportSize(vp); await nextFrame(pg);
+      const l = await layout(), m = await myReviewLines(pg);
       assert(l.sameTop && l.f[0] > l.w[0] && Math.abs(l.w[1] - l.f[1]) <= tol && l.w[1] < l.grid / 2,
-        `My Review ${lang} ${vp.width}×${vp.height} landscape: tiles side by side, equal widths: ` + JSON.stringify(l));
+        `My Review ${wrongN}/${flagN} ${lang} ${vp.width}×${vp.height}: tiles side by side, equal widths: ` + JSON.stringify(l));
+      assert(m.side.title === 1 && m.side.note <= maxNote, `My Review ${wrongN}/${flagN} ${lang} ${vp.width}px: titles and empty lines on one line, the note on at most ${maxNote}: ` + JSON.stringify(m));
       const v = await myReviewView(pg);
-      assert(v.wrong.height === v.flagged.height, `My Review ${lang} ${vp.width}×${vp.height} landscape: same height`);
+      assert(v.wrong.height === v.flagged.height, `My Review ${lang} ${vp.width}×${vp.height} side by side: same height`);
     }
   }
   await pg.setViewportSize(WIDE);
@@ -742,7 +767,7 @@ const hasCjkFont = pg => pg.evaluate(({ px, chars, baseline }) => {
 const CHECKS = [
   checkSettingsButton, checkHomeSwitch, checkHomePractice, checkQuizPractice, checkAnswerFallback, checkOptionYueLang,
   checkSideSession, checkQuizExam, checkExamTimer, checkModal, checkResult, checkFlagged, checkStudy, checkPlanGoal, checkPlanSchedule, checkPlanDay, checkPlanRun, checkDoubleTap,
-  checkMyReviewTiles, checkMyReviewOrientation, checkExamDesc, checkPracticeHint, checkResetRows, checkLeaveCancel,
+  checkMyReviewTiles, checkMyReviewFit, checkExamDesc, checkPracticeHint, checkResetRows, checkLeaveCancel,
 ];
 
 async function main() {

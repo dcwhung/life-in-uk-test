@@ -118,7 +118,7 @@
     <!-- practice: sets built from what the user has done (shown once there is something in them) -->
     <div class="my-review" id="myReview">
       <div class="section-title" data-i18n="home.myReview"></div>
-      <div class="my-grid">
+      <div class="my-grid" data-fit-row=".my-tile b, .my-tile .sub, .my-tile .t-note">
         <button class="my-tile wrong" id="tileWrong" data-action="startWrongReview"></button>
         <button class="my-tile flagged" id="tileFlagged" data-action="openFlagged"></button>
       </div>
@@ -308,7 +308,7 @@
         <div class="plan-field">
           <div class="plan-field-label"><span data-i18n="plan.goal.daysLabel"></span><span class="plan-val plan-num" id="planDaysVal"></span></div>
           <div class="plan-date-row">
-            <div class="chip-row plan-presets" id="planDaysChips"></div>
+            <div class="chip-row plan-presets" id="planDaysChips" data-fit-row=".chip"></div>
             <label class="plan-date-pick" for="planExamDate"><span data-i18n="plan.goal.orDate"></span> <input type="date" id="planExamDate" data-input-action="planSetExamDate" data-blur-action="planCommitExamDate"></label>
           </div>
           <p class="plan-muted" id="planDateNote" data-i18n="plan.goal.editDateNote" hidden></p>
@@ -330,7 +330,7 @@
       <div class="plan-card-box">
         <div class="plan-field">
           <div class="plan-field-label" id="planLevelLabel" data-i18n="plan.goal.levelLabel"></div>
-          <div class="mode-grid plan-levels" id="planLevelGrid" role="group" aria-labelledby="planLevelLabel"></div>
+          <div class="mode-grid plan-levels" id="planLevelGrid" role="group" aria-labelledby="planLevelLabel" data-fit-row=".mode-title, .plan-level-sub"></div>
         </div>
       </div>
 
@@ -505,6 +505,7 @@
 <script src="js/components/modal.js"></script>
 <script src="js/components/popover.js"></script>
 <script src="js/components/factCard.js"></script>
+<script src="js/components/fitRow.js"></script>
 <script src="js/components/switch.js"></script>
 <script src="js/components/toast.js"></script>
 <script src="js/screens/home.js"></script>
