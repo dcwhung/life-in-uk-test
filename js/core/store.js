@@ -23,6 +23,18 @@ function setFontSize(size) {
   setLS(FONT_SIZE_LS, size);
   applyFontSize();
 }
+// v1.4.0: Cantonese translation (⚙ Features). Off = <html data-translation="off">, which hides every translation
+// (css/base/layout.css); nothing is written until the user picks; an unknown value reads as on
+function isTranslationOn() { return getLS(TRANSLATION_LS) !== TRANSLATION_OFF; }
+function applyTranslation() {
+  const root = document.documentElement;
+  if (isTranslationOn()) delete root.dataset.translation;
+  else root.dataset.translation = TRANSLATION_OFF;
+}
+function setTranslationOn(on) {
+  setLS(TRANSLATION_LS, on ? TRANSLATION_ON : TRANSLATION_OFF);
+  applyTranslation();
+}
 // G40 (user 2026-10-10): copies of one question text share a flag, so a toggle writes every copy
 // (questionCopies: js/domain/questions.js, loaded later; only called at run time)
 function setPracticeFlag(key, on) {

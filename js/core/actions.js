@@ -16,6 +16,7 @@ const ACTIONS = {
     syncLangSetting();
     if (typeof syncFontSetting === 'function') syncFontSetting();
     renderPlanSettings();
+    if (typeof renderTranslationSetting === 'function') renderTranslationSetting(); // W-057: a pre-v1.4.0 planHome.js
     toggleSettingsPopover();
   },
   // v1.2.0 (Q10): a choice closes the ⚙ popover. R-002: switching with the confirm modal open would leave its text in
@@ -27,6 +28,15 @@ const ACTIONS = {
     setSettingsOpen(false);
     if (el.dataset.arg === getFontSize()) return;
     setFontSize(el.dataset.arg);
+    rerenderCurrentScreen();
+  },
+  // v1.4.0: Cantonese translation on / off is pure CSS (<html data-translation>); the screen re-renders so measured text
+  // (C3 quiz counter) refits without the Translate button
+  toggleTranslation: () => {
+    if (isConfirmOpen() || typeof setTranslationOn !== 'function') return; // W-057: a pre-v1.4.0 store.js has no switch
+    setSettingsOpen(false);
+    setTranslationOn(!isTranslationOn());
+    renderTranslationSetting();
     rerenderCurrentScreen();
   },
   install: () => promptInstall(),

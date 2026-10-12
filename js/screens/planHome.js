@@ -1,6 +1,6 @@
 // ════════════════════════════════════════
-// STUDY PLAN · HOME ENTRY — whether the feature shows (planEntryReady / planVisible), the ⓘ "Features" switch
-// (on by default; off asks first, G15), the Home card above "Choose Mode" (handoff §2.1; mockup step ⓪): the dashed
+// STUDY PLAN · HOME ENTRY — whether the feature shows (planEntryReady / planVisible), the ⚙ "Features" plan switch
+// (on by default; off asks first, G15; v1.4.0: the Cantonese translation switch beside it), the Home card above "Choose Mode" (handoff §2.1; mockup step ⓪): the dashed
 // gold "create" card without a plan; with one the navy card: Day n / N, days to the exam, today's % + bar, the next
 // step, continue / view today + schedule; the exam day (G16) and, after it, "plan finished" with a summary and
 // new plan / change goal. The card is created only while it shows, so Home's DOM is unchanged while hidden.
@@ -20,7 +20,8 @@ function planEntryReady() { return STUDY_PLAN_READY; }
 function planShellReady() { return PLAN_SCREEN_IDS.every(id => !!byId(id)); }
 function planVisible() { return planEntryReady() && planShellReady() && isStudyPlanEnabled(); }
 
-// ── ⚙ popover (v1.2.0; ⓘ before): "Features" row (a pre-PR3 shell has no #infoPlanRow) ──
+// ── ⚙ popover (v1.2.0; ⓘ before): "Features" plan row (a pre-PR3 shell has no #infoPlanRow; v1.4.0: the row only,
+// the section title stays for the translation row) ──
 function renderPlanSettings() {
   const row = byId('infoPlanRow');
   if (!row) return;
@@ -41,13 +42,36 @@ function renderPlanSettings() {
     labelKey: 'app.planSwitchLabel', describedBy: 'infoPlanStatus' });
 }
 // v1.0.5: On (green) / Off (red) pill after "Study plan" (a pre-v1.0.5 shell has no #infoPlanPill)
-function renderPlanPill(on) {
-  const pill = byId('infoPlanPill');
+function renderPlanPill(on) { renderFeaturePill(byId('infoPlanPill'), on); }
+// v1.4.0: shared by the plan and translation rows
+function renderFeaturePill(pill, on) {
   if (!pill) return;
   const pillKey = on ? 'app.planOnPill' : 'app.planOffPill';
   pill.textContent = t(pillKey);
   pill.classList.toggle(FEATURE_PILL_ON_CLASS, on);
   pill.classList.toggle(FEATURE_PILL_OFF_CLASS, !on);
+}
+// v1.4.0: "🈯 Translation" row, shown whatever the plan entry does (a pre-v1.4.0 shell has no #settingsTransRow).
+// W-057 / S-201: a pre-v1.4.0 store.js (no switch code) or locale (no row words) hides the row instead of a dead / raw one
+function renderTranslationSetting() {
+  const row = byId('settingsTransRow');
+  if (!row) return;
+  const labelKey = 'app.translationSwitchLabel';
+  row.hidden = typeof isTranslationOn !== 'function' || t(labelKey) === labelKey;
+  if (row.hidden) return;
+  const on = isTranslationOn();
+  const noteKey = on ? 'app.translationOnNote' : 'app.translationOffNote';
+  byId('settingsTransStatus').textContent = t(noteKey);
+  renderFeaturePill(byId('settingsTransPill'), on);
+  // W-032: built once, then updated in place
+  const sw = byId('translationSwitch');
+  if (sw) {
+    setSwitchOn(sw, on);
+    sw.setAttribute('aria-label', t(labelKey));
+    return;
+  }
+  byId('settingsTransSwitch').innerHTML = switchHtml({ id: 'translationSwitch', on, action: 'toggleTranslation',
+    labelKey, describedBy: 'settingsTransStatus' });
 }
 function isOnPlanScreen() {
   const active = document.querySelector('.screen.active');

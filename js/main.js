@@ -70,6 +70,7 @@ function startApp() {
   upgradeLegacyHeaderMarkup();
   // v1.3.0: before anything renders at the default size; W-057: an HTTP-cached pre-v1.3.0 store.js has no text size
   if (typeof applyFontSize === 'function') applyFontSize();
+  if (typeof applyTranslation === 'function') applyTranslation(); // v1.4.0, same W-057 guard
   byId('appVersion').textContent = 'v' + APP_VERSION;
   byId('appVersionPop').textContent = 'v' + APP_VERSION;
   applyLanguage(); // <html lang>, data-i18n markup, <title> / meta, ⓘ popover counts
@@ -77,6 +78,7 @@ function startApp() {
   fillStaticIcons(); // v1.2.0: ⚙ and the icon-only screen-header buttons
   loadHomePrefs();
   renderPlanSettings();
+  if (typeof renderTranslationSetting === 'function') renderTranslationSetting(); // v1.4.0 (W-057: a pre-v1.4.0 planHome.js)
   planWatchDay(); // G6: the plan's "today" follows local midnight
   buildExamGrid();
   renderModeSelection();
