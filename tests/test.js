@@ -1,10 +1,11 @@
 const { chromium } = require('playwright-core');
+const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.1: keep the old en + small first run
 const path = require('path');
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
 const launchOpts = { args: ['--no-sandbox'] };
 if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_PATH;
 (async () => {
-  const b = await chromium.launch(launchOpts);
+  const b = seedLegacyDefaults(await chromium.launch(launchOpts));
   const pg = await b.newPage();
   const errs = []; pg.on('pageerror', e => errs.push(e.message));
   await pg.goto(APP_URL);

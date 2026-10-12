@@ -6,6 +6,7 @@
 //    S-165: the indent must not depend on the font's "• " width, so B runs in the app font, monospace and serif
 // C: the real 5B note in the Practice answer box at 390px keeps that alignment
 const { chromium } = require('playwright-core');
+const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.1: keep the old en + small first run
 const path = require('path');
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
 const launchOpts = { args: ['--no-sandbox'] };
@@ -130,7 +131,7 @@ async function checkTudorPractice(pg) {
 }
 
 (async () => {
-  const b = await chromium.launch(launchOpts);
+  const b = seedLegacyDefaults(await chromium.launch(launchOpts));
   const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
   const errs = []; pg.on('pageerror', e => errs.push(e.message));
   await pg.goto(APP_URL);

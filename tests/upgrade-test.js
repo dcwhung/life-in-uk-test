@@ -1,4 +1,5 @@
 const { chromium } = require('playwright-core');
+const { seedLegacyDefaults, LEGACY_DEFAULTS, NO_SEED_SS } = require('./legacy-defaults'); // v1.4.1: keep the old en + small first run
 const { execFileSync } = require('child_process');
 const fs = require('fs');
 const os = require('os');
@@ -23,6 +24,8 @@ const { startPagesServer, appFiles } = require('./pages-server');
 //      opens, the translation row is hidden (no dead switch, no raw key), translations show
 //      (S-205 / R2-1: the en.js mix with a stored "off" keeps the original Home Practice line; the Study search placeholder is
 //      that file's own static study.search, no raw key)
+//  11. v1.4.1: the current shell with one v1.4.0 file (config.js: no INITIAL_LANG / DEFAULT_FONT_SIZE; i18n.js; store.js),
+//      nothing stored (legacy seed off) — still starts with no page errors; each old file keeps its own first-run default
 // The v0.57 files come from git: V057_REF is the last v0.57 commit on main (merge of PR #29), pinned so a later
 // main does not silently turn this into a same-version test.
 const ROOT = path.resolve(__dirname, '..');
@@ -59,7 +62,9 @@ const extractV057 = dir => execFileSync('sh', ['-c', `git -C "${ROOT}" archive $
 const showV057 = file => execFileSync('git', ['-C', ROOT, 'show', `${V057_REF}:${file}`]);
 const emptyDir = dir => fs.readdirSync(dir).forEach(f => fs.rmSync(path.join(dir, f), { recursive: true, force: true }));
 
-const dump = pg => pg.evaluate(() => Object.fromEntries(Object.keys(localStorage).sort().map(k => [k, localStorage.getItem(k)])));
+// the legacy en + small seed (tests/legacy-defaults.js) is test scaffolding, not app storage: left out of every dump
+const dump = pg => pg.evaluate(seeded => Object.fromEntries(Object.keys(localStorage).filter(k => !seeded.includes(k)).sort()
+  .map(k => [k, localStorage.getItem(k)])), Object.keys(LEGACY_DEFAULTS));
 const seed = async (pg, kv) => {
   await pg.evaluate(kv => { localStorage.clear(); for (const [k, v] of Object.entries(kv)) localStorage.setItem(k, v); }, kv);
   await pg.reload();
@@ -350,6 +355,34 @@ async function v130SingleFile(b, file) {
   await pg.close();
 }
 
+// 11. v1.4.1: the current shell with ONE file still from v1.4.0 (pinned 2839741, the v1.4.0 merge) and nothing stored.
+// The first-run language / text size constants are new in config.js, so i18n.js / store.js read them behind a typeof
+// guard (W-057): an old config.js keeps the old en + small first run instead of a ReferenceError
+const V140_REF = '2839741';
+const V140_SINGLES = {
+  'js/core/config.js': { lang: 'en', size: 'small' },     // new i18n.js / store.js, no INITIAL_LANG / DEFAULT_FONT_SIZE
+  'js/core/i18n.js': { lang: 'en', size: 'large' },       // old getLang() (en), new store.js
+  'js/core/store.js': { lang: 'zh-HK', size: 'small' },   // new getLang(), old getFontSize() (small)
+};
+async function v140SingleFile(b, file) {
+  const dir = tmpDir('v140one');
+  copyCurrent(dir);
+  fs.writeFileSync(path.join(dir, file), execFileSync('git', ['-C', ROOT, 'show', `${V140_REF}:${file}`]));
+  const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
+  const errs = []; pg.on('pageerror', e => errs.push(e.message));
+  await pg.goto('file://' + path.join(dir, 'index.html'));
+  await pg.evaluate(ss => { sessionStorage.setItem(ss, '1'); localStorage.clear(); }, NO_SEED_SS);
+  await pg.reload();
+  await pg.waitForSelector('#examGrid .exam-btn', { state: 'attached' });
+  await pg.click('#settingsBtn');
+  const r = await pg.evaluate(() => ({ opened: byId('settingsPop').classList.contains('show'), lang: getLang(), html: document.documentElement.lang,
+    size: document.documentElement.dataset.fontSize || 'small' }));
+  const want = V140_SINGLES[file];
+  assert(r.opened && r.lang === want.lang && r.html === want.lang && r.size === want.size && errs.length === 0,
+    `v1.4.0 ${file} + current files, nothing stored: starts in ${want.lang} + ${want.size}, ⚙ opens, no page errors: ` + JSON.stringify({ ...r, errs }));
+  await pg.close();
+}
+
 // 6. T-008: a v0.64-style shell (no locales/zh-HK.js tag, no language control: v1.2.0 drops the ⚙) running the current js while
 // lifeuk.uiLang says zh-HK — the language has no locale on that page, so it reads as en without warnings and
 // without rewriting the stored value; the current shell then opens in zh-HK
@@ -512,7 +545,7 @@ function checkV057Ref() {
 
 (async () => {
   checkV057Ref();
-  const b = await chromium.launch(launchOpts);
+  const b = seedLegacyDefaults(await chromium.launch(launchOpts));
   await mixedShell(b);
   await prePlanUiShell(b);
   await pr3Shell(b);
@@ -527,6 +560,7 @@ function checkV057Ref() {
   for (const file of V120_SINGLES) await v120SingleFile(b, file);
   for (const file of V130_SINGLES) await v130SingleFile(b, file);
   await v130Shell(b);
+  for (const file of Object.keys(V140_SINGLES)) await v140SingleFile(b, file);
   await oldShellZhHk(b);
   await zhHkLocaleMissing(b);
   console.log('UPGRADE PASS');

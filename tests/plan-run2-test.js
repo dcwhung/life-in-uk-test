@@ -1,4 +1,5 @@
 const { chromium } = require('playwright-core');
+const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.1: keep the old en + small first run
 const path = require('path');
 const fs = require('fs');
 // Study plan PR6b (T-335–T-339; handoff §2.5, arch §E.2 / §E.3 / §E.5, grill G3 / G10 / G11 / G15 / G22 / G25 / G26 / G32):
@@ -507,7 +508,7 @@ async function shotMock(b) {
 
 async function main() {
   if (SHOTS) fs.mkdirSync(SHOTS, { recursive: true });
-  const b = await chromium.launch(launchOpts);
+  const b = seedLegacyDefaults(await chromium.launch(launchOpts));
   const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
   const errs = [];
   pg.on('pageerror', e => errs.push(e.message));

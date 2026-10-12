@@ -1,4 +1,5 @@
 const { chromium } = require('playwright-core');
+const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.1: keep the old en + small first run
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
@@ -95,7 +96,7 @@ async function checkUpdateReload(pg, bumped) {
     appFiles(ROOT).forEach(f => fs.cpSync(path.join(ROOT, f), path.join(serveDir, f), { recursive: true }));
     ({ base, server } = await startPagesServer(serveDir));
   }
-  const b = await chromium.launch(launchOpts);
+  const b = seedLegacyDefaults(await chromium.launch(launchOpts));
   try {
     const ctx = await b.newContext();
     const pg = await ctx.newPage();

@@ -1,4 +1,5 @@
 const { chromium } = require('playwright-core');
+const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.1: keep the old en + small first run
 const path = require('path');
 // Study plan PR3 (T-314–T-318; handoff §2.1 / §2.2, grill G13 / G15 / G28 / G31): the ⓘ switch, the home
 // "create a study plan" card and the goal screen. The entry is open since v1.1.0 (STUDY_PLAN_READY = true, PR8);
@@ -471,7 +472,7 @@ function checkLateBoot() {
 
 async function main() {
   checkLateBoot();
-  const b = await chromium.launch(launchOpts);
+  const b = seedLegacyDefaults(await chromium.launch(launchOpts));
   const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
   const errs = [];
   pg.on('pageerror', e => errs.push(e.message));

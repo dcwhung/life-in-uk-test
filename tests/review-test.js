@@ -1,11 +1,12 @@
 const { chromium } = require('playwright-core');
+const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.1: keep the old en + small first run
 const path = require('path');
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
 const launchOpts = { args: ['--no-sandbox'] };
 if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_PATH;
 // Practice: persistent flags, wrong-answer list, "My Review" (Wrong answers / Flagged), Flagged list, practice results
 (async () => {
-  const b = await chromium.launch(launchOpts);
+  const b = seedLegacyDefaults(await chromium.launch(launchOpts));
   const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
   const errs = []; pg.on('pageerror', e => errs.push(e.message));
   const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('ok:', m); };
