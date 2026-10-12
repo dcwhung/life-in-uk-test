@@ -128,8 +128,9 @@ const FIT_JS = `(root) => [...root.querySelectorAll('.note-table-wrap')].map(w =
   return { sw: w.scrollWidth, cw: w.clientWidth, over: r.right - p.right, left: p.left - r.left, docW: document.documentElement.scrollWidth, vw: innerWidth, broken };
 })`;
 let fitWidth = 0;
-const FIT_WIDTHS = [390, 320]; // 390 = design width; 320 = narrowest supported phone (CUI-0027)
-const fits = list => list.length > 0 && list.every(f => f.sw <= f.cw && f.over <= 0.5 && f.left <= 0.5 && f.docW <= f.vw && f.broken.length === 0);
+const FIT_WIDTHS = [390, 360, 320]; // 390 = design width; 360 = common Android; 320 = narrowest supported phone (CUI-0027 / CUI-0028)
+// CUI-0028: a wrap 0 wide means it was measured off screen, never a fit
+const fits = list => list.length > 0 && list.every(f => f.cw > 0 && f.sw <= f.cw && f.over <= 0.5 && f.left <= 0.5 && f.docW <= f.vw && f.broken.length === 0);
 
 async function checkPractice(pg) {
   const mpLines = []; // memo 4A: line boxes of the 議員 remark "全英國 MP" per question
@@ -183,6 +184,8 @@ async function checkStudy(pg) {
   const r = await pg.evaluate(({ tables, fitSrc }) => {
     const fit = new Function('return ' + fitSrc)();
     const out = {};
+    // CUI-0028: measure on the Study screen itself (a hidden screen measures 0 wide, so every table "fitted")
+    openStudy();
     for (const ch of CHAPTER_NUMBERS) {
       studySetTab('chapters'); studySetChapter(ch);
       for (const c of document.querySelectorAll('#studyContent .fact')) {
