@@ -171,7 +171,7 @@ async function checkToday(pg) {
   const [read, practice, review, ...carry] = r.tasks;
   assert(r.tasks.length === 3 + carry.length && carry.length > 0, 'own tasks, then carry-over tasks');
   assert(read.ttl.startsWith('Read Ch 4 Modern society facts #') && !read.cls.includes('todo') && !read.cls.includes('done'), 'read: in progress (solid): ' + read.cls);
-  assert(/^Read \d+ \/ 37 facts · continue from #\d+$/.test(read.st), 'read: k / n read · continue from #n: ' + read.st);
+  assert(/^Read \d+ \/ 36 facts · continue from #\d+$/.test(read.st), 'read: k / n read · continue from #n: ' + read.st);
   assert(/^✓ \d+ \/ 51 right · ✗ 11 wrong: only right answers count$/.test(practice.st) && practice.tag === '1 wrong: only right answers count', 'practice: right / total · ✗ k + tag: ' + practice.st + ' | ' + practice.tag);
   assert(practice.go === 'Continue ›' && read.go === 'Continue ›', 'in progress: "Continue ›"');
   assert(review.cls.includes('done') && review.st === '✓ No wrong answers' && review.go === '✓ Review ›', 'clear wrong answers: done, "No wrong answers": ' + review.st);
@@ -305,7 +305,7 @@ async function checkExamDayAndEnded(pg) {
   await seedPlan(pg);
   await pg.evaluate(() => leaveToHome());
   const ended = await text(pg, '#planCard');
-  assert(ended.includes('Plan complete. Well done for all your hard work!') && /Average \d+%/.test(ended) && ended.includes('/ 236 facts'), 'G16 ended: summary: ' + ended);
+  assert(ended.includes('Plan complete. Well done for all your hard work!') && /Average \d+%/.test(ended) && ended.includes('/ 235 facts'), 'G16 ended: summary: ' + ended);
   assert(await visible(pg, '#planCard [data-action="openPlanGoal"]') && await visible(pg, '#planCard [data-action="planEditGoal"]'), 'ended: "New plan" + "Change goal"');
   assert(ended.includes('0 mocks at 21/24 or more'), 'ended: 0 mocks (plural)');
   await pg.evaluate(() => { const log = planLoadLog(); log.days['2026-10-22'] = { ok: {}, bad: {}, mock: [{ exam: 1, correct: 22, total: 24 }] }; writePlanLog(log); leaveToHome(); });
@@ -417,7 +417,7 @@ async function checkKpis(pg) {
     plan: byId('planKpiPlan').textContent, sub: byId('planKpiPlanSub').textContent, avg: byId('planKpiAvg').textContent, left: byId('planKpiLeft').textContent,
     rows: [...document.querySelectorAll('#planKpiRows .plan-pr')].map(e => [e.querySelector('.plan-pr-k').textContent, e.querySelector('.plan-pr-v').textContent, e.querySelector('.plan-meter-fill').getAttribute('class'), e.querySelector('.plan-meter-fill').style.width]) }));
   assert(r.plan === `${r.k.planPct}%` && r.sub === 'Day 4 / 31' && r.avg === `${r.k.avgPct}%` && r.left === '28 days', 'stats: plan %, Day n / N, average, days left');
-  assert(r.rows.length === 3 && r.rows[0][0] === 'Facts read' && r.rows[0][1].startsWith(`${r.k.factsDone} / 236`), 'bar 1: facts read: ' + JSON.stringify(r.rows[0]));
+  assert(r.rows.length === 3 && r.rows[0][0] === 'Facts read' && r.rows[0][1].startsWith(`${r.k.factsDone} / 235`), 'bar 1: facts read: ' + JSON.stringify(r.rows[0]));
   assert(r.rows[1][1].startsWith(`${r.k.qidsDone} / 389`) && r.rows[2][0] === 'Mocks ≥ 21/24', 'bars 2 + 3: questions practised, safe mocks');
   assert(r.rows.every(row => /\bh[0-4]\b/.test(row[2]) && /%$/.test(row[3])), 'bars: G27 band + width from JS');
 }

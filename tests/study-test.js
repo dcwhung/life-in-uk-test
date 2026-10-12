@@ -19,7 +19,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   const css = (sel, prop) => pg.$eval(sel, (e, p) => getComputedStyle(e)[p], prop);
   // expected chapter number, counted here from STUDY (not from the app helper): position among the same-chapter facts
   const EXPECTED_NUM_JS = 'const f = STUDY.find(x => x.id === id); return STUDY.filter(x => x.ch === f.ch).indexOf(f) + 1;';
-  const STUDY_TOTAL = 236;
+  const STUDY_TOTAL = 235; // v1.3.2: #126 merged into #125
   // helper unit test: each chapter's first fact is 1, its last is the chapter total, every (ch, n) pair is unique
   async function checkChapterFactHelper() {
     const r = await pg.evaluate(src => {
@@ -31,7 +31,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
       return { fn: true, ends, unique: pairs.size, total: STUDY.length, match: STUDY.every(f => chapterFactNumber(f.id) === expected(f.id)) };
     }, EXPECTED_NUM_JS);
     assert(r.fn && r.total === STUDY_TOTAL && r.unique === STUDY_TOTAL && r.match && r.ends.every(([a, z, n]) => a === 1 && z === n),
-      'chapterFactNumber: first = 1, last = chapter total, 236 unique (ch, n): ' + JSON.stringify(r));
+      'chapterFactNumber: first = 1, last = chapter total, 235 unique (ch, n): ' + JSON.stringify(r));
   }
   // every card: the element its Practise button's aria-describedby points at exists and shows the chapter number;
   // Chapters view (noChapter) = ".fact-id" "#n"; every other view = no ".fact-id", pill "<icon> Ch c #n" (lang="en")
@@ -203,7 +203,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   // search
   await pg.click('.study-tab[data-tab="chapters"]');
   await pg.fill('#studySearch', 'Magna');
-  assert((await count()) === '1 / 236 facts', 'search Magna across chapters: ' + await count());
+  assert((await count()) === `1 / ${STUDY_TOTAL} facts`, 'search Magna across chapters: ' + await count());
   // a search never renumbers: Magna Carta keeps its chapter number, not "#1" of the result list
   await checkChapterNumbers('en chapters search Magna');
   assert(await pg.$eval('#studyContent .fact .fact-id', e => e.textContent) !== '#1', 'search result keeps its chapter number, not #1 of the list');

@@ -17,7 +17,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
 // prefixes = lines kept above the heading. ④ 4A "全英國 MP": WORD JOINER (U+2060) between the CJK chars +
 // NO-BREAK SPACE before MP keep that remark on one line
 const SPEC = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'fixtures', 'memo-notes.json'), 'utf8'));
-const MEMO_COUNT = 62, MEMO_QUESTIONS = 378, TABLE_MEMO_COUNT = 53, TOTAL_TABLE_QUESTIONS = 349, PREFIX_COUNT = 20; // v1.1.3: + S168 地區議會
+const MEMO_COUNT = 62, MEMO_QUESTIONS = 385, TABLE_MEMO_COUNT = 53, TOTAL_TABLE_QUESTIONS = 356, PREFIX_COUNT = 20; // v1.1.3: + S168 地區議會; v1.3.2: 4A 10, ③ 13, 10A 8, ⑥ 17
 const MP_MEMO = '4A';
 const isTableLine = l => l.trim().startsWith('|');
 const tableRowsOf = text => text.split('\n').filter(isTableLine).map(l => l.trim().replace(/^\||\|$/g, '').split('|').map(c => c.trim()));
@@ -128,8 +128,9 @@ const FIT_JS = `(root) => [...root.querySelectorAll('.note-table-wrap')].map(w =
   return { sw: w.scrollWidth, cw: w.clientWidth, over: r.right - p.right, left: p.left - r.left, docW: document.documentElement.scrollWidth, vw: innerWidth, broken };
 })`;
 let fitWidth = 0;
-const FIT_WIDTHS = [390, 320]; // 390 = design width; 320 = narrowest supported phone (CUI-0027)
-const fits = list => list.length > 0 && list.every(f => f.sw <= f.cw && f.over <= 0.5 && f.left <= 0.5 && f.docW <= f.vw && f.broken.length === 0);
+const FIT_WIDTHS = [390, 360, 320]; // 390 = design width; 360 = common Android; 320 = narrowest supported phone (CUI-0027 / CUI-0028)
+// CUI-0028: a wrap 0 wide means it was measured off screen, never a fit
+const fits = list => list.length > 0 && list.every(f => f.cw > 0 && f.sw <= f.cw && f.over <= 0.5 && f.left <= 0.5 && f.docW <= f.vw && f.broken.length === 0);
 
 async function checkPractice(pg) {
   const mpLines = []; // memo 4A: line boxes of the 議員 remark "全英國 MP" per question
@@ -183,6 +184,8 @@ async function checkStudy(pg) {
   const r = await pg.evaluate(({ tables, fitSrc }) => {
     const fit = new Function('return ' + fitSrc)();
     const out = {};
+    // CUI-0028: measure on the Study screen itself (a hidden screen measures 0 wide, so every table "fitted")
+    openStudy();
     for (const ch of CHAPTER_NUMBERS) {
       studySetTab('chapters'); studySetChapter(ch);
       for (const c of document.querySelectorAll('#studyContent .fact')) {
