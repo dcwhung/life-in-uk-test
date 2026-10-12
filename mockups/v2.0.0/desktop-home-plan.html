@@ -216,20 +216,30 @@
   .cd-today { position: absolute; top: -3px; bottom: -3px; width: 3px; margin-left: -1px; border-radius: 2px; background: var(--gold-light); }
   .cd-under { position: relative; height: calc(var(--fs-xs) * 1.4); }
   .cd-tick { position: absolute; top: 0; padding-left: 3px; border-left: 1px solid var(--text-inverse-faint); line-height: 1.2; white-space: nowrap; }
-  .cd-today-lbl { position: absolute; top: 0; transform: translateX(-50%); padding: 0 var(--space-2); background: var(--navy-light); color: var(--gold-light); font-weight: 800; white-space: nowrap; z-index: 1; }
+  /* rev 6 (user): just "Today", above the bar, right against the gold marker (the bracket's left edge) */
+  .cd-today-lbl { position: absolute; bottom: calc(100% + 3px); margin-right: var(--space-3); color: var(--gold-light); font-size: var(--fs-xs); font-weight: 800; line-height: 1; white-space: nowrap; }
   .cd-ends { display: flex; justify-content: space-between; }
   /* ════════ option A: plan card across the top, laid out in one row: info | today's progress | buttons ════════ */
   /* rev 2 (user): left = name · Day + countdown, today's progress + bar under it, then "Next"; right = the buttons,
      one per row, right-aligned and equally wide */
-  .optA .plan-card.wide .plan-home { grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: 1fr auto auto auto 1fr; grid-template-areas: ". acts" "top acts" "prog acts" "next acts" ". acts"; column-gap: var(--space-12); row-gap: var(--space-4); align-items: center; }
-  .optA .plan-card.wide .plan-home-head { grid-area: top; }
-  .optA .plan-card.wide .plan-home-prog { grid-area: prog; display: grid; gap: var(--space-3); }
-  .optA .plan-card.wide .plan-home-next { grid-area: next; }
+  /* rev 6 (user): rows = name · Day | Next (one line) | countdown | today's bar; buttons on the right. Row gap 0 + top margins,
+     so a row with nothing in it (no countdown) takes no space */
+  .optA .plan-card.wide .plan-home { grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: 1fr auto auto auto auto 1fr; grid-template-areas: ". acts" "top acts" "next acts" "cd acts" "prog acts" ". acts"; column-gap: var(--space-12); row-gap: 0; align-items: center; }
+  .optA .plan-card.wide .plan-home-top { grid-area: top; }
+  .optA .plan-card.wide .plan-home-next { grid-area: next; margin-top: var(--space-3); white-space: nowrap; min-width: 0; overflow: hidden; }
+  /* doesn't fit on one line (⚙ large English at 1024px): wraps rather than cutting the task off (the fitRow rule) */
+  .optA .plan-card.wide .plan-home-next.is-wrapped { white-space: normal; }
+  .optA .plan-card.wide .cd-line { grid-area: cd; margin-top: var(--space-4); }
+  .optA .plan-card.wide .plan-home-prog { grid-area: prog; margin-top: var(--space-5); display: grid; gap: var(--space-3); }
   .optA .plan-card.wide .plan-home-acts { grid-area: acts; flex-direction: column; flex-wrap: nowrap; align-items: stretch; align-self: center; }
   .optA .plan-card.wide .plan-home-acts > span { justify-content: center; }
   /* rev 3: ring instead of the bar — ring | name · Day + countdown, Next | buttons */
   /* rev 4 (user): the ring in the middle — text | ring | buttons */
-  .optA .plan-card.wide.ring .plan-home { grid-template-columns: minmax(0, 1fr) auto auto; grid-template-rows: 1fr auto auto 1fr; grid-template-areas: ". prog acts" "top prog acts" "next prog acts" ". prog acts"; }
+  /* ring: name and Next run across the text + ring columns; the ring sits beside the countdown */
+  .optA .plan-card.wide.ring .plan-home { grid-template-columns: minmax(0, 1fr) auto auto; grid-template-rows: 1fr auto auto auto 1fr; grid-template-areas: ". . acts" "top top acts" "next next acts" "cd prog acts" ". . acts"; }
+  .optA .plan-card.wide.ring .plan-home-ring { margin-top: var(--space-3); }
+  /* ring without the timeline (countdown as text): the ring sits beside the name and Next instead */
+  .optA .plan-card.wide.ring:not(.has-cd) .plan-home { grid-template-rows: 1fr auto auto 1fr; grid-template-areas: ". prog acts" "top prog acts" "next prog acts" ". prog acts"; }
   .optA .plan-card.wide.ring .plan-home-ring { grid-area: prog; }
   .plan-home-ring { width: calc(96px * var(--k)); height: calc(96px * var(--k)); align-self: center; }
   .plan-home-ring circle { fill: none; stroke-width: 10; }
@@ -250,7 +260,7 @@
 <body>
 
 <div class="mock-bar">
-  <b>v2.0.0 Desktop · Mockup 4/12 · Home（有 plan）· rev 5：倒數時間軸（長計劃）</b>
+  <b>v2.0.0 Desktop · Mockup 4/12 · Home（有 plan）· rev 6：下一步一行 + 今日標喺 bar 上</b>
   <div class="mock-row"><span class="lbl">語言</span><button class="mock-tab on" data-k="lang" data-v="en">EN</button><button class="mock-tab" data-k="lang" data-v="zh">中文</button>
     <span class="lbl" style="margin-left:10px">翻譯</span><button class="mock-tab on" data-k="yue" data-v="on">開</button><button class="mock-tab" data-k="yue" data-v="off">關</button>
     <span class="lbl" style="margin-left:10px">⚙ 大字</span><button class="mock-tab on" data-k="large" data-v="off">關</button><button class="mock-tab" data-k="large" data-v="on">開</button></div>
@@ -341,7 +351,7 @@ const PLAN_T = {
     carry: 'Next (catch-up, <span lang="en">Day 8</span>): <b>Read <span lang="en">Ch 3 History</span> facts #57–91</b> (continue from #74)',
     done: '<b>✓ Done for today</b>, see you tomorrow', examText: "<b>🎯 It's exam day today, good luck!</b>",
     endedSummary: 'Average 86% · 235 / 235 facts · 389 / 389 questions · 4 mocks at 21/24 or more',
-    ringSub: 'Done today', cdToday: n => `Today · Day ${n}`, cdStart: d => `Start ${d}`, cdExam: d => `🎯 Exam ${d}`,
+    ringSub: 'Done today', cdToday: () => 'Today', cdStart: d => `Start ${d}`, cdExam: d => `🎯 Exam ${d}`,
     cdLeft: n => `<b>${n}</b> days to the exam`, cdText: (n, d) => `${n} days to the exam · ${d}`, month: m => ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m],
     cont: "Continue today's tasks →", viewToday: "View today's tasks", viewDay: 'View today', schedule: 'Schedule', newPlan: 'New plan', editGoal: 'Change goal',
   },
@@ -352,7 +362,7 @@ const PLAN_T = {
     carry: '下一步（補做 <span lang="en">Day 8</span>）：<b>閱讀 <span lang="en">Ch 3 History</span> 知識點 #57–91</b>（由 #74 繼續）',
     done: '<b>✓ 今日已完成</b>，明日再來', examText: '<b>🎯 今日考試，加油！</b>',
     endedSummary: '平均完成度 86% · 知識點 235 / 235 條 · 題目 389 / 389 題 · 模擬考試達 21/24 或以上 4 次',
-    ringSub: '今日完成度', cdToday: n => `今日 · Day ${n}`, cdStart: d => `開始 ${d}`, cdExam: d => `🎯 考試 ${d}`,
+    ringSub: '今日完成度', cdToday: () => '今日', cdStart: d => `開始 ${d}`, cdExam: d => `🎯 考試 ${d}`,
     cdLeft: n => `距離考試 <b>${n}</b> 日`, cdText: (n, d) => `距離考試 ${n} 日 · ${d}`, month: m => `${m + 1}月`,
     cont: '繼續今日任務 →', viewToday: '查看今日任務', viewDay: '查看今日', schedule: '進度表', newPlan: '建立新計劃', editGoal: '更改目標',
   },
@@ -416,16 +426,21 @@ function countdown(P) {
   const span = 100 - at, labelCls = span < CD_LABEL_CENTRE_MIN ? 'cd-left-lbl end' : 'cd-left-lbl';
   return `<div class="cd-line${len > CD_PER_DAY_MAX ? ' long' : ''}">
     <div class="cd-left" style="left:${at}%"><span class="${labelCls}">${P.cdLeft(left)}</span></div>
-    <div class="cd-track">${runs}<span class="cd-today" style="left:${at}%"></span></div>
-    <div class="cd-under">${cdMonthTicks(P)}<span class="cd-today-lbl" style="left:${at}%">${P.cdToday(today)}</span></div>
+    <div class="cd-track">${runs}<span class="cd-today" style="left:${at}%"></span><span class="cd-today-lbl" style="right:${100 - at}%">${P.cdToday(today)}</span></div>
+    ${len > CD_PER_DAY_MAX ? `<div class="cd-under">${cdMonthTicks(P)}</div>` : ''}
     <div class="cd-ends"><span>${P.cdStart(cdShort(CD_START))}</span><span>${P.cdExam(cdShort(cdDate(len + 1)))}</span></div></div>`;
 }
 // planHomeCardHtml (planHome.js), with today's % row + bar wrapped in .plan-home-prog so option A can place them
 function planCard(wide) {
   const P = PLAN_T[S.lang], st = PLAN_STATES[S.plan];
+  // rev 6 (user): on the wide card "Next" sits under the title, on one line, above the countdown
+  const next = `<p class="plan-home-next">${P[st.next]}</p>`;
   const cdText = `<span class="plan-home-cd">${P.cdText(cdLeftDays(), cdShort(cdDate(cdLen() + 1)))}</span>`;
   const cdInTop = !st.noCd && S.cd === 'text';
-  const top = `<div class="plan-home-head"><div class="plan-home-top"><span class="plan-home-ttl">${P.title} · <span${st.tag ? '' : ' lang="en"'}>${st.tag ? P[st.tag] : `Day ${cdToday()} / ${cdLen()}`}</span></span>${cdInTop ? cdText : ''}</div>${st.noCd ? '' : countdown(P)}</div>`;
+  const topRow = `<div class="plan-home-top"><span class="plan-home-ttl">${P.title} · <span${st.tag ? '' : ' lang="en"'}>${st.tag ? P[st.tag] : `Day ${cdToday()} / ${cdLen()}`}</span></span>${cdInTop ? cdText : ''}</div>`;
+  const cd = st.noCd ? '' : countdown(P);
+  // wide (option A): title row, Next, countdown are grid items of their own, so Next can run under the ring's column too
+  const top = wide ? `${topRow}${next}${cd}` : `<div class="plan-home-head">${topRow}${cd}</div>`;
   let prog = '';
   if (st.pct === null) prog = `<div class="plan-home-prog"><div class="plan-home-row"><span>${P.rest}</span></div></div>`;
   else if (st.pct !== undefined) prog = `<div class="plan-home-prog"><div class="plan-home-row"><span>${P.pct}</span><b class="plan-home-pct">${st.pct}%</b></div><div class="plan-home-bar"><i class="h${st.band}" style="width:${st.pct}%"></i></div></div>`;
@@ -433,7 +448,7 @@ function planCard(wide) {
   const ring = wide && S.prog === 'ring' && st.pct !== undefined;
   if (ring) prog = planRing(st, P);
   const cls = 'plan-card' + (wide ? ' wide' : '') + (st.pct === undefined ? ' no-prog' : '') + (ring ? ' ring' : '');
-  return `<div class="${cls}"><div class="plan-home">${top}${prog}<p class="plan-home-next">${P[st.next]}</p>${acts}</div></div>`;
+  return `<div class="${cls}${cd ? ' has-cd' : ''}"><div class="plan-home">${top}${prog}${wide ? '' : next}${acts}</div></div>`;
 }
 // rev 3: today's % as the Plan Day ring (index.html #planRing, plan.css .plan-ring*) on the navy card; a rest day shows 😴
 const RING_VIEW = 112, RING_C = 56, RING_R = 46;
@@ -490,6 +505,7 @@ const OPTIONS = [
     ann: `<ul><li>同未有計劃時嘅「建立溫習計劃」卡同一個位（頂部橫跨），轉態時版面唔會跳。</li>
       <li><b>rev 2</b>：<b>左</b>由上至下：計劃名 + Day + 倒數 → 今日完成度 + bar → 下一步；<b>右</b>：「繼續今日任務」同「進度表」上下兩行、一樣闊、靠右。</li>
       <li>休息日冇 bar（只寫「今日是休息日」）；考試日同完結冇完成度嗰行。</li>
+      <li><b>rev 6</b>：「下一步」搬到計劃名下面，一行顯示；時間軸唔再寫 Day n，只係喺 bar 上面、金色線左邊寫「今日」。</li>
       <li><b>rev 5 · 倒數時間軸</b>：目的係一眼睇到仲有幾多日考試。時間軸上面有條金色括號，由今日去到考試，上面用金色大字寫剩低幾多日；bar 按階段上色（讀 + 練／強化／模擬），已過實色、未到外框；金色直線同下面嘅「今日 · Day n」標住今日；兩頭係開始日同 🎯 考試日。</li>
       <li><b>長計劃</b>（頂部「計劃長度」試 3 個月／半年）：6 星期或以內一日一格；再長就唔再逐日畫，每個階段一段連續 bar（休息日併入），下面加月份刻度。剩餘日數嘅括號太窄（少過 bar 嘅 28%）時，數字會靠右對齊考試日，唔會擠爆。Ring 放中間（文字｜ring｜掣）。</li>
       <li><b>rev 3</b>：頂部「完成度」toggle 可以轉做 <b>Ring</b>（同 Plan Day 嘅 ring 一樣），ring 放喺卡最左，文字喺中間，掣喺右；休息日 ring 位變 😴（同 Plan Day 一樣）。</li>
@@ -524,7 +540,15 @@ function render() {
   fitFrames();
 }
 // "適合畫面": scale each frame down to the page width (never up); the box takes the scaled height so nothing overlaps
+// rev 6: Next stays on one line while it fits; otherwise it wraps (never cut)
+function fitNextLines() {
+  document.querySelectorAll('.optA .plan-card.wide .plan-home-next').forEach(n => {
+    n.classList.remove('is-wrapped');
+    n.classList.toggle('is-wrapped', n.scrollWidth > n.clientWidth + 1);
+  });
+}
 function fitFrames() {
+  fitNextLines();
   document.querySelectorAll('.frame-box').forEach(box => {
     const f = box.firstElementChild, w = Number(box.dataset.w);
     const scale = S.zoom === 'fit' ? Math.min(1, box.parentElement.clientWidth / w) : 1;
