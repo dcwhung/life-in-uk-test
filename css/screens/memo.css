@@ -16,29 +16,33 @@
 }
 .memo-due-start:hover { background: var(--gold-light); }
 
-/* group card: the whole card opens the group; the left edge shows its status */
+/* group list (v1.6.1, user: two cards per row at every phone width): rows stretch, so cards in a row share a height */
+.memo-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
+
+/* group card: the whole card opens the group; the left edge shows its status. In the narrow column the title may take
+   two lines and the badge sits below it; the bar keeps to the bottom so a row's bars line up */
 .memo-card {
-  display: block; width: 100%; text-align: left; color: inherit; cursor: pointer;
+  display: flex; flex-direction: column; min-width: 0; text-align: left; color: inherit; cursor: pointer;
   background: var(--card); border: 0; border-left: 4px solid var(--memo-new); border-radius: var(--radius);
-  box-shadow: var(--shadow-sm); padding: var(--space-6) var(--space-7); margin-bottom: var(--space-5);
+  box-shadow: var(--shadow-sm); padding: var(--space-5) var(--space-5) var(--space-5) var(--space-6);
 }
 .memo-card:hover { box-shadow: var(--shadow); }
 .memo-card:focus-visible { outline: 2px solid var(--navy-light); outline-offset: 2px; }
 .memo-card.learning { border-left-color: var(--memo-learning); }
 .memo-card.due { border-left-color: var(--memo-due); }
 .memo-card.done { border-left-color: var(--memo-done); }
-.memo-card-row { display: flex; justify-content: space-between; align-items: center; gap: var(--space-4); }
-.memo-name { font-weight: 800; font-size: var(--fs-lg); color: var(--navy); min-width: 0; }
-.memo-meta { display: block; font-size: var(--fs-sm); color: var(--text-muted); margin-top: var(--space-1); }
+.memo-card-row { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); }
+.memo-name { font-weight: 800; font-size: var(--fs-lg); line-height: 1.3; color: var(--navy); max-width: 100%; overflow-wrap: anywhere; }
+.memo-meta { display: block; font-size: var(--fs-sm); color: var(--text-muted); margin: var(--space-2) 0 var(--space-4); }
 .memo-badge {
-  flex-shrink: 0; white-space: nowrap; font-size: var(--fs-2xs); font-weight: 800;
+  max-width: 100%; font-size: var(--fs-2xs); font-weight: 800; line-height: 1.3;
   border-radius: var(--radius-pill); padding: var(--space-1) var(--space-4);
   background: var(--bg); color: var(--text-muted);
 }
 .memo-badge.learning { background: var(--gold-bg); color: var(--gold-text); }
 .memo-badge.due { background: var(--flag-bg); color: var(--memo-due-text); }
 .memo-badge.done { background: var(--success-bg); color: var(--green); }
-.memo-bar { display: block; height: 6px; background: var(--bg); border-radius: var(--radius-pill); margin-top: var(--space-4); overflow: hidden; }
+.memo-bar { display: block; flex-shrink: 0; height: 6px; background: var(--bg); border-radius: var(--radius-pill); margin-top: auto; overflow: hidden; }
 .memo-bar i { display: block; height: 100%; background: var(--memo-done); border-radius: var(--radius-pill); }
 
 /* ── #screenMemo ── */

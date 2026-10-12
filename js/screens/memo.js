@@ -59,7 +59,10 @@ function renderStudyMemo() {
   // count = shown / the chapter's groups (like the chapters tab); the search narrows inside the chapter
   const pool = memoSortedGroups(memoGroups(), progress, today).filter(memoInChapter);
   const shown = pool.filter(memoMatches);
-  const html = memoDueBannerHtml(memoDueGroups(progress, today)) + shown.map(g => memoCardHtml(g, progress, today)).join('');
+  // v1.6.1 (user): the cards sit two per row in .memo-grid (DOM order = row by row, so Tab runs row-wise); the due
+  // banner stays outside it, full width
+  const cards = shown.map(g => memoCardHtml(g, progress, today)).join('');
+  const html = memoDueBannerHtml(memoDueGroups(progress, today)) + `<div class="memo-grid">${cards}</div>`;
   return { html, shown: shown.length, total: pool.length, countKey: 'memo.count', emptyKey: 'memo.empty' };
 }
 
