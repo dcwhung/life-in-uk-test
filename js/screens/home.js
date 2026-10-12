@@ -207,7 +207,10 @@ function fitHomeRail(box) {
   const headerH = document.querySelector('header').getBoundingClientRect().height;
   rail.classList.toggle(HOME_TALL_CLASS, top + rail.offsetHeight + (top - headerH) > window.innerHeight);
 }
+// W-057-style mixed caches: a pre-v2.0.0 fitRow.js / planHome.js lacks the desktop helpers, so the phone layout stays
+const homeDesktopReady = () => typeof setDesktopColumns === 'function' && typeof planCardDrawnForDesktop === 'function';
 function homeRefit(desktop) {
+  if (!homeDesktopReady()) return;
   const box = setDesktopColumns(homeColumns(), desktop);
   const note = document.querySelector('#tileWrong .t-note');
   if (note) note.dataset.fitLines = desktop ? MY_REVIEW_NOTE_LINES_DESKTOP : MY_REVIEW_NOTE_LINES;

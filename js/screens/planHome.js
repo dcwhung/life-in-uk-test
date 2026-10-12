@@ -117,7 +117,8 @@ function planHomeCardHtml(plan, todayIso, desktop = false) {
   else body = planActiveHtml(plan, log, todayIso, desktop);
   // PR4 review: an unreadable log reads as nothing answered; say where to clear it
   const warn = stored ? '' : `<p class="plan-home-warn">${t('plan.home.logBroken')}</p>`;
-  const timeline = desktop && status === PLAN_STATUS.active && !!planCountdown(plan, todayIso);
+  // a pre-v2.0.0 cached planProgress.js has no planCountdown: the desktop card then keeps the countdown text
+  const timeline = desktop && status === PLAN_STATUS.active && typeof planCountdown === 'function' && !!planCountdown(plan, todayIso);
   return `<div class="plan-home">${planHomeTopHtml(plan, todayIso, status, timeline)}${body}${warn}</div>`;
 }
 // timeline: the desktop countdown timeline says how many days are left, so the top line drops its countdown text
@@ -167,7 +168,7 @@ function planHomeRingHtml(pct) {
 // Positions go in as data-* and are applied after render (planApplyCardSizes), as the % bars; screen readers get the
 // countdown sentence the phone shows instead of the drawing
 function planCountdownHtml(plan, todayIso) {
-  const cd = planCountdown(plan, todayIso);
+  const cd = typeof planCountdown === 'function' ? planCountdown(plan, todayIso) : null;
   if (!cd) return '';
   const runs = cd.runs.map(r => `<i class="plan-cd-${r.phase}${r.future ? ' future' : ''}" data-flex="${r.days}"></i>`).join('');
   const ticks = cd.months.map(m => `<span class="plan-cd-tick" data-at="${m.at}">${t(`data.monthsShort.${m.month}`)}</span>`).join('');

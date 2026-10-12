@@ -343,6 +343,7 @@ function planDayPanel(body) {
   return panel;
 }
 function planDayRefit(desktop) {
+  if (typeof setDesktopColumns !== 'function') return; // a pre-v2.0.0 cached fitRow.js: the phone layout stays
   const list = byId('planTaskList'), today = planDayTodayCard();
   if (!desktop) { if (list.parentElement !== today) today.append(list); setDesktopColumns(planDayColumns(), false); return; }
   const box = setDesktopColumns(planDayColumns(), true), rail = box.firstElementChild, body = box.lastElementChild;

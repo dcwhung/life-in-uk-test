@@ -246,6 +246,7 @@ function fitPlanDateRow(desktop) {
   fitRow(presets); // two rows and still cut: the presets go 2 × 2 as on the phone
 }
 function planGoalRefit(desktop) {
+  if (typeof setDesktopColumns !== 'function') return; // a pre-v2.0.0 cached fitRow.js: the phone layout stays
   setDesktopColumns(planGoalColumns(), desktop);
   fitPlanDateRow(desktop);
   // mockup 1024px frame: the three level cards stay in a row with a sub line on up to 2 lines; the phone keeps 1
