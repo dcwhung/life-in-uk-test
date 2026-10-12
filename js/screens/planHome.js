@@ -57,7 +57,8 @@ function renderTranslationSetting() {
   const row = byId('settingsTransRow');
   if (!row) return;
   const labelKey = 'app.translationSwitchLabel';
-  row.hidden = typeof isTranslationOn !== 'function' || t(labelKey) === labelKey;
+  // S-203: a pre-v1.4.0 actions.js has no toggleTranslation handler — hide the row rather than a dead switch
+  row.hidden = typeof isTranslationOn !== 'function' || typeof ACTIONS.toggleTranslation !== 'function' || t(labelKey) === labelKey;
   if (row.hidden) return;
   const on = isTranslationOn();
   const noteKey = on ? 'app.translationOnNote' : 'app.translationOffNote';

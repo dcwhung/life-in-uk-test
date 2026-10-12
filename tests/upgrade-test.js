@@ -19,7 +19,7 @@ const { startPagesServer, appFiles } = require('./pages-server');
 //      the old language pill and turns the "← Home" buttons into 🏠 icon buttons; no raw keys, no [i18n] warnings
 //   9. W-057 (v1.3.0): the current shell with one v1.2.0 file (store.js / i18n.js / locales/en.js) — still starts, ⚙
 //      opens, no raw counter key, no raw key in the text size row (S-201)
-//  10. W-057 (v1.4.0): the current shell with one v1.3.0 file (store.js / planHome.js / locales/en.js) — still starts, ⚙
+//  10. W-057 (v1.4.0): the current shell with one v1.3.0 file (store.js / planHome.js / locales/en.js / actions.js) — still starts, ⚙
 //      opens, the translation row is hidden (no dead switch, no raw key), translations show
 // The v0.57 files come from git: V057_REF is the last v0.57 commit on main (merge of PR #29), pinned so a later
 // main does not silently turn this into a same-version test.
@@ -281,10 +281,11 @@ async function v120SingleFile(b, file) {
 }
 
 // 10. W-057 (v1.4.0): the current shell with ONE file still from v1.3.0 (pinned 6daef71, the v1.3.0 merge): old
-// store.js (no switch code) / planHome.js (no row renderer) / locales/en.js (no row words) hide the ⚙ translation row
+// store.js (no switch code) / planHome.js (no row renderer) / locales/en.js (no row words) / actions.js (S-203: no
+// toggleTranslation handler) hide the ⚙ translation row
 // instead of a dead / raw one; a stored "off" is simply not applied on that page
 const V130_REF = '6daef71';
-const V130_SINGLES = ['js/core/store.js', 'js/screens/planHome.js', 'locales/en.js'];
+const V130_SINGLES = ['js/core/store.js', 'js/screens/planHome.js', 'locales/en.js', 'js/core/actions.js'];
 async function v130SingleFile(b, file) {
   const dir = tmpDir('v130one');
   copyCurrent(dir);
