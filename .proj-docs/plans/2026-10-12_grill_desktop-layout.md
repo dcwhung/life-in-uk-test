@@ -30,8 +30,8 @@
 | 4 | Home（有 plan） | `desktop-home-plan.html` | ✅ 定案 A（rev 7）+ Ring + 時間軸：計劃卡橫跨頂部；行次 = 計劃名 · Day n / N → 下一步（一行，放唔落先斷行）→ 倒數時間軸 + 中間 ring → 右邊兩粒掣（同 ring 底對齊）；下面同 Home A 一樣 |
 | 5 | Plan Day | `desktop-plan-day.html` | ✅ 定案 A（rev 4）：頂部 🏠 ‹ 日子 › 📅；左欄（5/12）今日 ring + 階段 + 提示、補做提示、日曆、整體進度；右欄（7/12）任務 list，panel 最高同左欄一樣，長過就 panel 內碌（上下淡出 + 「↓ 仲有任務」）；冇任務嘅日子（休息／考試）嗰日張卡放右欄；整體進度 3 格 subgrid 對齊（標題、說明向下），手機版一齊改 |
 | 6 | Plan Run | `desktop-plan-run.html` | ✅ 定案 A（rev 4）：置中閱讀欄（最闊 760px × 1.2）、成頁一屏高；知識點卡入面知識點 + 記憶法喺可碌 panel（底部淡出），「出現於」+ 練習掣喺卡底，提示 + 上一張／下一張貼畫面底；任務完成：結果卡填滿中間高度（內容置中），提示 + 下一個 + 兩粒掣貼底 |
-| 7 | Study | `desktop-study.html` | 待揀（rev 4：sub chip 跟字長排 + 撐滿每行；rev 3：比較 sub chip 現狀／全闊／2 欄；rev 2：A 一屏高；左欄 20%：搜尋、tab 2×2、章節／分類 chip、數量，篩選掣打直貼左欄底；右欄卡 panel 自己碌） |
-| 8 | Quiz（Practice） | — | 未做 |
+| 7 | Study | `desktop-study.html` | ✅ 定案 A（rev 4）：一屏高；左欄 20%：搜尋、tab 2×2、章節／地區／人物 chip（跟字長換行 + 每行撐滿 `flex: 1 1 auto`）、數量，篩選掣（隱藏已掌握／只看書籤／只看戰爭）打直全闊貼左欄底；右欄知識點卡一欄，panel 自己碌（上下淡出）；左欄太長（1024px 大字人物 tab）時左欄自己碌 |
+| 8 | Quiz（Practice） | `desktop-quiz.html` | 待揀 |
 | 9 | Quiz（Exam） | — | 未做 |
 | 10 | Result | — | 未做 |
 | 11 | Flagged / Wrong Review | — | 未做 |
