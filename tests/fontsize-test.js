@@ -6,7 +6,7 @@ const path = require('path');
 // - Q8 / Q10: ⚙ → "Text size" [ A | A ] (small A / large A, the current one pressed); a choice closes the popover and
 //   focus goes back to ⚙; nothing is written until the user picks (lifeuk.fontSize), the choice survives a reload
 // - Q3 / M2: large text keeps the layout: L4b (plan task card: "Start ›" under the text), L5 (study order count column
-//   128px), W-056 (goal form restacked, user option V2), 320–400px en + zh-HK never scroll sideways on 13 screens (S-195)
+//   128px), v1.3.1 goal form rows fit their texts (replaces W-056 / C7), 320–400px en + zh-HK never scroll sideways on 13 screens (S-195)
 // - C3: the quiz counter reads "Question 1 of 24" unless that wraps, then "Question 1/24" ("第 1/24 題"); where even the
 //   short form wraps (320px large, the wide "Translate" button in the row) it stays short on two lines (user)
 // - S-193: ⓘ has a 44px tap area
@@ -186,36 +186,62 @@ async function checkNoSideScroll(pg) {
   }
 }
 
-// W-056 (user): in large text the goal form's 4 date presets and 3 level cards sit on one row whenever they fit and
-// wrap only when they do not (v1.3.0 first shipped a fixed 2 × 2 / one-per-row); nothing is cut; every other duration
-// tick is hidden at 359px and below so the labels never touch
-const rowsOf = (pg, box, item) => pg.evaluate(({ box, item }) => {
-  const el = document.querySelector(box);
-  const rows = new Set([...el.querySelectorAll(item)].map(e => Math.round(e.getBoundingClientRect().top))).size;
-  // the narrowest one-row width: a nowrap copy sized to its content (each item at its own minimum)
-  const copy = el.cloneNode(true);
-  Object.assign(copy.style, { position: 'absolute', visibility: 'hidden', display: 'flex', flexWrap: 'nowrap', width: 'max-content' });
-  [...copy.children].forEach(c => Object.assign(c.style, { flex: 'none', width: 'min-content' }));
-  el.parentElement.appendChild(copy);
-  const need = copy.getBoundingClientRect().width;
-  copy.remove();
-  const cut = [...el.querySelectorAll(item)].filter(e => e.scrollWidth > e.clientWidth + 1).length;
-  return { rows, fits: need <= el.clientWidth + 0.5, need: Math.round(need), have: el.clientWidth, cut };
-}, { box, item });
+// v1.3.1 (user; replaces W-056's / C7's wrap-when-it-does-not-fit): in either text size the goal form's rows follow
+// what their texts need (js/components/fitRow.js). The 4 date presets keep the chip's own side padding and sit on one
+// row unless a label would then wrap or be cut, else 2 × 2; the 3 level cards sit on one row unless a name or sub line
+// would wrap, else one per row with the icon left of the text, the icons in one column and the texts on one left edge.
+// Nothing is cut either way; every other duration tick is hidden at 359px and below in large text
+const CHIP_PAD_PX = 12;
+const ALIGN_TOL_PX = 1;
+const fitState = (pg, box, texts) => pg.evaluate(({ box, texts }) => {
+  const row = document.querySelector(box);
+  const lines = el => { const r = document.createRange(); r.selectNodeContents(el); return new Set([...r.getClientRects()].map(x => Math.round(x.top))).size; };
+  const bad = () => [...row.querySelectorAll(texts)].filter(e => lines(e) > 1 || e.scrollWidth > e.clientWidth + 1).length;
+  const tops = sel => [...new Set([...row.querySelectorAll(sel)].map(e => Math.round(e.getBoundingClientRect().top)))];
+  const stacked = row.classList.contains('is-stacked');
+  const now = { bad: bad(), rows: tops(':scope > *').length };
+  row.classList.remove('is-stacked');
+  const oneRow = bad();
+  row.classList.toggle('is-stacked', stacked);
+  return { stacked, oneRow, ...now };
+}, { box, texts });
+const levelCardShape = pg => pg.evaluate(() => [...document.querySelectorAll('.plan-levels .mode-card')].map(card => {
+  const r = el => card.querySelector(el).getBoundingClientRect();
+  const icon = r('.mode-icon'), title = r('.mode-title'), sub = r('.plan-level-sub');
+  return { iconX: Math.round((icon.left + icon.right) / 2), iconRight: icon.right, textLeft: Math.round(title.left), subLeft: Math.round(sub.left),
+    iconMidY: (icon.top + icon.bottom) / 2, textTop: title.top, textBottom: sub.bottom };
+}));
+async function checkGoalPresets(pg, tag) {
+  const r = await fitState(pg, '.plan-presets', '.chip');
+  const pads = await pg.$$eval('.plan-presets .chip', cs => cs.map(c => parseFloat(getComputedStyle(c).paddingLeft)));
+  assert(pads.every(p => p === CHIP_PAD_PX), `${tag} presets keep the chip's ${CHIP_PAD_PX}px side padding: ` + pads);
+  assert(r.bad === 0 && (r.stacked ? r.oneRow > 0 && r.rows === 2 : r.rows === 1),
+    `${tag} presets: one row while every label fits, else 2 × 2; nothing cut: ` + JSON.stringify(r));
+}
+async function checkGoalLevels(pg, tag) {
+  const r = await fitState(pg, '.plan-levels', '.mode-title, .plan-level-sub');
+  assert(r.bad === 0 && (r.stacked ? r.oneRow > 0 && r.rows === 3 : r.rows === 1),
+    `${tag} levels: one row while every name and sub line fits, else one per row; nothing wraps: ` + JSON.stringify(r));
+  if (!r.stacked) return;
+  const cards = await levelCardShape(pg), tol = ALIGN_TOL_PX;
+  const same = k => Math.max(...cards.map(c => c[k])) - Math.min(...cards.map(c => c[k])) <= tol;
+  const beside = cards.every(c => c.iconRight <= c.textLeft && c.subLeft === c.textLeft && c.iconMidY > c.textTop && c.iconMidY < c.textBottom);
+  assert(beside && same('iconX') && same('textLeft'), `${tag} stacked levels: icon left of the text, icons in one column, texts on one edge: ` + JSON.stringify(cards));
+}
 async function checkGoalLayout(pg) {
-  for (const lang of LANGS) for (const w of [320, 375, 430, 600]) {
+  for (const size of ['small', 'large']) for (const lang of LANGS) for (const w of [320, 375, 430, 600]) {
     await pg.setViewportSize({ width: w, height: 900 });
     await fresh(pg, lang);
-    await chooseSize(pg, 'large');
+    if (size === 'large') await chooseSize(pg, 'large');
     await pg.evaluate(() => openPlanGoal());
-    for (const [name, box, item] of [['presets', '.plan-presets', '.chip'], ['levels', '.plan-levels', '.mode-card']]) {
-      const r = await rowsOf(pg, box, item);
-      assert(r.cut === 0 && (r.fits ? r.rows === 1 : r.rows > 1), `W-056 ${lang} ${w}px large ${name}: one row when it fits, wraps only when it does not, nothing cut: ` + JSON.stringify(r));
-    }
-    if (w === 600) {
+    const tag = `v1.3.1 ${size} ${lang} ${w}px`;
+    await checkGoalPresets(pg, tag);
+    await checkGoalLevels(pg, tag);
+    if (size === 'large' && w === 600) {
       const one = await pg.evaluate(() => ['.plan-presets .chip', '.plan-levels .mode-card'].map(sel => new Set([...document.querySelectorAll(sel)].map(e => Math.round(e.getBoundingClientRect().top))).size));
-      assert(one.every(n => n === 1), `W-056 ${lang} 600px large: presets and level cards each on one row: ` + one);
+      assert(one.every(n => n === 1), `${tag}: presets and level cards each on one row: ` + one);
     }
+    if (size === 'small') continue;
     const ticks = await pg.evaluate(() => {
       const shown = [...document.querySelectorAll('.plan-ticks span')].filter(e => getComputedStyle(e).visibility !== 'hidden')
         .map(e => { const range = document.createRange(); range.selectNodeContents(e); return range.getBoundingClientRect(); });
