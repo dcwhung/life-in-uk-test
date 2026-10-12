@@ -47,18 +47,27 @@ function similarListHtml(q, groups, { practise, cta, currentMark }) {
   const ctaHtml = practise ? similarCtaHtml(groups, cta) : '';
   return `${similarLegendHtml()}<div class="sqm-list">${items.join('')}</div>${ctaHtml}`;
 }
-function similarPanelHtml(q, groups, { practise = true, cta = null, currentMark = '' } = {}) {
+// "+n" other questions (standalone: n = all of the fact's questions, no "+"); nothing when there is no other one
+function similarCountHtml(groups, currentMark = '') {
   const count = currentMark ? groups.length + 1 : `+${groups.length}`;
-  const countHtml = groups.length || currentMark ? `<span class="sqm-count">${count}</span>` : '';
+  return groups.length || currentMark ? `<span class="sqm-count">${count}</span>` : '';
+}
+function similarPanelHtml(q, groups, { practise = true, cta = null, currentMark = '' } = {}) {
   return `
     <div class="sqm-head">
       <span class="sqm-icon">🗺️</span>
       <span class="sqm-title"><b>${t('similar.title')}</b><span>${t('similar.subtitle')}</span></span>
-      ${countHtml}
+      ${similarCountHtml(groups, currentMark)}
     </div>
     ${factCardHtml(factOf(q), { variant: FACT_VARIANT.core })}
     ${similarMapHtml(q, groups)}
     ${similarListHtml(q, groups, { practise, cta, currentMark })}`;
+}
+// v2.0.0 desktop (F5, mockups/v2.0.0/desktop-quiz.html A rev 5): the card's head (icon, title, subtitle, +n) is the
+// Similar tab's label beside the Answer tab (js/screens/quiz.js); the pane hides .sqm-head
+function similarTabHtml(q) {
+  return `<span aria-hidden="true">🗺️</span> <span class="t2"><span>${t('similar.title')}</span><small>${t('similar.subtitle')}</small></span>`
+    + similarCountHtml(similarGroups(q));
 }
 function renderSimilar(q, revealed) {
   const box = byId('similarBox');

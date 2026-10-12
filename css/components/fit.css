@@ -1,0 +1,44 @@
+/* ════════════════════════════════════════
+   FIT (v2.0.0 desktop layout, ≥ 1024px; handoff .proj-docs/plans/2026-10-12_handoff_desktop-layout.md §2 / §5 / §6):
+   opt-in tools for screens that are one screen high, with long content in panels that scroll on their own.
+   Nothing here applies below 1024px. The js half is js/components/fit.js (fitSteps, watchFade, onRefit / runRefits).
+   - .screen.is-fit       the screen fills the viewport under the header (a flex column); the page itself never scrolls
+   - .fit-grow            a child of an is-fit screen (or any flex column) that takes the height left over
+   - .fit-panel           a box that scrolls on its own (min-height: 0, overflow-y: auto); give it a height (fit-grow,
+                          a grid row, flex: 1) or it just grows
+   - .fit-fade            wraps one .fit-panel: top / bottom fades while content is out of view (js sets can-up /
+                          can-down on it, mockup afterRender()). Per panel: --fit-fade-color (the surface under the
+                          panel: --bg by default, --card inside a card), --fit-fade-h, --fit-panel-gutter (scrollbar room)
+   ════════════════════════════════════════ */
+:root {
+  --fit-screen-gap: var(--space-10); /* above and below an is-fit screen (main's own top padding) */
+  --fit-fade-h: calc(36px * var(--desktop-scale)); /* mockup .vwrap fade (desktop-quiz.html) */
+  --fit-fade-color: var(--bg);
+  --fit-panel-gutter: var(--space-3); /* mockup .vpanel padding-right: the scrollbar stays off the content */
+  --fit-fade-duration: 0.2s;
+}
+
+@media (min-width: 1024px) {
+  /* main's bottom room (--main-pad-bottom) is for a page that scrolls; a one-screen screen keeps an even gap */
+  main:has(> .screen.is-fit.active) { padding-top: var(--fit-screen-gap); padding-bottom: var(--fit-screen-gap); }
+  .screen.is-fit.active {
+    display: flex; flex-direction: column;
+    height: calc(100vh - var(--header-h) - 2 * var(--fit-screen-gap)); /* browsers without dvh */
+    height: calc(100dvh - var(--header-h) - 2 * var(--fit-screen-gap));
+  }
+  .fit-grow { flex: 1 1 auto; min-height: 0; }
+
+  .fit-panel { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-right: var(--fit-panel-gutter); }
+  .fit-fade { position: relative; display: flex; flex-direction: column; min-height: 0; }
+  .fit-fade > .fit-panel { flex: 1 1 auto; }
+  .fit-fade::before, .fit-fade::after {
+    content: ''; position: absolute; left: 0; right: var(--fit-panel-gutter); height: var(--fit-fade-h);
+    z-index: 2; pointer-events: none; opacity: 0; transition: opacity var(--fit-fade-duration);
+  }
+  .fit-fade::before { top: 0; background: linear-gradient(var(--fit-fade-color), transparent); }
+  .fit-fade::after { bottom: 0; background: linear-gradient(transparent, var(--fit-fade-color)); }
+  .fit-fade.can-up::before, .fit-fade.can-down::after { opacity: 1; }
+}
+@media (min-width: 1024px) and (prefers-reduced-motion: reduce) {
+  .fit-fade::before, .fit-fade::after { transition: none; }
+}

@@ -174,3 +174,125 @@
 @media (max-width: 480px) {
   .q-text { font-size: var(--fs-lg); }
 }
+
+/* ════════ v2.0.0 desktop (≥ 1024px; handoff .proj-docs/plans/2026-10-12_handoff_desktop-layout.md §3 #8 / #9) ════════
+   mockups/v2.0.0/desktop-quiz.html A rev 12 (Practice), desktop-exam.html C rev 3 (Exam). One screen high
+   (.screen.is-fit, css/components/fit.css); js/screens/quiz.js moves the card, options, dots, answer box and Similar
+   panel into the columns below (.quiz-dots-bar, .quiz-cols) and back below 1024px */
+@media (min-width: 1024px) {
+  /* off-scale px ×1.2 (.proj-docs/plans/2026-10-12_desktop-px-inventory.md, Lane B) */
+  .round-note { padding: calc(3px * var(--desktop-scale)) var(--space-4); }
+  .exam-timer { padding: calc(5px * var(--desktop-scale)) calc(11px * var(--desktop-scale)); }
+  .q-card { padding: calc(26px * var(--desktop-scale)) calc(22px * var(--desktop-scale)); }
+  .q-progress { height: calc(5px * var(--desktop-scale)); }
+  .q-num { min-height: calc(30px * var(--desktop-scale)); }
+  .yue-toggle { padding: calc(5px * var(--desktop-scale)) var(--space-6); }
+  .opt-body { gap: calc(3px * var(--desktop-scale)); }
+  .opt-letter { min-width: calc(26px * var(--desktop-scale)); height: calc(26px * var(--desktop-scale)); margin-top: calc(1px * var(--desktop-scale)); }
+  .answer-box { padding: var(--space-8) calc(18px * var(--desktop-scale)); }
+  .divider { height: calc(1px * var(--desktop-scale)); }
+  .sqm { padding: var(--space-7) calc(18px * var(--desktop-scale)) var(--space-8); }
+  .sqm-icon { width: calc(30px * var(--desktop-scale)); height: calc(30px * var(--desktop-scale)); }
+  .sqm-count { padding: calc(3px * var(--desktop-scale)) calc(9px * var(--desktop-scale)); }
+  .sqm-node { padding: var(--space-2) calc(9px * var(--desktop-scale)); }
+  .sqm-legend i { width: calc(8px * var(--desktop-scale)); height: calc(8px * var(--desktop-scale)); }
+  .sqm-item { padding: calc(11px * var(--desktop-scale)) calc(13px * var(--desktop-scale)); }
+  .sqm-item-top { margin-bottom: calc(5px * var(--desktop-scale)); }
+  .sqm-cta button { padding: calc(11px * var(--desktop-scale)) var(--space-5); }
+
+  /* the screen: header row, notes, (practice) dots bar, then the columns take the height left */
+  #screenQuiz.is-fit > * { flex: none; }
+  #screenQuiz.is-fit > .quiz-cols { flex: 1 1 auto; min-height: 0; }
+  /* F4 (rev 8 / rev 12): no bottom Prev / Next; the card's ← → always shown, beside Translate before answering */
+  #screenQuiz > .nav-row { display: none; }
+  #screenQuiz .quick-nav { display: inline-flex; }
+
+  .quiz-cols { display: grid; gap: var(--space-10); grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
+  .quiz-desk-rail .quiz-cols { grid-template-columns: minmax(0, 3fr) minmax(0, 9fr); }
+  /* an exam set without the timer and dots (All Exams, chapters, levels): the answering column alone, centred
+     (desktop-exam.html option A) */
+  .quiz-desk-plain .quiz-cols { grid-template-columns: minmax(0, 1fr); width: 100%; max-width: calc(760px * var(--desktop-scale)); margin: 0 auto; }
+
+  /* practice: the 24 dots in one row across the left, the counts 2 × 2 on the right (rev 6 / rev 7: filled down the
+     columns, Correct · Unanswered / Wrong · Flagged) */
+  .quiz-dots-bar {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: var(--space-12); align-items: center;
+    background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow-sm);
+    padding: var(--space-6) var(--space-8); margin-bottom: var(--space-6);
+  }
+  .quiz-dots-bar .nav-dots { grid-template-columns: repeat(24, minmax(0, 1fr)); margin: 0; }
+  #screenQuiz .quiz-dots-bar .dots-meta {
+    display: grid; grid-template-columns: auto auto; grid-template-rows: auto auto; grid-auto-flow: column;
+    column-gap: var(--space-8); row-gap: var(--space-2); justify-content: start;
+    margin: 0; padding: 0; border: 0; font-size: var(--fs-xs);
+  }
+  .quiz-dots-bar .dots-meta .sep { display: none; }
+  .quiz-dots-bar .dots-meta > span { white-space: nowrap; }
+
+  /* the answering column (a fading scroll panel, scrolls only as the last step): question card and options each
+     start at half the height and give way to the other's content (rev 9); options always 2 × 2, one height, content
+     at the top (rev 11) */
+  .quiz-main-wrap { min-height: 0; }
+  .quiz-main { display: flex; flex-direction: column; gap: var(--space-6); }
+  .quiz-main > * { flex: none; margin-bottom: 0; }
+  .quiz-main > .q-card { flex: 1 1 0; min-height: min-content; }
+  .quiz-main > .options {
+    flex: 1 1 0; min-height: min-content; margin: 0;
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 1fr; gap: var(--space-5);
+  }
+  .quiz-main .opt { height: 100%; align-items: flex-start; }
+  /* fitQuiz() ① rows follow their content → ② tighter padding and gaps → ③ the column scrolls (rev 10) */
+  .quiz-main > .options.is-tight { grid-auto-rows: auto; align-content: stretch; }
+  .quiz-main.is-compact { gap: var(--space-4); }
+  .quiz-main.is-compact > .q-card { padding-top: var(--space-6); padding-bottom: var(--space-6); }
+  .quiz-main.is-compact .q-num { margin-bottom: var(--space-3); }
+  .quiz-main.is-compact > .options { gap: var(--space-3); }
+  .quiz-main.is-compact .opt { padding-top: var(--space-4); padding-bottom: var(--space-4); }
+
+  /* practice right column: soft tabs "💡 Answer | 🗺️ Similar Questions" (rev 4 / rev 5 S), each pane its own fading
+     scroll panel; before answering a dashed slot fills the column (rev 11) */
+  .quiz-aside { display: flex; flex-direction: column; min-height: 0; gap: var(--space-6); }
+  .quiz-tabs {
+    flex: none; display: flex; align-items: stretch; gap: var(--space-2);
+    background: var(--border); border-radius: var(--radius-md); padding: var(--space-2);
+    margin-right: var(--fit-panel-gutter); /* rev 11: as wide as the box under it (the pane keeps its scrollbar gutter) */
+  }
+  /* basis auto: each tab starts at its content's width and the room left is shared (the mockup's look: the
+     one-line Similar tab wider than Answer); when that is too wide the Similar title wraps (.t2) */
+  .quiz-tab {
+    flex: 1 1 auto; display: inline-flex; align-items: center; justify-content: center; gap: var(--space-3);
+    padding: var(--space-3) var(--space-5); border: 0; border-radius: var(--radius-sm); background: none;
+    font: inherit; font-size: var(--fs-md); font-weight: 700; color: var(--text-muted); white-space: nowrap; cursor: pointer;
+  }
+  .quiz-tab[aria-selected="true"] { background: var(--card); box-shadow: var(--shadow-sm); color: var(--navy); }
+  .quiz-tab:focus-visible { outline: 2px solid var(--navy-light); outline-offset: 2px; }
+  /* the title / subtitle wrap rather than push past the column (1024px large text: the mockup's one line does not fit) */
+  .quiz-tab .t2 { display: grid; text-align: left; line-height: 1.2; white-space: normal; }
+  .quiz-tab .t2 small { font-size: var(--fs-2xs); font-weight: 600; color: var(--text-muted); }
+  .quiz-tab .sqm-count { flex: none; }
+  .quiz-pane { flex: 1 1 auto; }
+  .quiz-pane .sqm-head { display: none; }
+  .quiz-pane .sqm, .quiz-pane .answer-box { margin: 0; }
+  .quiz-empty-slot { flex: 1 1 auto; min-height: calc(160px * var(--desktop-scale)); border: 2px dashed var(--border); border-radius: var(--radius); }
+
+  /* exam rail (C rev 2 / rev 3): fills the column; big timer across it (the header timer is hidden, F6), dots 6 × 4,
+     a line, the counts one per line; Submit at the bottom on the last question */
+  .quiz-meta .exam-timer { display: none; }
+  .exam-rail {
+    display: grid; grid-template-rows: auto auto auto 1fr; gap: var(--space-8); align-content: start;
+    min-height: 0; overflow-y: auto;
+    background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow-sm); padding: var(--space-8);
+  }
+  .exam-rail .exam-big-timer { justify-content: center; text-align: center; font-size: var(--fs-6xl); padding: var(--space-3) var(--space-8); }
+  .exam-rail .nav-dots { grid-template-columns: repeat(6, minmax(0, 1fr)); margin: 0; }
+  .exam-rail .dot { max-width: calc(34px * var(--desktop-scale)); }
+  #screenQuiz .exam-rail .dots-meta {
+    display: grid; gap: var(--space-3); justify-content: start;
+    margin: 1lh 0 0; padding: 0; border: 0; font-size: var(--fs-md);
+  }
+  .exam-rail .dots-meta .sep { display: none; }
+  /* v2.0.2 merge: the v1.6.1 two-row legend (.lg-row) gives way to the rail's one count per line (C rev 3): its rows
+     add no box, so each count is a grid row as in v2.0.0 (a one-line row would also widen the rail's track) */
+  .exam-rail .dots-meta .lg-row { display: contents; }
+  .exam-rail .exam-submit { align-self: end; width: 100%; min-height: calc(44px * var(--desktop-scale)); }
+}

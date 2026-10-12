@@ -23,6 +23,9 @@ const TODAY = '2026-10-01';
 const START = '2026-09-28'; // Day 4 = TODAY (plan-run-test): reading + practice tasks, Days 1–3 carried over
 const GOAL = { examDate: '2026-10-29', dailyMins: 120, restDays: [0], level: 'none' };
 const CENTRE_TOL_PX = 2.5;
+// v2.0.2 merge (main v2.0.0 desktop, ≥ 1024px): the same walk in the desktop layout, plus its own controls (the F7 plan
+// card's Continue, the Plan Schedule ‹ › column scrollers, the exam rail's Submit)
+const DESKTOP_CASES = [[{ width: 1280, height: 800 }, 'en', 'small'], [{ width: 1024, height: 768 }, 'zh-HK', 'large']];
 
 // every button / role=button in the document (hidden screens included): its text without status parts
 const glyphButtons = pg => pg.evaluate(({ glyphs, status }) => [...document.querySelectorAll('button, [role="button"]')].map(b => {
@@ -212,8 +215,37 @@ async function checkPlanRun(pg, tag) {
   await checkControls(pg, `${tag} Plan task done (next)`, [['#planRunBody [data-action="planOpenTask"]', 'trail', ['arrowRight']]]);
 }
 
+async function checkDesktopExtras(pg, tag) {
+  await seedPlan(pg);
+  await pg.evaluate(() => goHome());
+  await checkControls(pg, `${tag} Home F7 plan card`, [['#screenHome .plan-home-acts [data-action="planContinue"]', 'trail', ['arrowRight']]]);
+  await pg.evaluate(() => openPlanSchedule());
+  await checkControls(pg, `${tag} Plan schedule scrollers`, [['.plan-hs-btn.l', 'icon', ['chevronLeft']], ['.plan-hs-btn.r', 'icon', ['chevronRight']]]);
+  await pg.evaluate(() => { goHome(); pendingMode = 'exam'; startExam(1); goToQuestion(state.questions.length - 1); });
+  const submit = await controlInfo(pg, '.exam-rail .exam-submit');
+  assert(submit && submit.shown && submit.text.length > 0 && submit.names.length === 0, `${tag} Exam rail Submit: words only, shown on the last question ${JSON.stringify(submit)}`);
+  await pg.evaluate(() => goToQuestion(0));
+  assert(await pg.evaluate(() => document.querySelector('.exam-rail .exam-submit').getClientRects().length === 0), `${tag} Exam rail Submit hidden before the last question`);
+}
+
 (async () => {
   const browser = await chromium.launch(launchOpts);
+  for (const [viewport, lang, size] of DESKTOP_CASES) {
+    const pg = await browser.newPage({ viewport });
+    const errors = [];
+    pg.on('pageerror', e => errors.push(e.message));
+    const tag = `desktop ${viewport.width}x${viewport.height} ${lang} ${size}`;
+    await fresh(pg, lang, size);
+    await checkHome(pg, tag);
+    await checkQuiz(pg, tag);
+    await checkStudy(pg, tag);
+    await checkMemo(pg, tag);
+    await checkPlanScreens(pg, tag);
+    await checkPlanRun(pg, tag);
+    await checkDesktopExtras(pg, tag);
+    assert(!errors.length, `${tag}: no page errors: ` + errors.join(' | '));
+    await pg.close();
+  }
   for (const w of WIDTHS) {
     const pg = await browser.newPage({ viewport: { width: w, height: 800 } });
     const errors = [];

@@ -18,7 +18,20 @@ function openFlagged() {
   byId('flaggedList').innerHTML = groups.length
     ? groups.map(flaggedItemHtml).join('')
     : `<div class="empty-hint">${t('flagged.empty')}</div>`;
+  wrapFlaggedList();
   showScreen('screenFlagged');
+  desktopRefit('screenFlagged', () => {}); // nothing to measure: the run refreshes the list panel's fades
+}
+// v2.0.0 desktop (mockups/v2.0.0/desktop-flagged.html B): the list is a fading scroll panel under the practise button
+// (css/screens/flagged.css, ≥ 1024px only; the wrapper and classes do nothing below that)
+function wrapFlaggedList() {
+  const list = byId('flaggedList');
+  if (list.parentElement.classList.contains('fit-fade')) return;
+  const wrap = deskEl('div', 'flagged-wrap fit-fade');
+  list.before(wrap);
+  wrap.append(list);
+  list.classList.add('fit-panel');
+  byId('screenFlagged').classList.add('is-fit');
 }
 function unflagFromList(key) { setPracticeFlag(key, false); openFlagged(); }
 // W-1: the pinned block's height as --flagged-top-h (css/screens/flagged.css scroll-padding-top); follows text size,

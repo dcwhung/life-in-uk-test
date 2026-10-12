@@ -73,7 +73,10 @@ function renderQuestion() {
   renderSimilar(q, revealed);
   renderExamTools(idx);
   renderNavButtons(idx, total, revealed);
+  quizDeskStale = true; // S-233: the desktop parts are filled by arrangeQuiz, and only on desktop
+  arrangeQuiz(deskOn()); // v2.0.0: the desktop columns first, so the counter below measures the row it ends up in
   fitQuestionCounter(); // C3: measured once the counter's row (bookmark, arrows) is final
+  desktopRefit('screenQuiz', fitQuiz);
 }
 // W-016: a fact set's "Ch c #n" is English in every language (S-057), so it goes in a lang="en" span; v1.6.0: a memo
 // set's group title is Cantonese data (lang="zh-HK"). Built from text nodes, never innerHTML, so the locale string
@@ -268,4 +271,197 @@ function prevQ() {
   state.current--;
   renderQuestion();
   window.scrollTo(0, 0);
+}
+
+// ════════════════════════════════════════
+// DESKTOP LAYOUT (v2.0.0, ≥ 1024px; handoff .proj-docs/plans/2026-10-12_handoff_desktop-layout.md §3 #8–#11)
+// The Quiz / Result screens move some of their own elements into columns built once (js/components/deskPlace.js:
+// deskRemember / deskFill / deskRestore, desktopRefit); below 1024px each goes back to its phone place.
+// ════════════════════════════════════════
+// ── Quiz: mockups/v2.0.0/desktop-quiz.html A rev 12 (Practice) and desktop-exam.html C rev 3 (Exam 1–17, Random) ──
+// practice: the number dots bar across the top; question card + options (7/12) | Answer · Similar tabs (5/12)
+// exam with the timer: rail (3/12: big timer, dots 6 × 4, counts, Submit on the last question) | question + options
+// other exam sets (no dots, no answer): the question + options column alone, centred
+const QUIZ_TAB = { answer: 'answer', similar: 'similar' };
+const QUIZ_TAB_KEYS = { ArrowRight: 1, ArrowLeft: -1 }; // W-378: ← → step (and wrap); Home / End below
+let quizDesk = null; // built on the first desktop render (S-233: never on a phone)
+let quizDeskStale = true; // the question changed since the desktop parts were last filled
+let quizTab = QUIZ_TAB.answer;
+let quizTabQuestion = null; // the question the open tab belongs to: a new question opens on Answer
+// v2.0.1: the scroll panels are kept from question to question, so each remembers the question it last showed
+// ([set, index]: the same question in a new set counts as new) and starts at the top the first time it is shown
+// for another one; a hidden panel ignores scrollTop, so this waits until it is shown (a tab swap keeps the scroll)
+const quizPanelSeen = new WeakMap();
+function quizTabButton(id, pane) {
+  return deskEl('button', 'quiz-tab', { type: 'button', id, role: 'tab', 'aria-controls': pane });
+}
+function quizPane(id, tabId) {
+  const wrap = deskEl('div', 'quiz-pane fit-fade');
+  wrap.append(deskEl('div', 'fit-panel', { id, role: 'tabpanel', 'aria-labelledby': tabId }));
+  return wrap;
+}
+// the desktop-only elements (built once, kept while hidden below 1024px)
+function newQuizDeskParts() {
+  return {
+    bar: deskEl('div', 'quiz-dots-bar'),
+    cols: deskEl('div', 'quiz-cols'),
+    rail: deskEl('div', 'exam-rail'),
+    // a copy of the header countdown (renderExamTimer writes both); the header one is hidden on desktop (F6)
+    bigTimer: deskEl('span', 'exam-timer exam-big-timer', { id: 'examTimerBig', role: 'timer', 'aria-live': 'off' }),
+    // F6: the same action as the card's ✓ on the last question (nextAction: Submit → the confirm)
+    submit: deskEl('button', 'nav-btn exam-submit', { type: 'button', 'data-action': 'next' }),
+    mainWrap: deskEl('div', 'quiz-main-wrap fit-fade'),
+    main: deskEl('div', 'quiz-main fit-panel'),
+    aside: deskEl('div', 'quiz-aside'),
+    tabs: deskEl('div', 'quiz-tabs', { role: 'tablist' }),
+    tabAnswer: quizTabButton('quizTabAnswer', 'quizPaneAnswer'),
+    tabSimilar: quizTabButton('quizTabSimilar', 'quizPaneSimilar'),
+    paneAnswer: quizPane('quizPaneAnswer', 'quizTabAnswer'),
+    paneSimilar: quizPane('quizPaneSimilar', 'quizTabSimilar'),
+    slot: deskEl('div', 'quiz-empty-slot', { 'aria-hidden': 'true' }), // before answering (mockup rev 11)
+  };
+}
+function buildQuizDesk() {
+  const screen = byId('screenQuiz');
+  const moved = {
+    card: screen.querySelector('.q-card'), dots: byId('navDots'), meta: byId('dotsMeta'), options: byId('optionsContainer'),
+    pair: byId('planPairNote'), answer: byId('answerBox'), similar: byId('similarBox'),
+  };
+  Object.values(moved).forEach(deskRemember);
+  const d = { moved, ...newQuizDeskParts() };
+  d.mainWrap.append(d.main);
+  d.tabs.append(d.tabAnswer, d.tabSimilar);
+  d.aside.append(d.tabs, d.paneAnswer, d.paneSimilar, d.slot);
+  d.tabAnswer.addEventListener('click', () => setQuizTab(QUIZ_TAB.answer));
+  d.tabSimilar.addEventListener('click', () => setQuizTab(QUIZ_TAB.similar));
+  d.tabs.addEventListener('keydown', onQuizTabKey);
+  d.bar.hidden = true;
+  d.cols.hidden = true;
+  deskHome(moved.card).before(d.bar, d.cols); // above the card's phone place (under the notes, round row)
+  screen.classList.add('is-fit'); // css/components/fit.css: one screen high from 1024px only
+  return d;
+}
+function quizDeskParts() { return quizDesk || (quizDesk = buildQuizDesk()); }
+function quizDeskLayout(desktop) {
+  if (!desktop) return '';
+  if (hasExamTools()) return 'rail';
+  return state.mode === PRACTICE_MODE ? 'practice' : 'plain';
+}
+function arrangeQuiz(desktop) {
+  const layout = quizDeskLayout(desktop);
+  if (!layout && !quizDesk) return; // S-233: a phone that never was desktop has nothing to put back
+  const d = quizDeskParts();
+  if (layout && quizDeskStale) renderQuizDesk();
+  deskKeepFocus(() => placeQuizParts(d, layout)); // S-228: focus back once every box is in the document
+}
+function placeQuizParts(d, layout) {
+  const m = d.moved;
+  const screen = byId('screenQuiz');
+  ['practice', 'rail', 'plain'].forEach(name => screen.classList.toggle('quiz-desk-' + name, layout === name));
+  d.bar.hidden = layout !== 'practice';
+  d.cols.hidden = !layout;
+  d.rail.hidden = layout !== 'rail';
+  d.aside.hidden = layout !== 'practice';
+  if (!layout) { deskRestore(Object.values(m)); return; }
+  deskFill(d.main, [m.card, m.options, m.pair]);
+  if (layout === 'practice') {
+    deskFill(d.bar, [m.dots, m.meta]);
+    deskFill(d.cols, [d.mainWrap, d.aside]);
+    deskFill(d.paneAnswer.firstElementChild, [m.answer]);
+    deskFill(d.paneSimilar.firstElementChild, [m.similar]);
+    return;
+  }
+  deskRestore([m.answer, m.similar]); // exam never shows them
+  if (layout === 'rail') {
+    deskFill(d.rail, [d.bigTimer, m.dots, m.meta, d.submit]);
+    deskFill(d.cols, [d.rail, d.mainWrap]);
+  } else {
+    deskRestore([m.dots, m.meta]); // hidden: these sets have no dots
+    deskFill(d.cols, [d.mainWrap]);
+  }
+}
+// tab labels, which pane shows, the rail's timer copy and Submit for the current question; no measuring (the fit
+// does that). Called by arrangeQuiz on desktop only, once per question render
+function renderQuizDesk() {
+  const d = quizDeskParts(), idx = state.current, q = state.questions[idx], total = state.questions.length;
+  const showAnswer = idx in state.revealed && state.mode === PRACTICE_MODE;
+  quizDeskStale = false;
+  if (quizTabQuestion !== q) { quizTab = QUIZ_TAB.answer; quizTabQuestion = q; }
+  const similarShown = byId('similarBox').classList.contains('show');
+  if (!similarShown) quizTab = QUIZ_TAB.answer;
+  d.tabAnswer.innerHTML = `<span aria-hidden="true">💡</span> ${escapeHtml(t('quiz.answerTab'))}`;
+  d.tabSimilar.innerHTML = similarShown ? similarTabHtml(q) : '';
+  d.tabSimilar.hidden = !similarShown;
+  d.tabs.hidden = !showAnswer;
+  d.slot.hidden = showAnswer;
+  applyQuizTab(showAnswer);
+  syncExamTimerCopy();
+  renderExamSubmit(d.submit, idx, total);
+}
+// S-231: the rail's Submit is the card's ✓ on the last question, so it says what nextAction() says
+function renderExamSubmit(submit, idx, total) {
+  const last = idx === total - 1;
+  submit.hidden = !last;
+  if (!last) return;
+  const next = nextAction(idx, total);
+  // v2.0.2 merge: nextAction() has no separate title since the v1.6.1 line icons (the quick ✓ is named by its label,
+  // icons.js setAccessibleName); the Submit's own words name it. Words only: an exam's Submit has no icon (no
+  // labelIcons), and .with-icon's display would override [hidden] on the other questions
+  submit.textContent = next.label;
+}
+// W-378: roving tabindex (the chosen tab 0, the other -1) with aria-selected
+function applyQuizTab(showAnswer = !quizDeskParts().tabs.hidden) {
+  const d = quizDeskParts(), onAnswer = quizTab === QUIZ_TAB.answer;
+  [[d.tabAnswer, onAnswer], [d.tabSimilar, !onAnswer]].forEach(([tab, chosen]) => {
+    tab.setAttribute('aria-selected', String(chosen));
+    tab.tabIndex = chosen ? 0 : -1;
+  });
+  d.paneAnswer.hidden = !showAnswer || !onAnswer;
+  d.paneSimilar.hidden = !showAnswer || onAnswer;
+  topQuizPanelsOnNewQuestion(d);
+}
+function topQuizPanelsOnNewQuestion(d) {
+  [d.main, d.paneAnswer.firstElementChild, d.paneSimilar.firstElementChild].forEach(panel => {
+    const seen = quizPanelSeen.get(panel);
+    if (!panel.getClientRects().length || (seen && seen[0] === state.questions && seen[1] === state.current)) return;
+    quizPanelSeen.set(panel, [state.questions, state.current]);
+    panel.scrollTop = 0;
+  });
+}
+// a tab click swaps the pane in place (no re-render: each pane keeps its scroll position)
+function setQuizTab(tab) {
+  quizTab = tab;
+  applyQuizTab();
+  if (typeof refreshFades === 'function') refreshFades(byId('screenQuiz'));
+}
+// W-378 (WAI-ARIA tabs, automatic activation): ← / → move to the previous / next shown tab (wrapping), Home / End
+// to the first / last; the tab moved to is chosen and focused
+function onQuizTabKey(e) {
+  const d = quizDeskParts();
+  const tabs = [[d.tabAnswer, QUIZ_TAB.answer], [d.tabSimilar, QUIZ_TAB.similar]].filter(([tab]) => !tab.hidden);
+  const at = tabs.findIndex(([tab]) => tab === document.activeElement);
+  if (at < 0) return;
+  let to;
+  if (e.key in QUIZ_TAB_KEYS) to = (at + QUIZ_TAB_KEYS[e.key] + tabs.length) % tabs.length;
+  else if (e.key === 'Home') to = 0;
+  else if (e.key === 'End') to = tabs.length - 1;
+  else return;
+  e.preventDefault();
+  setQuizTab(tabs[to][1]);
+  tabs[to][0].focus();
+}
+function syncExamTimerCopy() {
+  if (!quizDesk) return; // not built yet: renderQuizDesk copies it on the first render
+  const big = quizDesk.bigTimer, small = byId('examTimer');
+  big.textContent = small.textContent;
+  big.classList.toggle('warn', small.classList.contains('warn'));
+}
+// mockup fitOptions(): options always 2 × 2 (css), one height while it fits; ① rows by content (is-tight) →
+// ② tighter card / option padding (is-compact) → ③ only then does the column scroll
+function fitQuiz(desktop) {
+  arrangeQuiz(desktop);
+  if (!quizDesk) return; // S-233: never built on a phone, so no steps to take off
+  const d = quizDesk;
+  fitSteps(d.main, [[d.moved.options, 'is-tight'], 'is-compact']);
+  topQuizPanelsOnNewQuestion(d); // after every render and when the screen is shown (runRefits then refreshes the fades)
 }

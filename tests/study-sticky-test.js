@@ -9,6 +9,9 @@ const path = require('path');
 // block, so Playwright's auto-scroll can't move it out first); W-068 (user decision) the chip rows stay on ONE line and scroll sideways, so
 // the pinned block fits small phones (header + block ≤ 40% of 320×568 … 390×844, en / zh-HK large text); S-239 the
 // Hide mastered / Bookmarked toggles and the memo chapter chips go through studyRefilter; short landscape screens stay static.
+// v2.0.2 merge (main v2.0.0 desktop, ≥ 1024px): Study is one screen high with a rail beside a card panel that scrolls on
+// its own, so the block is not pinned there: it sits in the rail as display: contents, the chip rows wrap again, the page
+// keeps scroll-padding auto, a new list starts the panel at its top; back below 1024px the block pins again.
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
 const launchOpts = { args: ['--no-sandbox'] };
 if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_PATH;
@@ -363,6 +366,70 @@ async function widthChecks(browser) {
   }
 }
 
+// v2.0.2 merge: the v1.6.1 block in main's v2.0.0 desktop Study (rail + card panel), then back to a phone width
+const DESKTOP_VIEWPORTS = [{ width: 1024, height: 768 }, { width: 1280, height: 800 }];
+const DESKTOP_CASES = [['en', 'large'], ['zh-HK', 'small']];
+const MEMO_DESKTOP_COLS = 3;
+async function desktopChecks(browser) {
+  for (const vp of DESKTOP_VIEWPORTS) for (const [lang, size] of DESKTOP_CASES) {
+    const label = `desktop ${vp.width}x${vp.height} ${lang} ${size}`;
+    const pg = await browser.newPage({ viewport: vp });
+    await pg.goto(APP_URL);
+    await pg.evaluate(([l, s]) => { localStorage.setItem('lifeuk.uiLang', JSON.stringify(l)); localStorage.setItem('lifeuk.fontSize', JSON.stringify(s)); }, [lang, size]);
+    await pg.reload();
+    const bad = [];
+    for (const tab of TABS) {
+      await openTab(pg, tab);
+      const d = await pg.evaluate(() => {
+        const top = document.querySelector('#screenStudy .study-top');
+        const rail = document.querySelector('#screenStudy .study-rail');
+        const rows = ['studyChips', 'studySubChips'].map(id => document.getElementById(id)).filter(e => !e.hidden);
+        const panel = document.getElementById('studyContent');
+        panel.scrollTop = panel.scrollHeight; // the panel scrolls, the page does not
+        return {
+          inRail: !!rail && rail.contains(top) && rail.contains(document.getElementById('studyTabs')) && rows.every(e => rail.contains(e)),
+          display: getComputedStyle(top).display,
+          // sub chips wrap again (rev 4); the filter chips stack full width at the rail's foot (v2.0.0)
+          wrap: rows.filter(e => e.id === 'studySubChips').map(e => getComputedStyle(e).flexWrap),
+          stack: rows.filter(e => e.id === 'studyChips').map(e => getComputedStyle(e).flexDirection),
+          chipsAfterCount: document.getElementById('studyCount').nextElementSibling === document.getElementById('studyChips'),
+          pad: getComputedStyle(document.documentElement).scrollPaddingTop,
+          pageY: window.scrollY, docW: document.documentElement.scrollWidth, panelTop: panel.scrollTop,
+        };
+      });
+      const filterOk = tab === 'memo' || d.chipsAfterCount;
+      if (!(d.inRail && d.display === 'contents' && d.wrap.every(w => w === 'wrap') && d.stack.every(f => f === 'column') && filterOk && d.pad === 'auto' && d.pageY === 0 && d.docW <= vp.width && d.panelTop > 0)) {
+        bad.push(`${tab} ${JSON.stringify(d)}`);
+      }
+    }
+    assert(bad.length === 0, `${label}: the block sits in the rail (display: contents, not pinned), sub chips wrap, filter chips stacked after the count, scroll-padding auto, only the panel scrolls ${bad.join('; ')}`);
+    // a new list (another tab) starts the scrolled panel at its top; the page stays put
+    await pg.click('.study-tab[data-tab="people"]');
+    const after = await pg.evaluate(() => ({ panel: document.getElementById('studyContent').scrollTop, page: window.scrollY }));
+    assert(after.panel === 0 && after.page === 0, `${label}: a tab tap starts the new list at the panel's top ${JSON.stringify(after)}`);
+    // memo list: three cards a row in the panel, none past its column
+    await openTab(pg, 'memo');
+    const m = await pg.evaluate(() => {
+      const grid = document.querySelector('#studyContent .memo-grid');
+      const cards = [...grid.querySelectorAll('.memo-card')];
+      const g = grid.getBoundingClientRect();
+      const tops = new Set(cards.slice(0, 6).map(c => Math.round(c.getBoundingClientRect().top)));
+      return { cols: getComputedStyle(grid).gridTemplateColumns.split(' ').length, rows: tops.size, out: cards.filter(c => c.getBoundingClientRect().right > g.right + 1).length };
+    });
+    assert(m.cols === MEMO_DESKTOP_COLS && m.rows === 2 && m.out === 0, `${label}: memo list three cards a row ${JSON.stringify(m)}`);
+    // back below 1024px: the filter chips go back into the block and it pins again
+    if (vp.width === DESKTOP_VIEWPORTS[1].width && lang === 'en') {
+      await pg.setViewportSize(PHONE);
+      await openTab(pg, 'chapters');
+      await toBottom(pg);
+      const l = await layout(pg);
+      const inBlock = await pg.evaluate(() => document.querySelector('#screenStudy .study-top').contains(document.getElementById('studyChips')));
+      assert(inBlock && l.position === 'sticky' && Math.abs(l.block.top - l.header) <= TOLERANCE_PX, `${label} → 390px: the filter chips back in the block, pinned again ${JSON.stringify({ inBlock, pos: l.position, top: l.block.top, header: l.header })}`);
+    }
+    await pg.close();
+  }
+}
+
 (async () => {
   const browser = await chromium.launch(launchOpts);
   const pg = await browser.newPage({ viewport: PHONE });
@@ -378,7 +445,7 @@ async function widthChecks(browser) {
 
   // review follow-up checks (W-067 / W-068) are collected: each prints its own ok / FAIL, the run fails if any failed
   const failures = [];
-  for (const check of [() => factReturnChecks(pg), () => chipScrollChecks(browser), () => budgetChecks(browser), () => widthChecks(browser)]) {
+  for (const check of [() => factReturnChecks(pg), () => chipScrollChecks(browser), () => budgetChecks(browser), () => widthChecks(browser), () => desktopChecks(browser)]) {
     try { await check(); } catch (e) { failures.push(e.message); console.log(e.message); }
   }
   if (failures.length) throw new Error(failures.join('\n'));

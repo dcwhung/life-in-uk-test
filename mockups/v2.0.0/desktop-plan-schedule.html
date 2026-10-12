@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Desktop Plan Schedule Mockup</title>
+<!--
+  v2.0.0 desktop / tablet-landscape layout — mockup 3 of 12: Plan Schedule (screenPlanSchedule).
+  Settled (grill 2026-10-12): ≥ 1024px desktop layout; content max 1280px, centred; --fs-* / --space-* ×1.2;
+  ⚙ large = (base + 2px) × 1.2. Home → A, Plan Goal → A (top band across, then left / right columns).
+  Real content: the screen's markup is the app's own render (v1.4.0, a new 21-day Beginner plan, 2 hr a day, Sunday
+  rest), captured in en and zh-HK; the app CSS below is copied from css/base/tokens.css, css/components/buttons.css,
+  css/components/chips.css and css/screens/plan.css, with the tokens rescaled per frame (.app). Only the arrangement
+  per option is new (.optA / .optB / .optC). Mockup-only: the frames, toggles and annotations.
+-->
+<style>
+/* ── copied: css/base/tokens.css :root (v1.4.0) ── */
+:root {
+  /* brand palette */
+  --orange: #d9822b;
+  --navy: #1a2744;
+  --navy-mid: #243460;
+  --navy-light: #2e4080;
+  --gold: #c9a84c;
+  --gold-light: #e8c97a;
+  --green: #2d6a4f;
+  --green-light: #52b788;
+  --red: #922b21;
+  --red-light: #e74c3c;
+  --red-dark: #7a241b; /* hover on a --red fill (red confirm button) */
+  --purple: #6b3fa0;
+  --purple-light: #9b6dca;
+
+  /* surfaces and text */
+  --bg: #f0f2f7;
+  --card: #ffffff;
+  --text: #1a2744;
+  --text-muted: #5a6a8a;
+  --border: #dde2f0;
+  --divider: rgba(0,0,0,0.06);
+
+  /* text on navy / coloured fills; v0.60: three semantic alpha steps for secondary lines (was 75 / 70 / 65 / 60 / 55 / 45) */
+  --text-inverse: #fff;
+  --text-inverse-strong: rgba(255,255,255,0.75);  /* body copy on dark */
+  --text-inverse-muted: rgba(255,255,255,0.6);    /* sub-lines, captions, install ✕ */
+  --text-inverse-faint: rgba(255,255,255,0.45);   /* version tag, zero counts */
+
+  /* state tints: light backgrounds behind right / wrong / selected / flagged */
+  --success-bg: #edf8f2;
+  --danger-bg: #fdf0ef;
+  --selected-bg: #f0f4ff;
+  --flag-bg: #fdf3e8;
+
+  /* gold accents: stars, frequency tags, notes, Similar Questions fact */
+  --gold-bg: #fdf6e3;
+  --gold-text: #8a6d1f;
+  --note-label: #b5680a;
+  --fact-bg: #fbf5e6;
+  --fact-label: #9a7a22;
+  --gold-border: rgba(201,168,76,0.35);
+  --gold-tint: rgba(201,168,76,0.18);
+
+  /* Cantonese translation (purple) and Study tag tints */
+  --yue-bg: #f3eefa;
+  --yue-bg-soft: #f7f4fc;
+  --person-bg: #e6f0ff;
+
+  /* Study / Practice-by-chapter decoration (v0.62, P3 Q2-a: all navy; purple is kept for Cantonese only):
+     fact left border + timeline dot (accent), year text + chapter badge (strong), year tag fill (bg) */
+  --study-accent: var(--navy-light);
+  --study-accent-strong: var(--navy-light);
+  --study-accent-bg: var(--selected-bg);
+
+  /* radius scale: --radius for cards, then controls (md), small chips (sm), tags / badges / icon buttons (xs), pills and circles */
+  --radius: 14px;
+  --radius-md: 10px;
+  --radius-sm: 8px;
+  --radius-xs: 6px;
+  --radius-pill: 999px;
+  --radius-circle: 50%;
+
+  /* font-size scale: every font-size in css/ goes through these (structure-test). v1.1.2: the half steps, headings and
+     display sizes joined the scale (0 visual change) so a later larger-text mode can shift every step in one place.
+     --fs-xl is the body size (the browser default 16px); unsized text inherits it */
+  --fs-3xs: 9px;
+  --fs-2xs: 10px;
+  --fs-2xs-plus: 10.5px;
+  --fs-xs: 11px;
+  --fs-sm: 12px;
+  --fs-sm-plus: 12.5px;
+  --fs-base: 13px;
+  --fs-base-plus: 13.5px;
+  --fs-md: 14px;
+  --fs-lg: 15px;
+  --fs-xl: 16px;
+  --fs-2xl: 17px;
+  --fs-3xl: 19px;
+  --fs-4xl: 20px;
+  --fs-5xl: 22px;
+  --fs-6xl: 24px;
+  --fs-7xl: 26px;
+  --fs-display-sm: 42px;
+  --fs-display: 52px;
+  --fs-display-lg: 72px;
+
+  /* spacing scale (v0.72, B5): margin / padding / gap on these steps use the token (structure-test); the step number
+     is px / 2. Off-scale values (1, 3, 5, 7, 9, 11, 13, 18, 22px…) stay literal where they sit.
+     S-114, study plan (css/screens/plan.css), kept off-scale to match the mockup's sp-* sizes (0 visual change):
+     3px = .plan-pill vertical padding, .plan-day-tasks line gap; 7px = .plan-cta-go / .nav-btn.plan-small vertical
+     padding (same 7px as .back-btn, so the header buttons line up). Not spacing, so not on this scale either:
+     .plan-phase-bar height 34px (fits one 11px label line with room), .plan-legend swatch radius 3px (a 12px swatch:
+     the smallest --radius-xs 6px would make it a circle) */
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 6px;
+  --space-4: 8px;
+  --space-5: 10px;
+  --space-6: 12px;
+  --space-7: 14px;
+  --space-8: 16px;
+  --space-10: 20px;
+  --space-12: 24px;
+
+  /* switch (css/components/switch.css): the off track on a dark surface (the ⓘ popover) */
+  --switch-track-inverse: rgba(255,255,255,0.25);
+
+  /* study plan (css/screens/plan.css; mockup sp-* tokens). Phases: learn = read + practise (navy), drill (purple),
+     mock (orange; text on it stays dark: white on orange is below 4.5:1) */
+  --plan-ph-learn: var(--navy-light);
+  --plan-ph-learn-bg: var(--selected-bg);
+  --plan-ph-drill: var(--purple);
+  --plan-ph-drill-bg: var(--yue-bg);
+  --plan-ph-mock: var(--orange);
+  --plan-ph-mock-bg: var(--flag-bg);
+  --plan-ph-mock-text: var(--note-label);
+  /* G27: completion bands 0 / 1–49 / 50–74 / 75–99 / 100 % (planPctBand h0–h4; text on every band stays navy:
+     white on them is below 4.5:1) */
+  --plan-heat-0: #e3e7f1;
+  --plan-heat-1: #e8735f;
+  --plan-heat-2: #f0a54a;
+  --plan-heat-3: #c9cf4f;
+  --plan-heat-4: var(--green-light);
+  /* calendar days already gone: the same bands mixed 45 % into white (the mockup's opacity 0.45, but as colours, so
+     the navy day numbers keep ≥ 9:1, W-034) */
+  --plan-heat-0-past: #f2f4f9;
+  --plan-heat-1-past: #f5c0b7;
+  --plan-heat-2-past: #f8d7ae;
+  --plan-heat-3-past: #e7e9b0;
+  --plan-heat-4-past: #b1dfc9;
+  /* calendar rest days: --bg hatched with a light line (muted numbers ≥ 4.6:1 on both) */
+  --plan-rest-line: #eaedf4;
+  /* day screen task boxes: not started = dashed light border; carry-over = orange box (3.7:1 on white, WCAG 1.4.11)
+     with its Day n tag in a darker orange (5.3:1 on --flag-bg; also the mock phase pill text) */
+  --plan-task-todo-border: #bcc5dc;
+  --plan-carry: #c46f1c;
+  --plan-orange-text: #9a5408;
+  /* Home plan card (navy-light): the progress bar track */
+  --plan-home-track: rgba(255,255,255,0.18);
+  /* exam day: amber with a fine gold lattice; days already gone sit on a lighter grey row */
+  --plan-exam-bg: #f2a93b;
+  --plan-exam-line: rgba(255,214,120,0.75);
+  --plan-past-row: #f6f7fa;
+  --plan-past-text: var(--text-muted); /* W-034: 5.1:1 on the past row, 4.9:1 on its --bg date box */
+  /* day list chapter bullets: mud yellow a step darker than --gold-text (4.45:1 there on today's tint):
+     5.6:1 on white, 5.1:1 on --selected-bg (today + hover) */
+  --plan-day-chs-text: #806419;
+
+  /* G43: what is finished turns green on the schedule. Three greens, darkest first (learn / drill / mock), so two
+     finished phases side by side keep their edge: white text 11.1:1 on learn, 6.4:1 on drill; the light mock green
+     takes navy text (6.0:1; white there is 2.5:1). A finished study-order step and today's "Done today" pill use the
+     mid green with white (6.4:1), solid, unlike a past day's light "✓ Done" */
+  --plan-done-learn: #1b4332;
+  --plan-done-drill: var(--green);
+  --plan-done-mock: var(--green-light);
+  --plan-done-mock-text: var(--text);
+  --plan-done-step: var(--green);
+  --plan-done-today: var(--green);
+
+  /* a mastered fact card (🏆 / ticked) fades: the whole card in Study, all but the G41 done tag in the plan runner (W-048) */
+  --fact-mastered-opacity: 0.55;
+
+  /* shadows and overlays */
+  --shadow: 0 4px 24px rgba(26,39,68,0.10);
+  --shadow-sm: 0 2px 8px rgba(26,39,68,0.07);
+  --shadow-header: 0 2px 16px rgba(0,0,0,0.25);
+  --shadow-pop: 0 12px 32px rgba(0,0,0,0.35);
+  --overlay: rgba(26,39,68,0.55);
+}
+
+/* ── desktop scale: every --fs-* and --space-* ×1.2; ⚙ large adds 2px before scaling ── */
+.app {
+  --k: 1.2; --lg: 0px;
+  --fs-3xs: calc((9px + var(--lg)) * var(--k));
+  --fs-2xs: calc((10px + var(--lg)) * var(--k));
+  --fs-2xs-plus: calc((10.5px + var(--lg)) * var(--k));
+  --fs-xs: calc((11px + var(--lg)) * var(--k));
+  --fs-sm: calc((12px + var(--lg)) * var(--k));
+  --fs-sm-plus: calc((12.5px + var(--lg)) * var(--k));
+  --fs-base: calc((13px + var(--lg)) * var(--k));
+  --fs-base-plus: calc((13.5px + var(--lg)) * var(--k));
+  --fs-md: calc((14px + var(--lg)) * var(--k));
+  --fs-lg: calc((15px + var(--lg)) * var(--k));
+  --fs-xl: calc((16px + var(--lg)) * var(--k));
+  --fs-2xl: calc((17px + var(--lg)) * var(--k));
+  --fs-3xl: calc((19px + var(--lg)) * var(--k));
+  --fs-4xl: calc((20px + var(--lg)) * var(--k));
+  --fs-5xl: calc((22px + var(--lg)) * var(--k));
+  --fs-6xl: calc((24px + var(--lg)) * var(--k));
+  --fs-7xl: calc((26px + var(--lg)) * var(--k));
+  --fs-display-sm: calc((42px + var(--lg)) * var(--k));
+  --fs-display: calc((52px + var(--lg)) * var(--k));
+  --fs-display-lg: calc((72px + var(--lg)) * var(--k));
+  --space-1: calc(2px * var(--k));
+  --space-2: calc(4px * var(--k));
+  --space-3: calc(6px * var(--k));
+  --space-4: calc(8px * var(--k));
+  --space-5: calc(10px * var(--k));
+  --space-6: calc(12px * var(--k));
+  --space-7: calc(14px * var(--k));
+  --space-8: calc(16px * var(--k));
+  --space-10: calc(20px * var(--k));
+  --space-12: calc(24px * var(--k));
+}
+.app.large { --lg: 2px; }
+
+/* ── copied: css/components/buttons.css ── */
+/* back button (screen header) */
+.back-btn {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 7px var(--space-7);
+  font-size: var(--fs-base); font-weight: 600; color: var(--navy);
+  cursor: pointer; display: flex; align-items: center; gap: var(--space-3);
+}
+.back-btn:hover { background: var(--navy); color: var(--text-inverse); border-color: transparent; }
+
+/* v1.2.0: icon-only screen-header buttons (🏠 Home, 📅 Schedule, ✏️ Change goal; js/components/icons.js); the label is
+   aria-label + title. The icon box is in em, so it follows the button's font size */
+.back-btn.icon-btn, .nav-btn.secondary.icon-btn { position: relative; padding: var(--space-3) 9px; line-height: 0; flex-shrink: 0; justify-content: center; }
+/* the ~37 × 32px button keeps its look; the tap area grows to at least 44 × 44px (WCAG 2.5.5; wins over .plan-hit) */
+.back-btn.icon-btn::before, .nav-btn.secondary.icon-btn::before {
+  content: ''; position: absolute; left: 50%; right: auto; top: 50%;
+  width: max(100%, 44px); height: max(100%, 44px); transform: translate(-50%, -50%);
+}
+.line-icon { width: 1.35em; height: 1.35em; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* nav buttons */
+.nav-row { display: flex; gap: var(--space-5); justify-content: flex-end; }
+.nav-btn {
+  background: var(--navy);
+  color: var(--text-inverse);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: var(--space-6) var(--space-12);
+  font-size: var(--fs-md); font-weight: 700;
+  cursor: pointer; transition: all 0.15s;
+}
+.nav-btn:hover { background: var(--navy-light); }
+.nav-btn.secondary { background: var(--card); color: var(--navy); border: 2px solid var(--border); }
+.nav-btn.secondary:hover { background: var(--navy); color: var(--text-inverse); border-color: transparent; }
+.nav-btn:disabled { opacity: 0.4; cursor: default; }
+
+/* quick Prev / Next in the question header */
+.quick-nav { display: none; gap: var(--space-3); flex-shrink: 0; text-transform: none; letter-spacing: 0; }
+.quick-nav.visible { display: inline-flex; }
+.quick-btn {
+  width: 32px; height: 32px; border-radius: var(--radius-circle);
+  background: var(--card); color: var(--navy);
+  border: 1.5px solid var(--border);
+  font: inherit; font-size: var(--fs-lg); font-weight: 800; line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+.quick-btn.primary { background: var(--navy); border-color: var(--navy); color: var(--text-inverse); }
+.quick-btn:disabled { opacity: 0.4; cursor: default; }
+
+/* bookmark flag button + bookmark icon colours */
+.flag-btn {
+  display: inline-flex; width: 32px; height: 32px; padding: 0; border: none; background: none;
+  color: var(--text-muted); cursor: pointer; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.flag-btn svg { width: 24px; height: 24px; }
+.flag-btn path { fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; }
+.flag-btn.on { color: var(--orange); }
+.flag-btn.on path { fill: currentColor; }
+.rv-flag { width: 15px; height: 15px; margin-left: 5px; vertical-align: -2px; }
+.rv-flag path, .chip-flag path, .rv-flag-tile path { fill: var(--orange); stroke: var(--orange); stroke-width: 2; stroke-linejoin: round; }
+.chip-flag { width: 13px; height: 13px; vertical-align: -2px; margin-right: 3px; }
+.chip.active .chip-flag path { fill: currentColor; stroke: currentColor; }
+
+/* ── copied: css/components/chips.css ── */
+/* tabs: practice categories (home) and study sections */
+.practice-tab, .study-tab {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 9px var(--space-2);
+  font-size: var(--fs-sm); font-weight: 700; color: var(--text-muted);
+  cursor: pointer; text-align: center;
+  transition: all 0.15s;
+}
+.practice-tab { font-family: inherit; }
+.practice-tab.active { background: var(--navy); border-color: var(--navy); color: var(--text-inverse); }
+.study-tabs {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-3); margin-bottom: var(--space-6);
+}
+/* v0.62: selection is navy like .practice-tab / .chip (purple means Cantonese only); class name is an upgrade-test hook */
+.study-tab.active { background: var(--navy); border-color: var(--navy); color: var(--text-inverse); }
+/* v1.2.0 (C4): every study tab is icon over label, at every width */
+.study-tab { display: flex; flex-direction: column; align-items: center; gap: var(--space-1); line-height: 1.25; }
+.study-tab .tab-ic { line-height: 1; }
+
+.chip-row { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-7); }
+.chip {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-pill);
+  padding: 5px var(--space-6);
+  font-size: var(--fs-sm); font-weight: 600; color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.chip.active { background: var(--navy); border-color: var(--navy); color: var(--text-inverse); }
+.chip.war.active { background: var(--red); border-color: var(--red); }
+.chip:disabled { opacity: 0.45; cursor: default; }
+
+/* difficulty stars */
+.stars { color: var(--gold); letter-spacing: 1px; font-size: var(--fs-sm); white-space: nowrap; }
+.stars .off { color: var(--border); }
+
+@media (max-width: 480px) {
+  .study-tab { font-size: var(--fs-xs); padding: var(--space-4) var(--space-1); }
+}
+
+/* ── copied: css/screens/plan.css (":root[data-font-size=large]" → ".app.large") ── */
+/* ── STUDY PLAN (js/screens/plan*.js; mockup study-plan-flow.html (removed in PR8), sp-* renamed plan-*) ── */
+.plan-num { font-variant-numeric: tabular-nums; }
+.plan-muted { color: var(--text-muted); font-size: var(--fs-sm); line-height: 1.55; }
+.plan-stack { display: grid; gap: var(--space-8); }
+.plan-stack > .quiz-header, .plan-stack .chip-row, .plan-stack .mode-grid { margin-bottom: 0; }
+.plan-card-box { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow-sm); padding: var(--space-8); display: grid; gap: var(--space-6); min-width: 0; }
+.plan-card-box h3 { font-size: var(--fs-lg); text-wrap: balance; }
+.plan-row { display: flex; justify-content: space-between; align-items: center; gap: var(--space-4); flex-wrap: wrap; }
+.plan-h2 { font-size: var(--fs-4xl); margin-top: var(--space-1); }
+.plan-steps { display: flex; gap: var(--space-3); }
+.plan-steps i { flex: 1; height: 4px; border-radius: var(--radius-pill); background: var(--border); }
+.plan-steps i.on { background: var(--gold); }
+.nav-btn.plan-block { width: 100%; flex: none; min-height: 44px; } /* O-3: 44px tap target (only this CTA) */
+.plan-hint { background: var(--danger-bg); color: var(--red); border-radius: var(--radius-md); padding: var(--space-5) var(--space-6); font-size: var(--fs-sm); line-height: 1.5; }
+
+/* ⓘ popover "Features" row (the switch sits on the dark popover) */
+.plan-settings { margin-top: var(--space-8); padding-top: var(--space-6); border-top: 1px solid var(--gold-border); display: grid; gap: var(--space-4); }
+.plan-settings-title { font-size: var(--fs-xs); font-weight: 800; letter-spacing: 0.08em; color: var(--gold-light); }
+.plan-setting-row { display: flex; justify-content: space-between; align-items: center; gap: var(--space-6); }
+.plan-setting-row b { display: inline; font-size: var(--fs-md); }
+/* v1.0.5 (user): On (green) / Off (red) pill on the same line, after "Study plan" (js/screens/planHome.js renderPlanPill) */
+.feature-pill { display: inline-block; margin-left: var(--space-3); vertical-align: 2px; font-size: var(--fs-xs); font-weight: 800; line-height: 1.4; border-radius: var(--radius-pill); padding: 1px var(--space-4); white-space: nowrap; }
+.feature-pill.on { background: var(--green-light); color: var(--navy); }
+.feature-pill.off { background: var(--red); color: var(--text-inverse); } /* white on --red 8.1:1 (on --red-light only 3.8:1); navy on --green-light 6.0:1 */
+.plan-setting-note { display: block; margin-top: var(--space-1); font-size: var(--fs-sm); color: var(--text-inverse-strong); line-height: 1.45; }
+.plan-setting-row .switch { background: var(--switch-track-inverse); }
+.plan-setting-row .switch[aria-checked="true"] { background: var(--green-light); }
+
+/* Home: entry card above "Choose Mode" (state A: dashed gold create card; with a plan: navy card) */
+.plan-card { margin-bottom: var(--space-8); }
+.plan-cta { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: var(--space-6); align-items: center; width: 100%; background: var(--card); color: var(--text); border: 2px dashed var(--gold); border-radius: var(--radius); padding: var(--space-7); cursor: pointer; text-align: left; font: inherit; }
+.plan-cta:hover { border-color: var(--gold-text); }
+.plan-cta:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+.plan-cta-ic { width: 44px; height: 44px; border-radius: var(--radius-md); background: var(--gold-bg); display: grid; place-items: center; font-size: var(--fs-5xl); }
+.plan-cta b { display: block; font-size: var(--fs-md); }
+.plan-cta-go { background: var(--navy); color: var(--text-inverse); border-radius: var(--radius-pill); padding: 7px var(--space-6); font-size: var(--fs-sm); font-weight: 800; white-space: nowrap; }
+.plan-home { display: grid; gap: var(--space-6); background: var(--navy-light); color: var(--text-inverse); border-radius: var(--radius); padding: var(--space-8); box-shadow: var(--shadow-sm); }
+.plan-home-top { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-4); flex-wrap: wrap; }
+.plan-home-ttl { font-size: var(--fs-lg); font-weight: 800; }
+.plan-home-ttl span { color: var(--gold-light); }
+.plan-home-cd { font-size: var(--fs-sm); color: var(--text-inverse-strong); line-height: 1.5; }
+
+/* goal form */
+.plan-field { display: grid; gap: var(--space-4); }
+.plan-field-label { font-size: var(--fs-md); font-weight: 700; display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-4); }
+.plan-val { color: var(--navy-light); font-size: var(--fs-lg); white-space: nowrap; }
+/* v1.0.2: the 4 presets share the card width equally; "or exam date" gets its own row under them */
+.plan-date-row { display: grid; gap: var(--space-4); }
+.plan-stack .plan-presets { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-3); }
+.plan-presets .chip { white-space: nowrap; text-align: center; }
+/* v1.3.1 (user; replaces W-036's narrow-screen squeeze and C6 / C7): the 4 presets keep the chip's own padding and go
+   2 × 2 when one row cannot hold them; the level cards stay three in a row while each name and sub line fits on one
+   line, else one per row (js/components/fitRow.js) */
+.plan-stack .plan-presets.is-stacked { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.plan-levels { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.plan-levels.is-stacked { grid-template-columns: minmax(0, 1fr); }
+/* stacked (user): each card puts its icon left of the name and sub line, the group centred in the card */
+.plan-levels.is-stacked .mode-card { display: grid; grid-template-columns: auto auto; justify-content: center; align-items: center; column-gap: var(--space-6); padding-block: var(--space-6); text-align: left; }
+.plan-levels.is-stacked .mode-icon { grid-row: span 2; margin-bottom: 0; }
+.plan-levels.is-stacked .mode-title, .plan-levels.is-stacked .plan-level-sub { grid-column: 2; }
+/* the three groups line up (user): the cards share one set of columns, so every icon sits in the same column and every
+   text starts at the same edge, the widest group centred; without subgrid each group is centred on its own (above) */
+@supports (grid-template-columns: subgrid) {
+  .plan-levels.is-stacked { grid-template-columns: minmax(0, 1fr) auto minmax(0, auto) minmax(0, 1fr); column-gap: 0; }
+  .plan-levels.is-stacked .mode-card { grid-column: 1 / -1; grid-template-columns: subgrid; column-gap: 0; }
+  .plan-levels.is-stacked .mode-icon { grid-column: 2; justify-self: center; margin-inline-end: var(--space-6); }
+  .plan-levels.is-stacked .mode-title, .plan-levels.is-stacked .plan-level-sub { grid-column: 3; }
+}
+.plan-date-pick { justify-self: end; display: flex; align-items: center; gap: var(--space-3); font-size: var(--fs-sm); color: var(--text-muted); white-space: nowrap; }
+.plan-date-pick input { border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: var(--space-3) var(--space-4); font-size: var(--fs-base); background: var(--card); color: var(--text); }
+.plan-range { width: 100%; accent-color: var(--navy); }
+/* tick labels: zero-width flex items spread over the thumb's travel (8px in from each end), text centred on each */
+.plan-ticks { display: flex; justify-content: space-between; padding: 0 var(--space-4); height: 16px; }
+.plan-ticks span { width: 0; display: flex; justify-content: center; white-space: nowrap; font-size: var(--fs-2xs); color: var(--text-muted); }
+.plan-ticks span.on { color: var(--navy); font-weight: 800; }
+/* v1.0.2: the 7 rest day chips always share one row (English "Sat" used to wrap at 390px) */
+.plan-stack .plan-rest-row { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--space-2); }
+.chip.plan-rest { padding-inline: 0; text-align: center; white-space: nowrap; }
+.chip.plan-rest.active { background: var(--red); border-color: var(--red); }
+.plan-level-sub { display: block; font-size: var(--fs-2xs); color: var(--text-muted); line-height: 1.4; font-weight: 500; }
+
+/* feasibility: stats, meter, pill */
+.plan-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); }
+.plan-stat { background: var(--bg); border-radius: var(--radius-md); padding: var(--space-5); display: grid; gap: var(--space-1); min-width: 0; }
+.plan-stat .k { font-size: var(--fs-2xs); color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+.plan-stat .v { font-size: var(--fs-4xl); font-weight: 800; }
+.plan-stat .s { font-size: var(--fs-2xs); color: var(--text-muted); }
+.plan-meter { height: 10px; border-radius: var(--radius-pill); background: var(--border); overflow: hidden; position: relative; }
+.plan-meter-fill { position: absolute; inset: 0 auto 0 0; border-radius: var(--radius-pill); }
+.plan-meter-fill.ok { background: var(--green-light); }
+.plan-meter-fill.tight { background: var(--gold); }
+.plan-meter-fill.short { background: var(--red-light); }
+.plan-pill { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--fs-xs); font-weight: 800; border-radius: var(--radius-pill); padding: 3px var(--space-5); white-space: nowrap; }
+.plan-pill.ok { background: var(--success-bg); color: var(--green); }
+.plan-pill.tight { background: var(--gold-bg); color: var(--gold-text); }
+.plan-pill.short { background: var(--danger-bg); color: var(--red); }
+
+/* schedule (mockup step ②): header button, phase bar, strategy, study order, day list */
+.nav-btn.plan-small { padding: 7px var(--space-7); font-size: var(--fs-base); }
+/* a small button keeps its look while its tap area grows to 44px (WCAG 2.5.5), as the switch */
+.plan-hit { position: relative; }
+.plan-hit::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: max(100%, 44px); transform: translateY(-50%); }
+.plan-phase-bar { display: flex; border-radius: var(--radius-sm); overflow: hidden; font-size: var(--fs-xs); font-weight: 800; color: var(--text-inverse); line-height: 1.3; }
+/* v1.0.2: three equal segments, the phase name on line 1 and its day count on line 2 */
+.plan-phase-bar > div { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1 1 0; min-width: 0; padding: var(--space-3) var(--space-2); text-align: center; }
+.plan-phase-bar span { max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.plan-ph-days { font-weight: 600; }
+/* W-037: a name too long for its third (en "Read + practise" at 320px) wraps at a word instead of being clipped */
+.plan-phase-bar .plan-ph-name { white-space: normal; overflow-wrap: anywhere; }
+.plan-bg-learn { background: var(--plan-ph-learn); }
+.plan-bg-drill { background: var(--plan-ph-drill); }
+.plan-bg-mock { background: var(--plan-ph-mock); color: var(--text); }
+/* G43: a phase whose content is all done: its own green (darkest → lightest), a ✓ before the name */
+.plan-bg-learn.done { background: var(--plan-done-learn); }
+.plan-bg-drill.done { background: var(--plan-done-drill); }
+.plan-bg-mock.done { background: var(--plan-done-mock); color: var(--plan-done-mock-text); }
+.plan-strats { display: grid; gap: var(--space-5); }
+.plan-strat { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: var(--space-5); align-items: start; padding: var(--space-6); border-radius: var(--radius-md); }
+.plan-strat.learn { background: var(--plan-ph-learn-bg); }
+.plan-strat.drill { background: var(--plan-ph-drill-bg); }
+.plan-strat.mock { background: var(--plan-ph-mock-bg); }
+.plan-strat-n { width: 30px; height: 30px; border-radius: var(--radius-circle); display: grid; place-items: center; color: var(--text-inverse); font-weight: 800; font-size: var(--fs-base); }
+.plan-strat.learn .plan-strat-n { background: var(--plan-ph-learn); }
+.plan-strat.drill .plan-strat-n { background: var(--plan-ph-drill); }
+.plan-strat.mock .plan-strat-n { background: var(--plan-ph-mock); color: var(--text); }
+.plan-strat h4 { font-size: var(--fs-md); margin-bottom: var(--space-1); }
+.plan-strat ul { padding-left: var(--space-8); font-size: var(--fs-sm); line-height: 1.6; }
+.plan-strat-days { font-size: var(--fs-xs); color: var(--text-muted); font-weight: 700; }
+.plan-order { display: grid; gap: var(--space-5); }
+.plan-ord { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: var(--space-5); align-items: start; }
+.plan-ord-n { width: 26px; height: 26px; border-radius: var(--radius-circle); background: var(--navy); color: var(--text-inverse); display: grid; place-items: center; font-size: var(--fs-sm); font-weight: 800; }
+/* G43: a step whose chapters are all done: green dot, white ✓ instead of its number (expanded and folded) */
+.plan-ord-n.done { background: var(--plan-done-step); }
+.plan-ord-body { display: grid; gap: var(--space-2); min-width: 0; }
+/* v1.0.3 (user's layout, every width): name, why, then the bar row. The bar fills the row up to a fixed gap
+   (--plan-chw-gap) before a fixed-width count column (--plan-chw-count-w; the widest count "91 facts · 161 Qs" is
+   ~99px at --fs-sm), so every bar has the same length and left edge */
+.plan-ord-name { font-size: var(--fs-sm); }
+.plan-chw { --plan-chw-count-w: 112px; --plan-chw-gap: var(--space-6); display: grid; grid-template-columns: minmax(0, 1fr) var(--plan-chw-count-w); column-gap: var(--plan-chw-gap); align-items: center; font-size: var(--fs-sm); }
+.plan-chw-bar { height: 8px; background: var(--border); border-radius: var(--radius-pill); overflow: hidden; }
+.plan-chw-bar i { display: block; height: 100%; background: var(--navy-light); border-radius: var(--radius-pill); }
+.plan-chw-c { text-align: right; color: var(--text-muted); white-space: nowrap; }
+.plan-ord-why { font-size: var(--fs-xs); color: var(--text-muted); line-height: 1.5; }
+/* v1.0.4: "Three phases" / "Study order" fold (planSchedule.js applyPlanFold; preview scratchpad collapse/mockup.html).
+   The whole title is the toggle; its tap area grows to 44px (and a little sideways) via ::before, as .plan-hit, so the
+   card keeps its rhythm. The chevron points down when collapsed and turns up when expanded. */
+.plan-fold-btn {
+  position: relative; display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-6);
+  width: 100%; padding: 0; border: 0; background: none; color: inherit; font: inherit;
+  text-align: left; text-wrap: balance; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.plan-fold-btn::before { content: ''; position: absolute; left: calc(-1 * var(--space-4)); right: calc(-1 * var(--space-4));
+  top: 50%; height: max(100% + var(--space-4), 44px); transform: translateY(-50%); }
+.plan-fold-btn:focus-visible { outline: 2px solid var(--navy-light); outline-offset: 4px; border-radius: var(--radius-xs); }
+.plan-fold-chev {
+  flex: none; display: grid; place-items: center; width: 28px; height: 28px; margin: calc(-1 * var(--space-2)) 0;
+  border-radius: var(--radius-circle); background: var(--bg); color: var(--text-muted);
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+.plan-fold-chev svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.plan-fold-btn:hover .plan-fold-chev { background: var(--border); }
+.plan-fold-btn[aria-expanded="true"] .plan-fold-chev { transform: rotate(180deg); }
+@media (prefers-reduced-motion: reduce) { .plan-fold-chev { transition: none; } }
+.plan-fold-body { display: grid; gap: var(--space-6); }
+/* collapsed phase bar: line 2 is the phase's Day range instead of its day count */
+.plan-phase-bar .plan-ph-range { display: none; font-weight: 600; }
+.plan-fold.collapsed .plan-phase-bar .plan-ph-days { display: none; }
+.plan-fold.collapsed .plan-phase-bar .plan-ph-range { display: block; }
+/* collapsed study order: numbered dots joined by a line (behind the dots), a short label under each */
+/* S-126: the line runs through the dots' centres: top = (dot − line) / 2 */
+.plan-ord-mini { --plan-ord-dot: 22px; --plan-ord-line: 2px; list-style: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding-top: var(--space-1); }
+.plan-ord-mini li { position: relative; display: grid; justify-items: center; gap: var(--space-3); min-width: 0; text-align: center; }
+.plan-ord-mini li + li::before { content: ''; position: absolute; z-index: 0; top: calc((var(--plan-ord-dot) - var(--plan-ord-line)) / 2); right: 50%; width: 100%; height: var(--plan-ord-line); background: var(--plan-task-todo-border); }
+.plan-ord-mini .plan-ord-n { position: relative; z-index: 1; width: var(--plan-ord-dot); height: var(--plan-ord-dot); font-size: var(--fs-xs); box-shadow: 0 0 0 3px var(--card); }
+.plan-ord-mini-name { font-size: var(--fs-sm); font-weight: 700; white-space: nowrap; }
+.plan-legend { display: flex; gap: var(--space-2); align-items: center; font-size: var(--fs-2xs); color: var(--text-muted); flex-wrap: wrap; }
+.plan-legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.plan-legend span + i { margin-left: var(--space-2); }
+/* the day list scrolls on its own (opened at today); rows bleed 8px each side so today's tint reaches the edge */
+.plan-day-scroll { position: relative; max-height: min(60vh, 520px); overflow-y: auto; overflow-x: hidden; padding-inline: var(--space-4); margin-inline: calc(-1 * var(--space-4)); overscroll-behavior: contain; scroll-behavior: smooth; }
+.plan-day-scroll.plan-jump { scroll-behavior: auto; } /* opening at today jumps there */
+.plan-day-scroll:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+/* the week heading sticks while scrolling and spans the scroller's full width, so no row shows past its edges */
+.plan-week { position: sticky; top: 0; z-index: 2; background: var(--card); margin-inline: calc(-1 * var(--space-4)); padding: var(--space-4) var(--space-4) var(--space-2); font-size: var(--fs-xs); font-weight: 800; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; }
+/* each row is a button (PR5: it opens its day) bleeding 8px each side, so today's tint and the hover reach the edge.
+   v1.0.2: two columns: date box + status pill on the left (--plan-day-side-w, S-118), the tasks across the rest */
+.plan-day { --plan-day-side-w: 72px; display: grid; grid-template-columns: var(--plan-day-side-w) minmax(0, 1fr); gap: var(--space-5); align-items: start; width: calc(100% + 2 * var(--space-4)); margin-inline: calc(-1 * var(--space-4)); padding: var(--space-5) var(--space-4); border: 0; border-top: 1px solid var(--border); background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.plan-day:hover { background: var(--selected-bg); border-radius: var(--radius-sm); }
+.plan-day:focus-visible { outline: 2px solid var(--navy); outline-offset: -2px; border-radius: var(--radius-sm); }
+/* PR4 QA O-1: rows far from today (a 6-month plan has 183) skip layout until scrolled near; S-121: 96px ≈ a typical
+   v1.0.3 row at 390px (tasks + chapter list measure 78–210px, most ~99px), so the list scrolls without big jumps */
+.plan-day.plan-far { content-visibility: auto; contain-intrinsic-size: auto 96px; }
+.plan-day-side { display: grid; gap: var(--space-2); justify-items: center; min-width: 0; }
+.plan-day-side .plan-day-d { width: 100%; }
+/* S-117: --fs-xs with tight side padding keeps "Today 0%" / "今日 0%" on one line; v1.0.3: the 72px column fits
+   "Today 99%" also in the iPhone's wider SF; only "Today 100%" may wrap, inside the column, never overflowing it */
+.plan-day-side .plan-pill { max-width: 100%; justify-content: center; text-align: center; white-space: normal; font-size: var(--fs-xs); line-height: 1.25; padding: var(--space-1) var(--space-2); }
+.plan-day-d { display: block; text-align: center; border-radius: var(--radius-sm); padding: var(--space-2) 0; font-weight: 800; font-size: var(--fs-md); line-height: 1.15; }
+.plan-day-d small { display: block; font-size: var(--fs-2xs); font-weight: 600; color: var(--text-muted); }
+.plan-day.learn .plan-day-d { background: var(--plan-ph-learn-bg); color: var(--plan-ph-learn); }
+.plan-day.drill .plan-day-d { background: var(--plan-ph-drill-bg); color: var(--plan-ph-drill); }
+.plan-day.mock .plan-day-d { background: var(--plan-ph-mock-bg); color: var(--plan-ph-mock-text); }
+.plan-day.rest .plan-day-d { background: var(--bg); color: var(--text-muted); }
+.plan-day.exam .plan-day-d, .plan-day.exam .plan-day-d small { color: var(--navy); }
+.plan-day.exam .plan-day-tasks b { color: var(--navy); font-size: var(--fs-md); }
+.plan-day.today { background: var(--selected-bg); border-radius: var(--radius-sm); }
+/* days already gone: grey row, grey text and a grey date box without its phase colour; today and the days ahead
+   stay bright. W-034: no opacity on text, so dates and completion stay ≥ 4.5:1 (only the decorative icon fades) */
+.plan-day.past { background: var(--plan-past-row); }
+.plan-day.past .plan-day-tasks { color: var(--plan-past-text); }
+.plan-day.past .plan-day-ic { opacity: 0.55; }
+.plan-day.past .plan-day-d { background: var(--bg); color: var(--plan-past-text); }
+.plan-day.past .plan-day-d small { color: var(--plan-past-text); }
+.plan-day-tasks { display: grid; gap: 3px; font-size: var(--fs-sm); line-height: 1.45; min-width: 0; }
+.plan-day-t { display: flex; gap: var(--space-3); }
+/* v1.0.3 (user): the day's chapters, one compact bullet each, text and bullet in mud yellow (≥ 4.5:1 token) */
+.plan-day-chs { display: block; margin-top: var(--space-1); font-size: var(--fs-xs); color: var(--plan-day-chs-text); line-height: 1.35; }
+/* spans, not <ul> / <li> (the row is a button): each chapter on its own line with a bullet in its own colour */
+.plan-day-ch { display: block; position: relative; padding-left: 1.1em; }
+.plan-day-ch::before { content: '•'; content: '•' / ''; position: absolute; left: 0.3em; } /* decorative: no alt text */
+.plan-day.past .plan-day-chs { color: var(--plan-past-text); }
+.plan-exam-pat, .plan-cell.plan-exam-pat { background-color: var(--plan-exam-bg); background-image: linear-gradient(45deg, var(--plan-exam-line) 1px, transparent 1px), linear-gradient(-45deg, var(--plan-exam-line) 1px, transparent 1px); background-size: 8px 8px; }
+/* day status pills: ✓ done (.ok), G27 bands (dark text on every band for contrast), today, rest */
+.plan-pill.mute { background: var(--bg); color: var(--text-muted); }
+.plan-pill.now { background: var(--navy); color: var(--text-inverse); }
+/* G43: today at 100%: solid green, white text (a past day's 100% stays the light .ok) */
+.plan-pill.today-done { background: var(--plan-done-today); color: var(--text-inverse); }
+/* en "Done today" in the iPhone's wider SF (Arial + 10%) needs ~74px with the usual 4px sides, ~72px with 3px (no
+   margin left), so en takes 2px (~70px) in the 72px column; S-161: zh-HK 「今日已完成」 (~61px + 8px) keeps the usual 4px */
+html[lang="en"] .plan-day-side .plan-pill.today-done { padding-inline: var(--space-1); }
+.plan-pill.h0 { background: var(--plan-heat-0); color: var(--text); }
+.plan-pill.h1 { background: var(--plan-heat-1); color: var(--text); }
+.plan-pill.h2 { background: var(--plan-heat-2); color: var(--text); }
+.plan-pill.h3 { background: var(--plan-heat-3); color: var(--text); }
+.plan-pill.h4 { background: var(--plan-heat-4); color: var(--text); }
+.plan-reset { margin-bottom: 0; }
+/* Home plan card (handoff §2.1): today's % + bar, next step, continue / schedule; exam day; plan finished (G16) */
+.plan-home-row { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-4); font-size: var(--fs-sm); }
+.plan-home-pct { font-size: var(--fs-md); }
+.plan-home-bar { height: 8px; border-radius: var(--radius-pill); background: var(--plan-home-track); overflow: hidden; }
+.plan-home-bar i { display: block; height: 100%; border-radius: var(--radius-pill); }
+.plan-home-next { font-size: var(--fs-sm); color: var(--text-inverse-strong); line-height: 1.5; }
+.plan-home-next b { color: var(--text-inverse); }
+.plan-home-warn { font-size: var(--fs-sm); color: var(--gold-light); line-height: 1.5; }
+.plan-btn-gold { min-height: 44px; background: var(--gold); color: var(--navy); border: 0; border-radius: var(--radius-md); padding: var(--space-5) var(--space-8); font-size: var(--fs-md); font-weight: 800; cursor: pointer; }
+.plan-btn-gold:hover { background: var(--gold-light); }
+.plan-btn-gold:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 2px; }
+.plan-home-acts { display: flex; gap: var(--space-4); flex-wrap: wrap; }
+.plan-btn-line { min-height: 44px; background: transparent; color: var(--text-inverse); border: 1.5px solid var(--text-inverse-faint); border-radius: var(--radius-md); padding: var(--space-5) var(--space-7); font-size: var(--fs-sm); font-weight: 700; cursor: pointer; }
+.plan-btn-line:hover { border-color: var(--text-inverse); }
+.plan-btn-line:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 2px; }
+
+/* G27 bands on every bar (task mini bars, overall progress, Home card) and the ring */
+.plan-mini i.h0, .plan-meter-fill.h0, .plan-home-bar i.h0, .plan-swatch.h0 { background: var(--plan-heat-0); }
+.plan-mini i.h1, .plan-meter-fill.h1, .plan-home-bar i.h1, .plan-swatch.h1 { background: var(--plan-heat-1); }
+.plan-mini i.h2, .plan-meter-fill.h2, .plan-home-bar i.h2, .plan-swatch.h2 { background: var(--plan-heat-2); }
+.plan-mini i.h3, .plan-meter-fill.h3, .plan-home-bar i.h3, .plan-swatch.h3 { background: var(--plan-heat-3); }
+.plan-mini i.h4, .plan-meter-fill.h4, .plan-home-bar i.h4, .plan-swatch.h4 { background: var(--plan-heat-4); }
+
+/* day screen (mockup step ③): header ‹ title ›, ring + phase pill, task boxes */
+.plan-day-header { gap: var(--space-4); margin-bottom: 0; }
+.plan-day-switch { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; gap: var(--space-3); }
+.plan-day-switch .quick-btn { flex-shrink: 0; }
+/* a 32px round button keeps its look while its tap area is 44 × 44px (WCAG 2.5.5) */
+.plan-hit-sq { position: relative; }
+.plan-hit-sq::before { content: ''; position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; transform: translate(-50%, -50%); }
+.plan-day-title { display: grid; min-width: 0; text-align: center; line-height: 1.2; font-size: var(--fs-lg); }
+.plan-day-title > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.plan-day-title > span + span { font-size: var(--fs-xs); font-weight: 600; color: var(--text-muted); }
+.plan-day-title:focus { outline: none; }
+.plan-day-title:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; border-radius: var(--radius-xs); }
+/* S-126: the ring's box, shared by the ring, its column and the rest day's 😴 (which takes the ring's place) */
+.plan-today-head { --plan-ring-size: 112px; --plan-rest-emoji-size: var(--fs-display-lg); display: grid; grid-template-columns: var(--plan-ring-size) minmax(0, 1fr); gap: var(--space-8); align-items: center; }
+.plan-today-info { display: grid; gap: var(--space-3); justify-items: start; min-width: 0; }
+.plan-day-count { font-size: var(--fs-md); font-weight: 700; }
+/* v1.0.4 (user): the hint spans the info column, justified with its last line on the left (also when the head
+   stacks and centres at ≤ 480px); en hyphenates so justified lines keep even word gaps, zh-HK spreads per character */
+.plan-day-hint { justify-self: stretch; text-align: justify; text-align-last: left; -webkit-hyphens: auto; hyphens: auto; }
+/* SVG ring: every part has an explicit fill / stroke (no SVG default black) */
+.plan-ring { width: var(--plan-ring-size); height: var(--plan-ring-size); }
+.plan-ring circle { fill: none; stroke-width: 10; }
+.plan-ring-track { stroke: var(--border); }
+.plan-ring-prog { stroke: var(--plan-heat-0); stroke-linecap: round; stroke-dasharray: 100; transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset 0.4s; }
+.plan-ring-prog.empty { visibility: hidden; } /* 0 %: a round cap would still draw a dot */
+.plan-ring-prog.h1 { stroke: var(--plan-heat-1); }
+.plan-ring-prog.h2 { stroke: var(--plan-heat-2); }
+.plan-ring-prog.h3 { stroke: var(--plan-heat-3); }
+.plan-ring-prog.h4 { stroke: var(--plan-heat-4); }
+.plan-ring-pct { fill: var(--text); stroke: none; font-size: var(--fs-5xl); font-weight: 800; }
+.plan-ring-sub { fill: var(--text-muted); stroke: none; font-size: var(--fs-2xs); font-weight: 700; }
+/* v1.0.4 (user): a rest day shows a large 😴 in the ring's place (decorative: the count line, visually hidden with
+   .plan-sr, still reads "Rest day: no tasks" to screen readers) */
+.plan-rest-emoji { width: var(--plan-ring-size); display: grid; place-items: center; font-size: var(--plan-rest-emoji-size); line-height: 1; }
+/* v1.0.4 (user): the 😴's box hugs the glyph (no ring-sized 112px height) and sits close above the "Rest day" pill;
+   "← Back to today" gets more room below the pill */
+.plan-today-head.rest { row-gap: var(--space-4); }
+.plan-today-head.rest .plan-today-info { row-gap: var(--space-8); }
+.plan-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.plan-phase-pill.learn { background: var(--plan-ph-learn-bg); color: var(--plan-ph-learn); }
+.plan-phase-pill.drill { background: var(--plan-ph-drill-bg); color: var(--plan-ph-drill); }
+.plan-phase-pill.mock { background: var(--plan-ph-mock-bg); color: var(--plan-orange-text); }
+.plan-phase-pill.rest { background: var(--bg); color: var(--text-muted); }
+.plan-exam-banner { display: grid; gap: var(--space-4); justify-items: start; border-radius: var(--radius-md); padding: var(--space-7); color: var(--navy); font-size: var(--fs-md); line-height: 1.5; }
+.plan-exam-text { display: grid; gap: var(--space-2); }
+.plan-done-banner { background: var(--success-bg); color: var(--green); border-radius: var(--radius-md); padding: var(--space-6) var(--space-7); font-size: var(--fs-md); font-weight: 700; line-height: 1.5; }
+.plan-tasks { list-style: none; display: grid; gap: var(--space-4); margin: 0; padding: 0; }
+/* not started = dashed, in progress = solid, done = green, carry-over = orange (+ its Day n tag) */
+.plan-task { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: var(--space-6); align-items: center; padding: var(--space-6); border-radius: var(--radius-md); border: 1.5px solid var(--border); background: var(--card); }
+.plan-task-ic { width: 40px; height: 40px; border-radius: var(--radius-md); display: grid; place-items: center; font-size: var(--fs-3xl); }
+.plan-task.read .plan-task-ic { background: var(--fact-bg); }
+.plan-task.practice .plan-task-ic { background: var(--selected-bg); }
+.plan-task.review .plan-task-ic { background: var(--danger-bg); }
+.plan-task.mock .plan-task-ic { background: var(--flag-bg); }
+.plan-task-body { min-width: 0; }
+.plan-task-ttl { display: block; font-size: var(--fs-md); font-weight: 700; line-height: 1.35; }
+.plan-task-st { display: block; margin-top: var(--space-1); font-size: var(--fs-xs); color: var(--text-muted); line-height: 1.5; }
+.plan-mini { display: block; height: 5px; margin-top: var(--space-3); background: var(--border); border-radius: var(--radius-pill); overflow: hidden; }
+.plan-mini i { display: block; height: 100%; border-radius: var(--radius-pill); }
+.plan-task-go { font-size: var(--fs-sm); font-weight: 800; color: var(--navy-light); white-space: nowrap; }
+.plan-task.done { background: var(--success-bg); border-color: var(--green-light); }
+.plan-task.done .plan-task-go { color: var(--green); }
+.plan-task.todo { border-style: dashed; border-color: var(--plan-task-todo-border); }
+.plan-task.carry { border-color: var(--plan-carry); }
+.plan-tag { display: inline-block; margin-left: var(--space-3); padding: 1px 7px; border-radius: var(--radius-pill); font-size: var(--fs-2xs); font-weight: 800; vertical-align: 1px; }
+.plan-tag.carry { background: var(--flag-bg); color: var(--plan-orange-text); }
+.plan-tag.wrong { background: var(--danger-bg); color: var(--red); }
+.plan-ok { color: var(--green); font-weight: 800; }
+.plan-bad { color: var(--red); font-weight: 800; }
+.plan-alert { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: var(--space-4); background: var(--flag-bg); border-radius: var(--radius-md); padding: var(--space-5) var(--space-6); font-size: var(--fs-sm); line-height: 1.55; }
+
+/* completion calendar: weeks from Sunday; numbers stay navy / muted on every cell (≥ 4.5:1), days gone by take the
+   lighter band colours instead of the mockup's opacity (W-034) */
+.plan-cal-nav { display: flex; justify-content: space-between; align-items: center; gap: var(--space-4); }
+.plan-cal-nav b { font-size: var(--fs-lg); }
+.plan-cal-btns { display: flex; gap: var(--space-3); align-items: center; }
+.plan-cal-btns .chip { padding: var(--space-3) var(--space-7); }
+.plan-cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--space-3); }
+.plan-dow { font-size: var(--fs-2xs); color: var(--text-muted); text-align: center; font-weight: 700; }
+.plan-cell { position: relative; aspect-ratio: 1; min-width: 0; padding: 0; border: 0; border-radius: var(--radius-sm); display: grid; place-items: center; background: var(--plan-heat-0); color: var(--text); font: inherit; font-size: var(--fs-xs); font-weight: 800; }
+button.plan-cell { cursor: pointer; }
+button.plan-cell:hover { box-shadow: 0 0 0 2px var(--navy-light); }
+button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offset: 1px; }
+.plan-cell.h1 { background: var(--plan-heat-1); }
+.plan-cell.h2 { background: var(--plan-heat-2); }
+.plan-cell.h3 { background: var(--plan-heat-3); }
+.plan-cell.h4 { background: var(--plan-heat-4); }
+.plan-cell.past.h0 { background: var(--plan-heat-0-past); }
+.plan-cell.past.h1 { background: var(--plan-heat-1-past); }
+.plan-cell.past.h2 { background: var(--plan-heat-2-past); }
+.plan-cell.past.h3 { background: var(--plan-heat-3-past); }
+.plan-cell.past.h4 { background: var(--plan-heat-4-past); }
+.plan-cell.past { font-weight: 600; }
+.plan-cell.rest { background: repeating-linear-gradient(45deg, var(--bg), var(--bg) 4px, var(--plan-rest-line) 4px, var(--plan-rest-line) 6px); color: var(--text-muted); }
+.plan-cell.future { background: var(--card); border: 1.5px dashed var(--border); color: var(--text-muted); }
+.plan-cell.out { background: transparent; color: var(--text-muted); font-weight: 600; }
+.plan-cell.today { outline: 2.5px solid var(--navy); outline-offset: 1px; }
+.plan-cell.viewing { outline: 2.5px dashed var(--navy); outline-offset: 1px; }
+.plan-cell.exam { color: var(--navy); }
+.plan-legend .plan-swatch.plan-exam-pat { background-size: 4px 4px; }
+/* v1.2.0 (C2): "[pattern] 🎯 Exam day" sits at the right end of the legend row */
+.plan-legend-exam { margin-left: auto; display: inline-flex; align-items: center; gap: var(--space-2); }
+
+/* overall progress */
+.plan-prog-rows { display: grid; gap: var(--space-5); }
+.plan-pr { display: grid; gap: var(--space-2); }
+.plan-pr-top { display: flex; justify-content: space-between; gap: var(--space-4); font-size: var(--fs-sm); font-weight: 700; }
+.plan-pr-v { color: var(--text-muted); white-space: nowrap; }
+
+/* runner (js/screens/planRun.js): task boxes it opens, the green note (mockup .sp-note), the Result card's next task */
+.plan-task-li { display: block; }
+.plan-task-btn { width: 100%; font: inherit; color: var(--text); text-align: left; cursor: pointer; }
+.plan-task-btn:hover { border-color: var(--navy-light); }
+.plan-task-btn:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+.plan-note { font-size: var(--fs-xs); color: var(--green); background: var(--success-bg); border-radius: var(--radius-sm); padding: var(--space-4) var(--space-5); line-height: 1.5; }
+.plan-run-note { margin-bottom: var(--space-7); }
+#screenQuiz .back-btn.plan-hit, #planRunBack { white-space: nowrap; } /* "← Today's tasks" on one line at 360px */
+.plan-run-body { display: grid; gap: var(--space-7); }
+.plan-run-body .result-card { margin-bottom: 0; }
+.plan-run-next { gap: var(--space-2); }
+.plan-run-next .section-title { margin: 0; }
+.plan-run-body .nav-row .nav-btn { flex: 1; min-height: 44px; }
+/* S-154 (user 2026-10-10): fact-view labels on one line at 320px+, narrower side padding instead of shorter words */
+.plan-run-nav .nav-btn { padding-left: var(--space-4); padding-right: var(--space-4); white-space: nowrap; }
+/* PR6b reading / wrong facts (mockup #runner .sp-run-meta): task + "Fact n of m" above the card, a thin position bar */
+.plan-run-head { display: grid; gap: var(--space-3); }
+.plan-run-meta { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-4); font-size: var(--fs-sm); font-weight: 700; color: var(--text-muted); }
+.plan-run-meta > span:first-child { min-width: 0; }
+.plan-run-meta > .plan-num { flex: none; white-space: nowrap; }
+.plan-run-meter { height: 5px; }
+.plan-run-body .fact, .plan-run-body .sqm { margin: 0; }
+/* W-048: a mastered (🏆 / ticked) card fades whole in Study (.fact.mastered, --fact-mastered-opacity). In the runner a card
+   fades only once its practice is done (user 2026-10-10: ticked ✓ but not done stays clear, ▶ Practise too), and then
+   everything but the G41 "✓ Practice done" tag, which faded with the card drops to 2.4:1 (kept ≥ 4.5:1 here) */
+.plan-run-body .fact.mastered { opacity: 1; }
+.plan-run-body .fact.practice-done > :not(.fact-src),
+.plan-run-body .fact.practice-done .fact-src > :not(.fact-done-tag) { opacity: var(--fact-mastered-opacity); }
+.plan-run-body .sqm-cta button { min-height: 44px; } /* the Similar panel's own CTA is 42px tall (unchanged there) */
+.plan-note.warn { color: var(--red); background: var(--danger-bg); }
+/* G41: reading's last fact, facts still to practise: the carry-over orange (5.3:1 text on --flag-bg) */
+.plan-note.carry { color: var(--plan-orange-text); background: var(--flag-bg); font-size: var(--fs-base); } /* the approved preview size */
+.plan-result-row { display: grid; gap: var(--space-5); margin-top: var(--space-8); }
+.plan-result-row .nav-row { margin: 0; flex-wrap: wrap; }
+.plan-result-row .nav-btn { flex: 1 1 100%; min-height: 44px; } /* stacked: "Back to the task list" wraps beside a long retake label at 360px */
+
+/* v1.3.0 large text (mockup font-size-switch.html): L4b the task card's "Start ›" moves under the text and the icon
+   column shrinks to 32px, so the title keeps the width; L5 the study order count column grows to fit "91 facts · 161 Qs" */
+.app.large .plan-task { grid-template-columns: 32px minmax(0, 1fr); gap: var(--space-2) var(--space-4); padding: var(--space-5); }
+.app.large .plan-task-ic { width: 32px; height: 32px; grid-row: span 2; align-self: start; }
+.app.large .plan-task-go { grid-column: 2; justify-self: end; }
+.app.large .plan-chw { --plan-chw-count-w: 128px; }
+/* W-056: every other duration tick is hidden at 359px and below in large text (the labels touched) */
+@media (max-width: 359px) { .app.large .plan-ticks span:nth-child(even) { visibility: hidden; } }
+
+@media (max-width: 380px) {
+  .plan-day-header { gap: var(--space-2); }
+  .plan-day-switch { gap: var(--space-2); }
+}
+@media (max-width: 480px) {
+  .plan-stats { grid-template-columns: 1fr 1fr; }
+  .plan-stats .plan-stat:last-child { grid-column: 1 / -1; }
+  .plan-cta { grid-template-columns: 44px minmax(0, 1fr); }
+  .plan-cta-go { grid-column: 1 / -1; text-align: center; }
+  .plan-today-head { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+  .plan-today-info { justify-items: center; }
+}
+@media (prefers-reduced-motion: reduce) { .plan-day-scroll { scroll-behavior: auto; } .plan-ring-prog { transition: none; } }
+
+
+  /* ════════ mockup chrome ════════ */
+  :root { --mock-page: #e4e7ef; --mock-note-bg: #fffbea; --mock-note-border: #e8d48a; --mock-frame-border: #c9cfdd; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, 'PingFang HK', 'Noto Sans HK', 'Microsoft JhengHei', sans-serif; background: var(--mock-page); color: var(--text); -webkit-font-smoothing: antialiased; }
+  button, input { font-family: inherit; }
+  .mock-bar { background: var(--navy); color: var(--text-inverse); padding: 10px 16px; font-size: 12px; position: sticky; top: 0; z-index: 50; box-shadow: var(--shadow-header); }
+  .mock-bar > b { color: var(--gold-light); font-size: 13px; }
+  .mock-row { display: flex; gap: 6px; margin-top: 7px; flex-wrap: wrap; align-items: center; }
+  .mock-row .lbl { color: var(--text-inverse-muted); margin-right: 2px; font-weight: 700; min-width: 64px; }
+  .mock-tab { background: transparent; border: 1.5px solid rgba(255,255,255,0.3); color: var(--text-inverse); border-radius: 999px; padding: 4px 11px; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+  .mock-tab.on { background: var(--gold); border-color: var(--gold); color: var(--navy); }
+  .page { padding: 16px; }
+  .brief { max-width: 1100px; background: var(--mock-note-bg); border: 1.5px solid var(--mock-note-border); border-radius: 10px; padding: 12px 14px; font-size: 13px; line-height: 1.6; margin-bottom: 18px; }
+  .brief h2 { font-size: 15px; margin-bottom: 4px; }
+  .brief ul { padding-left: 18px; }
+  .brief code, .ann code { background: rgba(0,0,0,0.05); padding: 0 4px; border-radius: 4px; font-size: 12px; }
+  .opt { margin-bottom: 34px; }
+  .opt-title { font-size: 17px; font-weight: 800; color: var(--navy); margin-bottom: 4px; }
+  .opt-title .rec { font-size: 11px; background: var(--green); color: var(--text-inverse); border-radius: 999px; padding: 2px 9px; margin-left: 6px; vertical-align: 2px; }
+  .ann { font-size: 12.5px; color: var(--text-muted); line-height: 1.6; max-width: 1100px; margin-bottom: 10px; }
+  .ann b { color: var(--navy); }
+  .ann ul { padding-left: 18px; }
+  .frame-label { display: inline-block; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 999px; margin: 10px 0 6px; background: var(--text-muted); color: var(--text-inverse); }
+  .frame-box { overflow: hidden; }
+  .frame { background: var(--bg); border: 1px solid var(--mock-frame-border); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); transform-origin: top left; }
+
+  /* ════════ app shell at desktop scale (layout.css ×1.2) ════════ */
+  .app { --content-max: 1280px; font-size: var(--fs-xl); }
+  .hdr { background: var(--navy); padding: 0 var(--space-10); box-shadow: var(--shadow-header); }
+  .hdr-in { max-width: var(--content-max); margin: 0 auto; height: calc(58px * var(--k)); display: flex; align-items: center; justify-content: space-between; }
+  .logo { display: flex; align-items: center; gap: var(--space-5); }
+  .logo-icon { width: calc(36px * var(--k)); height: calc(36px * var(--k)); border-radius: var(--radius-sm); background: var(--card); overflow: hidden; }
+  .logo-icon img { width: 100%; height: 100%; display: block; }
+  .logo-text { color: var(--text-inverse); font-size: var(--fs-lg); font-weight: 700; display: flex; align-items: center; gap: var(--space-3); }
+  .logo-text .i { color: var(--text-inverse-muted); font-size: var(--fs-md); font-weight: 400; }
+  .logo-sub { color: var(--gold); font-size: var(--fs-xs); font-weight: 500; margin-top: 1px; }
+  .logo-sub .v { color: var(--text-inverse-faint); font-weight: 600; margin-left: var(--space-2); }
+  .gear { color: var(--gold-light); width: calc(32px * var(--k)); height: calc(32px * var(--k)); display: grid; place-items: center; }
+  .gear svg { width: 60%; height: 60%; fill: none; stroke: currentColor; stroke-width: 2; }
+  .main { max-width: var(--content-max); margin: 0 auto; padding: var(--space-10) var(--space-8) calc(60px * var(--k)); }
+  .quiz-header { display: flex; align-items: center; justify-content: space-between; }
+  .quiz-label { font-size: var(--fs-base); font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .reset-row { display: grid; gap: var(--space-5); background: var(--card); border: 1.5px dashed var(--border); border-radius: var(--radius-md); padding: var(--space-5) var(--space-7); font-size: var(--fs-sm); color: var(--text-muted); line-height: 1.5; }
+  .reset-btn { background: var(--card); border: 1.5px solid var(--red-light); color: var(--red); border-radius: var(--radius-sm); padding: var(--space-3) var(--space-6); font: inherit; font-size: var(--fs-sm); font-weight: 700; white-space: nowrap; }
+  [hidden] { display: none !important; }
+
+  /* ════════ option A: title band across; left rail (phases, order, reset) | daily tasks + CTA ════════ */
+  .optA .cols { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--space-12); align-items: start; }
+  .optA .rail, .optA .body { display: grid; gap: var(--space-8); }
+  .optA .body { position: sticky; top: var(--space-10); }
+  /* the day list has the whole right column's height to scroll in */
+  .optA .plan-day-scroll { max-height: calc(620px * var(--k)); }
+
+  /* ════════ option B: full width; phases 3 across, order 2 × 2, day rows tasks | chapters ════════ */
+  .optB .plan-strats { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: stretch; }
+  /* rev 2 (user): study order in one row, 1 › 2 › 3 › 4 */
+  .optB .plan-order { grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: var(--space-12); position: relative; }
+  .optB .plan-ord { position: relative; }
+  /* rev 3 (user): the 4 steps share 3 rows (name / reason / bar) so every name starts on one line and every bar sits
+     on one bottom line, however long the texts above them */
+  .optB .plan-order { grid-template-rows: auto auto auto; row-gap: var(--space-2); }
+  .optB .plan-ord { grid-row: span 3; grid-template-rows: subgrid; row-gap: var(--space-2); }
+  .optB .plan-ord-n { grid-row: 1; }
+  .optB .plan-ord-body { grid-row: 1 / -1; grid-template-rows: subgrid; row-gap: var(--space-2); }
+  .optB .plan-chw { align-self: end; padding-top: var(--space-3); }
+  /* a quarter row is too narrow for the bar + fixed count column: bar across, count under it */
+  .optB .plan-chw { grid-template-columns: minmax(0, 1fr); row-gap: var(--space-2); }
+  .optB .plan-chw-c { text-align: left; }
+  .optB .plan-ord + .plan-ord::before { content: '›'; position: absolute; left: calc(-1 * var(--space-12) / 2); top: 0; transform: translateX(-50%); font-size: var(--fs-4xl); font-weight: 800; line-height: calc(26px * var(--k) * 0.9); color: var(--text-muted); }
+  /* rev 2 (user): the whole plan scrolls left → right, one column per day; each Week starts with a narrow label */
+  .optB .plan-day-scroll { --day-w: calc(200px * var(--k)); display: flex; align-items: stretch; gap: var(--space-6); max-height: none; overflow-x: auto; overflow-y: hidden; margin-inline: 0; padding: 0 0 var(--space-4); scroll-snap-type: x proximity; }
+  /* each Week is a group: its label on top (sticks to the left edge while the week scrolls past), its days in a row */
+  .optB .plan-wk { flex: none; display: grid; gap: var(--space-3); align-content: start; }
+  .optB .plan-wk .plan-week { position: sticky; left: 0; z-index: 6; justify-self: start; margin: 0; padding: 0 var(--space-2); background: var(--card); }
+  .optB .plan-wk-days { display: flex; gap: var(--space-3); align-items: stretch; }
+  .optB .plan-wk { grid-template-rows: auto 1fr; }
+  .optB .plan-day { flex: none; width: var(--day-w); display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr; align-content: stretch; align-items: stretch; margin: 0; padding: var(--space-5); border: 1px solid var(--border); border-radius: var(--radius-sm); scroll-snap-align: start; }
+  /* rev 3 (user): "Day 1 – 12/10 Mon" on one centred line, the status pill centred under it */
+  .optB .plan-day-side { grid-template-columns: minmax(0, 1fr); justify-items: center; }
+  .optB .plan-day-side .plan-day-d { width: 100%; padding: var(--space-2) var(--space-3); white-space: nowrap; }
+  .optB .plan-day-d small { display: inline; font-size: inherit; font-weight: 600; }
+  .optB .plan-day-side .plan-pill { max-width: none; white-space: nowrap; }
+  /* rev 4 (user): every card keeps the status pill's row (empty when the day has none), so all task lists start on one line */
+  .optB .plan-day-side .plan-pill.pill-slot { visibility: hidden; }
+  /* rev 4 (user): folded study order names the chapters; "Ch 1 + Ch 2" takes two lines, "+" hanging so both names
+     start at one edge */
+  .optB .plan-ord-mini-name { white-space: normal; }
+  .optB .plan-ord-mini li { align-content: start; } /* one-line names sit on the same top line as the two-line one */
+  .optB .mini-chs { display: grid; grid-template-columns: auto auto; column-gap: 0.35em; justify-content: center; text-align: left; line-height: 1.35; }
+  .optB .mini-chs .plus { grid-column: 1; }
+  .optB .mini-chs .ch { grid-column: 2; }
+  /* rev 3 (user): the gold chapter lines keep one blank line under the tasks and sit on every card's bottom edge */
+  .optB .plan-day-tasks { display: flex; flex-direction: column; }
+  .optB .plan-day-chs { margin-top: auto; padding-top: 1.45em; }
+  /* rev 3 (user): edge fades + ‹ › buttons while more days are off-screen on that side */
+  .optB .hscroll { position: relative; min-width: 0; } /* a grid item: without min-width 0 it grows to the whole plan's width */
+  .optB .hscroll::before, .optB .hscroll::after { content: ''; position: absolute; top: 0; bottom: var(--space-4); width: calc(56px * var(--k)); z-index: 4; pointer-events: none; opacity: 0; transition: opacity 0.2s; }
+  .optB .hscroll::before { left: 0; background: linear-gradient(to right, var(--card) 15%, transparent); }
+  .optB .hscroll::after { right: 0; background: linear-gradient(to left, var(--card) 15%, transparent); }
+  .optB .hscroll.can-l::before, .optB .hscroll.can-r::after { opacity: 1; }
+  .optB .hs-btn { position: absolute; top: 50%; z-index: 5; width: calc(36px * var(--k)); height: calc(36px * var(--k)); transform: translateY(-50%); border: 1.5px solid var(--border); border-radius: var(--radius-circle); background: var(--card); color: var(--navy); box-shadow: var(--shadow-sm); font-size: var(--fs-4xl); font-weight: 800; line-height: 1; cursor: pointer; display: none; place-items: center; padding-bottom: 0.1em; }
+  .optB .hs-btn:hover { background: var(--navy); color: var(--text-inverse); }
+  .optB .hs-btn.l { left: calc(-1 * var(--space-4)); }
+  .optB .hs-btn.r { right: calc(-1 * var(--space-4)); }
+  .optB .hscroll.can-l .hs-btn.l, .optB .hscroll.can-r .hs-btn.r { display: grid; }
+  .optB .plan-day.plan-far { content-visibility: visible; }
+  .optB .scroll-hint { font-size: var(--fs-xs); color: var(--text-muted); text-align: right; }
+  /* rev 5 (user): "View today's tasks" inside the Daily tasks card, bottom right; the reset box its own row (hint | button) */
+  .optB .plan-card-box > .nav-btn.plan-block { justify-self: end; width: auto; padding-inline: var(--space-12); }
+  .optB .plan-stack > .reset-row { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+
+  /* ════════ option C: phases | order side by side; the day list as a week calendar (7 columns) ════════ */
+  .optC .top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-8); align-items: start; }
+  .optC .plan-day-scroll { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--space-3); max-height: none; overflow: visible; margin-inline: 0; padding-inline: 0; }
+  .optC .plan-week { grid-column: 1 / -1; position: static; margin-inline: 0; padding-inline: 0; }
+  .optC .plan-day { display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; width: auto; margin: 0; padding: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+  .optC .plan-day-side { grid-template-columns: auto auto; justify-content: start; align-items: center; justify-items: start; }
+  .optC .plan-day-side .plan-day-d { width: auto; padding: var(--space-2) var(--space-4); }
+  .optC .plan-day-tasks { font-size: var(--fs-xs); }
+  .optC .foot { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-8); align-items: stretch; }
+  .optC .foot .reset-row { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+</style>
+</head>
+<body>
+
+<div class="mock-bar">
+  <b>v2.0.0 Desktop · Mockup 3/12 · Plan Schedule（你的進度表）· rev 5：今日任務掣入卡、重設自成一行</b>
+  <div class="mock-row"><span class="lbl">語言</span><button class="mock-tab on" data-k="lang" data-v="en">EN</button><button class="mock-tab" data-k="lang" data-v="zh">中文</button>
+    <span class="lbl" style="margin-left:10px">⚙ 大字</span><button class="mock-tab on" data-k="large" data-v="off">關</button><button class="mock-tab" data-k="large" data-v="on">開</button>
+    <span class="lbl" style="margin-left:10px">兩張說明卡</span><button class="mock-tab on" data-k="fold" data-v="expanded">展開</button><button class="mock-tab" data-k="fold" data-v="collapsed">收起</button></div>
+  <div class="mock-row"><span class="lbl">縮放</span><button class="mock-tab on" data-k="zoom" data-v="fit">適合畫面</button><button class="mock-tab" data-k="zoom" data-v="100">100%</button></div>
+</div>
+
+<div class="page">
+  <div class="brief">
+    <p style="margin-bottom:8px"><b>✅ 定案：B（rev 5，2026-10-12）</b>。每日任務打開時要自動左右碌到今日（呢份 mockup 今日啱啱係 Day 1，所以睇唔到效果）。A／C 保留作紀錄。</p>
+    <h2>全局規則（同 Home／Plan Goal 一樣）</h2>
+    <ul>
+      <li>≥ <b>1024px</b> 先轉 desktop layout；內容最闊 <b>1280px</b> 置中；token <b>×1.2</b>；⚙ 大字 = (基礎 + 2px) × 1.2</li>
+      <li>內容係 app 自己 render 出嚟嘅真實畫面（新建 21 日計劃、每日 2 小時、零基礎、星期日休息），CSS 都係由 <code>css/</code> 直接抄，只係排位唔同</li>
+      <li>「三個階段」同「溫習次序」兩張卡可以收起，頂部 toggle 試兩個狀態；呢個畫面冇翻譯內容</li>
+    </ul>
+    <p style="margin-top:6px">每個方案都有 <b>1024px</b> 同 <b>1280px</b> 兩個 frame。請揀 A／B／C，或者話我知要改咩。</p>
+  </div>
+  <div id="opts"></div>
+</div>
+
+<script>
+const DATA = {"en": {"expanded": "\n      <div class=\"quiz-header\">\n        <button class=\"back-btn icon-btn\" type=\"button\" data-icon=\"home\" data-i18n-attr=\"aria-label:common.homeLabel;title:common.homeLabel\" aria-label=\"Home\" title=\"Home\"><svg class=\"line-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M3 10.5 12 3l9 7.5\"><\/path><path d=\"M5.5 9v11h13V9\"><\/path><path d=\"M10 20v-6h4v6\"><\/path><\/svg><\/button>\n        <span class=\"quiz-label\" data-i18n=\"plan.schedule.name\">Schedule<\/span>\n        <button class=\"nav-btn secondary plan-small plan-hit icon-btn\" type=\"button\" data-icon=\"pencil\" data-i18n-attr=\"aria-label:plan.schedule.editGoal;title:plan.schedule.editGoal\" aria-label=\"Change goal\" title=\"Change goal\"><svg class=\"line-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M4 20h4L19 9l-4-4L4 16z\"><\/path><path d=\"M13.5 6.5l4 4\"><\/path><\/svg><\/button>\n      <\/div>\n      <div>\n        <h2 class=\"plan-h2\" data-i18n=\"plan.schedule.title\">Your study schedule<\/h2>\n        <p class=\"plan-muted\" id=\"planSummary\">Starts 12/10 · exam 2/11 · up to 2 hr a day · Beginner<\/p>\n      <\/div>\n\n      <!-- v1.0.4: the phases / order cards fold (planSchedule.js planToggleFold); the whole title is the toggle -->\n      <div class=\"plan-card-box plan-fold\">\n        <h3><button type=\"button\" class=\"plan-fold-btn\" id=\"planPhasesToggle\" data-action=\"planToggleFold\" data-arg=\"phases\" aria-expanded=\"true\" aria-controls=\"planStrategy\"><span data-i18n=\"plan.schedule.phasesTitle\">Three phases<\/span><span class=\"plan-fold-chev\" aria-hidden=\"true\"><svg viewBox=\"0 0 16 16\"><path d=\"M3.5 6l4.5 4.5L12.5 6\"><\/path><\/svg><\/span><\/button><\/h3>\n        <div class=\"plan-phase-bar\" id=\"planPhaseBar\" role=\"list\" aria-hidden=\"true\"><div class=\"plan-bg-learn\" role=\"listitem\"><span class=\"plan-ph-name\">Read + practise<\/span><span class=\"plan-ph-days plan-num\">7 days<\/span><span class=\"plan-ph-range plan-num\" lang=\"en\">Day 1–8<\/span><\/div><div class=\"plan-bg-drill\" role=\"listitem\"><span class=\"plan-ph-name\">Drill<\/span><span class=\"plan-ph-days plan-num\">7 days<\/span><span class=\"plan-ph-range plan-num\" lang=\"en\">Day 9–16<\/span><\/div><div class=\"plan-bg-mock\" role=\"listitem\"><span class=\"plan-ph-name\">Mocks<\/span><span class=\"plan-ph-days plan-num\">4 days<\/span><span class=\"plan-ph-range plan-num\" lang=\"en\">Day 17–20<\/span><\/div><\/div>\n        <div class=\"plan-strats\" id=\"planStrategy\"><div class=\"plan-strat learn\"><span class=\"plan-strat-n plan-num\" aria-hidden=\"true\">1<\/span><div><span class=\"plan-strat-days\" lang=\"en\">Day 1–8<\/span><h4>Read + practise: questions straight after reading<\/h4><ul><li>Order Ch1–2 → Ch5 → Ch4 → Ch3: easy to hard, History last<\/li><li>After each set of facts, practise the questions on them (235 facts · 389 Qs)<\/li><li>End each day by redoing your wrong answers<\/li><\/ul><\/div><\/div><div class=\"plan-strat drill\"><span class=\"plan-strat-n plan-num\" aria-hidden=\"true\">2<\/span><div><span class=\"plan-strat-days\" lang=\"en\">Day 9–16<\/span><h4>Drill: redo questions not yet mastered<\/h4><ul><li>The same order again, only questions you got wrong or have not mastered<\/li><li>Then review the facts behind your wrong answers<\/li><\/ul><\/div><\/div><div class=\"plan-strat mock\"><span class=\"plan-strat-n plan-num\" aria-hidden=\"true\">3<\/span><div><span class=\"plan-strat-days\" lang=\"en\">Day 17–20<\/span><h4>Mock exams: 6 timed exams<\/h4><ul><li>Real test conditions: 24 Qs, 45 minutes, no answers shown<\/li><li>Pass mark 18/24; 3 in a row at 21/24 or more is safe<\/li><li>No new mock exam on the last study day, only your wrong answers<\/li><\/ul><\/div><\/div><\/div>\n      <\/div>\n\n      <div class=\"plan-card-box plan-fold\">\n        <h3><button type=\"button\" class=\"plan-fold-btn\" id=\"planOrderToggle\" data-action=\"planToggleFold\" data-arg=\"order\" aria-expanded=\"true\" aria-controls=\"planOrderBody\"><span data-i18n=\"plan.schedule.orderTitle\">Study order: chapters from easy to hard, History last<\/span><span class=\"plan-fold-chev\" aria-hidden=\"true\"><svg viewBox=\"0 0 16 16\"><path d=\"M3.5 6l4.5 4.5L12.5 6\"><\/path><\/svg><\/span><\/button><\/h3>\n        <ol class=\"plan-ord-mini\" id=\"planOrderMini\" role=\"list\" hidden=\"\"><li><span class=\"plan-ord-n plan-num\" aria-hidden=\"true\">1<\/span><span class=\"plan-ord-mini-name\" lang=\"en\" aria-hidden=\"true\">Ch 1 + 2<\/span><span class=\"plan-sr\" lang=\"en\">Ch 1 Values &amp; principles + Ch 2 What is the UK?<\/span><\/li><li><span class=\"plan-ord-n plan-num\" aria-hidden=\"true\">2<\/span><span class=\"plan-ord-mini-name\" lang=\"en\" aria-hidden=\"true\">Ch 5<\/span><span class=\"plan-sr\" lang=\"en\">Ch 5 Government &amp; law<\/span><\/li><li><span class=\"plan-ord-n plan-num\" aria-hidden=\"true\">3<\/span><span class=\"plan-ord-mini-name\" lang=\"en\" aria-hidden=\"true\">Ch 4<\/span><span class=\"plan-sr\" lang=\"en\">Ch 4 Modern society<\/span><\/li><li><span class=\"plan-ord-n plan-num\" aria-hidden=\"true\">4<\/span><span class=\"plan-ord-mini-name\" lang=\"en\" aria-hidden=\"true\">Ch 3<\/span><span class=\"plan-sr\" lang=\"en\">Ch 3 History<\/span><\/li><\/ol>\n        <div class=\"plan-fold-body\" id=\"planOrderBody\">\n          <p class=\"plan-muted\" data-i18n=\"plan.schedule.orderIntro\">Each chapter's time follows its number of facts. Chapters are ordered by difficulty, with History, the hardest to remember, last.<\/p>\n          <div class=\"plan-order\" id=\"planOrder\"><div class=\"plan-ord\"><span class=\"plan-ord-n plan-num\" aria-hidden=\"true\">1<\/span><div class=\"plan-ord-body\"><b class=\"plan-ord-name\" lang=\"en\">Ch 1 Values &amp; principles + Ch 2 What is the UK?<\/b><span class=\"plan-ord-why\">Only 6 facts and few questions: done in a day, a warm-up<\/span><div class=\"plan-chw\"><span class=\"plan-chw-bar\" aria-hidden=\"true\"><i style=\"width: 7%;\"><\/i><\/span><span class=\"plan-chw-c plan-num\">6 facts · 20 Qs<\/span><\/div><\/div><\/div><div class=\"plan-ord\"><span class=\"plan-ord-n plan-num\" aria-hidden=\"true\">2<\/span><div class=\"plan-ord-body\"><b class=\"plan-ord-name\" lang=\"en\">Ch 5 Government &amp; law<\/b><span class=\"plan-ord-why\">Government, law and rights: much of it is like Hong Kong, so common sense gets you far<\/span><div class=\"plan-chw\"><span class=\"plan-chw-bar\" aria-hidden=\"true\"><i style=\"width: 78%;\"><\/i><\/span><span class=\"plan-chw-c plan-num\">71 facts · 102 Qs<\/span><\/div><\/div><\/div><div class=\"plan-ord\"><span class=\"plan-ord-n plan-num\" aria-hidden=\"true\">3<\/span><div class=\"plan-ord-body\"><b class=\"plan-ord-name\" lang=\"en\">Ch 4 Modern society<\/b><span class=\"plan-ord-why\">Festivals, sport and culture: easier to remember than history<\/span><div class=\"plan-chw\"><span class=\"plan-chw-bar\" aria-hidden=\"true\"><i style=\"width: 74%;\"><\/i><\/span><span class=\"plan-chw-c plan-num\">67 facts · 106 Qs<\/span><\/div><\/div><\/div><div class=\"plan-ord\"><span class=\"plan-ord-n plan-num\" aria-hidden=\"true\">4<\/span><div class=\"plan-ord-body\"><b class=\"plan-ord-name\" lang=\"en\">Ch 3 History<\/b><span class=\"plan-ord-why\">The most dates, names and places, the hardest to remember: last, so it is fresh on exam day<\/span><div class=\"plan-chw\"><span class=\"plan-chw-bar\" aria-hidden=\"true\"><i style=\"width: 100%;\"><\/i><\/span><span class=\"plan-chw-c plan-num\">91 facts · 161 Qs<\/span><\/div><\/div><\/div><\/div>\n        <\/div>\n      <\/div>\n\n      <div class=\"plan-card-box\">\n        <div class=\"plan-row\">\n          <h3 id=\"planDayListTitle\" data-i18n=\"plan.schedule.listTitle\">Daily tasks<\/h3>\n          <span class=\"plan-legend\" aria-hidden=\"true\"><i class=\"plan-bg-learn\"><\/i><span data-i18n=\"plan.phase.learn\">Read + practise<\/span><i class=\"plan-bg-drill\"><\/i><span data-i18n=\"plan.phase.drill\">Drill<\/span><i class=\"plan-bg-mock\"><\/i><span data-i18n=\"plan.phase.mock\">Mocks<\/span><\/span>\n        <\/div>\n        <div class=\"plan-day-scroll\" id=\"planDayList\" tabindex=\"0\" role=\"region\" aria-labelledby=\"planDayListTitle\"><div class=\"plan-week\" lang=\"en\">Week 1<\/div><button type=\"button\" class=\"plan-day learn today\" data-action=\"openPlanDay\" data-arg=\"2026-10-12\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">1<small>12/10 Mon<\/small><\/span><span class=\"plan-pill now plan-num\">Today 0%<\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>Read <span lang=\"en\">Ch 1<\/span> facts #1–2<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 1<\/span>: 9 Qs<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>Read <span lang=\"en\">Ch 2<\/span> facts #1–4<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 2<\/span>: 11 Qs<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>Read <span lang=\"en\">Ch 5<\/span> facts #1–26<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 5<\/span>: 39 Qs<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>Redo your wrong answers<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 1 Values &amp; principles<\/span><span class=\"plan-day-ch\" lang=\"en\">Ch 2 What is the UK?<\/span><span class=\"plan-day-ch\" lang=\"en\">Ch 5 Government &amp; law<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day learn\" data-action=\"openPlanDay\" data-arg=\"2026-10-13\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">2<small>13/10 Tue<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>Read <span lang=\"en\">Ch 5<\/span> facts #27–62<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 5<\/span>: 51 Qs<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>Redo your wrong answers<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 5 Government &amp; law<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day learn\" data-action=\"openPlanDay\" data-arg=\"2026-10-14\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">3<small>14/10 Wed<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>Read <span lang=\"en\">Ch 5<\/span> facts #63–71<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 5<\/span>: 12 Qs<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>Read <span lang=\"en\">Ch 4<\/span> facts #1–24<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 4<\/span>: 46 Qs<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>Redo your wrong answers<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 5 Government &amp; law<\/span><span class=\"plan-day-ch\" lang=\"en\">Ch 4 Modern society<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day learn\" data-action=\"openPlanDay\" data-arg=\"2026-10-15\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">4<small>15/10 Thu<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>Read <span lang=\"en\">Ch 4<\/span> facts #25–60<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 4<\/span>: 51 Qs<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>Redo your wrong answers<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 4 Modern society<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day learn\" data-action=\"openPlanDay\" data-arg=\"2026-10-16\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">5<small>16/10 Fri<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>Read <span lang=\"en\">Ch 4<\/span> facts #61–67<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 4<\/span>: 9 Qs<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>Read <span lang=\"en\">Ch 3<\/span> facts #1–25<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 3<\/span>: 50 Qs<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>Redo your wrong answers<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 4 Modern society<\/span><span class=\"plan-day-ch\" lang=\"en\">Ch 3 History<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day learn\" data-action=\"openPlanDay\" data-arg=\"2026-10-17\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">6<small>17/10 Sat<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>Read <span lang=\"en\">Ch 3<\/span> facts #26–56<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 3<\/span>: 60 Qs<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>Redo your wrong answers<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 3 History<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day rest\" data-action=\"openPlanDay\" data-arg=\"2026-10-18\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">7<small>18/10 Sun<\/small><\/span><span class=\"plan-pill mute\">Rest<\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">😴<\/span><span>Rest day<\/span><\/span><\/span><\/button><div class=\"plan-week\" lang=\"en\">Week 2<\/div><button type=\"button\" class=\"plan-day learn\" data-action=\"openPlanDay\" data-arg=\"2026-10-19\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">8<small>19/10 Mon<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>Read <span lang=\"en\">Ch 3<\/span> facts #57–91<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 3<\/span>: 51 Qs<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>Redo your wrong answers<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 3 History<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day drill\" data-action=\"openPlanDay\" data-arg=\"2026-10-20\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">9<small>20/10 Tue<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 1<\/span> again: 4 Qs not yet mastered<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 2<\/span> again: 4 Qs not yet mastered<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 5<\/span> again: 15 Qs not yet mastered<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>Review the facts behind wrong answers<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 1 Values &amp; principles<\/span><span class=\"plan-day-ch\" lang=\"en\">Ch 2 What is the UK?<\/span><span class=\"plan-day-ch\" lang=\"en\">Ch 5 Government &amp; law<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day drill\" data-action=\"openPlanDay\" data-arg=\"2026-10-21\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">10<small>21/10 Wed<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 5<\/span> again: 22 Qs not yet mastered<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>Review the facts behind wrong answers<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 5 Government &amp; law<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day drill\" data-action=\"openPlanDay\" data-arg=\"2026-10-22\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">11<small>22/10 Thu<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 5<\/span> again: 4 Qs not yet mastered<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 4<\/span> again: 18 Qs not yet mastered<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>Review the facts behind wrong answers<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 5 Government &amp; law<\/span><span class=\"plan-day-ch\" lang=\"en\">Ch 4 Modern society<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day drill\" data-action=\"openPlanDay\" data-arg=\"2026-10-23\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">12<small>23/10 Fri<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 4<\/span> again: 22 Qs not yet mastered<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>Review the facts behind wrong answers<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 4 Modern society<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day drill\" data-action=\"openPlanDay\" data-arg=\"2026-10-24\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">13<small>24/10 Sat<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 4<\/span> again: 2 Qs not yet mastered<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 3<\/span> again: 20 Qs not yet mastered<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>Review the facts behind wrong answers<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 4 Modern society<\/span><span class=\"plan-day-ch\" lang=\"en\">Ch 3 History<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day rest\" data-action=\"openPlanDay\" data-arg=\"2026-10-25\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">14<small>25/10 Sun<\/small><\/span><span class=\"plan-pill mute\">Rest<\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">😴<\/span><span>Rest day<\/span><\/span><\/span><\/button><div class=\"plan-week\" lang=\"en\">Week 3<\/div><button type=\"button\" class=\"plan-day drill\" data-action=\"openPlanDay\" data-arg=\"2026-10-26\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">15<small>26/10 Mon<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 3<\/span> again: 22 Qs not yet mastered<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>Review the facts behind wrong answers<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 3 History<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day drill plan-far\" data-action=\"openPlanDay\" data-arg=\"2026-10-27\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">16<small>27/10 Tue<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 3<\/span> again: 22 Qs not yet mastered<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>Review the facts behind wrong answers<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 3 History<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day mock plan-far\" data-action=\"openPlanDay\" data-arg=\"2026-10-28\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">17<small>28/10 Wed<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🎯<\/span><span>Timed mock exam<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🎯<\/span><span>Timed mock exam<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>Redo your mock exam mistakes<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day mock plan-far\" data-action=\"openPlanDay\" data-arg=\"2026-10-29\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">18<small>29/10 Thu<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🎯<\/span><span>Timed mock exam<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🎯<\/span><span>Timed mock exam<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>Redo your mock exam mistakes<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day mock plan-far\" data-action=\"openPlanDay\" data-arg=\"2026-10-30\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">19<small>30/10 Fri<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🎯<\/span><span>Timed mock exam<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🎯<\/span><span>Timed mock exam<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>Redo your mock exam mistakes<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day mock plan-far\" data-action=\"openPlanDay\" data-arg=\"2026-10-31\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">20<small>31/10 Sat<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>Light review: wrong answers and their facts (no new mock exam)<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day rest plan-far\" data-action=\"openPlanDay\" data-arg=\"2026-11-01\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">21<small>1/11 Sun<\/small><\/span><span class=\"plan-pill mute\">Rest<\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">😴<\/span><span>Rest day<\/span><\/span><\/span><\/button><div class=\"plan-week\" lang=\"en\">Week 4<\/div><button type=\"button\" class=\"plan-day exam\" data-action=\"openPlanDay\" data-arg=\"2026-11-02\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num plan-exam-pat\"><span aria-hidden=\"true\">🎯<\/span><small>2/11 Mon<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><b>Exam day<\/b><\/span><span class=\"plan-day-t\"><span>Bring your ID and confirmation letter, and arrive 30 minutes early.<\/span><\/span><\/span><\/button><\/div>\n      <\/div>\n\n      <button class=\"nav-btn plan-block\" data-action=\"openPlanDay\" data-i18n=\"plan.schedule.viewToday\">View today's tasks →<\/button>\n      <div class=\"reset-row show plan-reset\">\n        <span class=\"reset-hint\" data-i18n=\"plan.schedule.resetHint\">Want to start over? Resetting deletes this plan and its progress and takes you back to create a new one. Your practice records are not affected.<\/span>\n        <button class=\"reset-btn plan-hit\" data-action=\"planAskReset\" data-i18n=\"plan.schedule.reset\">↺ Reset plan<\/button>\n      <\/div>\n    ", "collapsed": "\n      <div class=\"quiz-header\">\n        <button class=\"back-btn icon-btn\" type=\"button\" data-icon=\"home\" data-i18n-attr=\"aria-label:common.homeLabel;title:common.homeLabel\" aria-label=\"Home\" title=\"Home\"><svg class=\"line-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M3 10.5 12 3l9 7.5\"><\/path><path d=\"M5.5 9v11h13V9\"><\/path><path d=\"M10 20v-6h4v6\"><\/path><\/svg><\/button>\n        <span class=\"quiz-label\" data-i18n=\"plan.schedule.name\">Schedule<\/span>\n        <button class=\"nav-btn secondary plan-small plan-hit icon-btn\" type=\"button\" data-icon=\"pencil\" data-i18n-attr=\"aria-label:plan.schedule.editGoal;title:plan.schedule.editGoal\" aria-label=\"Change goal\" title=\"Change goal\"><svg class=\"line-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M4 20h4L19 9l-4-4L4 16z\"><\/path><path d=\"M13.5 6.5l4 4\"><\/path><\/svg><\/button>\n      <\/div>\n      <div>\n        <h2 class=\"plan-h2\" data-i18n=\"plan.schedule.title\">Your study schedule<\/h2>\n        <p class=\"plan-muted\" id=\"planSummary\">Starts 12/10 · exam 2/11 · up to 2 hr a day · Beginner<\/p>\n      <\/div>\n\n      <!-- v1.0.4: the phases / order cards fold (planSchedule.js planToggleFold); the whole title is the toggle -->\n      <div class=\"plan-card-box plan-fold collapsed\">\n        <h3><button type=\"button\" class=\"plan-fold-btn\" id=\"planPhasesToggle\" data-action=\"planToggleFold\" data-arg=\"phases\" aria-expanded=\"false\" aria-controls=\"planStrategy\"><span data-i18n=\"plan.schedule.phasesTitle\">Three phases<\/span><span class=\"plan-fold-chev\" aria-hidden=\"true\"><svg viewBox=\"0 0 16 16\"><path d=\"M3.5 6l4.5 4.5L12.5 6\"><\/path><\/svg><\/span><\/button><\/h3>\n        <div class=\"plan-phase-bar\" id=\"planPhaseBar\" role=\"list\"><div class=\"plan-bg-learn\" role=\"listitem\"><span class=\"plan-ph-name\">Read + practise<\/span><span class=\"plan-ph-days plan-num\">7 days<\/span><span class=\"plan-ph-range plan-num\" lang=\"en\">Day 1–8<\/span><\/div><div class=\"plan-bg-drill\" role=\"listitem\"><span class=\"plan-ph-name\">Drill<\/span><span class=\"plan-ph-days plan-num\">7 days<\/span><span class=\"plan-ph-range plan-num\" lang=\"en\">Day 9–16<\/span><\/div><div class=\"plan-bg-mock\" role=\"listitem\"><span class=\"plan-ph-name\">Mocks<\/span><span class=\"plan-ph-days plan-num\">4 days<\/span><span class=\"plan-ph-range plan-num\" lang=\"en\">Day 17–20<\/span><\/div><\/div>\n        <div class=\"plan-strats\" id=\"planStrategy\" hidden=\"\"><div class=\"plan-strat learn\"><span class=\"plan-strat-n plan-num\" aria-hidden=\"true\">1<\/span><div><span class=\"plan-strat-days\" lang=\"en\">Day 1–8<\/span><h4>Read + practise: questions straight after reading<\/h4><ul><li>Order Ch1–2 → Ch5 → Ch4 → Ch3: easy to hard, History last<\/li><li>After each set of facts, practise the questions on them (235 facts · 389 Qs)<\/li><li>End each day by redoing your wrong answers<\/li><\/ul><\/div><\/div><div class=\"plan-strat drill\"><span class=\"plan-strat-n plan-num\" aria-hidden=\"true\">2<\/span><div><span class=\"plan-strat-days\" lang=\"en\">Day 9–16<\/span><h4>Drill: redo questions not yet mastered<\/h4><ul><li>The same order again, only questions you got wrong or have not mastered<\/li><li>Then review the facts behind your wrong answers<\/li><\/ul><\/div><\/div><div class=\"plan-strat mock\"><span class=\"plan-strat-n plan-num\" aria-hidden=\"true\">3<\/span><div><span class=\"plan-strat-days\" lang=\"en\">Day 17–20<\/span><h4>Mock exams: 6 timed exams<\/h4><ul><li>Real test conditions: 24 Qs, 45 minutes, no answers shown<\/li><li>Pass mark 18/24; 3 in a row at 21/24 or more is safe<\/li><li>No new mock exam on the last study day, only your wrong answers<\/li><\/ul><\/div><\/div><\/div>\n      <\/div>\n\n      <div class=\"plan-card-box plan-fold collapsed\">\n        <h3><button type=\"button\" class=\"plan-fold-btn\" id=\"planOrderToggle\" data-action=\"planToggleFold\" data-arg=\"order\" aria-expanded=\"false\" aria-controls=\"planOrderBody\"><span data-i18n=\"plan.schedule.orderTitle\">Study order: chapters from easy to hard, History last<\/span><span class=\"plan-fold-chev\" aria-hidden=\"true\"><svg viewBox=\"0 0 16 16\"><path d=\"M3.5 6l4.5 4.5L12.5 6\"><\/path><\/svg><\/span><\/button><\/h3>\n        <ol class=\"plan-ord-mini\" id=\"planOrderMini\" role=\"list\"><li><span class=\"plan-ord-n plan-num\" aria-hidden=\"true\">1<\/span><span class=\"plan-ord-mini-name\" lang=\"en\" aria-hidden=\"true\">Ch 1 + 2<\/span><span class=\"plan-sr\" lang=\"en\">Ch 1 Values &amp; principles + Ch 2 What is the UK?<\/span><\/li><li><span class=\"plan-ord-n plan-num\" aria-hidden=\"true\">2<\/span><span class=\"plan-ord-mini-name\" lang=\"en\" aria-hidden=\"true\">Ch 5<\/span><span class=\"plan-sr\" lang=\"en\">Ch 5 Government &amp; law<\/span><\/li><li><span class=\"plan-ord-n plan-num\" aria-hidden=\"true\">3<\/span><span class=\"plan-ord-mini-name\" lang=\"en\" aria-hidden=\"true\">Ch 4<\/span><span class=\"plan-sr\" lang=\"en\">Ch 4 Modern society<\/span><\/li><li><span class=\"plan-ord-n plan-num\" aria-hidden=\"true\">4<\/span><span class=\"plan-ord-mini-name\" lang=\"en\" aria-hidden=\"true\">Ch 3<\/span><span class=\"plan-sr\" lang=\"en\">Ch 3 History<\/span><\/li><\/ol>\n        <div class=\"plan-fold-body\" id=\"planOrderBody\" hidden=\"\">\n          <p class=\"plan-muted\" data-i18n=\"plan.schedule.orderIntro\">Each chapter's time follows its number of facts. Chapters are ordered by difficulty, with History, the hardest to remember, last.<\/p>\n          <div class=\"plan-order\" id=\"planOrder\"><div class=\"plan-ord\"><span class=\"plan-ord-n plan-num\" aria-hidden=\"true\">1<\/span><div class=\"plan-ord-body\"><b class=\"plan-ord-name\" lang=\"en\">Ch 1 Values &amp; principles + Ch 2 What is the UK?<\/b><span class=\"plan-ord-why\">Only 6 facts and few questions: done in a day, a warm-up<\/span><div class=\"plan-chw\"><span class=\"plan-chw-bar\" aria-hidden=\"true\"><i style=\"width: 7%;\"><\/i><\/span><span class=\"plan-chw-c plan-num\">6 facts · 20 Qs<\/span><\/div><\/div><\/div><div class=\"plan-ord\"><span class=\"plan-ord-n plan-num\" aria-hidden=\"true\">2<\/span><div class=\"plan-ord-body\"><b class=\"plan-ord-name\" lang=\"en\">Ch 5 Government &amp; law<\/b><span class=\"plan-ord-why\">Government, law and rights: much of it is like Hong Kong, so common sense gets you far<\/span><div class=\"plan-chw\"><span class=\"plan-chw-bar\" aria-hidden=\"true\"><i style=\"width: 78%;\"><\/i><\/span><span class=\"plan-chw-c plan-num\">71 facts · 102 Qs<\/span><\/div><\/div><\/div><div class=\"plan-ord\"><span class=\"plan-ord-n plan-num\" aria-hidden=\"true\">3<\/span><div class=\"plan-ord-body\"><b class=\"plan-ord-name\" lang=\"en\">Ch 4 Modern society<\/b><span class=\"plan-ord-why\">Festivals, sport and culture: easier to remember than history<\/span><div class=\"plan-chw\"><span class=\"plan-chw-bar\" aria-hidden=\"true\"><i style=\"width: 74%;\"><\/i><\/span><span class=\"plan-chw-c plan-num\">67 facts · 106 Qs<\/span><\/div><\/div><\/div><div class=\"plan-ord\"><span class=\"plan-ord-n plan-num\" aria-hidden=\"true\">4<\/span><div class=\"plan-ord-body\"><b class=\"plan-ord-name\" lang=\"en\">Ch 3 History<\/b><span class=\"plan-ord-why\">The most dates, names and places, the hardest to remember: last, so it is fresh on exam day<\/span><div class=\"plan-chw\"><span class=\"plan-chw-bar\" aria-hidden=\"true\"><i style=\"width: 100%;\"><\/i><\/span><span class=\"plan-chw-c plan-num\">91 facts · 161 Qs<\/span><\/div><\/div><\/div><\/div>\n        <\/div>\n      <\/div>\n\n      <div class=\"plan-card-box\">\n        <div class=\"plan-row\">\n          <h3 id=\"planDayListTitle\" data-i18n=\"plan.schedule.listTitle\">Daily tasks<\/h3>\n          <span class=\"plan-legend\" aria-hidden=\"true\"><i class=\"plan-bg-learn\"><\/i><span data-i18n=\"plan.phase.learn\">Read + practise<\/span><i class=\"plan-bg-drill\"><\/i><span data-i18n=\"plan.phase.drill\">Drill<\/span><i class=\"plan-bg-mock\"><\/i><span data-i18n=\"plan.phase.mock\">Mocks<\/span><\/span>\n        <\/div>\n        <div class=\"plan-day-scroll\" id=\"planDayList\" tabindex=\"0\" role=\"region\" aria-labelledby=\"planDayListTitle\"><div class=\"plan-week\" lang=\"en\">Week 1<\/div><button type=\"button\" class=\"plan-day learn today\" data-action=\"openPlanDay\" data-arg=\"2026-10-12\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">1<small>12/10 Mon<\/small><\/span><span class=\"plan-pill now plan-num\">Today 0%<\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>Read <span lang=\"en\">Ch 1<\/span> facts #1–2<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 1<\/span>: 9 Qs<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>Read <span lang=\"en\">Ch 2<\/span> facts #1–4<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 2<\/span>: 11 Qs<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>Read <span lang=\"en\">Ch 5<\/span> facts #1–26<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 5<\/span>: 39 Qs<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>Redo your wrong answers<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 1 Values &amp; principles<\/span><span class=\"plan-day-ch\" lang=\"en\">Ch 2 What is the UK?<\/span><span class=\"plan-day-ch\" lang=\"en\">Ch 5 Government &amp; law<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day learn\" data-action=\"openPlanDay\" data-arg=\"2026-10-13\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">2<small>13/10 Tue<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>Read <span lang=\"en\">Ch 5<\/span> facts #27–62<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 5<\/span>: 51 Qs<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>Redo your wrong answers<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 5 Government &amp; law<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day learn\" data-action=\"openPlanDay\" data-arg=\"2026-10-14\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">3<small>14/10 Wed<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>Read <span lang=\"en\">Ch 5<\/span> facts #63–71<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 5<\/span>: 12 Qs<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>Read <span lang=\"en\">Ch 4<\/span> facts #1–24<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 4<\/span>: 46 Qs<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>Redo your wrong answers<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 5 Government &amp; law<\/span><span class=\"plan-day-ch\" lang=\"en\">Ch 4 Modern society<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day learn\" data-action=\"openPlanDay\" data-arg=\"2026-10-15\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">4<small>15/10 Thu<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>Read <span lang=\"en\">Ch 4<\/span> facts #25–60<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 4<\/span>: 51 Qs<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>Redo your wrong answers<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 4 Modern society<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day learn\" data-action=\"openPlanDay\" data-arg=\"2026-10-16\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">5<small>16/10 Fri<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>Read <span lang=\"en\">Ch 4<\/span> facts #61–67<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 4<\/span>: 9 Qs<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>Read <span lang=\"en\">Ch 3<\/span> facts #1–25<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 3<\/span>: 50 Qs<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>Redo your wrong answers<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 4 Modern society<\/span><span class=\"plan-day-ch\" lang=\"en\">Ch 3 History<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day learn\" data-action=\"openPlanDay\" data-arg=\"2026-10-17\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">6<small>17/10 Sat<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>Read <span lang=\"en\">Ch 3<\/span> facts #26–56<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 3<\/span>: 60 Qs<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>Redo your wrong answers<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 3 History<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day rest\" data-action=\"openPlanDay\" data-arg=\"2026-10-18\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">7<small>18/10 Sun<\/small><\/span><span class=\"plan-pill mute\">Rest<\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">😴<\/span><span>Rest day<\/span><\/span><\/span><\/button><div class=\"plan-week\" lang=\"en\">Week 2<\/div><button type=\"button\" class=\"plan-day learn\" data-action=\"openPlanDay\" data-arg=\"2026-10-19\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">8<small>19/10 Mon<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>Read <span lang=\"en\">Ch 3<\/span> facts #57–91<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 3<\/span>: 51 Qs<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>Redo your wrong answers<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 3 History<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day drill\" data-action=\"openPlanDay\" data-arg=\"2026-10-20\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">9<small>20/10 Tue<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 1<\/span> again: 4 Qs not yet mastered<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 2<\/span> again: 4 Qs not yet mastered<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 5<\/span> again: 15 Qs not yet mastered<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>Review the facts behind wrong answers<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 1 Values &amp; principles<\/span><span class=\"plan-day-ch\" lang=\"en\">Ch 2 What is the UK?<\/span><span class=\"plan-day-ch\" lang=\"en\">Ch 5 Government &amp; law<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day drill\" data-action=\"openPlanDay\" data-arg=\"2026-10-21\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">10<small>21/10 Wed<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 5<\/span> again: 22 Qs not yet mastered<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>Review the facts behind wrong answers<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 5 Government &amp; law<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day drill\" data-action=\"openPlanDay\" data-arg=\"2026-10-22\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">11<small>22/10 Thu<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 5<\/span> again: 4 Qs not yet mastered<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 4<\/span> again: 18 Qs not yet mastered<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>Review the facts behind wrong answers<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 5 Government &amp; law<\/span><span class=\"plan-day-ch\" lang=\"en\">Ch 4 Modern society<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day drill\" data-action=\"openPlanDay\" data-arg=\"2026-10-23\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">12<small>23/10 Fri<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 4<\/span> again: 22 Qs not yet mastered<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>Review the facts behind wrong answers<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 4 Modern society<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day drill\" data-action=\"openPlanDay\" data-arg=\"2026-10-24\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">13<small>24/10 Sat<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 4<\/span> again: 2 Qs not yet mastered<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 3<\/span> again: 20 Qs not yet mastered<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>Review the facts behind wrong answers<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 4 Modern society<\/span><span class=\"plan-day-ch\" lang=\"en\">Ch 3 History<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day rest\" data-action=\"openPlanDay\" data-arg=\"2026-10-25\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">14<small>25/10 Sun<\/small><\/span><span class=\"plan-pill mute\">Rest<\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">😴<\/span><span>Rest day<\/span><\/span><\/span><\/button><div class=\"plan-week\" lang=\"en\">Week 3<\/div><button type=\"button\" class=\"plan-day drill\" data-action=\"openPlanDay\" data-arg=\"2026-10-26\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">15<small>26/10 Mon<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 3<\/span> again: 22 Qs not yet mastered<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>Review the facts behind wrong answers<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 3 History<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day drill plan-far\" data-action=\"openPlanDay\" data-arg=\"2026-10-27\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">16<small>27/10 Tue<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>Practise <span lang=\"en\">Ch 3<\/span> again: 22 Qs not yet mastered<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>Review the facts behind wrong answers<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 3 History<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day mock plan-far\" data-action=\"openPlanDay\" data-arg=\"2026-10-28\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">17<small>28/10 Wed<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🎯<\/span><span>Timed mock exam<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🎯<\/span><span>Timed mock exam<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>Redo your mock exam mistakes<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day mock plan-far\" data-action=\"openPlanDay\" data-arg=\"2026-10-29\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">18<small>29/10 Thu<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🎯<\/span><span>Timed mock exam<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🎯<\/span><span>Timed mock exam<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>Redo your mock exam mistakes<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day mock plan-far\" data-action=\"openPlanDay\" data-arg=\"2026-10-30\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">19<small>30/10 Fri<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🎯<\/span><span>Timed mock exam<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🎯<\/span><span>Timed mock exam<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>Redo your mock exam mistakes<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day mock plan-far\" data-action=\"openPlanDay\" data-arg=\"2026-10-31\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">20<small>31/10 Sat<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>Light review: wrong answers and their facts (no new mock exam)<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day rest plan-far\" data-action=\"openPlanDay\" data-arg=\"2026-11-01\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">21<small>1/11 Sun<\/small><\/span><span class=\"plan-pill mute\">Rest<\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">😴<\/span><span>Rest day<\/span><\/span><\/span><\/button><div class=\"plan-week\" lang=\"en\">Week 4<\/div><button type=\"button\" class=\"plan-day exam\" data-action=\"openPlanDay\" data-arg=\"2026-11-02\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num plan-exam-pat\"><span aria-hidden=\"true\">🎯<\/span><small>2/11 Mon<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><b>Exam day<\/b><\/span><span class=\"plan-day-t\"><span>Bring your ID and confirmation letter, and arrive 30 minutes early.<\/span><\/span><\/span><\/button><\/div>\n      <\/div>\n\n      <button class=\"nav-btn plan-block\" data-action=\"openPlanDay\" data-i18n=\"plan.schedule.viewToday\">View today's tasks →<\/button>\n      <div class=\"reset-row show plan-reset\">\n        <span class=\"reset-hint\" data-i18n=\"plan.schedule.resetHint\">Want to start over? Resetting deletes this plan and its progress and takes you back to create a new one. Your practice records are not affected.<\/span>\n        <button class=\"reset-btn plan-hit\" data-action=\"planAskReset\" data-i18n=\"plan.schedule.reset\">↺ Reset plan<\/button>\n      <\/div>\n    ", "sub": "Exam Practice"}, "zh": {"expanded": "\n      <div class=\"quiz-header\">\n        <button class=\"back-btn icon-btn\" type=\"button\" data-icon=\"home\" data-i18n-attr=\"aria-label:common.homeLabel;title:common.homeLabel\" aria-label=\"主頁\" title=\"主頁\"><svg class=\"line-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M3 10.5 12 3l9 7.5\"><\/path><path d=\"M5.5 9v11h13V9\"><\/path><path d=\"M10 20v-6h4v6\"><\/path><\/svg><\/button>\n        <span class=\"quiz-label\" data-i18n=\"plan.schedule.name\">進度表<\/span>\n        <button class=\"nav-btn secondary plan-small plan-hit icon-btn\" type=\"button\" data-icon=\"pencil\" data-i18n-attr=\"aria-label:plan.schedule.editGoal;title:plan.schedule.editGoal\" aria-label=\"更改目標\" title=\"更改目標\"><svg class=\"line-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M4 20h4L19 9l-4-4L4 16z\"><\/path><path d=\"M13.5 6.5l4 4\"><\/path><\/svg><\/button>\n      <\/div>\n      <div>\n        <h2 class=\"plan-h2\" data-i18n=\"plan.schedule.title\">你的進度表<\/h2>\n        <p class=\"plan-muted\" id=\"planSummary\">12/10 開始 · 2/11 考試 · 每日最多 2 小時 · 零基礎<\/p>\n      <\/div>\n\n      <!-- v1.0.4: the phases / order cards fold (planSchedule.js planToggleFold); the whole title is the toggle -->\n      <div class=\"plan-card-box plan-fold\">\n        <h3><button type=\"button\" class=\"plan-fold-btn\" id=\"planPhasesToggle\" data-action=\"planToggleFold\" data-arg=\"phases\" aria-expanded=\"true\" aria-controls=\"planStrategy\"><span data-i18n=\"plan.schedule.phasesTitle\">三個階段<\/span><span class=\"plan-fold-chev\" aria-hidden=\"true\"><svg viewBox=\"0 0 16 16\"><path d=\"M3.5 6l4.5 4.5L12.5 6\"><\/path><\/svg><\/span><\/button><\/h3>\n        <div class=\"plan-phase-bar\" id=\"planPhaseBar\" role=\"list\" aria-hidden=\"true\"><div class=\"plan-bg-learn\" role=\"listitem\"><span class=\"plan-ph-name\">讀 + 練<\/span><span class=\"plan-ph-days plan-num\">7 日<\/span><span class=\"plan-ph-range plan-num\" lang=\"en\">Day 1–8<\/span><\/div><div class=\"plan-bg-drill\" role=\"listitem\"><span class=\"plan-ph-name\">強化練習<\/span><span class=\"plan-ph-days plan-num\">7 日<\/span><span class=\"plan-ph-range plan-num\" lang=\"en\">Day 9–16<\/span><\/div><div class=\"plan-bg-mock\" role=\"listitem\"><span class=\"plan-ph-name\">模擬考試<\/span><span class=\"plan-ph-days plan-num\">4 日<\/span><span class=\"plan-ph-range plan-num\" lang=\"en\">Day 17–20<\/span><\/div><\/div>\n        <div class=\"plan-strats\" id=\"planStrategy\"><div class=\"plan-strat learn\"><span class=\"plan-strat-n plan-num\" aria-hidden=\"true\">1<\/span><div><span class=\"plan-strat-days\" lang=\"en\">Day 1–8<\/span><h4>閱讀 + 練習：每日讀完即時做題<\/h4><ul><li>次序 Ch1–2 → Ch5 → Ch4 → Ch3：由易到難，歷史放在最後<\/li><li>讀完一段知識點，即時練習同一段的題目（235 條知識點 · 389 題）<\/li><li>每日最後重做錯題<\/li><\/ul><\/div><\/div><div class=\"plan-strat drill\"><span class=\"plan-strat-n plan-num\" aria-hidden=\"true\">2<\/span><div><span class=\"plan-strat-days\" lang=\"en\">Day 9–16<\/span><h4>強化練習：再做未掌握的題目<\/h4><ul><li>按同一次序再做一次，只做答錯過或未掌握的題目<\/li><li>做完即時重溫答錯題目的知識點<\/li><\/ul><\/div><\/div><div class=\"plan-strat mock\"><span class=\"plan-strat-n plan-num\" aria-hidden=\"true\">3<\/span><div><span class=\"plan-strat-days\" lang=\"en\">Day 17–20<\/span><h4>模擬考試：計時完成 6 份試卷<\/h4><ul><li>按真實考試條件：24 題、45 分鐘、不看答案<\/li><li>合格線 18/24；連續 3 份 ≥ 21/24 才算穩妥<\/li><li>最後一個溫習日不做新的模擬考試，只重溫錯題<\/li><\/ul><\/div><\/div><\/div>\n      <\/div>\n\n      <div class=\"plan-card-box plan-fold\">\n        <h3><button type=\"button\" class=\"plan-fold-btn\" id=\"planOrderToggle\" data-action=\"planToggleFold\" data-arg=\"order\" aria-expanded=\"true\" aria-controls=\"planOrderBody\"><span data-i18n=\"plan.schedule.orderTitle\">溫習次序：章節由易到難，歷史放在最後<\/span><span class=\"plan-fold-chev\" aria-hidden=\"true\"><svg viewBox=\"0 0 16 16\"><path d=\"M3.5 6l4.5 4.5L12.5 6\"><\/path><\/svg><\/span><\/button><\/h3>\n        <ol class=\"plan-ord-mini\" id=\"planOrderMini\" role=\"list\" hidden=\"\"><li><span class=\"plan-ord-n plan-num\" aria-hidden=\"true\">1<\/span><span class=\"plan-ord-mini-name\" lang=\"en\" aria-hidden=\"true\">Ch 1 + 2<\/span><span class=\"plan-sr\" lang=\"en\">Ch 1 Values &amp; principles + Ch 2 What is the UK?<\/span><\/li><li><span class=\"plan-ord-n plan-num\" aria-hidden=\"true\">2<\/span><span class=\"plan-ord-mini-name\" lang=\"en\" aria-hidden=\"true\">Ch 5<\/span><span class=\"plan-sr\" lang=\"en\">Ch 5 Government &amp; law<\/span><\/li><li><span class=\"plan-ord-n plan-num\" aria-hidden=\"true\">3<\/span><span class=\"plan-ord-mini-name\" lang=\"en\" aria-hidden=\"true\">Ch 4<\/span><span class=\"plan-sr\" lang=\"en\">Ch 4 Modern society<\/span><\/li><li><span class=\"plan-ord-n plan-num\" aria-hidden=\"true\">4<\/span><span class=\"plan-ord-mini-name\" lang=\"en\" aria-hidden=\"true\">Ch 3<\/span><span class=\"plan-sr\" lang=\"en\">Ch 3 History<\/span><\/li><\/ol>\n        <div class=\"plan-fold-body\" id=\"planOrderBody\">\n          <p class=\"plan-muted\" data-i18n=\"plan.schedule.orderIntro\">每章的時間按知識點數量分配；次序按難度排列，最難記的歷史放在最後。<\/p>\n          <div class=\"plan-order\" id=\"planOrder\"><div class=\"plan-ord\"><span class=\"plan-ord-n plan-num\" aria-hidden=\"true\">1<\/span><div class=\"plan-ord-body\"><b class=\"plan-ord-name\" lang=\"en\">Ch 1 Values &amp; principles + Ch 2 What is the UK?<\/b><span class=\"plan-ord-why\">只有 6 條知識點，題目較少，一日便可完成，用作熱身<\/span><div class=\"plan-chw\"><span class=\"plan-chw-bar\" aria-hidden=\"true\"><i style=\"width: 7%;\"><\/i><\/span><span class=\"plan-chw-c plan-num\">6 條 · 20 題<\/span><\/div><\/div><\/div><div class=\"plan-ord\"><span class=\"plan-ord-n plan-num\" aria-hidden=\"true\">2<\/span><div class=\"plan-ord-body\"><b class=\"plan-ord-name\" lang=\"en\">Ch 5 Government &amp; law<\/b><span class=\"plan-ord-why\">政府、法律及權利，不少與香港相似，憑常識也能推斷<\/span><div class=\"plan-chw\"><span class=\"plan-chw-bar\" aria-hidden=\"true\"><i style=\"width: 78%;\"><\/i><\/span><span class=\"plan-chw-c plan-num\">71 條 · 102 題<\/span><\/div><\/div><\/div><div class=\"plan-ord\"><span class=\"plan-ord-n plan-num\" aria-hidden=\"true\">3<\/span><div class=\"plan-ord-body\"><b class=\"plan-ord-name\" lang=\"en\">Ch 4 Modern society<\/b><span class=\"plan-ord-why\">節日、運動及文化，比歷史容易記<\/span><div class=\"plan-chw\"><span class=\"plan-chw-bar\" aria-hidden=\"true\"><i style=\"width: 74%;\"><\/i><\/span><span class=\"plan-chw-c plan-num\">67 條 · 106 題<\/span><\/div><\/div><\/div><div class=\"plan-ord\"><span class=\"plan-ord-n plan-num\" aria-hidden=\"true\">4<\/span><div class=\"plan-ord-body\"><b class=\"plan-ord-name\" lang=\"en\">Ch 3 History<\/b><span class=\"plan-ord-why\">年份、人名及地方最多，最難記，放在最後，考試前仍然記得清楚<\/span><div class=\"plan-chw\"><span class=\"plan-chw-bar\" aria-hidden=\"true\"><i style=\"width: 100%;\"><\/i><\/span><span class=\"plan-chw-c plan-num\">91 條 · 161 題<\/span><\/div><\/div><\/div><\/div>\n        <\/div>\n      <\/div>\n\n      <div class=\"plan-card-box\">\n        <div class=\"plan-row\">\n          <h3 id=\"planDayListTitle\" data-i18n=\"plan.schedule.listTitle\">每日任務<\/h3>\n          <span class=\"plan-legend\" aria-hidden=\"true\"><i class=\"plan-bg-learn\"><\/i><span data-i18n=\"plan.phase.learn\">讀 + 練<\/span><i class=\"plan-bg-drill\"><\/i><span data-i18n=\"plan.phase.drill\">強化練習<\/span><i class=\"plan-bg-mock\"><\/i><span data-i18n=\"plan.phase.mock\">模擬考試<\/span><\/span>\n        <\/div>\n        <div class=\"plan-day-scroll\" id=\"planDayList\" tabindex=\"0\" role=\"region\" aria-labelledby=\"planDayListTitle\"><div class=\"plan-week\" lang=\"en\">Week 1<\/div><button type=\"button\" class=\"plan-day learn today\" data-action=\"openPlanDay\" data-arg=\"2026-10-12\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">1<small>12/10 一<\/small><\/span><span class=\"plan-pill now plan-num\">今日 0%<\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>閱讀 <span lang=\"en\">Ch 1<\/span> 知識點 #1–2<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>練習 <span lang=\"en\">Ch 1<\/span> 題目（9 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>閱讀 <span lang=\"en\">Ch 2<\/span> 知識點 #1–4<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>練習 <span lang=\"en\">Ch 2<\/span> 題目（11 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>閱讀 <span lang=\"en\">Ch 5<\/span> 知識點 #1–26<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>練習 <span lang=\"en\">Ch 5<\/span> 題目（39 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>重做錯題<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 1 Values &amp; principles<\/span><span class=\"plan-day-ch\" lang=\"en\">Ch 2 What is the UK?<\/span><span class=\"plan-day-ch\" lang=\"en\">Ch 5 Government &amp; law<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day learn\" data-action=\"openPlanDay\" data-arg=\"2026-10-13\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">2<small>13/10 二<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>閱讀 <span lang=\"en\">Ch 5<\/span> 知識點 #27–62<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>練習 <span lang=\"en\">Ch 5<\/span> 題目（51 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>重做錯題<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 5 Government &amp; law<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day learn\" data-action=\"openPlanDay\" data-arg=\"2026-10-14\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">3<small>14/10 三<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>閱讀 <span lang=\"en\">Ch 5<\/span> 知識點 #63–71<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>練習 <span lang=\"en\">Ch 5<\/span> 題目（12 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>閱讀 <span lang=\"en\">Ch 4<\/span> 知識點 #1–24<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>練習 <span lang=\"en\">Ch 4<\/span> 題目（46 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>重做錯題<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 5 Government &amp; law<\/span><span class=\"plan-day-ch\" lang=\"en\">Ch 4 Modern society<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day learn\" data-action=\"openPlanDay\" data-arg=\"2026-10-15\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">4<small>15/10 四<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>閱讀 <span lang=\"en\">Ch 4<\/span> 知識點 #25–60<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>練習 <span lang=\"en\">Ch 4<\/span> 題目（51 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>重做錯題<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 4 Modern society<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day learn\" data-action=\"openPlanDay\" data-arg=\"2026-10-16\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">5<small>16/10 五<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>閱讀 <span lang=\"en\">Ch 4<\/span> 知識點 #61–67<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>練習 <span lang=\"en\">Ch 4<\/span> 題目（9 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>閱讀 <span lang=\"en\">Ch 3<\/span> 知識點 #1–25<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>練習 <span lang=\"en\">Ch 3<\/span> 題目（50 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>重做錯題<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 4 Modern society<\/span><span class=\"plan-day-ch\" lang=\"en\">Ch 3 History<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day learn\" data-action=\"openPlanDay\" data-arg=\"2026-10-17\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">6<small>17/10 六<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>閱讀 <span lang=\"en\">Ch 3<\/span> 知識點 #26–56<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>練習 <span lang=\"en\">Ch 3<\/span> 題目（60 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>重做錯題<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 3 History<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day rest\" data-action=\"openPlanDay\" data-arg=\"2026-10-18\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">7<small>18/10 日<\/small><\/span><span class=\"plan-pill mute\">休息<\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">😴<\/span><span>休息日<\/span><\/span><\/span><\/button><div class=\"plan-week\" lang=\"en\">Week 2<\/div><button type=\"button\" class=\"plan-day learn\" data-action=\"openPlanDay\" data-arg=\"2026-10-19\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">8<small>19/10 一<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>閱讀 <span lang=\"en\">Ch 3<\/span> 知識點 #57–91<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>練習 <span lang=\"en\">Ch 3<\/span> 題目（51 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>重做錯題<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 3 History<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day drill\" data-action=\"openPlanDay\" data-arg=\"2026-10-20\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">9<small>20/10 二<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>再練習 <span lang=\"en\">Ch 1<\/span> 未掌握的題目（4 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>再練習 <span lang=\"en\">Ch 2<\/span> 未掌握的題目（4 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>再練習 <span lang=\"en\">Ch 5<\/span> 未掌握的題目（15 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>重溫答錯題目的知識點<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 1 Values &amp; principles<\/span><span class=\"plan-day-ch\" lang=\"en\">Ch 2 What is the UK?<\/span><span class=\"plan-day-ch\" lang=\"en\">Ch 5 Government &amp; law<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day drill\" data-action=\"openPlanDay\" data-arg=\"2026-10-21\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">10<small>21/10 三<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>再練習 <span lang=\"en\">Ch 5<\/span> 未掌握的題目（22 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>重溫答錯題目的知識點<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 5 Government &amp; law<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day drill\" data-action=\"openPlanDay\" data-arg=\"2026-10-22\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">11<small>22/10 四<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>再練習 <span lang=\"en\">Ch 5<\/span> 未掌握的題目（4 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>再練習 <span lang=\"en\">Ch 4<\/span> 未掌握的題目（18 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>重溫答錯題目的知識點<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 5 Government &amp; law<\/span><span class=\"plan-day-ch\" lang=\"en\">Ch 4 Modern society<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day drill\" data-action=\"openPlanDay\" data-arg=\"2026-10-23\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">12<small>23/10 五<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>再練習 <span lang=\"en\">Ch 4<\/span> 未掌握的題目（22 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>重溫答錯題目的知識點<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 4 Modern society<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day drill\" data-action=\"openPlanDay\" data-arg=\"2026-10-24\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">13<small>24/10 六<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>再練習 <span lang=\"en\">Ch 4<\/span> 未掌握的題目（2 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>再練習 <span lang=\"en\">Ch 3<\/span> 未掌握的題目（20 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>重溫答錯題目的知識點<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 4 Modern society<\/span><span class=\"plan-day-ch\" lang=\"en\">Ch 3 History<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day rest\" data-action=\"openPlanDay\" data-arg=\"2026-10-25\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">14<small>25/10 日<\/small><\/span><span class=\"plan-pill mute\">休息<\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">😴<\/span><span>休息日<\/span><\/span><\/span><\/button><div class=\"plan-week\" lang=\"en\">Week 3<\/div><button type=\"button\" class=\"plan-day drill\" data-action=\"openPlanDay\" data-arg=\"2026-10-26\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">15<small>26/10 一<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>再練習 <span lang=\"en\">Ch 3<\/span> 未掌握的題目（22 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>重溫答錯題目的知識點<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 3 History<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day drill plan-far\" data-action=\"openPlanDay\" data-arg=\"2026-10-27\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">16<small>27/10 二<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>再練習 <span lang=\"en\">Ch 3<\/span> 未掌握的題目（22 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>重溫答錯題目的知識點<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 3 History<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day mock plan-far\" data-action=\"openPlanDay\" data-arg=\"2026-10-28\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">17<small>28/10 三<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🎯<\/span><span>模擬考試（計時）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🎯<\/span><span>模擬考試（計時）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>模擬考試錯題再做一次<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day mock plan-far\" data-action=\"openPlanDay\" data-arg=\"2026-10-29\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">18<small>29/10 四<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🎯<\/span><span>模擬考試（計時）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🎯<\/span><span>模擬考試（計時）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>模擬考試錯題再做一次<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day mock plan-far\" data-action=\"openPlanDay\" data-arg=\"2026-10-30\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">19<small>30/10 五<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🎯<\/span><span>模擬考試（計時）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🎯<\/span><span>模擬考試（計時）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>模擬考試錯題再做一次<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day mock plan-far\" data-action=\"openPlanDay\" data-arg=\"2026-10-31\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">20<small>31/10 六<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>輕鬆重溫：錯題及答錯題目的知識點（不做新的模擬考試）<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day rest plan-far\" data-action=\"openPlanDay\" data-arg=\"2026-11-01\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">21<small>1/11 日<\/small><\/span><span class=\"plan-pill mute\">休息<\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">😴<\/span><span>休息日<\/span><\/span><\/span><\/button><div class=\"plan-week\" lang=\"en\">Week 4<\/div><button type=\"button\" class=\"plan-day exam\" data-action=\"openPlanDay\" data-arg=\"2026-11-02\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num plan-exam-pat\"><span aria-hidden=\"true\">🎯<\/span><small>2/11 一<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><b>考試日<\/b><\/span><span class=\"plan-day-t\"><span>請帶備身份證明文件及確認信，提早 30 分鐘到達。<\/span><\/span><\/span><\/button><\/div>\n      <\/div>\n\n      <button class=\"nav-btn plan-block\" data-action=\"openPlanDay\" data-i18n=\"plan.schedule.viewToday\">查看今日任務 →<\/button>\n      <div class=\"reset-row show plan-reset\">\n        <span class=\"reset-hint\" data-i18n=\"plan.schedule.resetHint\">想重新開始？重設會清除此計劃及進度，並返回重新建立。練習記錄則不受影響。<\/span>\n        <button class=\"reset-btn plan-hit\" data-action=\"planAskReset\" data-i18n=\"plan.schedule.reset\">↺ 重設計劃<\/button>\n      <\/div>\n    ", "collapsed": "\n      <div class=\"quiz-header\">\n        <button class=\"back-btn icon-btn\" type=\"button\" data-icon=\"home\" data-i18n-attr=\"aria-label:common.homeLabel;title:common.homeLabel\" aria-label=\"主頁\" title=\"主頁\"><svg class=\"line-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M3 10.5 12 3l9 7.5\"><\/path><path d=\"M5.5 9v11h13V9\"><\/path><path d=\"M10 20v-6h4v6\"><\/path><\/svg><\/button>\n        <span class=\"quiz-label\" data-i18n=\"plan.schedule.name\">進度表<\/span>\n        <button class=\"nav-btn secondary plan-small plan-hit icon-btn\" type=\"button\" data-icon=\"pencil\" data-i18n-attr=\"aria-label:plan.schedule.editGoal;title:plan.schedule.editGoal\" aria-label=\"更改目標\" title=\"更改目標\"><svg class=\"line-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M4 20h4L19 9l-4-4L4 16z\"><\/path><path d=\"M13.5 6.5l4 4\"><\/path><\/svg><\/button>\n      <\/div>\n      <div>\n        <h2 class=\"plan-h2\" data-i18n=\"plan.schedule.title\">你的進度表<\/h2>\n        <p class=\"plan-muted\" id=\"planSummary\">12/10 開始 · 2/11 考試 · 每日最多 2 小時 · 零基礎<\/p>\n      <\/div>\n\n      <!-- v1.0.4: the phases / order cards fold (planSchedule.js planToggleFold); the whole title is the toggle -->\n      <div class=\"plan-card-box plan-fold collapsed\">\n        <h3><button type=\"button\" class=\"plan-fold-btn\" id=\"planPhasesToggle\" data-action=\"planToggleFold\" data-arg=\"phases\" aria-expanded=\"false\" aria-controls=\"planStrategy\"><span data-i18n=\"plan.schedule.phasesTitle\">三個階段<\/span><span class=\"plan-fold-chev\" aria-hidden=\"true\"><svg viewBox=\"0 0 16 16\"><path d=\"M3.5 6l4.5 4.5L12.5 6\"><\/path><\/svg><\/span><\/button><\/h3>\n        <div class=\"plan-phase-bar\" id=\"planPhaseBar\" role=\"list\"><div class=\"plan-bg-learn\" role=\"listitem\"><span class=\"plan-ph-name\">讀 + 練<\/span><span class=\"plan-ph-days plan-num\">7 日<\/span><span class=\"plan-ph-range plan-num\" lang=\"en\">Day 1–8<\/span><\/div><div class=\"plan-bg-drill\" role=\"listitem\"><span class=\"plan-ph-name\">強化練習<\/span><span class=\"plan-ph-days plan-num\">7 日<\/span><span class=\"plan-ph-range plan-num\" lang=\"en\">Day 9–16<\/span><\/div><div class=\"plan-bg-mock\" role=\"listitem\"><span class=\"plan-ph-name\">模擬考試<\/span><span class=\"plan-ph-days plan-num\">4 日<\/span><span class=\"plan-ph-range plan-num\" lang=\"en\">Day 17–20<\/span><\/div><\/div>\n        <div class=\"plan-strats\" id=\"planStrategy\" hidden=\"\"><div class=\"plan-strat learn\"><span class=\"plan-strat-n plan-num\" aria-hidden=\"true\">1<\/span><div><span class=\"plan-strat-days\" lang=\"en\">Day 1–8<\/span><h4>閱讀 + 練習：每日讀完即時做題<\/h4><ul><li>次序 Ch1–2 → Ch5 → Ch4 → Ch3：由易到難，歷史放在最後<\/li><li>讀完一段知識點，即時練習同一段的題目（235 條知識點 · 389 題）<\/li><li>每日最後重做錯題<\/li><\/ul><\/div><\/div><div class=\"plan-strat drill\"><span class=\"plan-strat-n plan-num\" aria-hidden=\"true\">2<\/span><div><span class=\"plan-strat-days\" lang=\"en\">Day 9–16<\/span><h4>強化練習：再做未掌握的題目<\/h4><ul><li>按同一次序再做一次，只做答錯過或未掌握的題目<\/li><li>做完即時重溫答錯題目的知識點<\/li><\/ul><\/div><\/div><div class=\"plan-strat mock\"><span class=\"plan-strat-n plan-num\" aria-hidden=\"true\">3<\/span><div><span class=\"plan-strat-days\" lang=\"en\">Day 17–20<\/span><h4>模擬考試：計時完成 6 份試卷<\/h4><ul><li>按真實考試條件：24 題、45 分鐘、不看答案<\/li><li>合格線 18/24；連續 3 份 ≥ 21/24 才算穩妥<\/li><li>最後一個溫習日不做新的模擬考試，只重溫錯題<\/li><\/ul><\/div><\/div><\/div>\n      <\/div>\n\n      <div class=\"plan-card-box plan-fold collapsed\">\n        <h3><button type=\"button\" class=\"plan-fold-btn\" id=\"planOrderToggle\" data-action=\"planToggleFold\" data-arg=\"order\" aria-expanded=\"false\" aria-controls=\"planOrderBody\"><span data-i18n=\"plan.schedule.orderTitle\">溫習次序：章節由易到難，歷史放在最後<\/span><span class=\"plan-fold-chev\" aria-hidden=\"true\"><svg viewBox=\"0 0 16 16\"><path d=\"M3.5 6l4.5 4.5L12.5 6\"><\/path><\/svg><\/span><\/button><\/h3>\n        <ol class=\"plan-ord-mini\" id=\"planOrderMini\" role=\"list\"><li><span class=\"plan-ord-n plan-num\" aria-hidden=\"true\">1<\/span><span class=\"plan-ord-mini-name\" lang=\"en\" aria-hidden=\"true\">Ch 1 + 2<\/span><span class=\"plan-sr\" lang=\"en\">Ch 1 Values &amp; principles + Ch 2 What is the UK?<\/span><\/li><li><span class=\"plan-ord-n plan-num\" aria-hidden=\"true\">2<\/span><span class=\"plan-ord-mini-name\" lang=\"en\" aria-hidden=\"true\">Ch 5<\/span><span class=\"plan-sr\" lang=\"en\">Ch 5 Government &amp; law<\/span><\/li><li><span class=\"plan-ord-n plan-num\" aria-hidden=\"true\">3<\/span><span class=\"plan-ord-mini-name\" lang=\"en\" aria-hidden=\"true\">Ch 4<\/span><span class=\"plan-sr\" lang=\"en\">Ch 4 Modern society<\/span><\/li><li><span class=\"plan-ord-n plan-num\" aria-hidden=\"true\">4<\/span><span class=\"plan-ord-mini-name\" lang=\"en\" aria-hidden=\"true\">Ch 3<\/span><span class=\"plan-sr\" lang=\"en\">Ch 3 History<\/span><\/li><\/ol>\n        <div class=\"plan-fold-body\" id=\"planOrderBody\" hidden=\"\">\n          <p class=\"plan-muted\" data-i18n=\"plan.schedule.orderIntro\">每章的時間按知識點數量分配；次序按難度排列，最難記的歷史放在最後。<\/p>\n          <div class=\"plan-order\" id=\"planOrder\"><div class=\"plan-ord\"><span class=\"plan-ord-n plan-num\" aria-hidden=\"true\">1<\/span><div class=\"plan-ord-body\"><b class=\"plan-ord-name\" lang=\"en\">Ch 1 Values &amp; principles + Ch 2 What is the UK?<\/b><span class=\"plan-ord-why\">只有 6 條知識點，題目較少，一日便可完成，用作熱身<\/span><div class=\"plan-chw\"><span class=\"plan-chw-bar\" aria-hidden=\"true\"><i style=\"width: 7%;\"><\/i><\/span><span class=\"plan-chw-c plan-num\">6 條 · 20 題<\/span><\/div><\/div><\/div><div class=\"plan-ord\"><span class=\"plan-ord-n plan-num\" aria-hidden=\"true\">2<\/span><div class=\"plan-ord-body\"><b class=\"plan-ord-name\" lang=\"en\">Ch 5 Government &amp; law<\/b><span class=\"plan-ord-why\">政府、法律及權利，不少與香港相似，憑常識也能推斷<\/span><div class=\"plan-chw\"><span class=\"plan-chw-bar\" aria-hidden=\"true\"><i style=\"width: 78%;\"><\/i><\/span><span class=\"plan-chw-c plan-num\">71 條 · 102 題<\/span><\/div><\/div><\/div><div class=\"plan-ord\"><span class=\"plan-ord-n plan-num\" aria-hidden=\"true\">3<\/span><div class=\"plan-ord-body\"><b class=\"plan-ord-name\" lang=\"en\">Ch 4 Modern society<\/b><span class=\"plan-ord-why\">節日、運動及文化，比歷史容易記<\/span><div class=\"plan-chw\"><span class=\"plan-chw-bar\" aria-hidden=\"true\"><i style=\"width: 74%;\"><\/i><\/span><span class=\"plan-chw-c plan-num\">67 條 · 106 題<\/span><\/div><\/div><\/div><div class=\"plan-ord\"><span class=\"plan-ord-n plan-num\" aria-hidden=\"true\">4<\/span><div class=\"plan-ord-body\"><b class=\"plan-ord-name\" lang=\"en\">Ch 3 History<\/b><span class=\"plan-ord-why\">年份、人名及地方最多，最難記，放在最後，考試前仍然記得清楚<\/span><div class=\"plan-chw\"><span class=\"plan-chw-bar\" aria-hidden=\"true\"><i style=\"width: 100%;\"><\/i><\/span><span class=\"plan-chw-c plan-num\">91 條 · 161 題<\/span><\/div><\/div><\/div><\/div>\n        <\/div>\n      <\/div>\n\n      <div class=\"plan-card-box\">\n        <div class=\"plan-row\">\n          <h3 id=\"planDayListTitle\" data-i18n=\"plan.schedule.listTitle\">每日任務<\/h3>\n          <span class=\"plan-legend\" aria-hidden=\"true\"><i class=\"plan-bg-learn\"><\/i><span data-i18n=\"plan.phase.learn\">讀 + 練<\/span><i class=\"plan-bg-drill\"><\/i><span data-i18n=\"plan.phase.drill\">強化練習<\/span><i class=\"plan-bg-mock\"><\/i><span data-i18n=\"plan.phase.mock\">模擬考試<\/span><\/span>\n        <\/div>\n        <div class=\"plan-day-scroll\" id=\"planDayList\" tabindex=\"0\" role=\"region\" aria-labelledby=\"planDayListTitle\"><div class=\"plan-week\" lang=\"en\">Week 1<\/div><button type=\"button\" class=\"plan-day learn today\" data-action=\"openPlanDay\" data-arg=\"2026-10-12\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">1<small>12/10 一<\/small><\/span><span class=\"plan-pill now plan-num\">今日 0%<\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>閱讀 <span lang=\"en\">Ch 1<\/span> 知識點 #1–2<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>練習 <span lang=\"en\">Ch 1<\/span> 題目（9 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>閱讀 <span lang=\"en\">Ch 2<\/span> 知識點 #1–4<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>練習 <span lang=\"en\">Ch 2<\/span> 題目（11 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>閱讀 <span lang=\"en\">Ch 5<\/span> 知識點 #1–26<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>練習 <span lang=\"en\">Ch 5<\/span> 題目（39 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>重做錯題<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 1 Values &amp; principles<\/span><span class=\"plan-day-ch\" lang=\"en\">Ch 2 What is the UK?<\/span><span class=\"plan-day-ch\" lang=\"en\">Ch 5 Government &amp; law<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day learn\" data-action=\"openPlanDay\" data-arg=\"2026-10-13\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">2<small>13/10 二<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>閱讀 <span lang=\"en\">Ch 5<\/span> 知識點 #27–62<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>練習 <span lang=\"en\">Ch 5<\/span> 題目（51 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>重做錯題<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 5 Government &amp; law<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day learn\" data-action=\"openPlanDay\" data-arg=\"2026-10-14\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">3<small>14/10 三<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>閱讀 <span lang=\"en\">Ch 5<\/span> 知識點 #63–71<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>練習 <span lang=\"en\">Ch 5<\/span> 題目（12 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>閱讀 <span lang=\"en\">Ch 4<\/span> 知識點 #1–24<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>練習 <span lang=\"en\">Ch 4<\/span> 題目（46 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>重做錯題<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 5 Government &amp; law<\/span><span class=\"plan-day-ch\" lang=\"en\">Ch 4 Modern society<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day learn\" data-action=\"openPlanDay\" data-arg=\"2026-10-15\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">4<small>15/10 四<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>閱讀 <span lang=\"en\">Ch 4<\/span> 知識點 #25–60<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>練習 <span lang=\"en\">Ch 4<\/span> 題目（51 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>重做錯題<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 4 Modern society<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day learn\" data-action=\"openPlanDay\" data-arg=\"2026-10-16\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">5<small>16/10 五<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>閱讀 <span lang=\"en\">Ch 4<\/span> 知識點 #61–67<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>練習 <span lang=\"en\">Ch 4<\/span> 題目（9 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>閱讀 <span lang=\"en\">Ch 3<\/span> 知識點 #1–25<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>練習 <span lang=\"en\">Ch 3<\/span> 題目（50 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>重做錯題<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 4 Modern society<\/span><span class=\"plan-day-ch\" lang=\"en\">Ch 3 History<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day learn\" data-action=\"openPlanDay\" data-arg=\"2026-10-17\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">6<small>17/10 六<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>閱讀 <span lang=\"en\">Ch 3<\/span> 知識點 #26–56<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>練習 <span lang=\"en\">Ch 3<\/span> 題目（60 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>重做錯題<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 3 History<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day rest\" data-action=\"openPlanDay\" data-arg=\"2026-10-18\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">7<small>18/10 日<\/small><\/span><span class=\"plan-pill mute\">休息<\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">😴<\/span><span>休息日<\/span><\/span><\/span><\/button><div class=\"plan-week\" lang=\"en\">Week 2<\/div><button type=\"button\" class=\"plan-day learn\" data-action=\"openPlanDay\" data-arg=\"2026-10-19\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">8<small>19/10 一<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>閱讀 <span lang=\"en\">Ch 3<\/span> 知識點 #57–91<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>練習 <span lang=\"en\">Ch 3<\/span> 題目（51 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>重做錯題<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 3 History<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day drill\" data-action=\"openPlanDay\" data-arg=\"2026-10-20\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">9<small>20/10 二<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>再練習 <span lang=\"en\">Ch 1<\/span> 未掌握的題目（4 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>再練習 <span lang=\"en\">Ch 2<\/span> 未掌握的題目（4 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>再練習 <span lang=\"en\">Ch 5<\/span> 未掌握的題目（15 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>重溫答錯題目的知識點<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 1 Values &amp; principles<\/span><span class=\"plan-day-ch\" lang=\"en\">Ch 2 What is the UK?<\/span><span class=\"plan-day-ch\" lang=\"en\">Ch 5 Government &amp; law<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day drill\" data-action=\"openPlanDay\" data-arg=\"2026-10-21\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">10<small>21/10 三<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>再練習 <span lang=\"en\">Ch 5<\/span> 未掌握的題目（22 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>重溫答錯題目的知識點<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 5 Government &amp; law<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day drill\" data-action=\"openPlanDay\" data-arg=\"2026-10-22\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">11<small>22/10 四<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>再練習 <span lang=\"en\">Ch 5<\/span> 未掌握的題目（4 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>再練習 <span lang=\"en\">Ch 4<\/span> 未掌握的題目（18 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>重溫答錯題目的知識點<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 5 Government &amp; law<\/span><span class=\"plan-day-ch\" lang=\"en\">Ch 4 Modern society<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day drill\" data-action=\"openPlanDay\" data-arg=\"2026-10-23\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">12<small>23/10 五<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>再練習 <span lang=\"en\">Ch 4<\/span> 未掌握的題目（22 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>重溫答錯題目的知識點<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 4 Modern society<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day drill\" data-action=\"openPlanDay\" data-arg=\"2026-10-24\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">13<small>24/10 六<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>再練習 <span lang=\"en\">Ch 4<\/span> 未掌握的題目（2 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>再練習 <span lang=\"en\">Ch 3<\/span> 未掌握的題目（20 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>重溫答錯題目的知識點<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 4 Modern society<\/span><span class=\"plan-day-ch\" lang=\"en\">Ch 3 History<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day rest\" data-action=\"openPlanDay\" data-arg=\"2026-10-25\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">14<small>25/10 日<\/small><\/span><span class=\"plan-pill mute\">休息<\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">😴<\/span><span>休息日<\/span><\/span><\/span><\/button><div class=\"plan-week\" lang=\"en\">Week 3<\/div><button type=\"button\" class=\"plan-day drill\" data-action=\"openPlanDay\" data-arg=\"2026-10-26\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">15<small>26/10 一<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>再練習 <span lang=\"en\">Ch 3<\/span> 未掌握的題目（22 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>重溫答錯題目的知識點<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 3 History<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day drill plan-far\" data-action=\"openPlanDay\" data-arg=\"2026-10-27\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">16<small>27/10 二<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📝<\/span><span>再練習 <span lang=\"en\">Ch 3<\/span> 未掌握的題目（22 題）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">📖<\/span><span>重溫答錯題目的知識點<\/span><\/span><span class=\"plan-day-chs\"><span class=\"plan-day-ch\" lang=\"en\">Ch 3 History<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day mock plan-far\" data-action=\"openPlanDay\" data-arg=\"2026-10-28\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">17<small>28/10 三<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🎯<\/span><span>模擬考試（計時）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🎯<\/span><span>模擬考試（計時）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>模擬考試錯題再做一次<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day mock plan-far\" data-action=\"openPlanDay\" data-arg=\"2026-10-29\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">18<small>29/10 四<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🎯<\/span><span>模擬考試（計時）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🎯<\/span><span>模擬考試（計時）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>模擬考試錯題再做一次<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day mock plan-far\" data-action=\"openPlanDay\" data-arg=\"2026-10-30\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">19<small>30/10 五<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🎯<\/span><span>模擬考試（計時）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🎯<\/span><span>模擬考試（計時）<\/span><\/span><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>模擬考試錯題再做一次<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day mock plan-far\" data-action=\"openPlanDay\" data-arg=\"2026-10-31\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">20<small>31/10 六<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">🔁<\/span><span>輕鬆重溫：錯題及答錯題目的知識點（不做新的模擬考試）<\/span><\/span><\/span><\/button><button type=\"button\" class=\"plan-day rest plan-far\" data-action=\"openPlanDay\" data-arg=\"2026-11-01\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num\">21<small>1/11 日<\/small><\/span><span class=\"plan-pill mute\">休息<\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><span class=\"plan-day-ic\" aria-hidden=\"true\">😴<\/span><span>休息日<\/span><\/span><\/span><\/button><div class=\"plan-week\" lang=\"en\">Week 4<\/div><button type=\"button\" class=\"plan-day exam\" data-action=\"openPlanDay\" data-arg=\"2026-11-02\"><span class=\"plan-day-side\"><span class=\"plan-day-d plan-num plan-exam-pat\"><span aria-hidden=\"true\">🎯<\/span><small>2/11 一<\/small><\/span><\/span><span class=\"plan-day-tasks\"><span class=\"plan-day-t\"><b>考試日<\/b><\/span><span class=\"plan-day-t\"><span>請帶備身份證明文件及確認信，提早 30 分鐘到達。<\/span><\/span><\/span><\/button><\/div>\n      <\/div>\n\n      <button class=\"nav-btn plan-block\" data-action=\"openPlanDay\" data-i18n=\"plan.schedule.viewToday\">查看今日任務 →<\/button>\n      <div class=\"reset-row show plan-reset\">\n        <span class=\"reset-hint\" data-i18n=\"plan.schedule.resetHint\">想重新開始？重設會清除此計劃及進度，並返回重新建立。練習記錄則不受影響。<\/span>\n        <button class=\"reset-btn plan-hit\" data-action=\"planAskReset\" data-i18n=\"plan.schedule.reset\">↺ 重設計劃<\/button>\n      <\/div>\n    ", "sub": "應試練習"}};
+const S = { lang: 'en', large: 'off', fold: 'expanded', zoom: 'fit' };
+const WIDTHS = [1024, 1280];
+const GEAR = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
+
+// the captured screen, split into its parts (children of .plan-stack, in order)
+function parts() {
+  const tpl = document.createElement('template');
+  tpl.innerHTML = DATA[S.lang][S.fold];
+  const [header, title, phases, order, daily, cta, reset] = [...tpl.content.children].map(el => el.outerHTML);
+  return { header, title, phases, order, daily, cta, reset };
+}
+
+const OPTIONS = [
+  {
+    id: 'A', cls: 'optA', rec: true, title: 'A · 沿用 Home／Goal A：頂一條，左邊說明、右邊每日任務',
+    ann: `<ul><li><b>頂</b>：🏠、SCHEDULE、✏️、標題同摘要，佔滿成個闊度。</li>
+      <li><b>左欄（5/12）</b>：「三個階段」「溫習次序」兩張說明卡同「重設計劃」。都係睇一次就夠嘅資料，所以放埋一邊。</li>
+      <li><b>右欄（7/12，sticky）</b>：「每日任務」list 同「查看今日任務」掣。list 有成個右欄嘅高度可以碌，掣一直睇得到；左邊說明卡長過右欄都唔會遮住。</li>
+      <li>每日任務一行嘅排位同手機一樣，只係闊咗。</li></ul>`,
+    render: p => `${p.header}${p.title}<div class="cols"><div class="rail">${p.phases}${p.order}${p.reset}</div><div class="body">${p.daily}${p.cta}</div></div>`,
+  },
+  {
+    id: 'B', cls: 'optB', title: 'B · 單欄全闊（rev 2：按你意見修改）',
+    ann: `<ul><li>次序同手機一樣，由上至下。三個階段嘅說明排做 <b>3 欄</b>。</li>
+      <li><b>溫習次序</b>：4 個章節排成一行，<b>1 › 2 › 3 › 4</b>，每個都有名、原因、進度 bar 同數量。</li>
+      <li><b>溫習次序</b>每格得四分一闊，所以進度 bar 改為成格闊，數量放喺 bar 下面（4 條 bar 仍然一樣長、同一個起點）。</li>
+      <li><b>每日任務</b>：成個計劃由左向右 scroll，一日一欄（240px），1280px 大約一次見到 5 日；每個 Week 係一組，「WEEK n」喺組頂，碌嘅時候會黐住左邊。打開時會碌到今日。可以用 trackpad／shift + 滾輪／拖 scrollbar 碌，平板就用手指掃。</li>
+      <li><b>rev 5</b>：「查看今日任務」掣搬入「每日任務」卡右下角（跟文字闊度）；「重設」框自己成一行，說明喺左、掣喺右。</li>
+      <li><b>rev 4</b>：冇「今日」pill 嘅日子都留返 pill 嗰行位，所以每張卡嘅任務都喺同一條線開始；溫習次序收起時，點下面顯示章節全名，「Ch 1 + Ch 2」分兩行，「+」凸出喺左邊，兩個章節名同一個起點。</li>
+      <li><b>rev 3</b>：溫習次序 4 個章節嘅標題、說明、bar 各自對齊同一條線（CSS subgrid）；每日卡頂改為一行置中「Day 1 – 12/10 Mon」（中文用「Day 1 · 12/10 一」，因為「– 12/10 一」睇落似兩條橫線），今日／% 喺下一行置中；金色章節同上面任務空一行，而且每張卡都貼底對齊；有未顯示嘅日子嗰邊會有淡出效果同 ‹ › 掣（撳一下碌大約一版）。</li>
+      <li>留意：每日卡高度跟最長嗰日，所以短嘅日子下面會有空位；6 個月嘅計劃大約有 180 欄，要碌好耐，app 實作時打開會直接跳去今日。</li></ul>`,
+    render: p => `${p.header}${p.title}${p.phases}${p.order}${p.daily.replace(/<\/div>\s*$/, p.cta + '</div>')}${p.reset}`,
+  },
+  {
+    id: 'C', cls: 'optC', title: 'C · 週曆：每日任務排做 7 欄',
+    ann: `<ul><li>「三個階段」同「溫習次序」兩張卡並排喺頂（建議預設收起）。</li>
+      <li>每日任務變成<b>週曆</b>：一行一個「Week」、7 欄，成個計劃一眼睇晒，唔使喺細格入面碌。留意：app 嘅 Week 係由開始日起計 7 日（今次啱啱係星期一開始），唔係固定星期一至日，所以欄頭唔可以寫星期幾。</li>
+      <li>好處：最似日曆，休息日同階段顏色一眼睇到。弱點：1024px 時每格得大約 130px，任務字要細一級，仲要斷好多行；長計劃（最長 6 個月）會變成好長嘅一頁。</li></ul>`,
+    render: p => `${p.header}${p.title}<div class="top">${p.phases}${p.order}</div>${p.daily}<div class="foot">${p.cta}${p.reset}</div>`,
+  },
+];
+
+function header() {
+  return `<div class="hdr"><div class="hdr-in"><div class="logo"><span class="logo-icon"><img src="../../icons/icon.svg" alt=""></span>
+    <div><div class="logo-text">Life in the UK Test <span class="i">ⓘ</span></div><div class="logo-sub">${DATA[S.lang].sub}<span class="v">v2.0.0</span></div></div></div>
+    <span class="gear">${GEAR}</span></div></div>`;
+}
+function frame(opt, w) {
+  const appCls = 'app ' + opt.cls + (S.large === 'on' ? ' large' : '');
+  return `<div class="frame-label">${w}px</div><div class="frame-box" data-w="${w}"><div class="frame" style="width:${w}px">
+    <div class="${appCls}" lang="${S.lang === 'zh' ? 'zh-HK' : 'en'}">${header()}<div class="main"><div class="plan-stack">${opt.render(parts())}</div></div></div></div></div>`;
+}
+// option B rev 2: wrap each Week label and its days in a group (the app renders them as siblings)
+function groupWeeks(list) {
+  let days = null;
+  [...list.children].forEach(el => {
+    if (el.classList.contains('plan-week')) {
+      const wk = document.createElement('div');
+      wk.className = 'plan-wk';
+      days = document.createElement('div');
+      days.className = 'plan-wk-days';
+      el.replaceWith(wk);
+      wk.append(el, days);
+    } else if (days) days.append(el);
+  });
+}
+// option B rev 3: "Day n – date" on one line (the app renders "n<small>date</small>"; exam / special days stay as they are)
+function dateOneLine(list) {
+  list.querySelectorAll('.plan-day-d').forEach(d => {
+    const n = d.firstChild, small = d.querySelector('small');
+    if (!n || n.nodeType !== Node.TEXT_NODE || !/^\d+$/.test(n.textContent.trim()) || !small) return;
+    n.textContent = 'Day ' + n.textContent.trim() + ' ';
+    // zh-HK weekdays are 一…日: "– 12/10 一" reads as two dashes, so Chinese takes "·"
+    small.textContent = (S.lang === 'zh' ? '· ' : '– ') + small.textContent;
+  });
+}
+// option B rev 4: an invisible pill in each card without one, so every task list starts on the same line
+function pillSlots(list) {
+  list.querySelectorAll('.plan-day-side').forEach(side => {
+    if (side.querySelector('.plan-pill')) return;
+    side.insertAdjacentHTML('beforeend', '<span class="plan-pill pill-slot" aria-hidden="true">&nbsp;</span>');
+  });
+}
+// option B rev 4: the folded study order shows the chapter names (from the screen-reader text the app already renders),
+// one chapter per line, "+" hanging in front of the second
+function miniNames(root) {
+  root.querySelectorAll('.optB .plan-ord-mini li').forEach(li => {
+    const full = li.querySelector('.plan-sr'), name = li.querySelector('.plan-ord-mini-name');
+    if (!full || !name) return;
+    const chs = full.textContent.split(' + ');
+    name.innerHTML = '<span class="mini-chs">' + chs.map((c, i) => `<span class="plus">${i ? '+' : ''}</span><span class="ch">${c}</span>`).join('') + '</span>';
+  });
+}
+// option B rev 3: wrap the scroller, add ‹ › buttons, and mark which sides still have days off-screen
+const SCROLL_PAGE_SHARE = 0.85;
+function addScrollCues(list) {
+  const wrap = document.createElement('div');
+  wrap.className = 'hscroll';
+  list.replaceWith(wrap);
+  wrap.innerHTML = '<button type="button" class="hs-btn l" aria-label="Earlier days">‹</button><button type="button" class="hs-btn r" aria-label="Later days">›</button>';
+  wrap.prepend(list);
+  const update = () => {
+    wrap.classList.toggle('can-l', list.scrollLeft > 1);
+    wrap.classList.toggle('can-r', list.scrollLeft + list.clientWidth < list.scrollWidth - 1);
+  };
+  wrap.querySelectorAll('.hs-btn').forEach(b => b.addEventListener('click', () => {
+    const dir = b.classList.contains('l') ? -1 : 1;
+    list.scrollBy({ left: dir * list.clientWidth * SCROLL_PAGE_SHARE, behavior: 'smooth' });
+  }));
+  list.addEventListener('scroll', update, { passive: true });
+  update();
+}
+function render() {
+  document.getElementById('opts').innerHTML = OPTIONS.map(o => `<section class="opt"><div class="opt-title">${o.title}${o.rec ? '<span class="rec">建議</span>' : ''}</div>
+    <div class="ann">${o.ann}</div>${WIDTHS.map(w => frame(o, w)).join('')}</section>`).join('');
+  document.querySelectorAll('.optB .plan-day-scroll').forEach(list => { groupWeeks(list); dateOneLine(list); pillSlots(list); addScrollCues(list); });
+  miniNames(document);
+  fitFrames();
+}
+// "適合畫面": scale each frame down to the page width (never up); the box takes the scaled height so nothing overlaps
+function fitFrames() {
+  document.querySelectorAll('.frame-box').forEach(box => {
+    const f = box.firstElementChild, w = Number(box.dataset.w);
+    const scale = S.zoom === 'fit' ? Math.min(1, box.parentElement.clientWidth / w) : 1;
+    f.style.transform = scale < 1 ? `scale(${scale})` : '';
+    box.style.height = scale < 1 ? f.offsetHeight * scale + 'px' : '';
+    box.style.overflowX = scale < 1 ? 'hidden' : 'auto';
+  });
+}
+document.querySelector('.mock-bar').addEventListener('click', e => {
+  const b = e.target.closest('.mock-tab');
+  if (!b) return;
+  S[b.dataset.k] = b.dataset.v;
+  document.querySelectorAll(`.mock-tab[data-k="${b.dataset.k}"]`).forEach(x => x.classList.toggle('on', x === b));
+  render();
+});
+window.addEventListener('resize', fitFrames);
+render();
+</script>
+</body>
+</html>

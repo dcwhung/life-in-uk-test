@@ -6,7 +6,8 @@ const launchOpts = { args: ['--no-sandbox'] };
 if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_PATH;
 (async () => {
   const b = seedLegacyDefaults(await chromium.launch(launchOpts));
-  const pg = await b.newPage();
+  // v2.0.0: the default 1280px viewport is the desktop layout now (no bottom Prev / Next); this suite is the phone flow
+  const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
   const errs = []; pg.on('pageerror', e => errs.push(e.message));
   await pg.goto(APP_URL);
   const cls = i => pg.$eval('#opt' + i, e => Array.from(e.classList));

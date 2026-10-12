@@ -80,23 +80,28 @@ function openStudy() {
   byId('studySearch').value = study.search;
   showScreen('screenStudy');
   renderStudy();
-  window.scrollTo(0, 0);
+  setStudyScroll(0);
 }
-// a tab / chip in the pinned block (css/screens/study.css .study-top) picks a new list: save, redraw, show it from its start
-function studyRefilter() { studySavePrefs(); renderStudy(); studyShowListStart(); }
+// a tab / chip in the pinned block (css/screens/study.css .study-top) picks a new list: save, redraw, show it from its start.
+// v2.0.0 desktop: the controls stay in the rail beside the card panel, which would otherwise keep the old offset, so the
+// panel goes back to its top (on a phone #studyContent does not scroll: a no-op); on a phone the page scrolls back so the
+// list starts right under the pinned block (studyShowListStart)
+function renderNewStudyList() { renderStudy(); studyPanel().scrollTop = 0; }
+function studyRefilter() { studySavePrefs(); renderNewStudyList(); studyShowListStart(); }
 function studySetTab(tab) { study.tab = tab; studyRefilter(); }
 function studySetChapter(ch) { study.chapter = ch; studyRefilter(); }
 function studySetNation(n) { study.nation = n; studyRefilter(); }
 function studySetGroup(g) { study.group = g; studyRefilter(); }
 function studySetMemoChapter(ch) { study.memoChapter = ch; studyRefilter(); }
-function studySetSearch(v) { study.search = v.trim().toLowerCase(); renderStudy(); }
+function studySetSearch(v) { study.search = v.trim().toLowerCase(); renderNewStudyList(); }
 function studyToggle(key) { study[key] = !study[key]; studyRefilter(); }
 // v1.6.1: tapped while the list is scrolled under the pinned block, the new list would open mid-way (or past its end):
 // scroll back so it starts right under the block. At rest (or unpinned, short screens) the list already starts below
-// it: no-op. A cached older index.html (before v1.6.1) has no block: nothing to do
+// it: no-op. A cached older index.html (before v1.6.1) has no block: nothing to do. Desktop (v2.0.2 merge): the block
+// is not pinned (display: contents in the rail) and the page does not scroll, only the card panel
 function studyShowListStart() {
   const top = document.querySelector('#screenStudy .study-top');
-  if (!top) return;
+  if (!top || studyPanelScrolls()) return;
   const overlap = top.getBoundingClientRect().bottom - byId('studyCount').getBoundingClientRect().top;
   if (overlap > 0) window.scrollBy(0, -overlap);
 }
@@ -181,6 +186,53 @@ function studySubChipsHtml() {
   return '';
 }
 
+// ── v2.0.0 desktop layout (≥ 1024px; mockup mockups/v2.0.0/desktop-study.html A rev 4, css/screens/study.css) ──
+// One screen high: a left rail (20%: search, tabs, sub chips, count, then the filter chips at its foot) beside the
+// card panel, which scrolls on its own with fades (js/components/fit.js). index.html keeps the flat phone markup, so
+// the wrappers are added here once; below 1024px they are display: contents and the phone layout is unchanged.
+// v2.0.2 merge: the v1.6.1 pinned block (.study-top: tabs + chip rows) moves into the rail as one piece and is
+// display: contents there (css/screens/study.css), so the rail still lays out search, tabs, chips, count. An older cached
+// index.html (before v1.6.1) has no block: its tabs and chip rows go into the rail one by one, as in v2.0.0
+const STUDY_RAIL_IDS = ['studySearch', 'studyTabs', 'studyChips', 'studySubChips', 'studyCount'];
+function studyRailEls() {
+  const top = document.querySelector('#screenStudy .study-top');
+  if (!top) return STUDY_RAIL_IDS.map(byId).filter(Boolean);
+  return [byId('studySearch'), top, byId('studyCount')].filter(Boolean);
+}
+function wrapStudyEl(cls, children) {
+  const box = document.createElement('div');
+  box.className = cls;
+  box.append(...children);
+  return box;
+}
+function ensureStudyLayout() {
+  const screen = byId('screenStudy');
+  if (screen.querySelector('.study-cols')) return;
+  const content = byId('studyContent');
+  const rail = wrapStudyEl('study-rail', studyRailEls());
+  content.classList.add('fit-panel');
+  const cols = wrapStudyEl('study-cols fit-grow', [rail, wrapStudyEl('study-main fit-fade', [content])]);
+  screen.append(cols);
+  screen.classList.add('is-fit');
+}
+// desktop: the filter chips sit at the rail's foot, after the count; phone: above the sub chips as before. The node
+// moves (not css order) so the Tab order follows what is seen; it only moves when its place is wrong
+function placeStudyFilterChips(desktop) {
+  const chips = byId('studyChips'), count = byId('studyCount'), sub = byId('studySubChips');
+  if (!chips || !count || !sub) return;
+  if (desktop && count.nextElementSibling !== chips) deskKeepFocus(() => count.after(chips)); // S-228
+  if (!desktop && chips.nextElementSibling !== sub) deskKeepFocus(() => sub.before(chips));
+}
+// the cards scroll in their panel on desktop and with the page on a phone (js/screens/sideSession.js keeps the
+// offset across a fact's Practice session)
+const studyPanel = () => byId('studyContent');
+const studyPanelScrolls = () => typeof isDesktop === 'function' && isDesktop();
+function studyScrollTop() { return studyPanelScrolls() ? studyPanel().scrollTop : window.scrollY; }
+function setStudyScroll(y) {
+  studyPanel().scrollTop = studyPanelScrolls() ? y : 0;
+  window.scrollTo(0, studyPanelScrolls() ? 0 : y);
+}
+
 // a chip row holds markup or hides (the memo tab has no Hide mastered / Bookmarked chips)
 function fillChipRow(id, html) {
   const row = byId(id);
@@ -188,6 +240,7 @@ function fillChipRow(id, html) {
   row.hidden = !html;
 }
 function renderStudy() {
+  ensureStudyLayout();
   document.querySelectorAll('.study-tab').forEach(t =>
     t.classList.toggle('active', t.dataset.tab === study.tab));
   fillChipRow('studyChips', study.tab === MEMO_TAB ? '' : studyChipsHtml());
@@ -200,6 +253,7 @@ function renderStudy() {
   renderStudyProgress();
   byId('studyContent').innerHTML =
     shown ? html : `<div class="study-empty">${t(emptyKey)}</div>`;
+  desktopRefit('screenStudy', placeStudyFilterChips); // registered lazily (js/components/deskPlace.js)
 }
 
 // Q8: after ↩ Back from a fact session its card flashes gold; R-010: when the restored scroll no longer shows it

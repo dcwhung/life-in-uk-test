@@ -80,6 +80,7 @@ LOCALES['zh-HK'] = {
     questionOf: '第 {n} 題（共 {total} 題）',
     questionOfShort: '第 {n}/{total} 題',
     allShuffled: '全部試題（隨機排序）',
+    answerTab: '答案', // v2.0.0 desktop: the right column's tab beside Similar Questions (F5)
     translate: '翻譯',
     hideTranslation: '隱藏翻譯',
     previous: '上一題',
@@ -279,6 +280,10 @@ LOCALES['zh-HK'] = {
       resumeQs: '（已答對 {done} / {total} 題）',
       seeTomorrow: '明日再來', // v1.5.1: all done today (the ring shows ✓)
       continue: '繼續',
+      // v2.0.0 F7 desktop card (mockup desktop-home-plan.html): its ring shows the %, so the done line keeps the ✓;
+      // the wider card keeps the long Continue label (v2.0.2: the → is a line icon, planHome.js)
+      doneHtml: '<b>✓ 今日已完成</b>，明日再來',
+      continueToday: '繼續今日任務',
       viewToday: '查看今日任務',
       viewDay: '查看今日',
       restToday: '今日是休息日',
@@ -288,6 +293,9 @@ LOCALES['zh-HK'] = {
       endedSummary: '平均完成度 {avg}% · 知識點 {facts} / {factsTotal} 條 · 題目 {qs} / {qsTotal} 題 · {mocks}',
       endedMocks: '模擬考試達 {safe}/{total} 或以上 {n} 次',
       newPlan: '建立新計劃',
+      cdLeftHtml: '距離考試 <b>{n}</b> 日',
+      cdStart: '開始 {date}',
+      cdExam: '🎯 考試 {date}',
       logBroken: '無法讀取進度記錄，請在進度表按「重設計劃」清除，並重新建立。',
     },
     day: {
@@ -311,6 +319,7 @@ LOCALES['zh-HK'] = {
       doneDay: '🎉 這日的任務已全部完成！',
       carryAlert: '之前有 {n} 項未完成的任務，已自動加入今日並標示原本日子；補做不計入今日完成度。',
       examAhead: '🎯 考試日',
+      moreTasks: '↓ 還有任務',
     },
     calendar: {
       title: '每日完成度',
@@ -543,6 +552,7 @@ LOCALES['zh-HK'] = {
       sport: { label: '🏅 體育及探險', chip: '🏅 體育' },
       reformer: { label: '✊ 改革者及其他', chip: '✊ 改革者' },
     },
+    monthsShort: { 1: '1月', 2: '2月', 3: '3月', 4: '4月', 5: '5月', 6: '6月', 7: '7月', 8: '8月', 9: '9月', 10: '10月', 11: '11月', 12: '12月' },
     months: { 1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9', 10: '10', 11: '11', 12: '12' },
     weekdays: { 0: '日', 1: '一', 2: '二', 3: '三', 4: '四', 5: '五', 6: '六' },
     planLevels: {

@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Desktop Plan Goal Mockup</title>
+<!--
+  v2.0.0 desktop / tablet-landscape layout — mockup 2 of 12: Plan Goal (screenPlanGoal, "Set your goal").
+  Settled (grill 2026-10-12): ≥ 1024px uses the desktop layout; content max 1280px, centred; every --fs-* and
+  --space-* token ×1.2; ⚙ large text = (base + 2px) × 1.2. Home settled on option A (desktop-home.html rev 3:
+  horizontal top card, left rail + right content). Colours / radii copied from css/base/tokens.css (v1.4.0).
+  Mockup-only: the frames, toggles and annotations (.mock-*, .frame*, .ann).
+-->
+<style>
+  :root {
+    --orange: #d9822b;
+    --navy: #1a2744; --navy-mid: #243460; --navy-light: #2e4080;
+    --gold: #c9a84c; --gold-light: #e8c97a;
+    --green: #2d6a4f; --green-light: #52b788;
+    --red: #922b21; --red-light: #e74c3c;
+    --bg: #f0f2f7; --card: #ffffff; --text: #1a2744; --text-muted: #5a6a8a; --border: #dde2f0;
+    --text-inverse: #fff; --text-inverse-muted: rgba(255,255,255,0.6); --text-inverse-faint: rgba(255,255,255,0.45);
+    --success-bg: #edf8f2; --danger-bg: #fdf0ef; --selected-bg: #f0f4ff; --gold-bg: #fdf6e3; --gold-text: #8a6d1f;
+    --radius: 14px; --radius-md: 10px; --radius-sm: 8px; --radius-pill: 999px; --radius-circle: 50%;
+    --shadow: 0 4px 24px rgba(26,39,68,0.10); --shadow-sm: 0 2px 8px rgba(26,39,68,0.07); --shadow-header: 0 2px 16px rgba(0,0,0,0.25);
+    /* mockup-only chrome */
+    --mock-page: #e4e7ef; --mock-note-bg: #fffbea; --mock-note-border: #e8d48a; --mock-frame-border: #c9cfdd;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, 'PingFang HK', 'Noto Sans HK', 'Microsoft JhengHei', sans-serif; background: var(--mock-page); color: var(--text); -webkit-font-smoothing: antialiased; }
+
+  /* ════════ mockup chrome (same as desktop-home.html) ════════ */
+  .mock-bar { background: var(--navy); color: var(--text-inverse); padding: 10px 16px; font-size: 12px; position: sticky; top: 0; z-index: 50; box-shadow: var(--shadow-header); }
+  .mock-bar > b { color: var(--gold-light); font-size: 13px; }
+  .mock-row { display: flex; gap: 6px; margin-top: 7px; flex-wrap: wrap; align-items: center; }
+  .mock-row .lbl { color: var(--text-inverse-muted); margin-right: 2px; font-weight: 700; min-width: 64px; }
+  .mock-tab { background: transparent; border: 1.5px solid rgba(255,255,255,0.3); color: var(--text-inverse); border-radius: 999px; padding: 4px 11px; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+  .mock-tab.on { background: var(--gold); border-color: var(--gold); color: var(--navy); }
+  .page { padding: 16px; }
+  .brief { max-width: 1100px; background: var(--mock-note-bg); border: 1.5px solid var(--mock-note-border); border-radius: 10px; padding: 12px 14px; font-size: 13px; line-height: 1.6; margin-bottom: 18px; }
+  .brief h2 { font-size: 15px; margin-bottom: 4px; }
+  .brief ul { padding-left: 18px; }
+  .brief code { background: rgba(0,0,0,0.05); padding: 0 4px; border-radius: 4px; font-size: 12px; }
+  .opt { margin-bottom: 34px; }
+  .opt-title { font-size: 17px; font-weight: 800; color: var(--navy); margin-bottom: 4px; }
+  .opt-title .rec { font-size: 11px; background: var(--green); color: var(--text-inverse); border-radius: 999px; padding: 2px 9px; margin-left: 6px; vertical-align: 2px; }
+  .ann { font-size: 12.5px; color: var(--text-muted); line-height: 1.6; max-width: 1100px; margin-bottom: 10px; }
+  .ann b { color: var(--navy); }
+  .ann ul { padding-left: 18px; }
+  .ann code { background: rgba(0,0,0,0.05); padding: 0 4px; border-radius: 4px; font-size: 12px; }
+  .frame-label { display: inline-block; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 999px; margin: 10px 0 6px; background: var(--text-muted); color: var(--text-inverse); }
+  .frame-box { overflow: hidden; }
+  .frame { background: var(--bg); border: 1px solid var(--mock-frame-border); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); transform-origin: top left; }
+
+  /* ════════ app tokens, desktop scale (--k = 1.2, --lg = 0 / 2px for ⚙ large text) ════════ */
+  .app {
+    --k: 1.2; --lg: 0px;
+    --fs-2xs: calc((10px + var(--lg)) * var(--k));
+    --fs-xs: calc((11px + var(--lg)) * var(--k));
+    --fs-sm: calc((12px + var(--lg)) * var(--k));
+    --fs-base: calc((13px + var(--lg)) * var(--k));
+    --fs-md: calc((14px + var(--lg)) * var(--k));
+    --fs-lg: calc((15px + var(--lg)) * var(--k));
+    --fs-xl: calc((16px + var(--lg)) * var(--k));
+    --fs-4xl: calc((20px + var(--lg)) * var(--k));
+    --fs-7xl: calc((26px + var(--lg)) * var(--k));
+    --space-1: calc(2px * var(--k)); --space-2: calc(4px * var(--k)); --space-3: calc(6px * var(--k));
+    --space-4: calc(8px * var(--k)); --space-5: calc(10px * var(--k)); --space-6: calc(12px * var(--k));
+    --space-7: calc(14px * var(--k)); --space-8: calc(16px * var(--k)); --space-10: calc(20px * var(--k));
+    --space-12: calc(24px * var(--k));
+    --content-max: 1280px;
+    font-size: var(--fs-xl);
+  }
+  .app.large { --lg: 2px; }
+
+  /* ── header (layout.css, ×1.2) ── */
+  .hdr { background: var(--navy); padding: 0 var(--space-10); box-shadow: var(--shadow-header); }
+  .hdr-in { max-width: var(--content-max); margin: 0 auto; height: calc(58px * var(--k)); display: flex; align-items: center; justify-content: space-between; }
+  .logo { display: flex; align-items: center; gap: var(--space-5); }
+  .logo-icon { width: calc(36px * var(--k)); height: calc(36px * var(--k)); border-radius: var(--radius-sm); background: var(--card); overflow: hidden; }
+  .logo-icon img { width: 100%; height: 100%; display: block; }
+  .logo-text { color: var(--text-inverse); font-size: var(--fs-lg); font-weight: 700; display: flex; align-items: center; gap: var(--space-3); }
+  .logo-text .i { color: var(--text-inverse-muted); font-size: var(--fs-md); font-weight: 400; }
+  .logo-sub { color: var(--gold); font-size: var(--fs-xs); font-weight: 500; margin-top: 1px; }
+  .logo-sub .v { color: var(--text-inverse-faint); font-weight: 600; margin-left: var(--space-2); }
+  .gear { color: var(--gold-light); width: calc(32px * var(--k)); height: calc(32px * var(--k)); display: grid; place-items: center; }
+  .gear svg { width: 60%; height: 60%; fill: none; stroke: currentColor; stroke-width: 2; }
+  .main { max-width: var(--content-max); margin: 0 auto; padding: var(--space-10) var(--space-8) calc(60px * var(--k)); }
+
+  /* ── screen header + steps (layout.css / plan.css) ── */
+  .plan-stack { display: grid; gap: var(--space-8); }
+  .quiz-header { display: flex; align-items: center; justify-content: space-between; }
+  .home-btn { width: calc(38px * var(--k)); height: calc(34px * var(--k)); border: 2px solid var(--border); border-radius: var(--radius-sm); background: var(--card); display: grid; place-items: center; color: var(--navy); }
+  .home-btn svg { width: 50%; height: 50%; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linejoin: round; }
+  .quiz-label { font-size: var(--fs-base); font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .plan-steps { display: flex; gap: var(--space-3); }
+  .plan-steps i { flex: 1; height: calc(4px * var(--k)); border-radius: var(--radius-pill); background: var(--border); }
+  .plan-steps i.on { background: var(--gold); }
+  .plan-h2 { font-size: var(--fs-4xl); margin-top: var(--space-1); }
+  .plan-muted { color: var(--text-muted); font-size: var(--fs-sm); line-height: 1.55; }
+
+  /* ── cards + fields (plan.css) ── */
+  .plan-card-box { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow-sm); padding: var(--space-8); display: grid; gap: var(--space-6); min-width: 0; align-content: start; }
+  .plan-card-box h3 { font-size: var(--fs-lg); }
+  .plan-row { display: flex; justify-content: space-between; align-items: center; gap: var(--space-4); flex-wrap: wrap; }
+  .plan-field { display: grid; gap: var(--space-4); }
+  .plan-field-label { font-size: var(--fs-md); font-weight: 700; display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-4); }
+  .plan-val { color: var(--navy-light); font-size: var(--fs-lg); white-space: nowrap; }
+  .chip { background: var(--card); border: 1.5px solid var(--border); border-radius: var(--radius-pill); padding: calc(5px * var(--k)) var(--space-6); font-size: var(--fs-sm); font-weight: 600; color: var(--text-muted); text-align: center; white-space: nowrap; }
+  .chip.active { background: var(--navy); border-color: var(--navy); color: var(--text-inverse); }
+  .plan-presets { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-3); }
+  .plan-date-pick { justify-self: end; display: flex; align-items: center; gap: var(--space-3); font-size: var(--fs-sm); color: var(--text-muted); white-space: nowrap; }
+  .plan-date-pick span.inp { border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: var(--space-3) var(--space-4); font-size: var(--fs-base); color: var(--text); background: var(--card); }
+  .plan-range { position: relative; height: calc(16px * var(--k)); }
+  .plan-range::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: calc(4px * var(--k)); transform: translateY(-50%); border-radius: var(--radius-pill); background: var(--navy); }
+  .plan-range i { position: absolute; top: 0; width: calc(16px * var(--k)); height: calc(16px * var(--k)); border-radius: var(--radius-circle); background: var(--navy); transform: translateX(-50%); }
+  .plan-ticks { display: flex; justify-content: space-between; padding: 0 var(--space-4); height: calc(16px * var(--k)); }
+  .plan-ticks span { width: 0; display: flex; justify-content: center; white-space: nowrap; font-size: var(--fs-2xs); color: var(--text-muted); }
+  .plan-ticks span.on { color: var(--navy); font-weight: 800; }
+  .plan-rest-row { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--space-2); }
+  .chip.plan-rest { padding-inline: 0; }
+  .chip.plan-rest.active { background: var(--red); border-color: var(--red); }
+  .plan-levels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-5); }
+  .mode-card { background: var(--card); border-radius: var(--radius); padding: var(--space-8) var(--space-5); border: 2px solid var(--border); text-align: center; }
+  .mode-card.selected { border-color: var(--navy); background: var(--selected-bg); }
+  .mode-icon { font-size: var(--fs-7xl); margin-bottom: var(--space-3); }
+  .mode-title { font-size: var(--fs-md); font-weight: 700; color: var(--navy); }
+  .plan-level-sub { display: block; font-size: var(--fs-2xs); color: var(--text-muted); line-height: 1.4; font-weight: 500; margin-top: var(--space-1); }
+  /* stacked level cards: icon left of name + sub (today's 390px look) */
+  .plan-levels.stack { grid-template-columns: minmax(0, 1fr); }
+  .plan-levels.stack .mode-card { display: grid; grid-template-columns: calc(40px * var(--k)) auto; justify-content: center; align-items: center; column-gap: var(--space-6); padding-block: var(--space-6); text-align: left; }
+  .plan-levels.stack .mode-icon { grid-row: span 2; margin-bottom: 0; }
+
+  /* ── feasibility (plan.css) ── */
+  .plan-pill { display: inline-flex; align-items: center; font-size: var(--fs-xs); font-weight: 800; border-radius: var(--radius-pill); padding: calc(3px * var(--k)) var(--space-5); white-space: nowrap; }
+  .plan-pill.ok { background: var(--success-bg); color: var(--green); }
+  .plan-pill.tight { background: var(--gold-bg); color: var(--gold-text); }
+  .plan-pill.short { background: var(--danger-bg); color: var(--red); }
+  .plan-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); }
+  .plan-stats.stack2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .plan-stats.stack2 .plan-stat:last-child { grid-column: 1 / -1; }
+  .plan-stat { background: var(--bg); border-radius: var(--radius-md); padding: var(--space-5); display: grid; gap: var(--space-1); min-width: 0; }
+  .plan-stat .k { font-size: var(--fs-2xs); color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+  .plan-stat .v { font-size: var(--fs-4xl); font-weight: 800; }
+  .plan-stat .s { font-size: var(--fs-2xs); color: var(--text-muted); }
+  .plan-meter { height: calc(10px * var(--k)); border-radius: var(--radius-pill); background: var(--border); overflow: hidden; position: relative; }
+  .plan-meter i { position: absolute; inset: 0 auto 0 0; border-radius: var(--radius-pill); }
+  .plan-meter i.ok { background: var(--green-light); }
+  .plan-meter i.tight { background: var(--gold); }
+  .plan-meter i.short { background: var(--red-light); }
+  .plan-hint { background: var(--danger-bg); color: var(--red); border-radius: var(--radius-md); padding: var(--space-5) var(--space-6); font-size: var(--fs-sm); line-height: 1.5; }
+  .nav-btn { display: block; width: 100%; min-height: calc(44px * var(--k)); background: var(--navy); color: var(--text-inverse); border-radius: var(--radius-md); padding: var(--space-6); font-size: var(--fs-md); font-weight: 700; text-align: center; }
+
+  /* ════════ option A: page header across, then form (left) | sticky result + button (right) ════════ */
+  .optA .cols { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--space-12); align-items: start; }
+  .optA .form, .optA .side { display: grid; gap: var(--space-8); }
+  .optA .side { position: sticky; top: var(--space-10); }
+  /* rev 2 (user): presets and the exam date picker share one row */
+  .optA .plan-date-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--space-6); }
+  .optA .plan-date-pick { justify-self: auto; }
+  /* doesn't fit (a chip would be cut): back to two rows, as js/components/fitRow.js does today */
+  .optA .plan-date-row.is-stacked { grid-template-columns: minmax(0, 1fr); }
+  .optA .plan-date-row.is-stacked .plan-date-pick { justify-self: end; }
+
+  /* ════════ option B: one centred column (no wider than a form needs) ════════ */
+  .optB .plan-stack { max-width: calc(640px * var(--k)); margin: 0 auto; }
+
+  /* ════════ option C: 2 × 2 cards, button across ════════ */
+  .optC .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-8); align-items: stretch; }
+</style>
+</head>
+<body>
+
+<div class="mock-bar">
+  <b>v2.0.0 Desktop · Mockup 2/12 · Plan Goal（訂立目標）· rev 2：A 考試日期一行</b>
+  <div class="mock-row"><span class="lbl">語言</span><button class="mock-tab on" data-k="lang" data-v="en">EN</button><button class="mock-tab" data-k="lang" data-v="zh">中文</button>
+    <span class="lbl" style="margin-left:10px">⚙ 大字</span><button class="mock-tab on" data-k="large" data-v="off">關</button><button class="mock-tab" data-k="large" data-v="on">開</button></div>
+  <div class="mock-row"><span class="lbl">時間</span><button class="mock-tab on" data-k="feas" data-v="ok">✓ 充裕</button><button class="mock-tab" data-k="feas" data-v="tight">△ 剛好</button><button class="mock-tab" data-k="feas" data-v="short">✕ 不足</button><button class="mock-tab" data-k="feas" data-v="blocked">溫習日太少（錯誤提示）</button>
+    <span class="lbl" style="margin-left:10px">入口</span><button class="mock-tab on" data-k="edit" data-v="off">新計劃</button><button class="mock-tab" data-k="edit" data-v="on">更改目標</button></div>
+  <div class="mock-row"><span class="lbl">縮放</span><button class="mock-tab on" data-k="zoom" data-v="fit">適合畫面</button><button class="mock-tab" data-k="zoom" data-v="100">100%</button></div>
+</div>
+
+<div class="page">
+  <div class="brief">
+    <p style="margin-bottom:8px"><b>✅ 定案：A（rev 2，2026-10-12）</b>：日期一行放唔落就自動兩行。B／C 保留作紀錄。</p>
+    <h2>全局規則（同 Home 一樣）</h2>
+    <ul>
+      <li>≥ <b>1024px</b> 先轉 desktop layout；內容最闊 <b>1280px</b> 置中；token <b>×1.2</b>；⚙ 大字 = (基礎 + 2px) × 1.2</li>
+      <li>呢個畫面冇廣東話翻譯內容，所以冇「翻譯」toggle；「更改目標」係由進度表撳「更改目標」入嚟嘅同一個 form（step 字、掣字、日期提示唔同）</li>
+      <li>Home 定咗 A（上面一條橫向，下面左右兩欄），所以呢度嘅 A 都沿用同一個框架</li>
+    </ul>
+    <p style="margin-top:6px">每個方案都有 <b>1024px</b> 同 <b>1280px</b> 兩個 frame。請揀 A／B／C，或者話我知要改咩。</p>
+  </div>
+  <div id="opts"></div>
+</div>
+
+<script>
+const S = { lang: 'en', large: 'off', feas: 'ok', edit: 'off', zoom: 'fit' };
+const WIDTHS = [1024, 1280];
+const T = {
+  en: {
+    sub: 'Exam Practice', step: 'New plan · 1 / 2', editStep: 'Change goal', title: 'Set your goal', intro: "Answer 4 questions and we'll work out a plan you can keep to.",
+    daysLabel: 'When is your exam?', days: n => n + ' days', presets: ['2 weeks', '3 weeks', '4 weeks', '1.5 months'], orDate: 'or exam date',
+    editDateNote: 'When you change your goal, the exam date can be as soon as tomorrow.',
+    minsLabel: 'Most time you can study a day', ticks: ['30 min', '45 min', '1 hr', '15 min', '30 min', '45 min', '2 hr'],
+    restLabel: 'Rest days (no tasks)', weekdays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+    levelLabel: 'Where are you now?', levels: [['🌱', 'Beginner', 'Never studied it'], ['📝', 'Intermediate', 'Tried some questions'], ['🎯', 'Advanced', 'Have tried a mock exam']],
+    feasTitle: 'Is there enough time?', pill: { ok: '✓ Plenty', tight: '△ Just enough', short: '✕ Not enough' },
+    studyDays: 'Study days', studyDaysSub: (n, r) => `${n} days, ${r} rest`, avail: 'Available', availSub: 'daily limit × study days', need: 'Suggested', needSub: 'read + practise + mocks', hours: n => n + 'h',
+    msg: {
+      ok: 'About 18 hours to spare: room for extra mock exams or the unexpected.',
+      tight: 'Just enough, with little room to miss a day. Try one rest day fewer, or 15 more minutes a day.',
+      short: "About 8 hours short. Move the exam later, add daily time or take fewer rest days. You can build it anyway: each day's tasks run longer so everything still gets covered.",
+    },
+    blocked: "Fewer than 3 study days, so the plan can't be built. Choose fewer rest days or a later exam date.",
+    create: 'Build my plan →', update: 'Update my plan →',
+  },
+  zh: {
+    sub: '應試練習', step: '建立計劃 · 1 / 2', editStep: '更改目標', title: '訂立目標', intro: '回答 4 條問題，為你編排一份可行的進度表。',
+    daysLabel: '多久之後考試？', days: n => n + ' 日', presets: ['2 星期', '3 星期', '4 星期', '一個半月'], orDate: '或考試日期',
+    editDateNote: '更改目標時，考試日期最早可選為明日。',
+    minsLabel: '每日最多可溫習多久？', ticks: ['30 分', '45 分', '1 小時', '15 分', '30 分', '45 分', '2 小時'],
+    restLabel: '休息日（不安排任務）', weekdays: ['日', '一', '二', '三', '四', '五', '六'],
+    levelLabel: '你目前的程度', levels: [['🌱', '零基礎', '從未接觸'], ['📝', '有基礎', '做過部分題目'], ['🎯', '準備應考', '曾嘗試模擬考試']],
+    feasTitle: '時間是否足夠？', pill: { ok: '✓ 充裕', tight: '△ 剛好', short: '✕ 不足' },
+    studyDays: '溫習日', studyDaysSub: (n, r) => `共 ${n} 日，休息 ${r} 日`, avail: '可用時間', availSub: '每日上限 × 溫習日', need: '建議需要', needSub: '閱讀 + 練習 + 模擬考試', hours: n => n + ' 小時',
+    msg: {
+      ok: '約有 18 小時緩衝，可多做幾份模擬考試或應付突發情況。',
+      tight: '時間剛好，沒有太多空間錯過任何一日。建議減少一日休息，或每日增加 15 分鐘。',
+      short: '尚欠約 8 小時。可延後考試日期、增加每日時間或減少休息日。仍可照樣建立：每日任務會較長，以確保溫習全部內容。',
+    },
+    blocked: '溫習日少於 3 日，未能建立進度表。請減少休息日或延後考試日期。',
+    create: '建立進度表 →', update: '更新進度表 →',
+  },
+};
+// per state: days to exam, preset index, rest day indexes, slider tick index, stats [study days, avail h, need h], meter %
+const STATES = {
+  ok: { days: 21, preset: 1, rest: [0], tick: 6, stats: [18, 36, 18], meter: 100 },
+  tight: { days: 21, preset: 1, rest: [0, 6], tick: 2, stats: [15, 15, 14], meter: 93 },
+  short: { days: 14, preset: 0, rest: [0], tick: 2, stats: [12, 12, 20], meter: 60 },
+  blocked: { days: 3, preset: -1, rest: [0, 1], tick: 6, stats: [1, 2, 18], meter: 11 },
+};
+const TICK_COUNT = 7;
+const GEAR = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
+const HOME = '<svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>';
+
+const t = () => T[S.lang];
+const st = () => STATES[S.feas];
+const isEdit = () => S.edit === 'on';
+
+// ── shared parts ──
+function header() {
+  return `<div class="hdr"><div class="hdr-in"><div class="logo"><span class="logo-icon"><img src="../../icons/icon.svg" alt=""></span>
+    <div><div class="logo-text">Life in the UK Test <span class="i">ⓘ</span></div><div class="logo-sub">${t().sub}<span class="v">v2.0.0</span></div></div></div>
+    <span class="gear">${GEAR}</span></div></div>`;
+}
+function head() {
+  return `<div class="quiz-header"><span class="home-btn">${HOME}</span><span class="quiz-label">${isEdit() ? t().editStep : t().step}</span></div>
+    ${isEdit() ? '' : '<div class="plan-steps"><i class="on"></i><i></i></div>'}
+    <div><h2 class="plan-h2">${t().title}</h2><p class="plan-muted">${t().intro}</p></div>`;
+}
+function daysCard() {
+  const chips = t().presets.map((p, i) => `<span class="chip${i === st().preset ? ' active' : ''}">${p}</span>`).join('');
+  return `<div class="plan-card-box"><div class="plan-field">
+    <div class="plan-field-label"><span>${t().daysLabel}</span><span class="plan-val">${t().days(st().days)}</span></div>
+    <div class="plan-date-row"><div class="plan-presets">${chips}</div>
+    <div class="plan-date-pick">${t().orDate} <span class="inp">02/11/2026 📅</span></div></div>
+    ${isEdit() ? `<p class="plan-muted">${t().editDateNote}</p>` : ''}</div></div>`;
+}
+function timeCard() {
+  const pos = st().tick / (TICK_COUNT - 1) * 100;
+  const ticks = t().ticks.map((x, i) => `<span${i === st().tick ? ' class="on"' : ''}>${x}</span>`).join('');
+  const rest = t().weekdays.map((d, i) => `<span class="chip plan-rest${st().rest.includes(i) ? ' active' : ''}">${d}</span>`).join('');
+  return `<div class="plan-card-box"><div class="plan-field">
+    <div class="plan-field-label"><span>${t().minsLabel}</span><span class="plan-val">${t().ticks[st().tick]}</span></div>
+    <div class="plan-range"><i style="left:${pos}%"></i></div><div class="plan-ticks">${ticks}</div></div>
+    <div class="plan-field"><div class="plan-field-label">${t().restLabel}</div><div class="plan-rest-row">${rest}</div></div></div>`;
+}
+function levelCard(stack) {
+  const cards = t().levels.map(([ic, l, s], i) => `<div class="mode-card${i === 0 ? ' selected' : ''}"><div class="mode-icon">${ic}</div><div class="mode-title">${l}</div><span class="plan-level-sub">${s}</span></div>`).join('');
+  return `<div class="plan-card-box"><div class="plan-field"><div class="plan-field-label">${t().levelLabel}</div><div class="plan-levels${stack ? ' stack' : ''}">${cards}</div></div></div>`;
+}
+function feasCard(statsCls) {
+  const [d, a, n] = st().stats;
+  const level = S.feas === 'blocked' ? 'short' : S.feas;
+  const msg = S.feas === 'blocked' ? t().msg.short.replace(/8/, '16') : t().msg[level];
+  return `<div class="plan-card-box"><div class="plan-row"><h3>${t().feasTitle}</h3><span class="plan-pill ${level}">${t().pill[level]}</span></div>
+    <div class="plan-stats${statsCls ? ' ' + statsCls : ''}">
+      <div class="plan-stat"><span class="k">${t().studyDays}</span><span class="v">${d}</span><span class="s">${t().studyDaysSub(st().days, st().days - d)}</span></div>
+      <div class="plan-stat"><span class="k">${t().avail}</span><span class="v">${t().hours(a)}</span><span class="s">${t().availSub}</span></div>
+      <div class="plan-stat"><span class="k">${t().need}</span><span class="v">${t().hours(n)}</span><span class="s">${t().needSub}</span></div></div>
+    <div class="plan-meter"><i class="${level}" style="width:${st().meter}%"></i></div><p class="plan-muted">${msg}</p></div>`;
+}
+function cta() {
+  const hint = S.feas === 'blocked' ? `<p class="plan-hint">${t().blocked}</p>` : '';
+  return `${hint}<span class="nav-btn">${isEdit() ? t().update : t().create}</span>`;
+}
+
+// ── the three options ──
+const OPTIONS = [
+  {
+    id: 'A', cls: 'optA', rec: true, title: 'A · 沿用 Home A：頂一條，下面左邊 form、右邊結果',
+    ann: `<ul><li><b>頂</b>：🏠、步驟、進度條、標題同簡介，佔滿成個闊度（同 Home 嘅計劃卡位置一樣）。</li>
+      <li><b>左欄（7/12）</b>：3 張問題卡（考試日期、每日時間＋休息日、程度）。程度卡有位，三張排一行。</li>
+      <li><b>rev 2</b>：4 個預設 chip 同「或考試日期」排喺同一行（B／C 維持兩行）。用現有 <code>fitRow</code> 規則：放得落先排一行，任何一粒 chip 會被切就自動分返兩行。實測：<b>1024px 放唔落</b>（左欄得大約 520px，要大約 590px），所以兩行；<b>1280px 放得落</b>；1280px 加 ⚙ 大字（英文）又會分返兩行。</li>
+      <li><b>右欄（5/12，sticky）</b>：「時間是否足夠？」同「建立進度表」掣。改左邊任何嘢，右邊即刻見到結果；掣亦一直睇得到，唔使碌到底。</li>
+      <li>右欄窄過現在嘅手機版卡，所以 3 個數字格會排做 2 + 1（同手機 390px 一樣）。</li></ul>`,
+    render: () => `<div class="plan-stack">${head()}<div class="cols"><div class="form">${daysCard()}${timeCard()}${levelCard(false)}</div>
+      <div class="side">${feasCard('stack2')}${cta()}</div></div></div>`,
+  },
+  {
+    id: 'B', cls: 'optB', title: 'B · 單欄置中（form 唔需要咁闊）',
+    ann: `<ul><li>次序同手機完全一樣，只係放大 1.2 倍，再限制最闊 768px 置中。</li>
+      <li>好處：form 由上至下填，最自然；改動最少。弱點：兩邊大量留白，同 Home 嘅「用盡畫面」方向唔一致；「建立」掣要碌到底先見到。</li></ul>`,
+    render: () => `<div class="plan-stack">${head()}${daysCard()}${timeCard()}${levelCard(false)}${feasCard('')}${cta()}</div>`,
+  },
+  {
+    id: 'C', cls: 'optC', title: 'C · 2 × 2 卡片 grid',
+    ann: `<ul><li>4 張卡排做 2 × 2：考試日期｜每日時間＋休息日；程度｜時間是否足夠。最底係成行闊嘅「建立」掣。</li>
+      <li>好處：成個 form 一個畫面睇晒，唔使碌。弱點：每行兩張卡高度唔同，會有空位；程度卡同結果卡並排，因果關係冇 A 咁清楚。</li></ul>`,
+    render: () => `<div class="plan-stack">${head()}<div class="grid">${daysCard()}${timeCard()}${levelCard(false)}${feasCard('')}</div>${cta()}</div>`,
+  },
+];
+
+function frame(opt, w) {
+  const appCls = 'app ' + opt.cls + (S.large === 'on' ? ' large' : '');
+  return `<div class="frame-label">${w}px</div><div class="frame-box" data-w="${w}"><div class="frame" style="width:${w}px">
+    <div class="${appCls}" lang="${S.lang === 'zh' ? 'zh-HK' : 'en'}">${header()}<div class="main">${opt.render()}</div></div></div></div>`;
+}
+function render() {
+  document.getElementById('opts').innerHTML = OPTIONS.map(o => `<section class="opt"><div class="opt-title">${o.title}${o.rec ? '<span class="rec">建議</span>' : ''}</div>
+    <div class="ann">${o.ann}</div>${WIDTHS.map(w => frame(o, w)).join('')}</section>`).join('');
+  fitFrames();
+}
+// "適合畫面": scale each frame down to the page width (never up); the box takes the scaled height so nothing overlaps
+// option A rev 2: one row only while no preset chip is cut (the fitRow rule)
+function fitDateRows() {
+  document.querySelectorAll('.optA .plan-date-row').forEach(row => {
+    row.classList.remove('is-stacked');
+    const cut = [...row.querySelectorAll('.chip')].some(c => c.scrollWidth > c.clientWidth + 1);
+    row.classList.toggle('is-stacked', cut);
+  });
+}
+function fitFrames() {
+  fitDateRows();
+  document.querySelectorAll('.frame-box').forEach(box => {
+    const f = box.firstElementChild, w = Number(box.dataset.w);
+    const scale = S.zoom === 'fit' ? Math.min(1, box.parentElement.clientWidth / w) : 1;
+    f.style.transform = scale < 1 ? `scale(${scale})` : '';
+    box.style.height = scale < 1 ? f.offsetHeight * scale + 'px' : '';
+    box.style.overflowX = scale < 1 ? 'hidden' : 'auto';
+  });
+}
+document.querySelector('.mock-bar').addEventListener('click', e => {
+  const b = e.target.closest('.mock-tab');
+  if (!b) return;
+  S[b.dataset.k] = b.dataset.v;
+  document.querySelectorAll(`.mock-tab[data-k="${b.dataset.k}"]`).forEach(x => x.classList.toggle('on', x === b));
+  render();
+});
+window.addEventListener('resize', fitFrames);
+render();
+</script>
+</body>
+</html>

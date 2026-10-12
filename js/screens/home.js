@@ -96,6 +96,7 @@ function renderModeSelection() {
   renderPlanCard(); // study plan entry above "Choose Mode" (only while planVisible)
   renderPracticeViews(isPractice);
   renderResetRows(isPractice);
+  desktopRefit('screenHome', homeRefit); // v2.0.0 desktop columns + fits (js/components/deskPlace.js: no-op without fit.js)
 }
 function renderPracticeViews(isPractice) {
   PRACTICE_VIEWS.forEach(v => {
@@ -141,6 +142,8 @@ function renderReviewTile(id, n, iconHtml, title, bodyHtml) {
 }
 // v1.3.1 (user): the note may wrap to this many lines before the two tiles stack (js/components/fitRow.js)
 const MY_REVIEW_NOTE_LINES = 2;
+// v2.0.0 desktop (mockup desktop-home.html A rev 3): the right column's tiles stay side by side with the note on 3 lines
+const MY_REVIEW_NOTE_LINES_DESKTOP = 3;
 // v0.70: the count already shows in .t-num, so a non-empty tile only explains where wrong answers come from;
 // the empty tile only says there is nothing to review
 function wrongTileBody(n) {
@@ -180,4 +183,41 @@ function leaveToHome() {
   showScreen('screenHome');
   buildExamGrid();
   renderModeSelection(); // keeps the last chosen mode and practice tab
+}
+
+// ── v2.0.0 desktop (≥ 1024px; handoff §3 #1 / #4, mockups desktop-home.html A rev 3 + desktop-home-plan.html A rev 7):
+// the plan card across the top; left rail 5/12 (modes, description, hint / reset), right 7/12 (My Review, practice
+// tabs, sets). The rail is sticky while it fits the viewport; taller (⚙ large text + zh-HK) it scrolls with the page
+// (F8). Below 1024px the parts go back to their phone order (js/components/deskPlace.js setDesktopColumns) ──
+const HOME_TALL_CLASS = 'is-tall';
+function homeColumns() {
+  const home = byId('screenHome');
+  return { key: 'home', boxClass: 'home-cols', columns: [
+    { cls: 'home-rail', parts: [home.querySelector(':scope > [data-i18n="home.chooseMode"]'), home.querySelector(':scope > .mode-grid'),
+      byId('modeDesc'), byId('practiceReset'), byId('examReset')] },
+    { cls: 'home-main', parts: [byId('myReview'), byId('practiceByTitle'), byId('practiceTabs'),
+      byId('secDifficulty'), byId('secChapter'), byId('secExam')] },
+  ] };
+}
+// F8: sticky only while the rail (plus the gap it keeps from the header) fits under the header; a taller rail would
+// hide its own bottom until the page reached the end
+function fitHomeRail(box) {
+  const rail = box && box.querySelector('.home-rail');
+  if (!rail) return;
+  rail.classList.remove(HOME_TALL_CLASS);
+  const top = parseFloat(getComputedStyle(rail).top) || 0;
+  const headerH = document.querySelector('header').getBoundingClientRect().height;
+  rail.classList.toggle(HOME_TALL_CLASS, top + rail.offsetHeight + (top - headerH) > window.innerHeight);
+}
+// W-057-style mixed caches: without deskPlace.js / a v2.0.0 planHome.js the desktop helpers are missing: the phone layout stays
+const homeDesktopReady = () => typeof setDesktopColumns === 'function' && typeof planCardDrawnForDesktop === 'function';
+function homeRefit(desktop) {
+  if (!homeDesktopReady()) return;
+  const box = setDesktopColumns(homeColumns(), desktop);
+  const note = document.querySelector('#tileWrong .t-note');
+  if (note) note.dataset.fitLines = desktop ? MY_REVIEW_NOTE_LINES_DESKTOP : MY_REVIEW_NOTE_LINES;
+  fitRows(byId('myReview')); // the tiles' width changed with the columns
+  if (planCardDrawnForDesktop() !== desktop) renderPlanCard(); // ring + timeline on desktop, % bar on the phone
+  fitPlanCard(desktop);
+  fitHomeRail(box);
 }

@@ -87,6 +87,7 @@ LOCALES.en = {
     questionOf: 'Question {n} of {total}',
     questionOfShort: 'Question {n}/{total}', // C3 (v1.3.0): only where questionOf would wrap
     allShuffled: 'All Questions (shuffled)',
+    answerTab: 'Answer', // v2.0.0 desktop: the right column's tab beside Similar Questions (F5)
     translate: 'Translate',
     hideTranslation: 'Hide translation',
     previous: 'Previous',
@@ -293,6 +294,10 @@ LOCALES.en = {
       resumeQs: ' ({done} / {total} right)',
       seeTomorrow: 'See you tomorrow', // v1.5.1: all done today (the ring shows ✓)
       continue: 'Continue',
+      // v2.0.0 F7 desktop card (mockup desktop-home-plan.html): its ring shows the %, so the done line keeps the ✓;
+      // the wider card keeps the long Continue label (v2.0.2: the → is a line icon, planHome.js)
+      doneHtml: '<b>✓ Done for today</b>, see you tomorrow',
+      continueToday: "Continue today's tasks",
       viewToday: "View today's tasks",
       viewDay: 'View today',
       restToday: 'Rest day today',
@@ -303,6 +308,10 @@ LOCALES.en = {
       // S-116: its own key, so the count picks one / other (t() reads params.n)
       endedMocks: { one: '{n} mock at {safe}/{total} or more', other: '{n} mocks at {safe}/{total} or more' },
       newPlan: 'New plan',
+      // v2.0.0 F7 (desktop): the countdown timeline over the plan (its marker reads plan.calendar.today)
+      cdLeftHtml: { one: '<b>{n}</b> day to the exam', other: '<b>{n}</b> days to the exam' },
+      cdStart: 'Start {date}',
+      cdExam: '🎯 Exam {date}',
       logBroken: "Your progress record can't be read. Tap “Reset plan” on the schedule to clear it, then create a new plan.",
     },
     // day screen (handoff §2.4; mockup step ③); Day n stays English (lang="en")
@@ -330,6 +339,7 @@ LOCALES.en = {
         other: "{n} unfinished tasks from earlier days were carried over to today, marked with their day. They don't count towards today's %.",
       },
       examAhead: '🎯 Exam day',
+      moreTasks: '↓ More tasks', // v2.0.0 (desktop): the task panel has more below
     },
     // completion calendar (one month at a time) and overall progress
     calendar: {
@@ -576,6 +586,7 @@ LOCALES.en = {
       reformer: { label: '✊ Reformers & others', chip: '✊ Reformers' },
     },
     // study plan: rest-day chips (0 = Sunday, as Date.getDay) and the level cards (PLAN_LEVELS keys)
+    monthsShort: { 1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: 'Jun', 7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec' }, // v2.0.0 timeline ticks
     months: { 1: 'January', 2: 'February', 3: 'March', 4: 'April', 5: 'May', 6: 'June', 7: 'July', 8: 'August', 9: 'September', 10: 'October', 11: 'November', 12: 'December' },
     weekdays: { 0: 'Sun', 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat' },
     planLevels: {

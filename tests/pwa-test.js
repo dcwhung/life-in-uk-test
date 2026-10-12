@@ -225,6 +225,7 @@ async function checkAppInstalled(pg) {
 }
 
 const CLOSE_HIT_OUTSET = 6;
+const PHONE_VIEWPORT = { width: 390, height: 844 };
 // S-022: the 28px ✕ keeps its look but its tap area reaches past its edges, and never covers the Install button
 async function checkCloseHitArea(pg) {
   await fireCountingPrompt(pg, 'accepted');
@@ -255,7 +256,9 @@ async function checkCloseHitArea(pg) {
   if (!external) ({ base, server } = await startPagesServer(ROOT));
   // a persistent profile: Chrome never treats an incognito context (browser.newContext) as installable
   const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'lifeuk-pwa-'));
-  const ctx = await chromium.launchPersistentContext(profileDir, launchOpts);
+  // v2.0.0: a phone-sized window — the install banner is a touch-device feature and S-022 measures its 28px phone ✕
+  // (≥ 1024px the desktop layout scales it ×1.2: tests/desktop-overlays-test.js)
+  const ctx = await chromium.launchPersistentContext(profileDir, { ...launchOpts, viewport: PHONE_VIEWPORT });
   try {
     const pg = ctx.pages()[0] || await ctx.newPage();
     await pg.addInitScript(emulatePointer, true);

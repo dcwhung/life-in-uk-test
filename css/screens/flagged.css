@@ -34,3 +34,25 @@ html:has(#screenFlagged.active) { scroll-padding-top: calc(var(--header-h) + var
 .flag-item button { background: none; border: none; cursor: pointer; padding: var(--space-1); }
 .flag-item button svg { width: 20px; height: 20px; }
 .empty-hint { font-size: var(--fs-sm-plus); color: var(--text-muted); text-align: center; padding: var(--space-7); border: 1.5px dashed var(--border); border-radius: var(--radius-md); }
+
+/* v2.0.0 desktop (≥ 1024px; handoff .proj-docs/plans/2026-10-12_handoff_desktop-layout.md §3 #11; mockups/v2.0.0/
+   desktop-flagged.html B): one screen high (.screen.is-fit); the practise button across the top, the list in two
+   columns in a fading scroll panel (js/screens/flagged.js wraps it), a row's two cards one height */
+@media (min-width: 1024px) {
+  /* off-scale px ×1.2 (.proj-docs/plans/2026-10-12_desktop-px-inventory.md, Lane B) */
+  .flag-start svg { width: calc(26px * var(--desktop-scale)); height: calc(26px * var(--desktop-scale)); }
+  .flag-item { padding: calc(11px * var(--desktop-scale)) calc(13px * var(--desktop-scale)); }
+  .flag-item .fi-yue { margin-top: calc(3px * var(--desktop-scale)); }
+  .flag-item button svg { width: calc(20px * var(--desktop-scale)); height: calc(20px * var(--desktop-scale)); }
+
+  /* v1.4.4 merge: the phone's pinned block is off here: the page does not scroll (the list panel does), so the block
+     stays in flow on main's content edges with no reach-over or focus padding (the ResizeObserver's --flagged-top-h
+     is then unused) */
+  .flagged-top { position: static; margin: 0; padding: 0; background: none; }
+  html:has(#screenFlagged.active) { scroll-padding-top: auto; }
+  #screenFlagged.is-fit > * { flex: none; }
+  #screenFlagged.is-fit > .flagged-wrap { flex: 1 1 auto; }
+  #flaggedList.fit-panel { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: start; gap: var(--space-4) var(--space-6); }
+  #flaggedList .flag-item { margin: 0; }
+  #flaggedList .empty-hint { grid-column: 1 / -1; padding: var(--space-12) var(--space-8); }
+}
