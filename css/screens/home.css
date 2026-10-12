@@ -173,3 +173,30 @@
   .mode-card { padding: var(--space-7) var(--space-3); }
   .mode-title { font-size: var(--fs-base); }
 }
+
+/* ── v2.0.0 desktop (≥ 1024px; handoff .proj-docs/plans/2026-10-12_handoff_desktop-layout.md §3 #1 / #4; mockups
+   desktop-home.html A rev 3, desktop-home-plan.html A rev 7). The plan card runs across the top (css/screens/plan.css);
+   under it the left rail 5/12 (modes, description, hint / reset) and the right column 7/12 (My Review, practice tabs,
+   sets), built by js/screens/home.js homeRefit. The rail sticks under the header while it fits the viewport (F8:
+   .is-tall, a rail taller than the viewport, scrolls with the page). Hard-coded px ×--desktop-scale
+   (.proj-docs/plans/2026-10-12_desktop-px-inventory.md, Lane A) ── */
+@media (min-width: 1024px) {
+  .home-cols { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--space-12); align-items: start; }
+  .home-rail { position: sticky; top: calc(var(--header-h) + var(--space-10)); }
+  .home-rail.is-tall { position: static; }
+  .home-rail .mode-desc-panel { margin-bottom: var(--space-8); }
+  .home-rail .reset-row { margin-bottom: 0; }
+
+  .mode-card:hover { transform: translateY(calc(-2px * var(--desktop-scale))); }
+  .mastery-bar { height: calc(3px * var(--desktop-scale)); }
+  .exam-grid { grid-template-columns: repeat(auto-fill, minmax(calc(80px * var(--desktop-scale)), 1fr)); }
+  .exam-btn.done::after {
+    top: calc(-6px * var(--desktop-scale)); right: calc(-6px * var(--desktop-scale));
+    width: calc(16px * var(--desktop-scale)); height: calc(16px * var(--desktop-scale));
+  }
+  .my-tile { padding-bottom: calc(11px * var(--desktop-scale)); }
+  .my-tile .t-icon { width: calc(30px * var(--desktop-scale)); height: calc(30px * var(--desktop-scale)); }
+  .my-tile .t-icon svg { width: calc(17px * var(--desktop-scale)); height: calc(17px * var(--desktop-scale)); }
+  .bm-inline { width: calc(12px * var(--desktop-scale)); height: calc(12px * var(--desktop-scale)); vertical-align: calc(-2px * var(--desktop-scale)); }
+  .chapter-btn .ch-num { padding: calc(3px * var(--desktop-scale)) var(--space-4); }
+}

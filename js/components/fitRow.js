@@ -34,3 +34,50 @@ function fitRow(row) {
 }
 function fitRows(root = document) { root.querySelectorAll('[data-fit-row]').forEach(fitRow); }
 window.addEventListener('resize', () => fitRows());
+
+// ════════════════════════════════════════
+// DESKTOP COLUMNS (v2.0.0, ≥ 1024px; handoff .proj-docs/plans/2026-10-12_handoff_desktop-layout.md §3) — the Home /
+// study plan screens' two-column layouts without new markup in index.html: a screen's parts move into column boxes while
+// the desktop layout is on, and each goes back to its own place (a comment marks it) below 1024px, so the phone's DOM,
+// order and spacing never change. The screens call setDesktopColumns() from their onRefit() fit (js/components/fit.js),
+// which runs after every render, on resize and after a language / text size / translation change.
+//   setDesktopColumns({ key: 'home', boxClass: 'home-cols', columns: [{ cls: 'home-rail', parts: [el, …] }, …] }, on)
+// The box goes where the first part (in document order) was. Missing parts (null) are skipped. Returns the box (or null).
+// ════════════════════════════════════════
+const desktopColumnState = new Map(); // key → { box, marks: [[part, comment]] }
+// each part back where its comment is (a part another render removed meanwhile stays removed), the box gone
+function unwrapDesktopColumns(key) {
+  const entry = desktopColumnState.get(key);
+  if (!entry) return;
+  entry.marks.forEach(([part, mark]) => { if (entry.box.contains(part)) mark.replaceWith(part); else mark.remove(); });
+  entry.box.remove();
+  desktopColumnState.delete(key);
+}
+function wrapDesktopColumns({ key, boxClass, columns }) {
+  const parts = columns.flatMap(col => col.parts).filter(Boolean);
+  if (!parts.length) return null;
+  const first = parts.reduce((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_PRECEDING ? b : a));
+  const box = document.createElement('div');
+  box.className = boxClass;
+  first.before(box);
+  const marks = parts.map(part => {
+    const mark = document.createComment(`desktop column: ${part.id || part.className}`);
+    part.before(mark);
+    return [part, mark];
+  });
+  columns.forEach(({ cls, parts: own }) => {
+    const col = document.createElement('div');
+    col.className = cls;
+    col.append(...own.filter(Boolean));
+    box.append(col);
+  });
+  desktopColumnState.set(key, { box, marks });
+  return box;
+}
+function setDesktopColumns(spec, on) {
+  if (!on) { unwrapDesktopColumns(spec.key); return null; }
+  const entry = desktopColumnState.get(spec.key);
+  return entry ? entry.box : wrapDesktopColumns(spec);
+}
+// the column box of `key` while the desktop layout is on (null otherwise)
+function desktopColumnsBox(key) { const entry = desktopColumnState.get(key); return entry ? entry.box : null; }
