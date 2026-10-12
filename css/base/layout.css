@@ -35,7 +35,7 @@ header {
 .header-inner {
   max-width: 780px; margin: 0 auto;
   display: flex; align-items: center; justify-content: space-between;
-  height: 58px;
+  height: var(--header-h);
 }
 .logo { display: flex; align-items: center; gap: var(--space-5); }
 /* app icon (icons/icon.svg) beside the title; width / height also set on the <img> so it never jumps while loading */
