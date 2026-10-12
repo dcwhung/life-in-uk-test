@@ -3,7 +3,7 @@
 // schedule and the per-group progress in lifeuk.memoProgress. Pure logic: no DOM; today is always a parameter
 // (callers pass planTodayIso(), the one clock reader), so the dates follow the device's local calendar.
 // Group membership is read from the notes (data/exams.js): a note's memory note = its text from the heading word
-// (MEMORY_MARK, js/domain/similar.js) to the end; the heading names the group ("<mark>（title）：", data/memo.js).
+// (MEMORY_MARK, js/domain/similar.js) to the end; the heading names the group ("<mark>(title):" in full-width brackets and colon, data/memo.js).
 // ════════════════════════════════════════
 const MEMO_INTERVALS = [1, 3, 7, 14];          // days until the next review on reaching Lv1 .. Lv4
 const MEMO_MAX_LV = MEMO_INTERVALS.length;     // Lv4 = known
@@ -13,8 +13,8 @@ const MEMO_RETRY_DAYS = 1;                     // a failed test: same level, due
 const MEMO_SINGLE_ID = 'single';               // the group of questions with no memory note (each shows its own note)
 const MEMO_STATUS = { due: 'due', new: 'new', learning: 'learning', done: 'done' };
 const MEMO_STATUS_ORDER = [MEMO_STATUS.due, MEMO_STATUS.new, MEMO_STATUS.learning, MEMO_STATUS.done]; // list order
-// "<mark>（title）：" — full-width brackets and colon, as the notes write them
-const MEMO_TITLE_RE = new RegExp('^' + MEMORY_MARK + '（([^）]+)）：');
+// "<mark>(title):" with full-width brackets and colon (U+FF08 / U+FF09 / U+FF1A), as the notes write them
+const MEMO_TITLE_RE = new RegExp('^' + MEMORY_MARK + '\uFF08([^\uFF09]+)\uFF09\uFF1A');
 
 // the memory note inside a note (from the heading word to the end), or null
 function memoBodyOf(note) {

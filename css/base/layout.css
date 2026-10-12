@@ -84,7 +84,8 @@ main { max-width: 780px; margin: 0 auto; padding: var(--space-10) var(--space-8)
 :root[data-translation="off"] .fi-yue,
 :root[data-translation="off"] .sqm-qy,
 :root[data-translation="off"] .fact-yue,
-:root[data-translation="off"] .sqm-fact-yue { display: none !important; }
+:root[data-translation="off"] .sqm-fact-yue,
+:root[data-translation="off"] .memo-wrong-yue { display: none !important; }
 /* nothing left under the line: the answer box divider without a note, the review's dashed box without a note
    (own rules: a browser without :has() drops only these) */
 :root[data-translation="off"] .answer-box .divider:has(~ .ans-note:empty) { display: none; }

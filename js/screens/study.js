@@ -24,7 +24,8 @@ const peopleText = (key, field) => t(`data.people.${key}.${field}`);
 const LABEL_FIELD = 'label';
 const CHIP_FIELD = 'chip';
 const ALL_FILTER = 'all';
-const STUDY_PREF_KEYS = ['tab', 'chapter', 'hideMastered', 'bookmarksOnly', 'warsOnly', 'nation', 'group'];
+const STUDY_PREF_KEYS = ['tab', 'chapter', 'hideMastered', 'bookmarksOnly', 'warsOnly', 'nation', 'group', 'memoChapter'];
+const MEMO_TAB = 'memo'; // v1.5.0: memory-note groups (js/screens/memo.js)
 const STUDY_MARK_LS = { mastered: STUDY_LS.mastered, bookmarks: STUDY_LS.bookmarks };
 const UNDATED_SORT_YEAR = 9999; // monarchs without a year sort last
 
@@ -37,20 +38,26 @@ const study = {
   warsOnly: false,
   nation: ALL_FILTER,   // geo sub-filter
   group: ALL_FILTER,    // people sub-filter
+  memoChapter: ALL_FILTER, // memo sub-filter: ALL_FILTER or a chapter number (the group's main chapter)
   mastered: {},
   bookmarks: {},
 };
 
 // stored prefs can be stale or hand-edited (CUI-0003): an unknown tab made renderStudy throw, so keep the default instead
 const hasKey = (obj, k) => Object.prototype.hasOwnProperty.call(obj, k);
+// v1.5.0: the memo tab needs its screen + tab markup and js/screens/memo.js; a cached older index.html (SW cutover)
+// has neither, so a stored 'memo' tab falls back to the default there
+const isStudyTabReady = v => v !== MEMO_TAB || (typeof memoShellReady === 'function' && memoShellReady());
 const STUDY_PREF_CHECKS = {
-  tab: v => hasKey(STUDY_RENDERERS, v),
+  tab: v => hasKey(STUDY_RENDERERS, v) && isStudyTabReady(v),
   chapter: v => CHAPTERS.includes(v),
   nation: v => v === ALL_FILTER || NATIONS.includes(v),
   group: v => v === ALL_FILTER || PEOPLE_GROUPS.includes(v),
+  memoChapter: v => v === ALL_FILTER || CHAPTERS.includes(v),
 };
+const STUDY_PREF_MIXED_TYPES = ['memoChapter']; // 'all' or a number: its check alone decides
 function isValidStudyPref(k, v) {
-  if (typeof v !== typeof study[k]) return false;
+  if (!STUDY_PREF_MIXED_TYPES.includes(k) && typeof v !== typeof study[k]) return false;
   return !STUDY_PREF_CHECKS[k] || STUDY_PREF_CHECKS[k](v);
 }
 function studyLoad() {
@@ -79,6 +86,7 @@ function studySetTab(tab) { study.tab = tab; studySavePrefs(); renderStudy(); }
 function studySetChapter(ch) { study.chapter = ch; studySavePrefs(); renderStudy(); }
 function studySetNation(n) { study.nation = n; studySavePrefs(); renderStudy(); }
 function studySetGroup(g) { study.group = g; studySavePrefs(); renderStudy(); }
+function studySetMemoChapter(ch) { study.memoChapter = ch; studySavePrefs(); renderStudy(); }
 function studySetSearch(v) { study.search = v.trim().toLowerCase(); renderStudy(); }
 function studyToggle(key) { study[key] = !study[key]; studySavePrefs(); renderStudy(); }
 // kind: 'mastered' | 'bookmarks' — per-fact marks, saved straight away
@@ -132,22 +140,28 @@ function studySubChipsHtml() {
   }
   if (study.tab === 'geo') return subChipRowHtml('studySetNation', study.nation, NATIONS, k => nationText(k, CHIP_FIELD));
   if (study.tab === 'people') return subChipRowHtml('studySetGroup', study.group, PEOPLE_GROUPS, k => peopleText(k, CHIP_FIELD));
+  if (study.tab === MEMO_TAB) return memoChapterChipsHtml();
   return '';
 }
 
+// a chip row holds markup or hides (the memo tab has no Hide mastered / Bookmarked chips)
+function fillChipRow(id, html) {
+  const row = byId(id);
+  row.innerHTML = html;
+  row.hidden = !html;
+}
 function renderStudy() {
   document.querySelectorAll('.study-tab').forEach(t =>
     t.classList.toggle('active', t.dataset.tab === study.tab));
-  byId('studyChips').innerHTML = studyChipsHtml();
-  const sub = studySubChipsHtml();
-  const subRow = byId('studySubChips');
-  subRow.innerHTML = sub;
-  subRow.hidden = !sub;
-  const { html, shown, total } = STUDY_RENDERERS[study.tab]();
-  byId('studyCount').textContent = t('study.count', { shown, total, n: total });
+  fillChipRow('studyChips', study.tab === MEMO_TAB ? '' : studyChipsHtml());
+  fillChipRow('studySubChips', studySubChipsHtml());
+  byId('studySearch').placeholder = study.tab === MEMO_TAB ? t('memo.search') : t('study.search');
+  // a renderer may name its own count / empty-state words (memo: groups, not facts)
+  const { html, shown, total, countKey = 'study.count', emptyKey = 'study.empty' } = STUDY_RENDERERS[study.tab]();
+  byId('studyCount').textContent = t(countKey, { shown, total, n: total });
   renderStudyProgress();
   byId('studyContent').innerHTML =
-    shown ? html : `<div class="study-empty">${t('study.empty')}</div>`;
+    shown ? html : `<div class="study-empty">${t(emptyKey)}</div>`;
 }
 
 // Q8: after ↩ Back from a fact session its card flashes gold; R-010: when the restored scroll no longer shows it
@@ -245,4 +259,8 @@ function renderStudyPeople() {
   return { html, shown: facts.length, total: pool.length };
 }
 
-const STUDY_RENDERERS = { chapters: renderStudyChapters, timeline: renderStudyTimeline, geo: renderStudyGeo, people: renderStudyPeople };
+// memo: an arrow, because js/screens/memo.js loads after this file
+const STUDY_RENDERERS = {
+  chapters: renderStudyChapters, timeline: renderStudyTimeline, geo: renderStudyGeo, people: renderStudyPeople,
+  [MEMO_TAB]: () => renderStudyMemo(),
+};

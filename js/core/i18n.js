@@ -118,6 +118,7 @@ const SCREEN_RERENDER = {
   screenPlanSchedule: () => rerenderPlanSchedule(), // keeps the day list where it was scrolled
   screenPlanDay: () => renderPlanDay(), // keeps the shown day and calendar month
   screenPlanRun: () => renderPlanRun(), // the task's Result card
+  screenMemo: () => renderMemo(), // v1.5.0: keeps the step; a shown result is never recorded again
 };
 function rerenderCurrentScreen() {
   const active = document.querySelector('.screen.active');

@@ -75,17 +75,21 @@ function renderQuestion() {
   renderNavButtons(idx, total, revealed);
   fitQuestionCounter(); // C3: measured once the counter's row (bookmark, arrows) is final
 }
-// W-016: a fact set's "Ch c #n" is English in every language (S-057), so it goes in a lang="en" span;
-// built from text nodes, never innerHTML, so the locale string cannot inject markup
+// W-016: a fact set's "Ch c #n" is English in every language (S-057), so it goes in a lang="en" span; v1.5.0: a memo
+// set's group title is Cantonese data (lang="zh-HK"). Built from text nodes, never innerHTML, so the locale string
+// cannot inject markup
+function examLabelPart(examNum) {
+  if (isFactExam(examNum)) return { text: t('study.chapterFactId', factSetParams(examNum)), lang: 'en' };
+  return { text: memoSetTitle(examNum), lang: 'zh-HK' };
+}
 function setExamLabel(el, examNum) {
-  const label = examLabel(examNum);
-  const num = isFactExam(examNum) ? t('study.chapterFactId', factSetParams(examNum)) : '';
-  const at = num ? label.indexOf(num) : -1;
+  const label = examLabel(examNum), part = examLabelPart(examNum);
+  const at = part.text ? label.indexOf(part.text) : -1;
   if (at < 0) { el.textContent = label; return; }
-  const numEl = document.createElement('span');
-  numEl.lang = 'en';
-  numEl.textContent = num;
-  el.replaceChildren(label.slice(0, at), numEl, label.slice(at + num.length));
+  const partEl = document.createElement('span');
+  partEl.lang = part.lang;
+  partEl.textContent = part.text;
+  el.replaceChildren(label.slice(0, at), partEl, label.slice(at + part.text.length));
 }
 // C3 (v1.3.0, user): "Question 1 of 24" unless it wraps (large text at 320px), then quiz.questionOfShort ("Question 1/24");
 // where even that wraps (the wide Translate button in the row) it stays short on two lines (user)

@@ -30,6 +30,7 @@
 <link rel="stylesheet" href="css/screens/flagged.css">
 <link rel="stylesheet" href="css/screens/study.css">
 <link rel="stylesheet" href="css/screens/plan.css">
+<link rel="stylesheet" href="css/screens/memo.css">
 </head>
 <body>
 
@@ -187,12 +188,24 @@
       <button class="study-tab" data-tab="timeline" data-action="studySetTab" data-arg="timeline"><span class="tab-ic" aria-hidden="true">📅</span><span data-i18n="study.tabTimeline"></span></button>
       <button class="study-tab" data-tab="geo" data-action="studySetTab" data-arg="geo"><span class="tab-ic" aria-hidden="true">🗺️</span><span data-i18n="study.tabGeo"></span></button>
       <button class="study-tab" data-tab="people" data-action="studySetTab" data-arg="people"><span class="tab-ic" aria-hidden="true">👤</span><span data-i18n="study.tabPeople"></span></button>
+      <button class="study-tab" data-tab="memo" data-action="studySetTab" data-arg="memo"><span class="tab-ic" aria-hidden="true">🧠</span><span data-i18n="study.tabMemo"></span></button>
     </div>
 
     <div class="chip-row" id="studyChips"></div>
     <div class="chip-row" id="studySubChips" hidden></div>
     <div class="study-count" id="studyCount"></div>
     <div id="studyContent"></div>
+  </div>
+
+  <!-- ── MEMORY-NOTE GROUP (v1.5.0, js/screens/memo.js): from Study tab 5; ① look (hook + memory note) → ② test (a side
+       session on the quiz screen) → result + next review day. The title, steps and body are filled by JS -->
+  <div class="screen" id="screenMemo">
+    <div class="quiz-header memo-header">
+      <button class="back-btn memo-back" type="button" data-action="memoBack" data-i18n="memo.backButton"></button>
+      <h2 class="memo-title" id="memoTitle" lang="zh-HK" tabindex="-1"></h2>
+    </div>
+    <div class="memo-steps" id="memoSteps" aria-hidden="true"></div>
+    <div id="memoBody"></div>
   </div>
 
   <!-- ── QUIZ ── -->
@@ -494,6 +507,7 @@
 <!-- load order: data → config → utils → locales → i18n → store → domain → components → screens → actions → pwa → main (classic scripts, shared globals) -->
 <script src="data/exams.js"></script>
 <script src="data/study.js"></script>
+<script src="data/memo.js"></script>
 <script src="js/core/config.js"></script>
 <script src="js/core/utils.js"></script>
 <script src="locales/en.js"></script>
@@ -505,6 +519,7 @@
 <script src="js/domain/similar.js"></script>
 <script src="js/domain/plan.js"></script>
 <script src="js/domain/planProgress.js"></script>
+<script src="js/domain/memo.js"></script>
 <script src="js/components/icons.js"></script>
 <script src="js/components/dots.js"></script>
 <script src="js/components/tags.js"></script>
@@ -527,6 +542,7 @@
 <script src="js/screens/planSchedule.js"></script>
 <script src="js/screens/planDay.js"></script>
 <script src="js/screens/planRun.js"></script>
+<script src="js/screens/memo.js"></script>
 <script src="js/core/actions.js"></script>
 <script src="js/pwa/pwa.js"></script>
 <script src="js/main.js"></script>

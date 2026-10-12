@@ -157,8 +157,9 @@ LOCALES.en = {
     search: 'Search facts', // R2-1: never mentions English / Cantonese (matching still covers both)
     tabChapters: 'Chapters', // v1.2.0 (C4): the tab icon sits above the label in index.html
     tabTimeline: 'Timeline',
-    tabGeo: 'Geography',
+    tabGeo: 'Geo', // v1.5.0: short, as in the memo mockup, so five tabs fit one row at 360px
     tabPeople: 'People',
+    tabMemo: 'Memory', // v1.5.0: memory-note groups (memo.*)
     hideMastered: '✓ Hide mastered',
     bookmarkedOnly: 'Bookmarked only',
     warsOnly: '⚔️ Wars only',
@@ -178,6 +179,37 @@ LOCALES.en = {
     factId: '#{n}',
     // S-057: English in every language, like common.chapterShort
     chapterFactId: 'Ch {ch} #{n}',
+  },
+
+  // v1.5.0: memory-note study (Study tab 5, js/screens/memo.js). Group titles, hooks and notes are Cantonese data
+  memo: {
+    search: 'Search memory notes',
+    count: { one: '{shown} / {total} group', other: '{shown} / {total} groups' },
+    empty: 'No groups match.',
+    dueTitle: { one: '{n} group to review today', other: '{n} groups to review today' },
+    start: 'Start ▶',
+    statusNew: 'New',
+    statusDue: 'Due today',
+    statusLearning: 'Learning · Lv{lv}',
+    statusDone: { one: 'Known · in {n} day', other: 'Known · in {n} days' },
+    questions: { one: '{n} question', other: '{n} questions' },
+    singleMeta: 'Questions with their own note',
+    setLabel: '🧠 {title}', // quiz header of a group's test
+    backButton: '‹ Memory',
+    stepLook: '① Look',
+    stepTest: '② Test ({n})',
+    stepLookDone: '✓ Look',
+    stepTestDone: '✓ Test {correct}/{total}',
+    hookLabel: '💡 Memory hook:',
+    startTest: 'Got it — start the test ▶',
+    resultPass: 'Test {correct}/{total} (≥ {pct}%) → up to Lv{lv}',
+    resultKeep: 'Test {correct}/{total} (≥ {pct}%) → stays at Lv{lv}',
+    resultFail: 'Test {correct}/{total} · below {pct}%, review again tomorrow',
+    lv: 'Lv{lv}',
+    days: { one: '{n} day', other: '{n} days' },
+    wrongTitle: 'Look at these again:',
+    again: 'Review again',
+    next: 'Next: {title} ▶',
   },
 
   modal: {

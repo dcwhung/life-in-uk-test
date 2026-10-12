@@ -87,6 +87,12 @@ const ACTIONS = {
   studyToggleMark: el => studyToggleMark(el.dataset.mark, numArg(el)),
   studySetSearch: el => studySetSearch(el.value),
   startFactPractice: el => startFactPractice(numArg(el)),
+  // memory-note study (v1.5.0, js/screens/memo.js): chapter chip ('all' or a number), group card / banner, group screen
+  studySetMemoChapter: el => studySetMemoChapter(examArg(el)),
+  openMemoGroup: el => openMemoGroup(el.dataset.arg),
+  memoBack: () => memoBack(),
+  memoLook: () => memoLook(),
+  startMemoTest: () => startMemoTest(),
   // study plan (entry hidden until planVisible: js/screens/planHome.js, planGoal.js, planSchedule.js, planDay.js, planRun.js)
   togglePlanFeature: () => togglePlanFeature(),
   openPlanGoal: () => openPlanGoal(),

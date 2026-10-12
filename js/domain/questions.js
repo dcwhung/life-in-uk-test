@@ -74,6 +74,17 @@ function isPlanExam(examNum) {
   return typeof examNum === 'string' && examNum.startsWith(PLAN_PREFIX) && /^\d+$/.test(examNum.slice(PLAN_PREFIX.length));
 }
 function planDayOf(examNum) { return Number(examNum.slice(PLAN_PREFIX.length)); }
+// v1.5.0: a memory-note group's test: MEMO_PREFIX + group id (js/domain/memo.js). Every quiz header asks (setExamLabel),
+// so an HTTP-cached pre-v1.5.0 config.js without MEMO_PREFIX (W-057) reads as "not a memo set" instead of throwing
+function isMemoExam(examNum) {
+  return typeof examNum === 'string' && typeof MEMO_PREFIX !== 'undefined' && examNum.startsWith(MEMO_PREFIX);
+}
+function memoIdOf(examNum) { return examNum.slice(MEMO_PREFIX.length); }
+// the group title inside a memo set label (Cantonese data, marked lang="zh-HK" by setExamLabel); '' for other sets
+function memoSetTitle(examNum) {
+  const group = isMemoExam(examNum) && typeof memoGroupById === 'function' ? memoGroupById(memoIdOf(examNum)) : null;
+  return group ? group.title : '';
+}
 // W-016: a fact set is named by its Study card's chapter number (chapterFactNumber), never the global id
 function factSetParams(examNum) {
   const id = factIdOf(examNum);
@@ -119,6 +130,7 @@ function examLabel(examNum) {
   if (isChapterExam(examNum)) return t('common.chapterN', { n: chapterOf(examNum) });
   if (isFactExam(examNum)) return t('common.factSet', factSetParams(examNum));
   if (isPlanExam(examNum)) return t('plan.dayN', { n: planDayOf(examNum) });
+  if (isMemoExam(examNum)) return t('memo.setLabel', { title: memoSetTitle(examNum) });
   if (isDifficultyExam(examNum)) {
     const lv = difficultyOf(examNum);
     return '★'.repeat(lv) + ' ' + difficultyLabel(lv);

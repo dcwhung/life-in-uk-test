@@ -55,6 +55,14 @@
   --study-accent-strong: var(--navy-light);
   --study-accent-bg: var(--selected-bg);
 
+  /* v1.5.0 memory-note study (css/screens/memo.css): one colour per review status — card edge, badge, schedule box.
+     due text uses --note-label (AA on --flag-bg; --orange text there is ~2.8:1) */
+  --memo-new: var(--border);
+  --memo-learning: var(--gold);
+  --memo-due: var(--orange);
+  --memo-due-text: var(--note-label);
+  --memo-done: var(--green-light);
+
   /* radius scale: --radius for cards, then controls (md), small chips (sm), tags / badges / icon buttons (xs), pills and circles */
   --radius: 14px;
   --radius-md: 10px;
