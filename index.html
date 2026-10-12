@@ -102,7 +102,7 @@
         <span data-i18n="app.installText"></span>
       </div>
       <button class="install-btn" id="installBtn" data-action="install" data-i18n="app.installButton"></button>
-      <button class="install-close" data-action="dismissInstall" data-i18n-attr="aria-label:app.installDismiss;title:app.installDismiss">✕</button>
+      <button class="install-close" data-action="dismissInstall" data-i18n-attr="aria-label:app.installDismiss;title:app.installDismiss" data-icon="close"></button>
     </div>
 
     <div class="section-title" data-i18n="home.chooseMode"></div>
@@ -154,11 +154,11 @@
 
     <div class="reset-row" id="practiceReset">
       <div class="reset-hint reset-hint-list" id="practiceHint"></div>
-      <button class="reset-btn" data-action="resetPracticeProgress" data-i18n="home.resetProgress"></button>
+      <button class="reset-btn with-icon" data-action="resetPracticeProgress"><span data-icon-slot="reset"></span><span class="icon-label" data-i18n="home.resetProgress"></span></button>
     </div>
     <div class="reset-row" id="examReset">
       <span class="reset-hint" data-i18n="home.examResetHint"></span>
-      <button class="reset-btn" data-action="resetCompletedExams" data-i18n="home.resetCompleted"></button>
+      <button class="reset-btn with-icon" data-action="resetCompletedExams"><span data-icon-slot="reset"></span><span class="icon-label" data-i18n="home.resetCompleted"></span></button>
     </div>
 
   </div>
@@ -207,7 +207,7 @@
        session on the quiz screen) → result + next review day. The title, steps and body are filled by JS -->
   <div class="screen" id="screenMemo">
     <div class="quiz-header memo-header">
-      <button class="back-btn memo-back" type="button" data-action="memoBack" data-i18n="memo.backButton"></button>
+      <button class="back-btn memo-back with-icon" type="button" data-action="memoBack"><span data-icon-slot="chevronLeft"></span><span class="icon-label" data-i18n="memo.backButton"></span></button>
       <h2 class="memo-title" id="memoTitle" lang="zh-HK" tabindex="-1"></h2>
     </div>
     <div class="memo-steps" id="memoSteps" aria-hidden="true"></div>
@@ -265,7 +265,7 @@
     <p class="plan-note plan-run-note" id="planPairNote" hidden></p>
 
     <div class="nav-row">
-      <button class="nav-btn secondary" id="prevBtn" data-action="prevQ" data-i18n="quiz.prevButton"></button>
+      <button class="nav-btn secondary with-icon" id="prevBtn" data-action="prevQ"><span data-icon-slot="arrowLeft"></span><span class="icon-label" data-i18n="quiz.prevButton"></span></button>
       <button class="nav-btn" id="nextBtn" data-action="next"></button>
     </div>
 
@@ -412,10 +412,10 @@
         <div class="plan-day-scroll" id="planDayList" tabindex="0" role="region" aria-labelledby="planDayListTitle"></div>
       </div>
 
-      <button class="nav-btn plan-block" data-action="openPlanDay" data-i18n="plan.schedule.viewToday"></button>
+      <button class="nav-btn plan-block with-icon" data-action="openPlanDay"><span class="icon-label" data-i18n="plan.schedule.viewToday"></span><span data-icon-slot="arrowRight"></span></button>
       <div class="reset-row show plan-reset">
         <span class="reset-hint" data-i18n="plan.schedule.resetHint"></span>
-        <button class="reset-btn plan-hit" data-action="planAskReset" data-i18n="plan.schedule.reset"></button>
+        <button class="reset-btn plan-hit with-icon" data-action="planAskReset"><span data-icon-slot="reset"></span><span class="icon-label" data-i18n="plan.schedule.reset"></span></button>
       </div>
     </div>
   </div>
@@ -426,9 +426,9 @@
       <div class="quiz-header plan-day-header">
         <button class="back-btn icon-btn plan-hit" type="button" data-action="goHome" data-icon="home" data-i18n-attr="aria-label:common.homeLabel;title:common.homeLabel"></button>
         <div class="plan-day-switch">
-          <button class="quick-btn plan-hit-sq" id="planDayPrev" data-action="planShiftDay" data-arg="-1" data-i18n-attr="aria-label:plan.day.prev">‹</button>
+          <button class="quick-btn plan-hit-sq" id="planDayPrev" data-action="planShiftDay" data-arg="-1" data-i18n-attr="aria-label:plan.day.prev;title:plan.day.prev" data-icon="chevronLeft"></button>
           <h2 class="plan-day-title" id="planDayHeading" tabindex="-1"><span id="planDayTitle"></span><span class="plan-num" id="planDaySub"></span></h2>
-          <button class="quick-btn plan-hit-sq" id="planDayNext" data-action="planShiftDay" data-arg="1" data-i18n-attr="aria-label:plan.day.next">›</button>
+          <button class="quick-btn plan-hit-sq" id="planDayNext" data-action="planShiftDay" data-arg="1" data-i18n-attr="aria-label:plan.day.next;title:plan.day.next" data-icon="chevronRight"></button>
         </div>
         <button class="nav-btn secondary plan-small plan-hit icon-btn" type="button" data-action="openPlanSchedule" data-icon="calendar" data-i18n-attr="aria-label:plan.schedule.name;title:plan.schedule.name"></button>
       </div>
@@ -446,7 +446,7 @@
             <span class="plan-pill" id="planDayPhase"></span>
             <div class="plan-day-count plan-num" id="planDayCount"></div>
             <p class="plan-muted plan-day-hint" id="planDayHint"></p>
-            <button class="chip plan-hit" id="planBackToday" data-action="planShowToday" data-i18n="plan.day.backToday" hidden></button>
+            <button class="chip plan-hit with-icon" id="planBackToday" data-action="planShowToday" hidden><span data-icon-slot="arrowLeft"></span><span class="icon-label" data-i18n="plan.day.backToday"></span></button>
           </div>
         </div>
         <div class="plan-exam-banner plan-exam-pat" id="planDayExam" hidden><div class="plan-exam-text" id="planDayExamText"></div></div>
@@ -461,9 +461,9 @@
         <div class="plan-cal-nav">
           <b class="plan-num" id="planCalTitle" aria-live="polite"></b>
           <div class="plan-cal-btns" id="planCalBtns">
-            <button class="quick-btn plan-hit-sq" id="planCalPrev" data-action="planShiftMonth" data-arg="-1" data-i18n-attr="aria-label:plan.calendar.prev">‹</button>
+            <button class="quick-btn plan-hit-sq" id="planCalPrev" data-action="planShiftMonth" data-arg="-1" data-i18n-attr="aria-label:plan.calendar.prev;title:plan.calendar.prev" data-icon="chevronLeft"></button>
             <button class="chip plan-hit" id="planCalToday" data-action="planShiftMonth" data-arg="0" data-i18n="plan.calendar.today"></button>
-            <button class="quick-btn plan-hit-sq" id="planCalNext" data-action="planShiftMonth" data-arg="1" data-i18n-attr="aria-label:plan.calendar.next">›</button>
+            <button class="quick-btn plan-hit-sq" id="planCalNext" data-action="planShiftMonth" data-arg="1" data-i18n-attr="aria-label:plan.calendar.next;title:plan.calendar.next" data-icon="chevronRight"></button>
           </div>
         </div>
         <div class="plan-cal plan-num" id="planCal"></div>

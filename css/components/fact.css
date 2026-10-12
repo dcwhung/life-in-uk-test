@@ -105,6 +105,10 @@
   --fact-practise-pad-x: var(--space-5);
   position: relative;
 }
+/* v1.6.1: its ▶ is the play line icon; 1em with a 2px gap (the triangle has ~3px of its own box to its right) keeps the
+   pill as narrow as the old "▶ " glyph (W-012: 2-source rows stay on one line at 390px) */
+.fact-practise.with-icon { gap: var(--space-1); }
+.fact-practise > .line-icon { width: 1em; height: 1em; }
 /* invisible tap ring, top and bottom only: above sits the row's 10px padding-top (single line) or the display-only
    source nodes (wrapped line, 6px gap — overlap is harmless, nodes take no taps); below, the card's 12px padding */
 .fact-practise::before {

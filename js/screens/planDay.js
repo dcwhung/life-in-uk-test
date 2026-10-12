@@ -173,11 +173,14 @@ function planCanStart(task, p, when) {
   return when === PLAN_WHEN.today || task.type !== PLAN_TASK.mock;
 }
 const PLAN_GO_KEYS = { todo: 'plan.task.goStart', '': 'plan.task.goContinue', done: 'plan.task.goReview' };
+// v1.6.1: the "go" hint's line icons where its glyphs were ("Start ›", "✓ Review ›")
+const PLAN_GO_ICONS = { todo: { trail: 'chevronRight' }, '': { trail: 'chevronRight' }, done: { lead: 'check', trail: 'chevronRight' } };
 // at = { date, taskIndex, from, carryDay }: a box the runner opens is a button inside the <li> (planOpenTask)
 function planTaskBoxHtml(task, day, dayLog, when, at) {
   const p = planTaskProgress(task, dayLog), state = planTaskState(p), carry = at.carryDay !== null;
   const goKey = PLAN_GO_KEYS[state];
-  const go = p.complete || planCanStart(task, p, when) ? `<span class="plan-task-go" aria-hidden="true">${t(goKey)}</span>` : '';
+  const go = p.complete || planCanStart(task, p, when)
+    ? `<span class="plan-task-go with-icon" aria-hidden="true">${iconLabelHtml(t(goKey), PLAN_GO_ICONS[state])}</span>` : '';
   const tag = carry ? `<span class="plan-tag carry" lang="en">${t('plan.dayN', { n: at.carryDay })}</span>` : '';
   const pct = p.complete ? PERCENT : percent(p.done, p.total);
   const cls = `plan-task ${PLAN_DAY_TYPE_CLASS[task.type]}${state ? ' ' + state : ''}${carry ? ' carry' : ''}`;

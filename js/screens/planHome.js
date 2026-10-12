@@ -110,7 +110,7 @@ function planShortDate(iso) {
 function planCreateCardHtml() {
   return `<button type="button" class="plan-cta" data-action="openPlanGoal"><span class="plan-cta-ic" aria-hidden="true">🗓️</span>`
     + `<span><b>${t('plan.createTitle')}</b><span class="plan-muted">${t('plan.createText')}</span></span>`
-    + `<span class="plan-cta-go">${t('plan.createGo')}</span></button>`;
+    + `<span class="plan-cta-go with-icon">${iconLabelHtml(t('plan.createGo'), PLAN_HOME_GO_ICONS)}</span></button>`;
 }
 // the navy card (handoff §2.1): top line (with today's ring), then the next step / the exam day / "plan finished",
 // then the actions; v1.5.1: a card with the ring is tighter (.has-ring)
@@ -145,12 +145,17 @@ function planHomeTopHtml(plan, todayIso, status, pct) {
   if (pct === null) return `<div class="plan-home-top">${ttl}</div>`;
   return `<div class="plan-home-head"><div class="plan-home-head-txt">${ttl}</div>${planHomeRingHtml(pct)}</div>`;
 }
-function planHomeBtn(action, labelText, gold = false) {
-  return `<button type="button" class="${gold ? 'plan-btn-gold' : 'plan-btn-line'}" data-action="${action}">${labelText}</button>`;
+// icons: { lead, trail } line icons beside the words (v1.6.1: "Continue →"), none for the others
+function planHomeBtn(action, labelText, gold = false, icons = null) {
+  const cls = gold ? 'plan-btn-gold' : 'plan-btn-line';
+  if (icons) return iconButtonHtml(cls, ` data-action="${action}"`, labelText, icons);
+  return `<button type="button" class="${cls}" data-action="${action}">${labelText}</button>`;
 }
 function planHomeActsHtml(...btns) { return `<div class="plan-home-acts">${btns.join('')}</div>`; }
 // "Continue" opens the next task itself, whatever its type (planRun.js planOpenTask)
-const PLAN_HOME_GO = { done: { action: 'openPlanDay', labelKey: 'plan.home.viewToday' }, next: { action: 'planContinue', labelKey: 'plan.home.continue' } };
+const PLAN_HOME_GO_ICONS = { trail: 'arrowRight' };
+const PLAN_HOME_GO = { done: { action: 'openPlanDay', labelKey: 'plan.home.viewToday' },
+  next: { action: 'planContinue', labelKey: 'plan.home.continue', icons: PLAN_HOME_GO_ICONS } };
 function planActiveHtml(plan, log, todayIso, pct) {
   const day = planDayAt(plan, todayIso);
   const schedule = planHomeBtn('openPlanSchedule', t('plan.schedule.name'));
@@ -160,7 +165,7 @@ function planActiveHtml(plan, log, todayIso, pct) {
   // a rest day has no % (no ring): its one-line row sits above the next step
   const rest = pct === null ? `<div class="plan-home-row"><span>${t('plan.home.restToday')}</span></div>` : '';
   return `${rest}<p class="plan-home-next">${planNextHtml(plan, log, next)}</p>`
-    + planHomeActsHtml(planHomeBtn(go.action, t(go.labelKey), true), schedule);
+    + planHomeActsHtml(planHomeBtn(go.action, t(go.labelKey), true, go.icons), schedule);
 }
 // today's G27 ring (v1.5.0; v1.5.1: in the head, no visible label, so aria-label = plan.home.pctLabel + %); as the day
 // screen's ring (planDay.js renderPlanRing): pathLength 100, so renderPlanCard sets the offset to the % left

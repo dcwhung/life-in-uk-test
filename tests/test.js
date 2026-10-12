@@ -30,7 +30,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   let c = await cls(wrongOpt);
   assert(!c.includes('disabled') && !c.includes('wrong') && !c.includes('correct') && c.includes('selected'), 'exam select is neutral, not disabled');
   assert((await box()) === 'answer-box', 'no answer box in exam mode');
-  assert((await nextText()) === 'Next →' && (await pg.$$('#examSubmitRow, #examSubmitBtn')).length === 0, 'not the last question: Next, no separate Submit row');
+  assert((await nextText()) === 'Next' && (await pg.$$('#examSubmitRow, #examSubmitBtn')).length === 0, 'not the last question: Next, no separate Submit row');
   // Next keeps the pick; Prev shows it again in blue and it can be changed
   await pg.click('#nextBtn');
   assert(await pg.evaluate(i => state.current === i + 1, singleIdx), 'Next moves on');
@@ -49,7 +49,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.click('#opt' + ans[0]); await pg.click('#opt' + ans[1]);
   await pg.click('#opt' + ans[1]); await pg.click('#opt' + ans[1]);
   assert(JSON.stringify(await pg.evaluate(() => [...state.answers[state.current]].sort())) === JSON.stringify([...ans].sort()), 'multi: toggle on / off, all picks kept');
-  assert((await box()) === 'answer-box' && (await nextText()) === 'Next →', 'multi: no box, still Next');
+  assert((await box()) === 'answer-box' && (await nextText()) === 'Next', 'multi: no box, still Next');
 
   // last question: Submit instead of Next; unanswered questions are confirmed first
   await pg.evaluate(i => { state.current = i; renderQuestion(); }, last);

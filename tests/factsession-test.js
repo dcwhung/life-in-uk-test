@@ -124,7 +124,7 @@ async function checkInSession(pg) {
     wrong: !!JSON.parse(localStorage.getItem('lifeuk.wrongList') || '{}')['4.16'],
   }));
   assert(after.streak === 0 && after.wrong, `wrong answer: practiceStreak written (0) and joins wrong answers (${JSON.stringify(after)})`);
-  assert(await text(pg, '#nextBtn') === 'Next →', 'Next → before the last question');
+  assert(await text(pg, '#nextBtn') === 'Next', 'Next before the last question');
   await pg.click('#nextBtn');
   await answer(pg, true);
   assert(await pg.evaluate(() => JSON.parse(localStorage.getItem('lifeuk.practiceStreak'))['6.6']) === 1, 'right answer: practiceStreak 6.6 = 1');
@@ -178,7 +178,7 @@ async function checkHomeAndAfter(pg) {
   assert(await pg.evaluate(() => sessionReturn === null), 'startExam clears sessionReturn');
   await goLast(pg);
   await answer(pg, true);
-  assert(await text(pg, '#nextBtn') === 'Finish ✓', 'a normal set afterwards: last question Finish ✓');
+  assert(await text(pg, '#nextBtn') === 'Finish', 'a normal set afterwards: last question Finish');
   await pg.click('#nextBtn');
   assert(await activeScreen(pg) === 'screenResult', 'a normal set afterwards ends on its results page');
 }
@@ -208,7 +208,7 @@ async function checkSourceRow(pg) {
   });
   assert(row.nodes === FACT_NODES, 'source node row: E·Q nodes in f.src order with mastery colours: ' + row.nodes);
   assert(row.clickable === 0 && row.appears === 0 && row.label === 'Appears in:', `nodes are display only; "Appears ×n" tag gone (${JSON.stringify(row)})`);
-  assert(row.btn === `▶ Practise these 6|startFactPractice|${FACT_ID}`, 'Practise button: plural label + startFactPractice action: ' + row.btn);
+  assert(row.btn === `Practise these 6|startFactPractice|${FACT_ID}`, 'Practise button: plural label + startFactPractice action: ' + row.btn);
   assert(row.describedBy === `#${FACT_CHAPTER_NUM}`, 'Practise button is described by the card\'s chapter number "#n": ' + row.describedBy);
   // S-030: the ~29px "▶ Practise" pill keeps its look but takes taps over >= 44px (invisible ::before ring);
   // scan the button's vertical centre line with elementFromPoint
@@ -221,7 +221,7 @@ async function checkSourceRow(pg) {
   });
   assert(hit.rows >= MIN_TOUCH_PX, `Practise button tap height >= ${MIN_TOUCH_PX}px (visible ${hit.visible}px, tappable ${hit.rows}px)`);
   const one = await pg.$eval(`${factCard(ONE_SOURCE_FACT)} .fact-practise`, e => e.textContent);
-  assert(one === '▶ Practise this one', 'one source question: ▶ Practise this one');
+  assert(one === 'Practise this one', 'one source question: Practise this one');
 }
 // W-012: at 390px the 2-source cards whose row fitted on one line before S-034 (form controls inherit the
 // body font, "▶ Practise these 2" ~2.8px wider) must still fit: the 2nd node must not wrap under the 1st

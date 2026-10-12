@@ -10,8 +10,8 @@ function bookmarkSvg(cls, { decorative = false } = {}) {
   return `<svg ${clsAttr}viewBox="0 0 24 24" ${attrs}><path d="${BOOKMARK_PATH}"/></svg>`;
 }
 
-// v1.2.0: line icons for icon-only buttons (header ⚙, screen headers 🏠 / 📅 / ✏️). Stroke follows currentColor and the
-// size follows the button's font size (1em boxes in css/components/buttons.css), so a larger text size grows them too
+// v1.2.0: line icons for icon-only buttons (header ⚙, screen headers 🏠 / 📅 / ✏️; v1.6.1: every control's icon). Stroke
+// follows currentColor and the size follows the button's font size (1em boxes in css/components/buttons.css), so a larger text size grows them too
 const LINE_ICON_PATHS = {
   home: ['M3 10.5 12 3l9 7.5', 'M5.5 9v11h13V9', 'M10 20v-6h4v6'],
   calendar: ['M5.5 5h13a2 2 0 0 1 2 2v11.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z', 'M3.5 10h17', 'M8 3v4', 'M16 3v4'],
@@ -24,6 +24,13 @@ const LINE_ICON_PATHS = {
   arrowRight: ['M5 12h14', 'M13 6l6 6-6 6'],
   check: ['M5 12.5l4.5 4.5L19 7.5'],
   returnLeft: ['M9 14.5 4 9.5l5-5', 'M4 9.5h10a5.5 5.5 0 0 1 0 11h-3'],
+  // v1.6.1 (user: every control, not only the quick pair): ‹ › chevrons, ▶ play, 🔁 redo, ↺ reset, ✕ close
+  chevronLeft: ['M14.5 5.5 8 12l6.5 6.5'],
+  chevronRight: ['M9.5 5.5 16 12l-6.5 6.5'],
+  play: ['M7.5 5v14l11-7z'],
+  redo: ['M20 12a8 8 0 1 1-2.34-5.66L20 8.5', 'M20 4v4.5h-4.5'],
+  reset: ['M4 12a8 8 0 1 0 2.34-5.66L4 8.5', 'M4 4v4.5h4.5'],
+  close: ['M6.5 6.5l11 11', 'M17.5 6.5l-11 11'],
 };
 // decorative: the button around it carries the label (aria-label / title from data-i18n-attr)
 function lineIconSvg(name) {
@@ -36,9 +43,25 @@ function setAccessibleName(el, label) {
   el.setAttribute('aria-label', label);
   el.setAttribute('title', label);
 }
-// static markup: <button data-icon="home"> gets its SVG at start-up (index.html keeps no inline SVG)
+// v1.6.1 (user: controls use line icons, never glyphs / emoji): a control's words with a line icon where the glyph was —
+// lead before them (← ‹ ▶ 🔁 ↺), trail after them (→ › ✓). The icon is decorative (the words name the control); the
+// element carries .with-icon (css/components/buttons.css: icon and words on one centred line)
+function iconLabelHtml(labelHtml, { lead, trail } = {}) {
+  return (lead ? lineIconSvg(lead) : '') + `<span class="icon-label">${labelHtml}</span>` + (trail ? lineIconSvg(trail) : '');
+}
+// a rendered button: its classes, extra attributes (already escaped, each with a leading space) and words (HTML)
+function iconButtonHtml(cls, attrs, labelHtml, icons) {
+  return `<button type="button" class="${cls ? cls + ' ' : ''}with-icon"${attrs}>${iconLabelHtml(labelHtml, icons)}</button>`;
+}
+function setIconLabel(el, labelText, icons) {
+  el.classList.add('with-icon');
+  el.innerHTML = iconLabelHtml(escapeHtml(labelText), icons);
+}
+// static markup: <button data-icon="home"> gets its SVG at start-up (index.html keeps no inline SVG); a button with words
+// holds <span data-icon-slot="arrowLeft"></span> beside its <span data-i18n> label, replaced by the SVG itself
 function fillStaticIcons(root = document) {
   root.querySelectorAll('[data-icon]').forEach(el => { el.innerHTML = lineIconSvg(el.dataset.icon); });
+  root.querySelectorAll('[data-icon-slot]').forEach(el => { el.outerHTML = lineIconSvg(el.dataset.iconSlot); });
 }
 
 // tooltip "Difficulty d/5" (attribute-safe)

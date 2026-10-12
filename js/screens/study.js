@@ -137,7 +137,9 @@ function renderFact(f, opts = {}) {
 function studyChipsHtml() {
   // decorative icon: the chip text already says "Bookmarked" (a labelled SVG would read "Flagged")
   const bookmarkLabel = bookmarkSvg('chip-flag', { decorative: true }) + t('study.bookmarkedOnly');
-  let chips = chipHtml({ active: study.hideMastered, action: 'studyToggle', arg: 'hideMastered', label: t('study.hideMastered') })
+  // v1.6.1: the ✓ before "Hide mastered" is the check line icon (the fact card's mastered tick)
+  const masteredLabel = iconLabelHtml(t('study.hideMastered'), { lead: 'check' });
+  let chips = chipHtml({ extraCls: ' with-icon', active: study.hideMastered, action: 'studyToggle', arg: 'hideMastered', label: masteredLabel })
     + chipHtml({ active: study.bookmarksOnly, action: 'studyToggle', arg: 'bookmarksOnly', label: bookmarkLabel });
   if (study.tab === 'timeline') {
     chips += chipHtml({ extraCls: ' war', active: study.warsOnly, action: 'studyToggle', arg: 'warsOnly', label: t('study.warsOnly') });

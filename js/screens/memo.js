@@ -6,6 +6,8 @@
 const MEMO_STEP = { look: 'look', result: 'result' };
 const MEMO_STATUS_KEYS = { new: 'memo.statusNew', due: 'memo.statusDue', learning: 'memo.statusLearning', done: 'memo.statusDone' };
 const MEMO_SEARCH_SEP = ' ';
+// v1.6.1: line icons where the glyphs were (Start / start the test / Next group ▶ after the words, ‹ Memory before)
+const MEMO_GO_ICONS = { trail: 'play' }, MEMO_BACK_ICONS = { lead: 'chevronLeft' };
 // the group on #screenMemo: its step, the Study list scroll to go back to, the finished test (result step)
 const memoView = { id: null, step: MEMO_STEP.look, listScrollY: 0, result: null };
 
@@ -51,7 +53,7 @@ function memoDueBannerHtml(due) {
   const titles = due.slice(0, MEMO_DUE_TITLES_SHOWN).map(g => g.title).join(LIST_SEP);
   return `<div class="memo-due">
       <div class="memo-due-text"><b>${escapeHtml(t('memo.dueTitle', { n: due.length }))}</b><small lang="zh-HK">${escapeHtml(titles)}</small></div>
-      <button class="memo-due-start" type="button" data-action="openMemoGroup" data-arg="${escapeHtml(due[0].id)}">${escapeHtml(t('memo.start'))}</button>
+      ${iconButtonHtml('memo-due-start', ` data-action="openMemoGroup" data-arg="${escapeHtml(due[0].id)}"`, escapeHtml(t('memo.start')), MEMO_GO_ICONS)}
     </div>`;
 }
 function renderStudyMemo() {
@@ -124,7 +126,7 @@ function memoSingleHtml(g) {
 function memoLookHtml(g) {
   const body = g.body ? memoNoteHtml(g) : memoSingleHtml(g);
   return memoHookHtml(g) + body
-    + `<button class="nav-btn memo-start" type="button" data-action="startMemoTest">${escapeHtml(t('memo.startTest'))}</button>`;
+    + iconButtonHtml('nav-btn memo-start', ' data-action="startMemoTest"', escapeHtml(t('memo.startTest')), MEMO_GO_ICONS);
 }
 
 // ── ② test: a side session; its last "↩ Back" comes back here (SESSION_RETURNS.memo → finishMemoTest) ──
@@ -137,8 +139,8 @@ function startMemoTest() {
 // .memo-back, and its words name it (no aria-label / title, as a plan's text back button: S-188)
 function setQuizBackMemo(back) {
   back.classList.remove('plan-hit', 'icon-btn');
+  setIconLabel(back, t('memo.backButton'), MEMO_BACK_ICONS); // S-240: a chevron line icon, not a read-out "‹"
   back.classList.add('memo-back');
-  back.textContent = t('memo.backButton');
   back.removeAttribute('aria-label');
   back.removeAttribute('title');
 }
@@ -204,7 +206,8 @@ function memoLabelHtml(label, title) {
 }
 function memoResultActionsHtml(g, withNext) {
   const next = withNext ? memoNextGroup(g.id) : null;
-  const nextBtn = next ? `<button class="nav-btn memo-next" type="button" data-action="openMemoGroup" data-arg="${escapeHtml(next.id)}">${memoLabelHtml(t('memo.next', { title: next.title }), next.title)}</button>` : '';
+  const nextBtn = next ? iconButtonHtml('nav-btn memo-next', ` data-action="openMemoGroup" data-arg="${escapeHtml(next.id)}"`,
+    memoLabelHtml(t('memo.next', { title: next.title }), next.title), MEMO_GO_ICONS) : '';
   return `<div class="memo-actions"><button class="nav-btn secondary memo-again" type="button" data-action="memoLook">${escapeHtml(t('memo.again'))}</button>${nextBtn}</div>`;
 }
 function memoResultHtml(g, r) {
