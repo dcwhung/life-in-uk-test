@@ -1448,6 +1448,13 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
   .empty-slot { border: 2px dashed var(--border); border-radius: var(--radius); min-height: calc(160px * var(--k)); }
   .col > .nav-row { margin-top: auto; }
 
+  /* A rev 2 (user): the number dots + counts are their own row at the top, across both columns, 24 in one row */
+  .optA .dots-bar { flex: none; background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow-sm); padding: var(--space-6) var(--space-8); margin-bottom: var(--space-6); }
+  .optA .dots-bar .nav-dots { grid-template-columns: repeat(24, minmax(0, 1fr)); margin-bottom: var(--space-3); }
+  .optA .dots-bar .dots-meta { margin: 0; padding-bottom: 0; border-bottom: 0; } /* its divider belongs to the card */
+  /* A rev 2 (user): the question + 4 options (with translations) taller than the left column → options 2 × 2 */
+  .optA .options.is-2x2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; }
+  .optA .options.is-2x2 .opt { height: 100%; }
   /* A: left = question card + options + Prev / Next; right = answer box + Similar Questions (scroll) */
   .optA .cols { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
   /* B: left = question card + Prev / Next; right = options + answer + Similar (scroll) */
@@ -1460,7 +1467,7 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
 <body>
 
 <div class="mock-bar">
-  <b>v2.0.0 Desktop · Mockup 8/12 · Quiz（練習）</b>
+  <b>v2.0.0 Desktop · Mockup 8/12 · Quiz（練習）· rev 2：A 題號點一行 + 選項自動 2×2</b>
   <div class="mock-row"><span class="lbl">語言</span><button class="mock-tab on" data-k="lang" data-v="en">EN</button><button class="mock-tab" data-k="lang" data-v="zh">中文</button><span class="lbl" style="margin-left:10px">翻譯</span><button class="mock-tab on" data-k="yue" data-v="on">開</button><button class="mock-tab" data-k="yue" data-v="off">關</button><span class="lbl" style="margin-left:10px">⚙ 大字</span><button class="mock-tab on" data-k="large" data-v="off">關</button><button class="mock-tab" data-k="large" data-v="on">開</button></div>
   <div class="mock-row"><span class="lbl">狀態</span><button class="mock-tab on" data-k="st" data-v="wrong">答錯（答案 + 相似題目）</button><button class="mock-tab" data-k="st" data-v="right">答啱</button><button class="mock-tab" data-k="st" data-v="q">未答</button><button class="mock-tab" data-k="st" data-v="qYue">未答 + Translate</button></div>
   <div class="mock-row"><span class="lbl">縮放</span><button class="mock-tab on" data-k="zoom" data-v="fit">適合畫面</button><button class="mock-tab" data-k="zoom" data-v="100">100%</button></div>
@@ -1490,11 +1497,25 @@ function parts() {
   const c = tpl.content;
   const q = sel => { const el = c.querySelector(sel); return el && !el.hidden ? el.outerHTML : ''; };
   const answered = c.querySelector('#answerBox').classList.contains('show');
-  return { header: q('.quiz-header'), round: q('#roundRow'), card: q('.q-card'), options: q('#optionsContainer'),
+  // A rev 2: the dots and their counts come out of the question card into their own row
+  const dots = c.querySelector('#navDots'), meta = c.querySelector('#dotsMeta');
+  const dotsRow = `<div class="dots-bar">${dots.outerHTML}${meta.outerHTML}</div>`;
+  const cardNoDots = (() => { const k = c.querySelector('.q-card').cloneNode(true); k.querySelector('#navDots').remove(); k.querySelector('#dotsMeta').remove(); return k.outerHTML; })();
+  return { dotsRow, cardNoDots, header: q('.quiz-header'), round: q('#roundRow'), card: q('.q-card'), options: q('#optionsContainer'),
     answer: answered ? q('#answerBox') : '', nav: q('.nav-row'), similar: answered ? q('#similarBox') : '', answered };
 }
 const panel = html => `<div class="vwrap"><div class="vpanel">${html}</div></div>`;
+// A rev 2: options go 2 × 2 only when the question + the 4 options in one column would not fit the left column's height
+function fitOptions() {
+  document.querySelectorAll('.optA .col-left .vpanel').forEach(sc => {
+    const opts = sc.querySelector('.options');
+    if (!opts) return;
+    opts.classList.remove('is-2x2');
+    opts.classList.toggle('is-2x2', sc.scrollHeight > sc.clientHeight + 1);
+  });
+}
 function afterRender() {
+  fitOptions();
   document.querySelectorAll('.vpanel').forEach(sc => {
     const wrap = sc.parentElement;
     const update = () => {
@@ -1509,10 +1530,11 @@ const VH = { 1024: 768, 1280: 800 };
 const OPTIONS = [
   {
     id: 'A', cls: 'optA', rec: true, vh: VH, title: 'A · 左邊作答｜右邊答案 + 相似題目',
-    ann: `<ul><li><b>左（7/12）</b>：題目卡（題號點、題目、翻譯）、選項、上一題／下一題貼底。題目同選項太長就喺左欄入面碌。</li>
+    ann: `<ul><li><b>rev 2</b>：題號點（24 粒一行）+ 答啱／答錯／未答／已標記數量自成一行喺頂，橫跨兩欄。左欄題目 + 4 個選項（連翻譯）直排放唔落嗰陣，選項自動轉 <b>2 × 2</b>（同 fitRow 一樣：放得落就維持直排）；選項好長（例如答啱嗰題）2 × 2 都放唔落，就喺左欄 panel 入面碌，上一題／下一題照樣貼底。</li>
+      <li><b>左（7/12）</b>：題目卡（題目、翻譯）、選項、上一題／下一題貼底。</li>
       <li><b>右（5/12）</b>：答完先出現：答案框（✓／✕、答案、廣東話、記憶法表）+ 相似題目，自己會碌。未答時右欄係空位。</li>
       <li>好處：作答嗰邊永遠唔會被答案推落去，「下一題」一直喺同一個位；答案同記憶法有成欄位睇。弱點：未答時右邊空咗一半。</li></ul>`,
-    render: p => `<div class="quiz-screen">${p.header}${p.round}<div class="cols"><div class="col">${panel(p.card + p.options)}${p.nav}</div>
+    render: p => `<div class="quiz-screen">${p.header}${p.round}${p.dotsRow}<div class="cols"><div class="col col-left">${panel(p.cardNoDots + p.options)}${p.nav}</div>
       <div class="col">${p.answered ? panel(p.answer + p.similar) : '<div class="empty-slot"></div>'}</div></div></div>`,
   },
   {
