@@ -146,7 +146,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.click('#nextBtn');
   await answer(true);
   // plain "Back": a question number read like Q1 of the similar session
-  assert((await text('#nextBtn')) === '↩ Back', 'last question offers the way back');
+  assert((await text('#nextBtn')).trim() === 'Back' && await pg.$eval('#nextBtn svg.line-icon', e => e.dataset.iconName === 'returnLeft'), 'last question offers the way back (return line icon, C1)');
   await pg.click('#nextBtn');
   const after = await pg.evaluate(() => ({ len: state.questions.length, cur: state.current, examNum: state.examNum }));
   assert(JSON.stringify(after) === JSON.stringify(before), 'original session restored at the same question');
