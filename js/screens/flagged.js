@@ -21,3 +21,9 @@ function openFlagged() {
   showScreen('screenFlagged');
 }
 function unflagFromList(key) { setPracticeFlag(key, false); openFlagged(); }
+// W-1: the pinned block's height as --flagged-top-h (css/screens/flagged.css scroll-padding-top); follows text size,
+// language, the empty state and rotation. An older cached index.html (before v1.4.4) has no block: nothing to observe
+const flaggedTop = document.querySelector('#screenFlagged .flagged-top');
+if (flaggedTop) new ResizeObserver(([entry]) => {
+  document.documentElement.style.setProperty('--flagged-top-h', `${entry.target.offsetHeight}px`);
+}).observe(flaggedTop);

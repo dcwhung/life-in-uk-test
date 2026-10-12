@@ -108,6 +108,8 @@
   /* app header bar height (css/base/layout.css .header-inner); screens that pin a block under the sticky header
      (css/screens/flagged.css .flagged-top) stick at this offset */
   --header-h: 58px;
+  /* the Flagged screen's pinned block height, measured live (js/screens/flagged.js ResizeObserver) */
+  --flagged-top-h: 0px;
 
   /* switch (css/components/switch.css): the off track on a dark surface (the ⓘ popover) */
   --switch-track-inverse: rgba(255,255,255,0.25);

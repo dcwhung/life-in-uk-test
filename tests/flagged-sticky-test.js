@@ -1,7 +1,8 @@
 const { chromium } = require('playwright-core');
 const path = require('path');
 // v1.4.4 (user): on My Review › Flagged the screen header (🏠 + FLAGGED) and the "Practise flagged" card stay pinned
-// under the sticky app header; only the flagged question list scrolls under them.
+// under the sticky app header; only the flagged question list scrolls under them. Runs with the app's first-run
+// defaults (zh-HK, large text): no legacy seed.
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
 const launchOpts = { args: ['--no-sandbox'] };
 if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_PATH;
@@ -11,6 +12,8 @@ const PHONE = { width: 390, height: 844 };
 const FLAG_COUNT = 24; // the user's screenshot: a list much taller than the phone
 const EXAMS = 10; // seed keys "exam.question" over the first exams, one distinct question each
 const TOLERANCE_PX = 1;
+const SHORT = { width: 844, height: 390 }; // landscape phone: too short to pin (W-2)
+const SHIFT_TABS = 8; // Shift+Tab back past the items in view, to ones scrolled above the pinned block (W-1)
 const GAP_PROBE_PX = 6; // inside the Practise card's margin-bottom (--space-6 12px) below it
 
 (async () => {
@@ -53,9 +56,28 @@ const GAP_PROBE_PX = 6; // inside the Practise card's margin-bottom (--space-6 1
   }, GAP_PROBE_PX);
   assert(!peek, 'gap under the Practise card is covered (no item peeks out)');
 
+  // W-1: keyboard focus scrolled back into view stops below the pinned block, never under it
+  await pg.evaluate(() => [...document.querySelectorAll('#flaggedList button')].pop().focus({ preventScroll: true }));
+  let hidden = 0;
+  for (let i = 0; i < SHIFT_TABS; i++) {
+    await pg.keyboard.press('Shift+Tab');
+    hidden += await pg.evaluate(tol => {
+      const pinned = document.querySelector('#screenFlagged .flagged-top').getBoundingClientRect().bottom;
+      return document.activeElement.getBoundingClientRect().top < pinned - tol ? 1 : 0;
+    }, TOLERANCE_PX);
+  }
+  assert(hidden === 0, 'Shift+Tab never leaves the focused unflag button under the pinned block');
+
   await pg.evaluate(() => window.scrollTo(0, 0));
   const back = await rects();
   assert(Math.abs(back.start.top - before.start.top) <= TOLERANCE_PX, 'resting layout unchanged at the top');
+
+  // W-2: a short (landscape) screen keeps the room for the list: nothing is pinned
+  await pg.setViewportSize(SHORT);
+  await pg.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  const pos = await pg.$eval('#screenFlagged .flagged-top', e => getComputedStyle(e).position);
+  const topNow = (await rects()).top;
+  assert(pos === 'static' && topNow < 0, 'short viewport: the top block scrolls away with the list');
 
   await browser.close();
   console.log('PASS');
