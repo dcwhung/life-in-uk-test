@@ -1499,9 +1499,9 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
 <body>
 
 <div class="mock-bar">
-  <b>v2.0.0 Desktop · Mockup 11/12 · Flagged（已標記）</b>
+  <b>v2.0.0 Desktop · Mockup 11/12 · Flagged（已標記）· B 定案</b>
   <div class="mock-row"><span class="lbl">語言</span><button class="mock-tab on" data-k="lang" data-v="en">EN</button><button class="mock-tab" data-k="lang" data-v="zh">中文</button><span class="lbl" style="margin-left:10px">翻譯</span><button class="mock-tab on" data-k="yue" data-v="on">開</button><button class="mock-tab" data-k="yue" data-v="off">關</button><span class="lbl" style="margin-left:10px">⚙ 大字</span><button class="mock-tab on" data-k="large" data-v="off">關</button><button class="mock-tab" data-k="large" data-v="on">開</button></div>
-  <div class="mock-row"><span class="lbl">已標記</span><button class="mock-tab on" data-k="st" data-v="many">14 題</button><button class="mock-tab" data-k="st" data-v="few">2 題</button><button class="mock-tab" data-k="st" data-v="empty">0 題（空）</button></div>
+  <div class="mock-row"><span class="lbl">已標記</span><button class="mock-tab on" data-k="st" data-v="many">14 題</button><button class="mock-tab" data-k="st" data-v="few">2 題</button><button class="mock-tab" data-k="st" data-v="empty">0 題（喺呢版取消晒最後一題）</button></div>
   <div class="mock-row"><span class="lbl">縮放</span><button class="mock-tab on" data-k="zoom" data-v="fit">適合畫面</button><button class="mock-tab" data-k="zoom" data-v="100">100%</button></div>
 </div>
 
@@ -1513,6 +1513,7 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
       <li>My Review 有兩粒：<b>答錯題</b>撳落去直接開練習（即係 Mockup 8），所以呢個 mockup 只做 <b>已標記</b> 清單</li>
       <li>內容係 app 自己 render：14 題（有一題喺兩份試卷都有，顯示「Exam 1 · Q8 = Exam 11 · Q9」）、2 題、0 題（空）三個狀態</li>
       <li>撳清單右邊 🔖 就取消標記（呢度 mockup 會即刻喺清單移走，數字跟住變）</li>
+      <li>0 題：首頁「已標記」粒掣 0 題時係 disabled，入唔到呢版；只有喺呢版將最後一題都取消標記先會見到空白提示</li>
     </ul>
     <p style="margin-top:6px">每個方案都有兩個 frame。請揀 A／B／C，或者話我知要改咩。</p>
   </div>
@@ -1556,7 +1557,7 @@ function afterRender() {
 const VH = { 1024: 768, 1280: 800 };
 const OPTIONS = [
   {
-    id: 'A', cls: 'optA', rec: true, vh: VH, title: 'A · 左欄練習掣｜右欄清單',
+    id: 'A', cls: 'optA', vh: VH, title: 'A · 左欄練習掣｜右欄清單',
     ann: `<ul><li><b>左（4/12）</b>：「練習已標記（n）」變成一張高身卡，固定唔郁，一直撳得到。</li>
       <li><b>右（8/12）</b>：已標記題目一題一行，喺自己 panel 入面碌；🔖 喺每行右邊。</li>
       <li>冇標記題：左欄唔出，空白提示用晒全闊。</li></ul>`,
@@ -1564,7 +1565,7 @@ const OPTIONS = [
       : `<div class="fl-screen">${p.header}<div class="cols"><div class="col">${p.start}</div><div class="col">${panel(p.list)}</div></div></div>`,
   },
   {
-    id: 'B', cls: 'optB', vh: VH, title: 'B · 頂部練習掣，清單排兩欄',
+    id: 'B', cls: 'optB', rec: true, vh: VH, title: 'B · 頂部練習掣，清單排兩欄（定案）',
     ann: `<ul><li>「練習已標記」橫跨頂部；清單排 2 欄，一屏睇到多一倍題目。</li>
       <li>弱點：次序要左右讀；題目長短唔同，同一行兩張卡會高矮唔齊（已拉到一樣高）。</li></ul>`,
     render: p => `<div class="fl-screen">${p.header}${p.start}<div class="cols"><div class="col">${p.empty ? p.list : panel(p.list)}</div></div></div>`,
