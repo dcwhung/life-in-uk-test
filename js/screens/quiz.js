@@ -282,6 +282,10 @@ let quizDesk = null; // built on the first desktop render (S-233: never on a pho
 let quizDeskStale = true; // the question changed since the desktop parts were last filled
 let quizTab = QUIZ_TAB.answer;
 let quizTabQuestion = null; // the question the open tab belongs to: a new question opens on Answer
+// v2.0.1: the scroll panels are kept from question to question, so each remembers the question it last showed
+// ([set, index]: the same question in a new set counts as new) and starts at the top the first time it is shown
+// for another one; a hidden panel ignores scrollTop, so this waits until it is shown (a tab swap keeps the scroll)
+const quizPanelSeen = new WeakMap();
 function quizTabButton(id, pane) {
   return deskEl('button', 'quiz-tab', { type: 'button', id, role: 'tab', 'aria-controls': pane });
 }
@@ -406,6 +410,15 @@ function applyQuizTab(showAnswer = !quizDeskParts().tabs.hidden) {
   });
   d.paneAnswer.hidden = !showAnswer || !onAnswer;
   d.paneSimilar.hidden = !showAnswer || onAnswer;
+  topQuizPanelsOnNewQuestion(d);
+}
+function topQuizPanelsOnNewQuestion(d) {
+  [d.main, d.paneAnswer.firstElementChild, d.paneSimilar.firstElementChild].forEach(panel => {
+    const seen = quizPanelSeen.get(panel);
+    if (!panel.getClientRects().length || (seen && seen[0] === state.questions && seen[1] === state.current)) return;
+    quizPanelSeen.set(panel, [state.questions, state.current]);
+    panel.scrollTop = 0;
+  });
 }
 // a tab click swaps the pane in place (no re-render: each pane keeps its scroll position)
 function setQuizTab(tab) {
@@ -442,4 +455,5 @@ function fitQuiz(desktop) {
   if (!quizDesk) return; // S-233: never built on a phone, so no steps to take off
   const d = quizDesk;
   fitSteps(d.main, [[d.moved.options, 'is-tight'], 'is-compact']);
+  topQuizPanelsOnNewQuestion(d); // after every render and when the screen is shown (runRefits then refreshes the fades)
 }
