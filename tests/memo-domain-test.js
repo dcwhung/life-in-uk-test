@@ -1,4 +1,4 @@
-// Memory-note study mode (v1.5.0, Study tab 5 "🧠"): data/memo.js + js/domain/memo.js. Node only: the app's classic
+// Memory-note study mode (v1.6.0, Study tab 5 "🧠"): data/memo.js + js/domain/memo.js. Node only: the app's classic
 // scripts run in one vm context (top-level const / let shared across scripts, as in a page) with an in-memory
 // localStorage. Every date the domain sees is passed in as an ISO string, so no clock is mocked.
 const fs = require('fs');

@@ -386,7 +386,7 @@ async function v140SingleFile(b, file) {
   await pg.close();
 }
 
-// S-230 (v1.5.0): a v1.4.3 cached index.html (no memo tab, screen or memo scripts) + current js / css with the memo tab
+// S-230 (v1.6.0): a pre-memo cached index.html (v1.4.3 here; main v1.5.0 has no memo markup either) (no memo tab, screen or memo scripts) + current js / css with the memo tab
 // stored: Study opens on Chapters (memoShellReady is not even defined there), no page errors
 const V143_REF = '930ab4a'; // main at v1.4.3
 const MEMO_PREFS = JSON.stringify({ tab: 'memo', memoChapter: 3 });

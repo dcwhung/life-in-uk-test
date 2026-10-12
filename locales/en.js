@@ -157,9 +157,9 @@ LOCALES.en = {
     search: 'Search facts', // R2-1: never mentions English / Cantonese (matching still covers both)
     tabChapters: 'Chapters', // v1.2.0 (C4): the tab icon sits above the label in index.html
     tabTimeline: 'Timeline',
-    tabGeo: 'Geo', // v1.5.0: short, as in the memo mockup, so five tabs fit one row at 360px
+    tabGeo: 'Geo', // v1.6.0: short, as in the memo mockup, so five tabs fit one row at 360px
     tabPeople: 'People',
-    tabMemo: 'Memory', // v1.5.0: memory-note groups (memo.*)
+    tabMemo: 'Memory', // v1.6.0: memory-note groups (memo.*)
     hideMastered: '✓ Hide mastered',
     bookmarkedOnly: 'Bookmarked only',
     warsOnly: '⚔️ Wars only',
@@ -181,7 +181,7 @@ LOCALES.en = {
     chapterFactId: 'Ch {ch} #{n}',
   },
 
-  // v1.5.0: memory-note study (Study tab 5, js/screens/memo.js). Group titles, hooks and notes are Cantonese data
+  // v1.6.0: memory-note study (Study tab 5, js/screens/memo.js). Group titles, hooks and notes are Cantonese data
   memo: {
     search: 'Search memory notes',
     count: { one: '{shown} / {total} group', other: '{shown} / {total} groups' },
@@ -294,7 +294,7 @@ LOCALES.en = {
       resumeFact: ' (continue from #{n})',
       resumeQs: ' ({done} / {total} right)',
       doneHtml: '<b>✓ Done for today</b>, see you tomorrow',
-      continue: "Continue today's tasks →",
+      continue: 'Continue →',
       viewToday: "View today's tasks",
       viewDay: 'View today',
       restToday: 'Rest day today',

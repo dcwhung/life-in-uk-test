@@ -1,5 +1,5 @@
 // ════════════════════════════════════════
-// MEMO — memory-note study (Study tab 5, v1.5.0): groups of questions sharing one memory note, a 4-level review
+// MEMO — memory-note study (Study tab 5, v1.6.0): groups of questions sharing one memory note, a 4-level review
 // schedule and the per-group progress in lifeuk.memoProgress. Pure logic: no DOM; today is always a parameter
 // (callers pass planTodayIso(), the one clock reader), so the dates follow the device's local calendar.
 // Group membership is read from the notes (data/exams.js): a note's memory note = its text from the heading word

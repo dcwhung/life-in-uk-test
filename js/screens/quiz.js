@@ -75,7 +75,7 @@ function renderQuestion() {
   renderNavButtons(idx, total, revealed);
   fitQuestionCounter(); // C3: measured once the counter's row (bookmark, arrows) is final
 }
-// W-016: a fact set's "Ch c #n" is English in every language (S-057), so it goes in a lang="en" span; v1.5.0: a memo
+// W-016: a fact set's "Ch c #n" is English in every language (S-057), so it goes in a lang="en" span; v1.6.0: a memo
 // set's group title is Cantonese data (lang="zh-HK"). Built from text nodes, never innerHTML, so the locale string
 // cannot inject markup
 function examLabelPart(examNum) {

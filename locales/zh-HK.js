@@ -174,7 +174,7 @@ LOCALES['zh-HK'] = {
     chapterFactId: 'Ch {ch} #{n}',
   },
 
-  // v1.5.0: memory-note study (Study tab 5); the step / button words follow the user's mockup (memo-study.html v2)
+  // v1.6.0: memory-note study (Study tab 5); the step / button words follow the user's mockup (memo-study.html v2)
   memo: {
     search: '搜尋記憶法',
     count: '{shown} / {total} 組',
@@ -281,7 +281,7 @@ LOCALES['zh-HK'] = {
       resumeFact: '（由 #{n} 繼續）',
       resumeQs: '（已答對 {done} / {total} 題）',
       doneHtml: '<b>✓ 今日已完成</b>，明日再來',
-      continue: '繼續今日任務 →',
+      continue: '繼續 →',
       viewToday: '查看今日任務',
       viewDay: '查看今日',
       restToday: '今日是休息日',

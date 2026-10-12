@@ -1,5 +1,5 @@
 // ════════════════════════════════════════
-// MEMO — memory-note groups for Study tab 5 "🧠" (v1.5.0)
+// MEMO — memory-note groups for Study tab 5 "🧠" (v1.6.0)
 // One entry per titled memory note in data/exams.js ("記憶法（title）：", title = the text inside （） exactly), plus
 // the last group 'single' (the questions whose note has no memory note: each shows its own note).
 // Which questions belong to a group is derived from the notes at run time (js/domain/memo.js), never listed here.

@@ -7,7 +7,7 @@ const path = require('path');
 //   them, S-188)
 // - Q11: the Study pill reads "🏆 n / 235" and is labelled "n of 235 facts mastered" (v1.3.2: 235 facts)
 // - C2: the calendar's exam cell shows only its day; the legend ends with "[pattern] 🎯 Exam day" at the right end
-// - C4: the Study tabs (five since v1.5.0, with 🧠 memo) are icon over label at every width
+// - C4: the Study tabs (five since v1.6.0, with 🧠 memo) are icon over label at every width
 // - 320 / 360 / 390px, en + zh-HK: these headers stay on one row and the page never scrolls sideways
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
 const launchOpts = { args: ['--no-sandbox'] };

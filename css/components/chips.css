@@ -10,7 +10,7 @@
 }
 .practice-tab { font-family: inherit; }
 .practice-tab.active { background: var(--navy); border-color: var(--navy); color: var(--text-inverse); }
-/* v1.5.0: one equal column per tab (5 with the memo tab; a cached 4-tab index.html still fills the row) */
+/* v1.6.0: one equal column per tab (5 with the memo tab; a cached 4-tab index.html still fills the row) */
 .study-tabs {
   display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr);
   gap: var(--space-3); margin-bottom: var(--space-6);
@@ -42,7 +42,7 @@
 @media (max-width: 480px) {
   .study-tab { font-size: var(--fs-xs); padding: var(--space-4) var(--space-1); }
 }
-/* v1.5.0: five study tabs share the row, so the labels step down on narrow phones (large text, English) */
+/* v1.6.0: five study tabs share the row, so the labels step down on narrow phones (large text, English) */
 @media (max-width: 370px) {
   .study-tab { font-size: var(--fs-2xs); }
 }

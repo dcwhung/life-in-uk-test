@@ -1,4 +1,4 @@
-// Memory-note study (v1.5.0, mockup mockups/memo-study.html v2: pick a group → look → test → result): Study tab 5 "🧠",
+// Memory-note study (v1.6.0, mockup mockups/memo-study.html v2: pick a group → look → test → result): Study tab 5 "🧠",
 // the group list (chapter chips, search, due banner, status cards), the group screen (#screenMemo: hook + memory note,
 // test via the side session, result + schedule), stored progress, 360px fit, en + zh-HK strings and lang marks.
 const { chromium } = require('playwright-core');
@@ -264,7 +264,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   await pg.reload(); await pg.click('#modeStudy');
   assert((await cardIds()).length === GROUP_COUNT && await pg.$('.memo-due') === null, 'bad progress + bad memoChapter: memo tab, all groups, no banner');
 
-  // a cached pre-v1.5.0 index.html (SW cutover) has no memo tab / #screenMemo: a stored memo tab falls back, nothing throws
+  // a cached pre-v1.6.0 index.html (SW cutover) has no memo tab / #screenMemo: a stored memo tab falls back, nothing throws
   await pg.reload(); // a fresh page: studyPrefs still says tab 'memo'
   await pg.evaluate(() => { document.querySelector('.study-tab[data-tab="memo"]').remove(); byId('screenMemo').remove(); });
   await pg.click('#modeStudy');

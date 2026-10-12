@@ -507,7 +507,7 @@ async function checkMastered(pg) {
   const one = await cur(pg);
   assert(one.n === big.n && one.note === '' && await pg.evaluate(() => sessionReturn.rounds) === 1, `W-038: ${big.n} questions left to ask = one round, no "Round 1 of 2": "${one.note}"`);
   await pg.evaluate(() => leaveToHome());
-  const home = await pg.evaluate(() => ({ card: byId('planCard').querySelector('.plan-home-pct').textContent,
+  const home = await pg.evaluate(() => ({ card: byId('planCard').querySelector('.plan-home-ring-pct').textContent,
     want: planDayCompletion(planLoad().days[0], planDayLog(planLoadLogView(), '2026-10-01')).pct }));
   assert(home.card === `${home.want}%` && home.want > 0, `G37: the Home card % (${home.card}) counts mastered questions too`);
 }

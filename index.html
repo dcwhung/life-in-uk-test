@@ -165,11 +165,14 @@
 
   <!-- ── FLAGGED (practice) ── -->
   <div class="screen" id="screenFlagged">
-    <div class="quiz-header">
-      <button class="back-btn icon-btn" type="button" data-action="goHome" data-icon="home" data-i18n-attr="aria-label:common.homeLabel;title:common.homeLabel"></button>
-      <span class="quiz-label" data-i18n="flagged.title"></span>
+    <!-- pinned under the app header; only #flaggedList scrolls (css/screens/flagged.css .flagged-top) -->
+    <div class="flagged-top">
+      <div class="quiz-header">
+        <button class="back-btn icon-btn" type="button" data-action="goHome" data-icon="home" data-i18n-attr="aria-label:common.homeLabel;title:common.homeLabel"></button>
+        <span class="quiz-label" data-i18n="flagged.title"></span>
+      </div>
+      <button class="flag-start" id="flaggedStart" data-action="startFlaggedPractice"></button>
     </div>
-    <button class="flag-start" id="flaggedStart" data-action="startFlaggedPractice"></button>
     <div id="flaggedList"></div>
   </div>
 
@@ -197,7 +200,7 @@
     <div id="studyContent"></div>
   </div>
 
-  <!-- ── MEMORY-NOTE GROUP (v1.5.0, js/screens/memo.js): from Study tab 5; ① look (hook + memory note) → ② test (a side
+  <!-- ── MEMORY-NOTE GROUP (v1.6.0, js/screens/memo.js): from Study tab 5; ① look (hook + memory note) → ② test (a side
        session on the quiz screen) → result + next review day. The title, steps and body are filled by JS -->
   <div class="screen" id="screenMemo">
     <div class="quiz-header memo-header">

@@ -74,8 +74,8 @@ function isPlanExam(examNum) {
   return typeof examNum === 'string' && examNum.startsWith(PLAN_PREFIX) && /^\d+$/.test(examNum.slice(PLAN_PREFIX.length));
 }
 function planDayOf(examNum) { return Number(examNum.slice(PLAN_PREFIX.length)); }
-// v1.5.0: a memory-note group's test: MEMO_PREFIX + group id (js/domain/memo.js). Every quiz header asks (setExamLabel),
-// so an HTTP-cached pre-v1.5.0 config.js without MEMO_PREFIX (W-057) reads as "not a memo set" instead of throwing
+// v1.6.0: a memory-note group's test: MEMO_PREFIX + group id (js/domain/memo.js). Every quiz header asks (setExamLabel),
+// so an HTTP-cached pre-v1.6.0 config.js without MEMO_PREFIX (W-057) reads as "not a memo set" instead of throwing
 function isMemoExam(examNum) {
   return typeof examNum === 'string' && typeof MEMO_PREFIX !== 'undefined' && examNum.startsWith(MEMO_PREFIX);
 }
