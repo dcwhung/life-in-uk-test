@@ -807,6 +807,13 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
   .reset-btn { background: var(--card); border: 1.5px solid var(--red-light); color: var(--red); border-radius: var(--radius-sm); padding: var(--space-3) var(--space-6); font: inherit; font-size: var(--fs-sm); font-weight: 700; white-space: nowrap; }
   [hidden] { display: none !important; }
 
+  /* ════════ rev 3 (user; every width, the phone too — a css/screens/plan.css change): the 3 stat tiles share
+     3 rows, so labels, numbers and sub lines each start on one line, however many lines a label takes ════════ */
+  .plan-stats { grid-template-rows: auto auto auto; row-gap: 0; }
+  .plan-stat { grid-row: span 3; grid-template-rows: subgrid; align-content: start; }
+  .optC .plan-stats { grid-template-rows: none; row-gap: var(--space-4); }  /* option C stacks the tiles: no shared rows */
+  .optC .plan-stat { grid-row: auto; grid-template-rows: none; }
+
   /* ════════ shared: the today card is split into its head (ring + info + banners) and its task list ════════ */
   .plan-tasks { margin: 0; }
 
@@ -842,7 +849,7 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
 <body>
 
 <div class="mock-bar">
-  <b>v2.0.0 Desktop · Mockup 5/12 · Plan Day（今日任務）· rev 2：任務 panel 可碌</b>
+  <b>v2.0.0 Desktop · Mockup 5/12 · Plan Day（今日任務）· rev 3：整體進度 3 格對齊</b>
   <div class="mock-row"><span class="lbl">語言</span><button class="mock-tab on" data-k="lang" data-v="en">EN</button><button class="mock-tab" data-k="lang" data-v="zh">中文</button>
     <span class="lbl" style="margin-left:10px">⚙ 大字</span><button class="mock-tab on" data-k="large" data-v="off">關</button><button class="mock-tab" data-k="large" data-v="on">開</button></div>
   <div class="mock-row"><span class="lbl">狀態</span><button class="mock-tab on" data-k="st" data-v="day9">今日 Day 9（有補做）</button><button class="mock-tab" data-k="st" data-v="day1">今日 Day 1（全新）</button><button class="mock-tab" data-k="st" data-v="rest">休息日（之後）</button><button class="mock-tab" data-k="st" data-v="past">已過嘅日子</button><button class="mock-tab" data-k="st" data-v="exam">考試日</button></div>
@@ -902,6 +909,7 @@ const OPTIONS = [
     id: 'A', cls: 'optA', rec: true, title: 'A · 沿用 Home A：左欄今日概況 + 日曆 + 整體進度，右欄任務',
     ann: `<ul><li><b>頂</b>：🏠、‹ 今日任務 ›、📅，同手機一樣。</li>
       <li><b>左欄（5/12，sticky）</b>：今日 ring + 階段 + 提示、補做提示、每日完成度日曆、整體進度：全部係「睇」嘅資料。</li>
+      <li><b>rev 3</b>：「整體進度」3 格嘅標題、數字、說明各自對齊同一條線（CSS subgrid）；手機版一齊改（<code>plan.css</code> <code>.plan-stats</code>）。</li>
       <li><b>rev 2</b>：任務 panel 最高只會同左欄一樣高；任務多過嗰個高度（例如 Day 9 有 22 項補做）就喺 panel 入面碌，上下有淡出效果，底部有「↓ 仲有任務」提示；任務少就照原本高度，唔會拉長。</li>
       <li>休息日／考試日冇任務：嗰日張卡（😴／考試日橫額）就放喺右欄，唔會留空。</li>
       <li><b>右欄（7/12）</b>：任務 list：全部係「做」嘅嘢，由上至下逐項撳「開始」。補做任務好多嘅時候（Day 9 有 22 項）只係右欄長，左邊一直睇得到 ring 同日曆。</li></ul>`,
