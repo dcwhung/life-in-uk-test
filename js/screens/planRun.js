@@ -11,7 +11,7 @@
 // ════════════════════════════════════════
 const PLAN_RUN_TYPES = [PLAN_TASK.practice, PLAN_TASK.drill, PLAN_TASK.review];
 const PLAN_FACT_TYPES = [PLAN_TASK.read, PLAN_TASK.wrongFacts];
-const PLAN_RUN_SYMBOL = { next: '→', finish: '✓' };
+const PLAN_RUN_ICON = { next: 'arrowRight', finish: 'check' }; // the quick button's line icon (LINE_ICON_PATHS, C1)
 const PLAN_RUN_VIEW = { done: 'done', facts: 'facts' };
 const PLAN_RUN_BADGE_KEYS = { [PLAN_TASK.read]: 'home.modeStudy', [PLAN_TASK.mock]: 'common.exam' }; // others: Practice
 let planRunView = null; // #screenPlanRun: { kind, date, taskIndex, from } (+ facts: pos, review)
@@ -128,13 +128,13 @@ function planRunBackHtml(from) {
 // aria-label would hide the <span lang="en">Day n</span> language from screen readers)
 function setQuizBackText(back, html) {
   back.classList.add('plan-hit');
-  back.classList.remove('icon-btn');
+  back.classList.remove('icon-btn', 'memo-back');
   back.innerHTML = html;
   back.removeAttribute('aria-label');
   back.removeAttribute('title');
 }
 function setQuizBackHome(back) {
-  back.classList.remove('plan-hit');
+  back.classList.remove('plan-hit', 'memo-back');
   back.classList.add('icon-btn');
   back.innerHTML = lineIconSvg('home');
   setAccessibleName(back, t('common.homeLabel'));
@@ -143,6 +143,7 @@ function renderPlanQuizHeader() {
   const back = byId('screenQuiz').querySelector('.back-btn');
   const session = isPlanSession(), plan = session || isPlanMock();
   if (plan) setQuizBackText(back, planRunBackHtml((session ? sessionReturn : planMockRun).from));
+  else if (isMemoSession()) setQuizBackMemo(back); // C2: "‹ Memory" back to the group (js/screens/memo.js)
   else setQuizBackHome(back);
   if (!session) return;
   if (planRunPart(sessionReturn).fact !== undefined) setExamLabel(byId('quizLabel'), FACT_PREFIX + sessionReturn.fact);
@@ -177,7 +178,7 @@ function planRunHasPair(ret) {
   return !!ctx && ctx.day.tasks.some(t => t.type === PLAN_TASK.read && t.pair === ret.taskIndex);
 }
 // QA O-3: the quick button's title / aria-label is plain words (the bottom button keeps its → / ✓ / 🔁)
-function planAction(labelText, symbol, run, titleText) { return { label: labelText, symbol, title: titleText, run }; }
+function planAction(labelText, icon, run, titleText) { return { label: labelText, icon, title: titleText, run }; }
 // last question of a round: next round (unanswered left), redo the wrong ones (n left), or finish → Result card
 function planNextAction() {
   const ret = sessionReturn;
@@ -186,16 +187,16 @@ function planNextAction() {
   const run = () => planStartRound(ret.date, ret.taskIndex, ret.from, skipped, { round: ret.round, rounds: ret.rounds }, planRunPart(ret));
   const ctx = planRunContext(ret.date, ret.taskIndex, ret.fact);
   const next = ctx ? planNextRound(ctx.task, ctx.dayLog, skipped) : [];
-  if (!next.length) return planAction(t('quiz.finishButton'), PLAN_RUN_SYMBOL.finish, run, t('quiz.finish'));
-  if (next.some(k => !ctx.dayLog.bad[k])) return planAction(t('plan.run.nextRound'), PLAN_RUN_SYMBOL.next, run, t('plan.run.nextRoundTitle'));
+  if (!next.length) return planAction(t('quiz.finishButton'), PLAN_RUN_ICON.finish, run, t('quiz.finish'));
+  if (next.some(k => !ctx.dayLog.bad[k])) return planAction(t('plan.run.nextRound'), PLAN_RUN_ICON.next, run, t('plan.run.nextRoundTitle'));
   const n = planRetryLeft(ctx.task, ctx.dayLog);
-  return planAction(t('plan.run.retryWrong', { n }), PLAN_RUN_SYMBOL.next, run, t('plan.run.retryWrongTitle', { n }));
+  return planAction(t('plan.run.retryWrong', { n }), PLAN_RUN_ICON.next, run, t('plan.run.retryWrongTitle', { n }));
 }
 function planReviewNextAction(ret) {
   if (ret.page < ret.pages - 1) {
-    return planAction(t('quiz.nextButton'), PLAN_RUN_SYMBOL.next, () => planStartReview(ret.date, ret.taskIndex, ret.from, ret.page + 1), t('quiz.next'));
+    return planAction(t('quiz.nextButton'), PLAN_RUN_ICON.next, () => planStartReview(ret.date, ret.taskIndex, ret.from, ret.page + 1), t('quiz.next'));
   }
-  return planAction(t('quiz.finishButton'), PLAN_RUN_SYMBOL.finish, () => planBackToDay(), t('quiz.finish'));
+  return planAction(t('quiz.finishButton'), PLAN_RUN_ICON.finish, () => planBackToDay(), t('quiz.finish'));
 }
 // ← (quiz header in a plan session, Result card header, "Back to the task list"): the day screen it came from,
 // focus on the task's box when it is listed there

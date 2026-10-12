@@ -130,7 +130,10 @@ async function checkInSession(pg) {
   assert(await pg.evaluate(() => JSON.parse(localStorage.getItem('lifeuk.practiceStreak'))['6.6']) === 1, 'right answer: practiceStreak 6.6 = 1');
   await goLast(pg);
   await answer(pg, true);
-  assert(await text(pg, '#nextBtn') === '↩ Back' && await text(pg, '#quickNext') === '↩', 'last question: ↩ Back / ↩ (no results page)');
+  // C1 (user, iPhone): no "↩" glyph (an emoji box on iOS): a return line icon on the quick and the bottom button
+  const back = await pg.evaluate(() => ['nextBtn', 'quickNext'].map(id => { const e = byId(id), s = e.querySelector('svg.line-icon');
+    return { text: e.textContent.trim(), icon: s && s.dataset.iconName, glyph: /[\p{Extended_Pictographic}\u2190-\u21FF]/u.test(e.textContent) }; }));
+  assert(back[0].text === 'Back' && back[1].text === '' && back.every(b => b.icon === 'returnLeft' && !b.glyph), 'last question: Back / quick back, both a return line icon, no ↩ glyph (no results page): ' + JSON.stringify(back));
 }
 
 // ↩ Back: Study with the same tab, chapter chip, Hide mastered chip and scroll; session cleared

@@ -34,6 +34,9 @@
 .nav-btn.secondary { background: var(--card); color: var(--navy); border: 2px solid var(--border); }
 .nav-btn.secondary:hover { background: var(--navy); color: var(--text-inverse); border-color: transparent; }
 .nav-btn:disabled { opacity: 0.4; cursor: default; }
+/* C1: a bottom button with a line icon before its words (side session Back) */
+.nav-btn.with-icon { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-3); }
+.nav-btn.with-icon .line-icon { width: 1.15em; height: 1.15em; flex-shrink: 0; }
 
 /* quick Prev / Next in the question header */
 .quick-nav { display: none; gap: var(--space-3); flex-shrink: 0; text-transform: none; letter-spacing: 0; }
@@ -46,6 +49,8 @@
   display: inline-flex; align-items: center; justify-content: center;
   cursor: pointer;
 }
+/* C1: the quick pair's line icons (← → ✓ and the side session's return arrow) at the old glyph's size and weight */
+.quick-btn .line-icon { width: 1.1em; height: 1.1em; stroke-width: 2.6; }
 .quick-btn.primary { background: var(--navy); border-color: var(--navy); color: var(--text-inverse); }
 .quick-btn:disabled { opacity: 0.4; cursor: default; }
 

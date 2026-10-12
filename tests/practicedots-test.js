@@ -68,7 +68,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
 
   // exam: last question quick ✓ submits (same as Practice Finish ✓)
   await pg.evaluate(() => { pendingMode = 'exam'; startExam(4); state.current = 23; renderQuestion(); });
-  assert(await vis('#quickNext') && (await text('#quickNext')) === '✓' && await pg.$eval('#quickNext', e => e.title === 'Submit'), 'exam last question: quick ✓ (Submit)');
+  assert(await vis('#quickNext') && (await text('#quickNext')) === '' && await pg.$eval('#quickNext', e => e.title === 'Submit' && e.querySelector('svg.line-icon').dataset.iconName === 'check'), 'exam last question: quick check line icon (Submit)');
   assert((await text('#nextBtn')) === 'Submit', 'bottom button still Submit');
   // CUI-0012: 320px — 24 exam dots stay inside the question card's content box, no page side-scroll
   await pg.setViewportSize({ width: 320, height: 844 });

@@ -161,8 +161,8 @@ async function checkRounds(pg) {
   assert(c3.n === 1 && c3.key === wrongKey, 'redo round: only the wrong one');
   await answer(pg, true);
   assert((await cur(pg)).next === 'Finish ✓', 'all right: "Finish ✓"');
-  const t3 = await pg.evaluate(() => [byId('quickNext').textContent, byId('quickNext').title, byId('quickNext').getAttribute('aria-label')]);
-  assert(t3.join('|') === '✓|Finish|Finish', 'QA O-3: the quick ✓ button is titled "Finish" (no symbol): ' + t3);
+  const t3 = await pg.evaluate(() => [byId('quickNext').querySelector('svg.line-icon').dataset.iconName + byId('quickNext').textContent, byId('quickNext').title, byId('quickNext').getAttribute('aria-label')]);
+  assert(t3.join('|') === 'check|Finish|Finish', 'QA O-3: the quick check-icon button is titled "Finish" (no symbol; C1: line icon, no glyph): ' + t3);
   log = await dayLog(pg, TODAY);
   assert(qids.every(k => log.ok[k]), 'every question of the task is right for today');
   await tap(pg, '#nextBtn');

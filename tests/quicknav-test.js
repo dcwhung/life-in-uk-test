@@ -14,6 +14,10 @@ const VIEWPORT_H = 844;
   const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('ok:', m); };
   const vis = sel => pg.$eval(sel, e => getComputedStyle(e).display !== 'none');
   const text = sel => pg.$eval(sel, e => e.textContent);
+  // v1.6.1 (C1, user: no emoji as icons): the quick pair are SVG line icons (no glyph text), named by title / aria-label
+  const iconOf = sel => pg.$eval(sel, e => { const s = e.querySelector('svg.line-icon[aria-hidden="true"]'); return s ? s.dataset.iconName : null; });
+  const PICTO = /[\p{Extended_Pictographic}\u2190-\u21FF\u2713-\u2718]/u; // emoji / arrow / tick glyphs
+  const glyphFree = sel => pg.$eval(sel, (e, src) => !new RegExp(src, 'u').test(e.textContent), PICTO.source);
   await pg.goto(APP_URL);
   await pg.evaluate(() => localStorage.clear()); await pg.reload();
   const answer = () => pg.evaluate(() => {
@@ -28,8 +32,10 @@ const VIEWPORT_H = 844;
   await answer();
   assert(await vis('#quickNav') && !(await vis('#yueToggle')), 'after answering: quick nav in the Translate spot');
   assert(await pg.$eval('#quickNav', e => e.closest('.q-num') !== null), 'quick nav sits in the question header row');
-  assert((await text('#quickPrev')) === '←' && await pg.$eval('#quickPrev', e => e.disabled), 'symbol-only Prev, disabled on the first question');
-  assert((await text('#quickNext')) === '→', 'symbol-only Next');
+  assert(await iconOf('#quickPrev') === 'arrowLeft' && (await text('#quickPrev')).trim() === '' && await pg.$eval('#quickPrev', e => e.disabled), 'icon-only Prev (line icon, no glyph), disabled on the first question');
+  assert(await iconOf('#quickNext') === 'arrowRight' && (await text('#quickNext')).trim() === '', 'icon-only Next (line icon, no glyph)');
+  const iconStyle = await pg.$$eval('#quickPrev svg, #quickNext svg', els => els.map(e => { const c = getComputedStyle(e); return [c.fill, c.strokeWidth, c.strokeLinecap, Math.round(e.getBoundingClientRect().width)].join(); }));
+  assert(iconStyle.length === 2 && iconStyle[0] === iconStyle[1] && iconStyle[0].startsWith('none,'), 'Prev and Next icons share one stroke style and size: ' + iconStyle.join(' | '));
   assert(await pg.$eval('#quickPrev', e => e.title === 'Previous') && await pg.$eval('#quickNext', e => e.title === 'Next'), 'quick buttons keep a text label as title');
   await pg.click('#quickNext');
   assert(await pg.evaluate(() => state.current === 1), 'quick Next moves to the next question');
@@ -40,21 +46,21 @@ const VIEWPORT_H = 844;
   // last question mirrors the bottom button (Finish)
   await pg.evaluate(() => { state.current = state.questions.length - 1; renderQuestion(); });
   await answer();
-  assert((await text('#quickNext')) === '✓' && (await text('#nextBtn')) === 'Finish ✓', 'last question: ✓ (bottom button keeps Finish ✓)');
+  assert(await iconOf('#quickNext') === 'check' && (await text('#quickNext')).trim() === '' && (await text('#nextBtn')) === 'Finish ✓', 'last question: check line icon (bottom button keeps Finish ✓)');
   assert(await pg.$eval('#quickNext', e => e.title === 'Finish'), 'title names the action');
   await pg.click('#quickNext');
   assert(await vis('#screenResult'), 'quick Finish opens the results');
 
   // exam: quick nav always shown (no Translate there), also on unanswered questions; no Next on the last question
   await pg.evaluate(() => { pendingMode = 'exam'; startExam(1); });
-  assert(await vis('#quickNav') && (await text('#quickNext')) === '→', 'exam: shown before picking');
+  assert(await vis('#quickNav') && await iconOf('#quickNext') === 'arrowRight', 'exam: shown before picking');
   await answer();
   await pg.click('#quickNext');
   assert(await pg.evaluate(() => state.current === 1 && state.answers[0].length > 0), 'exam: quick Next keeps the pick');
   assert(await vis('#quickNav'), 'exam: still shown on the next (unanswered) question');
   await pg.evaluate(() => { state.current = state.questions.length - 1; renderQuestion(); });
   await answer();
-  assert((await text('#quickNext')) === '✓' && await vis('#quickPrev') && (await text('#nextBtn')) === 'Submit', 'exam last question: quick ✓ submits, bottom button Submit');
+  assert(await iconOf('#quickNext') === 'check' && await vis('#quickPrev') && (await text('#nextBtn')) === 'Submit', 'exam last question: quick check icon submits, bottom button Submit');
 
   // similar session: last question goes back
   await pg.evaluate(() => {
@@ -65,7 +71,14 @@ const VIEWPORT_H = 844;
     state.current = state.questions.length - 1;
     const l = state.questions[state.current]; state.answers[state.current] = [...l.a]; revealAnswer();
   });
-  assert((await text('#quickNext')) === '↩' && (await text('#nextBtn')) === '↩ Back', 'similar session: ↩ / ↩ Back');
+  // C1 (user, iPhone): "↩" fell back to a blue emoji box on iOS; the way back is a return line icon on both buttons
+  assert(await iconOf('#quickNext') === 'returnLeft' && await glyphFree('#quickNext') && (await text('#quickNext')).trim() === '', 'similar session: quick Back is the return line icon, no ↩ glyph');
+  assert(await pg.$eval('#quickNext', e => e.title === 'Back' && e.getAttribute('aria-label') === 'Back'), 'quick Back keeps its accessible name');
+  assert(await iconOf('#nextBtn') === 'returnLeft' && await glyphFree('#nextBtn') && (await text('#nextBtn')).trim() === 'Back', 'similar session: bottom button = return line icon + "Back", no ↩ glyph');
+  await pg.evaluate(() => setLang('zh-HK'));
+  assert(await iconOf('#nextBtn') === 'returnLeft' && (await text('#nextBtn')).trim() === '返回' && await iconOf('#quickNext') === 'returnLeft'
+    && await pg.$eval('#quickNext', e => e.title === '返回'), 'zh-HK: bottom 返回 + return icon, quick icon titled 返回');
+  await pg.evaluate(() => setLang('en'));
   await pg.click('#quickNext');
   assert(await pg.evaluate(() => state.examNum === 12 && sessionReturn === null), 'quick Back returns to the original session');
 

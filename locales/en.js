@@ -95,7 +95,7 @@ LOCALES.en = {
     finish: 'Finish',
     prevButton: '← Prev',
     nextButton: 'Next →',
-    backButton: '↩ Back',
+    backButton: 'Back', // C1: the return line icon is drawn in front (quiz.js renderNextButton), no ↩ glyph
     finishButton: 'Finish ✓',
     correct: '✓ Correct!',
     wrong: '✗ Wrong',
