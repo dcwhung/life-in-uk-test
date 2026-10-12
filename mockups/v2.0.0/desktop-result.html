@@ -1495,6 +1495,8 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
   .optA .col-left .result-card .result-actions .nav-btn { flex: 1; white-space: nowrap; padding: var(--space-4) var(--space-6); }
   .optA .col-left .section-title, .optA .col-left .diff-table { flex: none; }
   .optA .col-left .diff-table { margin: 0 !important; }
+  /* rev 5 (user): one blank line between the score card and the By difficulty title */
+  .optA .col-left .result-card + .section-title { margin-top: calc(var(--fs-base) * 1.5) !important; }
   /* too tall, step 1: the score shrinks a step and the By difficulty rows close up (the card's gaps and emoji keep their size) */
   .optA .col-left.is-compact .result-score { font-size: var(--fs-display-sm); }
   .optA .col-left.is-compact .diff-row { padding: var(--space-2) 0; }
@@ -1529,7 +1531,7 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
 <body>
 
 <div class="mock-bar">
-  <b>v2.0.0 Desktop · Mockup 10/12 · Result（考試結果）· rev 4：A 成績卡內容拉鬆</b>
+  <b>v2.0.0 Desktop · Mockup 10/12 · Result（考試結果）· rev 5：A 定案</b>
   <div class="mock-row"><span class="lbl">語言</span><button class="mock-tab on" data-k="lang" data-v="en">EN</button><button class="mock-tab" data-k="lang" data-v="zh">中文</button><span class="lbl" style="margin-left:10px">翻譯</span><button class="mock-tab on" data-k="yue" data-v="on">開</button><button class="mock-tab" data-k="yue" data-v="off">關</button><span class="lbl" style="margin-left:10px">⚙ 大字</span><button class="mock-tab on" data-k="large" data-v="off">關</button><button class="mock-tab" data-k="large" data-v="on">開</button></div>
   <div class="mock-row"><span class="lbl">結果</span><button class="mock-tab on" data-k="st" data-v="fail">唔合格（12 / 24，4 題未答）</button><button class="mock-tab" data-k="st" data-v="pass">合格（20 / 24）</button></div>
   <div class="mock-row"><span class="lbl">縮放</span><button class="mock-tab on" data-k="zoom" data-v="fit">適合畫面</button><button class="mock-tab" data-k="zoom" data-v="100">100%</button></div>
@@ -1588,7 +1590,7 @@ const VH = { 1024: 768, 1280: 800 };
 const OPTIONS = [
   {
     id: 'A', cls: 'optA', rec: true, vh: VH, title: 'A · 左欄成績｜右欄答案回顧',
-    ann: `<ul><li><b>rev 4</b>：成績卡內容拉鬆：固定間距加大，卡內淨返嘅空位平均分喺 🎯 上面、題號點上面同掣上面。放唔落就逐步收：① 分數細一級、難度表行距收窄（一般字只會去到呢步）→ ② 成績卡間距收窄（大字）→ ③ emoji／分數再細（1024 英文大字）。</li><li><b>rev 3</b>：左欄唔使碌；按難度表靠左欄底，成績卡用晒上面淨返嘅空間；🎯 放返大、自己佔一行；「再做一次／另一份試卷」貼卡底。</li>
+    ann: `<ul><li><b>rev 5（定案）</b>：成績卡同按難度表之間空一行。</li><li><b>rev 4</b>：成績卡內容拉鬆：固定間距加大，卡內淨返嘅空位平均分喺 🎯 上面、題號點上面同掣上面。放唔落就逐步收：① 分數細一級、難度表行距收窄（一般字只會去到呢步）→ ② 成績卡間距收窄（大字）→ ③ emoji／分數再細（1024 英文大字）。</li><li><b>rev 3</b>：左欄唔使碌；按難度表靠左欄底，成績卡用晒上面淨返嘅空間；🎯 放返大、自己佔一行；「再做一次／另一份試卷」貼卡底。</li>
       <li><b>左（5/12）</b>：成績卡（分數、合格／唔合格、題號點）、按難度表；左欄太長就自己碌；「再做一次／另一份試卷」貼左欄底，一直睇得到。</li>
       <li><b>右（7/12）</b>：答案回顧：排序 chip + 24 題，喺自己 panel 入面碌。成績同掣一直睇得到。</li></ul>`,
     render: p => `<div class="res-screen">${p.header}${p.timeup}<div class="cols"><div class="col col-left">${p.card.replace(/<\/div>\s*$/, p.actions + '</div>')}${p.diffTitle}${p.diff}</div>
