@@ -6,6 +6,9 @@
 //   one set of buttons (the bottom pair is not shown)
 // - Flagged: one screen high; the practise button across the top; the list in 2 columns in a scrolling panel;
 //   unflagging the last one shows the empty hint
+// - C-006 / W-379: on a short laptop (1366 × 657, 1280 × 720) and at 1024 × 600, large text, 中, exam and practice:
+//   when even step ③ does not fit, the left column scrolls (fades) instead of cutting the card; Retry / Another stay
+//   in the card and can be scrolled to, clicked and reached by keyboard (focus brings them into view)
 // - below 1024px nothing moves (390px: the v1.4 order)
 const dt = require('./desktop-helpers');
 const { assert } = dt;
@@ -95,6 +98,47 @@ async function checkFlagged(page, label) {
   await oneScreen(page, label, 'flagged, empty');
 }
 
+// C-006: the buttons can be scrolled into view inside the card / left column, clicked, and focus brings them on screen
+const actionsOnScreen = (page, sel) => page.$eval(sel, el => {
+  const inside = (r, b) => r.top >= b.top - 1 && r.bottom <= b.bottom + 1 && r.left >= b.left - 1 && r.right <= b.right + 1;
+  const r = el.getBoundingClientRect(), card = el.closest('.result-card').getBoundingClientRect();
+  const left = el.closest('.result-left').getBoundingClientRect();
+  const view = { top: 0, left: 0, bottom: innerHeight, right: innerWidth };
+  const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+  return { ok: inside(r, view) && inside(r, card) && inside(r, left) && (hit === el || el.contains(hit)),
+    detail: `button ${Math.round(r.top)}–${Math.round(r.bottom)}, card ${Math.round(card.top)}–${Math.round(card.bottom)}, column ${Math.round(left.top)}–${Math.round(left.bottom)}` };
+});
+async function checkShortResult(b) {
+  for (const viewport of dt.SHORT_VIEWPORTS) for (const finish of [finishExam1, finishPractice]) {
+    const { page, errors, label } = await dt.openDesktop(b, { viewport, lang: 'zh-HK', fontSize: 'large' });
+    const what = finish === finishExam1 ? 'exam' : 'practice';
+    await finish(page);
+    await dt.nextFrame(page);
+    const h = await dt.noHorizontalScroll(page);
+    const card = await dt.fitsWithoutScroll(page, '#screenResult .result-card');
+    assert(h.ok && card.ok, `${label} ${what}: no sideways scroll, the score card never cuts its content (${card.detail})`);
+    assert(await page.evaluate(() => !!document.querySelector('#screenResult .result-actions').closest('.result-card')), `${label} ${what}: Retry / Another stay in the card`);
+    for (const sel of ['#screenResult .result-card .retry-btn', '#screenResult .result-card .another-btn']) {
+      await page.$eval('.result-left', el => { el.scrollTop = 0; });
+      await page.focus(sel); // keyboard: focus scrolls it into view
+      const focused = await actionsOnScreen(page, sel);
+      assert(focused.ok, `${label} ${what}: ${sel.split(' .').pop()} on screen once focused (${focused.detail})`);
+      await page.$eval('.result-left', el => { el.scrollTop = 0; });
+      await page.$eval(sel, el => el.scrollIntoView({ block: 'nearest' }));
+      const shown = await actionsOnScreen(page, sel);
+      assert(shown.ok, `${label} ${what}: ${sel.split(' .').pop()} scrolls into view in the left column (${shown.detail})`);
+    }
+    const reach = await dt.controlsReachable(page);
+    assert(reach.ok, `${label} ${what}: every control reachable (${reach.detail})`);
+    const fade = await page.evaluate(() => { const l = document.querySelector('.result-left'); l.scrollTop = 0; l.dispatchEvent(new Event('scroll')); return l.closest('.fit-fade') && l.closest('.fit-fade').classList.contains('can-down'); });
+    if (await page.$eval('.result-left', el => el.scrollHeight > el.clientHeight + 1)) assert(fade, `${label} ${what}: a scrolling left column fades at the bottom`);
+    await page.click('#screenResult .result-card .another-btn');
+    assert(await page.evaluate(() => !byId('screenResult').classList.contains('active')), `${label} ${what}: Another can be clicked`);
+    assert(errors.length === 0, `${label} ${what}: no page error ` + errors.join(' | '));
+    await page.close();
+  }
+}
+
 const resultOrder = page => page.evaluate(() => [...byId('screenResult').children].filter(e => !e.matches('.result-cols'))
   .map(e => e.id || e.className).join(' | ') + ' // ' + [...document.querySelector('#screenResult .result-card').children].map(e => e.id || e.className).join(' '));
 
@@ -125,6 +169,7 @@ async function checkPhone(b) {
     await checkFlagged(page, label);
     assert(errors.length === 0, `${label}: no page error ` + errors.join(' | '));
   });
+  await checkShortResult(b);
   await checkPhone(b);
   await b.close();
   console.log('DESKTOP-RESULT PASS');

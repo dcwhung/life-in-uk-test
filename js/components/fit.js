@@ -24,13 +24,14 @@ function overflowsY(el) { return el.scrollHeight > el.clientHeight + FIT_SLACK_P
 // step may tighten the options list while the column is what is measured). Every step is removed first, so a run never
 // depends on the last one: a screen that got roomier gets its steps back. Returns how many steps are on.
 // Below 1024px the steps are removed and none added (desktop-only layouts), unless { anyWidth: true }.
-// A hidden el cannot be measured: steps stay off until its screen renders.
-function fitSteps(el, steps, { anyWidth = false } = {}) {
+// { measure }: "does not fit yet" when el's own overflow is not the whole story (S-229: Result also measures its
+// score card, which clips). A hidden el cannot be measured: steps stay off until its screen renders.
+function fitSteps(el, steps, { anyWidth = false, measure = () => overflowsY(el) } = {}) {
   const pairs = steps.map(step => (Array.isArray(step) ? step : [el, step])).filter(([target]) => target);
   pairs.forEach(([target, cls]) => target.classList.remove(cls));
   if (!el || !el.getClientRects().length || (!anyWidth && !isDesktop())) return 0;
   let used = 0;
-  while (used < pairs.length && overflowsY(el)) {
+  while (used < pairs.length && measure()) {
     const [target, cls] = pairs[used];
     target.classList.add(cls);
     used++;

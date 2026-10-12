@@ -207,11 +207,14 @@ function buildResultDesk() {
   };
   Object.values(moved).forEach(deskRemember);
   const d = {
-    moved, cols: deskEl('div', 'result-cols'), left: deskEl('div', 'result-left'), right: deskEl('div', 'result-right'),
+    moved, cols: deskEl('div', 'result-cols'), left: deskEl('div', 'result-left fit-panel'), right: deskEl('div', 'result-right'),
+    // C-006: the left column's fade wrapper (step ④ only: until then the column never scrolls)
+    leftWrap: deskEl('div', 'result-left-wrap fit-fade'),
     listWrap: deskEl('div', 'result-review-wrap fit-fade'), panel: deskEl('div', 'result-review-panel fit-panel'),
   };
+  d.leftWrap.append(d.left);
   d.listWrap.append(d.panel);
-  d.cols.append(d.left, d.right);
+  d.cols.append(d.leftWrap, d.right);
   d.cols.hidden = true;
   deskHomes.get(moved.card).before(d.cols); // where the card starts on the phone (under the time-up line)
   screen.classList.add('is-fit'); // css/components/fit.css: one screen high from 1024px only
@@ -228,15 +231,16 @@ function arrangeResult(desktop) {
   deskFill(d.right, [m.reviewTitle, m.order, d.listWrap]);
 }
 // mockup fitLeft(): the left column and the card must not scroll. ① smaller score, closer By difficulty rows →
-// ② tighter card gaps → ③ smaller emoji / score (1024px English large text)
+// ② tighter card gaps → ③ smaller emoji / score (1024px English large text) → ④ (C-006: a short laptop window,
+// 1366 × 657, or 1024 × 600) still too tall: the card stops clipping and grows to its content, and the left column
+// scrolls with fades, so Retry / Another (inside the card, mockup rev 5) can always be scrolled to and focused
 const RESULT_FIT_STEPS = ['is-compact', 'is-compact2', 'is-compact3'];
+const RESULT_SCROLL_STEP = 'is-scroll';
 function fitResult(desktop) {
   arrangeResult(desktop);
-  const { left, moved: { card } } = resultDesk;
-  RESULT_FIT_STEPS.forEach(cls => left.classList.remove(cls));
-  if (!desktop || !left.getClientRects().length) return;
-  const over = () => overflowsY(left) || overflowsY(card); // the card clips (overflow hidden): measure it too
-  RESULT_FIT_STEPS.find(cls => { if (!over()) return true; left.classList.add(cls); return false; });
+  const { left, leftWrap, moved: { card } } = resultDesk;
+  // the card clips (overflow hidden) until step ④: measure it too (S-229)
+  fitSteps(left, [...RESULT_FIT_STEPS, [leftWrap, RESULT_SCROLL_STEP]], { measure: () => overflowsY(left) || overflowsY(card) });
 }
 
 function retryExam() {

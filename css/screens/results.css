@@ -85,6 +85,14 @@
   #screenResult > .nav-row { display: none; } /* one set of buttons: the pair inside the card */
   .result-cols { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--space-10); }
   .result-left, .result-right { display: flex; flex-direction: column; min-height: 0; gap: var(--space-6); }
+  /* C-006: the left column is a .fit-panel in a .fit-fade, but only scrolls at step ④ (.is-scroll); until then the
+     card shrinks into the room (overflow hidden) and no scrollbar room is kept */
+  .result-left-wrap { min-height: 0; --fit-panel-gutter: 0px; }
+  .result-left-wrap:not(.is-scroll) > .result-left { overflow: visible; } /* the card's shadow is not clipped */
+  .result-left-wrap.is-scroll { --fit-panel-gutter: var(--space-3); }
+  .result-left-wrap.is-scroll > .result-left > .result-card { flex: none; overflow: visible; }
+  /* focus / scrollIntoView stop clear of the fades, so a focused button is never under one */
+  .result-left-wrap.is-scroll :is(button, a) { scroll-margin-block: var(--fit-fade-h); }
   .result-left > *, .result-right > * { flex: none; margin-bottom: 0; }
   .result-cols .section-title { margin-bottom: calc(-1 * var(--space-2)); }
   .result-review-wrap { flex: 1 1 auto; }
