@@ -18,16 +18,19 @@
 .dot.bad { background: var(--red-light); border-color: var(--red-light); color: var(--text-inverse); }    /* practice: answered wrong */
 .dot.ok.flag, .dot.bad.flag { border: 2.5px solid var(--orange); color: var(--text-inverse); }           /* practice flag keeps the right / wrong fill */
 .dot.current { box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--gold); }
-/* counts legend under the dots: "Correct n | Wrong n | …" */
-.dots-meta, .rmeta { display: flex; justify-content: flex-end; flex-wrap: wrap; }
+/* counts legend under the dots: always two fixed rows (v1.6.1, user 2026-10-12), right-aligned:
+   "Correct n | Unanswered n" over "Wrong n | Flagged n" (exam quiz: "Answered n | Unanswered n" over "Flagged n").
+   One wrapping line used to leave "Flagged 0" alone under a trailing "|" on iPhone; each .lg-row stays on one line. */
+.dots-meta, .rmeta { display: flex; flex-direction: column; align-items: flex-end; row-gap: var(--space-2); }
+.lg-row { display: flex; align-items: center; justify-content: flex-end; gap: var(--legend-gap); white-space: nowrap; }
 .dots-meta .sep, .rmeta .sep { color: var(--border); }
 .dots-meta i, .rmeta i { display: inline-block; border-radius: var(--radius-circle); vertical-align: -1px; }
 .dots-meta {
-  align-items: center; gap: var(--space-4);
+  --legend-gap: var(--space-4);
   font-size: var(--fs-2xs-plus); color: var(--text-muted);
   margin-bottom: var(--space-7); padding-bottom: var(--space-6); border-bottom: 1px solid var(--border);
 }
-.dots-meta.practice { gap: var(--space-2); font-size: var(--fs-2xs); }   /* four counts fit one line at 390px */
+.dots-meta.practice { --legend-gap: var(--space-2); font-size: var(--fs-2xs); }   /* same size as before the two rows */
 .dots-meta.practice i { margin-right: 3px; }
 .dots-meta i { width: 9px; height: 9px; margin-right: var(--space-2); }
 .dots-meta .lg-done { background: var(--navy-light); }
@@ -45,8 +48,8 @@
 .rdot.skip { background: var(--card); border-color: var(--red-light); color: var(--red-light); }
 .rdot.flag { box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--orange); }
 .rmeta {
-  gap: 5px; margin-top: var(--space-5);
-  font-size: var(--fs-2xs); color: var(--text-muted); white-space: nowrap;
+  --legend-gap: 5px; margin-top: var(--space-5);
+  font-size: var(--fs-2xs); color: var(--text-muted);
 }
 .rmeta i { width: 8px; height: 8px; margin-right: 3px; }
 .rmeta .lg-ok { background: var(--green-light); }

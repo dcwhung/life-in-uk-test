@@ -54,7 +54,9 @@ const CASES = [
             // each entry: its <i> legend class (ok / bad / todo …) → label; separators kept to check the row ends
             items: rows.map(r => [...r.children].map(c => c.classList.contains('sep') ? '|' : c.querySelector('i')?.className)),
             texts: rows.map(r => r.textContent.replace(/\s+/g, ' ').trim()),
-            oneLine: rows.map(r => new Set([...r.children].map(c => Math.round(c.getBoundingClientRect().top))).size === 1),
+            // one line = every entry / separator box overlaps the others vertically (CJK and Latin boxes differ in
+            // height, so their tops differ by a pixel when centred; a wrapped entry sits wholly below)
+            oneLine: rows.map(r => { const bs = [...r.children].map(c => c.getBoundingClientRect()); return Math.max(...bs.map(x => x.top)) < Math.min(...bs.map(x => x.bottom)); }),
             rowTops: rows.map(r => Math.round(r.getBoundingClientRect().top)),
             rowRights: rows.map(r => r.getBoundingClientRect().right),
             rowFits: rows.every(r => r.scrollWidth <= r.clientWidth + 0.5),
@@ -85,5 +87,5 @@ const CASES = [
   }
   console.log(`ok: ${checks} legend states (4 screens × 3 widths × 2 languages × 2 text sizes): two rows, no dangling separator, no overflow`);
   await b.close();
-  console.log('PASS');
+  console.log('LEGEND PASS');
 })().catch(e => { console.error(e.message); process.exit(1); });
