@@ -101,12 +101,29 @@ function studyShowListStart() {
   if (overlap > 0) window.scrollBy(0, -overlap);
 }
 // the pinned block's height as --study-top-h (scroll-padding-top in css/screens/study.css): follows the tab (its chip
-// rows), text size, language and rotation. An older cached index.html has no block, and a browser without
-// ResizeObserver (Safari < 13.1) keeps the header-only padding: nothing to observe (as js/screens/flagged.js)
+// rows), text size, language and rotation. Also measured on demand (W-067): while Study is hidden (a fact session) the
+// observer reports 0, and a scroll right after Study shows again (flashStudyFact) runs before the observer's next
+// callback. An older cached index.html has no block: nothing to measure. A browser without ResizeObserver
+// (Safari < 13.1) still gets the on-demand measure (as js/screens/flagged.js otherwise)
+function studySyncTopHeight() {
+  const top = document.querySelector('#screenStudy .study-top');
+  if (top) document.documentElement.style.setProperty('--study-top-h', `${top.offsetHeight}px`);
+}
 const studyTop = document.querySelector('#screenStudy .study-top');
-if (studyTop && typeof ResizeObserver !== 'undefined') new ResizeObserver(([entry]) => {
-  document.documentElement.style.setProperty('--study-top-h', `${entry.target.offsetHeight}px`);
-}).observe(studyTop);
+if (studyTop && typeof ResizeObserver !== 'undefined') new ResizeObserver(studySyncTopHeight).observe(studyTop);
+// W-068 (user): each chip row is one line that scrolls sideways (css/screens/study.css). A re-render (tab switch, reload,
+// language) can leave the selected chip past an edge, and a browser's own focus scroll leaves a half-shown chip as it is:
+// scroll the row (never the page, so no scrollIntoView, whose block axis could move it) until the chip clears the row's
+// scroll-padding (its edge fade). A hidden row or screen has no box: nothing to do
+function studyRevealChip(row, chip) {
+  if (!chip || !row.clientWidth) return;
+  const inset = parseFloat(getComputedStyle(row).scrollPaddingLeft) || 0;
+  const r = row.getBoundingClientRect(), c = chip.getBoundingClientRect();
+  if (c.left < r.left + inset) row.scrollLeft -= r.left + inset - c.left;
+  else if (c.right > r.right - inset) row.scrollLeft += c.right - (r.right - inset);
+}
+const STUDY_CHIP_ROWS = ['studyChips', 'studySubChips'];
+STUDY_CHIP_ROWS.forEach(id => byId(id).addEventListener('focusin', e => studyRevealChip(e.currentTarget, e.target.closest('.chip'))));
 // kind: 'mastered' | 'bookmarks' — per-fact marks, saved straight away
 function studyToggleMark(kind, id) {
   const marks = study[kind];
@@ -175,6 +192,7 @@ function renderStudy() {
     t.classList.toggle('active', t.dataset.tab === study.tab));
   fillChipRow('studyChips', study.tab === MEMO_TAB ? '' : studyChipsHtml());
   fillChipRow('studySubChips', studySubChipsHtml());
+  STUDY_CHIP_ROWS.forEach(id => studyRevealChip(byId(id), byId(id).querySelector('.chip.active')));
   byId('studySearch').placeholder = study.tab === MEMO_TAB ? t('memo.search') : t('study.search');
   // a renderer may name its own count / empty-state words (memo: groups, not facts)
   const { html, shown, total, countKey = 'study.count', emptyKey = 'study.empty' } = STUDY_RENDERERS[study.tab]();
@@ -189,6 +207,7 @@ function renderStudy() {
 function flashStudyFact(id) {
   const el = document.querySelector(`#studyContent .fact[data-fact-id="${id}"]`);
   if (!el) return;
+  studySyncTopHeight(); // W-067: Study was hidden a moment ago, so --study-top-h may still read 0
   el.scrollIntoView({ block: 'nearest' });
   el.classList.add('flash');
   setTimeout(() => el.classList.remove('flash'), FACT_HIGHLIGHT_MS);

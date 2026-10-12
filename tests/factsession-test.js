@@ -19,8 +19,9 @@ const FACT_LABEL = { en: `Fact ${FACT_NUM_TEXT}`, 'zh-HK': `知識點 ${FACT_NUM
 // G40 (v1.0.8): each distinct question once, the first copy in exam order
 const FACT_SRC = '4.16,6.6,7.14,8.13,16.16,17.21';
 // Study is scrolled so fact #21 sits this far below the viewport top, as when its "▶ Practise" is tapped
-// (v0.63: ↩ Back brings the card into view if the restored scroll no longer shows it, R-010)
-const CARD_OFFSET_Y = 200;
+// (v0.63: ↩ Back brings the card into view if the restored scroll no longer shows it, R-010). W-067 (v1.6.1): below the
+// pinned Study tabs + chips (~215px at 390px); at 200px the card was behind the block, so ↩ Back rightly scrolls it out
+const CARD_OFFSET_Y = 300;
 const SCROLL_TOLERANCE = 2;
 const SEARCH_TERM = 'magna';
 

@@ -120,6 +120,8 @@
   --flagged-top-h: 0px;
   /* v1.6.1: the Study screen's pinned block (tabs + chip rows) height, measured live (js/screens/study.js ResizeObserver) */
   --study-top-h: 0px;
+  /* W-068: the opaque stop of a CSS mask (edge fades, e.g. the Study chip rows): masks read alpha only, so any opaque colour */
+  --mask-opaque: #000;
 
   /* switch (css/components/switch.css): the off track on a dark surface (the ⓘ popover) */
   --switch-track-inverse: rgba(255,255,255,0.25);
