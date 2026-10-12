@@ -84,7 +84,12 @@ function checkGroups({ g }) {
 }
 
 // hooks: batch 1 = the 15 groups with the most distinct questions (tie: more copies, then MEMO_GROUPS order)
+// user-confirmed wording (review W-066, 2026-10-12)
+const HOOK_EARLY_BRITAIN = '「凱撒 55 BC 打唔入，Claudius AD 43 先打得入」\n→ AD 60 Boudicca 反抗、AD 122 Hadrian 起長城、AD 410 羅馬人走 → Jutes、Angles、Saxons 移入 → 之後 Vikings 坐長船嚟。';
+const HOOK_VOTE = '「89 冇票、32 中產、18 男21女30、28 同齡、69 變 18」\n→ 1918 女性要 30 歲，十年後 1928 先同男人一樣 21。';
 function checkHooks({ g }) {
+  assert(g("memoGroupById('early-britain').hook") === HOOK_EARLY_BRITAIN, 'W-066: early-britain hook puts Jutes / Angles / Saxons after AD 410, Vikings later');
+  assert(g("memoGroupById('vote').hook") === HOOK_VOTE, 'vote hook: 1928 = 同齡');
   const groups = g('memoGroups()').filter(gr => gr.id !== 'single');
   const order = [...groups].sort((a, b) => b.count - a.count || b.qkeys.length - a.qkeys.length);
   assert(same(order.map(gr => gr.id), groups.map(gr => gr.id)), 'MEMO_GROUPS is listed most distinct questions first (ties: more copies)');
@@ -108,9 +113,18 @@ function checkRecord() {
   assert(!fail0.passed && fail0.lv === 0 && fail0.prevLv === 0 && fail0.due === '2026-10-13', 'fail at Lv0 stays Lv0, due tomorrow');
   g(`recordMemoResult('parliament', 5, 5, '${TODAY}')`); g("recordMemoResult('parliament', 5, 5, '2026-10-13')");
   const fail2 = g("recordMemoResult('parliament', 2, 5, '2026-10-16')");
-  assert(!fail2.passed && fail2.lv === 2 && fail2.prevLv === 2 && fail2.due === '2026-10-17', 'fail at Lv2 keeps Lv2, due tomorrow');
+  assert(!fail2.passed && fail2.lv === 1 && fail2.prevLv === 2 && fail2.due === '2026-10-17', 'W-064 (user): fail at Lv2 drops to Lv1, due tomorrow');
   assert(g('memoPassed(7, 10)') && g('memoPassed(3, 4)') && !g('memoPassed(2, 3)') && !g('memoPassed(0, 0)') && g('memoPassed(5, 5)'), 'exactly 70% passes, 2/3 fails, 0/0 fails');
   assert(stored(app).vote.lv === 4 && Object.keys(stored(app)).length === 3, 'each group keeps its own record');
+  // W-064 (user): a failed test drops one level at every level, so a Lv4 fail is never "known"
+  const fail4 = g("recordMemoResult('vote', 3, 5, '2026-11-20')");
+  assert(!fail4.passed && fail4.prevLv === 4 && fail4.lv === 3 && fail4.due === '2026-11-21' && same(stored(app).vote, { lv: 3, due: '2026-11-21' }),
+    'W-064: fail at Lv4 drops to Lv3, due tomorrow');
+  assert(g("memoStatus(memoRecord(memoLoadProgress(), 'vote'), '2026-11-20')") === 'learning', 'W-064: after a Lv4 fail the group reads learning, not done');
+  // S-232 (user): unanswered questions do not count; nothing answered → nothing recorded
+  const before = app.storage.getItem(MEMO_LS);
+  assert(g("recordMemoResult('vote', 0, 0, '2026-11-21')") === null && app.storage.getItem(MEMO_LS) === before, 'S-232: 0 answered → null, level and due unchanged');
+  assert(g("recordMemoResult('jury', 0, 0, '2026-11-21')") === null && !('jury' in stored(app)), 'S-232: 0 answered on a new group writes no record');
 }
 
 function checkDateBoundaries() {

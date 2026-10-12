@@ -37,14 +37,22 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
     }, correct);
     for (const p of picks) await pg.click('#opt' + p);
   }
-  async function runTest(pattern) {
+  // pattern: true = right, false = wrong, null = skipped (Next without answering); dblBack: double tap the last ↩ Back
+  async function runTest(pattern, { dblBack = false } = {}) {
     await pg.click('.memo-start');
     await pg.waitForTimeout(GUARD_WAIT_MS);
     for (let i = 0; i < pattern.length; i++) {
-      await answer(pattern[i]);
-      await pg.click('#nextBtn');
+      if (pattern[i] !== null) await answer(pattern[i]);
+      if (dblBack && i === pattern.length - 1) await pg.dblclick('#nextBtn');
+      else await pg.click('#nextBtn');
       if (i < pattern.length - 1) await pg.waitForTimeout(50);
     }
+  }
+  const schedule = () => pg.$$eval('#memoBody .memo-lv', els => els.map(e => e.className.replace('memo-lv', '').trim() + ':' + e.textContent).join('|'));
+  const setRecord = (id, rec) => pg.evaluate(([k, i, r]) => { const p = JSON.parse(localStorage.getItem(k)) || {}; p[i] = r; localStorage.setItem(k, JSON.stringify(p)); }, [MEMO_LS, id, rec]);
+  async function openFromList(query, id) {
+    await pg.fill('#studySearch', query);
+    await pg.click(`#studyContent .memo-card[data-arg="${id}"]`);
   }
 
   await pg.goto(APP_URL);
@@ -129,6 +137,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   assert(look.steps.join('|') === '① Look*|② Test (5)', 'steps ① Look (on) / ② Test (5): ' + look.steps.join('|'));
   assert(/89 冇票/.test(look.hook) && look.hookLang === 'zh-HK' && look.table === 7 && !look.heading, 'hook box + the 7-row table (no repeated heading line)');
   assert(look.start === 'Got it — start the test ▶', 'start button text');
+  assert(await pg.evaluate(() => document.activeElement === byId('memoTitle')), 'S-227: opening a group moves focus to its title');
 
   // ── test → result (4 / 5 from Lv2 → Lv3) ──
   await runTest([true, true, false, true, true]);
@@ -170,8 +179,47 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   const tomorrow = await addDays(day, 1);
   assert(fail.pct === '0%' && fail.verdict === 'Test 0/3 · below 70%, review again tomorrow', 'fail verdict: ' + fail.verdict);
   assert(JSON.stringify((await stored()).jury) === JSON.stringify({ lv: 0, due: tomorrow }), 'fail at Lv0: Lv0, due tomorrow');
+  assert(await schedule() === ':Lv11 day|:Lv23 days|:Lv37 days|:Lv414 days', 'W-065: a Lv0 fail marks no schedule box: ' + await schedule());
+  assert(await pg.evaluate(() => document.activeElement === byId('memoTitle')), 'S-227: the result moves focus to the group title');
   await pg.click('#memoBody .memo-again');
   assert(await pg.$('#memoBody .memo-start') !== null && await pg.$('#memoBody .memo-pct') === null, '"Review again" goes back to the look view');
+
+  // ── W-064 / W-065 (user: a fail drops one level): Lv4 fail → Lv3, due tomorrow; Lv3 box reads Tomorrow, nothing "next" ──
+  await pg.click('#screenMemo .memo-back');
+  await setRecord('parliament', { lv: 4, due: day });
+  await openFromList('國會兩院', 'parliament');
+  await runTest([false, false, false, false, false]);
+  assert(await text('#memoBody .memo-verdict') === 'Test 0/5 · below 70%, down to Lv3, review again tomorrow', 'W-064: Lv4 fail verdict says it dropped to Lv3');
+  assert(JSON.stringify((await stored()).parliament) === JSON.stringify({ lv: 3, due: tomorrow }), 'W-064: Lv4 fail stored as Lv3, due tomorrow');
+  assert(await schedule() === 'past:Lv11 day|past:Lv23 days|retry:Lv3Tomorrow|:Lv414 days' && await pg.$('#memoBody .memo-lv.next') === null,
+    'W-065: fail schedule: Lv1–2 past, Lv3 "Tomorrow", no "next" interval: ' + await schedule());
+  await pg.click('#screenMemo .memo-back');
+  assert(await pg.$eval('#studyContent .memo-card[data-arg="parliament"] .memo-badge', e => e.textContent) === 'Learning · Lv3', 'W-064: the list reads "Learning · Lv3", not Known');
+
+  // ── S-232 (user): unanswered questions do not count ──
+  const voteBefore = (await stored()).vote;
+  await openFromList('投票權', 'vote');
+  await runTest([null, null, null, null, null]);
+  const none = await pg.evaluate(() => ({ none: (document.querySelector('#memoBody .memo-none') || {}).textContent, pct: !!document.querySelector('#memoBody .memo-pct'),
+    again: !!document.querySelector('#memoBody .memo-again'), next: !!document.querySelector('#memoBody .memo-next') }));
+  assert(none.none === 'No answers were recorded — nothing changed.' && !none.pct && none.again && !none.next, 'S-232: nothing answered → "No answers were recorded", Review again only: ' + JSON.stringify(none));
+  assert(JSON.stringify((await stored()).vote) === JSON.stringify(voteBefore), 'S-232: nothing answered → level and due unchanged');
+  await pg.click('#memoBody .memo-again');
+  await runTest([true, true, null, null, null]);
+  assert(await text('#memoBody .memo-pct') === '100%' && await text('#memoBody .memo-verdict') === 'Test 2/2 (≥ 70%) → up to Lv4', 'S-232: 2 answered, both right → 2/2 = 100%, up a level');
+  assert(JSON.stringify((await stored()).vote) === JSON.stringify({ lv: 4, due: await addDays(day, 14) }) && await pg.$('#memoBody .memo-wrong') === null, 'S-232: skipped questions are not listed as wrong');
+  await pg.click('#memoBody .memo-again');
+  await runTest([true, false, null, false, true]);
+  assert(await text('#memoBody .memo-verdict') === 'Test 2/4 · below 70%, down to Lv3, review again tomorrow' && await pg.$$eval('#memoBody .memo-wrong li', l => l.length) === 2,
+    'S-232: 2 of 4 answered right = 50% → down a level; the 2 wrong ones listed');
+
+  // ── S-231: a double tap on the last ↩ Back records the test once ──
+  await pg.click('#screenMemo .memo-back');
+  await setRecord('writers', { lv: 1, due: day });
+  await openFromList('作家', 'writers');
+  await runTest([true, true, true, true, true], { dblBack: true });
+  assert(await pg.$eval('#screenMemo', e => e.classList.contains('active')) && JSON.stringify((await stored()).writers) === JSON.stringify({ lv: 2, due: await addDays(day, 3) }),
+    'S-231: double tap on ↩ Back: one record (Lv1 → Lv2), result shown');
 
   // ── single-note group: each question with its own note ──
   await pg.click('#screenMemo .memo-back');
@@ -195,6 +243,8 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   await runTest([true, true, true, true, true]);
   assert(await text('#memoBody .memo-verdict') === '試 5/5（≥ 70%）→ 升到 Lv2' && await text('#memoBody .memo-again') === '再溫一次', 'zh-HK result: 試 5/5（≥ 70%）→ 升到 Lv2 / 再溫一次');
   assert((await text('#memoBody .memo-next')).startsWith('下一組：'), 'zh-HK next: 下一組：…');
+  const zhFail = await pg.evaluate(() => [memoVerdictText({ passed: false, prevLv: 4, lv: 3, correct: 0, total: 5 }), memoVerdictText({ passed: false, prevLv: 0, lv: 0, correct: 1, total: 5 }), t('memo.noAnswers'), t('memo.tomorrow')]);
+  assert(zhFail.join('|') === '試 0/5 · 未夠 70%，跌返 Lv3，聽日再溫|試 1/5 · 未夠 70%，聽日再溫|一題都未答，冇記錄進度|聽日', 'zh-HK fail texts: ' + zhFail.join('|'));
   await pg.evaluate(() => setLang('en'));
 
   // ── 360px: tabs fit, no horizontal scroll (list, look, result) ──
