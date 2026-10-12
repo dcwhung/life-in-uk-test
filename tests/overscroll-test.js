@@ -2,8 +2,13 @@ const { chromium } = require('playwright-core');
 const path = require('path');
 // v1.4.3: at the top of the page a pull-down (iOS rubber-band, installed PWA) used to drag the whole document, sticky
 // header included, and showed the light page background between the navy status bar and the navy header. The root
-// no longer bounces (overscroll-behavior-y: none) and, where a bounce still happens, the gap above the document is navy.
-// The bounce is simulated by moving the document down / up (transform on <html>): headless Chromium does not rubber-band.
+// no longer bounces (overscroll-behavior-y: none on html and body) and, where a bounce still happens, the canvas behind
+// the document is navy (html background) while body paints --bg over the whole page (W-063). Accepted trade-off: on a
+// device that still bounces, a pull-up at the bottom shows navy too.
+// S-225 limits: headless Chromium does not rubber-band, so a bounce is simulated by moving the document down / up
+// (transform on <html>) and the screenshot shows what the canvas paints in the gap. That proves the colours a bounce
+// would reveal, not that a real device bounces or not (iOS / Mac Chrome need a manual check); overscroll-behavior is
+// only checked as a computed value.
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
 const launchOpts = { args: ['--no-sandbox'] };
 if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_PATH;
@@ -55,11 +60,15 @@ async function checkRoot(pg, tk) {
     scroller.remove();
     return {
       root: getComputedStyle(document.documentElement).overscrollBehaviorY,
+      bodyOverscroll: getComputedStyle(document.body).overscrollBehaviorY,
+      html: getComputedStyle(document.documentElement).backgroundColor,
       body: getComputedStyle(document.body).backgroundColor,
       inner,
     };
   });
   assert(r.root === 'none', 'html overscroll-behavior-y: none (no root bounce): ' + r.root);
+  assert(r.bodyOverscroll === 'none', 'body overscroll-behavior-y: none (S-223): ' + r.bodyOverscroll);
+  assert(r.html === tk.navy, 'html background is --navy (the canvas a bounce reveals): ' + r.html);
   assert(r.body === tk.bg, 'body background stays --bg: ' + r.body);
   assert(r.inner === 'contain', '.plan-day-scroll still overscroll-behavior: contain: ' + r.inner);
 }
@@ -77,7 +86,8 @@ async function checkPullUp(pg, tk, vp) {
   await shift(pg, -PULL_PX);
   const gap = await coloursIn(pg, { x: 0, y: vp.height - PULL_PX, width: WIDTH, height: PULL_PX });
   await shift(pg, 0);
-  assert(only(gap, tk.bg), 'pull-up at the bottom: the gap below the content is --bg, not navy: ' + gap.slice(0, 5).join(' / '));
+  // accepted trade-off (W-063): the canvas is navy, so a bounce at the bottom shows navy as well
+  assert(only(gap, tk.navy), 'pull-up at the bottom: the gap below the content is the navy canvas: ' + gap.slice(0, 5).join(' / '));
 }
 
 async function checkBottomEdge(pg, tk, vp, label) {
