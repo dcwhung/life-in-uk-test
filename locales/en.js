@@ -259,7 +259,7 @@ LOCALES.en = {
       resumeFact: ' (continue from #{n})',
       resumeQs: ' ({done} / {total} right)',
       doneHtml: '<b>✓ Done for today</b>, see you tomorrow',
-      continue: "Continue today's tasks →",
+      continue: 'Continue →',
       viewToday: "View today's tasks",
       viewDay: 'View today',
       restToday: 'Rest day today',

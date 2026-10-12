@@ -246,7 +246,7 @@ LOCALES['zh-HK'] = {
       resumeFact: '（由 #{n} 繼續）',
       resumeQs: '（已答對 {done} / {total} 題）',
       doneHtml: '<b>✓ 今日已完成</b>，明日再來',
-      continue: '繼續今日任務 →',
+      continue: '繼續 →',
       viewToday: '查看今日任務',
       viewDay: '查看今日',
       restToday: '今日是休息日',

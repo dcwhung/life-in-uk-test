@@ -1,9 +1,9 @@
 // ════════════════════════════════════════
 // STUDY PLAN · HOME ENTRY — whether the feature shows (planEntryReady / planVisible), the ⚙ "Features" plan switch
 // (on by default; off asks first, G15; v1.4.0: the Cantonese translation switch beside it), the Home card above "Choose Mode" (handoff §2.1; mockup step ⓪): the dashed
-// gold "create" card without a plan; with one the navy card: Day n / N, days to the exam, today's % + bar, the next
-// step, continue / view today + schedule; the exam day (G16) and, after it, "plan finished" with a summary and
-// new plan / change goal. The card is created only while it shows, so Home's DOM is unchanged while hidden.
+// gold "create" card without a plan; with one the navy card: Day n / N, days to the exam, today's % as a ring (v1.5.0;
+// a bar before) beside the next step, continue / view today + schedule; the exam day (G16) and, after it, "plan
+// finished" with a summary and new plan / change goal. The card is created only while it shows, so Home's DOM is unchanged while hidden.
 // planWatchDay (G6): the plan's "today" moves at local midnight with the app open and on return to the foreground.
 // ════════════════════════════════════════
 const PLAN_CARD_ID = 'planCard';
@@ -12,6 +12,9 @@ const PLAN_SCREEN_IDS = ['screenPlanGoal', 'screenPlanSchedule', 'screenPlanDay'
 const PLAN_MIDNIGHT_SLACK_S = 1; // the day check runs 1 s after local midnight
 const FEATURE_PILL_ON_CLASS = 'on'; // ⚙ Features row pill colour (css/screens/plan.css .feature-pill)
 const FEATURE_PILL_OFF_CLASS = 'off';
+// v1.5.0: the Home card ring's SVG box and radius (user units; drawn at --plan-home-ring-size, css/screens/plan.css)
+const PLAN_HOME_RING_BOX = 64;
+const PLAN_HOME_RING_R = 28;
 
 // G19: the release flag (v1.1.0: on); a function so tests can hide the entry (G42: no ?preview=plan any more)
 function planEntryReady() { return STUDY_PLAN_READY; }
@@ -140,14 +143,24 @@ function planActiveHtml(plan, log, todayIso) {
   const pct = planDayCompletion(day, planDayLog(log, todayIso)).pct;
   const next = planNextStep(plan, log, todayIso);
   const go = next.kind === PLAN_NEXT.done ? PLAN_HOME_GO.done : PLAN_HOME_GO.next;
-  return planHomePctHtml(pct) + `<p class="plan-home-next">${planNextHtml(plan, log, next)}</p>`
+  return planHomePctHtml(pct, `<p class="plan-home-next">${planNextHtml(plan, log, next)}</p>`)
     + planHomeActsHtml(planHomeBtn(go.action, t(go.labelKey), true), schedule);
 }
-// today's own % (G8: carry-over not counted) + a G27 bar; a rest day has none
-function planHomePctHtml(pct) {
-  if (pct === null) return `<div class="plan-home-row"><span>${t('plan.home.restToday')}</span></div>`;
-  return `<div class="plan-home-row"><span>${t('plan.home.pctLabel')}</span><b class="plan-home-pct plan-num">${t('plan.status.pct', { n: pct })}</b></div>`
-    + `<div class="plan-home-bar" aria-hidden="true"><i class="h${planPctBand(pct)}" data-pct="${pct}"></i></div>`;
+// today's own % (G8: carry-over not counted); v1.5.0 (mockups/plan-home-ring.html, variant B): a G27 ring on the right
+// with the label + next step beside it; a rest day has no % and keeps its one-line row above the next step
+function planHomePctHtml(pct, nextHtml = '') {
+  if (pct === null) return `<div class="plan-home-row"><span>${t('plan.home.restToday')}</span></div>${nextHtml}`;
+  return `<div class="plan-home-today"><div class="plan-home-today-txt"><span class="plan-home-today-lbl">${t('plan.home.pctLabel')}</span>`
+    + `${nextHtml}</div>${planHomeRingHtml(pct)}</div>`;
+}
+// as the day screen's ring (planDay.js renderPlanRing): pathLength 100, so renderPlanCard sets the offset to the % left
+function planHomeRingHtml(pct) {
+  const c = PLAN_HOME_RING_BOX / 2, label = t('plan.home.pctLabel'), pctText = t('plan.status.pct', { n: pct });
+  const done = pct === PERCENT, mark = done ? '✓' : pctText;
+  return `<svg class="plan-home-ring" viewBox="0 0 ${PLAN_HOME_RING_BOX} ${PLAN_HOME_RING_BOX}" role="img" aria-label="${label} ${pctText}">`
+    + `<circle class="plan-home-ring-track" cx="${c}" cy="${c}" r="${PLAN_HOME_RING_R}"></circle>`
+    + `<circle class="plan-home-ring-prog h${planPctBand(pct)}${pct ? '' : ' empty'}" cx="${c}" cy="${c}" r="${PLAN_HOME_RING_R}" pathLength="${PERCENT}" data-pct="${pct}"></circle>`
+    + `<text class="plan-home-ring-pct plan-num${done ? ' done' : ''}" x="${c}" y="${c}" aria-hidden="true">${mark}</text></svg>`;
 }
 // "Next: <task> (continue from #74)"; a catch-up task names its day; all done: "✓ Done for today"
 function planNextHtml(plan, log, next) {
@@ -192,7 +205,7 @@ function renderPlanCard() {
   if (!el) return;
   const plan = ensurePlanToday(); // G9: the card's first render of a day fixes today's contents (no plan: no write)
   el.innerHTML = plan ? planHomeCardHtml(plan, planTodayIso()) : planCreateCardHtml();
-  el.querySelectorAll('.plan-home-bar i').forEach(i => { i.style.width = i.dataset.pct + '%'; }); // as #progressFill
+  el.querySelectorAll('.plan-home-ring-prog').forEach(c => { c.style.strokeDashoffset = PERCENT - Number(c.dataset.pct); });
 }
 
 // ── G6: a new local day while the app is open (midnight timer) or after it comes back to the foreground ──
