@@ -1,9 +1,10 @@
 // ════════════════════════════════════════
 // STUDY PLAN · HOME ENTRY — whether the feature shows (planEntryReady / planVisible), the ⚙ "Features" plan switch
 // (on by default; off asks first, G15; v1.4.0: the Cantonese translation switch beside it), the Home card above "Choose Mode" (handoff §2.1; mockup step ⓪): the dashed
-// gold "create" card without a plan; with one the navy card: Day n / N, days to the exam, today's % as a ring (v1.5.0;
-// a bar before) beside the next step, continue / view today + schedule; the exam day (G16) and, after it, "plan
-// finished" with a summary and new plan / change goal. The card is created only while it shows, so Home's DOM is unchanged while hidden.
+// gold "create" card without a plan; with one the navy card: Day n / N + days to the exam with today's % as a ring
+// beside them (v1.5.1; v1.5.0: a ring beside the next step, a bar before), the next step, continue / view today +
+// schedule; a rest day / not started has no ring; the exam day (G16) and, after it, "plan finished" with a summary
+// and new plan / change goal. The card is created only while it shows, so Home's DOM is unchanged while hidden.
 // planWatchDay (G6): the plan's "today" moves at local midnight with the app open and on return to the foreground.
 // ════════════════════════════════════════
 const PLAN_CARD_ID = 'planCard';
@@ -111,18 +112,28 @@ function planCreateCardHtml() {
     + `<span><b>${t('plan.createTitle')}</b><span class="plan-muted">${t('plan.createText')}</span></span>`
     + `<span class="plan-cta-go">${t('plan.createGo')}</span></button>`;
 }
-// the navy card (handoff §2.1): top line, then today / the exam day / "plan finished", then the actions
+// the navy card (handoff §2.1): top line (with today's ring), then the next step / the exam day / "plan finished",
+// then the actions; v1.5.1: a card with the ring is tighter (.has-ring)
 function planHomeCardHtml(plan, todayIso) {
   const status = planStatus(plan, todayIso), stored = planLoadLogView(), log = stored || planEmptyLog();
+  const pct = status === PLAN_STATUS.active ? planHomeTodayPct(plan, log, todayIso) : null;
   let body;
   if (status === PLAN_STATUS.ended) body = planEndedHtml(plan, log, todayIso);
   else if (status === PLAN_STATUS.examDay) body = planExamDayHtml();
-  else body = planActiveHtml(plan, log, todayIso);
+  else body = planActiveHtml(plan, log, todayIso, pct);
   // PR4 review: an unreadable log reads as nothing answered; say where to clear it
   const warn = stored ? '' : `<p class="plan-home-warn">${t('plan.home.logBroken')}</p>`;
-  return `<div class="plan-home">${planHomeTopHtml(plan, todayIso, status)}${body}${warn}</div>`;
+  const cls = pct === null ? 'plan-home' : 'plan-home has-ring';
+  return `<div class="${cls}">${planHomeTopHtml(plan, todayIso, status, pct)}${body}${warn}</div>`;
 }
-function planHomeTopHtml(plan, todayIso, status) {
+// today's own % (G8: carry-over not counted); null before the plan starts and on a rest day (no ring)
+function planHomeTodayPct(plan, log, todayIso) {
+  const day = planDayAt(plan, todayIso);
+  return day ? planDayCompletion(day, planDayLog(log, todayIso)).pct : null;
+}
+// v1.5.1 (mockups/plan-home-ring-compact.html, variant C): with a % the title + countdown sit left of the ring
+// (.plan-home-head); without one they keep the one-line .plan-home-top
+function planHomeTopHtml(plan, todayIso, status, pct) {
   const total = plan.days.length;
   const n = Math.min(total, Math.max(1, planDayNumber(plan, todayIso)));
   let tag = `<span lang="en">${t('plan.dayOf', { n, total })}</span>`;
@@ -130,7 +141,9 @@ function planHomeTopHtml(plan, todayIso, status) {
   if (status === PLAN_STATUS.ended) tag = `<span>${t('plan.home.endedTitle')}</span>`;
   const left = Math.max(0, isoDiffDays(todayIso, plan.goal.examDate));
   const cd = status === PLAN_STATUS.active ? `<span class="plan-home-cd">${t('plan.daysLeft', { n: left, date: planShortDate(plan.goal.examDate) })}</span>` : '';
-  return `<div class="plan-home-top"><span class="plan-home-ttl">${t('plan.cardTitle')}${LIST_SEP}${tag}</span>${cd}</div>`;
+  const ttl = `<span class="plan-home-ttl">${t('plan.cardTitle')}${LIST_SEP}${tag}</span>${cd}`;
+  if (pct === null) return `<div class="plan-home-top">${ttl}</div>`;
+  return `<div class="plan-home-head"><div class="plan-home-head-txt">${ttl}</div>${planHomeRingHtml(pct)}</div>`;
 }
 function planHomeBtn(action, labelText, gold = false) {
   return `<button type="button" class="${gold ? 'plan-btn-gold' : 'plan-btn-line'}" data-action="${action}">${labelText}</button>`;
@@ -138,24 +151,19 @@ function planHomeBtn(action, labelText, gold = false) {
 function planHomeActsHtml(...btns) { return `<div class="plan-home-acts">${btns.join('')}</div>`; }
 // "Continue" opens the next task itself, whatever its type (planRun.js planOpenTask)
 const PLAN_HOME_GO = { done: { action: 'openPlanDay', labelKey: 'plan.home.viewToday' }, next: { action: 'planContinue', labelKey: 'plan.home.continue' } };
-function planActiveHtml(plan, log, todayIso) {
+function planActiveHtml(plan, log, todayIso, pct) {
   const day = planDayAt(plan, todayIso);
   const schedule = planHomeBtn('openPlanSchedule', t('plan.schedule.name'));
   if (!day) return `<p class="plan-home-next">${t('plan.home.notStarted', { date: planShortDate(plan.start) })}</p>${planHomeActsHtml(schedule)}`;
-  const pct = planDayCompletion(day, planDayLog(log, todayIso)).pct;
   const next = planNextStep(plan, log, todayIso);
   const go = next.kind === PLAN_NEXT.done ? PLAN_HOME_GO.done : PLAN_HOME_GO.next;
-  return planHomePctHtml(pct, `<p class="plan-home-next">${planNextHtml(plan, log, next)}</p>`)
+  // a rest day has no % (no ring): its one-line row sits above the next step
+  const rest = pct === null ? `<div class="plan-home-row"><span>${t('plan.home.restToday')}</span></div>` : '';
+  return `${rest}<p class="plan-home-next">${planNextHtml(plan, log, next)}</p>`
     + planHomeActsHtml(planHomeBtn(go.action, t(go.labelKey), true), schedule);
 }
-// today's own % (G8: carry-over not counted); v1.5.0 (mockups/plan-home-ring.html, variant B): a G27 ring on the right
-// with the label + next step beside it; a rest day has no % and keeps its one-line row above the next step
-function planHomePctHtml(pct, nextHtml = '') {
-  if (pct === null) return `<div class="plan-home-row"><span>${t('plan.home.restToday')}</span></div>${nextHtml}`;
-  return `<div class="plan-home-today"><div class="plan-home-today-txt"><span class="plan-home-today-lbl">${t('plan.home.pctLabel')}</span>`
-    + `${nextHtml}</div>${planHomeRingHtml(pct)}</div>`;
-}
-// as the day screen's ring (planDay.js renderPlanRing): pathLength 100, so renderPlanCard sets the offset to the % left
+// today's G27 ring (v1.5.0; v1.5.1: in the head, no visible label, so aria-label = plan.home.pctLabel + %); as the day
+// screen's ring (planDay.js renderPlanRing): pathLength 100, so renderPlanCard sets the offset to the % left
 function planHomeRingHtml(pct) {
   const c = PLAN_HOME_RING_BOX / 2, label = t('plan.home.pctLabel'), pctText = t('plan.status.pct', { n: pct });
   const done = pct === PERCENT, mark = done ? '✓' : pctText;
@@ -164,9 +172,10 @@ function planHomeRingHtml(pct) {
     + `<circle class="plan-home-ring-prog h${planPctBand(pct)}${pct ? '' : ' empty'}" cx="${c}" cy="${c}" r="${PLAN_HOME_RING_R}" pathLength="${PERCENT}" data-pct="${pct}"></circle>`
     + `<text class="plan-home-ring-pct plan-num${done ? ' done' : ''}" x="${c}" y="${c}" aria-hidden="true">${mark}</text></svg>`;
 }
-// "Next: <task> (continue from #74)"; a catch-up task names its day; all done: "✓ Done for today"
+// "Next: <task> (continue from #74)"; a catch-up task names its day; all done: "See you tomorrow" (v1.5.1: the ring
+// already shows ✓)
 function planNextHtml(plan, log, next) {
-  if (next.kind === PLAN_NEXT.done) return t('plan.home.doneHtml');
+  if (next.kind === PLAN_NEXT.done) return t('plan.home.seeTomorrow');
   const day = planDayAt(plan, next.date), task = day.tasks[next.taskIndex];
   const p = planTaskProgress(task, planDayLog(log, next.date));
   const params = { task: planTaskText(task, day, { fullCh: true }), more: planResumeText(task, p, next.resumeAt) };

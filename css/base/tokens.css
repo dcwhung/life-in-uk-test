@@ -144,8 +144,9 @@
   --plan-task-todo-border: #bcc5dc;
   --plan-carry: #c46f1c;
   --plan-orange-text: #9a5408;
-  /* Home plan card (navy-light): today's progress ring (v1.5.0; a bar before) and its track */
-  --plan-home-ring-size: 64px;
+  /* Home plan card (navy-light): today's progress ring (v1.5.0; a bar before; v1.5.1: 56px
+     beside the title, the 64-unit viewBox scales down) and its track */
+  --plan-home-ring-size: 56px;
   --plan-home-track: rgba(255,255,255,0.18);
   /* exam day: amber with a fine gold lattice; days already gone sit on a lighter grey row */
   --plan-exam-bg: #f2a93b;

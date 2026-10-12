@@ -236,10 +236,13 @@ html[lang="en"] .plan-day-side .plan-pill.today-done { padding-inline: var(--spa
 .plan-reset { margin-bottom: 0; }
 /* Home plan card (handoff §2.1): today's % ring + next step, continue / schedule; exam day; plan finished (G16) */
 .plan-home-row { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-4); font-size: var(--fs-sm); }
-/* v1.5.0 (mockups/plan-home-ring.html, variant B): label + next step on the left, the ring on the right */
-.plan-home-today { display: flex; align-items: center; gap: var(--space-7); }
-.plan-home-today-txt { display: grid; gap: var(--space-3); min-width: 0; flex: 1; }
-.plan-home-today-lbl { font-size: var(--fs-sm); font-weight: 700; color: var(--text-inverse); }
+/* v1.5.1 (mockups/plan-home-ring-compact.html, variant C): title + countdown on the left, the ring on the right,
+   centred; a card with the ring is a step tighter (rest day / not started keep .plan-home-top and the usual gap) */
+.plan-home.has-ring { gap: var(--space-5); }
+.plan-home-head { display: flex; align-items: center; gap: var(--space-6); }
+.plan-home-head-txt { display: grid; gap: var(--space-2); min-width: 0; flex: 1; }
+/* 320px + large text: "Day 4 / 31" moves to its own line whole rather than splitting beside the ring */
+.plan-home-head .plan-home-ttl span { white-space: nowrap; }
 /* SVG ring: every part has an explicit fill / stroke (no SVG default black); G27 band as the day screen's ring */
 .plan-home-ring { width: var(--plan-home-ring-size); height: var(--plan-home-ring-size); flex-shrink: 0; }
 .plan-home-ring circle { fill: none; stroke-width: 7; } /* S-228: PLAN_HOME_RING_R + 7 / 2 ≤ BOX / 2 (planHome.js) */
