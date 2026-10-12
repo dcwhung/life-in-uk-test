@@ -94,11 +94,68 @@ async function checkGoal(b) {
   await page.close();
 }
 
+// ── Plan Schedule B rev 5 + F3 ──
+const scheduleLook = page => page.evaluate(() => {
+  const list = byId('planDayList'), lb = list.getBoundingClientRect();
+  const today = list.querySelector('.plan-day.today') || list.querySelector('.plan-day.exam.past') || list.querySelector('.plan-day.exam');
+  const tb = today.getBoundingClientRect(), cols = [...list.querySelectorAll('.plan-day')];
+  const card = list.closest('.plan-card-box');
+  const tops = cols.slice(0, 6).map(c => c.querySelector('.plan-day-tasks').getBoundingClientRect().top);
+  return {
+    todayInList: tb.left >= lb.left - 1 && tb.right <= lb.right + 1, todayInWindow: tb.left >= 0 && tb.right <= innerWidth,
+    first: Math.abs(tb.left - lb.left) < 30, colW: cols[0].getBoundingClientRect().width, sideways: list.scrollWidth > list.clientWidth,
+    pageScrollTop: scrollY, weeks: list.querySelectorAll('.plan-wk').length, rowsInWeeks: cols.every(c => c.parentElement.classList.contains('plan-wk-days')),
+    oneLine: cols.slice(0, 3).every(c => { const d = c.querySelector('.plan-day-d'); return d.getBoundingClientRect().height < 2 * parseFloat(getComputedStyle(d).lineHeight || 20) + 8; }),
+    tasksOneLine: tops.every(t => Math.abs(t - tops[0]) < 1),
+    ctaInCard: !!card.querySelector(':scope > .plan-block[data-action="openPlanDay"]'),
+    cueL: list.parentElement.classList.contains('can-l'), cueR: list.parentElement.classList.contains('can-r'),
+    strats: getComputedStyle(byId('planStrategy')).gridTemplateColumns.split(' ').length,
+    order: getComputedStyle(byId('planOrder')).gridTemplateColumns.split(' ').length,
+  };
+});
+async function checkSchedule(b) {
+  await dt.forEachCase(b, async ({ page, label, errors }) => {
+    await seedPlan(page, { days: 21, dayN: 13 });
+    await page.evaluate(() => openPlanSchedule());
+    const side = await dt.noHorizontalScroll(page), s = await scheduleLook(page);
+    assert(side.ok && s.sideways && s.weeks === 4 && s.rowsInWeeks, `${label}: Schedule one column; the day list scrolls sideways in Week groups (page: ${side.detail})`);
+    assert(s.todayInList && s.todayInWindow && s.first && s.pageScrollTop === 0, `${label}: F3 opens with today's column first in view, the page not moved`);
+    assert(near(s.colW, 240, 1) && s.oneLine && s.tasksOneLine, `${label}: 240px columns, "Day n – date" one line, tasks start on one line`);
+    assert(s.cueL && s.cueR && s.ctaInCard && s.strats === 3 && s.order === 4, `${label}: ‹ › cues both sides; "View today's tasks" in the card; phases 3 across, order 4 across`);
+    assert(errors.length === 0, `${label}: no page errors ` + errors.join(' | '));
+  }, { translations: [true] });
+  for (const [days, dayN] of [[181, 150], [21, 1], [21, 25]]) {
+    const { page } = await dt.openDesktop(b, { viewport: dt.VIEWPORTS.small });
+    await seedPlan(page, { days, dayN });
+    await page.evaluate(() => openPlanSchedule());
+    const s = await scheduleLook(page);
+    assert(s.todayInList && s.todayInWindow, `F3 ${days} days, Day ${dayN}${dayN > days ? ' (after the exam: the exam day)' : ''}: in view on open`);
+    if (dayN === 1) assert(!s.cueL && s.cueR, 'Day 1: no ‹ cue (nothing to the left)');
+    await page.close();
+  }
+  // a language switch keeps the list where it was; below 1024px the phone list (rows, CTA under the card)
+  const { page } = await dt.openDesktop(b, { viewport: dt.VIEWPORTS.wide });
+  await seedPlan(page, { days: 21, dayN: 13 });
+  await page.evaluate(() => openPlanSchedule());
+  const before = await page.$eval('#planDayList', l => l.scrollLeft);
+  await dt.applySettings(page, { lang: 'zh-HK' });
+  assert(await page.$eval('#planDayList', l => l.scrollLeft) === before, 'language switch: the day list stays where it was');
+  await dt.setViewport(page, dt.VIEWPORTS.belowDesktop);
+  const phone = await page.evaluate(() => {
+    const list = byId('planDayList'), card = list.closest('.plan-card-box');
+    return { weeks: list.querySelectorAll('.plan-wk').length, wrap: list.parentElement.classList.contains('plan-hscroll'),
+      cta: card.nextElementSibling && card.nextElementSibling.matches('.plan-block[data-action="openPlanDay"]'), top: list.scrollTop, x: list.scrollWidth <= list.clientWidth + 1 };
+  });
+  assert(!phone.weeks && !phone.wrap && phone.cta && phone.top > 0 && phone.x, '1023px: the phone list (rows, opened at today), the CTA under the card: ' + JSON.stringify(phone));
+  await page.close();
+}
+
 (async () => {
   const b = await dt.launch();
   try {
     await checkStatTiles(b);
     await checkGoal(b);
+    await checkSchedule(b);
     console.log('DESKTOP-PLAN PASS');
   } catch (e) {
     console.error(e.message);
