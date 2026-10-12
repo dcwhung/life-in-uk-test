@@ -87,6 +87,7 @@ LOCALES.en = {
     questionOf: 'Question {n} of {total}',
     questionOfShort: 'Question {n}/{total}', // C3 (v1.3.0): only where questionOf would wrap
     allShuffled: 'All Questions (shuffled)',
+    answerTab: 'Answer', // v2.0.0 desktop: the right column's tab beside Similar Questions (F5)
     translate: 'Translate',
     hideTranslation: 'Hide translation',
     previous: 'Previous',

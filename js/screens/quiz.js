@@ -73,7 +73,10 @@ function renderQuestion() {
   renderSimilar(q, revealed);
   renderExamTools(idx);
   renderNavButtons(idx, total, revealed);
+  renderQuizDesk(q, idx, total, showAnswer);
+  arrangeQuiz(deskOn()); // v2.0.0: the desktop columns first, so the counter below measures the row it ends up in
   fitQuestionCounter(); // C3: measured once the counter's row (bookmark, arrows) is final
+  desktopRefit('screenQuiz', fitQuiz);
 }
 // W-016: a fact set's "Ch c #n" is English in every language (S-057), so it goes in a lang="en" span;
 // built from text nodes, never innerHTML, so the locale string cannot inject markup
@@ -258,4 +261,173 @@ function prevQ() {
   state.current--;
   renderQuestion();
   window.scrollTo(0, 0);
+}
+
+// ════════════════════════════════════════
+// DESKTOP LAYOUT (v2.0.0, ≥ 1024px; handoff .proj-docs/plans/2026-10-12_handoff_desktop-layout.md §3 #8–#11)
+// index.html holds the phone order. From 1024px the Quiz / Result screens move some of their own elements (same ids,
+// so every render keeps writing to them) into columns built here once; below 1024px each goes back to its place
+// (a marker comment remembers it). The phone layout never changes. Shared by result.js / flagged.js (loaded later).
+// ════════════════════════════════════════
+const deskHomes = new Map(); // element → the comment that marks its phone place
+function deskOn() { return typeof isDesktop === 'function' && isDesktop(); } // W-057: a cached shell may lack fit.js
+function deskEl(tag, className, attrs = {}) {
+  const el = document.createElement(tag);
+  el.className = className;
+  Object.entries(attrs).forEach(([name, value]) => el.setAttribute(name, value));
+  return el;
+}
+// a missing element (null) is skipped everywhere: a cached older index.html may lack one (W-057; e.g. a pre-PR6a
+// shell has no #planPairNote)
+function deskRemember(el) {
+  if (!el || deskHomes.has(el)) return;
+  const marker = document.createComment(` phone place: ${el.id || el.className} `);
+  el.before(marker);
+  deskHomes.set(el, marker);
+}
+// parent's first children become els, in order; an element already in place is not touched (a move would drop focus)
+function deskFill(parent, els) {
+  els.filter(Boolean).forEach((el, i) => { if (parent.children[i] !== el) parent.insertBefore(el, parent.children[i] || null); });
+}
+function deskRestore(els) {
+  els.forEach(el => { const marker = el && deskHomes.get(el); if (marker && marker.nextSibling !== el) marker.after(el); });
+}
+// a screen's fit registers once (fit.js may load after the screens in a cached shell, main.js LATE_BOOT_SCRIPTS),
+// then every render tail re-runs the fits
+const deskFits = new Set();
+function desktopRefit(screenId, fit) {
+  if (typeof runRefits !== 'function') return;
+  if (!deskFits.has(screenId)) { deskFits.add(screenId); onRefit(fit, screenId); }
+  runRefits();
+}
+
+// ── Quiz: mockups/v2.0.0/desktop-quiz.html A rev 12 (Practice) and desktop-exam.html C rev 3 (Exam 1–17, Random) ──
+// practice: the number dots bar across the top; question card + options (7/12) | Answer · Similar tabs (5/12)
+// exam with the timer: rail (3/12: big timer, dots 6 × 4, counts, Submit on the last question) | question + options
+// other exam sets (no dots, no answer): the question + options column alone, centred
+const QUIZ_TAB = { answer: 'answer', similar: 'similar' };
+let quizDesk = null;
+let quizTab = QUIZ_TAB.answer;
+let quizTabQuestion = null; // the question the open tab belongs to: a new question opens on Answer
+function quizTabButton(id, pane) {
+  return deskEl('button', 'quiz-tab', { type: 'button', id, role: 'tab', 'aria-controls': pane });
+}
+function quizPane(id, tabId) {
+  const wrap = deskEl('div', 'quiz-pane fit-fade');
+  wrap.append(deskEl('div', 'fit-panel', { id, role: 'tabpanel', 'aria-labelledby': tabId }));
+  return wrap;
+}
+// the desktop-only elements (built once, kept while hidden below 1024px)
+function newQuizDeskParts() {
+  return {
+    bar: deskEl('div', 'quiz-dots-bar'),
+    cols: deskEl('div', 'quiz-cols'),
+    rail: deskEl('div', 'exam-rail'),
+    // a copy of the header countdown (renderExamTimer writes both); the header one is hidden on desktop (F6)
+    bigTimer: deskEl('span', 'exam-timer exam-big-timer', { id: 'examTimerBig', role: 'timer', 'aria-live': 'off' }),
+    // F6: the same action as the card's ✓ on the last question (nextAction: Submit → the confirm)
+    submit: deskEl('button', 'nav-btn exam-submit', { type: 'button', 'data-action': 'next' }),
+    mainWrap: deskEl('div', 'quiz-main-wrap fit-fade'),
+    main: deskEl('div', 'quiz-main fit-panel'),
+    aside: deskEl('div', 'quiz-aside'),
+    tabs: deskEl('div', 'quiz-tabs', { role: 'tablist' }),
+    tabAnswer: quizTabButton('quizTabAnswer', 'quizPaneAnswer'),
+    tabSimilar: quizTabButton('quizTabSimilar', 'quizPaneSimilar'),
+    paneAnswer: quizPane('quizPaneAnswer', 'quizTabAnswer'),
+    paneSimilar: quizPane('quizPaneSimilar', 'quizTabSimilar'),
+    slot: deskEl('div', 'quiz-empty-slot', { 'aria-hidden': 'true' }), // before answering (mockup rev 11)
+  };
+}
+function buildQuizDesk() {
+  const screen = byId('screenQuiz');
+  const moved = {
+    card: screen.querySelector('.q-card'), dots: byId('navDots'), meta: byId('dotsMeta'), options: byId('optionsContainer'),
+    pair: byId('planPairNote'), answer: byId('answerBox'), similar: byId('similarBox'),
+  };
+  Object.values(moved).forEach(deskRemember);
+  const d = { moved, ...newQuizDeskParts() };
+  d.mainWrap.append(d.main);
+  d.tabs.append(d.tabAnswer, d.tabSimilar);
+  d.aside.append(d.tabs, d.paneAnswer, d.paneSimilar, d.slot);
+  d.tabAnswer.addEventListener('click', () => setQuizTab(QUIZ_TAB.answer));
+  d.tabSimilar.addEventListener('click', () => setQuizTab(QUIZ_TAB.similar));
+  d.bar.hidden = true;
+  d.cols.hidden = true;
+  deskHomes.get(moved.card).before(d.bar, d.cols); // above the card's phone place (under the notes, round row)
+  screen.classList.add('is-fit'); // css/components/fit.css: one screen high from 1024px only
+  return d;
+}
+function quizDeskParts() { return quizDesk || (quizDesk = buildQuizDesk()); }
+function quizDeskLayout(desktop) {
+  if (!desktop) return '';
+  if (hasExamTools()) return 'rail';
+  return state.mode === PRACTICE_MODE ? 'practice' : 'plain';
+}
+function arrangeQuiz(desktop) {
+  const d = quizDeskParts(), m = d.moved, layout = quizDeskLayout(desktop);
+  const screen = byId('screenQuiz');
+  ['practice', 'rail', 'plain'].forEach(name => screen.classList.toggle('quiz-desk-' + name, layout === name));
+  d.bar.hidden = layout !== 'practice';
+  d.cols.hidden = !layout;
+  d.rail.hidden = layout !== 'rail';
+  d.aside.hidden = layout !== 'practice';
+  if (!layout) { deskRestore(Object.values(m)); return; }
+  deskFill(d.main, [m.card, m.options, m.pair]);
+  if (layout === 'practice') {
+    deskFill(d.bar, [m.dots, m.meta]);
+    deskFill(d.cols, [d.mainWrap, d.aside]);
+    deskFill(d.paneAnswer.firstElementChild, [m.answer]);
+    deskFill(d.paneSimilar.firstElementChild, [m.similar]);
+    return;
+  }
+  deskRestore([m.answer, m.similar]); // exam never shows them
+  if (layout === 'rail') {
+    deskFill(d.rail, [d.bigTimer, m.dots, m.meta, d.submit]);
+    deskFill(d.cols, [d.rail, d.mainWrap]);
+  } else {
+    deskRestore([m.dots, m.meta]); // hidden: these sets have no dots
+    deskFill(d.cols, [d.mainWrap]);
+  }
+}
+// tab labels, which pane shows, the rail's timer copy and Submit; no measuring (the fit does that)
+function renderQuizDesk(q, idx, total, showAnswer) {
+  const d = quizDeskParts();
+  if (quizTabQuestion !== q) { quizTab = QUIZ_TAB.answer; quizTabQuestion = q; }
+  const similarShown = byId('similarBox').classList.contains('show');
+  if (!similarShown) quizTab = QUIZ_TAB.answer;
+  d.tabAnswer.innerHTML = `<span aria-hidden="true">💡</span> ${escapeHtml(t('quiz.answerTab'))}`;
+  d.tabSimilar.innerHTML = similarShown ? similarTabHtml(q) : '';
+  d.tabSimilar.hidden = !similarShown;
+  d.tabs.hidden = !showAnswer;
+  d.slot.hidden = showAnswer;
+  applyQuizTab(showAnswer);
+  syncExamTimerCopy();
+  d.submit.textContent = t('exam.submit');
+  d.submit.hidden = idx !== total - 1;
+}
+function applyQuizTab(showAnswer = !quizDeskParts().tabs.hidden) {
+  const d = quizDeskParts(), onAnswer = quizTab === QUIZ_TAB.answer;
+  d.tabAnswer.setAttribute('aria-selected', String(onAnswer));
+  d.tabSimilar.setAttribute('aria-selected', String(!onAnswer));
+  d.paneAnswer.hidden = !showAnswer || !onAnswer;
+  d.paneSimilar.hidden = !showAnswer || onAnswer;
+}
+// a tab click swaps the pane in place (no re-render: each pane keeps its scroll position)
+function setQuizTab(tab) {
+  quizTab = tab;
+  applyQuizTab();
+  if (typeof refreshFades === 'function') refreshFades(byId('screenQuiz'));
+}
+function syncExamTimerCopy() {
+  if (!quizDesk) return; // not built yet: renderQuizDesk copies it on the first render
+  const big = quizDesk.bigTimer, small = byId('examTimer');
+  big.textContent = small.textContent;
+  big.classList.toggle('warn', small.classList.contains('warn'));
+}
+// mockup fitOptions(): options always 2 × 2 (css), one height while it fits; ① rows by content (is-tight) →
+// ② tighter card / option padding (is-compact) → ③ only then does the column scroll
+function fitQuiz(desktop) {
+  arrangeQuiz(desktop);
+  const d = quizDeskParts();
+  fitSteps(d.main, [[d.moved.options, 'is-tight'], 'is-compact']);
 }
