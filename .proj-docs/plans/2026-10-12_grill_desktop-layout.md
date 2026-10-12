@@ -35,7 +35,9 @@
 | 9 | Quiz（Exam） | `desktop-exam.html` | ✅ 定案 C（rev 3）：一屏高；冇頂部題號點 bar；左欄（3/12）panel 用盡高度：大計時器全闊、題號點 6 × 4、（空一行）已答／未答／已標記，最後一題時最底「提交」掣（開同一個確認視窗）；右欄（9/12）題目卡 + 2×2 選項（沿用 Quiz Practice A 規則：預設各半、按內容讓位、盡量唔使碌、← → 常駐） |
 | 10 | Result | `desktop-result.html` | ✅ A rev 5 定案（左欄唔使碌；成績卡用盡難度表上面空間、內容寬鬆、🎯 大自己一行、掣入卡；成績卡同難度表之間空一行；難度表靠底；放唔落分三步收） |
 | 11 | Flagged（Wrong Review 直接開練習 = #8） | `desktop-flagged.html` | ✅ B 定案（練習掣橫跨頂部；清單 2 欄喺 panel 碌；0 題只會喺呢版取消晒最後一題先見到） |
-| 12 | 全局浮層（⚙ / ⓘ / 確認框 / Toast / 安裝提示） | `desktop-overlays.html` | 待揀 |
+| 12 | 全局浮層（⚙ / ⓘ / 確認框 / Toast / 安裝提示） | `desktop-overlays.html` | ✅ A 定案（⚙ 喺 ⚙ 下面靠右彈出、闊 420px × 1.2；ⓘ 喺 ⓘ 下面靠左、闊 560px × 1.2；箭嘴指住個掣；確認框置中最闊 360px × 1.2；Toast 底部置中；安裝提示首頁頂全闊） |
+
+> 12 份 mockup 全部定案（2026-10-12）。開發 handoff：[`2026-10-12_handoff_desktop-layout.md`](2026-10-12_handoff_desktop-layout.md)
 
 ## 實作備忘
 
@@ -58,3 +60,4 @@
 - Home A 左欄 sticky：⚙ 大字 + 中文時左欄可能高過畫面，實作要處理（例如左欄高過 viewport 就取消 sticky）。
 - PR description：`Design Origin: mockup: mockups/v2.0.0/desktop-*.html`。
 - 要加 1024 / 1280px Playwright test 同 screenshot baseline；現有 390px test 唔使改。
+- **全局浮層 desktop（用戶 2026-10-12 定案 A）**：⚙ popover 喺 ⚙ 下面靠右（內容右邊對齊），闊 420px × 1.2；ⓘ popover 喺 ⓘ 下面靠左（內容左邊對齊），闊 560px × 1.2；箭嘴照用 `pointArrowAt`；確認框 `max-width` 360px × 1.2；Toast、安裝提示只係 token 放大。

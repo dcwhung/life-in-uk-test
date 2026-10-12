@@ -1632,7 +1632,7 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
 <body>
 
 <div class="mock-bar">
-  <b>v2.0.0 Desktop · Mockup 12/12 · 全局浮層（⚙ / ⓘ / 確認框 / Toast / 安裝提示）</b>
+  <b>v2.0.0 Desktop · Mockup 12/12 · 全局浮層（⚙ / ⓘ / 確認框 / Toast / 安裝提示）· A 定案</b>
   <div class="mock-row"><span class="lbl">語言</span><button class="mock-tab on" data-k="lang" data-v="en">EN</button><button class="mock-tab" data-k="lang" data-v="zh">中文</button><span class="lbl" style="margin-left:10px">翻譯</span><button class="mock-tab on" data-k="yue" data-v="on">開</button><button class="mock-tab" data-k="yue" data-v="off">關</button><span class="lbl" style="margin-left:10px">⚙ 大字</span><button class="mock-tab on" data-k="large" data-v="off">關</button><button class="mock-tab" data-k="large" data-v="on">開</button></div>
   <div class="mock-row"><span class="lbl">浮層</span><button class="mock-tab on" data-k="st" data-v="settings">⚙ 設定</button><button class="mock-tab" data-k="st" data-v="info">ⓘ 關於</button><button class="mock-tab" data-k="st" data-v="confirm">確認框</button><button class="mock-tab" data-k="st" data-v="danger">危險確認框</button><button class="mock-tab" data-k="st" data-v="toast">Toast</button><button class="mock-tab" data-k="st" data-v="install">安裝提示</button></div>
   <div class="mock-row"><span class="lbl">縮放</span><button class="mock-tab on" data-k="zoom" data-v="fit">適合畫面</button><button class="mock-tab" data-k="zoom" data-v="100">100%</button></div>
@@ -1714,7 +1714,7 @@ function afterRender() { placePops(); }
 const VH = { 1024: 768, 1280: 800 };
 const OPTIONS = [
   {
-    id: 'A', cls: 'optA', rec: true, vh: VH, title: 'A · ⚙／ⓘ 喺自己個掣下面彈出（定闊）',
+    id: 'A', cls: 'optA', rec: true, vh: VH, title: 'A · ⚙／ⓘ 喺自己個掣下面彈出（定闊）（定案）',
     ann: `<ul><li><b>⚙</b>：喺 ⚙ 下面靠右彈出，闊 420px × 1.2；<b>ⓘ</b>：喺 ⓘ 下面靠左，闊 560px × 1.2；箭嘴指住個掣。</li>
       <li><b>確認框</b>：置中，最闊 360px × 1.2（即係手機版放大 1.2 倍）。<b>Toast</b>：底部置中。<b>安裝提示</b>：首頁頂，全闊。</li>
       <li>好處：同一般 desktop app 嘅 dropdown 一樣，一眼知邊個掣開嘅；設定行唔會拉到好闊。</li></ul>`,

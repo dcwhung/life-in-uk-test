@@ -112,7 +112,8 @@
 ## Plans
 
 - [2026-10-12_handoff_memo-followup-apply.md](plans/2026-10-12_handoff_memo-followup-apply.md) + [2026-10-12_memo-followup-spec.json](plans/2026-10-12_memo-followup-spec.json) — 記憶法跟進（67 題 note、#126 併入 #125 + migration）；v1.3.2 已套用（#125 d 用 5，見 HANDOFF v1.3.2）；review 過程喺 branch `claude/relaxed-hamilton-3x7vm6`
-- [2026-10-12_grill_desktop-layout.md](plans/2026-10-12_grill_desktop-layout.md) — v2.0.0 desktop / 平板橫版 layout grill（Q1–Q11：≥ 1024px、最闊 1280px、token ×1.2、大字 (基礎+2)×1.2、12 份 mockup 跟 user flow、全部 approve 後一個 PR）+ mockup 進度表；mockup `mockups/v2.0.0/desktop-*.html`（Home 定案 A）
+- [2026-10-12_handoff_desktop-layout.md](plans/2026-10-12_handoff_desktop-layout.md) — v2.0.0 desktop / 平板橫版 layout 開發 handoff：12 份 mockup 定案總表、功能改動 F1–F8、自動適配規則、實作建議、測試、開放問題 O1–O3（下個 session 由 `/plan` 開始）
+- [2026-10-12_grill_desktop-layout.md](plans/2026-10-12_grill_desktop-layout.md) — v2.0.0 desktop / 平板橫版 layout grill（Q1–Q11：≥ 1024px、最闊 1280px、token ×1.2、大字 (基礎+2)×1.2、12 份 mockup 跟 user flow、全部 approve 後一個 PR）+ mockup 進度表；mockup `mockups/v2.0.0/desktop-*.html`（12 份全部定案）
 - [2026-10-11_grill_font-size.md](plans/2026-10-11_grill_font-size.md) — 全域字型大小切換 grill（Q1–Q6：+2px、所有字、layout 跟住調、header A+/A− pill、先 mockup、PR-A v1.1.2 token 化 → PR-B v1.2.0）+ mockup 量度 L1–L6；mockup `mockups/font-size-switch.html`
 - [2026-10-11_memo-final-spec.json](plans/2026-10-11_memo-final-spec.json) — 記憶法 v2 最終規格（61 個記憶法、375 題；Q1 已套：8.15 → N8a）；v1.0.10 已寫入 `data/exams.js`，測試 fixture `tests/fixtures/memo-notes.json`；review 過程 / handoff memo 喺 branch `claude/relaxed-hamilton-3x7vm6`
 - [2026-10-10_plan-pr8-release.md](plans/2026-10-10_plan-pr8-release.md) — 溫習計劃 PR8 正式推出：`STUDY_PLAN_READY = true`、拎走 `?preview=plan`（G42）、刪 mockup、v1.1.0
