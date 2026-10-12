@@ -26,7 +26,7 @@ html:has(#screenFlagged.active) { scroll-padding-top: calc(var(--header-h) + var
 .flag-start svg { width: 26px; height: 26px; flex-shrink: 0; }
 .flag-start b { display: block; font-size: var(--fs-lg); }
 .flag-start .fs-sub { font-size: var(--fs-sm); color: var(--text-inverse-strong); }
-.flag-start .go { margin-left: auto; font-size: var(--fs-4xl); color: var(--gold-light); }
+.flag-start .go { margin-left: auto; display: flex; color: var(--gold-light); } /* v1.6.1: the → is a line icon (26px, .flag-start svg) */
 .flag-item { display: flex; align-items: flex-start; gap: var(--space-5); background: var(--card); border-radius: var(--radius-md); padding: 11px 13px; margin-bottom: var(--space-4); box-shadow: var(--shadow-sm); }
 .flag-item .fi-text { flex: 1; font-size: var(--fs-base); color: var(--navy); font-weight: 600; line-height: 1.45; }
 .flag-item small { display: block; font-size: var(--fs-2xs-plus); color: var(--text-muted); font-weight: 700; margin-bottom: var(--space-1); }

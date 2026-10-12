@@ -72,7 +72,7 @@
 }
 .memo-single-item + .memo-single-item { border-top: 1px solid var(--border); margin-top: var(--space-6); padding-top: var(--space-6); }
 .memo-single-q { font-weight: 700; color: var(--navy); margin-bottom: var(--space-3); }
-.nav-btn.memo-start { display: block; width: 100%; }
+.nav-btn.memo-start { display: flex; width: 100%; } /* flex: its words and ▶ icon stay one centred line (.with-icon) */
 
 /* result */
 .memo-score { text-align: center; padding: var(--space-6) 0 var(--space-4); }

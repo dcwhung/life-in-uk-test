@@ -46,7 +46,7 @@ const VIEWPORT_H = 844;
   // last question mirrors the bottom button (Finish)
   await pg.evaluate(() => { state.current = state.questions.length - 1; renderQuestion(); });
   await answer();
-  assert(await iconOf('#quickNext') === 'check' && (await text('#quickNext')).trim() === '' && (await text('#nextBtn')) === 'Finish ✓', 'last question: check line icon (bottom button keeps Finish ✓)');
+  assert(await iconOf('#quickNext') === 'check' && (await text('#quickNext')).trim() === '' && (await text('#nextBtn')) === 'Finish' && await iconOf('#nextBtn') === 'check', 'last question: check line icon (v1.6.1: the bottom Finish has it too, after the word)');
   assert(await pg.$eval('#quickNext', e => e.title === 'Finish'), 'title names the action');
   await pg.click('#quickNext');
   assert(await vis('#screenResult'), 'quick Finish opens the results');

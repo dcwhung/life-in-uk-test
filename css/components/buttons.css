@@ -34,9 +34,17 @@
 .nav-btn.secondary { background: var(--card); color: var(--navy); border: 2px solid var(--border); }
 .nav-btn.secondary:hover { background: var(--navy); color: var(--text-inverse); border-color: transparent; }
 .nav-btn:disabled { opacity: 0.4; cursor: default; }
-/* C1: a bottom button with a line icon before its words (side session Back) */
-.nav-btn.with-icon { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-3); }
-.nav-btn.with-icon .line-icon { width: 1.15em; height: 1.15em; flex-shrink: 0; }
+/* v1.6.1: a control's words with a line icon before / after them (iconLabelHtml in js/components/icons.js; C1 began it
+   on the side session Back): one centred line, the icon a little larger than the text and never squeezed */
+.with-icon { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-3); }
+.with-icon > .line-icon { width: 1.15em; height: 1.15em; flex-shrink: 0; }
+.with-icon > .icon-label { min-width: 0; }
+/* the short Prev beside a long main button ("Redo the wrong answers (n left)") keeps its word on one line; the main one wraps */
+.nav-row > .nav-btn.secondary.with-icon { flex-shrink: 0; white-space: nowrap; }
+/* a text back button ("← Today's tasks", "‹ Memory") shares the quiz header with the set label and mode badge: at 320px
+   with large text it keeps 10px sides, a 4px gap and a 1em icon, so the header row stays inside the screen */
+.back-btn.with-icon { padding-left: var(--space-5); padding-right: var(--space-5); gap: var(--space-2); }
+.back-btn.with-icon > .line-icon { width: 1em; height: 1em; }
 
 /* quick Prev / Next in the question header */
 .quick-nav { display: none; gap: var(--space-3); flex-shrink: 0; text-transform: none; letter-spacing: 0; }

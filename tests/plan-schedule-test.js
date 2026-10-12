@@ -332,7 +332,7 @@ async function checkChangeGoal(pg) {
   const g = await pg.evaluate(() => ({ draft: JSON.parse(JSON.stringify(planGoalDraft)), step: byId('planGoalStep').textContent, cta: byId('planCreateBtn').textContent, steps: byId('planGoalSteps').hidden }));
   assert(g.steps, 'edit mode: no 1 / 2 stepper');
   assert(JSON.stringify(g.draft) === JSON.stringify(GOAL), 'goal screen prefilled with the current goal: ' + JSON.stringify(g.draft));
-  assert(g.step === 'Change goal' && g.cta === 'Update my plan →', 'goal screen in edit mode: header + CTA: ' + g.step + ' / ' + g.cta);
+  assert(g.step === 'Change goal' && g.cta === 'Update my plan', 'goal screen in edit mode: header + CTA: ' + g.step + ' / ' + g.cta);
   await pg.click('#planRestChips .chip >> nth=6');
   await pg.click('#planCreateBtn');
   assert(await activeScreen(pg) === 'screenPlanSchedule', 'Update my plan → back to the schedule');
@@ -349,7 +349,7 @@ async function checkChangeGoal(pg) {
   await pg.click('#screenPlanGoal .back-btn');
   assert(await activeScreen(pg) === 'screenHome', 'goal screen ← Home');
   const create = await pg.evaluate(() => { openPlanGoal(); return { step: byId('planGoalStep').textContent, cta: byId('planCreateBtn').textContent, steps: byId('planGoalSteps').hidden }; });
-  assert(!create.steps && create.step === 'New plan · 1 / 2' && create.cta === 'Build my plan →', 'a new plan opens the goal screen in create mode again');
+  assert(!create.steps && create.step === 'New plan · 1 / 2' && create.cta === 'Build my plan', 'a new plan opens the goal screen in create mode again');
 }
 
 // W-035: Change goal measures the time against the facts still to learn (review case: 21 days at 60 min, 12 days in,

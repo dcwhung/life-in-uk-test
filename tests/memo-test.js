@@ -107,7 +107,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   await pg.evaluate(([k, v]) => localStorage.setItem(k, JSON.stringify(v)), [MEMO_LS, { vote: { lv: 2, due: day }, ww2: { lv: 1, due: yesterday }, parliament: { lv: 4, due: later }, writers: { lv: 1, due: later } }]);
   await pg.reload(); await openMemoTab();
   const banner = await pg.$eval('#studyContent .memo-due', e => ({ title: e.querySelector('b').textContent, sub: e.querySelector('small').textContent, lang: e.querySelector('small').getAttribute('lang'), start: e.querySelector('button').textContent }));
-  assert(banner.title === '2 groups to review today' && banner.sub === '投票權 · 二次世界大戰' && banner.lang === 'zh-HK' && banner.start === 'Start ▶',
+  assert(banner.title === '2 groups to review today' && banner.sub === '投票權 · 二次世界大戰' && banner.lang === 'zh-HK' && banner.start === 'Start',
     'banner: "2 groups to review today", due titles (vote has more questions, first), Start ▶: ' + JSON.stringify(banner));
   const order = await cardIds();
   assert(order[0] === 'vote' && order[1] === 'ww2' && order[GROUP_COUNT - 1] === 'parliament' && order[GROUP_COUNT - 2] === 'writers', 'list: due first, then new, learning, done last');
@@ -136,7 +136,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   }));
   assert(look.steps.join('|') === '① Look*|② Test (5)', 'steps ① Look (on) / ② Test (5): ' + look.steps.join('|'));
   assert(/89 冇票/.test(look.hook) && look.hookLang === 'zh-HK' && look.table === 7 && !look.heading, 'hook box + the 7-row table (no repeated heading line)');
-  assert(look.start === 'Got it — start the test ▶', 'start button text');
+  assert(look.start === 'Got it — start the test', 'start button text');
   assert(await pg.evaluate(() => document.activeElement === byId('memoTitle')), 'S-227: opening a group moves focus to its title');
 
   // ── test → result (4 / 5 from Lv2 → Lv3) ──
@@ -161,7 +161,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   // language switch / re-render never records twice
   await pg.evaluate(() => { setLang('zh-HK'); setLang('en'); rerenderCurrentScreen(); });
   assert(JSON.stringify((await stored()).vote) === JSON.stringify({ lv: 3, due: due7 }) && await pg.$eval('#memoBody .memo-pct', e => e.textContent) === '80%', 're-render keeps the result, records nothing more');
-  assert(res.next === 'Next: 二次世界大戰 ▶', 'next group = the next due / new group in list order: ' + res.next);
+  assert(res.next === 'Next: 二次世界大戰', 'next group = the next due / new group in list order: ' + res.next);
   await pg.click('#memoBody .memo-next');
   assert(await text('#memoTitle') === '✈️ 二次世界大戰' && await pg.$('#memoBody .memo-start') !== null, 'next group opens on its look view');
 
@@ -228,21 +228,22 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   const juryTitle = await text('#memoTitle');
   const progressBefore = JSON.stringify(await stored());
   const quizBack = () => pg.$eval('#screenQuiz .quiz-header .back-btn', e => ({ text: e.textContent.trim(), memo: e.classList.contains('memo-back'),
-    icon: e.classList.contains('icon-btn') || !!e.querySelector('svg'), label: e.getAttribute('aria-label'), title: e.getAttribute('title'),
-    visible: !!e.getClientRects().length }));
+    // S-240 (v1.6.1): the ‹ is a decorative chevron line icon before the words; icon = the 🏠 icon button
+    icon: e.classList.contains('icon-btn') || !!e.querySelector('svg:not([data-icon-name="chevronLeft"])'), label: e.getAttribute('aria-label'), title: e.getAttribute('title'),
+    visible: !!e.getClientRects().length, chev: !!e.querySelector('svg.line-icon[data-icon-name="chevronLeft"][aria-hidden="true"]') }));
   const homeShown = () => pg.$$eval('#screenQuiz [data-icon-name="home"]', els => els.some(e => e.getClientRects().length));
   await pg.click('.memo-start');
   await pg.waitForTimeout(GUARD_WAIT_MS);
   let qb = await quizBack();
-  assert(qb.visible && qb.memo && !qb.icon && qb.text === '‹ Memory' && qb.label === null && qb.title === null && !(await homeShown()),
-    'C2: memo test header: "‹ Memory" (memo-back style, named by its words), no 🏠: ' + JSON.stringify(qb));
+  assert(qb.visible && qb.memo && !qb.icon && qb.chev && qb.text === 'Memory' && qb.label === null && qb.title === null && !(await homeShown()),
+    'C2: memo test header: "‹ Memory" (memo-back style, named by its words; S-240: ‹ = aria-hidden chevron icon), no 🏠: ' + JSON.stringify(qb));
   await answer(true);
   await pg.click('#nextBtn');
   await pg.evaluate(() => { setLang('zh-HK'); });
   qb = await quizBack();
-  assert(qb.memo && qb.text === '‹ 記憶法' && !(await homeShown()), 'C2: zh-HK re-render keeps 「‹ 記憶法」: ' + qb.text);
+  assert(qb.memo && qb.text === '記憶法' && !(await homeShown()), 'C2: zh-HK re-render keeps 「‹ 記憶法」: ' + qb.text);
   await pg.evaluate(() => { setLang('en'); rerenderCurrentScreen(); });
-  assert((await quizBack()).text === '‹ Memory' && await pg.evaluate(() => state.current === 1), 'C2: back to en, still on question 2');
+  assert((await quizBack()).text === 'Memory' && await pg.evaluate(() => state.current === 1), 'C2: back to en, still on question 2');
   await pg.evaluate(() => window.scrollTo(0, 300));
   await pg.click('#screenQuiz .quiz-header .back-btn');
   const left = await pg.evaluate(() => ({ screen: document.querySelector('.screen.active').id, ret: sessionReturn, start: !!document.querySelector('#memoBody .memo-start'),
@@ -269,7 +270,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   qb = await quizBack();
   assert(!qb.memo && qb.icon && qb.label === 'Home' && qb.text === '' && await pg.evaluate(() => sessionReturn === null), 'C2: a later Practice exam: 🏠 Home, no side session: ' + JSON.stringify(qb));
   await pg.evaluate(() => { state.current = state.questions.length - 1; const q = state.questions[state.current]; state.answers[state.current] = [...q.a]; revealAnswer(); });
-  assert(await text('#nextBtn') === 'Finish ✓', 'C2: its last question finishes normally (Finish ✓)');
+  assert(await text('#nextBtn') === 'Finish', 'C2: its last question finishes normally (Finish ✓)');
   await pg.click('#screenQuiz .quiz-header .back-btn');
   assert(await pg.$eval('#screenHome', e => e.classList.contains('active')), 'C2: its 🏠 goes Home');
   await pg.click('#modeStudy');
@@ -283,14 +284,14 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
 
   // ── zh-HK strings ──
   await pg.evaluate(() => setLang('zh-HK'));
-  assert(await text('#memoSteps .memo-step') === '① 睇' && await text('#memoBody .memo-start') === '記住咗，開始試 ▶' && await text('#screenMemo .memo-back') === '‹ 記憶法', 'zh-HK look view: ① 睇 / 記住咗，開始試 ▶ / ‹ 記憶法');
+  assert(await text('#memoSteps .memo-step') === '① 睇' && await text('#memoBody .memo-start') === '記住咗，開始試' && await text('#screenMemo .memo-back') === '記憶法', 'zh-HK look view: ① 睇 / 記住咗，開始試 ▶ / ‹ 記憶法');
   await pg.click('#screenMemo .memo-back');
   await pg.evaluate(([k, v]) => localStorage.setItem(k, JSON.stringify(v)), [MEMO_LS, { vote: { lv: 1, due: day }, parliament: { lv: 4, due: later } }]);
   await pg.evaluate(() => renderStudy());
   const zh = await pg.evaluate(() => ({ tab: document.querySelector('.study-tab[data-tab="memo"] [data-i18n]').textContent, banner: document.querySelector('.memo-due b').textContent,
     start: document.querySelector('.memo-due button').textContent, count: document.querySelector('#studyCount').textContent,
     badges: [...document.querySelectorAll('.memo-card')].map(e => e.querySelector('.memo-badge').textContent) }));
-  assert(zh.tab === '記憶法' && zh.banner === '今日要溫 1 組' && zh.start === '開始 ▶' && zh.count === `${GROUP_COUNT} / ${GROUP_COUNT} 組`, 'zh-HK list: 記憶法 tab, 今日要溫 1 組, 開始 ▶, count: ' + JSON.stringify(zh).slice(0, 160));
+  assert(zh.tab === '記憶法' && zh.banner === '今日要溫 1 組' && zh.start === '開始' && zh.count === `${GROUP_COUNT} / ${GROUP_COUNT} 組`, 'zh-HK list: 記憶法 tab, 今日要溫 1 組, 開始 ▶, count: ' + JSON.stringify(zh).slice(0, 160));
   assert(zh.badges[0] === '今日到期' && zh.badges.includes('未溫') && zh.badges[GROUP_COUNT - 1] === '已熟 · 9 日後', 'zh-HK badges: 今日到期 / 未溫 / 已熟 · 9 日後');
   await pg.click('.memo-due button');
   await runTest([true, true, true, true, true]);

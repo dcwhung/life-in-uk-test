@@ -168,19 +168,12 @@ function renderAnswerTranslation(q) {
 function renderNavButtons(idx, total, revealed) {
   const next = nextAction(idx, total);
   ['prevBtn', 'quickPrev'].forEach(id => { byId(id).disabled = idx === 0; });
-  renderNextButton(byId('nextBtn'), next);
+  setIconLabel(byId('nextBtn'), next.label, next.labelIcons); // v1.6.1: words + line icon, never a glyph
   const quickNext = byId('quickNext');
   quickNext.innerHTML = lineIconSvg(next.icon); // C1: a line icon, never a glyph (iOS draws "↩" as an emoji)
-  quickNext.title = next.title;
-  quickNext.setAttribute('aria-label', next.title);
+  setAccessibleName(quickNext, next.label);
   // quick pair: practice once revealed (Translate holds the spot before that); exam always (no Translate there)
   byId('quickNav').classList.toggle('visible', revealed || state.mode === EXAM_MODE);
-}
-// the bottom button: its words, plus a line icon in front when the action has one (side session Back, C1)
-function renderNextButton(btn, next) {
-  btn.classList.toggle('with-icon', !!next.labelIcon);
-  if (next.labelIcon) btn.innerHTML = lineIconSvg(next.labelIcon) + `<span>${escapeHtml(next.label)}</span>`;
-  else btn.textContent = next.label;
 }
 // review sets bigger than one round: "Round 1 of N · 24 of your T wrong answers" above the question card
 function renderRoundNote() {
@@ -197,16 +190,20 @@ function renderRoundNote() {
 
 // ── answering ──
 // what "Next" does on this question: next question, finish the set, or leave the side session (similar / fact)
-// label (+ labelIcon) = bottom button, icon + title = quick button in the question header (LINE_ICON_PATHS names)
+// label + labelIcons ({ lead, trail }: where the old glyph sat) = bottom button; icon = quick button in the question
+// header (LINE_ICON_PATHS names), named by the same label
 const QUICK_ICON = { prev: 'arrowLeft', next: 'arrowRight', finish: 'check', back: 'returnLeft' };
+const NEXT_LABEL_ICONS = { next: { trail: QUICK_ICON.next }, finish: { trail: QUICK_ICON.finish }, back: { lead: QUICK_ICON.back } };
 function nextAction(idx, total) {
-  if (idx < total - 1) return { label: t('quiz.nextButton'), icon: QUICK_ICON.next, title: t('quiz.next'), run: nextQ };
+  if (idx < total - 1) {
+    return { label: t('quiz.next'), labelIcons: NEXT_LABEL_ICONS.next, icon: QUICK_ICON.next, run: nextQ };
+  }
   if (isPlanSession()) return planNextAction();
   if (isSideSession()) {
-    return { label: t('quiz.backButton'), labelIcon: QUICK_ICON.back, icon: QUICK_ICON.back, title: t('quiz.back'), run: returnFromSideSession };
+    return { label: t('quiz.back'), labelIcons: NEXT_LABEL_ICONS.back, icon: QUICK_ICON.back, run: returnFromSideSession };
   }
-  if (state.mode === EXAM_MODE) return { label: t('exam.submit'), icon: QUICK_ICON.finish, title: t('exam.submit'), run: submitExam };
-  return { label: t('quiz.finishButton'), icon: QUICK_ICON.finish, title: t('quiz.finish'), run: finishExam };
+  if (state.mode === EXAM_MODE) return { label: t('exam.submit'), icon: QUICK_ICON.finish, run: submitExam };
+  return { label: t('quiz.finish'), labelIcons: NEXT_LABEL_ICONS.finish, icon: QUICK_ICON.finish, run: finishExam };
 }
 function runNextAction() { nextAction(state.current, state.questions.length).run(); }
 

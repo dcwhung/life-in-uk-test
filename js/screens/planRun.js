@@ -11,7 +11,10 @@
 // ════════════════════════════════════════
 const PLAN_RUN_TYPES = [PLAN_TASK.practice, PLAN_TASK.drill, PLAN_TASK.review];
 const PLAN_FACT_TYPES = [PLAN_TASK.read, PLAN_TASK.wrongFacts];
-const PLAN_RUN_ICON = { next: 'arrowRight', finish: 'check' }; // the quick button's line icon (LINE_ICON_PATHS, C1)
+const PLAN_RUN_ICON = { next: 'arrowRight', finish: 'check', redo: 'arrowRight' }; // the quick button's line icon (C1)
+// v1.6.1: the bottom button's icon, where its glyph was (→ / ✓ after the words, 🔁 before them)
+const PLAN_RUN_LABEL_ICONS = { next: { trail: 'arrowRight' }, finish: { trail: 'check' }, redo: { lead: 'redo' } };
+const PLAN_NEXT_ICONS = PLAN_RUN_LABEL_ICONS.next, PLAN_BACK_ICONS = { lead: 'arrowLeft' }; // → after / ← before the words
 const PLAN_RUN_VIEW = { done: 'done', facts: 'facts' };
 const PLAN_RUN_BADGE_KEYS = { [PLAN_TASK.read]: 'home.modeStudy', [PLAN_TASK.mock]: 'common.exam' }; // others: Practice
 let planRunView = null; // #screenPlanRun: { kind, date, taskIndex, from } (+ facts: pos, review)
@@ -117,24 +120,24 @@ function planRunLabel({ type, ch, exam }) {
   return t('common.chapterN', { n: ch });
 }
 function planRunBackHtml(from) {
-  if (!from || from === planTodayIso()) return escapeHtml(t('plan.run.backToday'));
-  const plan = planLoad();
-  if (!plan) return escapeHtml(t('plan.run.backToday'));
-  return t('plan.run.backDayHtml', { day: `<span lang="en">${t('plan.dayN', { n: planDayNumber(plan, from) })}</span>` });
+  const plan = from && from !== planTodayIso() ? planLoad() : null;
+  const label = plan ? t('plan.run.backDayHtml', { day: `<span lang="en">${t('plan.dayN', { n: planDayNumber(plan, from) })}</span>` })
+    : escapeHtml(t('plan.run.backToday'));
+  return iconLabelHtml(label, PLAN_BACK_ICONS); // v1.6.1: the ← glyph is a line icon
 }
 // the quiz header's 🏠 reads "← Today's tasks" in a plan session or mock (goHome goes back to the day there);
 // a fact's session is named like the Study one ("Fact Ch c #n", setExamLabel)
 // v1.2.0 (Q11): Home is an icon button; a plan's text back label keeps its words, and those words name it (S-188: an
 // aria-label would hide the <span lang="en">Day n</span> language from screen readers)
 function setQuizBackText(back, html) {
-  back.classList.add('plan-hit');
+  back.classList.add('plan-hit', 'with-icon');
   back.classList.remove('icon-btn', 'memo-back');
   back.innerHTML = html;
   back.removeAttribute('aria-label');
   back.removeAttribute('title');
 }
 function setQuizBackHome(back) {
-  back.classList.remove('plan-hit', 'memo-back');
+  back.classList.remove('plan-hit', 'memo-back', 'with-icon');
   back.classList.add('icon-btn');
   back.innerHTML = lineIconSvg('home');
   setAccessibleName(back, t('common.homeLabel'));
@@ -177,8 +180,8 @@ function planRunHasPair(ret) {
   const ctx = planRunContext(ret.date, ret.taskIndex);
   return !!ctx && ctx.day.tasks.some(t => t.type === PLAN_TASK.read && t.pair === ret.taskIndex);
 }
-// QA O-3: the quick button's title / aria-label is plain words (the bottom button keeps its → / ✓ / 🔁)
-function planAction(labelText, icon, run, titleText) { return { label: labelText, icon, title: titleText, run }; }
+// QA O-3: the quick button's title / aria-label is the bottom button's words (v1.6.1: both carry line icons, no glyph)
+function planAction(labelText, kind, run) { return { label: labelText, labelIcons: PLAN_RUN_LABEL_ICONS[kind], icon: PLAN_RUN_ICON[kind], run }; }
 // last question of a round: next round (unanswered left), redo the wrong ones (n left), or finish → Result card
 function planNextAction() {
   const ret = sessionReturn;
@@ -187,16 +190,15 @@ function planNextAction() {
   const run = () => planStartRound(ret.date, ret.taskIndex, ret.from, skipped, { round: ret.round, rounds: ret.rounds }, planRunPart(ret));
   const ctx = planRunContext(ret.date, ret.taskIndex, ret.fact);
   const next = ctx ? planNextRound(ctx.task, ctx.dayLog, skipped) : [];
-  if (!next.length) return planAction(t('quiz.finishButton'), PLAN_RUN_ICON.finish, run, t('quiz.finish'));
-  if (next.some(k => !ctx.dayLog.bad[k])) return planAction(t('plan.run.nextRound'), PLAN_RUN_ICON.next, run, t('plan.run.nextRoundTitle'));
-  const n = planRetryLeft(ctx.task, ctx.dayLog);
-  return planAction(t('plan.run.retryWrong', { n }), PLAN_RUN_ICON.next, run, t('plan.run.retryWrongTitle', { n }));
+  if (!next.length) return planAction(t('quiz.finish'), 'finish', run);
+  if (next.some(k => !ctx.dayLog.bad[k])) return planAction(t('plan.run.nextRound'), 'next', run);
+  return planAction(t('plan.run.retryWrong', { n: planRetryLeft(ctx.task, ctx.dayLog) }), 'redo', run);
 }
 function planReviewNextAction(ret) {
   if (ret.page < ret.pages - 1) {
-    return planAction(t('quiz.nextButton'), PLAN_RUN_ICON.next, () => planStartReview(ret.date, ret.taskIndex, ret.from, ret.page + 1), t('quiz.next'));
+    return planAction(t('quiz.next'), 'next', () => planStartReview(ret.date, ret.taskIndex, ret.from, ret.page + 1));
   }
-  return planAction(t('quiz.finishButton'), PLAN_RUN_ICON.finish, () => planBackToDay(), t('quiz.finish'));
+  return planAction(t('quiz.finish'), 'finish', () => planBackToDay());
 }
 // ← (quiz header in a plan session, Result card header, "Back to the task list"): the day screen it came from,
 // focus on the task's box when it is listed there
@@ -242,6 +244,7 @@ function renderPlanRun() {
   const view = planRunView, ctx = view && planRunContext(view.date, view.taskIndex);
   if (!ctx) { planBackToDay(); return; }
   const focusKey = planRunFocusKey();
+  byId('planRunBack').classList.add('with-icon');
   byId('planRunBack').innerHTML = planRunBackHtml(view.from);
   byId('planRunLabel').textContent = planRunLabel(ctx.task);
   const badgeKey = PLAN_RUN_BADGE_KEYS[ctx.task.type] || 'common.practice';
@@ -315,8 +318,8 @@ function planDoneActsHtml(view, next, type) {
   const review = type === PLAN_TASK.mock ? ''
     : `<button type="button" class="nav-btn secondary plan-hit" data-action="planReviewTask">${t('plan.run.reviewThis')}</button>`;
   const go = next
-    ? `<button type="button" class="nav-btn plan-hit" data-action="planOpenTask" data-arg="${next.date}" data-task="${next.taskIndex}"`
-      + ` data-from="${view.from || ''}">${t('plan.run.startNext')}</button>`
+    ? iconButtonHtml('nav-btn plan-hit', ` data-action="planOpenTask" data-arg="${next.date}" data-task="${next.taskIndex}" data-from="${view.from || ''}"`,
+      t('plan.run.startNext'), PLAN_NEXT_ICONS)
     : `<button type="button" class="nav-btn plan-hit" data-action="planBackToDay">${t('plan.run.backToList')}</button>`;
   return `<div class="nav-row">${review}${go}</div>`;
 }
@@ -372,8 +375,8 @@ function planFactCardHtml(ctx, f, review) {
 }
 function planFactNavHtml(view, ctx) {
   const last = view.pos >= ctx.task.facts.length - 1;
-  const prev = `<button type="button" class="nav-btn secondary" data-action="planStepFact" data-arg="-1"${view.pos ? '' : ' disabled'}>${t('plan.run.prevFact')}</button>`;
-  const next = last ? planFactLastHtml(view, ctx) : `<button type="button" class="nav-btn" data-action="planStepFact" data-arg="1">${t('plan.run.nextFact')}</button>`;
+  const prev = iconButtonHtml('nav-btn secondary', ` data-action="planStepFact" data-arg="-1"${view.pos ? '' : ' disabled'}`, t('plan.run.prevFact'), PLAN_BACK_ICONS);
+  const next = last ? planFactLastHtml(view, ctx) : iconButtonHtml('nav-btn', ' data-action="planStepFact" data-arg="1"', t('plan.run.nextFact'), PLAN_NEXT_ICONS);
   return (last ? planFactLeftNoteHtml(view, ctx) : '') + `<div class="nav-row plan-run-nav">${prev}${next}</div>`;
 }
 // the last fact's main button counts these: reading → its paired practice task's (G3), wrong facts → the task's own
@@ -394,11 +397,11 @@ function planFactLeftNoteHtml(view, ctx) {
 // last fact: reading → its paired practice task (G3); wrong facts → what is left of the task; review / nothing left → back
 function planFactLastHtml(view, ctx) {
   const read = ctx.task.type === PLAN_TASK.read, n = planFactLastLeft(view, ctx);
-  if (!n) return `<button type="button" class="nav-btn" data-action="planBackToDay">${t('quiz.finishButton')}</button>`;
+  if (!n) return iconButtonHtml('nav-btn', ' data-action="planBackToDay"', t('quiz.finish'), PLAN_RUN_LABEL_ICONS.finish);
   const label = t('plan.run.practiseN', { n });
-  if (!read) return `<button type="button" class="nav-btn" data-action="planPractiseTask">${label}</button>`;
-  return `<button type="button" class="nav-btn" data-action="planOpenTask" data-arg="${view.date}" data-task="${ctx.task.pair}"`
-    + ` data-from="${view.from || ''}">${label}</button>`;
+  if (!read) return iconButtonHtml('nav-btn', ' data-action="planPractiseTask"', label, PLAN_NEXT_ICONS);
+  return iconButtonHtml('nav-btn', ` data-action="planOpenTask" data-arg="${view.date}" data-task="${ctx.task.pair}" data-from="${view.from || ''}"`,
+    label, PLAN_NEXT_ICONS);
 }
 function planIsFactsView() { return !!planRunView && planRunView.kind === PLAN_RUN_VIEW.facts; }
 function planStepFact(step) {

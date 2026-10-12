@@ -6,7 +6,7 @@ const path = require('path');
 // title. Walks Home, Quiz (Practice / Exam / side session / plan task / memo test), Study, Flagged, Memo, Plan goal /
 // schedule / day / runner at 320 / 360 / 390px × en / zh-HK × small / large text:
 // - no button (or role=button) text holds one of the glyphs; status / content inside a control is not a control icon
-//   (STATUS_PARTS: day pills, task type emoji, task status line, memo badge), see HANDOFF › 已知限制
+//   (STATUS_PARTS: day pills, task type emoji (📖 📝 🔁 🎯, like the group / tab emoji), task status line, memo badge), see HANDOFF › 已知限制
 // - each control in scope has its icon (data-icon-name) at the expected end, the icon centred on the label line,
 //   nothing overflowing the button and no sideways page scroll
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
@@ -15,7 +15,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
 const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('ok:', m); };
 
 const GLYPHS = '←→↩✓▶🔁↺✕‹›';
-const STATUS_PARTS = '.plan-pill, .plan-task-ic, .plan-task-st, .memo-badge';
+const STATUS_PARTS = '.plan-pill, .plan-task-ic, .plan-day-ic, .plan-task-st, .memo-badge';
 const WIDTHS = [320, 360, 390];
 const LANGS = ['en', 'zh-HK'];
 const SIZES = ['small', 'large'];
@@ -36,9 +36,9 @@ const controlInfo = (pg, sel) => pg.evaluate(sel => {
   const b = document.querySelector(sel);
   if (!b) return null;
   const icons = [...b.querySelectorAll('svg.line-icon')];
-  const kids = [...b.children].filter(k => k.getClientRects().length);
-  const label = kids.find(k => k.tagName !== 'svg');
   const shown = b.getClientRects().length > 0;
+  const kids = [...b.children].filter(k => !shown || k.getClientRects().length);
+  const label = kids.find(k => k.tagName !== 'svg');
   const mid = r => (r.top + r.bottom) / 2;
   const br = b.getBoundingClientRect(), lr = label && label.getBoundingClientRect();
   return {
@@ -47,7 +47,9 @@ const controlInfo = (pg, sel) => pg.evaluate(sel => {
     lead: !!kids[0] && kids[0].tagName === 'svg', trail: kids.length > 1 && kids[kids.length - 1].tagName === 'svg',
     label: b.getAttribute('aria-label'), title: b.getAttribute('title'),
     centred: !shown || !lr || icons.every(i => Math.abs(mid(i.getBoundingClientRect()) - mid(lr)) <= 2.5),
-    fits: !shown || b.scrollWidth <= b.clientWidth + 1, inside: !shown || br.right <= innerWidth + 0.5,
+    // every part inside the button's box (its ::before tap ring may reach past it), the words not cut
+    fits: !shown || kids.every(k => { const r = k.getBoundingClientRect(); return r.left >= br.left - 0.5 && r.right <= br.right + 0.5; })
+      && (!label || label.scrollWidth <= label.clientWidth + 1 || getComputedStyle(label).display === 'inline'), inside: !shown || br.right <= innerWidth + 0.5,
     iconPx: icons.map(i => Math.round(i.getBoundingClientRect().height)),
   };
 }, sel);
