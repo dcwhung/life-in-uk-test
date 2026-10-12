@@ -22,7 +22,13 @@ const seedContext = async ctx => { await ctx.addInitScript(seedScript, [LEGACY_D
 function seedLegacyDefaults(browser) {
   const newContext = browser.newContext.bind(browser);
   browser.newContext = async (...args) => seedContext(await newContext(...args));
-  browser.newPage = async (...args) => (await browser.newContext(...args)).newPage();
+  browser.newPage = async (...args) => {
+    const ctx = await browser.newContext(...args);
+    const page = await ctx.newPage();
+    // S-221: like Playwright's own browser.newPage(), closing the page closes the context it owns
+    page.once('close', () => { ctx.close().catch(() => {}); });
+    return page;
+  };
   return browser;
 }
 

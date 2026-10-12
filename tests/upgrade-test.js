@@ -62,9 +62,12 @@ const extractV057 = dir => execFileSync('sh', ['-c', `git -C "${ROOT}" archive $
 const showV057 = file => execFileSync('git', ['-C', ROOT, 'show', `${V057_REF}:${file}`]);
 const emptyDir = dir => fs.readdirSync(dir).forEach(f => fs.rmSync(path.join(dir, f), { recursive: true, force: true }));
 
-// the legacy en + small seed (tests/legacy-defaults.js) is test scaffolding, not app storage: left out of every dump
-const dump = pg => pg.evaluate(seeded => Object.fromEntries(Object.keys(localStorage).filter(k => !seeded.includes(k)).sort()
-  .map(k => [k, localStorage.getItem(k)])), Object.keys(LEGACY_DEFAULTS));
+// the legacy en + small seed (tests/legacy-defaults.js) is test scaffolding, not app storage: left out of a dump.
+// S-218: a case that runs with the seed off (noSeed) dumps every key, so an app write to lifeuk.uiLang / lifeuk.fontSize fails it
+const dump = (pg, { raw = false } = {}) => pg.evaluate(skip => Object.fromEntries(Object.keys(localStorage).filter(k => !skip.includes(k)).sort()
+  .map(k => [k, localStorage.getItem(k)])), raw ? [] : Object.keys(LEGACY_DEFAULTS));
+const rawDump = pg => dump(pg, { raw: true });
+const noSeed = pg => pg.evaluate(ss => sessionStorage.setItem(ss, '1'), NO_SEED_SS);
 const seed = async (pg, kv) => {
   await pg.evaluate(kv => { localStorage.clear(); for (const [k, v] of Object.entries(kv)) localStorage.setItem(k, v); }, kv);
   await pg.reload();
@@ -437,9 +440,10 @@ async function oppositeMix(b) {
   const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
   const errs = []; pg.on('pageerror', e => errs.push(e.message));
   await pg.goto('file://' + path.join(dir, 'index.html'));
+  await noSeed(pg); // S-218: every key counts
   await seed(pg, LEGACY);
   assert((await text(pg, '#examGrid .exam-btn.all .exam-mastery')).startsWith('3/408'), 'opposite mix: v0.57 keys read (3/408)');
-  assert(JSON.stringify(await dump(pg)) === JSON.stringify(Object.fromEntries(Object.entries(LEGACY).sort())), 'opposite mix: storage untouched');
+  assert(JSON.stringify(await rawDump(pg)) === JSON.stringify(Object.fromEntries(Object.entries(LEGACY).sort())), 'opposite mix: storage untouched');
   assert(errs.length === 0, 'opposite mix: no page errors: ' + errs.join(' | '));
   await pg.close();
 }
@@ -499,16 +503,17 @@ async function swUpgrade(b) {
     const pg = await ctx.newPage();
     const errs = []; pg.on('pageerror', e => errs.push(e.message));
     await pg.goto(base);
+    await noSeed(pg); // S-218: the real upgrade runs on a true first-run storage, and every dump below counts every key
     assert(await waitForCache(pg, 'lifeuk-v0.57'), 'v0.57 SW installed and controlling');
     await seed(pg, { ...LEGACY, ...FOREIGN });
-    const ls57 = await dump(pg); const ui57 = await captureUI(pg);
+    const ls57 = await rawDump(pg); const ui57 = await captureUI(pg);
     assert(await pg.evaluate(() => APP_VERSION) === '0.57' && ls57.practiceStreak === LEGACY.practiceStreak, 'v0.57 running on the legacy keys');
     emptyDir(dir); copyCurrent(dir);
     await pg.reload();
     assert(await waitForCache(pg, 'lifeuk-v' + CURRENT_VERSION), `v${CURRENT_VERSION} SW activated, v0.57 cache deleted`);
     await pg.reload();
     assert(await pg.evaluate(() => APP_VERSION) === CURRENT_VERSION, `reload: v${CURRENT_VERSION} js runs`);
-    const ls = await dump(pg);
+    const ls = await rawDump(pg);
     assert(LEGACY_NAMES.every(k => ls[P + k] === LEGACY[k]), 'every legacy value byte-exact under lifeuk.*');
     assert(LEGACY_NAMES.every(k => !(k in ls)) && !('reviewOrder' in ls), 'legacy keys + reviewOrder gone');
     assert(Object.entries(FOREIGN).every(([k, v]) => ls[k] === v), "other apps' keys byte-identical");
@@ -518,14 +523,14 @@ async function swUpgrade(b) {
     const diffs = Object.keys(ui57).filter(k => JSON.stringify(ui57[k]) !== JSON.stringify(ui[k]));
     assert(diffs.length === 0, 'UI identical before / after the upgrade' + (diffs.length ? ': ' + diffs.join(', ') : ''));
     await pg.reload();
-    assert(JSON.stringify(await dump(pg)) === JSON.stringify(ls), 'another reload: storage unchanged');
+    assert(JSON.stringify(await rawDump(pg)) === JSON.stringify(ls), 'another reload: storage unchanged');
     // PR2 (arch R3): with no plan, the answer / submit hooks add no study plan key — the marker stays the only new key
     await pg.evaluate(() => {
       pendingMode = 'practice'; startExam('ch2');
       const q = state.questions[0]; state.answers[0] = [...q.a]; revealAnswer();
       startExam(3, EXAM_MODE); finishExam(); leaveToHome();
     });
-    const after = Object.keys(await dump(pg)).filter(k => !(k in FOREIGN) && !(k.startsWith(P) && k.slice(P.length) in LEGACY));
+    const after = Object.keys(await rawDump(pg)).filter(k => !(k in FOREIGN) && !(k.startsWith(P) && k.slice(P.length) in LEGACY));
     assert(JSON.stringify(after) === JSON.stringify([MARKER]), 'no plan: after an answer + an exam submit the only new key is still the marker: ' + after);
     assert(errs.length === 0, 'upgrade: no page errors: ' + errs.join(' | '));
     await ctx.close();
