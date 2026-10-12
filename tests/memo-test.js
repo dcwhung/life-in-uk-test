@@ -312,6 +312,43 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   assert(await noHScroll() && await pg.$$eval('.study-tab', els => els.every(e => e.getBoundingClientRect().right <= window.innerWidth)), `${NARROW}px zh-HK: tabs fit`);
   await pg.evaluate(() => setLang('en'));
 
+  // ── v1.6.1 (user: 「記憶法列表用每個兩行顯示」 = two cards per row): a 2-column grid at phone widths; the badge sits below
+  // the (up to 2-line) title, nothing overlaps or clips, cards in a row share a height, DOM order runs row-wise; the due
+  // banner + count line stay full width; en / zh-HK × small / large × 320 / 360 / 390 without sideways scroll ──
+  await pg.evaluate(([k, v]) => localStorage.setItem(k, JSON.stringify(v)), [MEMO_LS, { vote: { lv: 1, due: day }, writers: { lv: 1, due: later }, parliament: { lv: 4, due: later } }]);
+  const gridBad = [];
+  for (const lang of ['en', 'zh-HK']) for (const size of ['small', 'large']) for (const width of [320, NARROW, 390]) {
+    await pg.setViewportSize({ width, height: 740 });
+    await pg.evaluate(([l, s]) => { setFontSize(s); setLang(l); renderStudy(); }, [lang, size]);
+    const g = await pg.evaluate(() => {
+      const content = document.querySelector('#studyContent').getBoundingClientRect();
+      const banner = document.querySelector('#studyContent .memo-due').getBoundingClientRect();
+      const cards = [...document.querySelectorAll('#studyContent .memo-card')];
+      const out = [];
+      const rects = cards.map(c => c.getBoundingClientRect());
+      cards.forEach((c, i) => {
+        const r = rects[i], name = c.querySelector('.memo-name'), badge = c.querySelector('.memo-badge');
+        const n = name.getBoundingClientRect(), bd = badge.getBoundingClientRect();
+        const lineH = parseFloat(getComputedStyle(name).lineHeight);
+        if (n.left < r.left - 1 || n.right > r.right + 1 || bd.left < r.left - 1 || bd.right > r.right + 1) out.push(c.dataset.arg + ' outside card');
+        if (bd.top < n.bottom - 1) out.push(c.dataset.arg + ' badge not below title');
+        if (name.scrollWidth > name.clientWidth + 1 || badge.scrollWidth > badge.clientWidth + 1) out.push(c.dataset.arg + ' clipped');
+        if (n.height > lineH * 2 + 2) out.push(c.dataset.arg + ' title > 2 lines');
+        const col = i % 2, mate = col ? rects[i - 1] : rects[i + 1];
+        if (mate && (Math.abs(mate.top - r.top) > 1 || Math.abs(mate.height - r.height) > 1)) out.push(c.dataset.arg + ' row mismatch');
+        if (col && r.left <= rects[i - 1].right) out.push(c.dataset.arg + ' not right column');
+        if (i >= 2 && r.top < rects[i - 2].bottom) out.push(c.dataset.arg + ' row overlap');
+      });
+      const halfW = rects[0].width < content.width / 2;
+      return { out, halfW, banner: Math.abs(banner.width - content.width) <= 1, docW: document.scrollingElement.scrollWidth, vw: window.innerWidth };
+    });
+    const ok = g.out.length === 0 && g.halfW && g.banner && g.docW <= g.vw;
+    if (!ok) gridBad.push(`${lang} ${size} ${width}: ${JSON.stringify(g).slice(0, 300)}`);
+  }
+  assert(gridBad.length === 0, 'memo list: two cards per row, badge below the title, no clip / overlap, equal row heights, full-width banner, no h-scroll (en/zh-HK × small/large × 320/360/390) ' + gridBad.join(' || '));
+  await pg.evaluate(() => { setFontSize('small'); setLang('en'); });
+  await pg.setViewportSize({ width: 390, height: 844 });
+
   // stored prefs / progress junk never breaks the tab
   await pg.evaluate(([k]) => { localStorage.setItem(k, '{bad'); localStorage.setItem('lifeuk.studyPrefs', JSON.stringify({ tab: 'memo', memoChapter: 'x' })); }, [MEMO_LS]);
   await pg.reload(); await pg.click('#modeStudy');
