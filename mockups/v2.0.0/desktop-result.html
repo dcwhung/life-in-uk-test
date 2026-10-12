@@ -1480,6 +1480,32 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
 
   /* A: left = score card, by difficulty, buttons (scrolls if needed) | right = review (order chips + list, scrolls) */
   .optA .cols, .optB .cols { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
+  /* A rev 2 (user): the left column never scrolls; the score card takes at most half of it, with less padding, a small
+     emoji and the Try again / Another exam buttons inside it; By difficulty fills the rest */
+  .optA .col-left { display: flex; flex-direction: column; gap: var(--space-5); }
+  .optA .col-left .result-card { flex: 0 1 auto; max-height: 50%; min-height: 0; margin: 0 !important; padding: var(--space-7) var(--space-8); display: flex; flex-direction: column; overflow: hidden; }
+  .optA .col-left .result-emoji { font-size: var(--fs-6xl); line-height: 1; margin: 0; }
+  /* the emoji sits left of the score on one line, so it costs no height of its own */
+  .optA .col-left .score-row { display: flex; align-items: center; justify-content: center; gap: var(--space-6); }
+  .optA .col-left .result-card .result-actions .nav-btn { white-space: nowrap; padding-left: var(--space-6); padding-right: var(--space-6); }
+  .optA .col-left .result-label { margin: var(--space-2) 0 var(--space-1); }
+  .optA .col-left .rdots-wrap { margin-top: var(--space-5); padding-top: var(--space-5); }
+  .optA .col-left .result-card .result-actions { margin: var(--space-6) 0 0 !important; }
+  .optA .col-left .result-card .result-actions .nav-btn { flex: 1; padding-top: var(--space-4); padding-bottom: var(--space-4); }
+  .optA .col-left .diff-table { margin: 0 !important; }
+  /* still too tall (large text): the score shrinks a step and the card's gaps tighten */
+  .optA .col-left.is-compact .result-score { font-size: var(--fs-display-sm); }
+  .optA .col-left.is-compact .result-card { padding-top: var(--space-5); padding-bottom: var(--space-5); }
+  .optA .col-left.is-compact .rdots-wrap { margin-top: var(--space-3); padding-top: var(--space-3); }
+  .optA .col-left.is-compact .diff-row { padding: var(--space-2) 0; }
+  /* level 2 (large text at 1024): smaller score, tighter dots, label / sub lines closer */
+  .optA .col-left.is-compact2 .result-score { font-size: var(--fs-7xl); }
+  .optA .col-left.is-compact2 .result-emoji { font-size: var(--fs-4xl); }
+  .optA .col-left.is-compact2 .rdots { --dots-gap: var(--space-2); }
+  .optA .col-left.is-compact2 .result-card { padding-left: var(--space-5); padding-right: var(--space-5); }
+  .optA .col-left.is-compact2 .rdot { max-width: calc(26px * var(--k)); }
+  .optA .col-left.is-compact2 .result-label { margin: var(--space-1) 0 0; }
+  .optA .col-left.is-compact2 .result-card .result-actions { margin-top: var(--space-4) !important; }
   /* B: as A, the review list in two columns */
   .optB .review-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
   /* C: top row = score card | by difficulty + buttons; under it the review across the full width (scrolls) */
@@ -1492,7 +1518,7 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
 <body>
 
 <div class="mock-bar">
-  <b>v2.0.0 Desktop · Mockup 10/12 · Result（考試結果）</b>
+  <b>v2.0.0 Desktop · Mockup 10/12 · Result（考試結果）· rev 2：A 左欄唔使碌</b>
   <div class="mock-row"><span class="lbl">語言</span><button class="mock-tab on" data-k="lang" data-v="en">EN</button><button class="mock-tab" data-k="lang" data-v="zh">中文</button><span class="lbl" style="margin-left:10px">翻譯</span><button class="mock-tab on" data-k="yue" data-v="on">開</button><button class="mock-tab" data-k="yue" data-v="off">關</button><span class="lbl" style="margin-left:10px">⚙ 大字</span><button class="mock-tab on" data-k="large" data-v="off">關</button><button class="mock-tab" data-k="large" data-v="on">開</button></div>
   <div class="mock-row"><span class="lbl">結果</span><button class="mock-tab on" data-k="st" data-v="fail">唔合格（12 / 24，4 題未答）</button><button class="mock-tab" data-k="st" data-v="pass">合格（20 / 24）</button></div>
   <div class="mock-row"><span class="lbl">縮放</span><button class="mock-tab on" data-k="zoom" data-v="fit">適合畫面</button><button class="mock-tab" data-k="zoom" data-v="100">100%</button></div>
@@ -1524,8 +1550,26 @@ function parts() {
   return { header: q('.quiz-header'), timeup: q('#resultTimeUp'), card: q('.result-card'), diffTitle: titles[0] || '', diff: q('#diffTable'),
     actions: q('.result-actions'), reviewTitle: titles[1] || '', order: q('#reviewOrder'), review: q('#reviewList') };
 }
+// A rev 2: emoji + score in one row (the app renders them as two blocks)
+function scoreRow(card) {
+  const t = document.createElement('template'); t.innerHTML = card;
+  const k = t.content.firstElementChild, e = k.querySelector('.result-emoji'), sc = k.querySelector('.result-score');
+  const row = document.createElement('div'); row.className = 'score-row';
+  e.before(row); row.append(e, sc);
+  return k.outerHTML;
+}
 const panel = html => `<div class="vwrap"><div class="vpanel">${html}</div></div>`;
+// A rev 2: the left column must not scroll: if card (≤ half) + By difficulty are taller than it, go compact
+function fitLeft() {
+  document.querySelectorAll('.optA .col-left').forEach(c => {
+    c.classList.remove('is-compact', 'is-compact2');
+    const over = () => c.scrollHeight > c.clientHeight + 1 || [...c.querySelectorAll('.result-card')].some(k => k.scrollHeight > k.clientHeight + 1);
+    if (over()) c.classList.add('is-compact');
+    if (over()) c.classList.add('is-compact2');
+  });
+}
 function afterRender() {
+  fitLeft();
   document.querySelectorAll('.vpanel').forEach(sc => {
     const wrap = sc.parentElement;
     const update = () => {
@@ -1540,9 +1584,10 @@ const VH = { 1024: 768, 1280: 800 };
 const OPTIONS = [
   {
     id: 'A', cls: 'optA', rec: true, vh: VH, title: 'A · 左欄成績｜右欄答案回顧',
-    ann: `<ul><li><b>左（5/12）</b>：成績卡（分數、合格／唔合格、題號點）、按難度表；左欄太長就自己碌；「再做一次／另一份試卷」貼左欄底，一直睇得到。</li>
+    ann: `<ul><li><b>rev 2</b>：左欄唔使碌；成績卡最多佔左欄一半，上下 padding 收細、🎯 細咗並放喺分數左邊（唔再自己佔一行），「再做一次／另一份試卷」放入成績卡底；下面係按難度表。放唔落（大字）就分數字細一級、間距收窄。</li>
+      <li><b>左（5/12）</b>：成績卡（分數、合格／唔合格、題號點）、按難度表；左欄太長就自己碌；「再做一次／另一份試卷」貼左欄底，一直睇得到。</li>
       <li><b>右（7/12）</b>：答案回顧：排序 chip + 24 題，喺自己 panel 入面碌。成績同掣一直睇得到。</li></ul>`,
-    render: p => `<div class="res-screen">${p.header}${p.timeup}<div class="cols"><div class="col">${panel(p.card + p.diffTitle + p.diff)}${p.actions}</div>
+    render: p => `<div class="res-screen">${p.header}${p.timeup}<div class="cols"><div class="col col-left">${scoreRow(p.card).replace(/<\/div>\s*$/, p.actions + '</div>')}${p.diffTitle}${p.diff}</div>
       <div class="col">${p.reviewTitle}${p.order}${panel(p.review)}</div></div></div>`,
   },
   {
