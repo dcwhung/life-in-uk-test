@@ -5,7 +5,8 @@ const path = require('path');
 // search box scroll away. Same on every tab. Modelled on flagged-sticky-test.js (v1.4.4 precedent). Runs with the
 // app's first-run defaults (zh-HK, large text), then en / zh-HK × small / large at 320 / 360 / 390px.
 // v1.6.1 review follow-up: W-067 the real fact-practice ↩ Back path (startFactPractice → skip to the last question → Back)
-// leaves the card below the pinned block; W-068 (user decision) the chip rows stay on ONE line and scroll sideways, so
+// leaves the card below the pinned block (W-069: started by a DOM click from a card asserted to be hidden behind the
+// block, so Playwright's auto-scroll can't move it out first); W-068 (user decision) the chip rows stay on ONE line and scroll sideways, so
 // the pinned block fits small phones (header + block ≤ 40% of 320×568 … 390×844, en / zh-HK large text); S-239 the
 // Hide mastered / Bookmarked toggles and the memo chapter chips go through studyRefilter; short landscape screens stay static.
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
@@ -181,7 +182,14 @@ async function factReturnChecks(pg) {
     window.scrollBy(0, card.getBoundingClientRect().top - header - dy);
     return card.dataset.factId;
   }, [FACT_CARD_INDEX, CARD_UNDER_HEADER_PX]);
-  await pg.click(`#studyContent .fact[data-fact-id="${id}"] [data-action="startFactPractice"]`);
+  // W-069: precondition — the card really starts behind the pinned block, else the check proves nothing
+  const pre = await pg.evaluate(id => ({
+    card: Math.round(document.querySelector(`#studyContent .fact[data-fact-id="${id}"]`).getBoundingClientRect().top),
+    block: Math.round(document.querySelector('#screenStudy .study-top').getBoundingClientRect().bottom),
+  }), id);
+  assert(pre.card < pre.block - TOLERANCE_PX, `W-069 precondition: card top starts under the pinned block ${JSON.stringify(pre)}`);
+  // W-069: DOM click (no Playwright auto-scroll into view), so the saved scrollY keeps the card hidden behind the block
+  await pg.evaluate(id => document.querySelector(`#studyContent .fact[data-fact-id="${id}"] [data-action="startFactPractice"]`).click(), id);
   await pg.waitForTimeout(GUARD_WAIT_MS);
   assert(await pg.evaluate(() => document.querySelector('.screen.active').id) === 'screenQuiz', 'W-067: ▶ Practise opens the fact session');
   for (let i = 0; i < MAX_SKIPS && !(await pg.evaluate(() => state.current === state.questions.length - 1)); i++) await pg.click('#nextBtn');
