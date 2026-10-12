@@ -1570,13 +1570,18 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
   .exC .cols { grid-template-columns: minmax(0, 3fr) minmax(0, 9fr) !important; }
   .exC .exam-panel .nav-dots { grid-template-columns: repeat(6, minmax(0, 1fr)); margin: 0; }
   .exC .exam-panel .dot { max-width: calc(34px * var(--k)); }
+  /* rev 2 (user): the header's small timer goes (the rail's big one is the only clock); the big timer spans the rail;
+     at least one line between the dots and the counts */
+  .exC .quiz-header .exam-timer { display: none !important; }
+  .exC .exam-panel .big-timer { justify-self: stretch; text-align: center; justify-content: center; }
+  .exC .exam-panel .dots-meta { margin-top: 1lh; }
 
 </style>
 </head>
 <body>
 
 <div class="mock-bar">
-  <b>v2.0.0 Desktop · Mockup 9/12 · Quiz（模擬考試）</b>
+  <b>v2.0.0 Desktop · Mockup 9/12 · Quiz（模擬考試）· rev 2：C 計時器全闊</b>
   <div class="mock-row"><span class="lbl">語言</span><button class="mock-tab on" data-k="lang" data-v="en">EN</button><button class="mock-tab" data-k="lang" data-v="zh">中文</button><span class="lbl" style="margin-left:10px">⚙ 大字</span><button class="mock-tab on" data-k="large" data-v="off">關</button><button class="mock-tab" data-k="large" data-v="on">開</button></div>
   <div class="mock-row"><span class="lbl">狀態</span><button class="mock-tab on" data-k="st" data-v="answered">答咗 5 題 + 標記</button><button class="mock-tab" data-k="st" data-v="q">未答</button><button class="mock-tab" data-k="st" data-v="last">最後一題（交卷）</button><button class="mock-tab" data-k="st" data-v="modal">交卷確認</button></div>
   <div class="mock-row"><span class="lbl">縮放</span><button class="mock-tab on" data-k="zoom" data-v="fit">適合畫面</button><button class="mock-tab" data-k="zoom" data-v="100">100%</button></div>
@@ -1701,7 +1706,8 @@ const OPTIONS = [
   },
   {
     id: 'C', cls: 'optA exC', vh: VH, title: 'C · 左欄導覽（計時器 + 題號點 6 × 4 + 數量）｜右邊作答',
-    ann: `<ul><li>冇頂部題號點 bar；左欄（3/12）係考試導覽：大計時器、題號點排 6 × 4、已答／未答／已標記；右邊（9/12）作答。</li>
+    ann: `<ul><li><b>rev 2</b>：右上角「EXAM 1」隔籬嘅細計時器拎走（左欄大計時器係唯一一個）；大計時器用盡左欄闊度；數量同題號點之間最少空一行。</li>
+      <li>冇頂部題號點 bar；左欄（3/12）係考試導覽：大計時器、題號點排 6 × 4、已答／未答／已標記；右邊（9/12）作答。</li>
       <li>好處：題號點大粒啲，易撳；作答欄最高。弱點：同練習畫面嘅框架唔一樣。</li></ul>`,
     render: p => `<div class="quiz-screen">${p.header}${p.round}<div class="cols"><div class="col"><div class="exam-panel">${p.timerBig}${p.dots}${p.meta}</div></div>${left(p)}</div></div>${p.modal}`,
   },
