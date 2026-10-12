@@ -82,13 +82,31 @@ function openStudy() {
   renderStudy();
   window.scrollTo(0, 0);
 }
-function studySetTab(tab) { study.tab = tab; studySavePrefs(); renderStudy(); }
-function studySetChapter(ch) { study.chapter = ch; studySavePrefs(); renderStudy(); }
-function studySetNation(n) { study.nation = n; studySavePrefs(); renderStudy(); }
-function studySetGroup(g) { study.group = g; studySavePrefs(); renderStudy(); }
-function studySetMemoChapter(ch) { study.memoChapter = ch; studySavePrefs(); renderStudy(); }
+// a tab / chip in the pinned block (css/screens/study.css .study-top) picks a new list: save, redraw, show it from its start
+function studyRefilter() { studySavePrefs(); renderStudy(); studyShowListStart(); }
+function studySetTab(tab) { study.tab = tab; studyRefilter(); }
+function studySetChapter(ch) { study.chapter = ch; studyRefilter(); }
+function studySetNation(n) { study.nation = n; studyRefilter(); }
+function studySetGroup(g) { study.group = g; studyRefilter(); }
+function studySetMemoChapter(ch) { study.memoChapter = ch; studyRefilter(); }
 function studySetSearch(v) { study.search = v.trim().toLowerCase(); renderStudy(); }
-function studyToggle(key) { study[key] = !study[key]; studySavePrefs(); renderStudy(); }
+function studyToggle(key) { study[key] = !study[key]; studyRefilter(); }
+// v1.6.1: tapped while the list is scrolled under the pinned block, the new list would open mid-way (or past its end):
+// scroll back so it starts right under the block. At rest (or unpinned, short screens) the list already starts below
+// it: no-op. A cached older index.html (before v1.6.1) has no block: nothing to do
+function studyShowListStart() {
+  const top = document.querySelector('#screenStudy .study-top');
+  if (!top) return;
+  const overlap = top.getBoundingClientRect().bottom - byId('studyCount').getBoundingClientRect().top;
+  if (overlap > 0) window.scrollBy(0, -overlap);
+}
+// the pinned block's height as --study-top-h (scroll-padding-top in css/screens/study.css): follows the tab (its chip
+// rows), text size, language and rotation. An older cached index.html has no block, and a browser without
+// ResizeObserver (Safari < 13.1) keeps the header-only padding: nothing to observe (as js/screens/flagged.js)
+const studyTop = document.querySelector('#screenStudy .study-top');
+if (studyTop && typeof ResizeObserver !== 'undefined') new ResizeObserver(([entry]) => {
+  document.documentElement.style.setProperty('--study-top-h', `${entry.target.offsetHeight}px`);
+}).observe(studyTop);
 // kind: 'mastered' | 'bookmarks' — per-fact marks, saved straight away
 function studyToggleMark(kind, id) {
   const marks = study[kind];
