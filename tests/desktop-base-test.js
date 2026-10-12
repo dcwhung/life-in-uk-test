@@ -298,22 +298,29 @@ async function checkDeskPlace(b) {
 
 // W-377: a cached shell whose fit.js arrives late (js/main.js LATE_BOOT_SCRIPTS, after the screens): the screens'
 // fits still register (lazily, at their first render), so the desktop layout works from the first screen
-async function checkLateFit(b) {
+// a cached older shell (no tag for the file): the file fails once, LATE_BOOT_SCRIPTS loads it late, and Home / Quiz
+// still get their desktop layout with no page error
+async function checkLateScript(b, file, id) {
   const ctx = await b.newContext({ viewport: dt.VIEWPORTS.wide });
   let blocked = 0;
-  await ctx.route('**/js/components/fit.js', route => (blocked++ ? route.continue() : route.abort()));
+  await ctx.route(`**/${file}`, route => (blocked++ ? route.continue() : route.abort()));
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
   await page.goto(dt.APP_URL);
-  await page.waitForFunction(() => typeof runRefits === 'function' && byId('examGrid').children.length > 0);
+  await page.waitForFunction(() => typeof runRefits === 'function' && typeof deskKeepFocus === 'function' && byId('examGrid').children.length > 0);
   await dt.nextFrame(page);
-  assert(blocked >= 2, 'fit.js failed once and was loaded late');
-  assert(await page.evaluate(() => !!document.querySelector('#screenHome .home-cols')), 'W-377 late fit.js: Home still gets its desktop columns');
+  const name = file.split('/').pop();
+  assert(blocked >= 2, `${name} failed once and was loaded late`);
+  assert(await page.evaluate(() => !!document.querySelector('#screenHome .home-cols')), `${id} late ${name}: Home still gets its desktop columns`);
   await page.evaluate(() => { pendingMode = 'practice'; startExam(1); });
-  assert(await page.evaluate(() => !!byId('navDots').closest('.quiz-dots-bar')), 'W-377 late fit.js: the quiz desktop layout too');
+  assert(await page.evaluate(() => !!byId('navDots').closest('.quiz-dots-bar')), `${id} late ${name}: the quiz desktop layout too`);
   assert(errors.length === 0, 'no page error: ' + errors.join(' | '));
   await ctx.close();
+}
+async function checkLateFit(b) {
+  await checkLateScript(b, 'js/components/fit.js', 'W-377');
+  await checkLateScript(b, 'js/components/deskPlace.js', 'S-237');
 }
 
 // "add a new file" rules (HANDOFF.md): index.html tag, sw.js SHELL, LATE_BOOT_*, APP_VERSION
