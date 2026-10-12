@@ -68,21 +68,9 @@ function studySavePrefs() {
   setLS(STUDY_LS.prefs, prefs);
 }
 
-// S-202 (user 2026-10-12): translation off → the placeholder stops promising English / Cantonese search (matching is
-// unchanged). index.html keeps data-i18n-attr="placeholder:study.search", so applyLanguage() calls this after
-// applyStaticI18n(); a pre-v1.4.0 store.js reads as on and a pre-v1.4.0 locale keeps the original wording (W-057)
-function syncStudySearchPlaceholder() {
-  const input = byId('studySearch');
-  if (!input) return;
-  const searchKey = typeof isTranslationOn !== 'function' || isTranslationOn() ? 'study.search' : 'study.searchNoYue';
-  const text = t(searchKey);
-  input.placeholder = text === searchKey ? t('study.search') : text;
-}
-
 function openStudy() {
   studyLoad();
   byId('studySearch').value = study.search;
-  syncStudySearchPlaceholder(); // W-057: a pre-v1.4.0 i18n.js does not sync it on start-up
   showScreen('screenStudy');
   renderStudy();
   window.scrollTo(0, 0);

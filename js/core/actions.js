@@ -37,7 +37,6 @@ const ACTIONS = {
     setSettingsOpen(false);
     setTranslationOn(!isTranslationOn());
     renderTranslationSetting();
-    if (typeof syncStudySearchPlaceholder === 'function') syncStudySearchPlaceholder(); // S-202 (W-057: a pre-v1.4.0 study.js)
     rerenderCurrentScreen();
   },
   install: () => promptInstall(),

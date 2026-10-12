@@ -177,42 +177,47 @@ async function checkHomeDesc(pg) {
   }
 }
 
-// S-202 (user 2026-10-12): with translation off the Study search placeholder no longer mentions English / Cantonese —
-// on load, at once on the switch (any screen), after a reload and after a language switch (applyStaticI18n rewrites
-// the data-i18n-attr placeholder; the off wording must win). Matching itself is unchanged: Cantonese still finds facts
-const SEARCH_PLACEHOLDER = {
-  en: { on: 'Search facts (English / Cantonese)', off: 'Search facts' },
-  'zh-HK': { on: '搜尋知識點（英文／廣東話）', off: '搜尋知識點' },
-};
+// R2-1 (user decision 2026-10-12, supersedes S-202): the Study search placeholder NEVER mentions English / Cantonese —
+// translation on or off, on load, at once on the switch (any screen), after a reload and after a language switch.
+// Matching itself is unchanged: Cantonese still finds facts
+const SEARCH_PLACEHOLDER = { en: 'Search facts', 'zh-HK': '搜尋知識點' };
+const NO_LANG_MENTION = /English|Cantonese|英文|廣東話/;
 async function checkStudySearch(pg) {
   const ph = () => pg.$eval('#studySearch', e => e.placeholder);
+  const expectPlain = async (lang, label) => {
+    const got = await ph();
+    assert(got === SEARCH_PLACEHOLDER[lang] && !NO_LANG_MENTION.test(got), `R2-1 ${label}: placeholder "${SEARCH_PLACEHOLDER[lang]}": ` + got);
+  };
   for (const lang of ['en', 'zh-HK']) {
-    const want = SEARCH_PLACEHOLDER[lang];
     await fresh(pg);
     await pg.evaluate(l => setLang(l), lang);
-    assert(await ph() === want.on, `S-202 ${lang}: translation on: placeholder "${want.on}": ` + await ph());
-    await toggleTranslation(pg); // on Home: the hidden Study input still follows
-    assert(await ph() === want.off, `S-202 ${lang}: off from Home: placeholder "${want.off}": ` + await ph());
+    await expectPlain(lang, `${lang}: translation on`);
+    await toggleTranslation(pg); // on Home: the hidden Study input
+    await expectPlain(lang, `${lang}: off from Home`);
     await pg.evaluate(() => openStudy());
-    assert(await ph() === want.off, `S-202 ${lang}: off: Study opens with "${want.off}": ` + await ph());
+    await expectPlain(lang, `${lang}: off: Study opens`);
     await toggleTranslation(pg);
-    assert(await ph() === want.on, `S-202 ${lang}: back on from Study without reload: "${want.on}": ` + await ph());
+    await expectPlain(lang, `${lang}: back on from Study without reload`);
     await toggleTranslation(pg);
-    assert(await ph() === want.off, `S-202 ${lang}: off again from Study without reload: "${want.off}": ` + await ph());
+    await expectPlain(lang, `${lang}: off again from Study without reload`);
     await pg.reload();
-    assert(await ph() === want.off, `S-202 ${lang}: off after a reload: "${want.off}": ` + await ph());
+    await expectPlain(lang, `${lang}: off after a reload`);
     const other = lang === 'en' ? 'zh-HK' : 'en';
     await pg.evaluate(() => openStudy());
     await pg.evaluate(l => setLang(l), other);
-    assert(await ph() === SEARCH_PLACEHOLDER[other].off, `S-202 ${lang} → ${other} while off (on Study): "${SEARCH_PLACEHOLDER[other].off}": ` + await ph());
+    await expectPlain(other, `${lang} → ${other} while off (on Study)`);
     await pg.evaluate(() => goHome());
     await pg.evaluate(l => setLang(l), lang);
-    assert(await ph() === want.off, `S-202 ${other} → ${lang} while off (on Home): "${want.off}": ` + await ph());
+    await expectPlain(lang, `${other} → ${lang} while off (on Home)`);
+    await toggleTranslation(pg);
+    await pg.reload();
+    await expectPlain(lang, `${lang}: on after a reload`);
   }
   // matching is unchanged: off still finds facts by their Cantonese
+  await toggleTranslation(pg);
   await pg.evaluate(() => { openStudy(); byId('studySearch').value = '國王'; studySetSearch('國王'); });
   const found = await pg.$$eval('#studyContent .fact-id', els => els.length);
-  assert(found > 0, 'S-202: translation off: a Cantonese search still finds facts: ' + found);
+  assert(found > 0, 'R2-1: translation off: a Cantonese search still finds facts: ' + found);
 }
 
 // the plan row hides with the release flag off; the Features title and the translation row stay

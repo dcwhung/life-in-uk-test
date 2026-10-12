@@ -145,8 +145,7 @@ LOCALES['zh-HK'] = {
 
   study: {
     title: '📖 溫習',
-    search: '搜尋知識點（英文／廣東話）',
-    searchNoYue: '搜尋知識點', // S-202: translation off
+    search: '搜尋知識點', // R2-1: never mentions English / Cantonese (matching still covers both)
     tabChapters: '章節',
     tabTimeline: '時間線',
     tabGeo: '地理',

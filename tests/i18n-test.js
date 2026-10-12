@@ -173,7 +173,7 @@ async function runtimeChecks(en) {
     return e.getAttribute(attr) === t(key);
   })));
   assert(attrsOk, 'every data-i18n-attr attribute holds its en value');
-  assert((await pg.getAttribute('#studySearch', 'placeholder')) === 'Search facts (English / Cantonese)', 'study search placeholder in English');
+  assert((await pg.getAttribute('#studySearch', 'placeholder')) === 'Search facts', 'study search placeholder in English (R2-1: never mentions English / Cantonese)');
   // <title> / meta description keep an English literal for no-JS readers; init sets the same text from en
   const html = read(path.join(ROOT, 'index.html'));
   const literalTitle = html.match(/<title[^>]*>([^<]*)<\/title>/)[1];
