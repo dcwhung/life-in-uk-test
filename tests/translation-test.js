@@ -1,6 +1,6 @@
 const { chromium } = require('playwright-core');
 const path = require('path');
-// v1.4.0: Cantonese translation on / off (⚙ → Features → "🈯 Translation", on by default; user-confirmed):
+// v1.4.0: Cantonese translation on / off (⚙ → Features → "🌐 Translation", on by default; user-confirmed):
 // - off hides every translation: the quiz Translate button, the question / option / answer translations, the results
 //   review, the flagged list, the Similar panel and the Study fact cards ("全域收晒翻譯")
 // - off keeps the 💡 notes (quiz answer box, results review), the fact memory aid and the UI language
@@ -58,7 +58,7 @@ async function checkSwitch(pg) {
     label: document.querySelector(r) && document.querySelector(r + ' b').textContent,
   }), [ROW, SWITCH, PILL]);
   assert(row.shown && row.role === 'switch' && row.checked === 'true' && row.pill === 'On' && row.pillOn, 'the ⚙ Features translation row: switch on, green On pill: ' + JSON.stringify(row));
-  assert(row.label === '🈯 Translation', 'en label 🈯 Translation: ' + row.label);
+  assert(row.label === '🌐 Translation', 'en label 🌐 Translation: ' + row.label);
   await pg.click(SWITCH);
   assert(!(await popShown(pg)) && await pg.evaluate(() => document.activeElement.id) === 'settingsBtn', 'Q10: the choice closes the popover, focus back on ⚙');
   assert(await attrOff(pg) && await stored(pg) === JSON.stringify('off'), 'off: <html data-translation="off">, stored');
@@ -149,7 +149,7 @@ async function checkZh(pg) {
   await pg.evaluate(() => setLang('zh-HK'));
   await pg.click('#settingsBtn');
   const zh = await pg.evaluate(([r, s, p]) => ({ label: document.querySelector(r + ' b').textContent, pill: document.querySelector(p).textContent, aria: document.querySelector(s).getAttribute('aria-label'), text: document.querySelector(r).textContent }), [ROW, SWITCH, PILL]);
-  assert(zh.label === '🈯 廣東話翻譯' && zh.pill === '已開啟' && zh.aria && !/app\./.test(zh.aria + zh.text), 'zh-HK: 🈯 廣東話翻譯 / 已開啟, no raw keys: ' + JSON.stringify(zh));
+  assert(zh.label === '🌐 廣東話翻譯' && zh.pill === '已開啟' && zh.aria && !/app\./.test(zh.aria + zh.text), 'zh-HK: 🌐 廣東話翻譯 / 已開啟, no raw keys: ' + JSON.stringify(zh));
   await pg.click(SWITCH);
   await pg.evaluate(() => setLang('en'));
   assert(await attrOff(pg), 'switching the language keeps translation off');

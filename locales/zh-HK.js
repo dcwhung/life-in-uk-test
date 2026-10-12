@@ -39,7 +39,7 @@ LOCALES['zh-HK'] = {
     planOnNote: '已在主頁顯示',
     planOffNote: '所有計劃項目已隱藏',
     planSwitchLabel: '溫習計劃功能',
-    translationFeature: '🈯 廣東話翻譯',
+    translationFeature: '🌐 廣東話翻譯',
     translationOnNote: '題目、答案及重點均顯示廣東話翻譯',
     translationOffNote: '所有廣東話翻譯已隱藏',
     translationSwitchLabel: '廣東話翻譯功能',

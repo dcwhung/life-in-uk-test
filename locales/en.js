@@ -45,7 +45,7 @@ LOCALES.en = {
     planOffNote: 'All plan items are now hidden',
     planSwitchLabel: 'Study plan feature',
     // v1.4.0: the Cantonese translation switch (same On / Off pill words as the plan row: app.planOnPill / planOffPill)
-    translationFeature: '🈯 Translation',
+    translationFeature: '🌐 Translation',
     translationOnNote: 'Cantonese shown with questions, answers and facts',
     translationOffNote: 'All Cantonese translations are hidden',
     translationSwitchLabel: 'Cantonese translation',

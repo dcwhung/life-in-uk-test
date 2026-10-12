@@ -51,7 +51,7 @@ function renderFeaturePill(pill, on) {
   pill.classList.toggle(FEATURE_PILL_ON_CLASS, on);
   pill.classList.toggle(FEATURE_PILL_OFF_CLASS, !on);
 }
-// v1.4.0: "🈯 Translation" row, shown whatever the plan entry does (a pre-v1.4.0 shell has no #settingsTransRow).
+// v1.4.0: "🌐 Translation" row, shown whatever the plan entry does (a pre-v1.4.0 shell has no #settingsTransRow).
 // W-057 / S-201: a pre-v1.4.0 store.js (no switch code) or locale (no row words) hides the row instead of a dead / raw one
 function renderTranslationSetting() {
   const row = byId('settingsTransRow');
