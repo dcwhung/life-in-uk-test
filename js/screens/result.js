@@ -197,7 +197,7 @@ function renderReview() {
 // left 5/12: the score card with Retry / Another inside it, then By difficulty at the bottom (never scrolls);
 // right 7/12: Review Answers, the list in a fading scroll panel. The second button row (below the list) is not
 // shown: the card's pair stays in view
-let resultDesk = null;
+let resultDesk = null; // built on the first desktop render (S-238, as the quiz's S-233: never on a phone)
 function buildResultDesk() {
   const screen = byId('screenResult');
   const [diffTitle, reviewTitle] = screen.querySelectorAll(':scope > .section-title');
@@ -221,6 +221,7 @@ function buildResultDesk() {
   return d;
 }
 function arrangeResult(desktop) {
+  if (!desktop && !resultDesk) return; // S-238: a phone that never was desktop has nothing to put back
   const d = resultDesk || (resultDesk = buildResultDesk()), m = d.moved;
   d.cols.hidden = !desktop;
   // S-228: focus back once every box is in the document
@@ -241,6 +242,7 @@ const RESULT_FIT_STEPS = ['is-compact', 'is-compact2', 'is-compact3'];
 const RESULT_SCROLL_STEP = 'is-scroll';
 function fitResult(desktop) {
   arrangeResult(desktop);
+  if (!resultDesk) return; // S-238: nothing built yet, nothing to fit
   const { left, leftWrap, moved: { card } } = resultDesk;
   // the card clips (overflow hidden) until step ④: measure it too (S-229)
   fitSteps(left, [...RESULT_FIT_STEPS, [leftWrap, RESULT_SCROLL_STEP]], { measure: () => overflowsY(left) || overflowsY(card) });

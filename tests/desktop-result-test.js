@@ -147,6 +147,14 @@ async function checkPhone(b) {
   await finishExam1(page);
   const before = await resultOrder(page);
   assert(await visibleCount(page, '#screenResult .another-btn') === 2 && !(await visible(page, '.result-cols')), '390px: v1.4 result (two button rows, no columns)');
+  // S-238: as the quiz (S-233), a phone never builds the desktop containers; the first desktop render does
+  assert(await page.evaluate(() => !document.querySelector('.result-cols, .result-left, .result-review-panel') && !byId('screenResult').classList.contains('is-fit')),
+    'S-238 390px: no desktop result containers built on the phone');
+  await dt.setViewport(page, dt.VIEWPORTS.wide);
+  assert(await page.evaluate(() => { const cols = document.querySelector('#screenResult .result-cols'); return !!cols && !cols.hidden && !!cols.querySelector('.result-left .result-card .result-actions') && !!cols.querySelector('.result-review-panel #reviewList'); }),
+    'S-238 390 → 1280: the desktop columns are built and filled on the first desktop refit');
+  await dt.setViewport(page, dt.VIEWPORTS.phone);
+  assert(await resultOrder(page) === before, 'S-238 1280 → 390: every result element back in its v1.4 place');
   await dt.setViewport(page, dt.VIEWPORTS.small);
   assert(await page.evaluate(() => !!document.querySelector('#screenResult .result-actions').closest('.result-card')), '390 → 1024: the desktop result takes over on resize');
   await dt.setViewport(page, dt.VIEWPORTS.phone);

@@ -2,7 +2,8 @@
 // DESK PLACE (v2.0.0 desktop layout, ≥ 1024px; handoff .proj-docs/plans/2026-10-12_handoff_desktop-layout.md §5)
 // The one way a screen moves its own parts into desktop columns and back (W-377 / S-235). index.html holds the phone
 // order; from 1024px a screen moves some of its elements (same ids, so every render keeps writing to them) into
-// containers it builds once and keeps; below 1024px each goes back to its place, which a comment marker remembers.
+// containers it builds once, on its first desktop render (never on a phone; S-233 / S-238), and keeps; below 1024px
+// each goes back to its place, which a comment marker remembers.
 // The phone's DOM, order and spacing never change.
 //   deskRemember(el)            mark el's phone place (once; later calls do nothing)
 //   deskFill(parent, els)       parent's first children become els, in order; an element already in place is not moved
