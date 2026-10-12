@@ -870,8 +870,9 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
   .optB .hscroll.can-l .hs-btn.l, .optB .hscroll.can-r .hs-btn.r { display: grid; }
   .optB .plan-day.plan-far { content-visibility: visible; }
   .optB .scroll-hint { font-size: var(--fs-xs); color: var(--text-muted); text-align: right; }
-  .optB .foot { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-8); align-items: stretch; }
-  .optB .foot .reset-row { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+  /* rev 5 (user): "View today's tasks" inside the Daily tasks card, bottom right; the reset box its own row (hint | button) */
+  .optB .plan-card-box > .nav-btn.plan-block { justify-self: end; width: auto; padding-inline: var(--space-12); }
+  .optB .plan-stack > .reset-row { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
 
   /* ════════ option C: phases | order side by side; the day list as a week calendar (7 columns) ════════ */
   .optC .top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-8); align-items: start; }
@@ -888,7 +889,7 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
 <body>
 
 <div class="mock-bar">
-  <b>v2.0.0 Desktop · Mockup 3/12 · Plan Schedule（你的進度表）· rev 4：任務對齊 + 收起時顯示章節名</b>
+  <b>v2.0.0 Desktop · Mockup 3/12 · Plan Schedule（你的進度表）· rev 5：今日任務掣入卡、重設自成一行</b>
   <div class="mock-row"><span class="lbl">語言</span><button class="mock-tab on" data-k="lang" data-v="en">EN</button><button class="mock-tab" data-k="lang" data-v="zh">中文</button>
     <span class="lbl" style="margin-left:10px">⚙ 大字</span><button class="mock-tab on" data-k="large" data-v="off">關</button><button class="mock-tab" data-k="large" data-v="on">開</button>
     <span class="lbl" style="margin-left:10px">兩張說明卡</span><button class="mock-tab on" data-k="fold" data-v="expanded">展開</button><button class="mock-tab" data-k="fold" data-v="collapsed">收起</button></div>
@@ -937,11 +938,11 @@ const OPTIONS = [
       <li><b>溫習次序</b>：4 個章節排成一行，<b>1 › 2 › 3 › 4</b>，每個都有名、原因、進度 bar 同數量。</li>
       <li><b>溫習次序</b>每格得四分一闊，所以進度 bar 改為成格闊，數量放喺 bar 下面（4 條 bar 仍然一樣長、同一個起點）。</li>
       <li><b>每日任務</b>：成個計劃由左向右 scroll，一日一欄（240px），1280px 大約一次見到 5 日；每個 Week 係一組，「WEEK n」喺組頂，碌嘅時候會黐住左邊。打開時會碌到今日。可以用 trackpad／shift + 滾輪／拖 scrollbar 碌，平板就用手指掃。</li>
-      <li><b>最底</b>：「查看今日任務」同「重設」並排。</li>
+      <li><b>rev 5</b>：「查看今日任務」掣搬入「每日任務」卡右下角（跟文字闊度）；「重設」框自己成一行，說明喺左、掣喺右。</li>
       <li><b>rev 4</b>：冇「今日」pill 嘅日子都留返 pill 嗰行位，所以每張卡嘅任務都喺同一條線開始；溫習次序收起時，點下面顯示章節全名，「Ch 1 + Ch 2」分兩行，「+」凸出喺左邊，兩個章節名同一個起點。</li>
       <li><b>rev 3</b>：溫習次序 4 個章節嘅標題、說明、bar 各自對齊同一條線（CSS subgrid）；每日卡頂改為一行置中「Day 1 – 12/10 Mon」（中文用「Day 1 · 12/10 一」，因為「– 12/10 一」睇落似兩條橫線），今日／% 喺下一行置中；金色章節同上面任務空一行，而且每張卡都貼底對齊；有未顯示嘅日子嗰邊會有淡出效果同 ‹ › 掣（撳一下碌大約一版）。</li>
       <li>留意：每日卡高度跟最長嗰日，所以短嘅日子下面會有空位；6 個月嘅計劃大約有 180 欄，要碌好耐，app 實作時打開會直接跳去今日。</li></ul>`,
-    render: p => `${p.header}${p.title}${p.phases}${p.order}${p.daily}<div class="foot">${p.cta}${p.reset}</div>`,
+    render: p => `${p.header}${p.title}${p.phases}${p.order}${p.daily.replace(/<\/div>\s*$/, p.cta + '</div>')}${p.reset}`,
   },
   {
     id: 'C', cls: 'optC', title: 'C · 週曆：每日任務排做 7 欄',
