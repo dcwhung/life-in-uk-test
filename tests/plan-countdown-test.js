@@ -90,6 +90,24 @@ function checkThreeMonths() {
   assert(cd.perDay === false && cd.months.length >= 2 && total(cd.runs) === 90, '3 months: phase bars + month ticks');
 }
 
+// W-376: a long plan that opens on rest days (START is a Monday): those days join the first study phase, never a grey run
+function checkRestFirst() {
+  const MONDAY = 1, TUESDAY = 2, WEDNESDAY = 3, SUNDAY = 0;
+  [[[MONDAY], 'the first day a rest day'], [[MONDAY, TUESDAY, WEDNESDAY], 'three rest days in a row first'], [[SUNDAY, MONDAY], 'rest on the first day and each Sunday']]
+    .forEach(([restDays, what]) => {
+      const p = plan(LONG, restDays), cd = planCountdown(p, dayIso(p, 1));
+      assert(p.days[0].phase === 'rest', `${what}: Day 1 is a rest day in the plan`);
+      assert(cd.runs.every(r => r.phase !== 'rest'), `${what}: no grey rest run on the long timeline`);
+      const firstStudy = p.days.find(d => d.phase !== 'rest').phase;
+      assert(cd.runs[0].phase === firstStudy && cd.runs[0].future === false && cd.runs[0].days === 1, `${what}: today (a rest day) is the first phase's solid run`);
+      assert(cd.runs[1].phase === firstStudy && cd.runs[1].future === true, `${what}: the rest of that phase follows as to come`);
+      assert(total(cd.runs) === LONG, `${what}: runs still cover every day`);
+    });
+  // per-day timelines keep a rest day its own grey cell
+  const short = plan(21, [MONDAY]), cdShort = planCountdown(short, dayIso(short, 1));
+  assert(cdShort.runs[0].phase === 'rest', 'a short plan keeps Day 1\'s rest cell grey');
+}
+
 function checkNoTimeline() {
   const p = plan(21);
   assert(planCountdown(p, p.goal.examDate) === null, 'the exam day: no timeline');
@@ -102,6 +120,7 @@ try {
   checkSixWeeks();
   checkLongPlan();
   checkThreeMonths();
+  checkRestFirst();
   checkNoTimeline();
   console.log(`PLAN-COUNTDOWN PASS (${asserts} checks)`);
 } catch (e) {

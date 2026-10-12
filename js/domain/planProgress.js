@@ -365,17 +365,21 @@ function planMonths(plan) {
 }
 // v2.0.0 F7 (desktop Home plan card; grill 2026-10-12 implementation notes, mockup desktop-home-plan.html rev 5–7): the countdown
 // timeline. Up to PLAN_CD_PER_DAY_MAX days one run per day (rest days their own grey run); longer, one run per phase and
-// done / to come, a rest day taken into the phase it sits in, plus a tick at each month start. Today counts as done.
+// done / to come, a rest day taken into the phase it sits in (a leading one into the first phase), plus a tick at each month start. Today counts as done.
 // at: today's left edge (% of the bar), where the bracket to the exam starts; labelEnd: that span is too narrow
 // (< PLAN_CD_LABEL_CENTRE_MIN %) for a centred label. null while there is no plan day today (before the start, the
 // exam day, after it): the card shows no timeline then.
 const PLAN_CD_PER_DAY_MAX = 42; // 6 weeks
 const PLAN_CD_LABEL_CENTRE_MIN = 28; // %
+// W-376: rest days before the first study day (no run yet to join) take the first study day's phase
 function planCountdownRuns(plan, todayIndex, perDay) {
   const runs = [];
+  const firstStudy = plan.days.find(day => day.phase !== PLAN_PHASE.rest);
+  const leadPhase = firstStudy ? firstStudy.phase : PLAN_PHASE.rest;
   plan.days.forEach((day, i) => {
     const last = runs[runs.length - 1];
-    const phase = !perDay && day.phase === PLAN_PHASE.rest && last ? last.phase : day.phase;
+    const restPhase = last ? last.phase : leadPhase;
+    const phase = !perDay && day.phase === PLAN_PHASE.rest ? restPhase : day.phase;
     const future = i > todayIndex;
     if (!perDay && last && last.phase === phase && last.future === future) { last.days++; return; }
     runs.push({ phase, future, days: 1 });
