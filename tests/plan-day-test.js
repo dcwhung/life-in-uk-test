@@ -341,8 +341,13 @@ async function checkHomeCard(pg) {
       next: q('.plan-home-next').textContent, go: q('[data-action="planContinue"]').textContent,
       want: planDayCompletion(planLoad().days[3], planDayLog(planLoadLog(), '2026-10-01')).pct,
       // v1.5.0: 100 % shows ✓ in the ring (rendered straight from the helper: no need to finish a whole day)
-      full: (() => { const d = document.createElement('div'); d.innerHTML = planHomePctHtml(PERCENT);
-        return { txt: d.querySelector('.plan-home-ring-pct').textContent, label: d.querySelector('.plan-home-ring').getAttribute('aria-label') }; })(),
+      // W-064: 0 % and 100 % straight from the helper (no need to build such a day): band, .empty / .done, text, label
+      ...Object.fromEntries([['zero', 0], ['full', PERCENT]].map(([k, pct]) => {
+        const d = document.createElement('div'); d.innerHTML = planHomePctHtml(pct);
+        const txt = d.querySelector('.plan-home-ring-pct');
+        return [k, { txt: txt.textContent, txtCls: txt.getAttribute('class'), label: d.querySelector('.plan-home-ring').getAttribute('aria-label'),
+          progCls: d.querySelector('.plan-home-ring-prog').getAttribute('class').split(' ') }];
+      })),
     };
   });
   const band = await pg.evaluate(w => planPctBand(w), r.want);
@@ -351,7 +356,13 @@ async function checkHomeCard(pg) {
   assert(r.progCls.split(' ').includes(`h${band}`) && !r.oldBar, `v1.5.0 Home card ring: G27 band h${band}, no bar: ` + r.progCls);
   assert(r.ringRole === 'img' && r.ringLabel === `Today's progress ${r.want}%` && r.lbl === "Today's progress", 'v1.5.0 ring: role img + label: ' + r.ringLabel);
   assert(r.ringSize === 64 && r.ringLeft >= r.nextRight, `v1.5.0 variant B: 64px ring right of the next step (${r.ringLeft} ≥ ${r.nextRight})`);
-  assert(r.full.txt === '✓' && r.full.label === "Today's progress 100%", 'v1.5.0: 100 % shows ✓: ' + JSON.stringify(r.full));
+  assert(r.full.txt === '✓' && r.full.label === "Today's progress 100%" && r.full.txtCls.split(' ').includes('done')
+    && r.full.progCls.includes('h4') && !r.full.progCls.includes('empty'), 'v1.5.0 / W-064: 100 % shows a large ✓ on a green h4 arc: ' + JSON.stringify(r.full));
+  assert(r.zero.txt === '0%' && r.zero.label === "Today's progress 0%" && r.zero.progCls.includes('h0') && r.zero.progCls.includes('empty')
+    && !r.zero.txtCls.split(' ').includes('done'), 'W-064: 0 % has an .empty h0 arc (no round-cap dot): ' + JSON.stringify(r.zero));
+  const zeroVis = await pg.evaluate(() => { const d = document.createElement('div'); d.className = 'plan-home'; d.innerHTML = planHomePctHtml(0);
+    byId('planCard').append(d); const v = getComputedStyle(d.querySelector('.plan-home-ring-prog')).visibility; d.remove(); return v; });
+  assert(zeroVis === 'hidden', 'W-064: the 0 % arc is not drawn: ' + zeroVis);
   assert(r.acts === 'flex-end', 'v1.5.0: Home card buttons on the right: ' + r.acts);
   assert(/^Next: Read Ch 4 Modern society facts #\d+–\d+ \(continue from #\d+\)$/.test(r.next), 'Home card: next step, continue from #n: ' + r.next);
   assert(r.go === 'Continue →', 'v1.5.0 Home card: continue button: ' + r.go);

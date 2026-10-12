@@ -12,7 +12,9 @@ const PLAN_SCREEN_IDS = ['screenPlanGoal', 'screenPlanSchedule', 'screenPlanDay'
 const PLAN_MIDNIGHT_SLACK_S = 1; // the day check runs 1 s after local midnight
 const FEATURE_PILL_ON_CLASS = 'on'; // ⚙ Features row pill colour (css/screens/plan.css .feature-pill)
 const FEATURE_PILL_OFF_CLASS = 'off';
-// v1.5.0: the Home card ring's SVG box and radius (user units; drawn at --plan-home-ring-size, css/screens/plan.css)
+// v1.5.0: the Home card ring's SVG box and radius (user units; drawn at --plan-home-ring-size, css/screens/plan.css).
+// S-228: R + stroke-width / 2 ≤ BOX / 2 must hold (28 + 7 / 2 = 31.5 ≤ 32) or the viewBox clips the arc; a thicker
+// .plan-home-ring stroke needs a smaller R
 const PLAN_HOME_RING_BOX = 64;
 const PLAN_HOME_RING_R = 28;
 

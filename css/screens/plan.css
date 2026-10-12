@@ -242,7 +242,7 @@ html[lang="en"] .plan-day-side .plan-pill.today-done { padding-inline: var(--spa
 .plan-home-today-lbl { font-size: var(--fs-sm); font-weight: 700; color: var(--text-inverse); }
 /* SVG ring: every part has an explicit fill / stroke (no SVG default black); G27 band as the day screen's ring */
 .plan-home-ring { width: var(--plan-home-ring-size); height: var(--plan-home-ring-size); flex-shrink: 0; }
-.plan-home-ring circle { fill: none; stroke-width: 7; }
+.plan-home-ring circle { fill: none; stroke-width: 7; } /* S-228: PLAN_HOME_RING_R + 7 / 2 ≤ BOX / 2 (planHome.js) */
 .plan-home-ring-track { stroke: var(--plan-home-track); }
 .plan-home-ring-prog { stroke: var(--plan-heat-0); stroke-linecap: round; stroke-dasharray: 100; transform: rotate(-90deg); transform-origin: 50% 50%; }
 .plan-home-ring-prog.empty { visibility: hidden; } /* 0 %: a round cap would still draw a dot */
