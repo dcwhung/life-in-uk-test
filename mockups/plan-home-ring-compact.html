@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-HK" data-font-size="large">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plan Ring Compact</title>
+<style>
+  /* ── tokens copied from css/base/tokens.css (v1.5.0) ── */
+  :root {
+    --navy: #1a2744; --navy-light: #2e4080;
+    --gold: #c9a84c; --gold-light: #e8c97a; --green-light: #52b788;
+    --text: #1a2744; --text-muted: #5a6a8a;
+    --text-inverse: #fff; --text-inverse-strong: rgba(255,255,255,0.75); --text-inverse-faint: rgba(255,255,255,0.45);
+    --plan-heat-0: #e3e7f1; --plan-heat-1: #e8735f; --plan-heat-2: #f0a54a; --plan-heat-3: #c9cf4f; --plan-heat-4: var(--green-light);
+    --plan-home-track: rgba(255,255,255,0.18);
+    --plan-home-ring-size: 64px;
+    --radius: 14px; --radius-md: 10px; --radius-pill: 999px;
+    --fs-xs: 11px; --fs-sm: 12px; --fs-md: 14px; --fs-lg: 15px; --fs-5xl: 22px;
+    --space-2: 4px; --space-3: 6px; --space-4: 8px; --space-5: 10px; --space-6: 12px; --space-7: 14px; --space-8: 16px;
+    --shadow-sm: 0 2px 8px rgba(26,39,68,0.07);
+    /* proposed */
+    --plan-home-ring-size-sm: 56px;
+    /* mockup-only chrome */
+    --mock-note-bg: #fffbea; --mock-note-border: #e8d48a; --mock-page: #e4e7ef; --mock-phone: 358px; --mock-hit: #e74c3c;
+  }
+  /* css/base/tokens.css v1.3.0: large text = every step + 2px (default since v1.4.1) */
+  :root[data-font-size="large"] { --fs-xs: 13px; --fs-sm: 14px; --fs-md: 16px; --fs-lg: 17px; --fs-5xl: 24px; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--mock-page); color: var(--text); -webkit-font-smoothing: antialiased; padding: 24px 16px; }
+  h1 { font-size: 18px; margin-bottom: 4px; }
+  .lead { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.5; }
+  .langs { display: flex; gap: 8px; margin-bottom: 20px; }
+  .langs button { font: inherit; font-size: 13px; font-weight: 700; padding: 6px 14px; border-radius: var(--radius-pill); border: 1.5px solid var(--navy-light); background: transparent; color: var(--navy-light); cursor: pointer; }
+  .langs button.on { background: var(--navy-light); color: var(--text-inverse); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(var(--mock-phone), var(--mock-phone))); gap: 28px; }
+  .col h2 { font-size: 14px; margin-bottom: 4px; }
+  .col .tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-pill); background: var(--gold-light); margin-bottom: 8px; }
+  .col .tag.cur { background: #d5dae6; }
+  .state { font-size: 11px; font-weight: 700; color: var(--text-muted); margin: 12px 0 6px; letter-spacing: .04em; display: flex; justify-content: space-between; }
+  .state .h { color: var(--mock-hit); }
+  .note { margin-top: 12px; background: var(--mock-note-bg); border: 1px solid var(--mock-note-border); border-radius: 8px; padding: 10px 12px; font-size: 12px; line-height: 1.55; }
+  .note li { margin-left: 16px; }
+
+  /* ── v1.5.0 card styles (css/screens/plan.css) ── */
+  .plan-home { display: grid; gap: var(--space-6); background: var(--navy-light); color: var(--text-inverse); border-radius: var(--radius); padding: var(--space-8); box-shadow: var(--shadow-sm); }
+  .plan-home-top { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-4); flex-wrap: wrap; }
+  .plan-home-ttl { font-size: var(--fs-lg); font-weight: 800; }
+  .plan-home-ttl span { color: var(--gold-light); }
+  .plan-home-cd { font-size: var(--fs-sm); color: var(--text-inverse-strong); line-height: 1.5; }
+  .plan-home-next { font-size: var(--fs-sm); color: var(--text-inverse-strong); line-height: 1.5; }
+  .plan-home-next b { color: var(--text-inverse); }
+  .plan-home-acts { display: flex; gap: var(--space-4); flex-wrap: wrap; justify-content: flex-end; }
+  .plan-btn-gold { min-height: 44px; background: var(--gold); color: var(--navy); border: 0; border-radius: var(--radius-md); padding: var(--space-5) var(--space-8); font-size: var(--fs-md); font-weight: 800; font-family: inherit; }
+  .plan-btn-line { min-height: 44px; background: transparent; color: var(--text-inverse); border: 1.5px solid var(--text-inverse-faint); border-radius: var(--radius-md); padding: var(--space-5) var(--space-7); font-size: var(--fs-sm); font-weight: 700; font-family: inherit; }
+  .plan-home-today { display: flex; align-items: center; gap: var(--space-7); }
+  .plan-home-today-txt { display: grid; gap: var(--space-3); min-width: 0; flex: 1; }
+  .plan-home-today-lbl { font-size: var(--fs-sm); font-weight: 700; }
+  .plan-home-ring { width: var(--plan-home-ring-size); height: var(--plan-home-ring-size); flex-shrink: 0; }
+  .plan-home-ring circle { fill: none; stroke-width: 7; }
+  .plan-home-ring-track { stroke: var(--plan-home-track); }
+  .plan-home-ring-prog { stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; }
+  .plan-home-ring-prog.h2 { stroke: var(--plan-heat-2); }
+  .plan-home-ring-prog.h4 { stroke: var(--plan-heat-4); }
+  .plan-home-ring-pct { fill: var(--text-inverse); stroke: none; font-size: var(--fs-lg); font-weight: 800; text-anchor: middle; dominant-baseline: central; }
+  .plan-home-ring-pct.done { font-size: var(--fs-5xl); }
+
+  /* ── C: ring in the header (title + countdown on the left, ring on the right; no "Today's progress" row) ── */
+  .plan-home-head { display: flex; align-items: center; gap: var(--space-6); }
+  .plan-home-head-txt { display: grid; gap: var(--space-2); min-width: 0; flex: 1; }
+  .plan-home-head .plan-home-ring { width: var(--plan-home-ring-size-sm); height: var(--plan-home-ring-size-sm); }
+  .plan-home.tight { gap: var(--space-5); }
+
+  /* ── D: ring on the button row (left), buttons right ── */
+  .plan-home-foot { display: flex; align-items: center; gap: var(--space-6); }
+  .plan-home-foot .plan-home-acts { flex: 1; }
+  .plan-home-foot .plan-home-ring { width: var(--plan-home-ring-size-sm); height: var(--plan-home-ring-size-sm); }
+
+  /* ── E: C + buttons fill the row (gold grows) ── */
+  .plan-home-acts.fill .plan-btn-gold { flex: 1; }
+</style>
+</head>
+<body>
+<h1>🗓️ 溫習計劃卡 · 減少留白</h1>
+<p class="lead">Mockup only。每張卡都係手機闊度（358px），預設大字（同你部機一樣）。右上角紅字係同 v1.5.0 比較嘅卡高度。</p>
+<div class="langs"><button type="button" data-lang="zh" class="on">中文</button><button type="button" data-lang="en">English</button><span style="width:12px"></span><button type="button" data-size="large" class="on">大字</button><button type="button" data-size="small">細字</button></div>
+<div class="grid" id="grid"></div>
+
+<script>
+// mockup-only renderer: 4 variants × 2 states, one data set per language
+const RING_BOX = 64, RING_R = 28;
+const TEXT = {
+  zh: { title: '🗓️ 溫習計劃', day: 'Day 2 / 11', cd: '距離考試 10 日 · 22/10', lbl: '今日完成度', sched: '進度表',
+    next: '下一步：<b>Read Ch 3 事實 #12–40</b>（由 #18 繼續）', done: '<b>✓ 今日已完成</b>，明日再來', doneShort: '明日再來',
+    go: '繼續 →', view: '查看今日任務' },
+  en: { title: '🗓️ Study plan', day: 'Day 2 / 11', cd: '10 days to the exam · 22/10', lbl: "Today's progress", sched: 'Schedule',
+    next: 'Next: <b>Read Ch 3 facts #12–40</b> (continue from #18)', done: '<b>✓ Done for today</b>, see you tomorrow', doneShort: 'See you tomorrow',
+    go: 'Continue →', view: "View today's tasks" },
+};
+const STATES = [{ pct: 45, band: 'h2' }, { pct: 100, band: 'h4' }];
+let lang = 'zh';
+const L = () => TEXT[lang];
+const isDone = s => s.pct === 100;
+
+function ring(s) {
+  const c = RING_BOX / 2, mark = isDone(s) ? '✓' : `${s.pct}%`;
+  return `<svg class="plan-home-ring" viewBox="0 0 ${RING_BOX} ${RING_BOX}" role="img" aria-label="${L().lbl} ${s.pct}%">`
+    + `<circle class="plan-home-ring-track" cx="${c}" cy="${c}" r="${RING_R}"/>`
+    + `<circle class="plan-home-ring-prog ${s.band}" cx="${c}" cy="${c}" r="${RING_R}" pathLength="100" stroke-dasharray="${s.pct} 100"/>`
+    + `<text class="plan-home-ring-pct${isDone(s) ? ' done' : ''}" x="${c}" y="${c}">${mark}</text></svg>`;
+}
+const ttl = () => `<span class="plan-home-ttl">${L().title} · <span>${L().day}</span></span>`;
+const cd = () => `<span class="plan-home-cd">${L().cd}</span>`;
+const next = (s, short) => `<p class="plan-home-next">${isDone(s) ? (short ? L().doneShort : L().done) : L().next}</p>`;
+const acts = (s, cls = '') => `<div class="plan-home-acts ${cls}"><button class="plan-btn-gold">${isDone(s) ? L().view : L().go}</button>`
+  + `<button class="plan-btn-line">${L().sched}</button></div>`;
+
+const VARIANTS = [
+  { key: 'now', title: '現時 v1.5.0', tag: 'Now', cur: true,
+    render: s => `<div class="plan-home"><div class="plan-home-top">${ttl()}${cd()}</div>`
+      + `<div class="plan-home-today"><div class="plan-home-today-txt"><span class="plan-home-today-lbl">${L().lbl}</span>${next(s)}</div>${ring(s)}</div>${acts(s)}</div>`,
+    notes: ['「今日完成度」標題自己一行', 'Ring 64px 自成一行，左下角空', '完成時 ✓ 出現兩次'] },
+  { key: 'C', title: 'C · Ring 入標題列', tag: '建議',
+    render: s => `<div class="plan-home tight"><div class="plan-home-head"><div class="plan-home-head-txt">${ttl()}${cd()}</div>${ring(s)}</div>`
+      + `${next(s, true)}${acts(s)}</div>`,
+    notes: ['Ring（56px）同標題 + 倒數擺埋一齊，填返標題右邊嘅空位', '刪「今日完成度」一行（Ring 嘅 aria-label 照讀）', '完成時文字縮做「明日再來」，唔再重複 ✓', '按鈕維持置右'] },
+  { key: 'D', title: 'D · Ring 入按鈕列', tag: '方案',
+    render: s => `<div class="plan-home tight"><div class="plan-home-top">${ttl()}${cd()}</div>${next(s, true)}`
+      + `<div class="plan-home-foot">${ring(s)}${acts(s)}</div></div>`,
+    notes: ['Ring（56px）放喺按鈕列左邊，填返按鈕左邊嘅空位', '刪「今日完成度」一行', 'Ring 同按鈕喺同一行 → 要留意 320px + 大字時會唔會擠'] },
+  { key: 'E', title: 'E · C + 按鈕填滿', tag: '方案',
+    render: s => `<div class="plan-home tight"><div class="plan-home-head"><div class="plan-home-head-txt">${ttl()}${cd()}</div>${ring(s)}</div>`
+      + `${next(s, true)}${acts(s, 'fill')}</div>`,
+    notes: ['同 C 一樣，但金色掣拉闊填滿成行', '按鈕列冇留白；主要動作更易撳', '取代咗「兩粒掣置右」嘅要求'] },
+];
+
+function render() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = VARIANTS.map(v =>
+    `<div class="col" data-v="${v.key}"><h2>${v.title}</h2><span class="tag${v.cur ? ' cur' : ''}">${v.tag}</span>`
+    + STATES.map((s, i) => `<div class="state"><span>${isDone(s) ? '完成 · 100%' : '進行中 · 45%'}</span><span class="h" data-i="${i}"></span></div>${v.render(s)}`).join('')
+    + `<div class="note"><ul>${v.notes.map(n => `<li>${n}</li>`).join('')}</ul></div></div>`).join('');
+  // card heights vs v1.5.0
+  const base = [...grid.querySelectorAll('[data-v="now"] .plan-home')].map(el => el.offsetHeight);
+  grid.querySelectorAll('.col').forEach(col => col.querySelectorAll('.plan-home').forEach((el, i) => {
+    const d = el.offsetHeight - base[i];
+    col.querySelector(`.h[data-i="${i}"]`).textContent = `${el.offsetHeight}px${d ? ` (${d > 0 ? '+' : ''}${d})` : ''}`;
+  }));
+}
+document.querySelectorAll('[data-lang]').forEach(b => b.addEventListener('click', () => {
+  lang = b.dataset.lang;
+  document.querySelectorAll('[data-lang]').forEach(x => x.classList.toggle('on', x === b));
+  render();
+}));
+document.querySelectorAll('[data-size]').forEach(b => b.addEventListener('click', () => {
+  document.documentElement.dataset.fontSize = b.dataset.size;
+  document.querySelectorAll('[data-size]').forEach(x => x.classList.toggle('on', x === b));
+  render();
+}));
+render();
+</script>
+</body>
+</html>

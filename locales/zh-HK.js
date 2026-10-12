@@ -280,7 +280,7 @@ LOCALES['zh-HK'] = {
       nextCarryHtml: '下一步（補做 {day}）：<b>{task}</b>{more}',
       resumeFact: '（由 #{n} 繼續）',
       resumeQs: '（已答對 {done} / {total} 題）',
-      doneHtml: '<b>✓ 今日已完成</b>，明日再來',
+      seeTomorrow: '明日再來', // v1.5.1: all done today (the ring shows ✓)
       continue: '繼續 →',
       viewToday: '查看今日任務',
       viewDay: '查看今日',

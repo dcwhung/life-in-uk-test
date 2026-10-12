@@ -293,7 +293,7 @@ LOCALES.en = {
       nextCarryHtml: 'Next (catch-up, {day}): <b>{task}</b>{more}',
       resumeFact: ' (continue from #{n})',
       resumeQs: ' ({done} / {total} right)',
-      doneHtml: '<b>✓ Done for today</b>, see you tomorrow',
+      seeTomorrow: 'See you tomorrow', // v1.5.1: all done today (the ring shows ✓)
       continue: 'Continue →',
       viewToday: "View today's tasks",
       viewDay: 'View today',
