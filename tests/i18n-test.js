@@ -133,6 +133,8 @@ function paramProblems(key, enValue, zhValue) {
     return paramsOf(text) === paramsOf(want) ? [] : [`${key}.${form}: {${paramsOf(text)}} vs en {${paramsOf(want)}}`];
   });
 }
+// zh-HK UI text is written Chinese (書面語, plan Q5), except memo.* (v1.5.0 memory-note screen): colloquial wording the
+// user chose in the spec / mockup (review S-229, HANDOFF i18n › zh-HK). Register is not checked here
 function zhHkChecks() {
   const locales = loadLocales();
   const zh = locales[ZH_HK];
