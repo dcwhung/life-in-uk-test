@@ -161,6 +161,21 @@ async function checkPhone(b) {
   await page.close();
 }
 
+// S-233: a phone never builds the desktop parts; the first desktop render builds and fills them (tabs included)
+async function checkLazyDesk(b) {
+  const { page, errors } = await dt.openDesktop(b, { viewport: dt.VIEWPORTS.phone });
+  await startSet(page, 'practice', EXAM_ONE);
+  assert(await goToSimilarQuestion(page), '390px: found a question with similar questions');
+  await answerCurrent(page);
+  await page.evaluate(() => goToQuestion(state.current)); // a few more renders
+  assert(await page.evaluate(() => !document.querySelector('.quiz-cols, .quiz-dots-bar, #quizTabAnswer')), 'S-233 390px: no desktop quiz parts built on the phone');
+  await dt.setViewport(page, dt.VIEWPORTS.wide);
+  const tab = await page.evaluate(() => ({ text: byId('quizTabAnswer').textContent.trim(), sel: byId('quizTabAnswer').getAttribute('aria-selected'), similar: !byId('quizTabSimilar').hidden && byId('quizTabSimilar').textContent.length > 0 }));
+  assert(tab.text.endsWith(ANSWER_TAB.en) && tab.sel === 'true' && tab.similar && await visible(page, '.quiz-tabs'), 'S-233 390 → 1280: the desktop parts are built and filled on the first desktop refit: ' + JSON.stringify(tab));
+  assert(errors.length === 0, 'no page error: ' + errors.join(' | '));
+  await page.close();
+}
+
 // S-228: moving the options across 1024px keeps keyboard focus where it was
 async function checkFocusKept(b) {
   const { page, errors } = await dt.openDesktop(b, { viewport: dt.VIEWPORTS.belowDesktop });
@@ -170,6 +185,25 @@ async function checkFocusKept(b) {
   assert(await page.evaluate(() => document.activeElement && document.activeElement.id) === 'opt0' && await page.evaluate(() => !!byId('opt0').closest('.quiz-main')), 'S-228 1023 → 1280: #opt0 moved into the column and still has focus');
   await dt.setViewport(page, dt.VIEWPORTS.belowDesktop);
   assert(await page.evaluate(() => document.activeElement && document.activeElement.id) === 'opt0' && await page.evaluate(() => !byId('opt0').closest('.quiz-main')), 'S-228 1280 → 1023: back in its phone place, still focused');
+  assert(errors.length === 0, 'no page error: ' + errors.join(' | '));
+  await page.close();
+}
+
+// S-231: the rail's Submit is the card's ✓ on the last question: label and title from nextAction()
+async function checkSubmitLabel(b) {
+  const { page, errors } = await dt.openDesktop(b, { viewport: dt.VIEWPORTS.wide });
+  await startSet(page, 'exam', EXAM_ONE);
+  const r = await page.evaluate(() => {
+    const real = nextAction;
+    window.nextAction = (idx, total) => (idx === total - 1 ? { ...real(idx, total), label: 'Hand in', title: 'Hand in the paper' } : real(idx, total));
+    goToQuestion(state.questions.length - 1);
+    const submit = document.querySelector('.exam-submit');
+    const out = { text: submit.textContent.trim(), title: submit.title, quick: byId('quickNext').title };
+    window.nextAction = real;
+    goToQuestion(state.questions.length - 1);
+    return out;
+  });
+  assert(r.text === 'Hand in' && r.title === 'Hand in the paper' && r.quick === r.title, 'S-231: rail Submit label / title follow nextAction() like the card ✓: ' + JSON.stringify(r));
   assert(errors.length === 0, 'no page error: ' + errors.join(' | '));
   await page.close();
 }
@@ -196,7 +230,9 @@ async function checkRefit(b) {
   });
   await checkPhone(b);
   await checkRefit(b);
+  await checkLazyDesk(b);
   await checkFocusKept(b);
+  await checkSubmitLabel(b);
   await b.close();
   console.log('DESKTOP-QUIZ PASS');
 })().catch(e => { console.error(e.message || e); process.exit(1); });

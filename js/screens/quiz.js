@@ -73,7 +73,7 @@ function renderQuestion() {
   renderSimilar(q, revealed);
   renderExamTools(idx);
   renderNavButtons(idx, total, revealed);
-  renderQuizDesk(q, idx, total, showAnswer);
+  quizDeskStale = true; // S-233: the desktop parts are filled by arrangeQuiz, and only on desktop
   arrangeQuiz(deskOn()); // v2.0.0: the desktop columns first, so the counter below measures the row it ends up in
   fitQuestionCounter(); // C3: measured once the counter's row (bookmark, arrows) is final
   desktopRefit('screenQuiz', fitQuiz);
@@ -272,12 +272,9 @@ function prevQ() {
 // practice: the number dots bar across the top; question card + options (7/12) | Answer · Similar tabs (5/12)
 // exam with the timer: rail (3/12: big timer, dots 6 × 4, counts, Submit on the last question) | question + options
 // other exam sets (no dots, no answer): the question + options column alone, centred
-// ── Quiz: mockups/v2.0.0/desktop-quiz.html A rev 12 (Practice) and desktop-exam.html C rev 3 (Exam 1–17, Random) ──
-// practice: the number dots bar across the top; question card + options (7/12) | Answer · Similar tabs (5/12)
-// exam with the timer: rail (3/12: big timer, dots 6 × 4, counts, Submit on the last question) | question + options
-// other exam sets (no dots, no answer): the question + options column alone, centred
 const QUIZ_TAB = { answer: 'answer', similar: 'similar' };
-let quizDesk = null;
+let quizDesk = null; // built on the first desktop render (S-233: never on a phone)
+let quizDeskStale = true; // the question changed since the desktop parts were last filled
 let quizTab = QUIZ_TAB.answer;
 let quizTabQuestion = null; // the question the open tab belongs to: a new question opens on Answer
 function quizTabButton(id, pane) {
@@ -335,8 +332,11 @@ function quizDeskLayout(desktop) {
   return state.mode === PRACTICE_MODE ? 'practice' : 'plain';
 }
 function arrangeQuiz(desktop) {
+  const layout = quizDeskLayout(desktop);
+  if (!layout && !quizDesk) return; // S-233: a phone that never was desktop has nothing to put back
   const d = quizDeskParts();
-  deskKeepFocus(() => placeQuizParts(d, quizDeskLayout(desktop))); // S-228: focus back once every box is in the document
+  if (layout && quizDeskStale) renderQuizDesk();
+  deskKeepFocus(() => placeQuizParts(d, layout)); // S-228: focus back once every box is in the document
 }
 function placeQuizParts(d, layout) {
   const m = d.moved;
@@ -364,9 +364,12 @@ function placeQuizParts(d, layout) {
     deskFill(d.cols, [d.mainWrap]);
   }
 }
-// tab labels, which pane shows, the rail's timer copy and Submit; no measuring (the fit does that)
-function renderQuizDesk(q, idx, total, showAnswer) {
-  const d = quizDeskParts();
+// tab labels, which pane shows, the rail's timer copy and Submit for the current question; no measuring (the fit
+// does that). Called by arrangeQuiz on desktop only, once per question render
+function renderQuizDesk() {
+  const d = quizDeskParts(), idx = state.current, q = state.questions[idx], total = state.questions.length;
+  const showAnswer = idx in state.revealed && state.mode === PRACTICE_MODE;
+  quizDeskStale = false;
   if (quizTabQuestion !== q) { quizTab = QUIZ_TAB.answer; quizTabQuestion = q; }
   const similarShown = byId('similarBox').classList.contains('show');
   if (!similarShown) quizTab = QUIZ_TAB.answer;
@@ -377,8 +380,16 @@ function renderQuizDesk(q, idx, total, showAnswer) {
   d.slot.hidden = showAnswer;
   applyQuizTab(showAnswer);
   syncExamTimerCopy();
-  d.submit.textContent = t('exam.submit');
-  d.submit.hidden = idx !== total - 1;
+  renderExamSubmit(d.submit, idx, total);
+}
+// S-231: the rail's Submit is the card's ✓ on the last question, so it says what nextAction() says
+function renderExamSubmit(submit, idx, total) {
+  const last = idx === total - 1;
+  submit.hidden = !last;
+  if (!last) return;
+  const next = nextAction(idx, total);
+  submit.textContent = next.label;
+  submit.title = next.title;
 }
 function applyQuizTab(showAnswer = !quizDeskParts().tabs.hidden) {
   const d = quizDeskParts(), onAnswer = quizTab === QUIZ_TAB.answer;
@@ -403,6 +414,7 @@ function syncExamTimerCopy() {
 // ② tighter card / option padding (is-compact) → ③ only then does the column scroll
 function fitQuiz(desktop) {
   arrangeQuiz(desktop);
-  const d = quizDeskParts();
+  if (!quizDesk) return; // S-233: never built on a phone, so no steps to take off
+  const d = quizDesk;
   fitSteps(d.main, [[d.moved.options, 'is-tight'], 'is-compact']);
 }
