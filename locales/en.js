@@ -158,8 +158,9 @@ LOCALES.en = {
     search: 'Search facts', // R2-1: never mentions English / Cantonese (matching still covers both)
     tabChapters: 'Chapters', // v1.2.0 (C4): the tab icon sits above the label in index.html
     tabTimeline: 'Timeline',
-    tabGeo: 'Geography',
+    tabGeo: 'Geo', // v1.6.0: short, as in the memo mockup v2 (deleted), so five tabs fit one row at 360px
     tabPeople: 'People',
+    tabMemo: 'Memory', // v1.6.0: memory-note groups (memo.*)
     hideMastered: '✓ Hide mastered',
     bookmarkedOnly: 'Bookmarked only',
     warsOnly: '⚔️ Wars only',
@@ -179,6 +180,40 @@ LOCALES.en = {
     factId: '#{n}',
     // S-057: English in every language, like common.chapterShort
     chapterFactId: 'Ch {ch} #{n}',
+  },
+
+  // v1.6.0: memory-note study (Study tab 5, js/screens/memo.js). Group titles, hooks and notes are Cantonese data
+  memo: {
+    search: 'Search memory notes',
+    count: { one: '{shown} / {total} group', other: '{shown} / {total} groups' },
+    empty: 'No groups match.',
+    dueTitle: { one: '{n} group to review today', other: '{n} groups to review today' },
+    start: 'Start ▶',
+    statusNew: 'New',
+    statusDue: 'Due today',
+    statusLearning: 'Learning · Lv{lv}',
+    statusDone: { one: 'Known · in {n} day', other: 'Known · in {n} days' },
+    questions: { one: '{n} question', other: '{n} questions' },
+    singleMeta: 'Questions with their own note',
+    setLabel: '🧠 {title}', // quiz header of a group's test
+    backButton: '‹ Memory',
+    stepLook: '① Look',
+    stepTest: '② Test ({n})',
+    stepLookDone: '✓ Look',
+    stepTestDone: '✓ Test {correct}/{total}',
+    hookLabel: '💡 Memory hook:',
+    startTest: 'Got it — start the test ▶',
+    resultPass: 'Test {correct}/{total} (≥ {pct}%) → up to Lv{lv}',
+    resultKeep: 'Test {correct}/{total} (≥ {pct}%) → stays at Lv{lv}',
+    resultFail: 'Test {correct}/{total} · below {pct}%, review again tomorrow',
+    resultFailDrop: 'Test {correct}/{total} · below {pct}%, down to Lv{lv}, review again tomorrow', // W-064: a fail drops a level
+    noAnswers: 'No answers were recorded — nothing changed.', // S-232: skipped questions do not count
+    tomorrow: 'Tomorrow', // W-065: the schedule box of the level due again tomorrow
+    lv: 'Lv{lv}',
+    days: { one: '{n} day', other: '{n} days' },
+    wrongTitle: 'Look at these again:',
+    again: 'Review again',
+    next: 'Next: {title} ▶',
   },
 
   modal: {
@@ -259,8 +294,12 @@ LOCALES.en = {
       nextCarryHtml: 'Next (catch-up, {day}): <b>{task}</b>{more}',
       resumeFact: ' (continue from #{n})',
       resumeQs: ' ({done} / {total} right)',
+      seeTomorrow: 'See you tomorrow', // v1.5.1: all done today (the ring shows ✓)
+      continue: 'Continue →',
+      // v2.0.0 F7 desktop card (mockup desktop-home-plan.html): its ring shows the %, so the done line keeps the ✓;
+      // the wider card keeps the long Continue label
       doneHtml: '<b>✓ Done for today</b>, see you tomorrow',
-      continue: "Continue today's tasks →",
+      continueToday: "Continue today's tasks →",
       viewToday: "View today's tasks",
       viewDay: 'View today',
       restToday: 'Rest day today',

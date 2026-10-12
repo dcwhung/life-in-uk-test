@@ -153,6 +153,7 @@ LOCALES['zh-HK'] = {
     tabTimeline: '時間線',
     tabGeo: '地理',
     tabPeople: '人物',
+    tabMemo: '記憶法',
     hideMastered: '✓ 隱藏已掌握',
     bookmarkedOnly: '只顯示書籤',
     warsOnly: '⚔️ 只顯示戰爭',
@@ -172,6 +173,40 @@ LOCALES['zh-HK'] = {
     factId: '#{n}',
     // S-057: English in every language, like common.chapterShort
     chapterFactId: 'Ch {ch} #{n}',
+  },
+
+  // v1.6.0: memory-note study (Study tab 5); the step / button words follow the user's memo mockup v2 (deleted at release; design: .proj-docs/design-baselines/2026-10-12_memo-*.png)
+  memo: {
+    search: '搜尋記憶法',
+    count: '{shown} / {total} 組',
+    empty: '沒有符合的記憶法。',
+    dueTitle: '今日要溫 {n} 組',
+    start: '開始 ▶',
+    statusNew: '未溫',
+    statusDue: '今日到期',
+    statusLearning: '溫緊 · Lv{lv}',
+    statusDone: '已熟 · {n} 日後',
+    questions: '關聯 {n} 題',
+    singleMeta: '沒有記憶法的題目，各有注解',
+    setLabel: '🧠 {title}',
+    backButton: '‹ 記憶法',
+    stepLook: '① 睇',
+    stepTest: '② 試 ({n})',
+    stepLookDone: '✓ 睇',
+    stepTestDone: '✓ 試 {correct}/{total}',
+    hookLabel: '💡 記憶鈎：',
+    startTest: '記住咗，開始試 ▶',
+    resultPass: '試 {correct}/{total}（≥ {pct}%）→ 升到 Lv{lv}',
+    resultKeep: '試 {correct}/{total}（≥ {pct}%）→ 保持 Lv{lv}',
+    resultFail: '試 {correct}/{total} · 未夠 {pct}%，聽日再溫',
+    resultFailDrop: '試 {correct}/{total} · 未夠 {pct}%，跌返 Lv{lv}，聽日再溫',
+    noAnswers: '一題都未答，冇記錄進度',
+    tomorrow: '聽日',
+    lv: 'Lv{lv}',
+    days: '{n} 日',
+    wrongTitle: '要再睇嘅：',
+    again: '再溫一次',
+    next: '下一組：{title} ▶',
   },
 
   modal: {
@@ -246,8 +281,12 @@ LOCALES['zh-HK'] = {
       nextCarryHtml: '下一步（補做 {day}）：<b>{task}</b>{more}',
       resumeFact: '（由 #{n} 繼續）',
       resumeQs: '（已答對 {done} / {total} 題）',
+      seeTomorrow: '明日再來', // v1.5.1: all done today (the ring shows ✓)
+      continue: '繼續 →',
+      // v2.0.0 F7 desktop card (mockup desktop-home-plan.html): its ring shows the %, so the done line keeps the ✓;
+      // the wider card keeps the long Continue label
       doneHtml: '<b>✓ 今日已完成</b>，明日再來',
-      continue: '繼續今日任務 →',
+      continueToday: '繼續今日任務 →',
       viewToday: '查看今日任務',
       viewDay: '查看今日',
       restToday: '今日是休息日',

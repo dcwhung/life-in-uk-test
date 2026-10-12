@@ -36,7 +36,7 @@ const ZH_HK_WRITTEN_SCOPES = ['plan.', 'data.weekdays.', 'data.planLevels.', 'mo
 const ZH_HK_COLLOQUIAL = ['唔', '嘅', '咗', '冇', '嚟', '睇', '喺', '啱', '嗰', '佢', '哋', '咩', '啲', '嘢', '乜', '俾', '畀', '做緊', '幾耐', '係咪', '點樣'];
 // keys no source file reads: manifest.webmanifest mirrors them (static JSON), tests/pwa-test.js compares the two
 const MANIFEST_KEYS = ['app.installName', 'app.installShortName'];
-const SECTIONS = ['app', 'home', 'quiz', 'exam', 'result', 'review', 'similar', 'flagged', 'study', 'modal', 'common', 'plan', 'data'];
+const SECTIONS = ['app', 'home', 'quiz', 'exam', 'result', 'review', 'similar', 'flagged', 'study', 'memo', 'modal', 'common', 'plan', 'data'];
 const KEY_LITERAL = new RegExp(`'((?:${SECTIONS.join('|')})\\.[\\w.]+)'`, 'g');
 const PLURAL_FORMS = ['zero', 'one', 'two', 'few', 'many', 'other'];
 
@@ -134,6 +134,8 @@ function paramProblems(key, enValue, zhValue) {
     return paramsOf(text) === paramsOf(want) ? [] : [`${key}.${form}: {${paramsOf(text)}} vs en {${paramsOf(want)}}`];
   });
 }
+// zh-HK UI text is written Chinese (書面語, plan Q5), except memo.* (v1.6.0 memory-note screen): colloquial wording the
+// user chose in the spec / mockup (review S-229, HANDOFF i18n › zh-HK). Register is not checked here
 function tagProblems(key, enValue, zhValue) {
   const en = formsOf(enValue), zh = formsOf(zhValue);
   const forms = [...new Set([...Object.keys(en), ...Object.keys(zh)])];

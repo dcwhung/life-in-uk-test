@@ -79,7 +79,8 @@ const ACTIONS = {
   startFlaggedPractice: () => startFlaggedPractice(),
   unflagFromList: el => unflagFromList(el.dataset.arg),
   // study
-  studySetTab: el => studySetTab(el.dataset.arg),
+  // S-230: a tab the loaded study.js has no renderer for (an HTTP-cached pre-v1.6.0 file under the memo tab) does nothing
+  studySetTab: el => { if (Object.prototype.hasOwnProperty.call(STUDY_RENDERERS, el.dataset.arg)) studySetTab(el.dataset.arg); },
   studySetChapter: el => studySetChapter(numArg(el)),
   studySetNation: el => studySetNation(el.dataset.arg),
   studySetGroup: el => studySetGroup(el.dataset.arg),
@@ -87,6 +88,12 @@ const ACTIONS = {
   studyToggleMark: el => studyToggleMark(el.dataset.mark, numArg(el)),
   studySetSearch: el => studySetSearch(el.value),
   startFactPractice: el => startFactPractice(numArg(el)),
+  // memory-note study (v1.6.0, js/screens/memo.js): chapter chip ('all' or a number), group card / banner, group screen
+  studySetMemoChapter: el => studySetMemoChapter(examArg(el)),
+  openMemoGroup: el => openMemoGroup(el.dataset.arg),
+  memoBack: () => memoBack(),
+  memoLook: () => memoLook(),
+  startMemoTest: () => startMemoTest(),
   // study plan (entry hidden until planVisible: js/screens/planHome.js, planGoal.js, planSchedule.js, planDay.js, planRun.js)
   togglePlanFeature: () => togglePlanFeature(),
   openPlanGoal: () => openPlanGoal(),

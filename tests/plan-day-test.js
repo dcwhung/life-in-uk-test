@@ -13,7 +13,7 @@ const path = require('path');
 //   no wrong answers (G9 empty); ahead days: clear-wrong / drill decided on the day (G23); mock best score (G25)
 // - calendar: one month, ‹ Today › within the plan's months (v1.0.4: not shown for a one-month plan), past / today / ahead / rest / outside / exam cells,
 //   cells open their day; 🔥 n days at 100% (G29); overall progress (plan %, average, days left + 3 bars)
-// - Home card: Day n / N, days to the exam, today % + bar, next step, continue / view today; exam day and
+// - Home card: Day n / N, days to the exam, today % ring beside them (v1.5.1), next step, continue / view today; exam day and
 //   ended (G16: summary + new plan / schedule; v2.0.0 F1: no "Change goal" once the plan is over); unreadable log hint
 // - schedule rows open their day; "View today's tasks →"
 // - G6: the day changes at local midnight with the app open, and on return to the foreground; time zones
@@ -221,7 +221,8 @@ async function checkAllDone(pg) {
   assert(read[0].includes('done') && read[1] === '✓ Practised its questions: counted as read', 'G3: reading counts once its questions are right: ' + read[1]);
   await pg.evaluate(() => leaveToHome());
   const card = await text(pg, '#planCard');
-  assert(card.includes('✓ Done for today, see you tomorrow') && await text(pg, '#planCard [data-action="openPlanDay"]') === "View today's tasks", 'Home: done today + "View today\'s tasks": ' + card);
+  // v1.5.1: the ring shows ✓, so the text is only "See you tomorrow" (no second ✓)
+  assert(card.includes('See you tomorrow') && !card.includes('Done for today') && (card.match(/✓/g) || []).length === 1 && await text(pg, '#planCard [data-action="openPlanDay"]') === "View today's tasks", 'Home: done today + "View today\'s tasks": ' + card);
 }
 
 async function checkPastAndAhead(pg) {
@@ -326,19 +327,66 @@ async function checkHomeCard(pg) {
   await fresh(pg);
   await seedPlan(pg);
   await pg.evaluate(() => leaveToHome());
-  const r = await pg.evaluate(() => ({
-    ttl: byId('planCard').querySelector('.plan-home-ttl').textContent, cd: byId('planCard').querySelector('.plan-home-cd').textContent,
-    pct: byId('planCard').querySelector('.plan-home-pct').textContent, bar: byId('planCard').querySelector('.plan-home-bar i').style.width,
-    next: byId('planCard').querySelector('.plan-home-next').textContent, go: byId('planCard').querySelector('[data-action="planContinue"]').textContent,
-    want: planDayCompletion(planLoad().days[3], planDayLog(planLoadLog(), '2026-10-01')).pct,
-  }));
+  const r = await pg.evaluate(() => {
+    const card = byId('planCard'), q = s => card.querySelector(s);
+    const box = e => e.getBoundingClientRect();
+    // the title's own text (its span may stretch across the column)
+    const textBox = e => { const rg = document.createRange(); rg.selectNodeContents(e); return rg.getBoundingClientRect(); };
+    const ring = box(q('.plan-home-ring')), ttl = textBox(q('.plan-home-ttl')), cd = box(q('.plan-home-cd'));
+    return {
+      ttl: q('.plan-home-ttl').textContent, cd: q('.plan-home-cd').textContent,
+      pct: q('.plan-home-ring-pct').textContent, offset: q('.plan-home-ring-prog').style.strokeDashoffset,
+      progCls: q('.plan-home-ring-prog').getAttribute('class'), ringLabel: q('.plan-home-ring').getAttribute('aria-label'),
+      ringRole: q('.plan-home-ring').getAttribute('role'), lbl: !!q('.plan-home-today-lbl') || !!q('.plan-home-today'),
+      cardText: q('.plan-home').textContent,
+      inHead: !!q('.plan-home-head .plan-home-ring') && !!q('.plan-home-head .plan-home-ttl') && !!q('.plan-home-head .plan-home-cd'),
+      top: !!q('.plan-home-top'), hasRing: q('.plan-home').classList.contains('has-ring'), gap: getComputedStyle(q('.plan-home')).rowGap,
+      ringLeft: ring.left, ttlRight: ttl.right, cdRight: box(q('.plan-home-cd')).right,
+      ringOverlap: ring.top < cd.bottom && ring.bottom > ttl.top, ringMid: (ring.top + ring.bottom) / 2, txtTop: ttl.top, txtBottom: cd.bottom,
+      nextTop: box(q('.plan-home-next')).top, ringBottom: ring.bottom,
+      ringSize: ring.width, oldBar: !!q('.plan-home-bar'),
+      acts: getComputedStyle(q('.plan-home-acts')).justifyContent,
+      next: q('.plan-home-next').textContent, go: q('[data-action="planContinue"]').textContent,
+      want: planDayCompletion(planLoad().days[3], planDayLog(planLoadLog(), '2026-10-01')).pct,
+      // v1.5.0: 100 % shows ✓ in the ring (rendered straight from the helper: no need to finish a whole day)
+      // W-064: 0 % and 100 % straight from the helper (no need to build such a day): band, .empty / .done, text, label
+      ...Object.fromEntries([['zero', 0], ['full', PERCENT]].map(([k, pct]) => {
+        const d = document.createElement('div'); d.innerHTML = planHomeRingHtml(pct);
+        const txt = d.querySelector('.plan-home-ring-pct');
+        return [k, { txt: txt.textContent, txtCls: txt.getAttribute('class'), label: d.querySelector('.plan-home-ring').getAttribute('aria-label'),
+          progCls: d.querySelector('.plan-home-ring-prog').getAttribute('class').split(' ') }];
+      })),
+    };
+  });
+  const band = await pg.evaluate(w => planPctBand(w), r.want);
   assert(r.ttl === '🗓️ Study plan · Day 4 / 31' && r.cd === '28 days to the exam · 29/10', 'Home card: Day n / N + countdown: ' + r.ttl + ' | ' + r.cd);
-  assert(r.pct === `${r.want}%` && r.bar === `${r.want}%`, `Home card: today ${r.want}% + bar`);
+  assert(r.pct === `${r.want}%` && r.offset === String(100 - r.want), `v1.5.0 Home card: today ${r.want}% in the ring, offset ${r.offset}`);
+  assert(r.progCls.split(' ').includes(`h${band}`) && !r.oldBar, `v1.5.0 Home card ring: G27 band h${band}, no bar: ` + r.progCls);
+  assert(r.ringRole === 'img' && r.ringLabel === `Today's progress ${r.want}%`, 'v1.5.0 ring: role img + label: ' + r.ringLabel);
+  // v1.5.1 (mockups/plan-home-ring-compact.html, variant C): the ring sits in the head, right of the title + countdown
+  assert(r.inHead && !r.top && r.hasRing, 'v1.5.1 variant C: title, countdown and ring in .plan-home-head (no .plan-home-top)');
+  assert(!r.lbl && !r.cardText.includes("Today's progress"), 'v1.5.1: no visible "Today\'s progress" row: ' + r.cardText);
+  assert(r.ringSize === 56 && r.ringLeft >= r.ttlRight && r.ringLeft >= r.cdRight,
+    `v1.5.1: 56px ring right of the title and countdown (${r.ringSize}px, ${r.ringLeft} ≥ ${r.ttlRight} / ${r.cdRight})`);
+  assert(r.ringOverlap && r.ringMid >= r.txtTop && r.ringMid <= r.txtBottom && r.nextTop >= r.ringBottom,
+    `v1.5.1: ring centred beside the title block, next step below (${r.ringMid} in ${r.txtTop}–${r.txtBottom}, next ${r.nextTop} ≥ ${r.ringBottom})`);
+  assert(r.gap === '10px', 'v1.5.1: tighter card gap with the ring (--space-5): ' + r.gap);
+  assert(r.full.txt === '✓' && r.full.label === "Today's progress 100%" && r.full.txtCls.split(' ').includes('done')
+    && r.full.progCls.includes('h4') && !r.full.progCls.includes('empty'), 'v1.5.0 / W-064: 100 % shows a large ✓ on a green h4 arc: ' + JSON.stringify(r.full));
+  assert(r.zero.txt === '0%' && r.zero.label === "Today's progress 0%" && r.zero.progCls.includes('h0') && r.zero.progCls.includes('empty')
+    && !r.zero.txtCls.split(' ').includes('done'), 'W-064: 0 % has an .empty h0 arc (no round-cap dot): ' + JSON.stringify(r.zero));
+  const zeroVis = await pg.evaluate(() => { const d = document.createElement('div'); d.className = 'plan-home'; d.innerHTML = planHomeRingHtml(0);
+    byId('planCard').append(d); const v = getComputedStyle(d.querySelector('.plan-home-ring-prog')).visibility; d.remove(); return v; });
+  assert(zeroVis === 'hidden', 'W-064: the 0 % arc is not drawn: ' + zeroVis);
+  assert(r.acts === 'flex-end', 'v1.5.0: Home card buttons on the right: ' + r.acts);
   assert(/^Next: Read Ch 4 Modern society facts #\d+–\d+ \(continue from #\d+\)$/.test(r.next), 'Home card: next step, continue from #n: ' + r.next);
-  assert(r.go === "Continue today's tasks →", 'Home card: continue button');
+  assert(r.go === 'Continue →', 'v1.5.0 Home card: continue button: ' + r.go);
   assert(await hitOk(pg, '#planCard [data-action="planContinue"]') && await hitOk(pg, '#planCard [data-action="openPlanSchedule"]'), `Home card buttons: ${HIT_MIN_PX}px`);
   const low = (await contrastOf(pg, '#planCard .plan-home *')).filter(c => c.ratio < MIN_CONTRAST || !c.opaque);
   assert(low.length === 0, `Home card text ≥ ${MIN_CONTRAST}:1: ` + JSON.stringify(low));
+  const ringFill = await pg.$eval('#planCard .plan-home-ring-pct', e => getComputedStyle(e).fill);
+  assert(ringFill === 'rgb(255, 255, 255)', 'v1.5.0: ring % text fill is --text-inverse: ' + ringFill);
+  await checkRingTextFits(pg);
   // unreadable log: the card says so and points to ↺ Reset
   await pg.evaluate(() => { localStorage.setItem('lifeuk.studyPlanProgress', '{bad'); leaveToHome(); });
   assert((await text(pg, '#planCard')).includes('↺ Reset plan'), 'unreadable log: Home card hint: ' + await text(pg, '#planCard'));
@@ -347,6 +395,27 @@ async function checkHomeCard(pg) {
   await pg.evaluate(() => { localStorage.removeItem('lifeuk.studyPlanProgress'); leaveToHome(); });
   const rest = await text(pg, '#planCard');
   assert(rest.includes('Rest day today') && rest.includes('catch-up'), 'rest day: no %, next = catch-up: ' + rest);
+  const restLay = await pg.evaluate(() => { const c = byId('planCard'), h = c.querySelector('.plan-home');
+    return { ring: !!c.querySelector('.plan-home-ring'), top: !!c.querySelector('.plan-home-top .plan-home-cd'), head: !!c.querySelector('.plan-home-head'),
+      hasRing: h.classList.contains('has-ring'), gap: getComputedStyle(h).rowGap, acts: getComputedStyle(c.querySelector('.plan-home-acts')).justifyContent }; });
+  assert(!restLay.ring && restLay.top && !restLay.head && !restLay.hasRing && restLay.gap === '12px' && restLay.acts === 'flex-end',
+    'v1.5.1: a rest day keeps .plan-home-top (title + countdown), no ring, the usual gap, buttons right: ' + JSON.stringify(restLay));
+}
+// v1.5.1: the widest % ("99%"; 100 shows ✓) stays inside the 56px ring's hole: en + zh-HK, small + large text
+async function checkRingTextFits(pg) {
+  for (const lang of ['en', 'zh-HK']) for (const size of ['small', 'large']) {
+    const f = await pg.evaluate(([lang, size]) => {
+      setLang(lang); setFontSize(size);
+      const d = document.createElement('div'); d.className = 'plan-home'; d.innerHTML = planHomeRingHtml(PERCENT - 1);
+      byId('planCard').append(d);
+      const svg = d.querySelector('.plan-home-ring'), bb = svg.querySelector('.plan-home-ring-pct').getBBox();
+      const stroke = parseFloat(getComputedStyle(svg.querySelector('circle')).strokeWidth);
+      const out = { w: bb.width, h: bb.height, hole: 2 * PLAN_HOME_RING_R - stroke, px: svg.getBoundingClientRect().width };
+      d.remove(); return out;
+    }, [lang, size]);
+    assert(f.px === 56 && f.w <= f.hole && f.h <= f.hole, `v1.5.1 ${lang} ${size}: "99%" (${f.w.toFixed(1)} × ${f.h}) inside the ring hole ${f.hole} (viewBox units)`);
+  }
+  await pg.evaluate(() => { setLang('en'); setFontSize('small'); });
 }
 
 async function checkCalendar(pg) {

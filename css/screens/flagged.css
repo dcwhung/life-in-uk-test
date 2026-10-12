@@ -1,4 +1,23 @@
 /* Flagged list screen */
+/* v1.4.4 (user): the screen header and the Practise card stay pinned under the sticky app header while the list
+   scrolls under them. The block reaches over main's top / side padding (css/base/layout.css main) and paints --bg there,
+   so a scrolled item never shows in the gap above or beside it; at rest the layout is unchanged (the margins / padding
+   must stay equal to main's --space-10 top / --space-8 side padding). flow-root keeps the
+   last child's margin-bottom (Practise card / header) inside the block, so the gap under the card is covered too. */
+.flagged-top {
+  display: flow-root;
+  position: sticky; top: var(--header-h); z-index: 1; /* above the list, below the app header (100) */
+  background: var(--bg);
+  margin: calc(-1 * var(--space-10)) calc(-1 * var(--space-8)) 0;
+  padding: var(--space-10) var(--space-8) 0;
+}
+/* W-1: keyboard focus scrolled into view (Shift+Tab to an unflag button) stops below the app header + pinned block */
+html:has(#screenFlagged.active) { scroll-padding-top: calc(var(--header-h) + var(--flagged-top-h)); }
+/* W-2: a short screen (landscape phone) would spend over half its height on the pinned block; there it scrolls away */
+@media (max-height: 500px) {
+  .flagged-top { position: static; }
+  html:has(#screenFlagged.active) { scroll-padding-top: var(--header-h); }
+}
 .flag-start {
   display: flex; align-items: center; gap: var(--space-6); width: 100%; font: inherit; text-align: left; border: none;
   background: linear-gradient(135deg, var(--navy), var(--navy-mid)); color: var(--text-inverse);
