@@ -1445,8 +1445,9 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
   .optA .plan-run-body > * { flex: none; }
   .optA .plan-run-body > .fact { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
   .optA .fact > .fact-top, .optA .fact > .fact-src { flex: none; }
-  /* rev 3 (user): task done: the result card at the top; the note, the next-task card and the buttons sit at the bottom */
-  .optA .plan-run-body > .result-card + * { margin-top: auto; }
+  /* rev 3 / 4 (user): task done: the result card grows to fill the height (its content centred), so the note, the
+     next-task card and the buttons sit at the bottom with no empty gap above them */
+  .optA .plan-run-body > .result-card { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center; align-items: center; }
   .optA .fact > .fact-src { margin-top: auto; }
   .optA .fact-scroll-wrap { position: relative; flex: 0 1 auto; min-height: 0; display: flex; }
   .optA .fact-scroll { overflow-y: auto; overscroll-behavior: contain; padding-right: var(--space-3); min-height: 0; width: 100%; }
@@ -1471,7 +1472,7 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
 <body>
 
 <div class="mock-bar">
-  <b>v2.0.0 Desktop · Mockup 6/12 · Plan Run（閱讀任務 / 任務完成）· rev 3：任務完成靠底</b>
+  <b>v2.0.0 Desktop · Mockup 6/12 · Plan Run（閱讀任務 / 任務完成）· rev 4：任務完成卡填滿高度</b>
   <div class="mock-row"><span class="lbl">語言</span><button class="mock-tab on" data-k="lang" data-v="en">EN</button><button class="mock-tab" data-k="lang" data-v="zh">中文</button><span class="lbl" style="margin-left:10px">翻譯</span><button class="mock-tab on" data-k="yue" data-v="on">開</button><button class="mock-tab" data-k="yue" data-v="off">關</button><span class="lbl" style="margin-left:10px">⚙ 大字</span><button class="mock-tab on" data-k="large" data-v="off">關</button><button class="mock-tab" data-k="large" data-v="on">開</button></div>
   <div class="mock-row"><span class="lbl">狀態</span><button class="mock-tab on" data-k="st" data-v="fact1">知識點 1 / 2</button><button class="mock-tab" data-k="st" data-v="factLast">最後一張（練習掣）</button><button class="mock-tab" data-k="st" data-v="done">任務完成</button><span class="lbl" style="margin-left:10px">記憶法</span><button class="mock-tab on" data-k="mem" data-v="closed">收起</button><button class="mock-tab" data-k="mem" data-v="open">展開</button></div>
   <div class="mock-row"><span class="lbl">縮放</span><button class="mock-tab on" data-k="zoom" data-v="fit">適合畫面</button><button class="mock-tab" data-k="zoom" data-v="100">100%</button></div>
@@ -1544,7 +1545,7 @@ const OPTIONS = [
     id: 'A', cls: 'optA', rec: true, title: 'A · 置中閱讀欄',
     ann: `<ul><li>成個畫面變做一條置中嘅閱讀欄（最闊大約 910px），同手機一樣由上至下：任務名 + 第幾張 + bar → 知識點卡 → 提示 → 上一張／下一張。</li>
       <li><b>rev 2</b>：成頁啱啱好一屏高（frame 用真實畫面高度 1024×768／1280×800）。知識點內容 + 記憶法放喺卡入面一個可以碌嘅 panel；卡底「出現於」+ 練習掣、提示、上一張／下一張永遠喺畫面底部，唔使碌落去搵。panel 下面仲有內容就有淡出效果。頂部「記憶法」toggle 可以展開試長內容。</li>
-      <li><b>rev 3</b>：任務完成：結果卡喺頂，下面「已自動計入閱讀」提示、「下一個」任務卡同兩粒掣一齊靠底。</li>
+      <li><b>rev 3–4</b>：任務完成：結果卡用盡中間嘅高度（內容垂直置中），下面「已自動計入閱讀」提示、「下一個」任務卡同兩粒掣靠底，中間冇空位。</li>
       <li>好處：閱讀嘅嘢一行唔會太長（大約 80–90 個英文字母），眼唔使左右走；完成卡都係置中，似「一頁紙」。弱點：兩邊有留白，冇「用盡畫面」；但呢個畫面只係睇一張卡，加闊反而難讀。</li></ul>`,
     vh: { 1024: 768, 1280: 800 },
     render: p => `<div class="run-wrap">${p.header}<div class="${p.bodyCls}">${p.done ? p.all : p.factScroll()}</div></div>`,
