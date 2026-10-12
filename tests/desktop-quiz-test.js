@@ -189,6 +189,45 @@ async function checkFocusKept(b) {
   await page.close();
 }
 
+// W-378: Answer / Similar is a full ARIA tab pattern (← → wrap, Home, End; roving tabindex)
+async function checkTabKeys(b) {
+  const { page, errors } = await dt.openDesktop(b, { viewport: dt.VIEWPORTS.wide });
+  await startSet(page, 'practice', EXAM_ONE);
+  assert(await goToSimilarQuestion(page), 'found a question with similar questions');
+  await answerCurrent(page);
+  const tabState = () => page.evaluate(() => ['quizTabAnswer', 'quizTabSimilar'].map(id => {
+    const el = byId(id);
+    return `${el.getAttribute('aria-selected')}/${el.tabIndex}${document.activeElement === el ? '*' : ''}`;
+  }).join(' '));
+  assert(await tabState() === 'true/0 false/-1', 'W-378: roving tabindex, the chosen tab 0, the other -1: ' + await tabState());
+  await page.focus('#quizTabAnswer');
+  await page.keyboard.press('ArrowRight');
+  assert(await tabState() === 'false/-1 true/0*' && await visible(page, '#similarBox'), 'W-378 → moves to Similar, selects it and focuses it: ' + await tabState());
+  await page.keyboard.press('ArrowRight');
+  assert(await tabState() === 'true/0* false/-1' && await visible(page, '#answerBox'), 'W-378 → on the last tab wraps to Answer: ' + await tabState());
+  await page.keyboard.press('ArrowLeft');
+  assert(await tabState() === 'false/-1 true/0*', 'W-378 ← on the first tab wraps to Similar: ' + await tabState());
+  await page.keyboard.press('Home');
+  assert(await tabState() === 'true/0* false/-1', 'W-378 Home: Answer: ' + await tabState());
+  await page.keyboard.press('End');
+  assert(await tabState() === 'false/-1 true/0*', 'W-378 End: Similar: ' + await tabState());
+  // a question without similar questions: one tab, arrows stay on it
+  await page.evaluate(() => {
+    const i = state.questions.findIndex((q, n) => !(n in state.revealed) && !(factOf(q) && similarGroups(q).length));
+    goToQuestion(i);
+    const q = state.questions[i];
+    state.answers[i] = [...q.a];
+    revealAnswer();
+  });
+  if (await page.evaluate(() => byId('quizTabSimilar').hidden)) {
+    await page.focus('#quizTabAnswer');
+    await page.keyboard.press('ArrowRight');
+    assert(await tabState() === 'true/0* false/-1', 'W-378 a lone Answer tab keeps focus on → : ' + await tabState());
+  }
+  assert(errors.length === 0, 'no page error: ' + errors.join(' | '));
+  await page.close();
+}
+
 // S-231: the rail's Submit is the card's ✓ on the last question: label and title from nextAction()
 async function checkSubmitLabel(b) {
   const { page, errors } = await dt.openDesktop(b, { viewport: dt.VIEWPORTS.wide });
@@ -232,6 +271,7 @@ async function checkRefit(b) {
   await checkRefit(b);
   await checkLazyDesk(b);
   await checkFocusKept(b);
+  await checkTabKeys(b);
   await checkSubmitLabel(b);
   await b.close();
   console.log('DESKTOP-QUIZ PASS');

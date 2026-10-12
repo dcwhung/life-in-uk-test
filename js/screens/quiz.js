@@ -273,6 +273,7 @@ function prevQ() {
 // exam with the timer: rail (3/12: big timer, dots 6 × 4, counts, Submit on the last question) | question + options
 // other exam sets (no dots, no answer): the question + options column alone, centred
 const QUIZ_TAB = { answer: 'answer', similar: 'similar' };
+const QUIZ_TAB_KEYS = { ArrowRight: 1, ArrowLeft: -1 }; // W-378: ← → step (and wrap); Home / End below
 let quizDesk = null; // built on the first desktop render (S-233: never on a phone)
 let quizDeskStale = true; // the question changed since the desktop parts were last filled
 let quizTab = QUIZ_TAB.answer;
@@ -319,6 +320,7 @@ function buildQuizDesk() {
   d.aside.append(d.tabs, d.paneAnswer, d.paneSimilar, d.slot);
   d.tabAnswer.addEventListener('click', () => setQuizTab(QUIZ_TAB.answer));
   d.tabSimilar.addEventListener('click', () => setQuizTab(QUIZ_TAB.similar));
+  d.tabs.addEventListener('keydown', onQuizTabKey);
   d.bar.hidden = true;
   d.cols.hidden = true;
   deskHome(moved.card).before(d.bar, d.cols); // above the card's phone place (under the notes, round row)
@@ -391,10 +393,13 @@ function renderExamSubmit(submit, idx, total) {
   submit.textContent = next.label;
   submit.title = next.title;
 }
+// W-378: roving tabindex (the chosen tab 0, the other -1) with aria-selected
 function applyQuizTab(showAnswer = !quizDeskParts().tabs.hidden) {
   const d = quizDeskParts(), onAnswer = quizTab === QUIZ_TAB.answer;
-  d.tabAnswer.setAttribute('aria-selected', String(onAnswer));
-  d.tabSimilar.setAttribute('aria-selected', String(!onAnswer));
+  [[d.tabAnswer, onAnswer], [d.tabSimilar, !onAnswer]].forEach(([tab, chosen]) => {
+    tab.setAttribute('aria-selected', String(chosen));
+    tab.tabIndex = chosen ? 0 : -1;
+  });
   d.paneAnswer.hidden = !showAnswer || !onAnswer;
   d.paneSimilar.hidden = !showAnswer || onAnswer;
 }
@@ -403,6 +408,22 @@ function setQuizTab(tab) {
   quizTab = tab;
   applyQuizTab();
   if (typeof refreshFades === 'function') refreshFades(byId('screenQuiz'));
+}
+// W-378 (WAI-ARIA tabs, automatic activation): ← / → move to the previous / next shown tab (wrapping), Home / End
+// to the first / last; the tab moved to is chosen and focused
+function onQuizTabKey(e) {
+  const d = quizDeskParts();
+  const tabs = [[d.tabAnswer, QUIZ_TAB.answer], [d.tabSimilar, QUIZ_TAB.similar]].filter(([tab]) => !tab.hidden);
+  const at = tabs.findIndex(([tab]) => tab === document.activeElement);
+  if (at < 0) return;
+  let to;
+  if (e.key in QUIZ_TAB_KEYS) to = (at + QUIZ_TAB_KEYS[e.key] + tabs.length) % tabs.length;
+  else if (e.key === 'Home') to = 0;
+  else if (e.key === 'End') to = tabs.length - 1;
+  else return;
+  e.preventDefault();
+  setQuizTab(tabs[to][1]);
+  tabs[to][0].focus();
 }
 function syncExamTimerCopy() {
   if (!quizDesk) return; // not built yet: renderQuizDesk copies it on the first render
