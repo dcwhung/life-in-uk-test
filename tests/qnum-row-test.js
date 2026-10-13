@@ -16,23 +16,22 @@ const { assert } = dt;
 
 const EXAM_ONE = 1;
 const MOVE_SLACK_PX = 0.5;
-const ORDER_SEED = 20261013;
 // phone sizes below the 390 one the desktop helpers know: the smallest phone (iPhone SE 1st gen) and a common Android
 const SMALLEST = { width: 320, height: 568 };
 const ANDROID = { width: 360, height: 640 };
 // W-071 / S-256 (user 2026-10-13 accepted 320 large text as an exception): at 320 × 568 in large text some questions
 // cannot keep the stars on the counter's line in every state, even with the tiny counter and the short "Hide" / 隱藏:
 // - English, translation on: all of them, before Translate is pressed (the "Translate" button is the widest control)
-// - 中文: a few, once answered (the quick ← →) or throughout an exam; which ones follows their stars and their number
-//   ("14/24 題" is wider than "4/24 題")
-// knownWrap locks them in by question key (qKey "exam.origIdx"); practice order is seeded (ORDER_SEED) so each key keeps
-// its number from run to run. A wrap outside the list fails; a listed question that no longer wraps is only logged (the
-// list can be narrowed). 'all': any question may wrap. A listed question may only have its stars drop below the
-// counter (and #qText move with them); the counter itself stays one line and the same in every state.
-// Taken from a run of this suite at v2.0.5 with 中文 "隱藏" (W-071; "隱藏翻譯" wrapped all 24 中文 questions)
+// - 中文: a few, once answered (the quick ← →) or throughout an exam; which ones follows the number's digits and their
+//   glyphs ("14/24 題" is wider than "4/24 題"), not the question: any question at number 24 wraps (v2.1.2 review S-260)
+// knownWrap locks them in by question number (i + 1), so practice keeps its real random order. A wrap outside the list
+// fails; a listed number that no longer wraps is only logged (the list can be narrowed). 'all': any number may wrap.
+// A listed number may only have its stars drop below the counter (and #qText move with them); the counter itself
+// stays one line and the same in every state.
+// Taken from runs of this suite at v2.1.2 with 中文 "隱藏" (W-071; "隱藏翻譯" wrapped all 24 中文 questions)
 const KNOWN_EN = 'all'; // user 2026-10-13: 320 exception accepted
-const KNOWN_ZH = ['1.0', '1.1', '1.9', '1.10', '1.20']; // Q20, Q24, Q23, Q14, Q22 in the seeded order; translation on or off
-const KNOWN_ZH_EXAM = ['1.13', '1.19', '1.21', '1.22', '1.23']; // exam order: Q14, Q20, Q22, Q23, Q24
+const KNOWN_ZH = [14, 20, 22, 23, 24]; // translation on or off, practice (random order) and exam alike
+const KNOWN_ZH_EXAM = KNOWN_ZH;
 const CASES = [
   { viewport: dt.VIEWPORTS.tiny, lang: 'en', fontSize: 'large', translation: true },
   { viewport: dt.VIEWPORTS.phone, lang: 'en', fontSize: 'large', translation: false },
@@ -100,35 +99,28 @@ function stateMisses(n, states, known = false) {
   });
   return misses;
 }
-const isKnownWrap = (knownWrap, key) => knownWrap === 'all' || (knownWrap || []).includes(key);
+const isKnownWrap = (knownWrap, n) => knownWrap === 'all' || (knownWrap || []).includes(n);
 
 async function checkCase(b, { viewport, lang, fontSize, translation, mode = 'practice', full, knownWrap }) {
   const opened = await dt.openDesktop(b, { viewport, lang, fontSize, translation });
   const { page, errors } = opened, label = `${opened.label} ${mode}`;
-  await page.evaluate(([m, n, seed]) => {
-    // practice shuffles: a seeded Math.random (mulberry32) keeps each question at the same number on every run, so
-    // a known exception (whose wrap depends on its number's digits too) stays put
-    let a = seed;
-    Math.random = () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
-    pendingMode = m; startExam(n);
-  }, [mode, EXAM_ONE, ORDER_SEED]);
+  await page.evaluate(([m, n]) => { pendingMode = m; startExam(n); }, [mode, EXAM_ONE]);
   const count = await page.evaluate(() => state.questions.length);
-  const misses = [], wrapped = [], tiers = {}, numbers = {};
+  const misses = [], wrapped = [], tiers = {};
   let fullCount = 0;
   for (let i = 0; i < count; i++) {
-    const key = await page.evaluate(n => qKey(state.questions[n]), i);
+    const n = i + 1, key = await page.evaluate(at => qKey(state.questions[at]), i);
     const states = await questionStates(page, i, translation && mode === 'practice');
-    misses.push(...stateMisses(i + 1, states, isKnownWrap(knownWrap, key)));
-    if (states.some(([, st]) => wraps(st))) wrapped.push(key);
-    numbers[key] = i + 1;
+    misses.push(...stateMisses(n, states, isKnownWrap(knownWrap, n)));
+    if (states.some(([, st]) => wraps(st))) wrapped.push(`Q${n}=${key}`);
     const [, first] = states[0];
     if (first.full) fullCount++;
     const tier = first.text.replace(/\d+/g, 'n');
     tiers[tier] = (tiers[tier] || 0) + 1;
   }
-  console.log(`note: ${label}: ${wrapped.length}/${count} question(s) wrap ${JSON.stringify(wrapped.map(k => `Q${numbers[k]}=${k}`))}; counters ${JSON.stringify(tiers)}`);
+  console.log(`note: ${label}: ${wrapped.length}/${count} question(s) wrap ${JSON.stringify(wrapped)}; counters ${JSON.stringify(tiers)}`);
   if (Array.isArray(knownWrap)) {
-    const gone = knownWrap.filter(key => !wrapped.includes(key));
+    const gone = knownWrap.filter(n => !wrapped.some(w => w.startsWith(`Q${n}=`)));
     if (gone.length) console.log(`note: ${label}: known exception(s) ${JSON.stringify(gone)} no longer wrap; the knownWrap list can be narrowed`);
   }
   const what = knownWrap ? `outside the known exceptions (${knownWrap === 'all' ? 'all, user 2026-10-13' : knownWrap.length})` : 'every question';
