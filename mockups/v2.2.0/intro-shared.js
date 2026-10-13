@@ -175,7 +175,9 @@ const Mock = (() => {
     document.documentElement.lang = state.lang === 'zh' ? 'zh-HK' : 'en';
     const root = view('loading');
     opts.renderLoading(root, ctx());
-    later(() => (state.firstRun ? showIntro() : showHome(t().home.toastReturning)), opts.loadingMs || MOCK_LOADING_MS);
+    // loadingMs may be a function: the option decides after renderLoading (e.g. wait for the picked animation to finish)
+    const ms = typeof opts.loadingMs === 'function' ? opts.loadingMs(state) : (opts.loadingMs || MOCK_LOADING_MS);
+    later(() => (state.firstRun ? showIntro() : showHome(t().home.toastReturning)), ms);
   }
 
   function showIntro() {

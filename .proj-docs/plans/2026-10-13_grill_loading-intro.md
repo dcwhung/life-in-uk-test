@@ -62,3 +62,14 @@ Mockup：`mockups/v2.2.0/intro-index.html`（入口）、`intro-a-classic.html`�
 - ③ 卡片扇：扇開後四張卡按次序逐張淡出。
 - ④ 進度環：12 點計劃、3 點溫習、6 點練習、9 點考試。
 - rev 10：③ 卡片扇只播一次，四張卡按次序淡出後停，淨低 logo。
+
+## ✅ 決定（2026-10-13）
+| 項目 | 決定 |
+|---|---|
+| 方案 | B（輕鬆卡片） |
+| Loading logo 動畫 | 每次開 app 隨機抽：③ 卡片扇 : ④ 進度環 = 3 : 1（① 軌道、② 波紋只留喺 mock 參考） |
+| 幾時入 app | 等動畫播完先入：max(載入時間, 動畫時間)。卡片扇約 3.1 秒淡晒 + 0.3 秒停留；進度環 4 秒一圈 + 0.3 秒 |
+| 重看介紹 | ⓘ info-pop badge 下面加「▶ 重看介紹 NEW … 播放 ›」一行 |
+| icon 次序 | 🗓️ 計劃、📖 溫習、📝 練習、🎯 考試 |
+
+下一步：`/plan` 出實作計劃（splash overlay、`lifeuk.introSeen`、intro screen、info-pop 行、i18n、SW SHELL、測試）。
