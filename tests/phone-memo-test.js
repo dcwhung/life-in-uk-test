@@ -1,4 +1,4 @@
-// v2.1.0 memory-note screens on a phone (390 × 844; mockup mockups/v2.0.0/desktop-memo.html rev 6, decision log
+// v2.2.0 memory-note screens on a phone (390 × 844; mockup mockups/v2.0.0/desktop-memo.html rev 6, decision log
 // .proj-docs/plans/2026-10-13_grill_desktop-memo.md):
 // - pill row per question (shared with the desktop): ".tag #n" · ".tag <icon> Ch c" (lang en) · ".sqm-node" E·Q (copies
 //   joined " = ", mastery colours); in the group's questions, the result's wrong questions and the single-note group
@@ -126,7 +126,7 @@ async function checkPhoneResult(b) {
 }
 
 // the Study memo list on a phone: 2 columns (badge top right, bar at the foot); the due banner sticks under the header
-// with a gap the page's grey fills (scrolled cards never show in it). EN / 中 × small / large text
+// and the pinned tabs, and no scrolled card shows above it. EN / 中 × small / large text
 const MEMO_LS = 'lifeuk.memoProgress';
 const PHONE_SCROLL = 900;
 const BG_SLACK = 3; // colour channels, screenshot rounding
@@ -145,15 +145,11 @@ async function checkPhoneList(b) {
     await page.evaluate(y => window.scrollTo(0, y), PHONE_SCROLL);
     await dt.nextFrame(page);
     const after = await dt.memoListLayout(page);
-    const gap = await page.evaluate(() => {
-      const probe = document.createElement('div'); probe.style.cssText = 'position:absolute;width:var(--space-4)';
-      document.body.appendChild(probe);
-      const out = { space: probe.getBoundingClientRect().width };
-      probe.remove();
-      return { ...out, scrollY: window.scrollY };
-    });
-    assert(gap.scrollY > 0 && Math.abs(after.due.top - (after.header.bottom + gap.space)) <= 1,
-      `${label} list: page scrolled ${gap.scrollY}px, the banner sticks ${gap.space}px under the header (${after.due.top.toFixed(1)})`);
+    // v2.2.0 merge: Study's tabs + chip rows are pinned under the header (v1.6.1 .study-top); the banner sticks right
+    // under that block, whose --bg bottom margin is the gap
+    const gap = await page.evaluate(() => ({ scrollY: window.scrollY, block: document.querySelector('#screenStudy .study-top').getBoundingClientRect().bottom }));
+    assert(gap.scrollY > 0 && Math.abs(after.due.top - gap.block) <= 1 && gap.block > after.header.bottom,
+      `${label} list: page scrolled ${gap.scrollY}px, the banner sticks under the pinned tabs (${after.due.top.toFixed(1)} / ${gap.block.toFixed(1)})`);
     // the gap paints the same with the cards hidden: only the page grey (and the header's own shadow) shows there
     const [y0, y1] = [Math.ceil(after.header.bottom), Math.floor(after.due.top) - 1];
     const band = await dt.bandColours(page, y0, y1);

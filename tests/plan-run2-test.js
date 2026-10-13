@@ -123,7 +123,7 @@ async function checkRead(pg) {
   const before = await storage(pg);
   await tap(pg, taskBox(TODAY, ri));
   let v = await runView(pg);
-  assert(v.screen === 'screenPlanRun' && v.label === `Chapter ${task.ch}` && v.badge === 'Study' && v.back === "← Today's tasks",
+  assert(v.screen === 'screenPlanRun' && v.label === `Chapter ${task.ch}` && v.badge === 'Study' && v.back === "Today's tasks",
     `reading: #screenPlanRun, "Chapter ${task.ch}" · Study, ← Today's tasks`);
   assert(v.meta.endsWith(`Fact 1 of ${n}`) && v.meta.startsWith(`Read Ch ${task.ch}`), 'top line: task · Fact 1 of n: ' + v.meta);
   assert(Number(v.fact) === task.facts[0] && v.note === '', 'the first fact\'s Study card, no review note');
@@ -135,7 +135,7 @@ async function checkRead(pg) {
   });
   assert(card.star && card.src && card.en && card.practise === 'planPractiseFact', 'factCardHtml: bookmark / mastered, source nodes, ▶ Practise for the plan');
   assert(card.meter === `${Math.round(100 / n)}%`, 'position bar sized from JS: ' + card.meter);
-  assert(v.nav[0].disabled && v.nav[0].text === '← Prev' && v.nav[1].text === 'Next →', 'nav-row: ← Prev (disabled on the first) / Next →');
+  assert(v.nav[0].disabled && v.nav[0].text === 'Prev' && v.nav[1].text === 'Next', 'nav-row: ← Prev (disabled on the first) / Next →');
   for (const s of ['#planRunBack', '#planRunBody .plan-run-nav [data-arg="1"]', '#planRunBody .fact-practise']) assert(await hitOk(pg, s), `${s}: ${HIT_MIN_PX}px`);
   await tap(pg, '#planRunBody .plan-run-nav [data-arg="1"]');
   v = await runView(pg);
@@ -158,7 +158,7 @@ async function checkRead(pg) {
     back: document.querySelector('#screenQuiz .back-btn').textContent }), fid);
   assert(s.screen === 'screenQuiz' && s.plan && s.day === TODAY && JSON.stringify(s.keys) === JSON.stringify(s.want),
     `▶ Practise: a plan session over the fact's ${s.want.length} questions, for today`);
-  assert(/^Fact Ch \d #\d+$/.test(s.label) && s.back === "← Today's tasks", 'header: Fact Ch c #n · ← Today\'s tasks: ' + s.label);
+  assert(/^Fact Ch \d #\d+$/.test(s.label) && s.back === "Today's tasks", 'header: Fact Ch c #n · ← Today\'s tasks: ' + s.label);
   await playAllRight(pg);
   v = await runView(pg);
   assert(v.screen === 'screenPlanRun' && Number(v.fact) === fid && v.meta.endsWith(`Fact 1 of ${n}`), 'finished: back on the same fact');
@@ -174,7 +174,7 @@ async function checkRead(pg) {
   v = await runView(pg);
   const pair = p.days[0].tasks[task.pair];
   const left = pair.qids.filter(k => !log.ok[k]).length;
-  assert(v.nav[1].action === 'planOpenTask' && v.nav[1].text === `Practise these ${left} →`, `last fact: "Practise these ${left} →": ` + v.nav[1].text);
+  assert(v.nav[1].action === 'planOpenTask' && v.nav[1].text === `Practise these ${left}`, `last fact: "Practise these ${left} →": ` + v.nav[1].text);
   await tap(pg, '#planRunBody .plan-run-nav [data-action="planOpenTask"]');
   const q = await pg.evaluate(() => ({ plan: isPlanSession(), task: sessionReturn.taskIndex, type: sessionReturn.type, pair: !byId('planPairNote').hidden }));
   assert(q.plan && q.task === task.pair && q.type === 'practice' && q.pair, 'the paired practice task runs (with its "matching facts" note)');
@@ -184,7 +184,7 @@ async function checkRead(pg) {
   assert((await runView(pg)).meta.endsWith(`Fact 2 of ${n}`), 'reopened: resumes at the first fact not yet practised right');
   await pg.evaluate(() => setLang('zh-HK'));
   v = await runView(pg);
-  assert(v.meta.includes(`第 2 條（共 ${n} 條）`) && Number(v.fact) === task.facts[1] && v.badge === '溫習' && v.nav[0].text === '← 上一條' && v.nav[1].text === '下一條 →',
+  assert(v.meta.includes(`第 2 條（共 ${n} 條）`) && Number(v.fact) === task.facts[1] && v.badge === '溫習' && v.nav[0].text === '上一條' && v.nav[1].text === '下一條',
     'zh-HK: same fact, 第 2 條（共 n 條）, 溫習, ← 上一條 / 下一條 →: ' + v.meta);
   await pg.evaluate(() => setLang('en'));
 }
@@ -201,7 +201,7 @@ async function checkReadReview(pg) {
   await openDay(pg);
   const p = await plan(pg);
   const ri = taskIndexOf(p, TODAY, t => t.type === 'read');
-  assert(await text(pg, taskBox(TODAY, ri) + ' .plan-task-go') === '✓ Review ›', 'a finished reading box: ✓ Review ›');
+  assert(await text(pg, taskBox(TODAY, ri) + ' .plan-task-go') === 'Review', 'a finished reading box: ✓ Review ›');
   const before = await storage(pg);
   await tap(pg, taskBox(TODAY, ri));
   let v = await runView(pg);
@@ -209,7 +209,7 @@ async function checkReadReview(pg) {
     'review: the done note, no ▶ Practise');
   await pg.evaluate(() => { planRunView.pos = planLoad().days[0].tasks.find(x => x.type === 'read').facts.length - 1; renderPlanRun(); });
   v = await runView(pg);
-  assert(v.nav[1].text === 'Finish ✓' && v.nav[1].action === 'planBackToDay', 'review: the last fact "Finish ✓" goes back');
+  assert(v.nav[1].text === 'Finish' && v.nav[1].action === 'planBackToDay', 'review: the last fact "Finish ✓" goes back');
   await tap(pg, '#planRunBody .plan-run-nav [data-action="planBackToDay"]');
   assert(await activeScreen(pg) === 'screenPlanDay' && await storage(pg) === before, 'back on the day; review wrote nothing');
 }
@@ -249,7 +249,7 @@ async function checkWrongFacts(pg) {
   const cta = await pg.evaluate(() => { const b = document.querySelector('#planRunBody .sqm-cta button'); return [b.dataset.action, b.dataset.arg, b.textContent]; });
   const n0 = await pg.evaluate(id => planFactQids(planFactById(id)).length, task.facts[0]);
   assert(cta[0] === 'planPractiseFact' && Number(cta[1]) === task.facts[0], 'CTA practises the fact for the plan (not a Similar session)');
-  assert(cta[2] === (n0 === 1 ? '▶ Practise this one' : `▶ Practise these ${n0}`), 'CTA counts the questions it asks: ' + cta[2]);
+  assert(cta[2] === (n0 === 1 ? 'Practise this one' : `Practise these ${n0}`), 'CTA counts the questions it asks: ' + cta[2]);
   assert(await hitOk(pg, '#planRunBody .sqm-cta button'), `CTA ${HIT_MIN_PX}px`);
   await tap(pg, '#planRunBody .sqm-cta button');
   assert(await pg.evaluate(() => isPlanSession() && state.planDay === '2026-10-06' && !byId('similarBox').querySelector('[data-action="startSimilarPractice"]')),
@@ -263,7 +263,7 @@ async function checkWrongFacts(pg) {
   v = await runView(pg);
   const log = await dayLog(pg, DRILL_TODAY);
   const left = await pg.evaluate(ids => ids.flatMap(id => planFactQids(planFactById(id))).filter(k => !planDayLog(planLoadLog(), '2026-10-06').ok[k]).length, task.facts);
-  assert(v.nav[1].action === 'planPractiseTask' && v.nav[1].text === (left === 1 ? 'Practise this one →' : `Practise these ${left} →`),
+  assert(v.nav[1].action === 'planPractiseTask' && v.nav[1].text === (left === 1 ? 'Practise this one' : `Practise these ${left}`),
     'last fact: "Practise these n →" over what is left: ' + v.nav[1].text);
   await tap(pg, '#planRunBody .plan-run-nav [data-action="planPractiseTask"]');
   const keys = await pg.evaluate(() => state.questions.map(qKey));
@@ -312,7 +312,7 @@ async function checkMock(pg) {
   let m = await mockState(pg);
   assert(m.screen === 'screenQuiz' && m.mode === 'exam' && m.exam === exam && m.n === 24 && m.timer && m.day === iso,
     `Exam mode: Exam ${exam}, 24 questions, timer, for the plan day (Home's mode was Practice)`);
-  assert(m.back === "← Today's tasks", 'header: ← Today\'s tasks');
+  assert(m.back === "Today's tasks", 'header: ← Today\'s tasks');
   // Leave = not submitted
   const before = await storage(pg);
   await tap(pg, '#screenQuiz .back-btn');

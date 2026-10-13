@@ -38,7 +38,7 @@ function similarLegendHtml() {
 function similarCtaHtml(groups, cta) {
   const { action, arg, n } = cta || { action: 'startSimilarPractice', n: groups.length };
   const argAttr = arg === undefined ? '' : ` data-arg="${escapeHtml(arg)}"`;
-  return `<div class="sqm-cta"><button data-action="${action}"${argAttr}>${t('similar.practise', { n })}</button></div>`;
+  return `<div class="sqm-cta">${iconButtonHtml('', ` data-action="${action}"${argAttr}`, t('similar.practise', { n }), PRACTISE_ICONS)}</div>`;
 }
 // legend, item cards (q first when standalone) and the practise button; '' when there is no item
 function similarListHtml(q, groups, { practise, cta, currentMark }) {

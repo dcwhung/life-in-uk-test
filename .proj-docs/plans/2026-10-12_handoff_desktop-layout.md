@@ -126,7 +126,7 @@ Mockup 嘅做法：每個 frame 用 `.app { --k: 1.2; --lg: 0px; --fs-x: calc((N
 
 - Repo 慣例：`claude/*` branch → PR 入 `main`（merge commit），冇 `develop`。開發用 session 指定嘅 branch。
 - PR description 一定要有：`Design Origin: mockup: mockups/v2.0.0/desktop-*.html`（Design-Source Binding Rule）。
-- 實作完、用戶確認之後，跟以前慣例喺之後嘅 PR 刪走 mockup（溫習計劃 mockup 喺 PR8 刪，G18），並喺 `HANDOFF.md` 記錄。
+- ~~實作完、用戶確認之後，跟以前慣例喺之後嘅 PR 刪走 mockup（溫習計劃 mockup 喺 PR8 刪，G18）~~ **用戶 2026-10-13 決定保留 `mockups/v2.0.0/`**（唔刪，作為 desktop 設計參考），已喺 `HANDOFF.md` file 結構記錄。
 - Merge 之後更新 `HANDOFF.md`（版本記錄、file 結構、desktop 規則）。
 
 ---
@@ -137,7 +137,7 @@ Mockup 嘅做法：每個 frame 用 `.app { --k: 1.2; --lg: 0px; --fs-x: calc((N
 |---|---|---|
 | O1 | 版本號用 v2.0.0 定 v1.5.0？ | Mockup 用 v2.0.0 命名，但 `HANDOFF.md` SemVer 規則講明 major 只用喺大改／唔兼容（例如 localStorage 要遷移）。呢次冇 data 改動，照規則應該係 minor |
 | O2 | 一個 PR 太大，可唔可以分做幾個 commit 階段 review？ | Q8 定咗一個 PR。建議 PR 入面按「token／header → 各畫面 → 浮層 → test」分 commit |
-| O3 | Mockup 幾時刪？ | 建議同 PR 一齊刪，或者 merge 後下一個 PR 刪 |
+| O3 | Mockup 幾時刪？ | 建議同 PR 一齊刪，或者 merge 後下一個 PR 刪。**已決定（2026-10-13）：保留，唔刪** |
 
 ---
 
@@ -157,7 +157,7 @@ Mockup 嘅做法：每個 frame 用 `.app { --k: 1.2; --lg: 0px; --fs-x: calc((N
 |---|---|---|---|
 | 主頁計劃卡 | F7（`desktop-home-plan.html`）：計劃名 · Day → 下一步 → 倒數時間軸 + ring + 兩粒掣；字眼跟 mockup：「繼續今日任務 →」（`plan.home.continueToday`）、全部做完「✓ 今日已完成，明日再來」（`plan.home.doneHtml`，因為 F7 ring 顯示 %，唔係 ✓） | v1.5.1 精簡卡：ring 喺標題 + 倒數旁邊（`.plan-home-head`、`.has-ring`）、「繼續 →」、做完「明日再來」 | `planHome.js`：手機 ring = `planHomeRingHtml` / `.plan-home-ring`（main 原樣）；F7 ring 改名 `planHomeDeskRingHtml` / `.plan-home-desk-ring`，兩個 ring 嘅 CSS 唔再撞（main 嘅 `.plan-home-ring circle { stroke-width: 7 }` 唔會落到 F7）。跨 1024 由 `home.js` 重畫張卡（`planCardDrawnForDesktop`，原有機制）。desktop `.plan-home-acts` 用返 `justify-content: flex-start`（唔跟 v1.5.0 手機嘅 flex-end） |
 | Study tab | 2 + 2 + 1：保留 2 × 2，🧠 記憶法自己一行橫跨左欄全闊 | main 原樣：5 個 tab 一行（`grid-auto-flow: column`） | `css/screens/study.css`：`.study-rail .study-tabs { grid-auto-flow: row }` + `.study-tab[data-tab="memo"] { grid-column: 1 / -1 }`。記憶法 tab 冇篩選 chip（行收埋），chapter chip 跟 sub chip 規則 |
-| 記憶法畫面 `#screenMemo` | **Design Origin: `mockup: mockups/v2.0.0/desktop-memo.html (rev 6)`**（v2.1.0；v2.0.0 係 `baseline: Plan Run desktop 置中欄（用戶 2026-10-12 決定，冇 mockup）`；決定 log `2026-10-13_grill_desktop-memo.md`）：一屏高（`.is-fit`）；頂行 ‹ 記憶法 + 組名｜① 睇／② 試；① 睇 左 7/12 記憶鈎 + 筆記 panel、右 5/12 題組問題 panel，「記住咗，開始試」對齊右欄；單題組 C 一張白卡置中（760px × `--desktop-scale`）；結果 B 左 5/12 成績卡 + 掣貼底、右 7/12 錯題／記憶鈎 panel；panel 各自碌、card 色淡出；字同間距 token ×1.2，寫死 px ×1.2 | v2.1.0：一屏高（`.is-fit-phone`，高度 ≥ 500px）：記憶鈎固定、筆記 + 題組問題（`<details>` 收埋）／成績 + 錯題喺一個 panel 碌，掣貼底 | `js/screens/memo.js`（`renderMemo` 按 layout 畫，`fitMemo` 跨 1024 重畫）、`css/screens/memo.css`、`css/components/fit.css`。由 Study 開組再 ‹ 返嚟：desktop 記住卡 panel 嘅位（`studyScrollTop` / `setStudyScroll`），手機照舊記頁面 scroll |
+| 記憶法畫面 `#screenMemo` | **Design Origin: `mockup: mockups/v2.0.0/desktop-memo.html (rev 6)`**（v2.2.0；v2.0.0 係 `baseline: Plan Run desktop 置中欄（用戶 2026-10-12 決定，冇 mockup）`；決定 log `2026-10-13_grill_desktop-memo.md`）：一屏高（`.is-fit`）；頂行 ‹ 記憶法 + 組名｜① 睇／② 試；① 睇 左 7/12 記憶鈎 + 筆記 panel、右 5/12 題組問題 panel，「記住咗，開始試」對齊右欄；單題組 C 一張白卡置中（760px × `--desktop-scale`）；結果 B 左 5/12 成績卡 + 掣貼底、右 7/12 錯題／記憶鈎 panel；panel 各自碌、card 色淡出；字同間距 token ×1.2，寫死 px ×1.2 | v2.2.0：一屏高（`.is-fit-phone`，高度 ≥ 500px）：記憶鈎固定、筆記 + 題組問題（`<details>` 收埋）／成績 + 錯題喺一個 panel 碌，掣貼底 | `js/screens/memo.js`（`renderMemo` 按 layout 畫，`fitMemo` 跨 1024 重畫）、`css/screens/memo.css`、`css/components/fit.css`。由 Study 開組再 ‹ 返嚟：desktop 記住卡 panel 嘅位（`studyScrollTop` / `setStudyScroll`），手機照舊記頁面 scroll |
 | Flagged | Flagged B（panel 碌）；v1.4.4 嘅 pinned block 喺 desktop 關咗：`.flagged-top` static、冇負 margin、`scroll-padding-top: auto`（ResizeObserver 照行，`--flagged-top-h` 冇人用） | v1.4.4 原樣：`.flagged-top` sticky | `css/screens/flagged.css` desktop block |
 | 版本 | `APP_VERSION = '2.0.0'` | | |
 

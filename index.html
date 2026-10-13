@@ -40,7 +40,7 @@
     <div class="logo">
       <img class="logo-icon" src="icons/icon.svg" alt="" width="36" height="36">
       <div>
-        <div class="logo-text"><span data-i18n="app.name"></span> <button class="info-btn" id="infoBtn" data-i18n-attr="aria-label:app.about" aria-expanded="false" data-action="toggleInfo">ⓘ</button></div>
+        <div class="logo-text"><span data-i18n="app.name"></span> <button class="info-btn" id="infoBtn" data-i18n-attr="aria-label:app.about" aria-expanded="false" data-action="toggleInfo" data-icon="info"></button></div>
         <div class="logo-sub"><span data-i18n="app.sub"></span> <span class="app-version" id="appVersion"></span></div>
       </div>
     </div>
@@ -103,7 +103,7 @@
         <span data-i18n="app.installText"></span>
       </div>
       <button class="install-btn" id="installBtn" data-action="install" data-i18n="app.installButton"></button>
-      <button class="install-close" data-action="dismissInstall" data-i18n-attr="aria-label:app.installDismiss;title:app.installDismiss">✕</button>
+      <button class="install-close" data-action="dismissInstall" data-i18n-attr="aria-label:app.installDismiss;title:app.installDismiss" data-icon="close"></button>
     </div>
 
     <div class="section-title" data-i18n="home.chooseMode"></div>
@@ -155,11 +155,11 @@
 
     <div class="reset-row" id="practiceReset">
       <div class="reset-hint reset-hint-list" id="practiceHint"></div>
-      <button class="reset-btn" data-action="resetPracticeProgress" data-i18n="home.resetProgress"></button>
+      <button class="reset-btn with-icon" data-action="resetPracticeProgress"><span data-icon-slot="reset"></span><span class="icon-label" data-i18n="home.resetProgress"></span></button>
     </div>
     <div class="reset-row" id="examReset">
       <span class="reset-hint" data-i18n="home.examResetHint"></span>
-      <button class="reset-btn" data-action="resetCompletedExams" data-i18n="home.resetCompleted"></button>
+      <button class="reset-btn with-icon" data-action="resetCompletedExams"><span data-icon-slot="reset"></span><span class="icon-label" data-i18n="home.resetCompleted"></span></button>
     </div>
 
   </div>
@@ -187,16 +187,19 @@
 
     <input class="study-search" id="studySearch" type="search" data-i18n-attr="placeholder:study.search" data-input-action="studySetSearch">
 
-    <div class="study-tabs" id="studyTabs">
-      <button class="study-tab" data-tab="chapters" data-action="studySetTab" data-arg="chapters"><span class="tab-ic" aria-hidden="true">📚</span><span data-i18n="study.tabChapters"></span></button>
-      <button class="study-tab" data-tab="timeline" data-action="studySetTab" data-arg="timeline"><span class="tab-ic" aria-hidden="true">📅</span><span data-i18n="study.tabTimeline"></span></button>
-      <button class="study-tab" data-tab="geo" data-action="studySetTab" data-arg="geo"><span class="tab-ic" aria-hidden="true">🗺️</span><span data-i18n="study.tabGeo"></span></button>
-      <button class="study-tab" data-tab="people" data-action="studySetTab" data-arg="people"><span class="tab-ic" aria-hidden="true">👤</span><span data-i18n="study.tabPeople"></span></button>
-      <button class="study-tab" data-tab="memo" data-action="studySetTab" data-arg="memo"><span class="tab-ic" aria-hidden="true">🧠</span><span data-i18n="study.tabMemo"></span></button>
-    </div>
+    <!-- v1.6.1: tabs + chip rows pinned under the app header; the list scrolls under them (css/screens/study.css .study-top) -->
+    <div class="study-top">
+      <div class="study-tabs" id="studyTabs">
+        <button class="study-tab" data-tab="chapters" data-action="studySetTab" data-arg="chapters"><span class="tab-ic" aria-hidden="true">📚</span><span data-i18n="study.tabChapters"></span></button>
+        <button class="study-tab" data-tab="timeline" data-action="studySetTab" data-arg="timeline"><span class="tab-ic" aria-hidden="true">📅</span><span data-i18n="study.tabTimeline"></span></button>
+        <button class="study-tab" data-tab="geo" data-action="studySetTab" data-arg="geo"><span class="tab-ic" aria-hidden="true">🗺️</span><span data-i18n="study.tabGeo"></span></button>
+        <button class="study-tab" data-tab="people" data-action="studySetTab" data-arg="people"><span class="tab-ic" aria-hidden="true">👤</span><span data-i18n="study.tabPeople"></span></button>
+        <button class="study-tab" data-tab="memo" data-action="studySetTab" data-arg="memo"><span class="tab-ic" aria-hidden="true">🧠</span><span data-i18n="study.tabMemo"></span></button>
+      </div>
 
-    <div class="chip-row" id="studyChips"></div>
-    <div class="chip-row" id="studySubChips" hidden></div>
+      <div class="chip-row" id="studyChips"></div>
+      <div class="chip-row" id="studySubChips" hidden></div>
+    </div>
     <div class="study-count" id="studyCount"></div>
     <div id="studyContent"></div>
   </div>
@@ -205,7 +208,7 @@
        session on the quiz screen) → result + next review day. The title, steps and body are filled by JS -->
   <div class="screen" id="screenMemo">
     <div class="quiz-header memo-header">
-      <button class="back-btn memo-back" type="button" data-action="memoBack" data-i18n="memo.backButton"></button>
+      <button class="back-btn memo-back with-icon" type="button" data-action="memoBack"><span data-icon-slot="chevronLeft"></span><span class="icon-label" data-i18n="memo.backButton"></span></button>
       <h2 class="memo-title" id="memoTitle" lang="zh-HK" tabindex="-1"></h2>
     </div>
     <div class="memo-steps" id="memoSteps" aria-hidden="true"></div>
@@ -238,8 +241,8 @@
         <button class="yue-toggle" id="yueToggle" data-action="toggleQuestionYue"></button>
         <!-- once answered: quick Prev / Next in the Translate spot (mirrors the bottom buttons) -->
         <span class="quick-nav" id="quickNav">
-          <button class="quick-btn" id="quickPrev" data-i18n-attr="title:quiz.previous;aria-label:quiz.previous" data-action="prevQ">←</button>
-          <button class="quick-btn primary" id="quickNext" data-action="next">→</button>
+          <button class="quick-btn" id="quickPrev" data-i18n-attr="title:quiz.previous;aria-label:quiz.previous" data-action="prevQ" data-icon="arrowLeft"></button>
+          <button class="quick-btn primary" id="quickNext" data-action="next"></button>
         </span>
       </div>
       <!-- W-014: question content stays English (Q1) whatever <html lang> says; the translation is Cantonese -->
@@ -263,7 +266,7 @@
     <p class="plan-note plan-run-note" id="planPairNote" hidden></p>
 
     <div class="nav-row">
-      <button class="nav-btn secondary" id="prevBtn" data-action="prevQ" data-i18n="quiz.prevButton"></button>
+      <button class="nav-btn secondary with-icon" id="prevBtn" data-action="prevQ"><span data-icon-slot="arrowLeft"></span><span class="icon-label" data-i18n="quiz.prevButton"></span></button>
       <button class="nav-btn" id="nextBtn" data-action="next"></button>
     </div>
 
@@ -334,7 +337,8 @@
             <div class="chip-row plan-presets" id="planDaysChips" data-fit-row=".chip"></div>
             <label class="plan-date-pick" for="planExamDate"><span data-i18n="plan.goal.orDate"></span> <input type="date" id="planExamDate" data-input-action="planSetExamDate" data-blur-action="planCommitExamDate"></label>
           </div>
-          <p class="plan-muted" id="planDateNote" data-i18n="plan.goal.editDateNote" hidden></p>
+          <!-- W-382: kept empty for a cached pre-v2.1.0 planGoal.js, which still toggles it (G36 note retired, CUI-0038); remove after v2.2 -->
+          <p class="plan-muted" id="planDateNote" hidden></p>
         </div>
       </div>
 
@@ -387,8 +391,9 @@
       </div>
 
       <!-- v1.0.4: the phases / order cards fold (planSchedule.js planToggleFold); the whole title is the toggle -->
+      <!-- CUI-0038: the phase title and the Daily tasks legend follow the plan's phases (planSchedule.js renderPlanPhaseCount) -->
       <div class="plan-card-box plan-fold">
-        <h3><button type="button" class="plan-fold-btn" id="planPhasesToggle" data-action="planToggleFold" data-arg="phases" aria-expanded="true" aria-controls="planStrategy"><span data-i18n="plan.schedule.phasesTitle"></span><span class="plan-fold-chev" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 6l4.5 4.5L12.5 6"></path></svg></span></button></h3>
+        <h3><button type="button" class="plan-fold-btn" id="planPhasesToggle" data-action="planToggleFold" data-arg="phases" aria-expanded="true" aria-controls="planStrategy"><span id="planPhasesTitle" data-i18n="plan.schedule.phasesTitle"></span><span class="plan-fold-chev" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 6l4.5 4.5L12.5 6"></path></svg></span></button></h3>
         <div class="plan-phase-bar" id="planPhaseBar" role="list" aria-hidden="true"></div>
         <div class="plan-strats" id="planStrategy"></div>
       </div>
@@ -405,15 +410,15 @@
       <div class="plan-card-box">
         <div class="plan-row">
           <h3 id="planDayListTitle" data-i18n="plan.schedule.listTitle"></h3>
-          <span class="plan-legend" aria-hidden="true"><i class="plan-bg-learn"></i><span data-i18n="plan.phase.learn"></span><i class="plan-bg-drill"></i><span data-i18n="plan.phase.drill"></span><i class="plan-bg-mock"></i><span data-i18n="plan.phase.mock"></span></span>
+          <span class="plan-legend" id="planPhaseLegend" aria-hidden="true"><i class="plan-bg-learn"></i><span data-i18n="plan.phase.learn"></span><i class="plan-bg-drill"></i><span data-i18n="plan.phase.drill"></span><i class="plan-bg-mock"></i><span data-i18n="plan.phase.mock"></span></span>
         </div>
         <div class="plan-day-scroll" id="planDayList" tabindex="0" role="region" aria-labelledby="planDayListTitle"></div>
       </div>
 
-      <button class="nav-btn plan-block" data-action="openPlanDay" data-i18n="plan.schedule.viewToday"></button>
+      <button class="nav-btn plan-block with-icon" data-action="openPlanDay"><span class="icon-label" data-i18n="plan.schedule.viewToday"></span><span data-icon-slot="arrowRight"></span></button>
       <div class="reset-row show plan-reset">
         <span class="reset-hint" data-i18n="plan.schedule.resetHint"></span>
-        <button class="reset-btn plan-hit" data-action="planAskReset" data-i18n="plan.schedule.reset"></button>
+        <button class="reset-btn plan-hit with-icon" data-action="planAskReset"><span data-icon-slot="reset"></span><span class="icon-label" data-i18n="plan.schedule.reset"></span></button>
       </div>
     </div>
   </div>
@@ -424,9 +429,9 @@
       <div class="quiz-header plan-day-header">
         <button class="back-btn icon-btn plan-hit" type="button" data-action="goHome" data-icon="home" data-i18n-attr="aria-label:common.homeLabel;title:common.homeLabel"></button>
         <div class="plan-day-switch">
-          <button class="quick-btn plan-hit-sq" id="planDayPrev" data-action="planShiftDay" data-arg="-1" data-i18n-attr="aria-label:plan.day.prev">‹</button>
+          <button class="quick-btn plan-hit-sq" id="planDayPrev" data-action="planShiftDay" data-arg="-1" data-i18n-attr="aria-label:plan.day.prev;title:plan.day.prev" data-icon="chevronLeft"></button>
           <h2 class="plan-day-title" id="planDayHeading" tabindex="-1"><span id="planDayTitle"></span><span class="plan-num" id="planDaySub"></span></h2>
-          <button class="quick-btn plan-hit-sq" id="planDayNext" data-action="planShiftDay" data-arg="1" data-i18n-attr="aria-label:plan.day.next">›</button>
+          <button class="quick-btn plan-hit-sq" id="planDayNext" data-action="planShiftDay" data-arg="1" data-i18n-attr="aria-label:plan.day.next;title:plan.day.next" data-icon="chevronRight"></button>
         </div>
         <button class="nav-btn secondary plan-small plan-hit icon-btn" type="button" data-action="openPlanSchedule" data-icon="calendar" data-i18n-attr="aria-label:plan.schedule.name;title:plan.schedule.name"></button>
       </div>
@@ -444,7 +449,7 @@
             <span class="plan-pill" id="planDayPhase"></span>
             <div class="plan-day-count plan-num" id="planDayCount"></div>
             <p class="plan-muted plan-day-hint" id="planDayHint"></p>
-            <button class="chip plan-hit" id="planBackToday" data-action="planShowToday" data-i18n="plan.day.backToday" hidden></button>
+            <button class="chip plan-hit with-icon" id="planBackToday" data-action="planShowToday" hidden><span data-icon-slot="arrowLeft"></span><span class="icon-label" data-i18n="plan.day.backToday"></span></button>
           </div>
         </div>
         <div class="plan-exam-banner plan-exam-pat" id="planDayExam" hidden><div class="plan-exam-text" id="planDayExamText"></div></div>
@@ -459,9 +464,9 @@
         <div class="plan-cal-nav">
           <b class="plan-num" id="planCalTitle" aria-live="polite"></b>
           <div class="plan-cal-btns" id="planCalBtns">
-            <button class="quick-btn plan-hit-sq" id="planCalPrev" data-action="planShiftMonth" data-arg="-1" data-i18n-attr="aria-label:plan.calendar.prev">‹</button>
+            <button class="quick-btn plan-hit-sq" id="planCalPrev" data-action="planShiftMonth" data-arg="-1" data-i18n-attr="aria-label:plan.calendar.prev;title:plan.calendar.prev" data-icon="chevronLeft"></button>
             <button class="chip plan-hit" id="planCalToday" data-action="planShiftMonth" data-arg="0" data-i18n="plan.calendar.today"></button>
-            <button class="quick-btn plan-hit-sq" id="planCalNext" data-action="planShiftMonth" data-arg="1" data-i18n-attr="aria-label:plan.calendar.next">›</button>
+            <button class="quick-btn plan-hit-sq" id="planCalNext" data-action="planShiftMonth" data-arg="1" data-i18n-attr="aria-label:plan.calendar.next;title:plan.calendar.next" data-icon="chevronRight"></button>
           </div>
         </div>
         <div class="plan-cal plan-num" id="planCal"></div>

@@ -85,12 +85,44 @@ function upgradeLegacyFitRows() {
     if (row && !row.dataset.fitRow) row.dataset.fitRow = textSel;
   });
 }
+// CUI-0038 (v2.1.0): a pre-v2.1.0 cached index.html still names the retired G36 date note's key: drop only the key.
+// W-382: the node stays, since a cached pre-v2.1.0 planGoal.js still toggles it (it then shows nothing)
+function removeLegacyPlanMarkup() {
+  const note = byId('planDateNote');
+  if (!note) return;
+  note.removeAttribute('data-i18n');
+  note.textContent = '';
+}
+// S-237 / v1.6.1: a pre-v1.6.1 cached index.html still has glyphs on its static controls ("←" on the quick Prev, "‹ ›" on
+// the plan arrows, "✕" on the install banner) and buttons whose data-i18n words now carry no glyph: give the icon-only
+// ones their data-icon and wrap the others' words beside a line icon slot (fillStaticIcons below fills both)
+// CUI-0035: and the header ⓘ
+const LEGACY_ICON_ONLY = [['#quickPrev', 'arrowLeft'], ['.install-close', 'close'], ['#infoBtn', 'info'], ['#planDayPrev', 'chevronLeft'],
+  ['#planDayNext', 'chevronRight'], ['#planCalPrev', 'chevronLeft'], ['#planCalNext', 'chevronRight']];
+const LEGACY_ICON_LABELS = [['#prevBtn', { lead: 'arrowLeft' }], ['.reset-btn[data-i18n]', { lead: 'reset' }],
+  ['#screenMemo .memo-back', { lead: 'chevronLeft' }], ['#planBackToday', { lead: 'arrowLeft' }],
+  ['#screenPlanSchedule .plan-block[data-action="openPlanDay"]', { trail: 'arrowRight' }]];
+function upgradeLegacyIconMarkup() {
+  LEGACY_ICON_ONLY.forEach(([sel, icon]) => document.querySelectorAll(`${sel}:not([data-icon])`).forEach(el => { el.dataset.icon = icon; }));
+  LEGACY_ICON_LABELS.forEach(([sel, icons]) => document.querySelectorAll(sel).forEach(el => {
+    const key = el.dataset.i18n;
+    if (!key) return; // a v1.6.1 shell: its words are a span beside the icon already
+    el.removeAttribute('data-i18n');
+    el.classList.add('with-icon');
+    const slot = icon => (icon ? `<span data-icon-slot="${icon}"></span>` : '');
+    el.innerHTML = `${slot(icons.lead)}<span class="icon-label" data-i18n="${key}"></span>${slot(icons.trail)}`;
+  }));
+}
 function startApp() {
   upgradeLegacyHeaderMarkup();
+  removeLegacyPlanMarkup();
   upgradeLegacyFitRows();
+  upgradeLegacyIconMarkup();
   // v1.3.0: before anything renders at the default size; W-057: an HTTP-cached pre-v1.3.0 store.js has no text size
   if (typeof applyFontSize === 'function') applyFontSize();
   if (typeof applyTranslation === 'function') applyTranslation(); // v1.4.0, same W-057 guard
+  // v2.1.1 CUI-0039: stale question keys out of the stored lists before anything counts or opens them (W-057 guard)
+  if (typeof pruneStaleQuestionKeys === 'function') pruneStaleQuestionKeys();
   byId('appVersion').textContent = 'v' + APP_VERSION;
   byId('appVersionPop').textContent = 'v' + APP_VERSION;
   applyLanguage(); // <html lang>, data-i18n markup, <title> / meta, ⓘ popover counts

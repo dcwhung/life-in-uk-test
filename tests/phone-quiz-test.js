@@ -1,4 +1,4 @@
-// v2.1.0 Quiz on a phone (390 × 844; mockup mockups/v2.0.0/desktop-memo.html rev 5 / rev 6 placeQuizPhone, decision log
+// v2.2.0 Quiz on a phone (390 × 844; mockup mockups/v2.0.0/desktop-memo.html rev 5 / rev 6 placeQuizPhone, decision log
 // .proj-docs/plans/2026-10-13_grill_desktop-memo.md P6: every quiz, not only the memo test):
 // - #screenQuiz is one screen high, the page never scrolls (no sideways scroll either)
 // - the quiz header on top and the question card (dots, number, question, translation) stay put; everything after the

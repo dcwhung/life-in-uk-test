@@ -16,51 +16,56 @@
 }
 .memo-due-start:hover { background: var(--gold-light); }
 
-/* group card: the whole card opens the group; the left edge shows its status */
+/* group list (v1.6.1, user: two cards per row at every phone width): rows stretch, so cards in a row share a height */
+.memo-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
+
+/* group card: the whole card opens the group; the left edge shows its status. In the narrow column the title may take
+   two lines and the badge sits below it; the bar keeps to the bottom so a row's bars line up */
 .memo-card {
-  display: block; width: 100%; text-align: left; color: inherit; cursor: pointer;
+  display: flex; flex-direction: column; min-width: 0; text-align: left; color: inherit; cursor: pointer;
   background: var(--card); border: 0; border-left: 4px solid var(--memo-new); border-radius: var(--radius);
-  box-shadow: var(--shadow-sm); padding: var(--space-6) var(--space-7); margin-bottom: var(--space-5);
+  box-shadow: var(--shadow-sm); padding: var(--space-5) var(--space-5) var(--space-5) var(--space-6);
 }
 .memo-card:hover { box-shadow: var(--shadow); }
 .memo-card:focus-visible { outline: 2px solid var(--navy-light); outline-offset: 2px; }
 .memo-card.learning { border-left-color: var(--memo-learning); }
 .memo-card.due { border-left-color: var(--memo-due); }
 .memo-card.done { border-left-color: var(--memo-done); }
-.memo-card-row { display: flex; justify-content: space-between; align-items: center; gap: var(--space-4); }
-.memo-name { font-weight: 800; font-size: var(--fs-lg); color: var(--navy); min-width: 0; }
-.memo-meta { display: block; font-size: var(--fs-sm); color: var(--text-muted); margin-top: var(--space-1); }
+.memo-card-row { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); }
+.memo-name { font-weight: 800; font-size: var(--fs-lg); line-height: 1.3; color: var(--navy); max-width: 100%; overflow-wrap: anywhere; }
+.memo-meta { display: block; font-size: var(--fs-sm); color: var(--text-muted); margin: var(--space-2) 0 var(--space-4); }
 .memo-badge {
-  flex-shrink: 0; white-space: nowrap; font-size: var(--fs-2xs); font-weight: 800;
+  max-width: 100%; font-size: var(--fs-2xs); font-weight: 800; line-height: 1.3;
   border-radius: var(--radius-pill); padding: var(--space-1) var(--space-4);
   background: var(--bg); color: var(--text-muted);
 }
 .memo-badge.learning { background: var(--gold-bg); color: var(--gold-text); }
 .memo-badge.due { background: var(--flag-bg); color: var(--memo-due-text); }
 .memo-badge.done { background: var(--success-bg); color: var(--green); }
-.memo-bar { display: block; height: 6px; background: var(--bg); border-radius: var(--radius-pill); margin-top: var(--space-4); overflow: hidden; }
+.memo-bar { display: block; flex-shrink: 0; height: 6px; background: var(--bg); border-radius: var(--radius-pill); margin-top: auto; overflow: hidden; }
 .memo-bar i { display: block; height: 100%; background: var(--memo-done); border-radius: var(--radius-pill); }
 
-/* v2.1.0 the list as a grid of cards (mockup desktop-memo.html rev 1 / rev 2 / rev 4; js/screens/study.js #studyContent
-   .is-memo): phone 2 columns, desktop 3 below 1280px and 4 from 1280px (below). The status badge always sits top right:
-   a long title wraps in its own cell (anywhere), never pushing the badge down; the bar sits at the card's foot, so a
-   row's cards (equally high) line their bars up */
-#studyContent.is-memo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); align-content: start; }
-#studyContent.is-memo > .study-empty { grid-column: 1 / -1; }
-#studyContent.is-memo > .memo-card { margin-bottom: 0; display: flex; flex-direction: column; padding: var(--space-5); }
-#studyContent.is-memo .memo-card-row { align-items: flex-start; }
-#studyContent.is-memo .memo-name { flex: 1 1 auto; overflow-wrap: anywhere; font-size: var(--fs-md); }
-#studyContent.is-memo .memo-badge { margin-top: 0.15em; }
-#studyContent.is-memo .memo-meta { margin-bottom: var(--space-4); }
-#studyContent.is-memo .memo-bar { margin-top: auto; }
-/* phone: the due banner sticks under the header with a gap (rev 5); its offset grey shadow fills that gap, so the
-   cards scrolling by never show in it. The spread is the gap itself (the mockup's --space-1 left the cards' corners
-   showing past the shadow's rounded corners). #studyLead draws no box here, so the banner sticks within the screen */
+/* v2.2.0 (mockup desktop-memo.html rev 1 / rev 2 / rev 4; supersedes v1.6.1's badge under the title): the status
+   badge always sits top right — a long title wraps in its own cell (anywhere), never pushing the badge down; the bar
+   stays at the card's foot, so a row's cards (equally high) line their bars up. Phone 2 columns (v1.6.1), desktop 3 /
+   4 (below) */
+.memo-grid .memo-card-row { flex-direction: row; justify-content: space-between; gap: var(--space-4); }
+.memo-grid .memo-name { flex: 1 1 0; min-width: 0; font-size: var(--fs-md); } /* basis 0: the badge keeps its own width first */
+/* the badge keeps one line while it fits; in the narrowest columns (320px, large text) it wraps inside itself, at most
+   --memo-badge-max of the row, so the title keeps room (v1.6.1's no-clip rule) */
+.memo-grid .memo-badge { --memo-badge-max: 55%; flex: 0 1 auto; max-width: var(--memo-badge-max); margin-top: 0.15em; text-align: center; }
+/* phone: the due banner (#studyLead, js/screens/study.js) stays on screen: it sticks right under the pinned tabs + chip
+   rows (v1.6.1 .study-top, its height --study-top-h; that block's own --bg bottom margin is the gap the rev 5 mockup asked
+   for, so no cards show between them). #studyLead draws no box here, so the banner sticks within the whole screen. On a
+   short screen the pinned block scrolls away (css/screens/study.css) and so does the banner */
 @media (max-width: 1023px) {
   .study-lead > .memo-due {
-    position: sticky; top: calc(var(--header-h) + var(--space-4)); z-index: 5;
-    box-shadow: 0 calc(-1 * var(--space-4)) 0 var(--space-4) var(--bg), var(--shadow);
+    position: sticky; top: calc(var(--header-h) + var(--study-top-h, 0px)); z-index: 1;
+    box-shadow: var(--shadow);
   }
+}
+@media (max-width: 1023px) and (max-height: 500px) {
+  .study-lead > .memo-due { position: static; }
 }
 
 /* ── #screenMemo ── */
@@ -82,22 +87,22 @@
   background: var(--gold-bg); border: 1.5px solid var(--gold-border); border-radius: var(--radius-md);
   padding: var(--space-5) var(--space-6); font-size: var(--fs-base); line-height: 1.55; margin-bottom: var(--space-7);
 }
-/* v2.1.0 (rev 3 P4): "💡 Memory hook:" on its own line, the hook under it (phone and desktop) */
+/* v2.2.0 (rev 3 P4): "💡 Memory hook:" on its own line, the hook under it (phone and desktop) */
 .memo-hook b { display: block; color: var(--note-label); margin-bottom: var(--space-2); }
 .memo-hook span { white-space: pre-line; }
 .memo-panel {
   background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow-sm);
   padding: var(--space-6); margin-bottom: var(--space-7); font-size: var(--fs-base); line-height: 1.55;
 }
-/* v2.1.0 the single-note group, design C (rev 4 / rev 5): one white card; each question = pill row → bold navy question →
+/* v2.2.0 the single-note group, design C (rev 4 / rev 5): one white card; each question = pill row → bold navy question →
    "💡 備註：" + its note with a gold rule (like the hook); a big gap between questions */
 .memo-single-item + .memo-single-item { margin-top: var(--space-10); }
 .memo-single-q { font-weight: 800; color: var(--navy); }
 .memo-single-note { --memo-rule-w: 4px; border-left: var(--memo-rule-w) solid var(--gold-border); padding-left: var(--space-6); margin-top: var(--space-4); color: var(--text); }
 .memo-note-label { color: var(--note-label); font-weight: 700; margin-bottom: var(--space-2); }
-.nav-btn.memo-start { display: block; width: 100%; }
+.nav-btn.memo-start { display: flex; width: 100%; } /* flex: its words and ▶ icon stay one centred line (.with-icon) */
 
-/* v2.1.0 the group's questions (rev 1 / P1: no answers): a panel on the desktop's right, folded under the note on a
+/* v2.2.0 the group's questions (rev 1 / P1: no answers): a panel on the desktop's right, folded under the note on a
    phone (P5: <details>, closed; its summary is the title) */
 .memo-questions-title { font-weight: 800; color: var(--navy); margin: 0 0 var(--space-5); }
 details.memo-questions > summary { cursor: pointer; list-style-position: inside; margin: 0; }
@@ -122,7 +127,7 @@ details.memo-questions[open] > summary { margin-bottom: var(--space-5); }
 .memo-lv.retry { border-color: var(--memo-due); border-style: dashed; color: var(--memo-due-text); background: var(--flag-bg); }
 .memo-none { margin: 0; text-align: center; color: var(--text-muted); padding: var(--space-6) 0; }
 .memo-wrong-title { font-weight: 800; color: var(--red); margin: 0 0 var(--space-3); }
-/* v2.1.0 question lists (the group's questions, the wrong questions; mockup desktop-memo.html rev 3 .mx-qlist): each
+/* v2.2.0 question lists (the group's questions, the wrong questions; mockup desktop-memo.html rev 3 .mx-qlist): each
    question = its pill row, the English question, its translation; a rule between questions */
 .memo-qlist { list-style: none; margin: 0; padding: 0; }
 .memo-qlist li + li { border-top: 1px solid var(--border); margin-top: var(--space-5); padding-top: var(--space-5); }
@@ -132,7 +137,7 @@ details.memo-questions[open] > summary { margin-bottom: var(--space-5); }
    .fact-src .sqm-node) */
 .memo-pills { --memo-pill-gap: 5px; display: flex; flex-wrap: wrap; gap: var(--memo-pill-gap); align-items: center; margin-bottom: var(--space-3); }
 .memo-pills .sqm-node { padding: 3px var(--space-4); }
-/* v2.1.0 nothing wrong: "All correct 🎉 …" above the memory aid shown again (js/screens/memo.js memoReminderHtml) */
+/* v2.2.0 nothing wrong: "All correct 🎉 …" above the memory aid shown again (js/screens/memo.js memoReminderHtml) */
 .memo-again-text { font-weight: 800; color: var(--green); margin: 0 0 var(--space-5); }
 .memo-panel .memo-hook:last-child { margin-bottom: 0; }
 .memo-panel .memo-none + * { margin-top: var(--space-6); }
@@ -141,7 +146,7 @@ details.memo-questions[open] > summary { margin-bottom: var(--space-5); }
 .nav-btn.memo-next { background: var(--gold); color: var(--navy); }
 .nav-btn.memo-next:hover { background: var(--gold-light); }
 
-/* ── v2.1.0 phone one screen high (mockup desktop-memo.html rev 4 / rev 5; .is-fit-phone, css/components/fit.css):
+/* ── v2.2.0 phone one screen high (mockup desktop-memo.html rev 4 / rev 5; .is-fit-phone, css/components/fit.css):
    header + steps on top; look: the hook stays put, the panel (note + folded questions, or the single card) takes the
    height left and scrolls with fades in the page grey, "start the test" at the bottom; result: score, Lv1–4 and the
    wrong questions in the panel, Again / Next at the bottom ── */
@@ -154,7 +159,7 @@ details.memo-questions[open] > summary { margin-bottom: var(--space-5); }
   .memo-scroll-panel > :last-child { margin-bottom: 0; }
 }
 
-/* ── desktop (≥ 1024px). v2.1.0 Design Origin: mockup: mockups/v2.0.0/desktop-memo.html (rev 6) (decision log
+/* ── desktop (≥ 1024px). v2.2.0 Design Origin: mockup: mockups/v2.0.0/desktop-memo.html (rev 6) (decision log
    .proj-docs/plans/2026-10-13_grill_desktop-memo.md; v2.0.0 was the Plan Run centred column). One screen high (.is-fit,
    css/components/fit.css): the top row (‹ Memory + title | ① Look / ② Test, both halves), then the body's columns take
    the height left; each panel (.memo-scroll = .fit-fade around a .fit-panel card) scrolls on its own, fading in the
@@ -205,10 +210,11 @@ details.memo-questions[open] > summary { margin-bottom: var(--space-5); }
   .memo-result-cols .memo-actions { margin-top: auto; flex-direction: column; }
   .memo-result-cols .memo-actions .nav-btn { flex: none; }
 
-  /* the list: 3 columns (4 from 1280px, below), the desktop card padding; the banner above the card panel */
-  #studyContent.is-memo { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-5); }
-  #studyContent.is-memo > .memo-card { padding: var(--space-6) var(--space-7); }
-  #studyContent.is-memo .memo-name { font-size: var(--fs-lg); }
+  /* the list (v2.0.4 merge: v1.6.1's two cards a row become three; v2.2.0 rev 2: four from 1280px, below), the
+     desktop card padding; the banner above the card panel */
+  .memo-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-5); }
+  .memo-grid > .memo-card { padding: var(--space-6) var(--space-7); }
+  .memo-grid .memo-name { font-size: var(--fs-lg); }
   .study-lead > .memo-due { margin: 0; }
   .memo-card { border-left-width: calc(4px * var(--desktop-scale)); }
   .memo-bar { height: calc(6px * var(--desktop-scale)); }
@@ -218,5 +224,5 @@ details.memo-questions[open] > summary { margin-bottom: var(--space-5); }
   .memo-pills .sqm-node { padding: calc(3px * var(--desktop-scale)) var(--space-4); }
 }
 @media (min-width: 1280px) {
-  #studyContent.is-memo { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .memo-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }

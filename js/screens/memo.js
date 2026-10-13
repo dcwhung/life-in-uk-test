@@ -2,12 +2,14 @@
 // MEMO SCREEN — memory-note study (v1.6.0, memo mockup v2 (deleted at release; design: .proj-docs/design-baselines/2026-10-12_memo-*.png)): Study tab 5 lists the groups
 // (js/domain/memo.js); a group opens #screenMemo: ① look (the memory hook + the memory note) → ② test (a side session on
 // the quiz screen, js/screens/sideSession.js) → result (score, new level, next review) on the same screen.
-// v2.1.0 layout (desktop + phone): Design Origin mockup: mockups/v2.0.0/desktop-memo.html (rev 6), decision log
+// v2.2.0 layout (desktop + phone): Design Origin mockup: mockups/v2.0.0/desktop-memo.html (rev 6), decision log
 // .proj-docs/plans/2026-10-13_grill_desktop-memo.md
 // ════════════════════════════════════════
 const MEMO_STEP = { look: 'look', result: 'result' };
 const MEMO_STATUS_KEYS = { new: 'memo.statusNew', due: 'memo.statusDue', learning: 'memo.statusLearning', done: 'memo.statusDone' };
 const MEMO_SEARCH_SEP = ' ';
+// v1.6.1: line icons where the glyphs were (Start / start the test / Next group ▶ after the words, ‹ Memory before)
+const MEMO_GO_ICONS = { trail: 'play' }, MEMO_BACK_ICONS = { lead: 'chevronLeft' };
 // the group on #screenMemo: its step, the Study list scroll to go back to, the finished test (result step)
 const memoView = { id: null, step: MEMO_STEP.look, listScrollY: 0, result: null };
 
@@ -53,7 +55,7 @@ function memoDueBannerHtml(due) {
   const titles = due.slice(0, MEMO_DUE_TITLES_SHOWN).map(g => g.title).join(LIST_SEP);
   return `<div class="memo-due">
       <div class="memo-due-text"><b>${escapeHtml(t('memo.dueTitle', { n: due.length }))}</b><small lang="zh-HK">${escapeHtml(titles)}</small></div>
-      <button class="memo-due-start" type="button" data-action="openMemoGroup" data-arg="${escapeHtml(due[0].id)}">${escapeHtml(t('memo.start'))}</button>
+      ${iconButtonHtml('memo-due-start', ` data-action="openMemoGroup" data-arg="${escapeHtml(due[0].id)}"`, escapeHtml(t('memo.start')), MEMO_GO_ICONS)}
     </div>`;
 }
 function renderStudyMemo() {
@@ -61,10 +63,11 @@ function renderStudyMemo() {
   // count = shown / the chapter's groups (like the chapters tab); the search narrows inside the chapter
   const pool = memoSortedGroups(memoGroups(), progress, today).filter(memoInChapter);
   const shown = pool.filter(memoMatches);
-  // v2.1.0 (mockup desktop-memo.html rev 4): the due banner is the list's lead, above the cards (js/screens/study.js
-  // #studyLead): desktop, outside the card panel's scroll; phone, it sticks under the header (css/screens/memo.css)
+  // v1.6.1 (user): the cards sit in .memo-grid (DOM order = row by row, so Tab runs row-wise). v2.2.0 (mockup
+  // desktop-memo.html rev 4): the due banner is the list's lead, above the cards (js/screens/study.js #studyLead):
+  // desktop, outside the card panel's scroll; phone, it sticks under the pinned tabs (css/screens/memo.css)
   const lead = memoDueBannerHtml(memoDueGroups(progress, today));
-  const html = shown.map(g => memoCardHtml(g, progress, today)).join('');
+  const html = `<div class="memo-grid">${shown.map(g => memoCardHtml(g, progress, today)).join('')}</div>`;
   return { html, lead, shown: shown.length, total: pool.length, countKey: 'memo.count', emptyKey: 'memo.empty' };
 }
 
@@ -93,7 +96,7 @@ function memoLook() {
   Object.assign(memoView, { step: MEMO_STEP.look, result: null });
   showMemo();
 }
-// v2.1.0: the body is drawn for the layout it shows in (desktop columns or the phone's one column); a resize across
+// v2.2.0: the body is drawn for the layout it shows in (desktop columns or the phone's one column); a resize across
 // 1024px draws it again (fitMemo). An open questions fold stays open when the same view is drawn again
 let memoDrawn = { desktop: null, view: null };
 function renderMemo() {
@@ -136,10 +139,10 @@ function memoStepsHtml(g) {
   return `<div class="memo-step ${done ? 'ok' : 'on'}">${escapeHtml(look)}</div><div class="memo-step${done ? ' ok' : ''}">${escapeHtml(test)}</div>`;
 }
 
-// one screen high (desktop and, v2.1.0, phone; css/screens/memo.css): long content scrolls in its panel (.fit-panel)
+// one screen high (desktop and, v2.2.0, phone; css/screens/memo.css): long content scrolls in its panel (.fit-panel)
 // with fades (.fit-fade, js/components/fit.js), so the buttons under it stay on the screen
 function memoScrollHtml(panel) { return `<div class="memo-scroll fit-fade">${panel}</div>`; }
-// one screen high from 1024px (css/components/fit.css .screen.is-fit) and, v2.1.0, on a phone too (.is-fit-phone:
+// one screen high from 1024px (css/components/fit.css .screen.is-fit) and, v2.2.0, on a phone too (.is-fit-phone:
 // the hook and buttons stay put, the panel between them scrolls); a cached older index.html has no #screenMemo
 function memoMarkFit() {
   const screen = byId('screenMemo');
@@ -147,7 +150,7 @@ function memoMarkFit() {
 }
 memoMarkFit();
 
-// ── a question's pill row (v2.1.0, mockup desktop-memo.html rev 3 pillsHtml): ".tag #n" · ".tag <icon> Ch c" ·
+// ── a question's pill row (v2.2.0, mockup desktop-memo.html rev 3 pillsHtml): ".tag #n" · ".tag <icon> Ch c" ·
 // the question's node (js/components/tags.js: copies joined COPY_SEP, mastery colours), the app's own pills. Used by
 // the group's questions, the result's wrong questions and the single-note group. S-057: English in every language ──
 const MEMO_ITEM_MARK = '#';
@@ -167,7 +170,7 @@ function memoQuestionListHtml(items, extraCls = '') {
   return `<ul class="memo-qlist${extraCls}">${items.map((it, i) => memoQuestionItemHtml(it, i + 1)).join('')}</ul>`;
 }
 
-// ── ① look (v2.1.0, Design Origin: mockup: mockups/v2.0.0/desktop-memo.html rev 6) ──
+// ── ① look (v2.2.0, Design Origin: mockup: mockups/v2.0.0/desktop-memo.html rev 6) ──
 // desktop: the top row, then left 7/12 = the hook (fixed) + the memory note panel, right 5/12 = the group's questions
 // panel, both as high as the screen allows (scrolling, fading); "start the test" under the right column. The single-note
 // group: one white card, centred (Plan Run's 760 × scale), its button under the card's right edge.
@@ -192,7 +195,7 @@ function memoSingleItemsHtml(g) {
       + `<div class="memo-single-note" lang="zh-HK"><div class="memo-note-label">${escapeHtml(t('common.noteLabel'))}</div>${noteHtml(q.note)}</div></div>`;
   }).join('');
 }
-const memoStartHtml = () => `<button class="nav-btn memo-start" type="button" data-action="startMemoTest">${escapeHtml(t('memo.startTest'))}</button>`;
+const memoStartHtml = () => iconButtonHtml('nav-btn memo-start', ' data-action="startMemoTest"', escapeHtml(t('memo.startTest')), MEMO_GO_ICONS);
 function memoLookHtml(g, desktop) { return desktop ? memoLookDeskHtml(g) : memoLookPhoneHtml(g); }
 function memoLookDeskHtml(g) {
   if (!g.body) {
@@ -220,6 +223,25 @@ function startMemoTest() {
   if (!g) return;
   startSideSession(MEMO_PREFIX + g.id, memoTestPick(g).map(toQuestionItem), { kind: SESSION_RETURN_KIND.memo, id: g.id });
 }
+// C2 (user): in a test the quiz header's back button (data-action goHome) reads "‹ Memory" like the group screen's
+// .memo-back, and its words name it (no aria-label / title, as a plan's text back button: S-188)
+function setQuizBackMemo(back) {
+  back.classList.remove('plan-hit', 'icon-btn');
+  setIconLabel(back, t('memo.backButton'), MEMO_BACK_ICONS); // S-240: a chevron line icon, not a read-out "‹"
+  back.classList.add('memo-back');
+  back.removeAttribute('aria-label');
+  back.removeAttribute('title');
+}
+// C2: leave a test mid-way (goHome while isMemoSession): back to the same group's look view, recording nothing (no memo
+// level / due; answers already given keep their practice streaks like any side session). The return point is cleared first,
+// so a later session or Practice exam is a normal one; a second tap lands on #screenMemo (double tap guard, actions.js)
+function leaveMemoTest() {
+  const ret = sessionReturn;
+  clearSideSession();
+  stopExamTimer();
+  Object.assign(memoView, { id: ret.id, step: MEMO_STEP.look, result: null });
+  showMemo();
+}
 // Recorded once per finished test: returnFromSideSession clears the return point before calling here, and a second tap
 // on ↩ Back lands on this screen (double tap guard). Scored over the answered (revealed) questions only (user, S-232);
 // nothing answered → nothing recorded, the result says so
@@ -232,7 +254,7 @@ function finishMemoTest(ret) {
   showMemo();
 }
 
-// v2.1.0: a wrong question's copies in its group (for its pill row: "E1·Q8 = E11·Q9"); the asked copy at least
+// v2.2.0: a wrong question's copies in its group (for its pill row: "E1·Q8 = E11·Q9"); the asked copy at least
 function memoCopyKeys(id, q) {
   const g = memoGroupById(id), k = qKey(q);
   const copies = g ? questionGroups(g.qkeys).find(keys => keys.includes(k)) : null;
@@ -260,7 +282,7 @@ function memoScheduleHtml(r) {
     return `<div class="memo-lv${cls}"><b>${escapeHtml(t('memo.lv', { lv: level }))}</b>${escapeHtml(wait)}</div>`;
   }).join('');
 }
-// a result kept from before v2.1.0 has no keys: its questions are listed without pills
+// a result kept from before v2.2.0 has no keys: its questions are listed without pills
 function memoWrongHtml(wrong) {
   if (!wrong.length) return '';
   return `<p class="memo-wrong-title">${escapeHtml(t('memo.wrongTitle'))}</p>${memoQuestionListHtml(wrong, ' memo-wrong')}`;
@@ -279,10 +301,11 @@ function memoLabelHtml(label, title) {
 }
 function memoResultActionsHtml(g, withNext) {
   const next = withNext ? memoNextGroup(g.id) : null;
-  const nextBtn = next ? `<button class="nav-btn memo-next" type="button" data-action="openMemoGroup" data-arg="${escapeHtml(next.id)}">${memoLabelHtml(t('memo.next', { title: next.title }), next.title)}</button>` : '';
+  const nextBtn = next ? iconButtonHtml('nav-btn memo-next', ` data-action="openMemoGroup" data-arg="${escapeHtml(next.id)}"`,
+    memoLabelHtml(t('memo.next', { title: next.title }), next.title), MEMO_GO_ICONS) : '';
   return `<div class="memo-actions"><button class="nav-btn secondary memo-again" type="button" data-action="memoLook">${escapeHtml(t('memo.again'))}</button>${nextBtn}</div>`;
 }
-// v2.1.0 (decision log Q3): with nothing wrong (or nothing answered) the result shows the memory aid once more: the
+// v2.2.0 (decision log Q3): with nothing wrong (or nothing answered) the result shows the memory aid once more: the
 // hook; a group without one shows its memory note, the single-note group its questions' notes. All correct says so
 // first (memo.hookAgain / memo.noteAgain); nothing answered shows the aid alone
 function memoReminderHtml(g, withWords) {

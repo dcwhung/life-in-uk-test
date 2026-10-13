@@ -82,7 +82,8 @@ async function checkPlanSessionBack(pg) {
   await openPlan(pg, 'day');
   await pg.click('#planTaskList .plan-task.practice.plan-task-btn'); // a practice task opens the quiz (a reading task opens Study)
   const back = await pg.$eval('#screenQuiz .back-btn', e => ({ text: e.textContent.trim(), label: e.getAttribute('aria-label'), title: e.getAttribute('title'), icon: !!e.querySelector('svg'), cls: e.classList.contains('icon-btn') }));
-  assert(back.text.startsWith('←') && !back.icon && !back.cls && back.label === null && back.title === null, 'plan session: the quiz back button keeps its words and they name it (S-188: no aria-label / title): ' + JSON.stringify(back));
+  // v1.6.1: its ← is a decorative line icon before the words, not a glyph
+  assert(back.text === "Today's tasks" && back.icon && !back.cls && back.label === null && back.title === null, 'plan session: the quiz back button keeps its words and they name it (S-188: no aria-label / title): ' + JSON.stringify(back));
   await pg.evaluate(() => { goHome(); pendingMode = 'practice'; startExam(1); });
   const home = await iconButton(pg, '#screenQuiz .back-btn');
   assert(home.icon && home.cls && home.text === '' && home.label === 'Home', 'a normal quiz after it: the back button is 🏠 again: ' + JSON.stringify(home));

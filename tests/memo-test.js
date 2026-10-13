@@ -107,7 +107,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   await pg.evaluate(([k, v]) => localStorage.setItem(k, JSON.stringify(v)), [MEMO_LS, { vote: { lv: 2, due: day }, ww2: { lv: 1, due: yesterday }, parliament: { lv: 4, due: later }, writers: { lv: 1, due: later } }]);
   await pg.reload(); await openMemoTab();
   const banner = await pg.$eval('#studyLead .memo-due', e => ({ title: e.querySelector('b').textContent, sub: e.querySelector('small').textContent, lang: e.querySelector('small').getAttribute('lang'), start: e.querySelector('button').textContent }));
-  assert(banner.title === '2 groups to review today' && banner.sub === '投票權 · 二次世界大戰' && banner.lang === 'zh-HK' && banner.start === 'Start ▶',
+  assert(banner.title === '2 groups to review today' && banner.sub === '投票權 · 二次世界大戰' && banner.lang === 'zh-HK' && banner.start === 'Start',
     'banner: "2 groups to review today", due titles (vote has more questions, first), Start ▶: ' + JSON.stringify(banner));
   const order = await cardIds();
   assert(order[0] === 'vote' && order[1] === 'ww2' && order[GROUP_COUNT - 1] === 'parliament' && order[GROUP_COUNT - 2] === 'writers', 'list: due first, then new, learning, done last');
@@ -136,7 +136,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   }));
   assert(look.steps.join('|') === '① Look*|② Test (5)', 'steps ① Look (on) / ② Test (5): ' + look.steps.join('|'));
   assert(/89 冇票/.test(look.hook) && look.hookLang === 'zh-HK' && look.table === 7 && !look.heading, 'hook box + the 7-row table (no repeated heading line)');
-  assert(look.start === 'Got it — start the test ▶', 'start button text');
+  assert(look.start === 'Got it — start the test', 'start button text');
   assert(await pg.evaluate(() => document.activeElement === byId('memoTitle')), 'S-227: opening a group moves focus to its title');
 
   // ── test → result (4 / 5 from Lv2 → Lv3) ──
@@ -161,8 +161,8 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   // language switch / re-render never records twice
   await pg.evaluate(() => { setLang('zh-HK'); setLang('en'); rerenderCurrentScreen(); });
   assert(JSON.stringify((await stored()).vote) === JSON.stringify({ lv: 3, due: due7 }) && await pg.$eval('#memoBody .memo-pct', e => e.textContent) === '80%', 're-render keeps the result, records nothing more');
-  assert(res.next === 'Next: 二次世界大戰 ▶', 'next group = the next due / new group in list order: ' + res.next);
-  // v2.1.0: on the phone Next sits where the test's last ↩ Back was (both pinned bottom right): wait out the double tap
+  assert(res.next === 'Next: 二次世界大戰', 'next group = the next due / new group in list order: ' + res.next);
+  // v2.2.0: on the phone Next sits where the test's last ↩ Back was (both pinned bottom right): wait out the double tap
   // guard (CUI-0011) as a person's second, separate tap would
   await pg.waitForTimeout(GUARD_WAIT_MS);
   await pg.click('#memoBody .memo-next');
@@ -216,7 +216,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   assert(await text('#memoBody .memo-verdict') === 'Test 2/4 · below 70%, down to Lv3, review again tomorrow' && await pg.$$eval('#memoBody .memo-wrong li', l => l.length) === 2,
     'S-232: 2 of 4 answered right = 50% → down a level; the 2 wrong ones listed');
 
-  // ── S-231: a double tap on the last ↩ Back records the test once ──
+  // ── S-231: a double tap on the last Back records the test once ──
   await pg.click('#screenMemo .memo-back');
   await setRecord('writers', { lv: 1, due: day });
   await openFromList('作家', 'writers');
@@ -224,8 +224,62 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   assert(await pg.$eval('#screenMemo', e => e.classList.contains('active')) && JSON.stringify((await stored()).writers) === JSON.stringify({ lv: 2, due: await addDays(day, 3) }),
     'S-231: double tap on ↩ Back: one record (Lv1 → Lv2), result shown');
 
-  // ── single-note group: each question with its own note ──
+  // ── C2 (user): leave a test mid-way. The quiz header has no 🏠 in a memo test, it reads "‹ Memory" (styled like the group
+  // screen's .memo-back) and goes back to the group's look view, recording nothing ──
   await pg.click('#screenMemo .memo-back');
+  await openFromList('陪審員', 'jury');
+  const juryTitle = await text('#memoTitle');
+  const progressBefore = JSON.stringify(await stored());
+  const quizBack = () => pg.$eval('#screenQuiz .quiz-header .back-btn', e => ({ text: e.textContent.trim(), memo: e.classList.contains('memo-back'),
+    // S-240 (v1.6.1): the ‹ is a decorative chevron line icon before the words; icon = the 🏠 icon button
+    icon: e.classList.contains('icon-btn') || !!e.querySelector('svg:not([data-icon-name="chevronLeft"])'), label: e.getAttribute('aria-label'), title: e.getAttribute('title'),
+    visible: !!e.getClientRects().length, chev: !!e.querySelector('svg.line-icon[data-icon-name="chevronLeft"][aria-hidden="true"]') }));
+  const homeShown = () => pg.$$eval('#screenQuiz [data-icon-name="home"]', els => els.some(e => e.getClientRects().length));
+  await pg.click('.memo-start');
+  await pg.waitForTimeout(GUARD_WAIT_MS);
+  let qb = await quizBack();
+  assert(qb.visible && qb.memo && !qb.icon && qb.chev && qb.text === 'Memory' && qb.label === null && qb.title === null && !(await homeShown()),
+    'C2: memo test header: "‹ Memory" (memo-back style, named by its words; S-240: ‹ = aria-hidden chevron icon), no 🏠: ' + JSON.stringify(qb));
+  await answer(true);
+  await pg.click('#nextBtn');
+  await pg.evaluate(() => { setLang('zh-HK'); });
+  qb = await quizBack();
+  assert(qb.memo && qb.text === '記憶法' && !(await homeShown()), 'C2: zh-HK re-render keeps 「‹ 記憶法」: ' + qb.text);
+  await pg.evaluate(() => { setLang('en'); rerenderCurrentScreen(); });
+  assert((await quizBack()).text === 'Memory' && await pg.evaluate(() => state.current === 1), 'C2: back to en, still on question 2');
+  await pg.evaluate(() => window.scrollTo(0, 300));
+  await pg.click('#screenQuiz .quiz-header .back-btn');
+  const left = await pg.evaluate(() => ({ screen: document.querySelector('.screen.active').id, ret: sessionReturn, start: !!document.querySelector('#memoBody .memo-start'),
+    pct: !!document.querySelector('#memoBody .memo-pct'), focus: document.activeElement === byId('memoTitle'), y: window.scrollY, title: byId('memoTitle').textContent }));
+  assert(left.screen === 'screenMemo' && left.ret === null && left.start && !left.pct && left.title === juryTitle,
+    'C2: ‹ Memory → the same group\'s look view (hook + table), not Study, return point cleared: ' + JSON.stringify(left));
+  assert(left.y === 0 && left.focus, 'C2: back on the group screen at the top, focus on the group title');
+  assert(JSON.stringify(await stored()) === progressBefore, 'C2: leaving mid-way records no memo level / due');
+  // another memo test, then other sessions: Home is back, and nothing of the memo return lingers
+  await pg.click('.memo-start');
+  await pg.waitForTimeout(GUARD_WAIT_MS);
+  assert((await quizBack()).memo, 'C2: a new memo test shows ‹ Memory again');
+  // a double tap: the 2nd tap lands on #screenMemo's own ‹ back (same spot) and is ignored (CUI-0011 guard)
+  await pg.dblclick('#screenQuiz .quiz-header .back-btn');
+  assert(await pg.evaluate(() => document.querySelector('.screen.active').id === 'screenMemo' && sessionReturn === null && !!document.querySelector('#memoBody .memo-start')),
+    'C2: double tap on ‹ Memory stays on the group\'s look view (not Study)');
+  assert(JSON.stringify(await stored()) === progressBefore, 'C2: still nothing recorded');
+  await pg.click('.memo-start');
+  await pg.waitForTimeout(GUARD_WAIT_MS);
+  await pg.evaluate(() => startFactPractice(21)); // switching sessions straight from a memo test
+  qb = await quizBack();
+  assert(!qb.memo && qb.icon && qb.label === 'Home' && await homeShown(), 'C2: Study fact practice after it: 🏠 Home again: ' + JSON.stringify(qb));
+  await pg.evaluate(() => { goHome(); pendingMode = 'practice'; startExam(1); });
+  qb = await quizBack();
+  assert(!qb.memo && qb.icon && qb.label === 'Home' && qb.text === '' && await pg.evaluate(() => sessionReturn === null), 'C2: a later Practice exam: 🏠 Home, no side session: ' + JSON.stringify(qb));
+  await pg.evaluate(() => { state.current = state.questions.length - 1; const q = state.questions[state.current]; state.answers[state.current] = [...q.a]; revealAnswer(); });
+  assert(await text('#nextBtn') === 'Finish', 'C2: its last question finishes normally (Finish ✓)');
+  await pg.click('#screenQuiz .quiz-header .back-btn');
+  assert(await pg.$eval('#screenHome', e => e.classList.contains('active')), 'C2: its 🏠 goes Home');
+  await pg.click('#modeStudy');
+  await pg.waitForTimeout(GUARD_WAIT_MS);
+
+  // ── single-note group: each question with its own note ──
   await pg.fill('#studySearch', '');
   await pg.click('#studyContent .memo-card[data-arg="single"]');
   const singles = await pg.$$eval('#memoBody .memo-single-item', els => els.map(e => [e.querySelector('.memo-single-q').getAttribute('lang'), e.querySelector('.memo-single-note').getAttribute('lang'), e.querySelector('.memo-single-note').textContent.length]));
@@ -233,14 +287,14 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
 
   // ── zh-HK strings ──
   await pg.evaluate(() => setLang('zh-HK'));
-  assert(await text('#memoSteps .memo-step') === '① 睇' && await text('#memoBody .memo-start') === '記住咗，開始試 ▶' && await text('#screenMemo .memo-back') === '‹ 記憶法', 'zh-HK look view: ① 睇 / 記住咗，開始試 ▶ / ‹ 記憶法');
+  assert(await text('#memoSteps .memo-step') === '① 睇' && await text('#memoBody .memo-start') === '記住咗，開始試' && await text('#screenMemo .memo-back') === '記憶法', 'zh-HK look view: ① 睇 / 記住咗，開始試 ▶ / ‹ 記憶法');
   await pg.click('#screenMemo .memo-back');
   await pg.evaluate(([k, v]) => localStorage.setItem(k, JSON.stringify(v)), [MEMO_LS, { vote: { lv: 1, due: day }, parliament: { lv: 4, due: later } }]);
   await pg.evaluate(() => renderStudy());
   const zh = await pg.evaluate(() => ({ tab: document.querySelector('.study-tab[data-tab="memo"] [data-i18n]').textContent, banner: document.querySelector('.memo-due b').textContent,
     start: document.querySelector('.memo-due button').textContent, count: document.querySelector('#studyCount').textContent,
     badges: [...document.querySelectorAll('.memo-card')].map(e => e.querySelector('.memo-badge').textContent) }));
-  assert(zh.tab === '記憶法' && zh.banner === '今日要溫 1 組' && zh.start === '開始 ▶' && zh.count === `${GROUP_COUNT} / ${GROUP_COUNT} 組`, 'zh-HK list: 記憶法 tab, 今日要溫 1 組, 開始 ▶, count: ' + JSON.stringify(zh).slice(0, 160));
+  assert(zh.tab === '記憶法' && zh.banner === '今日要溫 1 組' && zh.start === '開始' && zh.count === `${GROUP_COUNT} / ${GROUP_COUNT} 組`, 'zh-HK list: 記憶法 tab, 今日要溫 1 組, 開始 ▶, count: ' + JSON.stringify(zh).slice(0, 160));
   assert(zh.badges[0] === '今日到期' && zh.badges.includes('未溫') && zh.badges[GROUP_COUNT - 1] === '已熟 · 9 日後', 'zh-HK badges: 今日到期 / 未溫 / 已熟 · 9 日後');
   await pg.click('.memo-due button');
   await runTest([true, true, true, true, true]);
@@ -261,6 +315,75 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   await pg.evaluate(() => setLang('zh-HK'));
   assert(await noHScroll() && await pg.$$eval('.study-tab', els => els.every(e => e.getBoundingClientRect().right <= window.innerWidth)), `${NARROW}px zh-HK: tabs fit`);
   await pg.evaluate(() => setLang('en'));
+
+  // ── v1.6.1 (user: 「記憶法列表用每個兩行顯示」 = two cards per row): a 2-column grid at phone widths; nothing overlaps or
+  // clips, cards in a row share a height, DOM order runs row-wise; the due banner + count line stay full width; en / zh-HK
+  // × small / large × 320 / 360 / 390 without sideways scroll. v2.2.0 (mockup desktop-memo.html rev 1 / rev 4, user
+  // 2026-10-13): the badge sits top right beside the title (no longer below it), so a title may take more lines ──
+  await pg.evaluate(([k, v]) => localStorage.setItem(k, JSON.stringify(v)), [MEMO_LS, { vote: { lv: 1, due: day }, writers: { lv: 1, due: later }, parliament: { lv: 4, due: later } }]);
+  const gridBad = [];
+  for (const lang of ['en', 'zh-HK']) for (const size of ['small', 'large']) for (const width of [320, NARROW, 390]) {
+    await pg.setViewportSize({ width, height: 740 });
+    await pg.evaluate(([l, s]) => { setFontSize(s); setLang(l); renderStudy(); }, [lang, size]);
+    const g = await pg.evaluate(() => {
+      const content = document.querySelector('#studyContent').getBoundingClientRect();
+      const banner = document.querySelector('#studyLead .memo-due').getBoundingClientRect();
+      const cards = [...document.querySelectorAll('#studyContent .memo-card')];
+      const out = [];
+      const rects = cards.map(c => c.getBoundingClientRect());
+      cards.forEach((c, i) => {
+        const r = rects[i], name = c.querySelector('.memo-name'), badge = c.querySelector('.memo-badge');
+        const n = name.getBoundingClientRect(), bd = badge.getBoundingClientRect();
+        const lineH = parseFloat(getComputedStyle(name).lineHeight);
+        if (n.left < r.left - 1 || n.right > r.right + 1 || bd.left < r.left - 1 || bd.right > r.right + 1) out.push(c.dataset.arg + ' outside card');
+        if (bd.top > n.top + lineH / 2 || bd.left < n.right - 1) out.push(c.dataset.arg + ' badge not top right beside the title');
+        if (name.scrollWidth > name.clientWidth + 1 || badge.scrollWidth > badge.clientWidth + 1) out.push(c.dataset.arg + ' clipped');
+        const col = i % 2, mate = col ? rects[i - 1] : rects[i + 1];
+        if (mate && (Math.abs(mate.top - r.top) > 1 || Math.abs(mate.height - r.height) > 1)) out.push(c.dataset.arg + ' row mismatch');
+        if (col && r.left <= rects[i - 1].right) out.push(c.dataset.arg + ' not right column');
+        if (i >= 2 && r.top < rects[i - 2].bottom) out.push(c.dataset.arg + ' row overlap');
+      });
+      const halfW = rects[0].width < content.width / 2;
+      return { out, halfW, banner: Math.abs(banner.width - content.width) <= 1, docW: document.scrollingElement.scrollWidth, vw: window.innerWidth };
+    });
+    const ok = g.out.length === 0 && g.halfW && g.banner && g.docW <= g.vw;
+    if (!ok) gridBad.push(`${lang} ${size} ${width}: ${JSON.stringify(g).slice(0, 300)}`);
+  }
+  assert(gridBad.length === 0, 'memo list: two cards per row, badge top right, no clip / overlap, equal row heights, full-width banner, no h-scroll (en/zh-HK × small/large × 320/360/390) ' + gridBad.join(' || '));
+  await pg.evaluate(() => { setFontSize('small'); setLang('en'); });
+  await pg.setViewportSize({ width: 390, height: 844 });
+
+  // ── S-238 (b9443f4): at 320px, large text, every group's test header keeps the mode badge (Practice / 練習) on one line,
+  // on the same row as the memo back button and inside the screen; the set label wraps instead.
+  // S-241: and the badge stays inside the header's content box (en "🧠 CROWN DEPENDENCY" — one long word — pushed it ~9px
+  // into the right gutter until .quiz-label could shrink and break anywhere) ──
+  await pg.setViewportSize({ width: 320, height: 568 });
+  const badgeBad = [];
+  for (const lang of ['en', 'zh-HK']) {
+    await pg.evaluate(l => { setFontSize('large'); setLang(l); }, lang);
+    badgeBad.push(...await pg.evaluate(() => {
+      const out = [];
+      const lines = el => { const r = document.createRange(); r.selectNodeContents(el); return new Set([...r.getClientRects()].map(x => Math.round(x.top))).size; };
+      MEMO_GROUPS.forEach(g => {
+        openMemoGroup(g.id);
+        startMemoTest();
+        const header = document.querySelector('#screenQuiz .quiz-header');
+        const back = header.querySelector('.back-btn').getBoundingClientRect(), badge = byId('modeBadge');
+        const bd = badge.getBoundingClientRect();
+        const sameRow = bd.top < back.bottom && bd.bottom > back.top;
+        const hr = header.getBoundingClientRect(), contentRight = hr.right - parseFloat(getComputedStyle(header).paddingRight);
+        const inHeader = bd.right <= contentRight + 0.5 && header.scrollWidth <= header.clientWidth;
+        if (!isMemoSession() || lines(badge) !== 1 || !sameRow || bd.right > window.innerWidth || !inHeader) {
+          out.push(`${getLang()} ${g.id}: lines ${lines(badge)}, same row ${sameRow}, badge right ${Math.round(bd.right)} / header content right ${Math.round(contentRight)}`);
+        }
+        goHome(); // a memo test: back to the group's look view, nothing recorded
+      });
+      return out;
+    }));
+  }
+  assert(badgeBad.length === 0 && await noHScroll(), 'S-238 / S-241: 320px large text: mode badge on one line beside the memo back button and inside the header in every group test (en / zh-HK) ' + badgeBad.slice(0, 5).join('; '));
+  await pg.evaluate(() => { setFontSize('small'); setLang('en'); memoBack(); });
+  await pg.setViewportSize({ width: 390, height: 844 });
 
   // stored prefs / progress junk never breaks the tab
   await pg.evaluate(([k]) => { localStorage.setItem(k, '{bad'); localStorage.setItem('lifeuk.studyPrefs', JSON.stringify({ tab: 'memo', memoChapter: 'x' })); }, [MEMO_LS]);

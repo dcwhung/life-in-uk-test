@@ -59,9 +59,11 @@ function factTrophyHtml() {
 function factMarkButtonsHtml(f, marks) {
   return factMarkButtonHtml(f, { kind: 'bookmarks', on: !!marks.bookmarks, cls: 'star', labelKey: 'study.bookmark', content: bookmarkSvg('', { decorative: true }) })
     + (marks.derived ? factTrophyHtml()
-      : factMarkButtonHtml(f, { kind: 'mastered', on: !!marks.mastered, cls: 'tick', labelKey: 'study.mastered', content: '✓' }));
+      : factMarkButtonHtml(f, { kind: 'mastered', on: !!marks.mastered, cls: 'tick', labelKey: 'study.mastered', content: lineIconSvg('check') }));
 }
 
+// v1.6.1: "▶ Practise" (fact card, Similar panel) — the ▶ is the play line icon before the words
+const PRACTISE_ICONS = { lead: 'play' };
 // T-206: the fact's source questions as display-only nodes (Similar panel colours) + "▶ Practise this one / these N",
 // a one-off session over them (js/screens/sideSession.js); replaces the old "Appears ×n" tag.
 // practise (arch §E.2): { action, n } runs another session instead (a study plan's, n = the questions it asks); false = none.
@@ -69,7 +71,8 @@ function factMarkButtonsHtml(f, marks) {
 function factPractiseHtml(f, practise) {
   if (practise === false) return '';
   const { action, n } = practise || { action: 'startFactPractice', n: questionGroups(f.src).length };
-  return `<button class="fact-practise" aria-describedby="${factIdElId(f)}" data-action="${action}" data-arg="${escapeHtml(f.id)}">${t('similar.practise', { n })}</button>`;
+  return `<button class="fact-practise with-icon" aria-describedby="${factIdElId(f)}" data-action="${action}" data-arg="${escapeHtml(f.id)}">`
+    + `${iconLabelHtml(t('similar.practise', { n }), PRACTISE_ICONS)}</button>`;
 }
 // doneTag (G41): a caller's status label (e.g. a study plan's "✓ Practice done") shown at the row's right end; '' = none
 const factDoneTagHtml = doneTag => (doneTag ? `<span class="fact-done-tag">${escapeHtml(doneTag)}</span>` : '');
@@ -83,7 +86,8 @@ function factSourceRowHtml(f, practise, doneTag) {
 // v0.71 (B3): the source questions' memory method, closed until tapped (user picked option B); notes are Cantonese
 function factMemoryHtml(f) {
   const text = factMemoryText(f);
-  return text ? `<details class="fact-mem"><summary>${t('study.memoryAid')}</summary><div class="fact-mem-body" lang="zh-HK">${noteHtml(text)}</div></details>` : '';
+  // CUI-0035: the expander's chevron is a line icon (turned down when open, css/components/fact.css), not a ▸ / ▾ glyph
+  return text ? `<details class="fact-mem"><summary>${lineIconSvg('chevronRight')}<span>${t('study.memoryAid')}</span></summary><div class="fact-mem-body" lang="zh-HK">${noteHtml(text)}</div></details>` : '';
 }
 
 // marks: { bookmarks, mastered (ticked by hand), derived (factMastery) } booleans for this fact;

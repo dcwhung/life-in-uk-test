@@ -259,10 +259,10 @@ async function checkFactCard(pg) {
   await pg.fill('#studySearch', '');
   const en = await sourceRow(pg);
   assert(same(en.nodes, ['E10·Q1:sqm-node', 'E7·Q16 = E13·Q1:sqm-node mastered']), 'source row merges the copies, coloured by the max streak: ' + en.nodes);
-  assert(en.btn === '▶ Practise these 2' && en.label === 'Appears in:', 'Practise counts distinct questions: ' + en.btn);
+  assert(en.btn === 'Practise these 2' && en.label === 'Appears in:', 'Practise counts distinct questions: ' + en.btn);
   await pg.evaluate(() => setLang('zh-HK'));
   const zh = await sourceRow(pg);
-  assert(same(zh.nodes, en.nodes) && zh.btn === '▶ 練習這 2 題' && zh.label === '出現於：', 'zh-HK: ' + JSON.stringify(zh));
+  assert(same(zh.nodes, en.nodes) && zh.btn === '練習這 2 題' && zh.label === '出現於：', 'zh-HK: ' + JSON.stringify(zh));
   await pg.evaluate(() => setLang('en'));
   const node = await pg.$eval(`${FACT_CARD(ST_GEORGE)} .sqm-node.mastered`, e => getComputedStyle(e).whiteSpace);
   assert(node === 'nowrap', 'a merged node never wraps inside: ' + node);
@@ -287,12 +287,12 @@ async function checkSimilarPanel(pg) {
   await answer(pg, true);
   const a = await panel(pg);
   assert(same(a.nodes, ['E13·Q1 = E7·Q16:sqm-node current', 'E10·Q1:sqm-node']), 'answering 13.0: its copy joins the current node: ' + a.nodes);
-  assert(same(a.ids, ['Exam 10 · Q1']) && a.count === '+1' && a.cta === '▶ Practise this one', 'one distinct other question: ' + JSON.stringify(a));
+  assert(same(a.ids, ['Exam 10 · Q1']) && a.count === '+1' && a.cta === 'Practise this one', 'one distinct other question: ' + JSON.stringify(a));
   await openPracticeQ(pg, '10.0');
   await answer(pg, false);
   const b = await panel(pg);
   assert(same(b.nodes, ['E10·Q1:sqm-node current', 'E7·Q16 = E13·Q1:sqm-node weak']) && b.count === '+1', 'answering 10.0: the copies are one node: ' + b.nodes);
-  assert(same(b.ids, ['Exam 7 · Q16 = Exam 13 · Q1']) && b.cta === '▶ Practise this one', 'one item card, refs joined: ' + b.ids);
+  assert(same(b.ids, ['Exam 7 · Q16 = Exam 13 · Q1']) && b.cta === 'Practise this one', 'one item card, refs joined: ' + b.ids);
   await pg.evaluate(() => startSimilarPractice());
   const keys = await pg.evaluate(() => state.questions.map(qKey));
   assert(same(keys, [TWIN_FIRST]), 'the Similar session asks the copies once: ' + keys);

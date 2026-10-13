@@ -72,8 +72,14 @@
   font-size: var(--fs-sm); font-weight: 700; color: var(--note-label);
 }
 .fact-mem summary::-webkit-details-marker { display: none; }
-.fact-mem summary::before { content: '▸ '; }
-.fact-mem[open] summary::before { content: '▾ '; }
+/* CUI-0035 (user 2026-10-12): the ▸ / ▾ glyphs became one chevron line icon (js/components/factCard.js), turned down
+   when open; inline in the summary's line (no flex on <summary>: older Safari ignores it) */
+.fact-mem summary .line-icon {
+  width: 1em; height: 1em; stroke-width: 2.6; vertical-align: -0.15em; margin-right: var(--space-2);
+  transition: transform 0.15s;
+}
+.fact-mem[open] summary .line-icon { transform: rotate(90deg); }
+@media (prefers-reduced-motion: reduce) { .fact-mem summary .line-icon { transition: none; } }
 .fact-mem-body { padding: 0 var(--space-6) var(--space-6); font-size: var(--fs-sm); line-height: 1.6; color: var(--text-muted); }
 /* CUI-0028 (v1.3.2, user option C): below 375px the memory box's side padding shrinks, so memo ③'s 4-column table fits
    the Study card at 320 / 360px without scrolling sideways */
@@ -105,6 +111,10 @@
   --fact-practise-pad-x: var(--space-5);
   position: relative;
 }
+/* v1.6.1: its ▶ is the play line icon; 1em with a 2px gap (the triangle has ~3px of its own box to its right) keeps the
+   pill as narrow as the old "▶ " glyph (W-012: 2-source rows stay on one line at 390px) */
+.fact-practise.with-icon { gap: var(--space-1); }
+.fact-practise > .line-icon { width: 1em; height: 1em; }
 /* invisible tap ring, top and bottom only: above sits the row's 10px padding-top (single line) or the display-only
    source nodes (wrapped line, 6px gap — overlap is harmless, nodes take no taps); below, the card's 12px padding */
 .fact-practise::before {
