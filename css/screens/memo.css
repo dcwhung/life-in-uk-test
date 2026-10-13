@@ -60,15 +60,28 @@
   background: var(--gold-bg); border: 1.5px solid var(--gold-border); border-radius: var(--radius-md);
   padding: var(--space-5) var(--space-6); font-size: var(--fs-base); line-height: 1.55; margin-bottom: var(--space-7);
 }
-.memo-hook b { color: var(--note-label); }
+/* v2.1.0 (rev 3 P4): "💡 Memory hook:" on its own line, the hook under it (phone and desktop) */
+.memo-hook b { display: block; color: var(--note-label); margin-bottom: var(--space-2); }
 .memo-hook span { white-space: pre-line; }
 .memo-panel {
   background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow-sm);
   padding: var(--space-6); margin-bottom: var(--space-7); font-size: var(--fs-base); line-height: 1.55;
 }
-.memo-single-item + .memo-single-item { border-top: 1px solid var(--border); margin-top: var(--space-6); padding-top: var(--space-6); }
-.memo-single-q { font-weight: 700; color: var(--navy); margin-bottom: var(--space-3); }
+/* v2.1.0 the single-note group, design C (rev 4 / rev 5): one white card; each question = pill row → bold navy question →
+   "💡 備註：" + its note with a gold rule (like the hook); a big gap between questions */
+.memo-single-item + .memo-single-item { margin-top: var(--space-10); }
+.memo-single-q { font-weight: 800; color: var(--navy); }
+.memo-single-note { --memo-rule-w: 4px; border-left: var(--memo-rule-w) solid var(--gold-border); padding-left: var(--space-6); margin-top: var(--space-4); color: var(--text); }
+.memo-note-label { color: var(--note-label); font-weight: 700; margin-bottom: var(--space-2); }
 .nav-btn.memo-start { display: block; width: 100%; }
+
+/* v2.1.0 the group's questions (rev 1 / P1: no answers): a panel on the desktop's right, folded under the note on a
+   phone (P5: <details>, closed; its summary is the title) */
+.memo-questions-title { font-weight: 800; color: var(--navy); margin: 0 0 var(--space-5); }
+details.memo-questions > summary { cursor: pointer; list-style-position: inside; margin: 0; }
+details.memo-questions[open] > summary { margin-bottom: var(--space-5); }
+/* the top row's box (js/screens/memo.js memoArrangeTop) draws nothing below 1024px */
+.memo-top { display: contents; }
 
 /* result */
 .memo-score { text-align: center; padding: var(--space-6) 0 var(--space-4); }
@@ -102,24 +115,50 @@
 .nav-btn.memo-next { background: var(--gold); color: var(--navy); }
 .nav-btn.memo-next:hover { background: var(--gold-light); }
 
-/* ── v2.0.0 desktop (≥ 1024px). Design Origin: baseline: Plan Run desktop 置中欄（用戶 2026-10-12 決定，冇 mockup）:
-   the same centred reading column as Plan Run (css/screens/plan.css #screenPlanRun, mockup desktop-plan-run.html
-   A rev 4): at most 760px × --desktop-scale, one screen high (.is-fit, css/components/fit.css). The note / result panel
-   keeps its own height while it fits and scrolls on its own when it does not (.memo-scroll = .fit-fade, fades in the
-   card's colour), so "start the test" / Again / Next stay on the screen. Type and spacing follow the ×1.2 tokens;
-   hard-coded px below are ×1.2 (.proj-docs/plans/2026-10-12_desktop-px-inventory.md rule) ── */
+/* ── desktop (≥ 1024px). v2.1.0 Design Origin: mockup: mockups/v2.0.0/desktop-memo.html (rev 6) (decision log
+   .proj-docs/plans/2026-10-13_grill_desktop-memo.md; v2.0.0 was the Plan Run centred column). One screen high (.is-fit,
+   css/components/fit.css): the top row (‹ Memory + title | ① Look / ② Test, both halves), then the body's columns take
+   the height left; each panel (.memo-scroll = .fit-fade around a .fit-panel card) scrolls on its own, fading in the
+   card's colour. Type and spacing follow the ×1.2 tokens; hard-coded px below are ×1.2
+   (.proj-docs/plans/2026-10-12_desktop-px-inventory.md rule) ── */
 @media (min-width: 1024px) {
-  #screenMemo.is-fit > * { width: 100%; max-width: calc(760px * var(--desktop-scale)); margin-inline: auto; flex: none; }
+  #screenMemo.is-fit > * { flex: none; }
   #screenMemo.is-fit > #memoBody { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
   #memoBody > * { flex: none; }
-  #memoBody > .memo-scroll {
-    flex: 0 1 auto; min-height: 0; margin-bottom: var(--space-7);
-    --fit-fade-color: var(--card); --fit-fade-h: calc(40px * var(--desktop-scale)); --fit-panel-gutter: 0px;
+  #screenMemo .memo-top {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-8); align-items: center;
+    margin-bottom: var(--space-7);
   }
-  #memoBody > .memo-scroll > .memo-panel { margin-bottom: 0; }
+  .memo-top > .memo-header, .memo-top > .memo-steps { margin: 0; }
+  #memoBody > .memo-cols { flex: 1 1 auto; min-height: 0; display: grid; gap: var(--space-10); }
+  .memo-col { min-height: 0; display: flex; flex-direction: column; }
+  .memo-col > * { flex: none; }
+  .memo-col > .memo-scroll { flex: 1 1 auto; min-height: 0; }
+  .memo-scroll { --fit-fade-color: var(--card); --fit-fade-h: calc(40px * var(--desktop-scale)); --fit-panel-gutter: 0px; }
+  .memo-scroll > .memo-panel { margin: 0; }
   /* the fades sit inside the card's rounded corners */
   .memo-scroll::before { border-radius: var(--radius) var(--radius) 0 0; }
   .memo-scroll::after { border-radius: 0 0 var(--radius) var(--radius); }
+
+  /* ① look: left 7/12 the hook + the memory note, right 5/12 the group's questions; "start the test" under the right
+     column (the foot row repeats the columns) */
+  .memo-look-cols, #memoBody > .memo-foot { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
+  .memo-look-cols .memo-hook { margin-bottom: var(--space-7); }
+  #memoBody > .memo-foot { display: grid; gap: var(--space-10); margin-top: var(--space-7); }
+  .memo-foot > .memo-start { grid-column: 2; }
+  /* the single-note group: one card as wide as Plan Run's reading column, centred; its button under the card's right
+     edge, 5/12 of the card */
+  .memo-look-cols.is-single { grid-template-columns: minmax(0, 1fr); }
+  .memo-look-cols.is-single > .memo-col, #memoBody > .memo-foot.is-single {
+    width: 100%; max-width: calc(760px * var(--desktop-scale)); margin-inline: auto;
+  }
+  #memoBody > .memo-foot.is-single { display: flex; justify-content: flex-end; }
+  .memo-foot.is-single > .memo-start { width: calc(100% * 5 / 12); }
+  .memo-single-note { --memo-rule-w: calc(4px * var(--desktop-scale)); }
+
+  /* result: the v2.0.0 centred column (at most 760px × --desktop-scale) */
+  #screenMemo.is-fit[data-memo-step="result"] > * { width: 100%; max-width: calc(760px * var(--desktop-scale)); margin-inline: auto; }
+  #memoBody > .memo-scroll { flex: 0 1 auto; min-height: 0; margin-bottom: var(--space-7); }
 
   .memo-card { border-left-width: calc(4px * var(--desktop-scale)); }
   .memo-bar { height: calc(6px * var(--desktop-scale)); }

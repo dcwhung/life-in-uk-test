@@ -88,12 +88,33 @@ function memoLook() {
   Object.assign(memoView, { step: MEMO_STEP.look, result: null });
   showMemo();
 }
+// v2.1.0: the body is drawn for the layout it shows in (desktop columns or the phone's one column); a resize across
+// 1024px draws it again (fitMemo). An open questions fold stays open when the same view is drawn again
+let memoDrawn = { desktop: null, view: null };
 function renderMemo() {
   const g = memoGroupById(memoView.id);
+  const desktop = deskOn(), view = memoView.id + ':' + memoView.step;
+  const keepOpen = memoDrawn.view === view && !!document.querySelector('#memoBody details.memo-questions[open]');
+  memoArrangeTop();
   byId('memoTitle').textContent = g.icon + ' ' + g.title;
   byId('memoSteps').innerHTML = memoStepsHtml(g);
-  byId('memoBody').innerHTML = memoView.step === MEMO_STEP.result ? memoResultHtml(g, memoView.result) : memoLookHtml(g);
-  if (typeof refreshFades === 'function') refreshFades(byId('memoBody')); // v2.0.0 desktop: the panel's fades
+  byId('screenMemo').dataset.memoStep = memoView.step;
+  byId('memoBody').innerHTML = memoView.step === MEMO_STEP.result ? memoResultHtml(g, memoView.result) : memoLookHtml(g, desktop);
+  if (keepOpen) byId('memoBody').querySelector('details.memo-questions').open = true;
+  memoDrawn = { desktop, view };
+  if (typeof refreshFades === 'function') refreshFades(byId('memoBody')); // the panels' fades
+  desktopRefit('screenMemo', fitMemo); // registered lazily (js/components/deskPlace.js)
+}
+function fitMemo(desktop) {
+  if (desktop !== memoDrawn.desktop) renderMemo();
+}
+// the top row (‹ Memory + title | steps; desktop: side by side) wraps the header and the steps once; a box that draws
+// nothing below 1024px (display: contents), like Study's wrappers
+function memoArrangeTop() {
+  const screen = byId('screenMemo'), header = screen.querySelector('.memo-header'), steps = byId('memoSteps');
+  if (!header || !steps || header.parentElement.classList.contains('memo-top')) return;
+  const top = deskEl('div', 'memo-top');
+  deskKeepFocus(() => { header.before(top); top.append(header, steps); });
 }
 // ① look / ② test (n); after a test both read done, the test with its score
 function memoStepsHtml(g) {
@@ -136,28 +157,51 @@ function memoQuestionListHtml(items, extraCls = '') {
   return `<ul class="memo-qlist${extraCls}">${items.map((it, i) => memoQuestionItemHtml(it, i + 1)).join('')}</ul>`;
 }
 
-// ── ① look ──
+// ── ① look (v2.1.0, Design Origin: mockup: mockups/v2.0.0/desktop-memo.html rev 6) ──
+// desktop: the top row, then left 7/12 = the hook (fixed) + the memory note panel, right 5/12 = the group's questions
+// panel, both as high as the screen allows (scrolling, fading); "start the test" under the right column. The single-note
+// group: one white card, centred (Plan Run's 760 × scale), its button under the card's right edge.
+// phone: hook, then the note with the group's questions folded under it (<details>, closed), then the button
+// "💡 Memory hook:" on its own line, the hook under it (css: .memo-hook b is a block)
 function memoHookHtml(g) {
   if (!g.hook) return '';
   return `<div class="memo-hook"><b>${escapeHtml(t('memo.hookLabel'))}</b> <span lang="zh-HK">${escapeHtml(g.hook)}</span></div>`;
 }
 // the memory note without its heading line (the screen title already names the group), like the Study fact card
-function memoNoteHtml(g) {
-  return memoScrollHtml(`<div class="memo-panel memo-note fit-panel" lang="zh-HK">${noteHtml(g.body.split('\n').slice(1).join('\n'))}</div>`);
+function memoNoteBodyHtml(g) { return noteHtml(g.body.split('\n').slice(1).join('\n')); }
+// the group's questions: each distinct question (G40) with its pill row, English and Cantonese; no answers (P1)
+function memoGroupQuestions(g) {
+  return questionGroups(g.qkeys).map(keys => { const q = questionByKey(keys[0]).q; return { q: q.q, yue: q.yue || '', keys }; });
 }
-// the single-note group: each distinct question (its pill row, English) with its own note
-function memoSingleHtml(g) {
-  const items = questionGroups(g.qkeys).map((keys, i) => {
+function memoQuestionsTitle(g) { return escapeHtml(t('memo.questions', { n: questionGroups(g.qkeys).length })); }
+// the single-note group (design C): each distinct question = pill row → question → common.noteLabel + its own note
+function memoSingleItemsHtml(g) {
+  return questionGroups(g.qkeys).map((keys, i) => {
     const q = questionByKey(keys[0]).q;
     return `<div class="memo-single-item">${memoPillsHtml(keys, i + 1)}<div class="memo-single-q" lang="en">${escapeHtml(q.q)}</div>`
-      + `<div class="memo-single-note" lang="zh-HK">${noteHtml(q.note)}</div></div>`;
-  });
-  return memoScrollHtml(`<div class="memo-panel memo-single fit-panel">${items.join('')}</div>`);
+      + `<div class="memo-single-note" lang="zh-HK"><div class="memo-note-label">${escapeHtml(t('common.noteLabel'))}</div>${noteHtml(q.note)}</div></div>`;
+  }).join('');
 }
-function memoLookHtml(g) {
-  const body = g.body ? memoNoteHtml(g) : memoSingleHtml(g);
-  return memoHookHtml(g) + body
-    + `<button class="nav-btn memo-start" type="button" data-action="startMemoTest">${escapeHtml(t('memo.startTest'))}</button>`;
+const memoStartHtml = () => `<button class="nav-btn memo-start" type="button" data-action="startMemoTest">${escapeHtml(t('memo.startTest'))}</button>`;
+function memoLookHtml(g, desktop) { return desktop ? memoLookDeskHtml(g) : memoLookPhoneHtml(g); }
+function memoLookDeskHtml(g) {
+  if (!g.body) {
+    const card = `<div class="memo-panel memo-single fit-panel">${memoSingleItemsHtml(g)}</div>`;
+    return `<div class="memo-cols memo-look-cols is-single"><div class="memo-col">${memoHookHtml(g)}${memoScrollHtml(card)}</div></div>`
+      + `<div class="memo-foot is-single">${memoStartHtml()}</div>`;
+  }
+  const note = `<div class="memo-scroll memo-note-scroll fit-fade"><div class="memo-panel memo-note fit-panel" lang="zh-HK">${memoNoteBodyHtml(g)}</div></div>`;
+  const questions = memoScrollHtml(`<div class="memo-panel memo-questions fit-panel"><p class="memo-questions-title">${memoQuestionsTitle(g)}</p>`
+    + `${memoQuestionListHtml(memoGroupQuestions(g))}</div>`);
+  return `<div class="memo-cols memo-look-cols"><div class="memo-col">${memoHookHtml(g)}${note}</div><div class="memo-col">${questions}</div></div>`
+    + `<div class="memo-foot">${memoStartHtml()}</div>`;
+}
+function memoLookPhoneHtml(g) {
+  const content = g.body
+    ? `<div class="memo-panel memo-note" lang="zh-HK">${memoNoteBodyHtml(g)}</div>`
+      + `<details class="memo-panel memo-questions"><summary class="memo-questions-title">${memoQuestionsTitle(g)}</summary>${memoQuestionListHtml(memoGroupQuestions(g))}</details>`
+    : `<div class="memo-panel memo-single">${memoSingleItemsHtml(g)}</div>`;
+  return memoHookHtml(g) + `<div class="memo-scroll fit-fade"><div class="memo-scroll-panel fit-panel">${content}</div></div>` + memoStartHtml();
 }
 
 // ── ② test: a side session; its last "↩ Back" comes back here (SESSION_RETURNS.memo → finishMemoTest) ──

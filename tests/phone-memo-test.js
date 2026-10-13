@@ -71,11 +71,47 @@ async function checkPillRows(b) {
   await page.close();
 }
 
+// ① look on the phone: the hook label on its own line; the group's questions folded in a <details> under the note
+// (closed; its summary = "n questions"); open, each question has its pill row; the single-note group = design C
+async function checkPhoneLook(b) {
+  const { page, errors } = await dt.openDesktop(b, { viewport: dt.VIEWPORTS.phone, lang: 'zh-HK' });
+  const id = await groupWithCopies(page);
+  await openGroup(page, id);
+  const look = await page.evaluate(() => {
+    const box = el => el.getBoundingClientRect();
+    const hook = document.querySelector('#memoBody .memo-hook'), fold = document.querySelector('#memoBody details.memo-questions');
+    const note = document.querySelector('#memoBody .memo-note');
+    return { labelLine: !!hook && box(hook.querySelector('b')).bottom <= box(hook.querySelector('span')).top + 1,
+      label: hook && hook.querySelector('b').textContent,
+      fold: !!fold, open: fold && fold.open, summary: fold && fold.querySelector('summary').textContent.trim(),
+      afterNote: !!fold && !!note && (note.compareDocumentPosition(fold) & Node.DOCUMENT_POSITION_FOLLOWING) > 0,
+      listShown: fold ? fold.querySelector('ul').checkVisibility() : null }; // a closed <details> keeps a box (content-visibility)
+  });
+  const groups = await page.evaluate(gid => questionGroups(memoGroupById(gid).qkeys), id);
+  const title = await page.evaluate(n => t('memo.questions', { n }), groups.length);
+  assert(look.labelLine && look.label === '💡 記憶鈎：', `phone look: "${look.label}" on its own line, the hook under it`);
+  assert(look.fold && look.open === false && look.listShown === false && look.summary === title && look.afterNote,
+    `phone look: the group's questions folded under the note, closed, summary "${look.summary}" = "${title}"`);
+  await page.click('#memoBody details.memo-questions > summary');
+  const rows = await checkPills(page, '#memoBody .memo-questions', `phone look (${id}) questions`, await expectedPills(page, groups));
+  assert(rows.some(r => r.node.includes(COPY_SEP)), `phone look (${id}): a question asked in several exams joins its copies with "${COPY_SEP}"`);
+  await openGroup(page, 'single');
+  const single = await page.evaluate(() => [...document.querySelectorAll('#memoBody .memo-single-item')].map(it => ({
+    label: (it.querySelector('.memo-note-label') || {}).textContent, rule: getComputedStyle(it.querySelector('.memo-single-note')).borderLeftStyle,
+    qWeight: getComputedStyle(it.querySelector('.memo-single-q')).fontWeight })));
+  assert(single.length > 0 && single.every(it => it.label === '💡 備註：' && it.rule === 'solid' && Number(it.qWeight) >= 700),
+    'phone single-note group: bold question, "💡 備註：" + the note with its gold rule: ' + JSON.stringify(single[0]));
+  assert(await page.$('#memoBody .memo-questions') === null, 'phone single-note group: no group\'s questions');
+  assert(errors.length === 0, 'phone look: no page errors ' + errors.join(' | '));
+  await page.close();
+}
+
 (async () => {
   const b = await dt.launch();
   let failed = false;
   try {
     await checkPillRows(b);
+    await checkPhoneLook(b);
     console.log('PHONE-MEMO PASS');
   } catch (e) {
     failed = true;
