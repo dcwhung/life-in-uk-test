@@ -46,6 +46,8 @@ async function checkFlagged(pg) {
   assert(back.text === '‹ Flagged' && !back.icon, `#6 quiz header reads "‹ Flagged" (${back.text})`);
   await tapBack(pg, 'screenQuiz');
   assert(await activeScreen(pg) === 'screenFlagged', '#6 mid-session back goes to the Flagged list');
+  // S-255: focus lands on the list's Practise button (keyboard / screen reader users are not left on <body>)
+  assert(await pg.evaluate(() => document.activeElement && document.activeElement.id) === 'flaggedStart', '#6 focus is on the Flagged Practise button');
   // the Result header of a flagged practice goes back to the list too; the bottom button stays Home
   await pg.evaluate(() => { startFlaggedPractice(); state.questions.forEach((q, i) => { state.answers[i] = [...q.a]; state.revealed[i] = true; }); finishExam(); });
   const result = await backOf(pg, 'screenResult');
@@ -119,6 +121,9 @@ async function checkPlanFact(pg) {
   await tapBack(pg, 'screenQuiz');
   const after = await pg.evaluate(() => ({ screen: document.querySelector('.screen.active').id, view: planRunView && planRunView.kind, pos: planRunView && planRunView.pos }));
   assert(after.screen === 'screenPlanRun' && after.view === 'facts' && after.pos === pos, `#11 back goes to the same fact card (${JSON.stringify(after)})`);
+  // S-255: focus goes back to the card's ▶ Practise (the control that opened the quiz)
+  const focus = await pg.evaluate(() => { const el = document.activeElement; return { action: el && el.dataset.action, inBody: byId('planRunBody').contains(el) }; });
+  assert(focus.action === 'planPractiseFact' && focus.inBody, `#11 focus is on the fact card's ▶ Practise (${JSON.stringify(focus)})`);
   // a whole practice task (the reading's pair, G3) keeps "‹ Today's tasks" and goes back to the day
   await pg.evaluate(() => {
     const today = planTodayIso(), day = planDayAt(planLoad(), today);

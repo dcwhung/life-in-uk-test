@@ -86,10 +86,16 @@ function leaveSideSession() {
 }
 // Flagged list › Practise is an ordinary session (Retry keeps it), so its set id names the list it came from
 function isFlaggedSession() { return !isSideSession() && state.examNum === FLAGGED_EXAM; }
+// S-255: showScreen drops the focus; the list's Practise button (else its first control) takes it, as memoLook / planBackToDay
+function focusFlaggedEntry() {
+  const start = byId('flaggedStart');
+  const target = start && start.getClientRects().length ? start : document.querySelector('#flaggedList button');
+  if (target) target.focus({ preventScroll: true });
+}
 function goBack() {
   if (isPlanSession()) { planLeaveSession(); return; }
   if (isSideSession()) { leaveSideSession(); return; }
-  if (isFlaggedSession()) { openFlagged(); window.scrollTo(0, 0); return; }
+  if (isFlaggedSession()) { openFlagged(); window.scrollTo(0, 0); focusFlaggedEntry(); return; }
   goHome();
 }
 // the header's words while away from Home; null = the 🏠 icon. A plan session has its own (planRun.js)

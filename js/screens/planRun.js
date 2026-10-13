@@ -234,6 +234,12 @@ function planLeaveSession() {
   const ctx = planVisible() && planRunPart(ret).fact !== undefined ? planRunContext(ret.date, ret.taskIndex) : null;
   if (!ctx) { planBackToDay(); return; }
   planShowFacts({ date: ret.date, taskIndex: ret.taskIndex, from: ret.from }, ret.pos, planTaskProgress(ctx.task, ctx.dayLog).complete);
+  // S-255: focus back on the card's ▶ Practise that opened the quiz (gone in review: the nav-row's main button), as
+  // planShowTaskDone focuses its result line
+  const body = byId('planRunBody');
+  const target = body.querySelector('[data-action="planPractiseFact"]:not([disabled])')
+    || body.querySelector('.plan-run-nav .nav-btn:not([disabled]):last-child');
+  if (target) target.focus({ preventScroll: true });
 }
 // switching the feature off (G15) from the Practice screen leaves a plan session too, and a timed plan mock unsubmitted
 function isOnPlanSession() { return (isPlanSession() || isPlanMock()) && byId('screenQuiz').classList.contains('active'); }
