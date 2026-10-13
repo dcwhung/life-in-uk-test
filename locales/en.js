@@ -220,7 +220,7 @@ LOCALES.en = {
     resultKeep: 'Test {correct}/{total} (≥ {pct}%) → stays at Lv{lv} {name}',
     resultFail: 'Test {correct}/{total} · below {pct}%',
     resultFailDrop: 'Test {correct}/{total} · below {pct}%, down to Lv{lv} {name}', // W-064: a fail drops a level
-    // v2.4.1: when the group comes back, and what each level means (mastery)
+    // v2.4.2: when the group comes back, and what each level means (mastery)
     nextDue: { one: '📅 Next review in {n} day ({date})', other: '📅 Next review in {n} days ({date})' },
     nextDueTomorrow: '📅 Next review tomorrow ({date})',
     date: '{d}/{m}',
@@ -231,7 +231,7 @@ LOCALES.en = {
     noAnswers: 'No answers were recorded — nothing changed.', // S-232: skipped questions do not count
     tomorrow: 'Tomorrow', // W-065: the schedule box of the level due again tomorrow
     lv: 'Lv{lv}',
-    days: { one: '{n} day', other: '{n} days' }, // not read since v2.4.1; kept for an HTTP-cached v2.4.0 memo.js (W-077)
+    days: { one: '{n} day', other: '{n} days' }, // not read since v2.4.2; kept for an HTTP-cached pre-v2.4.2 memo.js (W-077)
     wrongTitle: 'Look at these again:',
     // v2.4.0 (decision log Q3): the result with nothing wrong shows the hook again; a group without a hook shows its
     // memory note (the single-note group: its notes)

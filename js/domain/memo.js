@@ -5,7 +5,7 @@
 // Group membership is read from the notes (data/exams.js): a note's memory note = its text from the heading word
 // (MEMORY_MARK, js/domain/similar.js) to the end; the heading names the group ("<mark>(title):" in full-width brackets and colon, data/memo.js).
 // ════════════════════════════════════════
-const MEMO_INTERVALS = [1, 3, 7];             // days until the next review on reaching Lv1 .. Lv3 (v2.4.1: was 1/3/7/14)
+const MEMO_INTERVALS = [1, 3, 7];             // days until the next review on reaching Lv1 .. Lv3 (v2.4.2: was 1/3/7/14)
 const MEMO_MAX_LV = MEMO_INTERVALS.length;     // Lv3 = mastered
 const MEMO_PASS_RATIO = 0.7;                   // a test at or above this moves the group up one level
 const MEMO_TEST_SIZE = 5;                      // distinct questions per test (fewer when the group has fewer)
@@ -60,7 +60,7 @@ function memoLocal(g) {
 
 // ── progress: { [group id]: { lv: 0..MEMO_MAX_LV, due: 'YYYY-MM-DD' } } ──
 // stored data can be stale or hand-edited (like studyLoad, CUI-0003): unknown ids and bad records are dropped
-const MEMO_LEGACY_MAX_LV = 4;                  // v2.4.1: records from the 4-level schedule (Lv4) read as MEMO_MAX_LV
+const MEMO_LEGACY_MAX_LV = 4;                  // v2.4.2: records from the 4-level schedule (Lv4) read as MEMO_MAX_LV
 function isValidMemoRecord(rec) {
   return !!rec && typeof rec === 'object' && Number.isInteger(rec.lv) && rec.lv >= 0 && rec.lv <= MEMO_LEGACY_MAX_LV && isoIsValid(rec.due);
 }

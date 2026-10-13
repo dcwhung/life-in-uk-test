@@ -17,7 +17,6 @@ const MARK = '記憶法';
 const QUESTION_COUNT = 408;
 const TITLED_GROUPS = 61;
 const NO_MEMO_QUESTIONS = 8;
-const HOOK_BATCH = 15; // batch 1: the 15 groups with the most distinct questions
 const TODAY = '2026-10-12';
 
 let asserts = 0;
@@ -83,26 +82,76 @@ function checkGroups({ g }) {
   assert(g("memoMainChapter(['1.0', '3.6', '1.2', '3.7'])") === 5, 'main chapter = the one with most questions');
 }
 
-// hooks: batch 1 = the 15 groups with the most distinct questions (tie: more copies, then MEMO_GROUPS order)
-// user-confirmed wording (review W-066, 2026-10-12)
-const HOOK_EARLY_BRITAIN = '「凱撒 55 BC 打唔入，Claudius AD 43 先打得入」\n→ AD 60 Boudicca 反抗、AD 122 Hadrian 起長城、AD 410 羅馬人走 → Jutes、Angles、Saxons 移入 → 之後 Vikings 坐長船嚟。';
-const HOOK_VOTE = '「89 冇票、32 中產、18 男21女30、28 同齡、69 變 18」\n→ 1918 女性要 30 歲，十年後 1928 先同男人一樣 21。';
+// hooks: every titled group has one (user-reviewed 2026-10-13, all 61 groups); 'single' has none.
+// Pinned verbatim (a sample of the user-approved wording, incl. W-066 early-britain and the 「年」 year rule).
+const PINNED_HOOKS = {
+  'vote': '「89 年冇票、32 年中產、18 年男 21 女 30、28 年同齡 21、69 年變 18」\n→ 1918 年女性要 30 歲，十年後 1928 年先同男人一樣 21。',
+  'early-britain': '「凱撒 55 BC 打唔入，Claudius AD 43 先打得入」\n→ AD 60 Boudicca 反抗、AD 122 Hadrian 起長城、AD 410 羅馬人走 → Jutes、Angles、Saxons 移入 → 之後 Vikings 坐長船嚟。',
+  'post-war': '「45 年 Attlee 贏 Churchill、45–51 年福利國家、48 年 NHS + Windrush」\n→ 1948 年雙響：Bevan 推動 NHS（用嗰陣免費）、Empire Windrush 載第一批 Caribbean 移民。',
+  'great-fire': "「1666 年 Charles II 時期大火燒 St Paul's → Pepys 寫日記 → Wren 重新設計」",
+  'king-parliament': '「28 年 Petition of Right、42 年內戰、49 年斬王、60 年 Restoration（復辟）、88 年 Glorious（光榮）」\n→ 1649 年 Charles I 被處決，Cromwell 做護國公；1688 年 William of Orange 做國王，開始君主立憲。',
+  // review_v220-hooks follow-ups (user): W-077 Northern Ireland reads 「N. Ireland」; a space after 「年」 before a Latin word
+  'magna-carta': '「1215 年 King John 簽：冇人凌駕法律，國王都唔例外」\n→ 限制國王權力，奠定法治（rule of law）基礎。',
+  'devolved': '「Scotland 129、N. Ireland 90、Wales 60、UK 650」\n→ England 冇自己嘅地方議會，由 Westminster 英國國會直接負責。',
+  'nation-symbols': '「England Rose、Scotland Thistle、Wales Daffodil、N. Ireland Shamrock」\n「England London、Scotland Edinburgh、Wales Cardiff、N. Ireland Belfast」\n→ Gaelic 係 Scotland 同 Ireland 部分地區講。',
+};
+// v2.4.1: English hooks (hookEn) for all 61 titled groups, user-reviewed 2026-10-13 (translated from the approved hooks
+// above; they replace main v2.2.0's 15, which came from the old hooks). Pinned verbatim (a sample); 'single' has none.
+const PINNED_HOOKS_EN = {
+  'vote': "\"1689 no votes, 1832 middle class, 1918 men 21 women 30, 1928 same age 21, 1969 down to 18\"\n→ In 1918 women had to be 30; ten years later, in 1928, they voted at 21 like men.",
+  'early-britain': "\"Caesar failed to invade in 55 BC; Claudius succeeded in AD 43\"\n→ AD 60 Boudicca revolts, AD 122 Hadrian builds the Wall, AD 410 the Romans leave → Jutes, Angles, Saxons move in → then the Vikings arrive in longships.",
+  'nation-symbols': "\"England Rose, Scotland Thistle, Wales Daffodil, N. Ireland Shamrock\"\n\"England London, Scotland Edinburgh, Wales Cardiff, N. Ireland Belfast\"\n→ Gaelic is spoken in parts of Scotland and Ireland.",
+  'post-war': "\"1945 Attlee beats Churchill, 1945–51 welfare state, 1948 NHS + Windrush\"\n→ Two big events in 1948: Bevan launched the NHS (free at the point of use) and the Empire Windrush brought the first Caribbean migrants.",
+  'great-fire': "\"1666, under Charles II, the Great Fire burns St Paul's → Pepys writes his diary → Wren redesigns it\"",
+};
+const THREE_LINE_HOOKS = ['nation-symbols']; // user-approved: two 「」 lines (flowers, capitals) + one → line
+// year rule: a four-digit year (1000–2099) is followed by 「年」, or starts a range whose end is (1853–56 年, 1337–1453 年).
+// The (?!\d) after the range end stops 「1337–145」 backtracking into a match of 「1337–1453 年」.
+const BARE_YEAR = /(?<![\d,])(1\d{3}|20\d{2})(?!\d)(?!–\d{2,4}(?!\d) ?年)(?! ?年)/;
+// S-265: every number range ends in a unit — 年 (years, incl. two-digit 45–51 年), 歲 (16–17 歲) or 月 (6–7 月).
+// Bare two-digit years (「45 年」 vs 「47 國」「18 至 70 歲」) cannot be told apart from counts / ages, so they are
+// covered by the verbatim pins and review only.
+const RANGE_NO_UNIT = /\d[–-]\d+(?!\d)(?! ?[年歲月])/;
+// S-267 (user): brackets in hooks are full-width （）; spacing (user): 「年」 before a Latin word takes a space
+const HALF_WIDTH_PAREN = /[()]/;
+const NIAN_LATIN = /年[A-Za-z]/;
 function checkHooks({ g }) {
-  assert(g("memoGroupById('early-britain').hook") === HOOK_EARLY_BRITAIN, 'W-066: early-britain hook puts Jutes / Angles / Saxons after AD 410, Vikings later');
-  assert(g("memoGroupById('vote').hook") === HOOK_VOTE, 'vote hook: 1928 = 同齡');
+  for (const [id, hook] of Object.entries(PINNED_HOOKS)) assert(g(`memoGroupById('${id}').hook`) === hook, `${id} hook: user-approved wording, verbatim`);
   const groups = g('memoGroups()').filter(gr => gr.id !== 'single');
   const order = [...groups].sort((a, b) => b.count - a.count || b.qkeys.length - a.qkeys.length);
   assert(same(order.map(gr => gr.id), groups.map(gr => gr.id)), 'MEMO_GROUPS is listed most distinct questions first (ties: more copies)');
-  const batch = new Set(order.slice(0, HOOK_BATCH).map(gr => gr.id));
-  assert(groups.every(gr => (batch.has(gr.id) ? gr.hook.trim().length > 0 : gr.hook === '')), `the ${HOOK_BATCH} biggest groups have a hook, the others ''`);
-  assert(groups.every(gr => gr.hook.split('\n').length <= 2), 'a hook is at most two lines');
+  assert(groups.length === TITLED_GROUPS && groups.every(gr => gr.hook.trim().length > 0), `all ${TITLED_GROUPS} titled groups have a hook`);
+  assert(g("memoGroupById('single').hook") === '', "the single-note group has no hook ('')");
+  for (const [id, hookEn] of Object.entries(PINNED_HOOKS_EN)) assert(g(`memoGroupById('${id}').hookEn`) === hookEn, `${id} hookEn: user-approved English wording, verbatim`);
+  const badEn = groups.filter(gr => typeof gr.hookEn !== 'string' || !gr.hookEn.trim() || gr.hookEn.split('\n').length !== gr.hook.split('\n').length
+    || gr.hookEn.split('\n').some(l => !l.trim()) || /[\u3400-\u9fff\uff08\uff09]/.test(gr.hookEn));
+  assert(badEn.length === 0, `every titled group has an English hook: non-empty, as many lines as its hook, no Chinese (bad: ${badEn.map(gr => gr.id).join()})`);
+  assert(g("memoGroupById('single').hookEn") === '', "the single-note group has no English hook ('')");
+  const badLines = groups.filter(gr => gr.hook.split('\n').length > (THREE_LINE_HOOKS.includes(gr.id) ? 3 : 2) || gr.hook.split('\n').some(l => !l.trim()));
+  assert(badLines.length === 0, `a hook is one or two non-empty lines (${THREE_LINE_HOOKS.join()}: three) (bad: ${badLines.map(gr => gr.id).join()})`);
+  const bareYears = groups.filter(gr => BARE_YEAR.test(gr.hook));
+  assert(bareYears.length === 0, `year rule: every four-digit year is followed by 「年」 (bare: ${bareYears.map(gr => gr.id).join()})`);
+  const noUnit = groups.filter(gr => RANGE_NO_UNIT.test(gr.hook));
+  assert(noUnit.length === 0, `S-265: every number range ends in 年 / 歲 / 月 (bad: ${noUnit.map(gr => gr.id).join()})`);
+  const halfParen = groups.filter(gr => HALF_WIDTH_PAREN.test(gr.hook));
+  assert(halfParen.length === 0, `S-267: hooks use full-width （）, no half-width ( ) (bad: ${halfParen.map(gr => gr.id).join()})`);
+  const nianLatin = groups.filter(gr => NIAN_LATIN.test(gr.hook));
+  assert(nianLatin.length === 0, `spacing: 「年」 is followed by a space before a Latin word (bad: ${nianLatin.map(gr => gr.id).join()})`);
+  // self-check of the year / range regexes against known shapes (S-265: must flag the bad, pass the non-years)
+  const flagged = ['1853–56 Nightingale', '1945', '1940s', '1337–1453 Hundred', '45–51 Attlee', '1215 年King']
+    .filter(x => BARE_YEAR.test(x) || RANGE_NO_UNIT.test(x) || NIAN_LATIN.test(x));
+  assert(flagged.length === 6, `year / range / spacing rules flag bad shapes (missed: ${6 - flagged.length})`);
+  const clean = ['1853–56 年', '1337–1453 年', '1899–1902 年', '45–51 年', '40–41 年', '1840 年代', '650', '47 國', '18 至 70 歲', '25/1', '£50',
+    '14 世紀', '1p', '20,000', '16–17 歲', '10–17 歲', '6–7 月', '55 BC', 'AD 410', 'D-Day', 'Royal Air Force — RAF']
+    .filter(x => BARE_YEAR.test(x) || RANGE_NO_UNIT.test(x));
+  assert(clean.length === 0, `year / range rules pass years with 年 and non-years (flagged: ${clean.join(' | ')})`);
 }
 
 // ── progress: lifeuk.memoProgress = { [id]: { lv, due } } ──
 function checkRecord() {
   const app = loadApp(), g = app.g;
   assert(g('MEMO_PROGRESS_LS') === MEMO_LS && same(g('MEMO_INTERVALS'), [1, 3, 7]) && g('MEMO_PASS_RATIO') === 0.7
-    && g('MEMO_TEST_SIZE') === 5 && g('MEMO_MAX_LV') === 3, 'constants (v2.4.1): key, intervals 1/3/7, pass 70%, test 5, max Lv3');
+    && g('MEMO_TEST_SIZE') === 5 && g('MEMO_MAX_LV') === 3, 'constants (v2.4.2): key, intervals 1/3/7, pass 70%, test 5, max Lv3');
   assert(same(g('memoLoadProgress()'), {}) && g("memoStatus(memoRecord(memoLoadProgress(), 'vote'), '" + TODAY + "')") === 'new', 'nothing stored → new');
   const steps = [[TODAY, '2026-10-13', 1], ['2026-10-13', '2026-10-16', 2], ['2026-10-16', '2026-10-23', 3], ['2026-10-23', '2026-10-30', 3]];
   steps.forEach(([day, due, lv]) => {
@@ -173,14 +222,14 @@ function checkCorruptedStorage() {
   assert(same(stored(app), { vote: { lv: 2, due: '2026-10-20' }, ww2: { lv: 1, due: '2026-10-13' } }), 'a bad record reads as new; writing keeps only valid records');
 }
 
-// v2.4.1: the schedule went from Lv1–4 to Lv1–3; a stored Lv4 (old 4-level schedule) reads as Lv3 with its due kept
+// v2.4.2: the schedule went from Lv1–4 to Lv1–3; a stored Lv4 (old 4-level schedule) reads as Lv3 with its due kept
 function checkLegacyLv4() {
   const app = loadApp({ [MEMO_LS]: JSON.stringify({ vote: { lv: 4, due: '2026-10-30' }, ww2: { lv: 4, due: '2026-10-11' } }) });
   const g = app.g;
-  assert(same(g('memoLoadProgress()'), { vote: { lv: 3, due: '2026-10-30' }, ww2: { lv: 3, due: '2026-10-11' } }), 'v2.4.1: stored Lv4 reads as Lv3, due kept');
-  assert(g(`memoStatus(memoRecord(memoLoadProgress(), 'vote'), '${TODAY}')`) === 'done', 'v2.4.1: a former Lv4 not due → done (mastered)');
+  assert(same(g('memoLoadProgress()'), { vote: { lv: 3, due: '2026-10-30' }, ww2: { lv: 3, due: '2026-10-11' } }), 'v2.4.2: stored Lv4 reads as Lv3, due kept');
+  assert(g(`memoStatus(memoRecord(memoLoadProgress(), 'vote'), '${TODAY}')`) === 'done', 'v2.4.2: a former Lv4 not due → done (mastered)');
   const r = g(`recordMemoResult('ww2', 5, 5, '${TODAY}')`);
-  assert(r.prevLv === 3 && r.lv === 3 && r.due === '2026-10-19' && same(stored(app).ww2, { lv: 3, due: '2026-10-19' }), 'v2.4.1: a pass from a former Lv4 stays Lv3, +7, stored as Lv3');
+  assert(r.prevLv === 3 && r.lv === 3 && r.due === '2026-10-19' && same(stored(app).ww2, { lv: 3, due: '2026-10-19' }), 'v2.4.2: a pass from a former Lv4 stays Lv3, +7, stored as Lv3');
 }
 
 function checkTestPick() {

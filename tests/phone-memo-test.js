@@ -109,6 +109,9 @@ async function checkPhoneLook(b) {
 // result on the phone: nothing wrong → the all-correct words + the hook (or the memory note) in the panel
 async function checkPhoneResult(b) {
   const { page, errors } = await dt.openDesktop(b, { viewport: dt.VIEWPORTS.phone, lang: 'zh-HK' });
+  // v2.4.1: every titled group has a hook; the 'plain' case (memory note, no hook) blanks one group's hooks in this page only
+  // (memoGroups() caches the group objects)
+  await page.evaluate(() => { const g = memoGroups().filter(x => x.hook && x.body)[1]; g.hook = ''; g.hookEn = ''; });
   for (const pick of ['hook', 'plain']) {
     const id = await page.evaluate(k => memoGroups().find(g => g.body && (k === 'hook' ? g.hook : !g.hook)).id, pick);
     await page.evaluate(gid => {

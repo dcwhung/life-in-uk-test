@@ -220,7 +220,7 @@ LOCALES['zh-HK'] = {
     noAnswers: '未有作答任何題目，不會記錄進度',
     tomorrow: '明日',
     lv: 'Lv{lv}',
-    days: '{n} 日', // not read since v2.4.1; kept for an HTTP-cached v2.4.0 memo.js (W-077)
+    days: '{n} 日', // not read since v2.4.2; kept for an HTTP-cached pre-v2.4.2 memo.js (W-077)
     wrongTitle: '需要重溫的題目：',
     hookAgain: '全部答對 🎉 再看一次記憶鈎：',
     noteAgain: '全部答對 🎉 再看一次筆記：',

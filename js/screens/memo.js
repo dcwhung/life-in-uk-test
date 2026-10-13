@@ -8,7 +8,7 @@
 const MEMO_STEP = { look: 'look', result: 'result' };
 const MEMO_STATUS_KEYS = { new: 'memo.statusNew', due: 'memo.statusDue', learning: 'memo.statusLearning', done: 'memo.statusDone' };
 const MEMO_SEARCH_SEP = ' ';
-// v2.4.1: what each level means (mastery), by level 0..MEMO_MAX_LV; shown next to "Lv{lv}" in badges, verdicts, boxes
+// v2.4.2: what each level means (mastery), by level 0..MEMO_MAX_LV; shown next to "Lv{lv}" in badges, verdicts, boxes
 const MEMO_LV_NAME_KEYS = ['memo.lvName0', 'memo.lvName1', 'memo.lvName2', 'memo.lvName3'];
 function memoLvName(lv) {
   const nameKey = MEMO_LV_NAME_KEYS[lv];
@@ -95,7 +95,9 @@ const memoInChapter = g => study.memoChapter === ALL_FILTER || g.ch === study.me
 function memoMatches(g) {
   if (!study.search) return true;
   const english = g.body && typeof NOTES_EN !== 'undefined' ? NOTES_EN[g.body] : '';
-  return [g.title, g.body || '', g.hook, g.titleEn || '', english || '', g.hookEn || ''].join(MEMO_SEARCH_SEP).toLowerCase().includes(study.search);
+  const hay = [g.title, g.body || '', g.hook, g.titleEn || '', english || '', g.hookEn || ''].join(MEMO_SEARCH_SEP);
+  // S-271: searchText (js/screens/study.js) reads U+00A0 / U+2060 like the query; a cached older study.js lacks it
+  return (typeof searchText === 'function' ? searchText(hay) : hay.toLowerCase()).includes(study.search);
 }
 function memoBadgeText(rec, status, today) {
   const params = rec ? { lv: rec.lv, name: memoLvName(rec.lv), n: memoDaysUntil(rec, today) } : {};
@@ -246,6 +248,23 @@ function memoQuestionListHtml(items, extraCls = '') {
   return `<ul class="memo-qlist${extraCls}">${items.map((it, i) => memoQuestionItemHtml(it, i + 1)).join('')}</ul>`;
 }
 
+// CUI-0044: the approved hook data keeps plain spaces (a year and its unit, "N. Ireland", "AD 43"), which are line-break points
+// in the narrow hook box. At render time those token spaces become U+00A0 (and a numeric range, "1853–56", gets U+2060 after
+// the dash: a line may break after an en dash) so a year never sits at a line end with its unit on the next line. v2.4.1:
+// the English hook (hookEn) goes through the same rules (AD 43, 55 BC, N. Ireland, 1945–51; the CJK units never match).
+// Search reads the raw data (memoMatches), so typed plain spaces match, and searchText maps pasted U+00A0 / U+2060 back
+// (S-271). The units are \u escapes: no CJK in js/ (i18n-test).
+const MEMO_NBSP = '\u00a0', MEMO_WORD_JOINER = '\u2060';
+const MEMO_UNIT = '(?:\u5e74|\u6b72|\u6708|\u570b|\u500b|\u4f4d|\u4e16\u7d00|\u65e5|\u661f\u671f|\u842c|\u6642)'; // year (also the decade suffix) / age / month / country / count / person / century / day / week / 10,000 / hour
+const MEMO_NO_BREAK_RULES = [
+  [/(\d)–(?=\d)/g, `$1–${MEMO_WORD_JOINER}`],                                // a range end stays with its start: 1853–56 (+ unit), 1945–51
+  [new RegExp(`(\\d) (?=${MEMO_UNIT})`, 'g'), `$1${MEMO_NBSP}`],               // a number + its unit: 1928 + year, 70 + age
+  [/\bN\. (?=Ireland)/g, `N.${MEMO_NBSP}`],                                      // N. Ireland
+  [/\bAD (?=\d)/g, `AD${MEMO_NBSP}`],                                            // AD 43
+  [/(\d) (?=BC\b)/g, `$1${MEMO_NBSP}`],                                          // 55 BC
+];
+const memoHookNoBreak = text => MEMO_NO_BREAK_RULES.reduce((s, [re, to]) => s.replace(re, to), text);
+
 // ── ① look (v2.4.0, Design Origin: mockup: mockups/v2.0.0/desktop-memo.html rev 6) ──
 // desktop: the top row, then left 7/12 = the hook (fixed) + the memory note panel, right 5/12 = the group's questions
 // panel, both as high as the screen allows (scrolling, fading); "start the test" under the right column. The single-note
@@ -255,7 +274,8 @@ function memoQuestionListHtml(items, extraCls = '') {
 function memoHookHtml(g) {
   const local = memoLocal(g);
   if (!local.hook) return '';
-  return `<div class="memo-hook"><b>${escapeHtml(t('memo.hookLabel'))}</b> <span lang="${local.lang}">${escapeHtml(local.hook)}</span></div>`;
+  // U+00A0 / U+2060 are plain characters to escapeHtml: escaped once, never an &nbsp; entity
+  return `<div class="memo-hook"><b>${escapeHtml(t('memo.hookLabel'))}</b> <span lang="${local.lang}">${escapeHtml(memoHookNoBreak(local.hook))}</span></div>`;
 }
 // the memory note without its heading line (the screen title already names the group), like the Study fact card;
 // main v2.2.0: in the UI language (localNote: the English note in the English UI). { html, lang }
@@ -353,15 +373,15 @@ function memoVerdictText(r) {
   if (!r.passed) return r.lv < r.prevLv ? t('memo.resultFailDrop', params) : t('memo.resultFail', params);
   return r.lv > r.prevLv ? t('memo.resultPass', params) : t('memo.resultKeep', params);
 }
-// v2.4.1: when the group comes back, as a date and a wait counted from the test day (a re-render on a later day keeps
-// it); a result kept from before v2.4.1 has no due and shows no line
+// v2.4.2: when the group comes back, as a date and a wait counted from the test day (a re-render on a later day keeps
+// it); a result kept from before v2.4.2 has no due and shows no line
 function memoNextDueHtml(r) {
   if (!r.due) return '';
   const [, m, d] = isoParts(r.due), date = t('memo.date', { m, d });
   const text = r.passed ? t('memo.nextDue', { n: MEMO_INTERVALS[r.lv - 1], date }) : t('memo.nextDueTomorrow', { date });
   return `<div class="memo-next-due">${escapeHtml(text)}</div>`;
 }
-// Lv1..Lv3 with their mastery name (v2.4.1, user: no wait words, no title); levels below the new one are past (green). After a pass the new level is next (orange,
+// Lv1..Lv3 with their mastery name (v2.4.2, user: no wait words, no title); levels below the new one are past (green). After a pass the new level is next (orange,
 // its interval); after a fail (W-065) it is due again tomorrow, so its box reads "Tomorrow" and no interval is next
 const MEMO_LV_STATE = { past: ' past', next: ' next', retry: ' retry', none: '' };
 function memoLevelState(level, r) {

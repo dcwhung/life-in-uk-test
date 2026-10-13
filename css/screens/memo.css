@@ -116,7 +116,7 @@ details.memo-questions[open] > summary { margin-bottom: var(--space-5); }
 .memo-score.fail .memo-pct { color: var(--red); }
 .memo-verdict { font-size: var(--fs-md); color: var(--text-muted); margin-top: var(--space-3); }
 .memo-next-due { font-size: var(--fs-md); font-weight: 700; color: var(--navy); margin-top: var(--space-3); }
-/* v2.4.1: Lv1–3 boxes (level + mastery name); a line's gap (--space-12) before the text below */
+/* v2.4.2: Lv1–3 boxes (level + mastery name); a line's gap (--space-12) before the text below */
 .memo-sched { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-3); margin: var(--space-5) 0 var(--space-12); }
 .memo-lv {
   text-align: center; background: var(--card); border: 2px solid var(--border); border-radius: var(--radius-md);
