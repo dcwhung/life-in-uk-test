@@ -161,8 +161,37 @@ async function checkBreakpoint(b) {
   await page.close();
 }
 
+// v2.1.0 memo tab (mockup desktop-memo.html rev 6): cards in 3 columns below 1280px, 4 from 1280px; badge top right,
+// bar at the foot, a row's cards equally high; the "due today" banner above the card panel (not in it), so it stays put
+// while the cards scroll. Seeded with groups due today so the banner shows
+const MEMO_LS = 'lifeuk.memoProgress';
+const MEMO_COLUMNS = { wide: 4, narrow: 3, wideFrom: 1280 };
+const MEMO_DUE_IDS = ['vote', 'ww2', 'parliament'];
+async function checkMemoList({ page, label, viewport, errors }) {
+  await page.evaluate(([k, ids]) => {
+    const today = planTodayIso(), p = {};
+    ids.forEach(id => { p[id] = { lv: 1, due: today }; });
+    localStorage.setItem(k, JSON.stringify(p));
+  }, [MEMO_LS, MEMO_DUE_IDS]);
+  await openTab(page, 'memo');
+  const want = viewport.width >= MEMO_COLUMNS.wideFrom ? MEMO_COLUMNS.wide : MEMO_COLUMNS.narrow;
+  const L = await dt.memoListLayout(page);
+  assert(L.columns === want, `${label} memo: ${want} card columns (${L.columns})`);
+  assert(L.bad.length === 0 && L.unequal === 0, `${label} memo: badge top right, bar at the foot, rows equally high ${L.bad.slice(0, 3).join(' | ')}`);
+  assert(L.due && !L.dueInPanel && L.due.bottom <= L.panel.top, `${label} memo: the due banner above the card panel, not in it`);
+  await page.$eval('#studyContent', el => { el.scrollTop = el.scrollHeight; el.dispatchEvent(new Event('scroll')); });
+  const after = await dt.memoListLayout(page);
+  const only = await dt.panelOnlyScroll(page, '#studyContent');
+  assert(only.ok && Math.abs(after.due.top - L.due.top) <= PX_SLACK && after.due.top >= 0, `${label} memo: cards scrolled, the banner stays put (${L.due.top.toFixed(1)} → ${after.due.top.toFixed(1)}; ${only.detail})`);
+  await openTab(page, 'chapters');
+  assert(await page.evaluate(() => !document.querySelector('#screenStudy .memo-due') || !document.querySelector('#screenStudy .memo-due').getClientRects().length),
+    `${label}: no due banner on another tab`);
+  assert(errors.length === 0, `${label} memo: no page error ${errors.join(' | ')}`);
+}
+
 (async () => {
   const b = await dt.launch();
+  await dt.forEachCase(b, checkMemoList, { translations: [true] });
   await dt.forEachCase(b, checkCase);
   await checkFadesAndScroll(b);
   await checkBreakpoint(b);

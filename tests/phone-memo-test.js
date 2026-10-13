@@ -125,6 +125,48 @@ async function checkPhoneResult(b) {
   await page.close();
 }
 
+// the Study memo list on a phone: 2 columns (badge top right, bar at the foot); the due banner sticks under the header
+// with a gap the page's grey fills (scrolled cards never show in it). EN / 中 × small / large text
+const MEMO_LS = 'lifeuk.memoProgress';
+const PHONE_SCROLL = 900;
+const BG_SLACK = 3; // colour channels, screenshot rounding
+async function checkPhoneList(b) {
+  for (const lang of dt.LANGS) for (const fontSize of dt.FONT_SIZES) {
+    const { page, errors, label } = await dt.openDesktop(b, { viewport: dt.VIEWPORTS.phone, lang, fontSize });
+    await page.evaluate(k => {
+      const today = planTodayIso();
+      localStorage.setItem(k, JSON.stringify({ vote: { lv: 1, due: today }, ww2: { lv: 2, due: today }, parliament: { lv: 4, due: isoAddDays(today, 14) } }));
+      openStudy(); studySetTab('memo');
+    }, MEMO_LS);
+    const L = await dt.memoListLayout(page);
+    assert(L.columns === 2 && L.bad.length === 0 && L.unequal === 0, `${label} list: 2 columns, badge top right, bar at the foot ${L.bad.slice(0, 3).join(' | ')}`);
+    const side = await dt.noHorizontalScroll(page);
+    assert(side.ok, `${label} list: no sideways scroll (${side.detail})`);
+    await page.evaluate(y => window.scrollTo(0, y), PHONE_SCROLL);
+    await dt.nextFrame(page);
+    const after = await dt.memoListLayout(page);
+    const gap = await page.evaluate(() => {
+      const probe = document.createElement('div'); probe.style.cssText = 'position:absolute;width:var(--space-4)';
+      document.body.appendChild(probe);
+      const out = { space: probe.getBoundingClientRect().width };
+      probe.remove();
+      return { ...out, scrollY: window.scrollY };
+    });
+    assert(gap.scrollY > 0 && Math.abs(after.due.top - (after.header.bottom + gap.space)) <= 1,
+      `${label} list: page scrolled ${gap.scrollY}px, the banner sticks ${gap.space}px under the header (${after.due.top.toFixed(1)})`);
+    // the gap paints the same with the cards hidden: only the page grey (and the header's own shadow) shows there
+    const [y0, y1] = [Math.ceil(after.header.bottom), Math.floor(after.due.top) - 1];
+    const band = await dt.bandColours(page, y0, y1);
+    await page.evaluate(() => { byId('studyContent').style.visibility = 'hidden'; });
+    const bare = await dt.bandColours(page, y0, y1);
+    await page.evaluate(() => { byId('studyContent').style.visibility = ''; });
+    const off = band.filter((px, i) => px.some((c, k) => Math.abs(c - bare[i][k]) > BG_SLACK));
+    assert(band.length > 0 && off.length === 0, `${label} list: no card shows in the gap under the header (${off.length} / ${band.length} pixels differ)`);
+    assert(errors.length === 0, `${label} list: no page errors ` + errors.join(' | '));
+    await page.close();
+  }
+}
+
 (async () => {
   const b = await dt.launch();
   let failed = false;
@@ -132,6 +174,7 @@ async function checkPhoneResult(b) {
     await checkPillRows(b);
     await checkPhoneLook(b);
     await checkPhoneResult(b);
+    await checkPhoneList(b);
     console.log('PHONE-MEMO PASS');
   } catch (e) {
     failed = true;

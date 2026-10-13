@@ -82,7 +82,7 @@
 
 /* v2.0.0 desktop layout wrappers (js/screens/study.js ensureStudyLayout): below 1024px they draw nothing, so the
    phone page keeps its v1.4 flow (search, tabs, chips, count, cards down the page) */
-.study-cols, .study-rail, .study-main { display: contents; }
+.study-cols, .study-rail, .study-main, .study-body, .study-lead { display: contents; }
 
 /* ── v2.0.0 desktop (≥ 1024px; mockup mockups/v2.0.0/desktop-study.html A rev 4) ──
    One screen high (.screen.is-fit, css/components/fit.css): the header row, then a 20% rail beside the card panel.
@@ -109,6 +109,11 @@
   /* rev 4 (user): wrap by text width as on the phone, then the chips of each row grow to fill it */
   #screenStudy .study-rail #studySubChips .chip { flex: 1 1 auto; }
   #screenStudy .study-main { display: flex; --fit-fade-h: calc(40px * var(--desktop-scale)); } /* mockup .right fades */
+  /* v2.1.0 (mockup desktop-memo.html rev 4): the right column = the tab's lead (the memo banner) above the card panel;
+     only the panel scrolls */
+  #screenStudy .study-body { display: flex; flex-direction: column; gap: var(--space-5); min-height: 0; }
+  #screenStudy .study-lead { display: block; flex: none; }
+  #screenStudy .study-body > .study-main { flex: 1 1 auto; min-height: 0; }
 
   /* hard-coded sizes ×1.2 (.proj-docs/plans/2026-10-12_desktop-px-inventory.md, Lane C); the :first-child margins
      above keep winning (more specific) */

@@ -69,7 +69,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   assert(await pg.$eval('#studyChips', e => e.hidden && !e.children.length), 'Hide mastered / Bookmarked chips do not apply on the memo tab (row hidden)');
   const subChips = await pg.$$eval('#studySubChips .chip', els => els.map(e => e.textContent.trim()));
   assert(subChips.length === 6 && subChips[0] === 'All' && subChips.slice(1).every((c, i) => c.endsWith(`Ch ${i + 1}`)), 'chapter chips: All + Ch 1–5: ' + subChips.join(' | '));
-  assert(await pg.$('#studyContent .memo-due') === null, 'no due banner with no progress');
+  assert(await pg.$('#studyLead .memo-due') === null, 'no due banner with no progress');
   const first = await pg.$eval('#studyContent .memo-card', e => ({ title: e.querySelector('.memo-name').textContent, lang: e.querySelector('.memo-name').getAttribute('lang'),
     badge: e.querySelector('.memo-badge').textContent, meta: e.querySelector('.memo-meta').textContent, bar: e.querySelector('.memo-bar i').style.width }));
   assert(first.title === '🎆 英國節日' && first.lang === 'zh-HK' && first.badge === 'New' && first.meta === '16 questions' && first.bar === '0%',
@@ -106,7 +106,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   const day = await today(), yesterday = await addDays(day, -1), later = await addDays(day, 9);
   await pg.evaluate(([k, v]) => localStorage.setItem(k, JSON.stringify(v)), [MEMO_LS, { vote: { lv: 2, due: day }, ww2: { lv: 1, due: yesterday }, parliament: { lv: 4, due: later }, writers: { lv: 1, due: later } }]);
   await pg.reload(); await openMemoTab();
-  const banner = await pg.$eval('#studyContent .memo-due', e => ({ title: e.querySelector('b').textContent, sub: e.querySelector('small').textContent, lang: e.querySelector('small').getAttribute('lang'), start: e.querySelector('button').textContent }));
+  const banner = await pg.$eval('#studyLead .memo-due', e => ({ title: e.querySelector('b').textContent, sub: e.querySelector('small').textContent, lang: e.querySelector('small').getAttribute('lang'), start: e.querySelector('button').textContent }));
   assert(banner.title === '2 groups to review today' && banner.sub === '投票權 · 二次世界大戰' && banner.lang === 'zh-HK' && banner.start === 'Start ▶',
     'banner: "2 groups to review today", due titles (vote has more questions, first), Start ▶: ' + JSON.stringify(banner));
   const order = await cardIds();
@@ -126,7 +126,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   await pg.evaluate(() => window.scrollTo(0, 400));
   const listY = await pg.evaluate(() => window.scrollY);
   // a DOM click: Playwright's own click would first scroll the banner (top of the list) into view
-  await pg.$eval('#studyContent .memo-due button', e => e.click());
+  await pg.$eval('#studyLead .memo-due button', e => e.click());
   assert(await pg.$eval('#screenMemo', e => e.classList.contains('active')) && await text('#memoTitle') === '🗳️ 投票權', 'Start opens the first due group (🗳️ 投票權)');
   const look = await pg.evaluate(() => ({
     steps: [...document.querySelectorAll('#memoSteps .memo-step')].map(e => e.textContent + (e.classList.contains('on') ? '*' : '')),

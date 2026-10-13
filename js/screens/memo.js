@@ -59,8 +59,11 @@ function renderStudyMemo() {
   // count = shown / the chapter's groups (like the chapters tab); the search narrows inside the chapter
   const pool = memoSortedGroups(memoGroups(), progress, today).filter(memoInChapter);
   const shown = pool.filter(memoMatches);
-  const html = memoDueBannerHtml(memoDueGroups(progress, today)) + shown.map(g => memoCardHtml(g, progress, today)).join('');
-  return { html, shown: shown.length, total: pool.length, countKey: 'memo.count', emptyKey: 'memo.empty' };
+  // v2.1.0 (mockup desktop-memo.html rev 4): the due banner is the list's lead, above the cards (js/screens/study.js
+  // #studyLead): desktop, outside the card panel's scroll; phone, it sticks under the header (css/screens/memo.css)
+  const lead = memoDueBannerHtml(memoDueGroups(progress, today));
+  const html = shown.map(g => memoCardHtml(g, progress, today)).join('');
+  return { html, lead, shown: shown.length, total: pool.length, countKey: 'memo.count', emptyKey: 'memo.empty' };
 }
 
 // ── #screenMemo ──

@@ -41,6 +41,28 @@
 .memo-bar { display: block; height: 6px; background: var(--bg); border-radius: var(--radius-pill); margin-top: var(--space-4); overflow: hidden; }
 .memo-bar i { display: block; height: 100%; background: var(--memo-done); border-radius: var(--radius-pill); }
 
+/* v2.1.0 the list as a grid of cards (mockup desktop-memo.html rev 1 / rev 2 / rev 4; js/screens/study.js #studyContent
+   .is-memo): phone 2 columns, desktop 3 below 1280px and 4 from 1280px (below). The status badge always sits top right:
+   a long title wraps in its own cell (anywhere), never pushing the badge down; the bar sits at the card's foot, so a
+   row's cards (equally high) line their bars up */
+#studyContent.is-memo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); align-content: start; }
+#studyContent.is-memo > .study-empty { grid-column: 1 / -1; }
+#studyContent.is-memo > .memo-card { margin-bottom: 0; display: flex; flex-direction: column; padding: var(--space-5); }
+#studyContent.is-memo .memo-card-row { align-items: flex-start; }
+#studyContent.is-memo .memo-name { flex: 1 1 auto; overflow-wrap: anywhere; font-size: var(--fs-md); }
+#studyContent.is-memo .memo-badge { margin-top: 0.15em; }
+#studyContent.is-memo .memo-meta { margin-bottom: var(--space-4); }
+#studyContent.is-memo .memo-bar { margin-top: auto; }
+/* phone: the due banner sticks under the header with a gap (rev 5); its offset grey shadow fills that gap, so the
+   cards scrolling by never show in it. The spread is the gap itself (the mockup's --space-1 left the cards' corners
+   showing past the shadow's rounded corners). #studyLead draws no box here, so the banner sticks within the screen */
+@media (max-width: 1023px) {
+  .study-lead > .memo-due {
+    position: sticky; top: calc(var(--header-h) + var(--space-4)); z-index: 5;
+    box-shadow: 0 calc(-1 * var(--space-4)) 0 var(--space-4) var(--bg), var(--shadow);
+  }
+}
+
 /* ── #screenMemo ── */
 .memo-header { gap: var(--space-5); justify-content: flex-start; }
 .memo-back { flex-shrink: 0; position: relative; }
@@ -170,10 +192,18 @@ details.memo-questions[open] > summary { margin-bottom: var(--space-5); }
   .memo-result-cols .memo-actions { margin-top: auto; flex-direction: column; }
   .memo-result-cols .memo-actions .nav-btn { flex: none; }
 
+  /* the list: 3 columns (4 from 1280px, below), the desktop card padding; the banner above the card panel */
+  #studyContent.is-memo { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-5); }
+  #studyContent.is-memo > .memo-card { padding: var(--space-6) var(--space-7); }
+  #studyContent.is-memo .memo-name { font-size: var(--fs-lg); }
+  .study-lead > .memo-due { margin: 0; }
   .memo-card { border-left-width: calc(4px * var(--desktop-scale)); }
   .memo-bar { height: calc(6px * var(--desktop-scale)); }
   .memo-step { padding-top: calc(7px * var(--desktop-scale)); padding-bottom: calc(7px * var(--desktop-scale)); }
   .memo-back::before { height: max(100%, calc(44px * var(--desktop-scale))); }
   .memo-pills { --memo-pill-gap: calc(5px * var(--desktop-scale)); }
   .memo-pills .sqm-node { padding: calc(3px * var(--desktop-scale)) var(--space-4); }
+}
+@media (min-width: 1280px) {
+  #studyContent.is-memo { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
