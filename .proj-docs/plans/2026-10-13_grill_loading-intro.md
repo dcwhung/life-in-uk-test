@@ -48,3 +48,7 @@ Mockup：`mockups/v2.2.0/intro-index.html`（入口）、`intro-a-classic.html`�
 ## rev 6（2026-10-13）
 - Logo 保留原本形狀；慧星頭用返 📖📝🎯🗓️ 四個 icon（冇框）。
 - 電腦版 loading：文字資訊置中，加到三張小貼士 memo。
+
+## rev 7（2026-10-13）
+- 軌道改淺色虛線；除咗四個 icon 冇其他圓點。
+- 電腦版 loading：左 logo + 品牌資訊，右三張 memo。
