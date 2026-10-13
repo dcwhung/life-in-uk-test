@@ -57,7 +57,7 @@
 <body>
 
 <div class="mock-bar">
-  <b>v2.0.0 Desktop · Mockup 13 · 溫習模式 › 記憶法（清單 → ① 睇 → ② 試 → 結果）· rev 3（pill、單題組 A／B／C、手機 flow）· 待確認</b>
+  <b>v2.0.0 Desktop · Mockup 13 · 溫習模式 › 記憶法（清單 → ① 睇 → ② 試 → 結果）· rev 4（單題組 C、banner 固定、手機一屏高）· 待確認</b>
   <div class="mock-row"><span class="lbl">裝置</span><button class="mock-tab on" data-k="dev" data-v="desk">Desktop</button><button class="mock-tab" data-k="dev" data-v="mb">手機</button><span class="lbl">語言</span><button class="mock-tab on" data-k="lang" data-v="zh-HK">中文</button><button class="mock-tab" data-k="lang" data-v="en">EN</button><span class="lbl">大字</span><button class="mock-tab on" data-k="large" data-v="off">關</button><button class="mock-tab" data-k="large" data-v="on">開</button><span class="lbl">翻譯</span><button class="mock-tab on" data-k="yue" data-v="on">開</button><button class="mock-tab" data-k="yue" data-v="off">關</button><span class="lbl">縮放</span><button class="mock-tab on" data-k="zoom" data-v="fit">適合畫面</button><button class="mock-tab" data-k="zoom" data-v="100">100%</button></div>
   <div class="mock-row"><span class="lbl">畫面</span>
     <button class="mock-tab on" data-k="st" data-v="list">清單</button>
@@ -79,10 +79,10 @@
       <li>全局規則照舊：≥ <b>1024px</b>、最闊 <b>1280px</b>、token <b>×1.2</b>、⚙ 大字 (基礎 + 2px) × 1.2、一屏高（長內容喺 panel 入面碌，上下淡出）</li>
       <li>v2.0.0 嘅記憶法冇 mockup，直接用咗「Plan Run 置中欄」做 baseline，即係下面嘅方案 A。今次補返成個流程嘅設計：<b>清單 → ① 睇 → ② 試 → 結果</b></li>
       <li>內容係 app 自己 render 出嚟（v2.0.2，模擬進度：3 組今日到期、6 組學緊、4 組已識，其餘未溫）。每個 frame 都係真 app 嘅 HTML + CSS，用真實畫面大小行</li>
-      <li>第一輪（3 欄／4 欄、A／B／C）用戶揀咗：<b>清單 4 欄、badge 永遠右上</b>；<b>① 睇</b>：組名 + 步驟一行，左邊記憶鉤 + 筆記，右邊題組問題，開始掣靠右；<b>② 試</b> OK；<b>結果</b>用 B，加組名 + 步驟一行。rev 2：清單 1280 以下 3 欄；記憶鉤標題自己一行；題目加編號 + Ch · Exam · Q。<b>rev 3</b>：編號同 Ch · Exam · Q 改用系統 pill（<code>#1</code>、<code>📜 Ch 3</code>、<code>E2·Q15</code>）；題組問題唔顯示答案（P1）；單題組重新設計，出 A／B／C（P2）；記憶鉤分行手機都改（P4）；上面「裝置」可以切去<b>手機</b>睇成個 flow（P5）</li>
+      <li>第一輪（3 欄／4 欄、A／B／C）用戶揀咗：<b>清單 4 欄、badge 永遠右上</b>；<b>① 睇</b>：組名 + 步驟一行，左邊記憶鉤 + 筆記，右邊題組問題，開始掣靠右；<b>② 試</b> OK；<b>結果</b>用 B，加組名 + 步驟一行。rev 2：清單 1280 以下 3 欄；記憶鉤標題自己一行；題目加編號 + Ch · Exam · Q。<b>rev 3</b>：編號同 Ch · Exam · Q 改用系統 pill（<code>#1</code>、<code>📜 Ch 3</code>、<code>E2·Q15</code>）；題組問題唔顯示答案（P1）；單題組重新設計，出 A／B／C（P2）；記憶鉤分行手機都改（P4）；上面「裝置」可以切去<b>手機</b>睇成個 flow（P5）。<b>rev 4</b>：單題組用 C；「今日要溫」固定唔郁（PC + 手機）；手機清單 2 欄；手機 ① 睇／結果一屏高，中間 panel 碌，掣永遠喺最底</li>
     </ul>
     <div class="flow" id="flow"></div>
-    <p>請揀單題組 A／B／C（「① 睇 · 單題組」），同埋睇完手機 flow 之後決定 P5（手機要唔要題組問題）。</p>
+    <p>請確認 rev 4，同埋決定 P5（手機要唔要題組問題，「裝置：手機」→「① 睇」並排比較）。</p>
   </div>
   <div id="opts"></div>
 </div>
@@ -2881,22 +2881,28 @@ const BASE_CSS = `
   .mx-sq { font-weight: 800; color: var(--navy); }
   .mx-snote { color: var(--text); }
   .mx-snote-label { color: var(--note-label); font-weight: 700; margin-bottom: var(--space-2); }
-  /* A: a card per question */
-  .mx-sa { display: grid; gap: var(--space-5); }
-  .mx-scard { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow-sm); padding: var(--space-6); }
-  .mx-scard .mx-snote { border-top: 1px solid var(--divider); margin-top: var(--space-5); padding-top: var(--space-5); }
-  /* B: question list + the picked question's note (phone: each question folds open) */
-  .mx-sb-item { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow-sm); padding: var(--space-5) var(--space-6); }
-  .mx-sb-item + .mx-sb-item { margin-top: var(--space-4); }
-  .mx-sb-item > summary { list-style: none; cursor: pointer; }
-  .mx-sb-item > summary::-webkit-details-marker { display: none; }
-  .mx-sb-item[open] { outline: 2px solid var(--navy-light); }
-  .mx-sb-item[open] > summary { margin-bottom: var(--space-5); }
   /* C: one column of blocks, the note with a gold rule like the hook */
   .mx-sc-item + .mx-sc-item { margin-top: var(--space-10); }
-  /* C sits on the page grey: its grey .tag pills take the card white to stay visible */
-  .mx-sc .tag { background: var(--card); }
   .mx-sc-item .mx-snote { border-left: 4px solid var(--gold-border); padding-left: var(--space-6); margin-top: var(--space-4); }
+
+  /* rev 4 phone (< 1024px): ① look / result are one screen high like the desktop: header + steps on top, everything
+     between them and the button(s) in one panel that takes the height left and scrolls on its own (fading at its ends),
+     "記住咗，開始試" / Again + Next always at the bottom */
+  @media (max-width: 1023px) {
+    main:has(> #screenMemo.active) { padding-bottom: var(--space-8); }
+    #screenMemo.active { display: flex; flex-direction: column; height: calc(100dvh - var(--header-h) - var(--space-10) - var(--space-8)); }
+    #screenMemo > * { flex: none; }
+    #screenMemo > #memoBody { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+    #memoBody > * { flex: none; }
+    #memoBody > .mx-mwrap { flex: 1 1 auto; min-height: 0; position: relative; display: flex; flex-direction: column; margin-bottom: var(--space-6); }
+    .mx-mpanel { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+    .mx-mpanel > :last-child { margin-bottom: 0; }
+    .mx-mwrap::before, .mx-mwrap::after { content: ''; position: absolute; left: 0; right: 0; height: 36px; z-index: 2; pointer-events: none; opacity: 0; transition: opacity 0.2s; }
+    .mx-mwrap::before { top: 0; background: linear-gradient(var(--bg), transparent); }
+    .mx-mwrap::after { bottom: 0; background: linear-gradient(transparent, var(--bg)); }
+    .mx-mwrap.can-up::before, .mx-mwrap.can-down::after { opacity: 1; }
+    .mx-mwrap .memo-actions, #memoBody > .memo-actions { margin: 0; }
+  }
 `;
 // list: 3 columns below 1280px, 4 from 1280px (rev 2); the status badge always top right
 const LIST_CSS = `${MEDIA} {
@@ -2911,6 +2917,23 @@ const LIST_CSS = `${MEDIA} {
 }
 @media (min-width: 1280px) {
   #studyContent { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+/* rev 4: "今日要溫" stays put. Desktop: above the card panel (moved out of it), only the cards scroll */
+${MEDIA} {
+  #screenStudy .mx-main { display: flex; flex-direction: column; gap: var(--space-5); min-height: 0; }
+  #screenStudy .mx-main > .memo-due { flex: none; margin: 0; }
+  #screenStudy .mx-main > .study-main { flex: 1 1 auto; min-height: 0; }
+}
+/* rev 4 phone: the cards 2 × 2 (2 columns); the banner sticks under the header while the page scrolls */
+@media (max-width: 1023px) {
+  #studyContent { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); align-content: start; }
+  #studyContent > .memo-due { grid-column: 1 / -1; position: sticky; top: var(--header-h); z-index: 5; margin-bottom: var(--space-2); box-shadow: var(--shadow); }
+  #studyContent > .memo-card { margin-bottom: 0; display: flex; flex-direction: column; padding: var(--space-5) var(--space-5); }
+  #studyContent .memo-card-row { align-items: flex-start; }
+  #studyContent .memo-name { flex: 1 1 auto; overflow-wrap: anywhere; font-size: var(--fs-md); }
+  #studyContent .memo-badge { margin-top: 0.15em; }
+  #studyContent .memo-card .memo-meta { margin-bottom: var(--space-4); }
+  #studyContent .memo-card .memo-bar { margin-top: auto; }
 }`;
 const MEMO_CSS = `${MEDIA} {
   #screenMemo.is-fit > .mx-top { max-width: none; flex: none; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-8); align-items: center; margin-bottom: var(--space-7); }
@@ -2933,7 +2956,7 @@ const MEMO_CSS = `${MEDIA} {
   .mx-foot > .memo-start { grid-column: 2; }
   .mx-look.mx-full { grid-template-columns: minmax(0, 1fr); }
   /* single A: 2 columns of cards; C: a reading column as wide as Plan Run's */
-  .mx-sa { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; }
+  .mx-sa { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
   .mx-sc { max-width: calc(760px * var(--desktop-scale)); margin: 0 auto; }
   /* single B (desktop): the picked note left 7/12, the question list right 5/12 */
   .mx-sb-note .mx-pills { margin-bottom: var(--space-4); }
@@ -2981,35 +3004,15 @@ function singleItems(root, qs) {
   return [...root.querySelectorAll('.memo-single-item')].map((item, i) => ({
     it: qs.items[i], note: item.querySelector('.memo-single-note').innerHTML }));
 }
-const SINGLE = {
-  A: items => `<div class="mx-sa">${items.map(({ it, note }, i) => `<div class="mx-scard">${pillsHtml(it, i + 1)}<div class="mx-sq" lang="en">${esc(it.q)}</div>${noteBoxHtml(note)}</div>`).join('')}</div>`,
-  // phone / fallback B: each question folds open on its note (the first open)
-  B: items => items.map(({ it, note }, i) => `<details class="mx-sb-item"${i ? '' : ' open'}><summary>${pillsHtml(it, i + 1)}<div class="mx-sq" lang="en">${esc(it.q)}</div></summary>${noteBoxHtml(note)}</details>`).join(''),
-  C: items => `<div class="mx-sc">${items.map(({ it, note }, i) => `<div class="mx-sc-item">${pillsHtml(it, i + 1)}<div class="mx-sq" lang="en">${esc(it.q)}</div>${noteBoxHtml(note)}</div>`).join('')}</div>`,
-};
-function redrawSingle(scroll, qs, design) {
+// P2 = C (user 2026-10-13): one column of blocks
+const singleHtml = items => `<div class="mx-sc">${items.map(({ it, note }, i) => `<div class="mx-sc-item">${pillsHtml(it, i + 1)}<div class="mx-sq" lang="en">${esc(it.q)}</div>${noteBoxHtml(note)}</div>`).join('')}</div>`;
+function redrawSingle(scroll, qs) {
   const panel = scroll.querySelector('.memo-single');
   const items = singleItems(panel, qs);
   panel.classList.add('mx-bare');
   scroll.classList.add('mx-on-bg');
-  panel.innerHTML = SINGLE[design](items);
+  panel.innerHTML = singleHtml(items);
   return items;
-}
-// desktop single B: picked note left, question list right; a tap on the list swaps the note
-function singleBDesk(doc, left, right, items) {
-  const note = i => `${pillsHtml(items[i].it, i + 1)}<div class="mx-sq" lang="en">${esc(items[i].it.q)}</div>${noteBoxHtml(items[i].note)}`;
-  left.innerHTML = `<div class="memo-scroll fit-fade"><div class="memo-panel fit-panel mx-sb-note">${note(0)}</div></div>`;
-  right.innerHTML = `<div class="memo-scroll fit-fade mx-on-bg"><div class="memo-panel fit-panel mx-bare">${items.map(({ it }, i) =>
-    `<button type="button" class="mx-sb-pick${i ? '' : ' on'}" data-i="${i}">${pillsHtml(it, i + 1)}<span class="mx-sq" lang="en">${esc(it.q)}</span></button>`).join('')}</div></div>`;
-  right.addEventListener('click', e => {
-    const b = e.target.closest('.mx-sb-pick');
-    if (!b) return;
-    right.querySelectorAll('.mx-sb-pick').forEach(x => x.classList.toggle('on', x === b));
-    const panel = left.querySelector('.memo-panel');
-    panel.innerHTML = note(Number(b.dataset.i));
-    panel.scrollTop = 0;
-    watchFades(doc);
-  });
 }
 function numberWrong(root, data) {
   const list = root.querySelector('.memo-wrong');
@@ -3031,9 +3034,8 @@ function placeDesk(doc, data, v) {
     cols.classList.add('mx-look');
     const hook = body.querySelector(':scope > .memo-hook');
     if (hook) left.append(hook);
-    if (scroll.querySelector('.memo-single')) {           // P2: design A / B / C
-      if (v.single === 'B') { singleBDesk(doc, left, right, singleItems(scroll, data.qs)); cols.append(left, right); }
-      else { redrawSingle(scroll, data.qs, v.single); left.append(scroll); cols.append(left); cols.classList.add('mx-full'); }
+    if (scroll.querySelector('.memo-single')) {           // P2 = C
+      redrawSingle(scroll, data.qs); left.append(scroll); cols.append(left); cols.classList.add('mx-full');
     } else {
       left.append(scroll);
       right.innerHTML = questionsHtml(data.qs);
@@ -3068,8 +3070,8 @@ function placePhone(doc, data, v) {
   const body = screen.querySelector('#memoBody');
   const scroll = body.querySelector(':scope > .memo-scroll');
   const start = body.querySelector(':scope > .memo-start');
-  if (start && scroll && scroll.querySelector('.memo-single')) redrawSingle(scroll, data.qs, v.single);
-  else if (start && v.qs && data.qs) {                    // P5: the group's questions, folded, before the button
+  if (start && scroll && scroll.querySelector('.memo-single')) redrawSingle(scroll, data.qs);
+  else if (start && v.qs && data.qs) {                    // P5: the group's questions, folded, under the note
     start.insertAdjacentHTML('beforebegin', `<details class="memo-panel mx-qs-mb"><summary>${esc(data.qs.title)}</summary>${qListHtml(data.qs.items)}</details>`);
   }
   if (!start) {
@@ -3077,6 +3079,20 @@ function placePhone(doc, data, v) {
     if (panel && panel.querySelector('.memo-wrong')) numberWrong(panel, data);
     else if (panel && panel.querySelector('.memo-score')) panel.insertAdjacentHTML('beforeend', hookAgainHtml(false));
   }
+  // rev 4: everything above the button(s) into one panel that scrolls
+  const btns = body.querySelector(':scope > .memo-start, :scope > .memo-actions');
+  const wrap = make(doc, 'mx-mwrap fit-fade'), panel = make(doc, 'mx-mpanel fit-panel');
+  wrap.append(panel);
+  [...body.children].filter(c => c !== btns).forEach(c => panel.append(c));
+  body.prepend(wrap);
+}
+// desktop list: the due banner out of the scrolling card panel, above it (rev 4)
+function placeListDesk(doc) {
+  const main = doc.querySelector('#screenStudy .study-main'), due = doc.querySelector('#studyContent > .memo-due');
+  if (!main || !due) return;
+  const box = make(doc, 'mx-main');
+  main.before(box);
+  box.append(due, main);
 }
 
 // the app's fades (js/components/fit.js watchFade)
@@ -3103,39 +3119,35 @@ function watchFades(doc) {
 
 // ═══════════ sections ═══════════
 const ANN = {
-  list: `<ul><li>右邊卡片 panel：<b>1280 以下 3 欄、1280 或以上 4 欄</b>；「今日要溫」banner 橫跨頂部；狀態 badge 永遠喺卡嘅右上角。</li></ul>`,
-  look: `<ul><li><b>頂行</b>：‹ 記憶法 + 組名｜① 睇／② 試。<b>左 7/12</b>：記憶鉤 + 筆記 panel。<b>右 5/12</b>：題組問題 panel（唔顯示答案，P1）。「記住咗，開始試」靠右，對齊右欄。</li>
-    <li><b>rev 3</b>：每條題目上面一行 pill，用返系統現有嘅：<code>#1</code>、<code>📜 Ch 3</code>（同 Study 知識點卡嘅章節 pill 一樣）、<code>E2·Q15</code>（同知識點卡「出現於」、相似題目嘅題號 pill 一樣；同一條題目喺幾份試卷就係「E1·Q8 = E11·Q9」；答啱 3 次變綠、答錯變紅）。記憶鉤標題自己一行（手機都係，P4）。</li></ul>`,
-  single: {
-    A: `<ul><li><b>卡片</b>：每題自己一張白卡，2 欄。卡入面：pill 行 → 題目（粗體）→ 分隔線 → 「💡 備註：」+ 注解。卡同卡之間有空位，一眼分到邊題係邊題。</li></ul>`,
-    B: `<ul><li><b>左右對照</b>：同其他記憶法組一樣嘅左右排法。<b>右邊</b>係題目清單（pill + 題目），<b>左邊</b>淨係顯示揀中嗰題嘅注解，大字、有空間。<b>撳右邊題目可以換</b>（mockup 撳得）。一次只睇一題，最清晰；但要逐題撳。</li></ul>`,
-    C: `<ul><li><b>單欄</b>：一條置中閱讀欄（同 Plan Run 一樣闊），每題一個區塊：pill 行 → 題目 → 注解（左邊金色線，同記憶鉤一樣）。區塊之間有大空位。由上碌到落嚟，最似讀一份筆記。</li></ul>`,
-  },
+  list: `<ul><li>右邊卡片 panel：<b>1280 以下 3 欄、1280 或以上 4 欄</b>；狀態 badge 永遠喺卡嘅右上角。</li>
+    <li><b>rev 4</b>：「今日要溫」banner <b>固定唔郁</b>：搬咗出卡片 panel，擺喺 panel 上面，淨係卡片會碌。</li></ul>`,
+  look: `<ul><li><b>頂行</b>：‹ 記憶法 + 組名｜① 睇／② 試。<b>左 7/12</b>：記憶鉤 + 筆記 panel。<b>右 5/12</b>：題組問題 panel（唔顯示答案）。「記住咗，開始試」靠右，對齊右欄。</li>
+    <li>每條題目上面一行系統 pill：<code>#1</code>、<code>📜 Ch 3</code>、<code>E2·Q15</code>（答啱 3 次變綠、答錯變紅）。記憶鉤標題自己一行。</li></ul>`,
+  single: `<ul><li><b>單題組 = C（用戶 2026-10-13）</b>：置中閱讀欄（同 Plan Run 一樣闊），每題一個區塊：pill 行 → 題目 → 「💡 備註：」+ 注解（左邊金色線）。區塊之間有大空位。</li></ul>`,
   test: `<ul><li>用返 Quiz 畫面（用戶已確認 OK）：「記住咗，開始試」開 5 題 side session，答完撳「↩ 返回」去結果。</li></ul>`,
-  result: `<ul><li>B：頂行同 ① 睇一樣。<b>左 5/12</b>：成績卡，「再溫一次」／「下一組」貼底。<b>右 7/12</b>：要再睇嘅題目，<b>rev 3</b> 每題用 pill 行（<code>#1</code>、<code>📜 Ch 3</code>、<code>E2·Q15</code>）。全對顯示記憶鉤（Q3），冇答題淨係顯示記憶鉤。</li></ul>`,
-  phone: `<ul><li><b>手機（390px）</b>：維持而家手機嘅排法（成頁碌），frame 高度跟內容，冇裁。套用 rev 3：記憶鉤分行（P4）、錯題 pill、單題組設計。</li></ul>`,
-  phoneLook: `<ul><li><b>P5</b>：左邊係<b>而家冇題組問題</b>；右邊係<b>加題組問題</b>：放喺筆記下面、「記住咗，開始試」上面，預設收埋（撳「關聯 n 題」打開）。</li></ul>`,
+  result: `<ul><li>B：頂行同 ① 睇一樣。<b>左 5/12</b>：成績卡，「再溫一次」／「下一組」貼底。<b>右 7/12</b>：要再睇嘅題目（pill 行）。全對顯示記憶鉤（Q3），冇答題淨係顯示記憶鉤。</li></ul>`,
+  phoneList: `<ul><li><b>rev 4 手機清單</b>：卡片 <b>2 × 2</b>（2 欄）。「今日要溫」banner <b>固定唔郁</b>：頁面碌嘅時候黐住 header 下面（frame 入面碌落去試吓）。</li></ul>`,
+  phoneMemo: `<ul><li><b>rev 4 手機 ① 睇／結果</b>：成個畫面一屏高。頂部 ‹ 記憶法 + 組名、步驟；<b>中間一個 scroll panel 用盡高度</b>（記憶鉤 + 筆記／成績 + 錯題），上下淡出；<b>「記住咗，開始試」／「再溫一次」+「下一組」永遠喺最底</b>。</li></ul>`,
+  phoneLook: `<ul><li><b>P5</b>：左邊係<b>冇題組問題</b>；右邊係<b>加題組問題</b>：喺 panel 入面、筆記下面，預設收埋（撳「關聯 n 題」打開）。</li></ul>`,
+  phoneTest: `<ul><li>手機 Quiz 畫面維持而家咁（frame 高度跟內容）。</li></ul>`,
 };
 const KIND = { list: 'list', lookLong: 'look', lookShort: 'look', lookSingle: 'single', test: 'test', resultFail: 'result', resultPass: 'result', resultAll: 'result', resultNone: 'result' };
-const TITLE = { list: '清單 · 3 欄（< 1280）／4 欄（≥ 1280）', look: '① 睇 · rev 3', test: '② 試 · 沿用 Quiz 畫面', result: '結果 · B rev 3' };
-const SINGLE_TITLE = { A: '① 睇 · 單題組 A · 卡片', B: '① 睇 · 單題組 B · 左右對照', C: '① 睇 · 單題組 C · 單欄' };
-const REC = '<span class="rec">rev 3 · 待確認</span>';
+const TITLE = { list: '清單 · 3 欄（< 1280）／4 欄（≥ 1280）· banner 固定', look: '① 睇', single: '① 睇 · 單題組 C', test: '② 試 · 沿用 Quiz 畫面', result: '結果 · B' };
+const REC = '<span class="rec">rev 4 · 待確認</span>';
 
-const deskFrames = (css, v) => DESK.map(f => ({ ...f, label: `${f.w} × ${f.h}px`, css, place: placeDesk, v }));
 function deskSections() {
   const kind = KIND[S.st];
-  if (kind === 'single') return ['A', 'B', 'C'].map(d => ({ title: SINGLE_TITLE[d], ann: ANN.single[d], frames: deskFrames(MEMO_CSS, { single: d }) }));
-  const css = { list: LIST_CSS, look: MEMO_CSS, test: '', result: MEMO_CSS }[kind];
-  const place = kind === 'look' || kind === 'result' ? placeDesk : () => {};
+  const css = { list: LIST_CSS, look: MEMO_CSS, single: MEMO_CSS, test: '', result: MEMO_CSS }[kind];
+  const place = { list: placeListDesk, look: placeDesk, single: placeDesk, result: placeDesk }[kind] || (() => {});
   return [{ title: TITLE[kind], ann: ANN[kind], frames: DESK.map(f => ({ ...f, label: `${f.w} × ${f.h}px`, css, place, v: {} })) }];
 }
 function phoneSections() {
   const kind = KIND[S.st];
-  const frame = (label, v) => ({ ...PHONE, label, css: '', place: placePhone, v, phone: true });
-  if (kind === 'single') return [{ title: '手機 · ① 睇 · 單題組 A／B／C', ann: ANN.phone + `<ul><li>A 卡片一欄；B 每題收埋，撳開睇注解（第一題預設打開）；C 單欄區塊。</li></ul>`,
-    frames: ['A', 'B', 'C'].map(d => frame(`390px · 單題組 ${d}`, { single: d })) }];
-  if (kind === 'look') return [{ title: '手機 · ① 睇', ann: ANN.phone + ANN.phoneLook, frames: [frame('390px · 而家（冇題組問題）', {}), frame('390px · 加題組問題（P5）', { qs: true })] }];
-  return [{ title: `手機 · ${{ list: '清單', test: '② 試', result: '結果' }[kind]}`, ann: ANN.phone, frames: [frame('390px', {})] }];
+  const frame = (label, v, css = '', place = placePhone) => ({ ...PHONE, label, css, place, v, phone: true, grow: kind === 'test' });
+  if (kind === 'list') return [{ title: '手機 · 清單', ann: ANN.phoneList, frames: [frame('390 × 844px', {}, LIST_CSS, () => {})] }];
+  if (kind === 'test') return [{ title: '手機 · ② 試', ann: ANN.phoneTest, frames: [frame('390px', {}, '', () => {})] }];
+  if (kind === 'look') return [{ title: '手機 · ① 睇', ann: ANN.phoneMemo + ANN.phoneLook, frames: [frame('390 × 844px · 冇題組問題', {}), frame('390 × 844px · 加題組問題（P5）', { qs: true })] }];
+  return [{ title: `手機 · ${kind === 'single' ? '① 睇 · 單題組 C' : '結果'}`, ann: ANN.phoneMemo, frames: [frame('390 × 844px', {})] }];
 }
 
 function frameDoc(data, css) {
@@ -3167,7 +3179,7 @@ function render() {
     el.addEventListener('load', () => {
       f.place(el.contentDocument, data, f.v);
       watchFades(el.contentDocument);
-      if (f.phone) { growPhone(el); el.contentDocument.addEventListener('toggle', () => { growPhone(el); fitFrames(); }, true); }
+      if (f.grow) { growPhone(el); el.contentDocument.addEventListener('toggle', () => { growPhone(el); fitFrames(); }, true); }
       fitFrames();
     }, { once: true });
     el.srcdoc = frameDoc(data, f.css);

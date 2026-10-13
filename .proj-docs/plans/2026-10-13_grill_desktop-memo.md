@@ -1,8 +1,8 @@
 # Grill：Desktop 記憶法（溫習模式 › 記憶法）layout
 
 **日期**：2026-10-13
-**狀態**：rev 3（見「第三輪決定」），等用戶揀單題組設計同決定 P5
-**Mockup**：[`mockups/v2.0.0/desktop-memo.html`](../../mockups/v2.0.0/desktop-memo.html)（第 13 份 desktop mockup）
+**狀態**：rev 4（見「第四輪決定」），等用戶確認同決定 P5
+**Mockup**：[`mockups/v2.0.0/desktop-memo.html`](../../mockups/v2.0.0/desktop-memo.html)（第 13 份 desktop mockup；rev 3 起亦包手機 390px）
 **Branch**：`claude/quirky-newton-wdelbs`（由 `main` v2.0.2 `c6b0806` 開）
 
 ---
@@ -82,19 +82,31 @@ Mockup 已經改做 rev 1，淨係保留定案嘅排法（3 欄、A、C 已經�
 | P4 | 記憶鉤分行手機都改 | `.memo-hook b { display: block }` 唔再限 desktop |
 | P5 | 想睇手機成個 flow 先決定 | Mock bar 加「裝置：手機」：390px frame（高度跟內容），全部 9 個狀態；① 睇並排「而家」同「加題組問題」（筆記下面、掣上面，`<details>` 預設收埋） |
 
-## 待用戶確認（rev 3）
+## 第四輪決定（用戶 2026-10-13）→ rev 4
+
+| 項目 | 定案 | rev 4 做法 |
+|---|---|---|
+| P2 單題組 | **C 單欄** | 置中閱讀欄（760 × 1.2px），每題一個區塊：pill 行 → 題目 →「💡 備註：」+ 注解（左邊 4px `--gold-border` 線）；手機同樣。A／B 已刪 |
+| 清單「今日要溫」 | **固定唔郁（PC + 手機）** | Desktop：banner 搬出卡片 `.fit-panel`，擺喺 panel 上面（`.mx-main` flex column），淨係卡片碌。手機：`position: sticky; top: var(--header-h)`，頁面碌時黐住 header 下面 |
+| 手機清單 | **卡片 2 × 2（2 欄）** | `#studyContent` 2 欄 grid（badge 照舊右上） |
+| 手機 ① 睇 | **掣永遠最底，中間 scroll panel 用盡高度** | `#screenMemo` 一屏高（`100dvh - header - main 上下 padding`），頂部 ‹ 記憶法 + 組名、步驟；記憶鉤 + 筆記（+ P5 題組問題）放入一個 panel 碌，上下淡出（`--bg`）；「記住咗，開始試」貼底 |
+| 手機結果 | **「再溫一次」／「下一組」永遠最底，中間 scroll panel 用盡高度** | 同上：成績 + Lv + 錯題喺 panel 碌，兩粒掣貼底 |
+
+## 待用戶確認（rev 4）
 
 | # | 問題 |
 |---|---|
-| P2 | 單題組用 A、B 定 C？ |
-| P5 | 手機加唔加題組問題（收埋喺筆記下面）？ |
+| P5 | 手機加唔加題組問題（喺 panel 入面、筆記下面，`<details>` 預設收埋）？ |
 
 ## 實作備忘（揀咗之後）
 
 - Design Origin 會由 `baseline: Plan Run desktop 置中欄` 改做 `mockup: mockups/v2.0.0/desktop-memo.html`。
 - 要更新 `tests/desktop-memo-test.js`：而家佢會檢查「置中欄 ≤ 912px」，要改做頂行 + 兩欄 + 開始掣對齊右欄。
 - 用 `js/components/deskPlace.js` 搬 DOM（`setDesktopColumns`），< 1024px 要還原手機次序。
-- 題組問題 panel 係新 render（`memo.js`）：用 `questionGroups(g.qkeys)`，同單題組 render 方法一樣；只喺 desktop 顯示，手機唔加（要用戶確認）。
+- 題組問題 panel 係新 render（`memo.js`）：用 `questionGroups(g.qkeys)`，同單題組 render 方法一樣；手機加唔加等 P5。
+- 手機一屏高（rev 4）係新行為：`#screenMemo` 要喺 < 1024px 都用一屏高 + scroll panel（而家 `.is-fit` / `.fit-panel` 只限 desktop）；要加手機 test（390 × 844：成頁唔碌、掣喺畫面、panel 碌）。
+- 「今日要溫」banner：desktop 要喺 `renderStudyMemo` 之外 render（唔再喺 `#studyContent` 入面），或者 JS 搬；手機 sticky 要避開 Flagged 嗰種 `--header-h` 做法撞位。
+- 單題組 C：`memoSingleHtml` 改做區塊 + pill 行 + 備註標題。
 - 清單 4 欄 grid 要更新 `tests/desktop-study-test.js`（記憶法 tab：badge 喺右上），同 `desktop-short-test`（1366 × 657、1280 × 720、1024 × 600）。
 - 結果嘅錯題而家只記 `{ q, yue }`（`finishMemoTest`），要加埋 key 先出到 pill（`questionNodeHtml(keys)` 要 key 清單）。
 - Pill 行用現有 helper：`chapterPillHtml` 嘅樣式（題目版冇 `#n`，可能要加一個 `questionChapterPillHtml`）、`questionNodeHtml`；冇新顏色 token。
