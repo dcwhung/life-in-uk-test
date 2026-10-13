@@ -470,11 +470,11 @@ function planFrozenDays(plan, todayIso) {
   return [...kept, ...gap];
 }
 function replanFrom(plan, goal, todayIso, log) {
-  // G36: a changed goal has the looser limits (exam from tomorrow, 1 study day)
-  if (!validatePlanGoal(goal, todayIso, PLAN_GOAL_MODE.edit).ok) return null;
+  // CUI-0037: a changed goal has a new plan's limits (G28: today + 7, 7 study days; G36 retired)
+  if (!validatePlanGoal(goal, todayIso).ok) return null;
   const history = [...(plan.goalHistory || []), { at: todayIso, goal: plan.goal }];
   // clock moved before Day 1: nothing is frozen, the plan restarts today
-  if (todayIso < plan.start) return { ...buildPlan(goal, todayIso, PLAN_GOAL_MODE.edit), createdAt: plan.createdAt, goalHistory: history };
+  if (todayIso < plan.start) return { ...buildPlan(goal, todayIso), createdAt: plan.createdAt, goalHistory: history };
   const own = planCopyGoal(goal);
   const built = planKeepTodayContents(planDayAt(plan, todayIso), buildPlanDays(todayIso, own, planFactsLeft(log)));
   const fresh = planPinToday(built, planTodayDoneTasks(todayIso, log));

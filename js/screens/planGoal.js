@@ -4,8 +4,9 @@
 // whether the time is enough (✓ / △ / ✕; G13: ✕ still builds, with longer days). Fewer than PLAN_MIN_STUDY_DAYS
 // study days disables the CTA with a hint (G28). Create = clear the old plan + log, then store buildPlan().
 // "Change goal" (schedule) opens the same form prefilled with the plan's goal; its CTA re-plans from today
-// (replanFrom, G7: past days frozen, Day 1 unchanged). G36: there the exam may be as soon as tomorrow with a
-// single study day (PLAN_GOAL_MODE.edit; the limits live in plan.js). Either way the schedule opens next.
+// (replanFrom, G7: past days frozen, Day 1 unchanged). CUI-0037: with the same limits as a new plan (G36's tomorrow /
+// 1 study day retired); a stored exam already inside the 7-day window is shown as it is, blocked with the hint, until
+// a later date is chosen. Either way the schedule opens next.
 // ════════════════════════════════════════
 const PLAN_DEFAULT_GOAL = { days: 21, dailyMins: 120, restDays: [0], level: 'none' };
 const PLAN_PRESET_LABEL_KEYS = { 14: 'plan.goal.preset2w', 21: 'plan.goal.preset3w', 28: 'plan.goal.preset4w', 42: 'plan.goal.preset6w' };
@@ -16,8 +17,7 @@ const PLAN_PERCENT = 100;
 let planGoalDraft = null; // { examDate, dailyMins, restDays, level } being edited
 let planGoalEditing = false; // true: changing the stored plan's goal; false: a new plan
 let planGoalNotice = false; // S-115: the last Build / Update failed because the day changed; cleared by any edit
-// G36: which limits the date field and the CTA follow
-function planGoalMode() { return planGoalEditing ? PLAN_GOAL_MODE.edit : PLAN_GOAL_MODE.create; }
+let planGoalStoredDate = null; // CUI-0037: the changed goal's own exam date, kept even inside the 7-day window
 
 function planDefaultDraft(todayIso) {
   const d = PLAN_DEFAULT_GOAL;
@@ -28,6 +28,7 @@ function openPlanGoal(goal = null) {
   if (!planVisible()) return;
   planGoalEditing = !!goal;
   planGoalNotice = false;
+  planGoalStoredDate = goal ? goal.examDate : null;
   planGoalDraft = goal ? planCopyGoal(goal) : planDefaultDraft(planTodayIso());
   showScreen('screenPlanGoal');
   renderPlanGoal();
@@ -72,16 +73,19 @@ function renderPlanDays(todayIso) {
 }
 // W-033: while the field has focus its half-typed segments are left alone (planCommitExamDate writes it back)
 function renderPlanDateInput(todayIso) {
-  const input = byId('planExamDate'), range = planExamDateRange(todayIso, planGoalMode());
+  const input = byId('planExamDate'), range = planExamDateRange(todayIso);
   // re-setting min / max on a focused date field drops its focus in Chromium, so only on a change (midnight)
   if (input.min !== range.min) input.min = range.min;
   if (input.max !== range.max) input.max = range.max;
   if (document.activeElement !== input) input.value = planGoalDraft.examDate;
 }
-// S-111: a draft left open past midnight moves up to the new minimum (as a date past the maximum moves down)
+// S-111: a draft left open past midnight moves up to the new minimum (as a date past the maximum moves down).
+// CUI-0037: a changed goal's own exam still ahead stays as it is (silently moving the user's real exam date would let
+// Update store a date they never chose); the CTA is disabled with the hint instead. One already past moves up
 function planClampDraftDate(todayIso) {
-  const range = planExamDateRange(todayIso, planGoalMode());
-  if (planGoalDraft.examDate < range.min) planGoalDraft.examDate = range.min;
+  const date = planGoalDraft.examDate, min = planExamDateRange(todayIso).min;
+  const keep = planGoalEditing && date === planGoalStoredDate && date > todayIso;
+  if (!keep && date < min) planGoalDraft.examDate = min;
 }
 function renderPlanMins() {
   const m = planGoalDraft.dailyMins, input = byId('planMins');
@@ -131,13 +135,14 @@ function renderPlanFeasibility(todayIso) {
   meter.style.width = Math.min(PLAN_PERCENT, Math.round(f.ratio * PLAN_PERCENT / PLAN_FEAS_METER_SCALE)) + '%';
   byId('planFeasMsg').textContent = t(msgKey, { n: planHours(f.diffMins), m: PLAN_MINS.step });
 }
+// CUI-0037: one rule for both modes (G28); only the wording differs (built / updated)
 function renderPlanCta(todayIso) {
-  const mode = planGoalMode(), check = validatePlanGoal(planGoalDraft, todayIso, mode);
+  const check = validatePlanGoal(planGoalDraft, todayIso);
   byId('planCreateBtn').disabled = !check.ok;
   const fewDays = check.errors.includes(PLAN_GOAL_ERROR.studyDays);
   const hintKey = planGoalEditing ? 'plan.goal.editMinStudyDays' : 'plan.goal.minStudyDays';
   const notice = planGoalNotice && !fewDays;
-  if (fewDays) byId('planGoalHint').textContent = t(hintKey, { n: planGoalLimits(mode).minStudyDays });
+  if (fewDays) byId('planGoalHint').textContent = t(hintKey, { n: PLAN_MIN_STUDY_DAYS });
   else byId('planGoalHint').textContent = notice ? t('plan.goal.dateMoved') : '';
   setShown('planGoalHint', fewDays || notice);
   setShown('planFeasMsg', !fewDays); // its "build anyway" advice (G13) does not apply while the CTA is disabled
@@ -149,7 +154,6 @@ function renderPlanGoal() {
   byId('planGoalStep').textContent = t(stepKey);
   byId('planCreateBtn').textContent = t(ctaKey);
   setShown('planGoalSteps', !planGoalEditing); // the 1 / 2 stepper belongs to a new plan
-  setShown('planDateNote', planGoalEditing); // G36: tells why the date field now starts tomorrow
   planClampDraftDate(todayIso);
   renderPlanDays(todayIso);
   renderPlanMins();
@@ -172,7 +176,7 @@ function planSetDays(n) {
 // takes a complete in-range date and never rewrites the field. Leaving the field commits it: a date past the
 // 6-month limit moves to the limit, anything else not taken snaps back to the draft.
 function planSetExamDate(value) {
-  const range = planExamDateRange(planTodayIso(), planGoalMode());
+  const range = planExamDateRange(planTodayIso());
   if (!isoIsValid(value) || value < range.min || value > range.max) return;
   planGoalDraft.examDate = value;
   planGoalNotice = false;
@@ -180,7 +184,7 @@ function planSetExamDate(value) {
 }
 // CUI-0019: usually input already took the date, so a commit that changes nothing only resets the field
 function planCommitExamDate(value) {
-  const range = planExamDateRange(planTodayIso(), planGoalMode()), before = planGoalDraft.examDate;
+  const range = planExamDateRange(planTodayIso()), before = planGoalDraft.examDate;
   if (isoIsValid(value) && value > range.max) planGoalDraft.examDate = range.max;
   else if (isoIsValid(value) && value >= range.min) planGoalDraft.examDate = value;
   if (planGoalDraft.examDate !== before) renderPlanGoal();
@@ -205,8 +209,8 @@ function planSetLevel(level) {
 }
 // O-2: a new plan never inherits the old log (or a corrupt one, O-1). A changed goal keeps the log (G7): an
 // unreadable log re-plans as if nothing were answered and stays as it is (↺ Reset clears it, S-110).
-// A plan deleted meanwhile (another tab) makes the edit a new plan; a goal only a change allows (G36) then
-// shows the form in create mode with its limits instead of doing nothing.
+// A plan deleted meanwhile (another tab) makes the edit a new plan: the form then shows in create mode instead of
+// doing nothing.
 // S-115: any other failure means the day changed while the form was open (its date limits moved): the form
 // re-renders (the date moves up to the new earliest one, S-111) with a notice to check it and press again.
 function planCreate() {

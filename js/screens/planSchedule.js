@@ -17,6 +17,8 @@ const PLAN_ORDER_WHY_KEYS = { 1: 'plan.order.whyWarmUp', 5: 'plan.order.whyGov',
 const PLAN_WHEN = { today: 'today', past: 'past', ahead: '' };
 const PLAN_SHOWN_PHASES = [PLAN_PHASE.learn, PLAN_PHASE.drill, PLAN_PHASE.mock];
 const PLAN_PHASE_LABEL_KEYS = { learn: 'plan.phase.learn', drill: 'plan.phase.drill', mock: 'plan.phase.mock' };
+// CUI-0037: the phase card's title by the number of phases shown (a short plan has no drill)
+const PLAN_PHASES_TITLE_KEYS = { 1: 'plan.schedule.phasesTitleOne', 2: 'plan.schedule.phasesTitleTwo', 3: 'plan.schedule.phasesTitleThree' };
 const PLAN_TASK_ICONS = { read: '📖', practice: '📝', drill: '📝', wrongFacts: '📖', review: '🔁', mock: '🎯' };
 const PLAN_REST_ICON = '😴';
 const PLAN_LIGHT_ICON = '🔁';
@@ -51,6 +53,7 @@ function renderPlanSchedule() {
   byId('planSummary').textContent = planSummaryText(plan);
   const doneSets = planDoneSets(log); // S-160: once per render, shared by the phases and the study order
   const done = planPhasesDone(plan, log, phases, doneSets);
+  renderPlanPhaseCount(phases);
   renderPlanPhaseBar(phases, done);
   renderPlanStrategy(plan, phases, done);
   renderPlanOrder(log, doneSets);
@@ -112,6 +115,22 @@ function planPhaseDays(plan) {
   return out;
 }
 function planShownPhases(phases) { return PLAN_SHOWN_PHASES.filter(k => phases[k].length); }
+// CUI-0037: the title ("Two phases") and the Daily tasks legend name only the phases the plan has. Both keep their
+// data-i18n (the key swapped here), so a language switch's static pass and this re-render agree. An old cached
+// index.html without the ids keeps its static text
+function renderPlanPhaseCount(phases) {
+  const shown = planShownPhases(phases), title = byId('planPhasesTitle'), legend = byId('planPhaseLegend');
+  if (title) {
+    const titleKey = PLAN_PHASES_TITLE_KEYS[shown.length] || PLAN_PHASES_TITLE_KEYS[PLAN_SHOWN_PHASES.length];
+    title.dataset.i18n = titleKey;
+    title.textContent = t(titleKey);
+  }
+  if (legend) legend.innerHTML = shown.map(planLegendItemHtml).join('');
+}
+function planLegendItemHtml(k) {
+  const nameKey = PLAN_PHASE_LABEL_KEYS[k];
+  return `<i class="plan-bg-${k}"></i><span data-i18n="${nameKey}">${t(nameKey)}</span>`;
+}
 // v1.0.2: three equal segments, the name over its day count; a name too long for its segment wraps (W-037, plan.css)
 // v1.0.4: each also carries its Day range, shown instead of the count while the card is collapsed (plan.css .collapsed)
 // G43: the ✓ is decoration; screen readers hear "(done)" after the name instead

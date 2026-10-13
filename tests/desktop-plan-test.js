@@ -216,6 +216,32 @@ async function checkSchedule(b) {
   await page.close();
 }
 
+// CUI-0037 B1: a plan with 2 phases (no drill) puts 2 strategy cards across the full card width, under the phase bar
+// (its flex: 1 pieces): one column per shown phase, no empty third column. The 3-phase plan keeps 3 (checkSchedule)
+const TWO_PHASE_GOAL = { dailyMins: 30, restDays: [], level: 'none' }; // 7 study days, 30 min: learn + mock, no drill
+const stratLook = page => page.evaluate(() => {
+  const bar = byId('planPhaseBar').getBoundingClientRect(), box = byId('planStrategy').getBoundingClientRect();
+  const cards = [...document.querySelectorAll('#planStrategy .plan-strat')].map(c => c.getBoundingClientRect());
+  return { segs: byId('planPhaseBar').children.length, cards: cards.length, cols: getComputedStyle(byId('planStrategy')).gridTemplateColumns.split(' ').length,
+    barL: bar.left, barR: bar.right, boxW: box.width, barW: bar.width, firstL: cards[0].left, lastR: cards[cards.length - 1].right,
+    widths: cards.map(c => c.width), tops: cards.map(c => c.top) };
+});
+async function checkTwoPhaseStrats(b) {
+  for (const viewport of dt.DESKTOP_VIEWPORTS) {
+    for (const lang of dt.LANGS) {
+      const { page, errors } = await dt.openDesktop(b, { viewport, lang });
+      await seedPlan(page, { days: 7, dayN: 1, goal: TWO_PHASE_GOAL });
+      await page.evaluate(() => openPlanSchedule());
+      const s = await stratLook(page), where = `${viewport.width}×${viewport.height} ${lang}`;
+      assert(s.segs === 2 && s.cards === 2 && s.cols === 2, `${where}: CUI-0037 B1: 2 phases → 2 bar pieces, 2 cards, 2 grid columns (no empty one): ` + JSON.stringify(s));
+      assert(near(s.firstL, s.barL) && near(s.lastR, s.barR) && near(s.boxW, s.barW), `${where}: CUI-0037 B1: the cards span the phase bar's full width (± 1px)`);
+      assert(near(s.widths[0], s.widths[1]) && near(s.tops[0], s.tops[1]), `${where}: CUI-0037 B1: the 2 cards are equal and side by side`);
+      assert(errors.length === 0, `${where}: no page errors ` + errors.join(' | '));
+      await page.close();
+    }
+  }
+}
+
 // ── Plan Day A rev 4 ──
 const dayLook = page => page.evaluate(() => {
   const r = e => (e ? e.getBoundingClientRect() : null);
@@ -293,6 +319,7 @@ async function checkRun(b) {
     await checkGoal(b);
     await checkLevelSubs(b);
     await checkSchedule(b);
+    await checkTwoPhaseStrats(b);
     await checkDay(b);
     await checkRun(b);
     console.log('DESKTOP-PLAN PASS');
