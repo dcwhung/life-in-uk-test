@@ -489,7 +489,8 @@ LOCALES.en = {
     run: {
       backToday: "Today's tasks",
       backDayHtml: '{day} tasks',
-      backFact: 'Back to the fact', // v2.1.1: one fact's ▶ Practise, mid-session (planRun.js planQuizBackHtml)
+      backFact: 'Back', // v2.1.1: one fact's ▶ Practise, mid-session (planRun.js planQuizBackHtml); short beside the "Fact Ch c #n" label
+      backFactLabel: 'Back to the fact', // its accessible name (contains the visible word)
       roundOf: 'Round {n} of {rounds}',
       nextRound: 'Next round', // also the quick button's title / aria-label (QA O-3)
       retryWrong: { one: 'Redo the wrong answer ({n} left)', other: 'Redo wrong answers ({n} left)' },

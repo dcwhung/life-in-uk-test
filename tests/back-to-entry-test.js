@@ -8,7 +8,7 @@ const path = require('path');
 //   #7 Study fact › ▶ Practise        → "‹ Study" → Study, the same card
 //   #8 Memory note › ② Test           → "‹ Memory" (main's C2 setQuizBackMemo) → the group's look view, nothing recorded
 //   #9 Practice › Similar › Practise  → "‹ Q{n}" (named "Back to Q{n}") → the original session at the same question
-//   #11 Plan reading › fact ▶ Practise → "‹ Back to the fact" → that fact's card (#screenPlanRun)
+//   #11 Plan reading › fact ▶ Practise → "‹ Back" (named "Back to the fact") → that fact's card (#screenPlanRun)
 // The Home entries keep the 🏠 icon and go Home; an exam asks first. Also (S-259): zh-HK labels + a language switch,
 // Similar inside a Flagged practice (back twice → the list), 320px en large text (W-074), focus after back (S-258).
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
@@ -131,7 +131,7 @@ async function checkPlanFact(pg) {
   await pg.click('#planRunBody [data-action=planPractiseFact]');
   assert(await activeScreen(pg) === 'screenQuiz', '#11 a fact\'s ▶ Practise opens the quiz');
   const back = await backOf(pg, 'screenQuiz');
-  assert(isTextBack(back, 'Back to the fact'), `#11 quiz header reads "‹ Back to the fact" (${back.text})`);
+  assert(isTextBack(back, 'Back') && back.name === 'Back to the fact' && back.title === 'Back to the fact', `#11 quiz header reads "‹ Back", named "Back to the fact" (${JSON.stringify(back)})`);
   await tapBack(pg, 'screenQuiz');
   const after = await pg.evaluate(() => ({ screen: document.querySelector('.screen.active').id, view: planRunView && planRunView.kind, pos: planRunView && planRunView.pos }));
   assert(after.screen === 'screenPlanRun' && after.view === 'facts' && after.pos === pos, `#11 back goes to the same fact card (${JSON.stringify(after)})`);
@@ -173,7 +173,8 @@ async function checkZhHk(pg) {
   await pg.evaluate(() => setLang('zh-HK'));
   await pg.evaluate(() => { leaveToHome(); openPlanGoal(); byId('planCreateBtn').click(); openPlanDay(null); document.querySelector('#planTaskList [data-action=planOpenTask]').click(); });
   await pg.click('#planRunBody [data-action=planPractiseFact]');
-  assert(isTextBack(await backOf(pg, 'screenQuiz'), '返回知識點'), 'zh-HK #11 quiz header reads "‹ 返回知識點"');
+  const zhFact = await backOf(pg, 'screenQuiz');
+  assert(isTextBack(zhFact, '返回') && zhFact.name === '返回知識點', `zh-HK #11 quiz header reads "‹ 返回", named "返回知識點" (${JSON.stringify(zhFact)})`);
 }
 
 // S-259: Similar inside a Flagged practice: back → the Flagged session at the same question ("‹ Flagged"), back → the list

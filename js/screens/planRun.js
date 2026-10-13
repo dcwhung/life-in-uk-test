@@ -155,7 +155,8 @@ function setQuizBackHome(back) {
   back.innerHTML = lineIconSvg('home');
   setAccessibleName(back, t('common.homeLabel'));
 }
-// v2.1.1: one fact's ▶ Practise reads "‹ Back to the fact" (planLeaveSession); a session from elsewhere names its entry
+// v2.1.1: one fact's ▶ Practise reads "‹ Back" (planLeaveSession; user 2026-10-13: the words beside "Fact Ch c #n" stay
+// short), named "Back to the fact"; a session from elsewhere names its entry
 // W-072: a locale without plan.run.backFact keeps the day's label rather than the raw key
 function planQuizBackHtml(session) {
   const fact = t('plan.run.backFact');
@@ -164,10 +165,15 @@ function planQuizBackHtml(session) {
   }
   return planRunBackHtml((session ? sessionReturn : planMockRun).from);
 }
+// the fact's full words as the accessible name; none (the visible words name it) otherwise or for a stale locale
+function planQuizBackName(session) {
+  const name = t('plan.run.backFactLabel');
+  return session && planRunPart(sessionReturn).fact !== undefined && name !== 'plan.run.backFactLabel' ? name : undefined;
+}
 function renderPlanQuizHeader() {
   const back = byId('screenQuiz').querySelector('.back-btn');
   const session = isPlanSession(), plan = session || isPlanMock();
-  if (plan) setQuizBackText(back, planQuizBackHtml(session));
+  if (plan) setQuizBackText(back, planQuizBackHtml(session), planQuizBackName(session));
   // C2: "‹ Memory" back to the group (memo.js). W-072: a cached pre-v2.0.4 sideSession.js has no isMemoSession (as goHome)
   else if (typeof isMemoSession === 'function' && isMemoSession()) { setQuizBackAction(back); setQuizBackMemo(back); }
   else if (typeof setEntryBack === 'function') setEntryBack(back);
