@@ -50,16 +50,16 @@
   .b-orbit .fan { position: relative; width: var(--b-planet-size); height: var(--b-planet-size); }
   .b-orbit .fan-c { position: absolute; left: 4%; right: 4%; bottom: 0; height: 150%; border-radius: 16px; background: var(--card); box-shadow: var(--shadow-md);
     display: flex; justify-content: center; padding-top: var(--space-4); font-size: 22px; transform-origin: 50% 100%;
-    animation: bFan var(--fan-dur) var(--intro-ease) infinite, var(--fade) var(--fan-dur) ease infinite; }
-  .b-orbit .fan { --fan-dur: 4.2s; }
+    animation: bFan var(--fan-dur) var(--intro-ease) 1 forwards, var(--fade) var(--fan-dur) ease 1 forwards; }
+  .b-orbit .fan { --fan-dur: 3.6s; }   /* all cards gone by ~3.1s, inside the 4.2s mock splash */
   .b-orbit .fan-c:nth-child(1) { --fa: -38deg; --fade: bFade1; background: var(--yue-bg); } .b-orbit .fan-c:nth-child(2) { --fa: -13deg; --fade: bFade2; background: var(--success-bg); }
   .b-orbit .fan-c:nth-child(3) { --fa: 13deg; --fade: bFade3; background: var(--selected-bg); } .b-orbit .fan-c:nth-child(4) { --fa: 38deg; --fade: bFade4; background: var(--gold-bg); }
-  /* fan out together, then fade out one by one in order (plan → study → practice → exam), fold back and fade in again */
-  @keyframes bFan { 0%, 10% { transform: rotate(0deg); } 30%, 80% { transform: rotate(var(--fa)) translateY(-8px); } 95%, 100% { transform: rotate(0deg); } }
-  @keyframes bFade1 { 0%, 36% { opacity: 1; } 42%, 84% { opacity: 0; } 96%, 100% { opacity: 1; } }
-  @keyframes bFade2 { 0%, 44% { opacity: 1; } 50%, 84% { opacity: 0; } 96%, 100% { opacity: 1; } }
-  @keyframes bFade3 { 0%, 52% { opacity: 1; } 58%, 84% { opacity: 0; } 96%, 100% { opacity: 1; } }
-  @keyframes bFade4 { 0%, 60% { opacity: 1; } 66%, 84% { opacity: 0; } 96%, 100% { opacity: 1; } }
+  /* plays once: fan out together, then fade out one by one in order (plan → study → practice → exam) and stay gone, leaving the logo */
+  @keyframes bFan { 0%, 10% { transform: rotate(0deg); } 30%, 100% { transform: rotate(var(--fa)) translateY(-8px); } }
+  @keyframes bFade1 { 0%, 40% { opacity: 1; } 50%, 100% { opacity: 0; } }
+  @keyframes bFade2 { 0%, 52% { opacity: 1; } 62%, 100% { opacity: 0; } }
+  @keyframes bFade3 { 0%, 64% { opacity: 1; } 74%, 100% { opacity: 0; } }
+  @keyframes bFade4 { 0%, 76% { opacity: 1; } 86%, 100% { opacity: 0; } }
   .b-orbit .fan .b-logo { position: absolute; inset: 0; z-index: 2; }
   /* ④ progress ring: a gold → green arc draws once round the logo while loading; each icon on the ring lights up as the arc reaches it */
   .b-orbit .rl-track { fill: none; stroke: var(--border); stroke-width: 6; }
@@ -522,7 +522,7 @@
       <div class="note"><h3>rev 8：Logo 動畫 4 個方案（頂部「Logo 動畫」切換）</h3><ul>
         <li><b>① 軌道</b>（rev 7 保留）：淺色虛線軌道好似原子咁交叉，📖📝🎯🗓️ 繞住 logo 轉，近半喺前、遠半被遮。</li>
         <li><b>② 波紋</b>：logo 輕輕呼吸，同 logo 一樣形狀嘅圓角框一圈圈擴散淡出；四個 icon 喺上右下左輪流彈出再收起。最安靜。</li>
-        <li><b>③ 卡片扇</b>：logo 後面四張淡色卡（每張一個功能 icon）扇開，再按次序（計劃 → 溫習 → 練習 → 考試）逐張淡出，合埋再淡入。</li>
+        <li><b>③ 卡片扇</b>：logo 後面四張淡色卡（每張一個功能 icon）扇開，再按次序（計劃 → 溫習 → 練習 → 考試）逐張淡出；全部消失就停，淨低 logo，唔再重複。</li>
         <li><b>④ 進度環</b>：logo 外圈一條金 → 綠弧線由 12 點順時針畫到滿圈；12 點計劃、3 點溫習、6 點練習、9 點考試，弧線到邊個 icon 就由灰色亮起。可以接真進度。</li>
         <li>rev 9：四個 icon 喺所有動畫統一次序：🗓️ 計劃、📖 溫習、📝 練習、🎯 考試。</li></ul></div>
       <div class="note"><h3>rev 8：重看介紹（撳頂部「ⓘ 預覽」）</h3><ul>
