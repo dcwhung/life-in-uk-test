@@ -535,6 +535,30 @@ async function checkMainKeptOnAnswerOptionAnchor(b) {
   await page.close();
 }
 
+// CUI-0034 review S-251: an option eases its colours only, at every width (a `transition: all` also eased padding and
+// height changes, which fitQuiz then measured mid-way); unanswered, selected and answered options alike
+const OPT_TRANSITION = ['border-color', 'background-color', 'color'];
+async function checkOptionTransition(b) {
+  for (const viewport of [dt.VIEWPORTS.phone, dt.VIEWPORTS.belowDesktop, dt.VIEWPORTS.small, dt.VIEWPORTS.wide]) {
+    const { page, errors, label } = await dt.openDesktop(b, { viewport });
+    await startSet(page, 'practice', EXAM_ONE);
+    const read = () => page.$$eval('#optionsContainer .opt', els => els.map(e => {
+      const cs = getComputedStyle(e);
+      return { props: cs.transitionProperty.split(',').map(p => p.trim()), duration: cs.transitionDuration };
+    }));
+    const unanswered = await read();
+    await page.evaluate(() => byId('opt0').click());
+    const picked = await read();
+    await answerCurrent(page);
+    const answered = await read();
+    const all = [...unanswered, ...picked, ...answered];
+    const ok = all.length > 0 && all.every(t => t.props.join() === OPT_TRANSITION.join() && t.duration.split(',').every(d => d.trim() === '0.15s'));
+    assert(ok, `${label}: S-251 .opt transitions ${OPT_TRANSITION.join(', ')} 0.15s only, no all / padding (${JSON.stringify(all[0])})`);
+    assert(errors.length === 0, 'no page error: ' + errors.join(' | '));
+    await page.close();
+  }
+}
+
 (async () => {
   const b = await dt.launch();
   await dt.forEachCase(b, async ({ page, label, errors, lang, translation }) => {
@@ -543,6 +567,7 @@ async function checkMainKeptOnAnswerOptionAnchor(b) {
     assert(errors.length === 0, `${label}: no page error ` + errors.join(' | '));
   });
   await checkPhone(b);
+  await checkOptionTransition(b);
   await checkRefit(b);
   await checkLazyDesk(b);
   await checkFocusKept(b);
