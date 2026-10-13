@@ -37,6 +37,31 @@
   .b-orbit .front { z-index: 2; }   /* the front half of each orbit and the comets pass over the planet */
   .b-logo { position: relative; z-index: 1; width: var(--b-planet-size); height: var(--b-planet-size); border-radius: 22px;
     box-shadow: var(--shadow-md); }   /* the app icon keeps its own rounded-square shape */
+  /* ② ripple: the logo breathes, rounded-square ripples spread out, the four icons pop in at N / E / S / W in turn */
+  .b-orbit .rp { position: absolute; left: 50%; top: 50%; width: var(--b-planet-size); height: var(--b-planet-size); margin: calc(var(--b-planet-size) / -2);
+    border-radius: 22px; border: 2px solid var(--b-orbit-line); animation: bRipple 3s ease-out infinite; animation-delay: var(--d); }
+  @keyframes bRipple { from { transform: scale(1); opacity: .9; } to { transform: scale(2.5); opacity: 0; } }
+  .b-orbit.ripple .b-logo { animation: bBreath 3s ease-in-out infinite; }
+  @keyframes bBreath { 50% { transform: scale(1.05); } }
+  .b-orbit .ic { position: absolute; font-size: 26px; line-height: 1; transform: translate(-50%, -50%) scale(0); animation: bIcon 4s var(--intro-ease) infinite; animation-delay: var(--d); }
+  @keyframes bIcon { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 12% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+    20%, 70% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 85%, 100% { transform: translate(-50%, -50%) scale(.6); opacity: 0; } }
+  /* ③ card fan: four tinted cards (one per feature) behind the logo fan out and fold back, like flicking through fact cards */
+  .b-orbit .fan { position: relative; width: var(--b-planet-size); height: var(--b-planet-size); }
+  .b-orbit .fan-c { position: absolute; left: 4%; right: 4%; bottom: 0; height: 150%; border-radius: 16px; background: var(--card); box-shadow: var(--shadow-md);
+    display: flex; justify-content: center; padding-top: var(--space-4); font-size: 22px; transform-origin: 50% 100%; animation: bFan 3.4s var(--intro-ease) infinite; }
+  .b-orbit .fan-c:nth-child(1) { --fa: -38deg; background: var(--success-bg); } .b-orbit .fan-c:nth-child(2) { --fa: -13deg; background: var(--selected-bg); }
+  .b-orbit .fan-c:nth-child(3) { --fa: 13deg; background: var(--gold-bg); } .b-orbit .fan-c:nth-child(4) { --fa: 38deg; background: var(--yue-bg); }
+  @keyframes bFan { 0%, 12% { transform: rotate(0deg); } 40%, 72% { transform: rotate(var(--fa)) translateY(-8px); } 96%, 100% { transform: rotate(0deg); } }
+  .b-orbit .fan .b-logo { position: absolute; inset: 0; z-index: 2; }
+  /* ④ progress ring: a gold → green arc draws once round the logo while loading; each icon on the ring lights up as the arc reaches it */
+  .b-orbit .rl-track { fill: none; stroke: var(--border); stroke-width: 6; }
+  .b-orbit .rl-arc { fill: none; stroke: url(#bRingGrad); stroke-width: 6; stroke-linecap: round; stroke-dasharray: var(--ring-len); stroke-dashoffset: var(--ring-len);
+    animation: bArc var(--ring-ms) linear forwards; }
+  @keyframes bArc { to { stroke-dashoffset: 0; } }
+  .b-orbit .rl-ic { position: absolute; width: 34px; height: 34px; margin: -17px; border-radius: 50%; background: var(--bg); display: grid; place-items: center;
+    font-size: 20px; filter: grayscale(1); opacity: .35; animation: bLit .45s var(--intro-ease) forwards; animation-delay: var(--d); }
+  @keyframes bLit { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); filter: none; opacity: 1; } }
   .b-dots { display: flex; gap: var(--space-3); }
   .b-dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--gold); animation: bBounce 1s ease-in-out infinite; }
   .b-dots i:nth-child(2) { background: var(--navy-light); animation-delay: .15s; }
@@ -205,6 +230,11 @@
   const MOCK_LOADING_MS = 4200;   // option B shows the splash longer in the mock (real app: max(boot, 800ms))
   const STATUS_STEP_MS = 1300;
   const NOTE_COUNT = 3;
+  const FEATURE_ICONS = ['📖', '📝', '🎯', '🗓️'];
+  const RIPPLE_COUNT = 3; const RIPPLE_GAP_S = 1; const ICON_GAP_S = 0.5;
+  const ICON_SPOTS = [[50, 3], [97, 50], [50, 97], [3, 50]];   // N, E, S, W in % of the stage
+  const RING_R = 100; const RING_MS = 4000;                    // the arc finishes just before the mock splash ends
+  const RING_SPOTS = [[1, 0.25], [2, 0.5], [3, 0.75], [0, 1]]; // [icon index at E/S/W/N, share of RING_MS when the arc gets there]
   // orbits: tilt (deg), half-axes, comet lap time (s) — different speeds so the comets never line up
   const ORBITS = [
     { tilt: -28, rx: 108, ry: 34, dur: 3.6 },
@@ -284,12 +314,36 @@
     return shuffle(tips).slice(0, n);
   }
 
+  // the four logo animations (toolbar: Logo 動畫); all share the .b-orbit stage size
+  function stageHtml(kind, logo) {
+    const img = `<img class="b-logo" src="${logo}" alt="">`;
+    if (kind === 'ripple') {
+      const rings = Array.from({ length: RIPPLE_COUNT }, (_, i) => `<span class="rp" style="--d:${i * RIPPLE_GAP_S}s"></span>`).join('');
+      const icons = FEATURE_ICONS.map((ic, i) => `<span class="ic" style="left:${ICON_SPOTS[i][0]}%;top:${ICON_SPOTS[i][1]}%;--d:${i * ICON_GAP_S}s">${ic}</span>`).join('');
+      return `<div class="b-orbit ripple">${rings}${img}${icons}</div>`;
+    }
+    if (kind === 'fan') {
+      return `<div class="b-orbit fan-wrap"><div class="fan">${FEATURE_ICONS.map((ic) => `<span class="fan-c">${ic}</span>`).join('')}${img}</div></div>`;
+    }
+    if (kind === 'ring') {
+      const len = (2 * Math.PI * RING_R).toFixed(1);
+      const pos = [[50, 50 - RING_R / 2.3], [50 + RING_R / 2.3, 50], [50, 50 + RING_R / 2.3], [50 - RING_R / 2.3, 50]];   // N, E, S, W in % (r 100 of the 230 box)
+      const icons = RING_SPOTS.map(([i, share]) => `<span class="rl-ic" style="left:${pos[i][0]}%;top:${pos[i][1]}%;--d:${Math.round(share * RING_MS)}ms">${FEATURE_ICONS[i]}</span>`).join('');
+      return `<div class="b-orbit ringload" style="--ring-len:${len};--ring-ms:${RING_MS}ms">
+        <svg viewBox="0 0 230 230" aria-hidden="true"><defs><linearGradient id="bRingGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="var(--gold)"/><stop offset="1" stop-color="var(--green-light)"/></linearGradient></defs>
+          <circle class="rl-track" cx="115" cy="115" r="${RING_R}"/>
+          <circle class="rl-arc" cx="115" cy="115" r="${RING_R}" transform="rotate(-90 115 115)"/></svg>${img}${icons}</div>`;
+    }
+    return `<div class="b-orbit">${orbitSvg()}${img}</div>`;
+  }
+
   function renderLoading(root, x) {
     const { c, logo } = x;
     const status = ART[x.state.lang].status;
     root.innerHTML = `<div class="b-load">
       <div class="b-brand">
-        <div class="b-orbit">${orbitSvg()}<img class="b-logo" src="${logo}" alt=""></div>
+        ${stageHtml(x.state.logoAnim, logo)}
         <div class="b-name">${c.appTitle}</div><div class="b-sub">${c.appSub}</div>
         <div class="b-dots" role="progressbar" aria-label="${c.loading}"><i></i><i></i><i></i></div>
         <div class="b-status" aria-live="polite">${status[0]}</div></div>
@@ -453,9 +507,19 @@
   }
 
   Mock.init({
-    name: '方案 B · 輕鬆卡片 Friendly（rev 7）',
+    name: '方案 B · 輕鬆卡片 Friendly（rev 8）',
     renderLoading, renderIntro, loadingMs: MOCK_LOADING_MS,
+    extraSegs: [{ label: 'Logo 動畫', key: 'logoAnim', default: 'orbit',
+      options: [['orbit', '① 軌道'], ['ripple', '② 波紋'], ['fan', '③ 卡片扇'], ['ring', '④ 進度環']] }],
     notes: `
+      <div class="note"><h3>rev 8：Logo 動畫 4 個方案（頂部「Logo 動畫」切換）</h3><ul>
+        <li><b>① 軌道</b>（rev 7 保留）：淺色虛線軌道好似原子咁交叉，📖📝🎯🗓️ 繞住 logo 轉，近半喺前、遠半被遮。</li>
+        <li><b>② 波紋</b>：logo 輕輕呼吸，同 logo 一樣形狀嘅圓角框一圈圈擴散淡出；四個 icon 喺上右下左輪流彈出再收起。最安靜。</li>
+        <li><b>③ 卡片扇</b>：logo 後面四張淡色卡（每張一個功能 icon）好似揭知識卡咁扇開再合埋。最有「溫習」感覺。</li>
+        <li><b>④ 進度環</b>：logo 外圈一條金 → 綠弧線由 0 畫到滿圈（真正反映載入進度），經過邊個 icon 就由灰色亮起。最有「載入中」意思，亦可以接真進度。</li></ul></div>
+      <div class="note"><h3>rev 8：重看介紹（撳頂部「ⓘ 預覽」）</h3><ul>
+        <li>ⓘ popover 照返 app 現有樣式（標題 + 版本、介紹、4 個 badge），喺 badge 下面用金色細線分隔，加一行「▶ 重看介紹 NEW / 3 頁快速認識…  播放 ›」。</li>
+        <li>箭咀對準 ⓘ（同 <code>popover.js</code> pointArrowAt 一樣計法）；電腦版闊度跟主欄 780px。</li></ul></div>
       <div class="note"><h3>rev 7 改動</h3><ul>
         <li>軌道改淺色虛線（<code>--b-orbit-line</code>）；除咗四個 icon 之外冇其他圓點（拎走慧星尾巴）。</li>
         <li>電腦版：左邊 logo + 品牌資訊（自己置中），右邊直落三張 memo（唔同角度、少少左右錯開）。</li></ul></div>

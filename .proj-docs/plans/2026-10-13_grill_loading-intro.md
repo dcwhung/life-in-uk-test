@@ -52,3 +52,7 @@ Mockup：`mockups/v2.2.0/intro-index.html`（入口）、`intro-a-classic.html`�
 ## rev 7（2026-10-13）
 - 軌道改淺色虛線；除咗四個 icon 冇其他圓點。
 - 電腦版 loading：左 logo + 品牌資訊，右三張 memo。
+
+## rev 8（2026-10-13）
+- 「重看介紹」放入現有 ⓘ info-pop（標題 + 版本、介紹、4 個 badge 照舊），badge 下面金色細線分隔加一行「▶ 重看介紹 NEW … 播放 ›」；mock 工具列加「ⓘ 預覽」。
+- Loading logo 動畫 4 個方案（工具列「Logo 動畫」切換）：① 軌道（保留）② 波紋 ③ 卡片扇 ④ 進度環。等用戶揀。

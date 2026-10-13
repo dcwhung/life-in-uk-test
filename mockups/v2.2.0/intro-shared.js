@@ -10,7 +10,8 @@ const Mock = (() => {
   const DEVICE = { mb: { w: 390, h: 844 }, pc: { w: 1280, h: 800 } };
   const FRAME_PAD = { mb: 20, pc: 36 };
   const LOGO_SRC = '../../icons/icon.svg';
-  const VERSION = 'v2.2.0';
+  const VERSION = 'v2.5.0';   // proposed release after main v2.4.2
+  const QUESTION_COUNT = 408; const EXAM_COUNT = 17; const CHAPTER_COUNT = 5;   // the current ⓘ badges (main v2.4.2)
 
   const COPY = {
     zh: {
@@ -42,7 +43,9 @@ const Mock = (() => {
         ring: '今日進度', done: '試過了，下一步',
       },
       home: { modes: ['溫習', '練習', '模擬考試'], chooseMode: '選擇模式', info: '關於',
-        infoBody: '收錄 Life in the UK Test 官方風格題目，附廣東話翻譯及備註。', replay: '重看介紹',
+        infoTitle: 'Life in the UK Test · 應試練習', infoBody: '收錄 {n} 條 lifeintheuktestweb.co.uk 官方風格題目，附廣東話翻譯及備註。',
+        badges: ['📋 {e} 份試卷', '📚 {c} 個章節', '❓ {n} 題', '🔒 支援離線'],
+        replay: '重看介紹', replaySub: '3 頁快速認識溫習、練習及溫習計劃', replayBtn: '播放',
         toastPlan: '已儲存設定 → 開啟「溫習計劃」設定（mock）', toastStart: '已儲存設定，歡迎使用！',
         toastSkip: '已略過介紹（之後可於 ⓘ 重看）', toastReturning: '已看過介紹的用戶：載入後直接到主頁' },
     },
@@ -75,7 +78,9 @@ const Mock = (() => {
         ring: 'Today', done: 'Got it — next',
       },
       home: { modes: ['Study', 'Practice', 'Mock exam'], chooseMode: 'Choose a mode', info: 'About',
-        infoBody: 'Official-style Life in the UK Test questions with Cantonese translation and notes.', replay: 'Replay intro',
+        infoTitle: 'Life in the UK Test · Exam Practice', infoBody: '{n} official-style questions from lifeintheuktestweb.co.uk, with Cantonese translations and notes.',
+        badges: ['📋 {e} Exams', '📚 {c} Chapters', '❓ {n} Qs', '🔒 Works Offline'],
+        replay: 'Replay intro', replaySub: 'A 3-page tour of studying, practice and the study plan', replayBtn: 'Play',
         toastPlan: 'Settings saved → opening Study plan setup (mock)', toastStart: 'Settings saved — welcome!',
         toastSkip: 'Intro skipped (replay it from ⓘ)', toastReturning: 'Returning user: loading goes straight to Home' },
     },
@@ -120,7 +125,9 @@ const Mock = (() => {
         ${seg('裝置', 'device', [['mb', '📱 手機'], ['pc', '🖥 電腦']])}
         ${seg('語言', 'lang', [['zh', '繁中'], ['en', 'EN']])}
         ${seg('用戶', 'firstRun', [['true', '第一次'], ['false', '已看過']])}
+        ${(opts.extraSegs || []).map((x) => seg(x.label, x.key, x.options)).join('')}
         <button class="mock-replay" data-act="replay">↻ 重播</button>
+        <button class="mock-replay alt" data-act="info">ⓘ 預覽</button>
       </div>
       <div class="mock-stage"><div class="mock-fit"><div class="mock-frame"><div class="app" id="app"></div></div></div></div>
       <div class="mock-notes">${opts.notes || ''}</div>`);
@@ -132,6 +139,7 @@ const Mock = (() => {
   function onBarClick(e) {
     const b = e.target.closest('button');
     if (!b) return;
+    if (b.dataset.act === 'info') { clearTimers(); fitFrame(); showHome(); toggleInfo(els.app.querySelector('.view')); return; }
     if (b.dataset.seg) {
       const key = b.dataset.seg;
       state[key] = key === 'firstRun' ? b.dataset.val === 'true' : b.dataset.val;
@@ -206,13 +214,23 @@ const Mock = (() => {
     if (toast) later(() => root.querySelector('.mock-toast')?.remove(), TOAST_MS);
   }
 
+  // the current ⓘ popover (index.html #infoPop, css/components/popover.css) + the new replay row under the badges
   function toggleInfo(root) {
     const open = root.querySelector('.info-pop');
-    if (open) { open.remove(); return; }
-    const c = t();
-    root.insertAdjacentHTML('beforeend', `<div class="info-pop fade-in" role="dialog">
-      <h2>${c.appTitle} <small>${VERSION}</small></h2><p>${c.home.infoBody}</p>
-      <button class="new" data-home="replay">▶ ${c.home.replay} <span class="new-tag">NEW</span></button></div>`);
+    if (open) { open.remove(); root.querySelector('[data-home="info"]').classList.remove('open'); return; }
+    const h = t().home;
+    const vars = { n: QUESTION_COUNT, e: EXAM_COUNT, c: CHAPTER_COUNT };
+    root.insertAdjacentHTML('beforeend', `<div class="info-pop fade-in" role="dialog" aria-label="${h.info}">
+      <h2>${h.infoTitle} <span class="app-version">${VERSION}</span></h2><p>${fmt(h.infoBody, vars)}</p>
+      <div class="hero-meta">${h.badges.map((b) => `<div class="hero-badge">${fmt(b, vars)}</div>`).join('')}</div>
+      <button class="ip-replay" data-home="replay">
+        <span class="ip-play">▶</span><span class="ip-txt"><b>${h.replay} <em class="new-tag">NEW</em></b><small>${h.replaySub}</small></span>
+        <span class="ip-go">${h.replayBtn} ›</span></button></div>`);
+    const btn = root.querySelector('[data-home="info"]');
+    btn.classList.add('open');
+    const pop = root.querySelector('.info-pop');
+    const arrowX = btn.offsetLeft + btn.offsetWidth / 2 - pop.offsetLeft;   // as popover.js pointArrowAt
+    pop.style.setProperty('--info-arrow-x', `${arrowX}px`);
   }
 
   // one context object handed to every option renderer
@@ -270,6 +288,7 @@ const Mock = (() => {
 
   function init(o) {
     opts = o;
+    (o.extraSegs || []).forEach((x) => { if (state[x.key] === undefined) state[x.key] = x.default; });
     buildChrome();
     run();
   }
