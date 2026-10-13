@@ -20,14 +20,14 @@ const memoFallbackTab = () => (typeof STUDY_DEFAULT_TAB === 'undefined' ? MEMO_F
 
 // ── v2.2.0: ⚙ "🧠 Memory study mode" (user-confirmed preview mockups/memo-switch.html, deleted at release) ──
 // the row: a switch + On / Off pill + note like the translation row; built once, then updated in place (W-032).
-// W-057: a pre-v2.2.0 store.js (no switch), actions.js (no handler, S-203), locale (no row words) or cached index.html
-// (no tab) hides the row
+// W-057: a pre-v2.2.0 store.js (no switch), actions.js (no handler, S-203), locale (no row words), cached index.html
+// (no tab) or a pre-v1.4.0 planHome.js (no shared pill, renderFeaturePill) hides the row
 function renderMemoSetting() {
   const row = byId('settingsMemoRow');
   if (!row) return;
   const labelKey = 'app.memoSwitchLabel';
-  row.hidden = typeof isMemoModeOn !== 'function' || typeof ACTIONS.toggleMemoMode !== 'function' || !memoShellReady()
-    || t(labelKey) === labelKey;
+  row.hidden = typeof isMemoModeOn !== 'function' || typeof ACTIONS.toggleMemoMode !== 'function'
+    || typeof renderFeaturePill !== 'function' || !memoShellReady() || t(labelKey) === labelKey;
   if (row.hidden) return;
   const on = isMemoModeOn();
   const noteKey = on ? 'app.memoOnNote' : 'app.memoOffNote';
