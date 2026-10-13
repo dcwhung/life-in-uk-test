@@ -103,11 +103,17 @@ function renderMemo() {
   byId('memoSteps').innerHTML = memoStepsHtml(g);
   byId('screenMemo').dataset.memoStep = memoView.step;
   byId('memoBody').innerHTML = memoView.step === MEMO_STEP.result ? memoResultHtml(g, memoView.result, desktop) : memoLookHtml(g, desktop);
-  if (keepOpen) byId('memoBody').querySelector('details.memo-questions').open = true;
+  const fold = byId('memoBody').querySelector('details.memo-questions');
+  if (fold) {
+    fold.open = keepOpen;
+    fold.addEventListener('toggle', memoRefreshFades); // its panel got taller / shorter
+  }
   memoDrawn = { desktop, view };
-  if (typeof refreshFades === 'function') refreshFades(byId('memoBody')); // the panels' fades
+  memoRefreshFades();
   desktopRefit('screenMemo', fitMemo); // registered lazily (js/components/deskPlace.js)
 }
+// the panels' fades (W-057: a cached shell may load js/components/fit.js late)
+function memoRefreshFades() { if (typeof refreshFades === 'function') refreshFades(byId('memoBody')); }
 function fitMemo(desktop) {
   if (desktop !== memoDrawn.desktop) renderMemo();
 }
@@ -128,15 +134,14 @@ function memoStepsHtml(g) {
   return `<div class="memo-step ${done ? 'ok' : 'on'}">${escapeHtml(look)}</div><div class="memo-step${done ? ' ok' : ''}">${escapeHtml(test)}</div>`;
 }
 
-// v2.0.0 desktop (≥ 1024px; Design Origin: baseline: Plan Run's desktop centred column, user 2026-10-12, no mockup): the
-// screen is one screen high in a centred column (css/screens/memo.css); a long note / result scrolls in its panel
-// (.fit-panel) with fades (.fit-fade, js/components/fit.js), so the buttons under it stay on the screen. Below 1024px
-// the wrapper draws nothing and the page scrolls as before
+// one screen high (desktop and, v2.1.0, phone; css/screens/memo.css): long content scrolls in its panel (.fit-panel)
+// with fades (.fit-fade, js/components/fit.js), so the buttons under it stay on the screen
 function memoScrollHtml(panel) { return `<div class="memo-scroll fit-fade">${panel}</div>`; }
-// one screen high from 1024px (css/components/fit.css .screen.is-fit); a cached older index.html has no #screenMemo
+// one screen high from 1024px (css/components/fit.css .screen.is-fit) and, v2.1.0, on a phone too (.is-fit-phone:
+// the hook and buttons stay put, the panel between them scrolls); a cached older index.html has no #screenMemo
 function memoMarkFit() {
   const screen = byId('screenMemo');
-  if (screen) screen.classList.add('is-fit');
+  if (screen) screen.classList.add('is-fit', 'is-fit-phone');
 }
 memoMarkFit();
 

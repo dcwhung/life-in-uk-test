@@ -167,6 +167,68 @@ async function checkPhoneList(b) {
   }
 }
 
+// phone one screen high (rev 4 / rev 5): the page never scrolls; header + steps on top; look: the hook stays put under
+// the steps, one panel (note + folded questions / the single card) takes the height left and scrolls with fades in
+// the page grey, "start the test" at the bottom; result: score + Lv + wrong list in the panel, Again / Next at the bottom
+const BOTTOM_ROOM = 40; // the buttons sit in the screen's last 40px (main's bottom padding + rounding)
+const phoneMemoState = page => page.evaluate(() => {
+  const box = el => el && el.getBoundingClientRect();
+  const panel = document.querySelector('#memoBody > .memo-scroll > .fit-panel'), wrap = panel && panel.parentElement;
+  const btns = document.querySelector('#memoBody > .memo-start, #memoBody > .memo-actions');
+  return {
+    panel: panel && { scrolls: panel.scrollHeight > panel.clientHeight + 1, overflow: getComputedStyle(panel).overflowY, h: panel.clientHeight,
+      up: wrap.classList.contains('can-up'), down: wrap.classList.contains('can-down'), fadeColour: getComputedStyle(wrap, '::after').backgroundImage },
+    hookTop: (box(document.querySelector('#memoBody > .memo-hook')) || {}).top, btnsBottom: btns && box(btns).bottom,
+    btnsTop: btns && box(btns).top, panelBottom: panel && box(panel).bottom, viewH: innerHeight,
+    stepsBottom: box(byId('memoSteps')).bottom, panelTop: panel && box(panel).top,
+  };
+});
+const scrollPanel = (page, to) => page.$eval('#memoBody > .memo-scroll > .fit-panel', (el, y) => { el.scrollTop = y === 'end' ? el.scrollHeight : y; el.dispatchEvent(new Event('scroll')); }, to);
+async function checkOneScreen(page, label, what, { expectScroll }) {
+  await dt.nextFrame(page);
+  const side = await dt.noHorizontalScroll(page);
+  assert(side.ok, `${label} ${what}: no sideways scroll (${side.detail})`);
+  const still = await dt.pageNotScrolling(page);
+  assert(still.ok, `${label} ${what}: one screen high, the page does not scroll (${still.detail})`);
+  const a = await phoneMemoState(page);
+  assert(a.panel && a.panel.h > 0 && a.panelTop >= a.stepsBottom && a.btnsTop >= a.panelBottom, `${label} ${what}: steps, then the panel, then the buttons`);
+  assert(a.btnsBottom <= a.viewH && a.btnsBottom >= a.viewH - BOTTOM_ROOM, `${label} ${what}: the buttons at the bottom of the screen (${Math.round(a.btnsBottom)} / ${a.viewH})`);
+  if (expectScroll) assert(a.panel.scrolls, `${label} ${what}: the long content overflows its panel (${a.panel.h}px high)`);
+  if (a.panel.scrolls) {
+    assert(['auto', 'scroll'].includes(a.panel.overflow) && !a.panel.up && a.panel.down, `${label} ${what}: the panel scrolls on its own, fading at the bottom`);
+    await scrollPanel(page, 'end');
+    const b = await phoneMemoState(page);
+    assert(b.panel.up && !b.panel.down && (a.hookTop === undefined || Math.abs(b.hookTop - a.hookTop) <= 1) && (await dt.pageNotScrolling(page)).ok,
+      `${label} ${what}: scrolled to its end: top fade only, the hook stays put, the page does not move`);
+    await scrollPanel(page, 0);
+  }
+  const reach = await dt.controlsReachable(page);
+  assert(reach.ok && reach.count > 0, `${label} ${what}: every control reachable (${reach.detail})`);
+}
+async function checkPhoneOneScreen(b) {
+  for (const lang of dt.LANGS) for (const fontSize of dt.FONT_SIZES) {
+    const { page, errors, label } = await dt.openDesktop(b, { viewport: dt.VIEWPORTS.phone, lang, fontSize });
+    const longest = await page.evaluate(() => memoGroups().filter(g => g.body && g.hook).sort((a, b) => b.body.length - a.body.length)[0].id);
+    await openGroup(page, longest);
+    await checkOneScreen(page, label, `look (${longest})`, { expectScroll: true });
+    await page.click('#memoBody details.memo-questions > summary');
+    await scrollPanel(page, 0); // the click scrolled the summary into view
+    await checkOneScreen(page, label, `look (${longest}), questions open`, { expectScroll: true });
+    await openGroup(page, 'single');
+    await checkOneScreen(page, label, 'look (single-note group)', { expectScroll: true });
+    await page.evaluate(gid => {
+      const wrong = allQuestions().slice(0, 5).map(it => ({ q: it.q.q, yue: it.q.yue || '', keys: [qKey(it)] }));
+      Object.assign(memoView, { id: gid, step: 'result', result: { passed: false, lv: 1, prevLv: 2, correct: 0, total: 5, wrong } });
+      showMemo();
+    }, longest);
+    await checkOneScreen(page, label, 'result (5 wrong)', { expectScroll: true });
+    await page.evaluate(() => { Object.assign(memoView, { step: 'result', result: { none: true } }); showMemo(); });
+    await checkOneScreen(page, label, 'result (nothing answered)', { expectScroll: false });
+    assert(errors.length === 0, `${label} one screen: no page errors ` + errors.join(' | '));
+    await page.close();
+  }
+}
+
 (async () => {
   const b = await dt.launch();
   let failed = false;
@@ -175,6 +237,7 @@ async function checkPhoneList(b) {
     await checkPhoneLook(b);
     await checkPhoneResult(b);
     await checkPhoneList(b);
+    await checkPhoneOneScreen(b);
     console.log('PHONE-MEMO PASS');
   } catch (e) {
     failed = true;
