@@ -361,7 +361,7 @@ function memoNextDueHtml(r) {
   const text = r.passed ? t('memo.nextDue', { n: MEMO_INTERVALS[r.lv - 1], date }) : t('memo.nextDueTomorrow', { date });
   return `<div class="memo-next-due">${escapeHtml(text)}</div>`;
 }
-// Lv1..Lv3 with their mastery name and wait; levels below the new one are past (green). After a pass the new level is next (orange,
+// Lv1..Lv3 with their mastery name (v2.4.1, user: no wait words, no title); levels below the new one are past (green). After a pass the new level is next (orange,
 // its interval); after a fail (W-065) it is due again tomorrow, so its box reads "Tomorrow" and no interval is next
 const MEMO_LV_STATE = { past: ' past', next: ' next', retry: ' retry', none: '' };
 function memoLevelState(level, r) {
@@ -370,9 +370,9 @@ function memoLevelState(level, r) {
   return r.passed ? MEMO_LV_STATE.next : MEMO_LV_STATE.retry;
 }
 function memoScheduleHtml(r) {
-  return MEMO_INTERVALS.map((days, i) => {
+  return MEMO_INTERVALS.map((_, i) => {
     const level = i + 1, cls = memoLevelState(level, r);
-    const wait = cls === MEMO_LV_STATE.retry ? t('memo.tomorrow') : t('memo.days', { n: days });
+    const wait = cls === MEMO_LV_STATE.retry ? t('memo.tomorrow') : '';
     return `<div class="memo-lv${cls}"><b>${escapeHtml(t('memo.lv', { lv: level }))}</b>`
       + `<span class="memo-lv-name">${escapeHtml(memoLvName(level))}</span>${escapeHtml(wait)}</div>`;
   }).join('');
@@ -413,7 +413,7 @@ function memoReminderHtml(g, withWords) {
 }
 function memoScoreHtml(r) {
   return `<div class="memo-score${r.passed ? '' : ' fail'}"><div class="memo-pct">${percent(r.correct, r.total)}%</div><div class="memo-verdict">${escapeHtml(memoVerdictText(r))}</div>${memoNextDueHtml(r)}</div>`
-    + `<p class="memo-sched-title">${escapeHtml(t('memo.schedTitle'))}</p><div class="memo-sched">${memoScheduleHtml(r)}</div>`;
+    + `<div class="memo-sched">${memoScheduleHtml(r)}</div>`;
 }
 // the right column / the phone panel's lower part: the wrong questions, or the memory aid again
 const memoResultDetailHtml = (g, r) => (r.wrong.length ? memoWrongHtml(r.wrong) : memoReminderHtml(g, true));

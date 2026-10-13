@@ -38,7 +38,7 @@ const ZH_HK_COLLOQUIAL = ['唔', '嘅', '咗', '冇', '嚟', '睇', '喺', '啱'
 const MANIFEST_KEYS = ['app.installName', 'app.installShortName'];
 // v2.3.2 (W-077, S-271): keys the current js no longer reads but an HTTP-cached older planRun.js (main up to v2.3.1) still
 // does for its header back label (W-072 mixed cache: a new locale must not show it a raw key). Values unchanged.
-const CACHED_JS_KEYS = ['plan.run.backToday', 'plan.run.backDayHtml'];
+const CACHED_JS_KEYS = ['plan.run.backToday', 'plan.run.backDayHtml', 'memo.days']; // v2.4.1: memo.days (v2.4.0 memo.js schedule boxes)
 const SECTIONS = ['app', 'home', 'quiz', 'exam', 'result', 'review', 'similar', 'flagged', 'study', 'memo', 'modal', 'common', 'plan', 'data'];
 const KEY_LITERAL = new RegExp(`'((?:${SECTIONS.join('|')})\\.[\\w.]+)'`, 'g');
 const PLURAL_FORMS = ['zero', 'one', 'two', 'few', 'many', 'other'];
