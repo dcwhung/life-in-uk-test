@@ -646,10 +646,12 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
   .plan-hscroll.can-l::before, .plan-hscroll.can-r::after { opacity: 1; }
   .plan-hs-btn {
     position: absolute; top: 50%; z-index: 5; width: calc(36px * var(--desktop-scale)); height: calc(36px * var(--desktop-scale));
-    transform: translateY(-50%); display: none; place-items: center; padding: 0 0 0.1em; border: 1.5px solid var(--border);
+    transform: translateY(-50%); display: none; place-items: center; padding: 0; border: 1.5px solid var(--border);
     border-radius: var(--radius-circle); background: var(--card); color: var(--navy); box-shadow: var(--shadow-sm);
     font: inherit; font-size: var(--fs-4xl); font-weight: 800; line-height: 1; cursor: pointer;
   }
+  /* v2.0.4 merge: the ‹ › are chevron line icons (planSchedule.js), about the old glyph's size */
+  .plan-hs-btn .line-icon { width: 0.75em; height: 0.75em; stroke-width: 2.6; }
   .plan-hs-btn:hover { background: var(--navy); color: var(--text-inverse); }
   .plan-hs-btn.l { left: calc(-1 * var(--space-4)); }
   .plan-hs-btn.r { right: calc(-1 * var(--space-4)); }

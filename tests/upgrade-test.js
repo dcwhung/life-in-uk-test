@@ -26,6 +26,7 @@ const { startPagesServer, appFiles } = require('./pages-server');
 //      that file's own static study.search, no raw key)
 //  11. v1.4.2: the current shell with one v1.4.0 file (config.js: no INITIAL_LANG / DEFAULT_FONT_SIZE; i18n.js; store.js),
 //      nothing stored (legacy seed off) — still starts with no page errors; each old file keeps its own first-run default
+//  12. S-237 (v1.6.1): a v1.6.0 cached shell (pinned f55a945) + current js — every static control gets its line icon
 // The v0.57 files come from git: V057_REF is the last v0.57 commit on main (merge of PR #29), pinned so a later
 // main does not silently turn this into a same-version test.
 const ROOT = path.resolve(__dirname, '..');
@@ -260,6 +261,49 @@ async function v112Shell(b) {
   await pg.click('#confirmOk');
   assert(await pg.evaluate(() => !isStudyPlanEnabled()), 'v1.1.2 shell: the ⓘ plan switch still works');
   assert(errs.length === 0, 'v1.1.2 shell: no page errors: ' + errs.join(' | '));
+  await pg.close();
+}
+
+// S-237 / v1.6.1: a v1.6.0 cached index.html (main at the PR #105 merge) + current js: its static controls had glyphs
+// ("←" on the quick Prev, "‹ ›" on the plan arrows, "✕" on the install banner) and data-i18n words on the button itself;
+// main.js upgradeLegacyIconMarkup() gives each its line icon, the words stay (no glyph left, no [i18n] warning)
+const V160_SHELL_REF = 'f55a945';
+// v2.0.4: main's v2.0.1 shell (5cecb72, the desktop release) is the one most devices have cached: same static controls
+const V201_SHELL_REF = '5cecb72';
+const CONTROL_GLYPHS = '[←→↩✓▶🔁↺✕‹›ⓘ]'; // CUI-0035: + the header ⓘ
+const V160_EXPECTED = { '#quickPrev': ['', 'arrowLeft'], '#prevBtn': ['Prev', 'arrowLeft'], '.install-close': ['', 'close'],
+  '#planDayPrev': ['', 'chevronLeft'], '#planCalNext': ['', 'chevronRight'], '.reset-btn[data-action="resetPracticeProgress"]': ['Reset progress', 'reset'],
+  '#screenMemo .memo-back': ['Memory', 'chevronLeft'], '#planBackToday': ['Back to today', 'arrowLeft'], '#infoBtn': ['', 'info'] };
+async function v160Shell(b, ref = V160_SHELL_REF, name = 'v1.6.0') {
+  const dir = tmpDir(`shell-${ref}`);
+  copyCurrent(dir);
+  fs.writeFileSync(path.join(dir, 'old.html'), execFileSync('git', ['-C', ROOT, 'show', `${ref}:index.html`]));
+  const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
+  const errs = []; pg.on('pageerror', e => errs.push(e.message));
+  const warns = []; pg.on('console', m => { if (m.type() === 'warning') warns.push(m.text()); });
+  await pg.goto('file://' + path.join(dir, 'old.html'));
+  await seed(pg, {});
+  await pg.reload();
+  await pg.waitForSelector('#examGrid .exam-btn', { state: 'attached' });
+  await pg.evaluate(() => { pendingMode = 'practice'; startExam(1); });
+  const r = await pg.evaluate(sels => Object.fromEntries(sels.map(sel => {
+    const e = document.querySelector(sel), svg = e && e.querySelector('svg.line-icon');
+    return [sel, e ? [e.textContent.trim(), svg ? svg.dataset.iconName : null] : null];
+  })), Object.keys(V160_EXPECTED));
+  const glyphs = await pg.$$eval('button', (els, re) => els.map(e => e.textContent.trim()).filter(t => new RegExp(re, 'u').test(t)), CONTROL_GLYPHS);
+  assert(JSON.stringify(r) === JSON.stringify(V160_EXPECTED),
+    `${name} shell: every static control gets its line icon, words without a glyph (S-237: no "←" beside the quick Next icon): ` + JSON.stringify(r));
+  assert(!glyphs.length, `${name} shell: no button text holds a control glyph: ` + JSON.stringify(glyphs));
+  // v2.0.4 merge: an old shell has no .study-top: desktop Study still moves its tabs / chips into the rail one by one
+  await pg.setViewportSize({ width: 1280, height: 800 });
+  const desk = await pg.evaluate(() => {
+    openStudy();
+    const rail = document.querySelector('#screenStudy .study-rail');
+    return { block: !!document.querySelector('#screenStudy .study-top'), rail: !!rail && ['studyTabs', 'studySubChips', 'studyChips'].every(id => rail.contains(byId(id))) };
+  });
+  assert(!desk.block && desk.rail, `${name} shell at 1280px: no pinned block, the Study tabs and chips sit in the desktop rail ` + JSON.stringify(desk));
+  assert(warns.filter(w => w.includes('[i18n]')).length === 0, `${name} shell: no [i18n] missing-key warnings: ` + warns.join(' | '));
+  assert(errs.length === 0, `${name} shell: no page errors: ` + errs.join(' | '));
   await pg.close();
 }
 
@@ -603,6 +647,8 @@ function checkV057Ref() {
   for (const file of V120_SINGLES) await v120SingleFile(b, file);
   for (const file of V130_SINGLES) await v130SingleFile(b, file);
   await v130Shell(b);
+  await v160Shell(b);
+  await v160Shell(b, V201_SHELL_REF, 'v2.0.1');
   for (const file of Object.keys(V140_SINGLES)) await v140SingleFile(b, file);
   await oldShellZhHk(b);
   await zhHkLocaleMissing(b);

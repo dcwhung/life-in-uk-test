@@ -177,11 +177,10 @@ function renderAnswerTranslation(q) {
 function renderNavButtons(idx, total, revealed) {
   const next = nextAction(idx, total);
   ['prevBtn', 'quickPrev'].forEach(id => { byId(id).disabled = idx === 0; });
-  byId('nextBtn').textContent = next.label;
+  setIconLabel(byId('nextBtn'), next.label, next.labelIcons); // v1.6.1: words + line icon, never a glyph
   const quickNext = byId('quickNext');
-  quickNext.textContent = next.symbol;
-  quickNext.title = next.title;
-  quickNext.setAttribute('aria-label', next.title);
+  quickNext.innerHTML = lineIconSvg(next.icon); // C1: a line icon, never a glyph (iOS draws "↩" as an emoji)
+  setAccessibleName(quickNext, next.label);
   // quick pair: practice once revealed (Translate holds the spot before that); exam always (no Translate there)
   byId('quickNav').classList.toggle('visible', revealed || state.mode === EXAM_MODE);
 }
@@ -200,13 +199,20 @@ function renderRoundNote() {
 
 // ── answering ──
 // what "Next" does on this question: next question, finish the set, or leave the side session (similar / fact)
-// label = bottom button, symbol + title = quick button in the question header
+// label + labelIcons ({ lead, trail }: where the old glyph sat) = bottom button; icon = quick button in the question
+// header (LINE_ICON_PATHS names), named by the same label
+const QUICK_ICON = { prev: 'arrowLeft', next: 'arrowRight', finish: 'check', back: 'returnLeft' };
+const NEXT_LABEL_ICONS = { next: { trail: QUICK_ICON.next }, finish: { trail: QUICK_ICON.finish }, back: { lead: QUICK_ICON.back } };
 function nextAction(idx, total) {
-  if (idx < total - 1) return { label: t('quiz.nextButton'), symbol: '→', title: t('quiz.next'), run: nextQ };
+  if (idx < total - 1) {
+    return { label: t('quiz.next'), labelIcons: NEXT_LABEL_ICONS.next, icon: QUICK_ICON.next, run: nextQ };
+  }
   if (isPlanSession()) return planNextAction();
-  if (isSideSession()) return { label: t('quiz.backButton'), symbol: '↩', title: t('quiz.back'), run: returnFromSideSession };
-  if (state.mode === EXAM_MODE) return { label: t('exam.submit'), symbol: '✓', title: t('exam.submit'), run: submitExam };
-  return { label: t('quiz.finishButton'), symbol: '✓', title: t('quiz.finish'), run: finishExam };
+  if (isSideSession()) {
+    return { label: t('quiz.back'), labelIcons: NEXT_LABEL_ICONS.back, icon: QUICK_ICON.back, run: returnFromSideSession };
+  }
+  if (state.mode === EXAM_MODE) return { label: t('exam.submit'), icon: QUICK_ICON.finish, run: submitExam };
+  return { label: t('quiz.finish'), labelIcons: NEXT_LABEL_ICONS.finish, icon: QUICK_ICON.finish, run: finishExam };
 }
 function runNextAction() { nextAction(state.current, state.questions.length).run(); }
 
@@ -435,8 +441,10 @@ function renderExamSubmit(submit, idx, total) {
   submit.hidden = !last;
   if (!last) return;
   const next = nextAction(idx, total);
+  // v2.0.4 merge: nextAction() has no separate title since the v1.6.1 line icons (the quick ✓ is named by its label,
+  // icons.js setAccessibleName); the Submit's own words name it. Words only: an exam's Submit has no icon (no
+  // labelIcons), and .with-icon's display would override [hidden] on the other questions
   submit.textContent = next.label;
-  submit.title = next.title;
 }
 // W-378: roving tabindex (the chosen tab 0, the other -1) with aria-selected
 function applyQuizTab(showAnswer = !quizDeskParts().tabs.hidden) {

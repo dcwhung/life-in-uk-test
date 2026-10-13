@@ -71,19 +71,17 @@ function practiceDotsMetaHtml() {
   const results = Object.values(state.revealed), correct = results.filter(Boolean).length;
   const flagged = state.questions.filter((_, i) => isFlaggedNow(i)).length;
   return countsLegendHtml([
-    ['lg-ok', t('common.correct'), correct],
-    ['lg-bad', t('common.wrong'), results.length - correct],
-    ['lg-todo', t('common.unanswered'), state.questions.length - results.length],
-    ['lg-flag', t('common.flagged'), flagged],
+    [['lg-ok', t('common.correct'), correct], ['lg-todo', t('common.unanswered'), state.questions.length - results.length]],
+    [['lg-bad', t('common.wrong'), results.length - correct], ['lg-flag', t('common.flagged'), flagged]],
   ]);
 }
 function dotsMetaHtml() {
   if (state.mode === PRACTICE_MODE) return practiceDotsMetaHtml();
   const done = state.questions.filter((_, i) => isAnswered(i)).length;
+  // exam has no right / wrong yet: Answered takes Correct's place, Flagged sits alone on row 2
   return countsLegendHtml([
-    ['lg-done', t('common.answered'), done],
-    ['lg-todo', t('common.unanswered'), state.questions.length - done],
-    ['lg-flag', t('common.flagged'), flaggedCount()],
+    [['lg-done', t('common.answered'), done], ['lg-todo', t('common.unanswered'), state.questions.length - done]],
+    [['lg-flag', t('common.flagged'), flaggedCount()]],
   ]);
 }
 

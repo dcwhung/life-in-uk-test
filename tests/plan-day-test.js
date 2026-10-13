@@ -174,8 +174,8 @@ async function checkToday(pg) {
   assert(read.ttl.startsWith('Read Ch 4 Modern society facts #') && !read.cls.includes('todo') && !read.cls.includes('done'), 'read: in progress (solid): ' + read.cls);
   assert(/^Read \d+ \/ 36 facts · continue from #\d+$/.test(read.st), 'read: k / n read · continue from #n: ' + read.st);
   assert(/^✓ \d+ \/ 51 right · ✗ 11 wrong: only right answers count$/.test(practice.st) && practice.tag === '1 wrong: only right answers count', 'practice: right / total · ✗ k + tag: ' + practice.st + ' | ' + practice.tag);
-  assert(practice.go === 'Continue ›' && read.go === 'Continue ›', 'in progress: "Continue ›"');
-  assert(review.cls.includes('done') && review.st === '✓ No wrong answers' && review.go === '✓ Review ›', 'clear wrong answers: done, "No wrong answers": ' + review.st);
+  assert(practice.go === 'Continue' && read.go === 'Continue', 'in progress: "Continue ›"');
+  assert(review.cls.includes('done') && review.st === '✓ No wrong answers' && review.go === 'Review', 'clear wrong answers: done, "No wrong answers": ' + review.st);
   assert(review.bar === '100%' && /^\d+%$/.test(practice.bar), 'mini bars sized from JS');
   assert(carry.every(c => c.cls.includes('carry') && c.tag === 'Day 3'), 'carry-over: orange box + Day 3 tag');
   assert(r.alert.includes('carried over'), 'carry-over alert: ' + r.alert);
@@ -253,7 +253,7 @@ async function checkAheadDays(pg) {
   assert(drill.every(d => d[1] === 'Decided on the day from your wrong answers' && d[2] === '' && d[0].includes('todo')), 'G23: drill / wrong facts ahead: decided on the day, cannot start early: ' + JSON.stringify(drill));
   await openDay(pg, '2026-10-02');
   const ahead = await pg.$$eval('#planTaskList .plan-task', els => els.map(e => [e.querySelector('.plan-task-st').textContent, (e.querySelector('.plan-task-go') || { textContent: '' }).textContent]));
-  assert(ahead[0][0] === '7 facts · Study' && ahead[0][1] === 'Start ›' && /^9 questions · Practice$/.test(ahead[1][0]), 'G23: read + practise ahead can start early: ' + JSON.stringify(ahead));
+  assert(ahead[0][0] === '7 facts · Study' && ahead[0][1] === 'Start' && /^9 questions · Practice$/.test(ahead[1][0]), 'G23: read + practise ahead can start early: ' + JSON.stringify(ahead));
   assert(ahead[ahead.length - 1][0] === 'Decided on the day from your wrong answers', 'G23: clear wrong answers ahead: decided on the day');
   // QA O-1: the exam day ahead is a non-today view too, so it offers "back to today"
   await openDay(pg, '2026-10-29');
@@ -380,7 +380,7 @@ async function checkHomeCard(pg) {
   assert(zeroVis === 'hidden', 'W-064: the 0 % arc is not drawn: ' + zeroVis);
   assert(r.acts === 'flex-end', 'v1.5.0: Home card buttons on the right: ' + r.acts);
   assert(/^Next: Read Ch 4 Modern society facts #\d+–\d+ \(continue from #\d+\)$/.test(r.next), 'Home card: next step, continue from #n: ' + r.next);
-  assert(r.go === 'Continue →', 'v1.5.0 Home card: continue button: ' + r.go);
+  assert(r.go === 'Continue', 'v1.5.0 Home card: continue button: ' + r.go);
   assert(await hitOk(pg, '#planCard [data-action="planContinue"]') && await hitOk(pg, '#planCard [data-action="openPlanSchedule"]'), `Home card buttons: ${HIT_MIN_PX}px`);
   const low = (await contrastOf(pg, '#planCard .plan-home *')).filter(c => c.ratio < MIN_CONTRAST || !c.opaque);
   assert(low.length === 0, `Home card text ≥ ${MIN_CONTRAST}:1: ` + JSON.stringify(low));
@@ -389,7 +389,7 @@ async function checkHomeCard(pg) {
   await checkRingTextFits(pg);
   // unreadable log: the card says so and points to ↺ Reset
   await pg.evaluate(() => { localStorage.setItem('lifeuk.studyPlanProgress', '{bad'); leaveToHome(); });
-  assert((await text(pg, '#planCard')).includes('↺ Reset plan'), 'unreadable log: Home card hint: ' + await text(pg, '#planCard'));
+  assert((await text(pg, '#planCard')).includes('Reset plan'), 'unreadable log: Home card hint: ' + await text(pg, '#planCard'));
   // a rest day today: no %, carry-over is the next step
   await pg.clock.setFixedTime(at('2026-10-04'));
   await pg.evaluate(() => { localStorage.removeItem('lifeuk.studyPlanProgress'); leaveToHome(); });

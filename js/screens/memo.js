@@ -6,6 +6,8 @@
 const MEMO_STEP = { look: 'look', result: 'result' };
 const MEMO_STATUS_KEYS = { new: 'memo.statusNew', due: 'memo.statusDue', learning: 'memo.statusLearning', done: 'memo.statusDone' };
 const MEMO_SEARCH_SEP = ' ';
+// v1.6.1: line icons where the glyphs were (Start / start the test / Next group ▶ after the words, ‹ Memory before)
+const MEMO_GO_ICONS = { trail: 'play' }, MEMO_BACK_ICONS = { lead: 'chevronLeft' };
 // the group on #screenMemo: its step, the Study list scroll to go back to, the finished test (result step)
 const memoView = { id: null, step: MEMO_STEP.look, listScrollY: 0, result: null };
 
@@ -51,7 +53,7 @@ function memoDueBannerHtml(due) {
   const titles = due.slice(0, MEMO_DUE_TITLES_SHOWN).map(g => g.title).join(LIST_SEP);
   return `<div class="memo-due">
       <div class="memo-due-text"><b>${escapeHtml(t('memo.dueTitle', { n: due.length }))}</b><small lang="zh-HK">${escapeHtml(titles)}</small></div>
-      <button class="memo-due-start" type="button" data-action="openMemoGroup" data-arg="${escapeHtml(due[0].id)}">${escapeHtml(t('memo.start'))}</button>
+      ${iconButtonHtml('memo-due-start', ` data-action="openMemoGroup" data-arg="${escapeHtml(due[0].id)}"`, escapeHtml(t('memo.start')), MEMO_GO_ICONS)}
     </div>`;
 }
 function renderStudyMemo() {
@@ -59,7 +61,10 @@ function renderStudyMemo() {
   // count = shown / the chapter's groups (like the chapters tab); the search narrows inside the chapter
   const pool = memoSortedGroups(memoGroups(), progress, today).filter(memoInChapter);
   const shown = pool.filter(memoMatches);
-  const html = memoDueBannerHtml(memoDueGroups(progress, today)) + shown.map(g => memoCardHtml(g, progress, today)).join('');
+  // v1.6.1 (user): the cards sit two per row in .memo-grid (DOM order = row by row, so Tab runs row-wise); the due
+  // banner stays outside it, full width
+  const cards = shown.map(g => memoCardHtml(g, progress, today)).join('');
+  const html = memoDueBannerHtml(memoDueGroups(progress, today)) + `<div class="memo-grid">${cards}</div>`;
   return { html, shown: shown.length, total: pool.length, countKey: 'memo.count', emptyKey: 'memo.empty' };
 }
 
@@ -135,7 +140,7 @@ function memoSingleHtml(g) {
 function memoLookHtml(g) {
   const body = g.body ? memoNoteHtml(g) : memoSingleHtml(g);
   return memoHookHtml(g) + body
-    + `<button class="nav-btn memo-start" type="button" data-action="startMemoTest">${escapeHtml(t('memo.startTest'))}</button>`;
+    + iconButtonHtml('nav-btn memo-start', ' data-action="startMemoTest"', escapeHtml(t('memo.startTest')), MEMO_GO_ICONS);
 }
 
 // ── ② test: a side session; its last "↩ Back" comes back here (SESSION_RETURNS.memo → finishMemoTest) ──
@@ -143,6 +148,25 @@ function startMemoTest() {
   const g = memoGroupById(memoView.id);
   if (!g) return;
   startSideSession(MEMO_PREFIX + g.id, memoTestPick(g).map(toQuestionItem), { kind: SESSION_RETURN_KIND.memo, id: g.id });
+}
+// C2 (user): in a test the quiz header's back button (data-action goHome) reads "‹ Memory" like the group screen's
+// .memo-back, and its words name it (no aria-label / title, as a plan's text back button: S-188)
+function setQuizBackMemo(back) {
+  back.classList.remove('plan-hit', 'icon-btn');
+  setIconLabel(back, t('memo.backButton'), MEMO_BACK_ICONS); // S-240: a chevron line icon, not a read-out "‹"
+  back.classList.add('memo-back');
+  back.removeAttribute('aria-label');
+  back.removeAttribute('title');
+}
+// C2: leave a test mid-way (goHome while isMemoSession): back to the same group's look view, recording nothing (no memo
+// level / due; answers already given keep their practice streaks like any side session). The return point is cleared first,
+// so a later session or Practice exam is a normal one; a second tap lands on #screenMemo (double tap guard, actions.js)
+function leaveMemoTest() {
+  const ret = sessionReturn;
+  clearSideSession();
+  stopExamTimer();
+  Object.assign(memoView, { id: ret.id, step: MEMO_STEP.look, result: null });
+  showMemo();
 }
 // Recorded once per finished test: returnFromSideSession clears the return point before calling here, and a second tap
 // on ↩ Back lands on this screen (double tap guard). Scored over the answered (revealed) questions only (user, S-232);
@@ -196,7 +220,8 @@ function memoLabelHtml(label, title) {
 }
 function memoResultActionsHtml(g, withNext) {
   const next = withNext ? memoNextGroup(g.id) : null;
-  const nextBtn = next ? `<button class="nav-btn memo-next" type="button" data-action="openMemoGroup" data-arg="${escapeHtml(next.id)}">${memoLabelHtml(t('memo.next', { title: next.title }), next.title)}</button>` : '';
+  const nextBtn = next ? iconButtonHtml('nav-btn memo-next', ` data-action="openMemoGroup" data-arg="${escapeHtml(next.id)}"`,
+    memoLabelHtml(t('memo.next', { title: next.title }), next.title), MEMO_GO_ICONS) : '';
   return `<div class="memo-actions"><button class="nav-btn secondary memo-again" type="button" data-action="memoLook">${escapeHtml(t('memo.again'))}</button>${nextBtn}</div>`;
 }
 function memoResultHtml(g, r) {

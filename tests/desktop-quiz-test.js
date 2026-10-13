@@ -235,15 +235,16 @@ async function checkSubmitLabel(b) {
   await startSet(page, 'exam', EXAM_ONE);
   const r = await page.evaluate(() => {
     const real = nextAction;
-    window.nextAction = (idx, total) => (idx === total - 1 ? { ...real(idx, total), label: 'Hand in', title: 'Hand in the paper' } : real(idx, total));
+    // v2.0.4 merge: since v1.6.1 nextAction() names the quick ✓ by its label (no separate title)
+    window.nextAction = (idx, total) => (idx === total - 1 ? { ...real(idx, total), label: 'Hand in' } : real(idx, total));
     goToQuestion(state.questions.length - 1);
     const submit = document.querySelector('.exam-submit');
-    const out = { text: submit.textContent.trim(), title: submit.title, quick: byId('quickNext').title };
+    const out = { text: submit.textContent.trim(), quick: byId('quickNext').title, quickName: byId('quickNext').getAttribute('aria-label') };
     window.nextAction = real;
     goToQuestion(state.questions.length - 1);
     return out;
   });
-  assert(r.text === 'Hand in' && r.title === 'Hand in the paper' && r.quick === r.title, 'S-231: rail Submit label / title follow nextAction() like the card ✓: ' + JSON.stringify(r));
+  assert(r.text === 'Hand in' && r.quick === r.text && r.quickName === r.text, 'S-231: rail Submit label follows nextAction() like the card ✓ (its name): ' + JSON.stringify(r));
   assert(errors.length === 0, 'no page error: ' + errors.join(' | '));
   await page.close();
 }

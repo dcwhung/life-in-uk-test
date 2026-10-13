@@ -5,8 +5,12 @@
   border-radius: 20px;
   padding: var(--space-2) var(--space-6);
   font-size: var(--fs-xs); font-weight: 700;
+  white-space: nowrap; flex-shrink: 0; /* C2: a wider text back button ("‹ 記憶法") at 320px wraps the label, never 練 / 習 */
 }
 .quiz-meta { display: flex; align-items: center; gap: var(--space-4); }
+/* S-241: the label is the flex item that gives way — it may shrink below its longest word and break inside it, so an
+   unbreakable title (en "🧠 CROWN DEPENDENCY" at 320px, large text) never pushes the badge into the right gutter */
+.quiz-label { min-width: 0; overflow-wrap: anywhere; }
 
 /* review round note (above the question card, right) */
 .round-row { display: flex; justify-content: flex-end; margin: calc(-1 * var(--space-2)) 0 var(--space-4); }
@@ -291,5 +295,8 @@
     margin: 1lh 0 0; padding: 0; border: 0; font-size: var(--fs-md);
   }
   .exam-rail .dots-meta .sep { display: none; }
+  /* v2.0.4 merge: the v1.6.1 two-row legend (.lg-row) gives way to the rail's one count per line (C rev 3): its rows
+     add no box, so each count is a grid row as in v2.0.0 (a one-line row would also widen the rail's track) */
+  .exam-rail .dots-meta .lg-row { display: contents; }
   .exam-rail .exam-submit { align-self: end; width: 100%; min-height: calc(44px * var(--desktop-scale)); }
 }

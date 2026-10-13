@@ -73,9 +73,9 @@ LOCALES.en = {
     randomExam: '🎲 Random Exam',
     randomExamSub: { one: '{n} question from {total}', other: '{n} questions from {total}' },
     practiceHintHtml: '<ul><li>Each round draws up to <b>{max}</b> unmastered questions, each asked once</li><li>Answer a question correctly <b>{streak} times in a row</b> to master it</li><li>Unmastered questions come back in the next round</li><li>Mastered questions are skipped until the whole set is mastered</li></ul>',
-    resetProgress: '↺ Reset progress',
+    resetProgress: 'Reset progress', // v1.6.1: controls carry line icons, never glyphs (icons.js iconLabelHtml)
     examResetHint: 'Completed exams are marked with ✓.',
-    resetCompleted: '↺ Reset completed exams',
+    resetCompleted: 'Reset completed exams',
     wrongTitle: 'Wrong answers',
     wrongEmpty: 'Nothing to review yet',
     flaggedTitle: 'Flagged',
@@ -91,13 +91,11 @@ LOCALES.en = {
     translate: 'Translate',
     hideTranslation: 'Hide translation',
     previous: 'Previous',
+    // v1.6.1: the bottom button's words and the quick button's name (the icons are line icons, no glyph in the words)
     next: 'Next',
     back: 'Back',
     finish: 'Finish',
-    prevButton: '← Prev',
-    nextButton: 'Next →',
-    backButton: '↩ Back',
-    finishButton: 'Finish ✓',
+    prevButton: 'Prev',
     correct: '✓ Correct!',
     wrong: '✗ Wrong',
     yueQ: 'Q)',
@@ -143,7 +141,7 @@ LOCALES.en = {
     legendCurrent: 'This question',
     legendInProgress: 'In progress',
     // one similar question reads "this one" ("these 1" was CUI-0007)
-    practise: { one: '▶ Practise this one', other: '▶ Practise these {n}' },
+    practise: { one: 'Practise this one', other: 'Practise these {n}' },
   },
 
   flagged: {
@@ -161,7 +159,7 @@ LOCALES.en = {
     tabGeo: 'Geo', // v1.6.0: short, as in the memo mockup v2 (deleted), so five tabs fit one row at 360px
     tabPeople: 'People',
     tabMemo: 'Memory', // v1.6.0: memory-note groups (memo.*)
-    hideMastered: '✓ Hide mastered',
+    hideMastered: 'Hide mastered',
     bookmarkedOnly: 'Bookmarked only',
     warsOnly: '⚔️ Wars only',
     all: 'All',
@@ -188,7 +186,7 @@ LOCALES.en = {
     count: { one: '{shown} / {total} group', other: '{shown} / {total} groups' },
     empty: 'No groups match.',
     dueTitle: { one: '{n} group to review today', other: '{n} groups to review today' },
-    start: 'Start ▶',
+    start: 'Start',
     statusNew: 'New',
     statusDue: 'Due today',
     statusLearning: 'Learning · Lv{lv}',
@@ -196,13 +194,13 @@ LOCALES.en = {
     questions: { one: '{n} question', other: '{n} questions' },
     singleMeta: 'Questions with their own note',
     setLabel: '🧠 {title}', // quiz header of a group's test
-    backButton: '‹ Memory',
+    backButton: 'Memory',
     stepLook: '① Look',
     stepTest: '② Test ({n})',
     stepLookDone: '✓ Look',
     stepTestDone: '✓ Test {correct}/{total}',
     hookLabel: '💡 Memory hook:',
-    startTest: 'Got it — start the test ▶',
+    startTest: 'Got it — start the test',
     resultPass: 'Test {correct}/{total} (≥ {pct}%) → up to Lv{lv}',
     resultKeep: 'Test {correct}/{total} (≥ {pct}%) → stays at Lv{lv}',
     resultFail: 'Test {correct}/{total} · below {pct}%, review again tomorrow',
@@ -213,7 +211,7 @@ LOCALES.en = {
     days: { one: '{n} day', other: '{n} days' },
     wrongTitle: 'Look at these again:',
     again: 'Review again',
-    next: 'Next: {title} ▶',
+    next: 'Next: {title}',
   },
 
   modal: {
@@ -279,7 +277,7 @@ LOCALES.en = {
     // Home: the dashed "create" card (no plan) and the plan card (Day n / N stays English: lang="en")
     createTitle: 'Create a study plan',
     createText: "Tell us your exam date and how much time you have each day, and we'll build an exam strategy that sets out what to study and practise each day.",
-    createGo: 'Create →',
+    createGo: 'Create',
     cardTitle: '🗓️ Study plan',
     // toast after the ⚙ switch (v1.2.0; ⓘ before)
     toastOff: 'Study plan turned off',
@@ -295,11 +293,11 @@ LOCALES.en = {
       resumeFact: ' (continue from #{n})',
       resumeQs: ' ({done} / {total} right)',
       seeTomorrow: 'See you tomorrow', // v1.5.1: all done today (the ring shows ✓)
-      continue: 'Continue →',
+      continue: 'Continue',
       // v2.0.0 F7 desktop card (mockup desktop-home-plan.html): its ring shows the %, so the done line keeps the ✓;
-      // the wider card keeps the long Continue label
+      // the wider card keeps the long Continue label (v2.0.2: the → is a line icon, planHome.js)
       doneHtml: '<b>✓ Done for today</b>, see you tomorrow',
-      continueToday: "Continue today's tasks →",
+      continueToday: "Continue today's tasks",
       viewToday: "View today's tasks",
       viewDay: 'View today',
       restToday: 'Rest day today',
@@ -314,7 +312,7 @@ LOCALES.en = {
       cdLeftHtml: { one: '<b>{n}</b> day to the exam', other: '<b>{n}</b> days to the exam' },
       cdStart: 'Start {date}',
       cdExam: '🎯 Exam {date}',
-      logBroken: "Your progress record can't be read. Tap “↺ Reset plan” on the schedule to clear it, then create a new plan.",
+      logBroken: "Your progress record can't be read. Tap “Reset plan” on the schedule to clear it, then create a new plan.",
     },
     // day screen (handoff §2.4; mockup step ③); Day n stays English (lang="en")
     day: {
@@ -322,7 +320,7 @@ LOCALES.en = {
       dayTasksHtml: '{day} tasks',
       prev: 'Previous day',
       next: 'Next day',
-      backToday: '← Back to today',
+      backToday: 'Back to today',
       ringToday: 'Done today',
       ringDay: 'Done that day',
       noPct: '–',
@@ -388,10 +386,10 @@ LOCALES.en = {
       restLabel: 'Rest days (no tasks)',
       levelLabel: 'Where are you now?',
       minStudyDays: "Fewer than {n} study days, so the plan can't be built. Choose fewer rest days or a later exam date.",
-      create: 'Build my plan →',
+      create: 'Build my plan',
       // "Change goal" from the schedule: the same form, prefilled; the plan is re-planned from today (G7)
       editStep: 'Change goal',
-      update: 'Update my plan →',
+      update: 'Update my plan',
       // S-115: the day changed while the form was open, so Build / Update failed and the date moved
       dateMoved: 'The day has changed, so the exam date moved to the earliest one allowed. Please check it and press again.',
       // G36: a changed goal may move the exam up to tomorrow and keep a single study day
@@ -420,8 +418,8 @@ LOCALES.en = {
       examDay: 'Exam day',
       examTip: 'Bring your ID and confirmation letter, and arrive 30 minutes early.',
       resetHint: 'Want to start over? Resetting deletes this plan and its progress and takes you back to create a new one. Your practice records are not affected.',
-      reset: '↺ Reset plan',
-      viewToday: "View today's tasks →",
+      reset: 'Reset plan',
+      viewToday: "View today's tasks",
     },
     phase: { learn: 'Read + practise', drill: 'Drill', mock: 'Mocks' },
     strategy: {
@@ -474,19 +472,17 @@ LOCALES.en = {
       qMasteredPart: '🏆 {n} mastered',
       mockPassed: '✓ Passed · best {best} / {n}',
       mockBest: 'Best {best} / {n} · pass mark {pass}',
-      goStart: 'Start ›',
-      goContinue: 'Continue ›',
-      goReview: '✓ Review ›',
+      goStart: 'Start',
+      goContinue: 'Continue',
+      goReview: 'Review',
     },
     // runner (PR6a): a task on the Practice screen, its Result card; Day n stays English (lang="en")
     run: {
-      backToday: "← Today's tasks",
-      backDayHtml: '← {day} tasks',
+      backToday: "Today's tasks",
+      backDayHtml: '{day} tasks',
       roundOf: 'Round {n} of {rounds}',
-      nextRound: 'Next round →',
-      nextRoundTitle: 'Next round', // QA O-3: the quick button's title / aria-label, no symbol
-      retryWrong: { one: '🔁 Redo the wrong answer ({n} left)', other: '🔁 Redo wrong answers ({n} left)' },
-      retryWrongTitle: { one: 'Redo the wrong answer ({n} left)', other: 'Redo wrong answers ({n} left)' },
+      nextRound: 'Next round', // also the quick button's title / aria-label (QA O-3)
+      retryWrong: { one: 'Redo the wrong answer ({n} left)', other: 'Redo wrong answers ({n} left)' },
       pairNote: 'Once you have answered these questions correctly, the matching facts count as read automatically.',
       reviewNote: "✅ This task is done · you're reviewing it now, so your progress won't be affected.",
       reviewCorrect: '✓ Correct answer',
@@ -502,11 +498,11 @@ LOCALES.en = {
       donePairHtml: 'The matching “{task}” now counts as read automatically.',
       next: 'Next',
       reviewThis: 'Review this task',
-      startNext: 'Start next →',
+      startNext: 'Start next',
       backToList: 'Back to the task list',
       // PR6b: reading / facts behind wrong answers (#screenPlanRun), the mock exam's result row (G10 / G11)
       factOf: 'Fact {n} of {total}',
-      practiseN: { one: 'Practise this one →', other: 'Practise these {n} →' },
+      practiseN: { one: 'Practise this one', other: 'Practise these {n}' },
       factDoneTag: '✓ Practice done', // G41: a reading card whose fact's questions are all right today (or 🏆)
       lastUndoneNote: { one: '{n} fact still needs practice · {qs}', other: '{n} facts still need practice · {qs}' }, // G41: the last fact only
       lastUndoneQs: { one: '{n} question', other: '{n} questions' }, // {qs} above: the last button's count
@@ -516,8 +512,8 @@ LOCALES.en = {
       mockRetake: 'Retake: {exam}',
       mockNotCounted: 'Submitted after midnight: this attempt does not count for that day.',
       youGotWrong: 'You got this wrong', // CUI-0025: after the wrong answer's ref in its fact's panel
-      prevFact: '← Prev',
-      nextFact: 'Next →',
+      prevFact: 'Prev',
+      nextFact: 'Next',
     },
     status: { rest: 'Rest', today: 'Today {n}%', done: '✓ Done', pct: '{n}%', todayDone: 'Done today' },
     feas: {

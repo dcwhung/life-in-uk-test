@@ -147,7 +147,7 @@ function renderPlanGoal() {
   const todayIso = planTodayIso();
   const stepKey = planGoalEditing ? 'plan.goal.editStep' : 'plan.goal.step', ctaKey = planGoalEditing ? 'plan.goal.update' : 'plan.goal.create';
   byId('planGoalStep').textContent = t(stepKey);
-  byId('planCreateBtn').textContent = t(ctaKey);
+  setIconLabel(byId('planCreateBtn'), t(ctaKey), { trail: 'arrowRight' }); // v1.6.1: → is a line icon
   setShown('planGoalSteps', !planGoalEditing); // the 1 / 2 stepper belongs to a new plan
   setShown('planDateNote', planGoalEditing); // G36: tells why the date field now starts tomorrow
   planClampDraftDate(todayIso);

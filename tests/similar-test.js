@@ -90,10 +90,10 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   const boxText = await text('#similarBox');
   assert(!boxText.includes('Provide local services') && !boxText.includes('represent their local community'), 'no answers shown');
   assert((await pg.$$('#similarBox .sqm-angle')).length === 0, 'no question-angle tags');
-  assert((await text('#similarBox .sqm-cta button')) === '▶ Practise these 2', 'practise button');
+  assert((await text('#similarBox .sqm-cta button')) === 'Practise these 2', 'practise button (v1.6.1: the ▶ is a line icon, control-icons-test)');
   // CUI-0007: the button label is a plural — one similar question reads "this one", not "these 1"
-  assert(await pg.evaluate(() => t('similar.practise', { n: 1 })) === '▶ Practise this one', 'practise plural one: ▶ Practise this one');
-  assert(await pg.evaluate(() => t('similar.practise', { n: 3 })) === '▶ Practise these 3', 'practise plural other: ▶ Practise these 3');
+  assert(await pg.evaluate(() => t('similar.practise', { n: 1 })) === 'Practise this one', 'practise plural one: Practise this one');
+  assert(await pg.evaluate(() => t('similar.practise', { n: 3 })) === 'Practise these 3', 'practise plural other: Practise these 3');
   assert(await pg.evaluate(() => {
     const nav = document.querySelector('#screenQuiz .nav-row'), box = document.getElementById('similarBox');
     return !!(nav.compareDocumentPosition(box) & Node.DOCUMENT_POSITION_FOLLOWING);
@@ -113,7 +113,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   });
   await openQ('practice', pair.e, pair.i);
   await answer(true);
-  assert((await text('#similarBox .sqm-cta button')) === '▶ Practise this one', 'one similar question: ▶ Practise this one');
+  assert((await text('#similarBox .sqm-cta button')) === 'Practise this one', 'one similar question: Practise this one');
 
   // question whose fact has no other source questions -> hidden
   const lonely = await pg.evaluate(() => {
@@ -142,11 +142,11 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(!(await vis('#similarBox')), 'no nested similar section inside the temporary session');
   assert(await pg.evaluate(() => state.questions.length === 2), 'wrong answer is not re-queued (each question once)');
   assert(await pg.evaluate(() => JSON.parse(localStorage.getItem('lifeuk.practiceStreak'))['9.14'] === 0), 'streak still recorded in the temporary session');
-  assert((await text('#nextBtn')) === 'Next →', 'next button before the last question');
+  assert((await text('#nextBtn')) === 'Next', 'next button before the last question');
   await pg.click('#nextBtn');
   await answer(true);
   // plain "Back": a question number read like Q1 of the similar session
-  assert((await text('#nextBtn')) === '↩ Back', 'last question offers the way back');
+  assert((await text('#nextBtn')).trim() === 'Back' && await pg.$eval('#nextBtn svg.line-icon', e => e.dataset.iconName === 'returnLeft'), 'last question offers the way back (return line icon, C1)');
   await pg.click('#nextBtn');
   const after = await pg.evaluate(() => ({ len: state.questions.length, cur: state.current, examNum: state.examNum }));
   assert(JSON.stringify(after) === JSON.stringify(before), 'original session restored at the same question');

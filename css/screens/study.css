@@ -10,6 +10,52 @@
   outline: none;
 }
 .study-search:focus { border-color: var(--navy-light); }
+/* v1.6.1 (user, iPhone screenshots): the tabs and the chip rows under them stay pinned under the sticky app header while
+   the list scrolls under them; the 🏠 header and the search box scroll away (same on every tab). Same pattern as
+   Flagged (css/screens/flagged.css, v1.4.4): z-index above the list and below the app header (100), --bg so nothing
+   shows through. The negative margins reach over main's side padding and the search box's margin-bottom, and the
+   same padding puts them back, so the resting layout is unchanged and a stuck block keeps a --bg gap under the header
+   (the margins / padding must stay equal to main's --space-8 and .study-search's --space-6). flow-root keeps the last
+   chip row's margin-bottom inside the block, so the gap above the list is covered too. Timeline era bars (.tl-era)
+   and the memo "due today" banner are list rows: they scroll under the block, never stick. */
+.study-top {
+  display: flow-root;
+  position: sticky; top: var(--header-h); z-index: 1;
+  background: var(--bg);
+  margin: calc(-1 * var(--space-6)) calc(-1 * var(--space-8)) 0;
+  padding: var(--space-6) var(--space-8) 0;
+}
+/* W-068 (user decision): on the Study screen (pinned or not) each chip row is ONE line that scrolls sideways instead of
+   wrapping into 2–4 rows, so the pinned block stays ~160–170px on small phones. The row reaches over the block's side padding
+   to the screen edge (the gutter becomes its scroll-padding, so chips start / stop where they did and an active or focused
+   chip is scrolled clear of the edges); a chip cut at the edge fades out there (--chip-row-fade over the gutter), which
+   shows the row scrolls. The scrollbar is hidden (swipe / Shift+wheel / keyboard focus scroll it). overflow-x clips the
+   y axis too, so the row pads 2px above and below for the focus ring (and takes it off the margin under it). The ::after
+   spacer keeps the end gutter (some engines drop a scroller's inline-end padding); the gap before it is taken off. */
+.study-top .chip-row {
+  --chip-row-fade: var(--space-8);
+  flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  margin: 0 calc(-1 * var(--chip-row-fade)) var(--space-6);
+  padding: var(--space-1) 0 var(--space-1) var(--chip-row-fade);
+  scroll-padding-inline: var(--chip-row-fade);
+  -webkit-mask-image: linear-gradient(to right, transparent, var(--mask-opaque) var(--chip-row-fade), var(--mask-opaque) calc(100% - var(--chip-row-fade)), transparent);
+  mask-image: linear-gradient(to right, transparent, var(--mask-opaque) var(--chip-row-fade), var(--mask-opaque) calc(100% - var(--chip-row-fade)), transparent);
+}
+.study-top .chip-row::-webkit-scrollbar { display: none; }
+.study-top .chip-row::after { content: ''; flex: 0 0 calc(var(--chip-row-fade) - var(--space-3)); }
+.study-top .chip { flex-shrink: 0; white-space: nowrap; }
+/* keyboard focus and ↩ Back from a fact session (flashStudyFact scrollIntoView) stop below the header + pinned block */
+html:has(#screenStudy.active) { scroll-padding-top: calc(var(--header-h) + var(--study-top-h)); }
+/* W-068: a tab / chip focused inside the pinned block is already in view; with the padding above, the focus scroll would
+   pull the page up by a block height on every Tab press. While keyboard focus is in the block, only the header counts
+   (:focus-visible: a tapped chip keeps focus, and flashStudyFact must still clear the block after it) */
+html:has(#screenStudy.active .study-top :focus-visible) { scroll-padding-top: var(--header-h); }
+/* a short screen (landscape phone) would spend most of its height on the pinned block: there it scrolls away (Flagged W-2) */
+@media (max-height: 500px) {
+  .study-top { position: static; }
+  html:has(#screenStudy.active) { scroll-padding-top: var(--header-h); }
+}
 /* O7: overall "🏆 n / 236 mastered" pill in the Study header (green = mastered, like the Practice 🏆) */
 .study-progress {
   font-size: var(--fs-sm); font-weight: 800; color: var(--green);
@@ -108,6 +154,22 @@
   #screenStudy .study-rail #studyChips .chip { width: 100%; }
   /* rev 4 (user): wrap by text width as on the phone, then the chips of each row grow to fill it */
   #screenStudy .study-rail #studySubChips .chip { flex: 1 1 auto; }
+  /* v2.0.4 merge (v1.6.1 pinned block): the rail itself is the controls' own scroller beside the card panel, so nothing
+     needs pinning. The block dissolves into the rail (display: contents: no sticky, no --bg, no negative margins; its
+     tabs and chip rows are the rail's flex rows as in v2.0.0) and the page's scroll-padding goes back to auto, as
+     Flagged's v1.4.4 block on desktop (css/screens/flagged.css). The phone's one-line sideways chip rows (W-068) wrap
+     again here (rev 4: wrapped by their text, then each row filled), without the edge fade or the end spacer */
+  #screenStudy .study-rail .study-top { display: contents; }
+  #screenStudy .study-rail .study-top > * { margin-bottom: 0; flex: none; }
+  #screenStudy .study-top .chip-row {
+    flex-wrap: wrap; overflow-x: visible; margin: 0; padding: 0; scroll-padding-inline: 0;
+    -webkit-mask-image: none; mask-image: none;
+  }
+  #screenStudy .study-top .chip-row::after { content: none; }
+  #screenStudy .study-top .chip { flex-shrink: 1; white-space: normal; }
+  html:has(#screenStudy.active), html:has(#screenStudy.active .study-top :focus-visible) { scroll-padding-top: auto; }
+  /* CUI-0036: ↩ Back from a fact session (flashStudyFact, block: start) puts the card's top below the panel's top fade */
+  #screenStudy .study-main .fact { scroll-margin-top: var(--fit-fade-h); }
   #screenStudy .study-main { display: flex; --fit-fade-h: calc(40px * var(--desktop-scale)); } /* mockup .right fades */
 
   /* hard-coded sizes ×1.2 (.proj-docs/plans/2026-10-12_desktop-px-inventory.md, Lane C); the :first-child margins

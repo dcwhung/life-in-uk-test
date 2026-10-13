@@ -356,19 +356,20 @@ function planReset() {
 // (F3). "View today's tasks" sits in the Daily tasks card, bottom right. Below 1024px: the phone's list and order ──
 const PLAN_SCROLL_PAGE_SHARE = 0.85; // ‹ › scroll about a screenful of columns
 const PLAN_HSCROLL_CLASS = 'plan-hscroll';
-const PLAN_SCROLL_BTNS = [[-1, 'l', '‹'], [1, 'r', '›']];
+// v2.0.4 merge: chevron line icons, not ‹ › glyphs (v1.6.1 control icon rule, js/components/icons.js)
+const PLAN_SCROLL_BTNS = [[-1, 'l', 'chevronLeft'], [1, 'r', 'chevronRight']];
 function planScrollCuesWrap() {
   const list = byId('planDayList');
   return list.parentElement.classList.contains(PLAN_HSCROLL_CLASS) ? list.parentElement : null;
 }
 // the ‹ › buttons are for the pointer (aria-hidden, out of the tab order): the list itself scrolls with the arrow keys
-function planScrollBtn(list, [dir, side, glyph]) {
+function planScrollBtn(list, [dir, side, icon]) {
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.className = `plan-hs-btn ${side}`;
   btn.tabIndex = -1;
   btn.setAttribute('aria-hidden', 'true');
-  btn.textContent = glyph;
+  btn.innerHTML = lineIconSvg(icon);
   btn.addEventListener('click', () => list.scrollBy({ left: dir * list.clientWidth * PLAN_SCROLL_PAGE_SHARE, behavior: 'smooth' }));
   return btn;
 }

@@ -16,6 +16,8 @@ function isSideSession() { return sessionReturn !== null; }
 function clearSideSession() { sessionReturn = null; }
 function isPlanReturn(ret) { return ret !== null && ret.kind === SESSION_RETURN_KIND.plan; }
 function isPlanSession() { return isPlanReturn(sessionReturn); }
+// v1.6.1 (C2): a memory-note group's test (its quiz header reads "‹ Memory" instead of 🏠)
+function isMemoSession() { return sessionReturn !== null && sessionReturn.kind === SESSION_RETURN_KIND.memo; }
 
 // every state field is set here (no spread of the previous session): review counters, the set pool, exam flags
 // and the mode would otherwise leak in. Always Practice, whatever Home's pendingMode says, and no exam timer.

@@ -112,7 +112,7 @@ async function checkTags(pg) {
   await showFact(pg, s.ri, s.facts.length - 1);
   v = await view(pg);
   assert(v.tag === EN_TAG, 'the last fact (done): tagged');
-  assert(v.action === 'planOpenTask' && v.main === (s.q === 1 ? 'Practise this one →' : `Practise these ${s.q} →`), 'main button unchanged: ' + v.main);
+  assert(v.action === 'planOpenTask' && v.main === (s.q === 1 ? 'Practise this one' : `Practise these ${s.q}`), 'main button unchanged: ' + v.main);
   const qs = s.q === 1 ? '1 question' : `${s.q} questions`;
   assert(v.left === `1 fact still needs practice · ${qs}` && v.leftBeforeNav, 'last fact: the note (1 fact, q = the button N), right above the nav row: ' + v.left);
   assert(mainN(v) === s.q, `note q ${s.q} = the button's N ${mainN(v)}`);
@@ -120,7 +120,7 @@ async function checkTags(pg) {
   assert(low.length === 0, `note + tag text ≥ ${MIN_CONTRAST}:1 (composited, ancestor opacity counted) ` + JSON.stringify(low));
   await pg.evaluate(() => setLang('zh-HK'));
   v = await view(pg);
-  assert(v.tag === ZH_TAG && v.left === `尚有 1 條知識點未完成練習，共 ${s.q} 題` && v.main === `練習這 ${s.q} 題 →`, 'zh-HK: tag, note, button: ' + v.left);
+  assert(v.tag === ZH_TAG && v.left === `尚有 1 條知識點未完成練習，共 ${s.q} 題` && v.main === `練習這 ${s.q} 題`, 'zh-HK: tag, note, button: ' + v.left);
   await pg.evaluate(() => setLang('en'));
 }
 
@@ -261,7 +261,7 @@ async function checkNavOneLine(b) {
     const s = await seedRead(pg, ALL);
     await showFact(pg, s.ri, s.facts.length - 1);
     const r = await pg.evaluate(() => [...document.querySelectorAll('#planRunBody .plan-run-nav .nav-btn')].map(x => {
-      const range = document.createRange(); range.selectNodeContents(x);
+      const range = document.createRange(); range.selectNodeContents(x.querySelector('.icon-label') || x); // v1.6.1: the words, not the line icon beside them
       const lines = new Set([...range.getClientRects()].filter(rc => rc.width > 0).map(rc => Math.round(rc.top))).size;
       return { t: x.textContent.trim(), lines, fits: x.scrollWidth <= x.clientWidth, h: x.getBoundingClientRect().height };
     }));
