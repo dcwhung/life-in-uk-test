@@ -17,6 +17,9 @@
 :root {
   --fit-phone-pad-bottom: var(--space-8); /* main's bottom room under a one-screen phone screen */
   --fit-phone-fade-h: 36px; /* mockup .mx-mwrap fades */
+  /* C-007: below this the panel is too short to use (about two option rows at the current text size): the screen falls
+     back to the scrolling page (js/components/fit.js fitPhoneScreen) */
+  --fit-phone-min-panel: calc(10 * var(--fs-xl));
   --fit-screen-gap: var(--space-10); /* above and below an is-fit screen (main's own top padding) */
   --fit-fade-h: calc(36px * var(--desktop-scale)); /* mockup .vwrap fade (desktop-quiz.html) */
   --fit-fade-color: var(--bg);

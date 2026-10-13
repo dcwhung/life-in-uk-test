@@ -528,5 +528,8 @@ function arrangeQuizPhone(desktop) {
   if (desktop) return;
   if (!quizPhone) quizPhone = buildQuizPhone();
   deskFill(quizPhone.panel, QUIZ_PHONE_PART_IDS.map(byId)); // in place: moves nothing (focus, scroll)
+  // C-007: one screen high only while the panel keeps room for the options (a tall card on a short phone: the page
+  // scrolls instead, as before v2.2.0); W-057: a cached shell may load js/components/fit.js late
+  if (typeof fitPhoneScreen === 'function') fitPhoneScreen(byId('screenQuiz'), quizPhone.panel);
   topQuizPanelOnNewQuestion(quizPhone.panel); // a new question starts at the top (runRefits then refreshes the fades)
 }

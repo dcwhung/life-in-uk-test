@@ -114,6 +114,7 @@ function renderMemo() {
     fold.addEventListener('toggle', memoRefreshFades); // its panel got taller / shorter
   }
   memoDrawn = { desktop, view };
+  memoFitPhone();
   memoRefreshFades();
   desktopRefit('screenMemo', fitMemo); // registered lazily (js/components/deskPlace.js)
 }
@@ -121,6 +122,12 @@ function renderMemo() {
 function memoRefreshFades() { if (typeof refreshFades === 'function') refreshFades(byId('memoBody')); }
 function fitMemo(desktop) {
   if (desktop !== memoDrawn.desktop) renderMemo();
+  else memoFitPhone();
+}
+// C-007: on a phone one screen high only while the panel keeps room (else the page scrolls); re-checked on every
+// render and refit (resize, language, text size, translation)
+function memoFitPhone() {
+  if (typeof fitPhoneScreen === 'function') fitPhoneScreen(byId('screenMemo'), byId('memoBody').querySelector(':scope > .memo-scroll > .fit-panel'));
 }
 // the top row (‹ Memory + title | steps; desktop: side by side) wraps the header and the steps once; a box that draws
 // nothing below 1024px (display: contents), like Study's wrappers

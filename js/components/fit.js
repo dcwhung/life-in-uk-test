@@ -4,6 +4,7 @@
 // - isDesktop(): the desktop layout is on (DESKTOP_QUERY, the same breakpoint as the css)
 // - fitSteps(el, steps): adds step classes one at a time until el's content fits (scrollHeight <= clientHeight + 1)
 // - watchFade(panel) / refreshFades(): can-up / can-down on a .fit-panel's .fit-fade wrapper
+// - fitPhoneScreen(screen, panel) (v2.2.0, C-007): a phone screen one screen high only while its panel keeps room
 // - onRefit(fn, screenId?) / runRefits(): one registry of fits, re-run at the end of a render (the screen calls
 //   runRefits()), on resize (once per frame), and after a language, text size or translation change (i18n.js
 //   rerenderCurrentScreen). Every run ends with refreshFades(), so a panel's fades follow its new content
@@ -55,6 +56,33 @@ function watchFade(panel) {
   updateFade(panel);
 }
 function refreshFades(root = document) { root.querySelectorAll(FADE_PANEL_SELECTOR).forEach(watchFade); }
+
+// ── v2.2.0 phone one-screen screens (.is-fit-phone, css/components/fit.css; C-007) ──
+// A screen opts in with fitPhoneScreen(screen, panel) at the end of every render and refit: it tries one screen high,
+// and when the parts fixed above / below leave the panel less than --fit-phone-min-panel (about two option rows, from
+// the text size) it falls back to the scrolling page (no .is-fit-phone), so nothing is ever squeezed out of reach.
+// Re-checked on every call (render, resize, language / text size / translation re-render). On desktop or while the
+// screen is hidden the class stays on and nothing is measured. Returns whether the screen is one screen high
+const PHONE_FIT_CLASS = 'is-fit-phone';
+const PHONE_FIT_MIN_PANEL = 'var(--fit-phone-min-panel)';
+// a css length in px, resolved where `host` is (custom properties, the root text size)
+function cssLengthPx(host, value) {
+  const probe = document.createElement('div');
+  probe.style.cssText = `position: absolute; visibility: hidden; width: 0; height: ${value}`;
+  host.append(probe);
+  const px = probe.getBoundingClientRect().height;
+  probe.remove();
+  return px;
+}
+function phoneFitMinPanelPx(host = document.body) { return cssLengthPx(host, PHONE_FIT_MIN_PANEL); }
+function fitPhoneScreen(screen, panel) {
+  if (!screen) return false;
+  screen.classList.add(PHONE_FIT_CLASS);
+  if (!panel || isDesktop() || !screen.getClientRects().length) return true;
+  const fits = panel.clientHeight >= phoneFitMinPanelPx(screen);
+  screen.classList.toggle(PHONE_FIT_CLASS, fits);
+  return fits;
+}
 
 // fn(isDesktop()) runs on every refit; with a screenId only while that screen is the active one. Below 1024px it is
 // still called (with false), so a fit can take its desktop steps off when the window narrows
