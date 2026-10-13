@@ -123,7 +123,7 @@
 
 ## Tickets
 
-- [CUI-0030](tickets/pending/0001-0200/CUI-0030.md) — 🔴 Critical bug：PC / Tablet 訂立目標考試日期驗證不一致（Mac Chrome 擋 < 7 日、iPad Safari 放行 3 日）；兩階段（冇 Drill）時 Phase detail 卡唔全寬、Daily tasks legend 仍顯示 Drill；mobile 版未驗證；pending；截圖 `tickets/screenshots/CUI-0030/`
+- [CUI-0037](../.tickets/pending/0001-0200/CUI-0037.md)（原 CUI-0030，改號避免撞號）— 🔴 Critical bug：PC / Tablet 訂立目標考試日期驗證不一致（Mac Chrome 擋 < 7 日、iPad Safari 放行 3 日）；兩階段（冇 Drill）時 Phase detail 卡唔全寬、Daily tasks legend 仍顯示 Drill；mobile 版未驗證；pending；截圖 `qa/screenshots/CUI-0037/`
 
 ## Plans
 
