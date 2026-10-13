@@ -1,6 +1,6 @@
 # Code Review — v2.0.3 做題中途返回，返去原本入口（back-to-entry）
 
-> **改號（2026-10-13，merge `main` v2.1.0 時）**：`main` 已用 W-071、S-254–S-256、CUI-0035–CUI-0039，所以本 branch 原 **W-071 / W-072 / W-073 → W-072 / W-073 / W-074**，**S-254–S-260 → S-257–S-263**（逐個 +3：S-254→S-257、S-255→S-258、S-256→S-259、S-257→S-260、S-258→S-261、S-259→S-262、S-260→S-263），ticket **CUI-0035 → CUI-0040**（`.tickets/pending/0001-0200/CUI-0040.md`）。已 push 嘅 commit message 保留舊號，對照以此為準。版本：原 v2.0.5 以 **v2.1.1** 發佈（`main` 已出 v2.1.0）；報告 / script / 截圖檔名嘅 `v203` / `v205` 照舊。下一個新號：C-007、W-075、S-264、CUI-0041。
+> **改號（2026-10-13，merge `main` v2.1.0 時）**：`main` 已用 W-071、S-254–S-256、CUI-0035–CUI-0039，所以本 branch 原 **W-071 / W-072 / W-073 → W-072 / W-073 / W-074**，**S-254–S-260 → S-257–S-263**（逐個 +3：S-254→S-257、S-255→S-258、S-256→S-259、S-257→S-260、S-258→S-261、S-259→S-262、S-260→S-263），ticket **CUI-0035 → CUI-0040**（`.tickets/pending/0001-0200/CUI-0040.md`）。已 push 嘅 commit message 保留舊號，對照以此為準。版本：原 v2.0.5 以 **v2.1.1** 發佈（`main` 已出 v2.1.0）；報告 / script / 截圖檔名嘅 `v203` / `v205` 照舊。下一個新號：C-007、W-075、S-264、CUI-0041。 **再改號（2026-10-13，merge `main` v2.1.1 `7145c96` 時，W-078）**：上面嘅 S-262 / S-263 同 `main` `review_v206.md` 撞，再改做 **S-262 → S-269**、**S-263 → S-270**（下面已用新號）；下一個新號以 `.proj-docs/index.md` 頂為準。
 
 - **日期**：2026-10-13
 - **審閱者**：Code Reviewer（獨立）
@@ -207,7 +207,7 @@ blockers: ["W-072", "W-073", "W-074"]
 - **目標**：branch `fix/quiz/back-to-entry` HEAD `1a5b1a8`；跟進 commit `68acc31`（W-072）、`bdc02ee`（W-073）、`8e93a86`（W-074、S-260）、`96640f4`（S-257）、`f3d1e7a`（S-258）、`fa0aa83`（S-259）、`1a5b1a8`（HANDOFF）；另 `78641fa` 將 audit 檔帶入 branch（S-261）。19 個檔案，+267 / −78
 - **用戶決定**：版本 2.0.5（2.0.3 / 2.0.4 留俾未 merge 嘅 `claude/charming-archimedes-hrh4wd`、`claude/beautiful-cerf-makp0n`）；所有返回掣箭咀統一「‹」（`plan.day.backToday` 日曆 chip「← Back to today」刻意不變）
 - **同 plan 嘅偏離（已核對，接受）**：`index.html` header 掣保留 `data-action="goHome"`；`planRun.js` 新 `setQuizBackAction` 只喺 `ACTIONS.goBack` 存在先改 `goBack`；`structure-test` 加讀 `dataset.action = …` 入面嘅 action 名
-- **結果**：✅ pass — **97 / 100**，0 Critical、0 Warning、2 Suggestion（S-262、S-263）
+- **結果**：✅ pass — **97 / 100**，0 Critical、0 Warning、2 Suggestion（S-269、S-270）
 
 ## 逐條核對
 
@@ -216,7 +216,7 @@ blockers: ["W-072", "W-073", "W-074"]
 | W-072 | ✅ 已修 | `renderPlanQuizHeader` / `renderResults` `typeof setEntryBack` guard；`ACTIONS.goBack` fallback `goHome`；`setEntryBack` 冇 `hasGoBackAction` 就 🏠；`entryBackText` / `planQuizBackHtml` 遇 raw key 退 🏠 / 日子 label。upgrade-test ⑫（v2.0.2 `sideSession.js` / `actions.js` / `en.js` 各自 + current shell）PASS。Reviewer 另 probe（scratch `probe.js`，唔入 repo）plan ⑫ 冇包嘅 v2.0.2 `planRun.js`、`result.js`：0 page error、header 撳到（舊 `planRun.js` → 🏠 goHome → Home；舊 `result.js` → quiz「‹ Flagged」goBack 正常、Result 🏠 goHome）。冇 `ReferenceError`、冇死掣 |
 | W-073 | ✅ 已修 | `APP_VERSION = '2.0.5'`；`HANDOFF.md` 版本行 v2.0.5；`desktop-base-test` 只 assert `2.x`；註解 / test 一併改 v2.0.5 |
 | W-074 | ✅ 已修 | 可見 label 縮做「‹ Q{n}」/「‹ 第 {n} 題」，accessible name「Back to Q{n}」/「返回第 {n} 題」（包含可見字，WCAG 2.5.3 label-in-name OK；純文字冇 `lang` span，唔觸 S-188）。`checkSimilarNarrow`：320 × 640 en 大字、兩位數題號 → page scrollWidth ≤ innerWidth、header 冇溢出 |
-| S-257 | ✅ 已修 | `home.js goHome` plan 分支保留做防守 + 註明（`goHome` caller、舊 `actions.js`）；`planRun.js` header 註解改指 `goBack` / `planLeaveSession` / `planLeaveMock`。殘留一處見 S-263 |
+| S-257 | ✅ 已修 | `home.js goHome` plan 分支保留做防守 + 註明（`goHome` caller、舊 `actions.js`）；`planRun.js` header 註解改指 `goBack` / `planLeaveSession` / `planLeaveMock`。殘留一處見 S-270 |
 | S-258 | ✅ 已修 | Flagged → `#flaggedStart`（隱藏時第一粒 list 掣）；plan fact → 卡上 ▶ 練習（review 時 nav-row 主掣），`preventScroll`。test assert 兩邊 `activeElement` |
 | S-259 | ✅ 已修 | 新增 zh-HK 五個 label + zh ↔ en 重畫（包括 Similar 嘅 name）、Similar-in-Flagged 兩次返回（中間等過 double-tap guard）、考試 🏠 + confirm、320px、#7 同一張 fact 卡 flash + 喺 viewport。計劃模擬考仍冇獨立 test（路由冇變，`goHome` → `planLeaveMock`，可接受） |
 | S-260 | ✅ 已解（用戶決定） | `quiz.backTo*`、`plan.run.backToday` / `backDayHtml` / `backFact` 全部「‹」；`plan.day.backToday` 日曆 chip、`prevButton`「← Prev」唔係返回掣，刻意不變。相關 test assert 已跟 |
@@ -244,9 +244,9 @@ blockers: ["W-072", "W-073", "W-074"]
 
 | 維度 | 得分 | 滿分 | 備注 |
 |------|------|------|------|
-| 正確性 | 24 | 25 | S-262（舊 locale 混合 cache：🏠 icon 但去入口唔係 Home） |
+| 正確性 | 24 | 25 | S-269（舊 locale 混合 cache：🏠 icon 但去入口唔係 Home） |
 | 安全性 | 20 | 20 | label 照舊 `escapeHtml`；accessible name 經 `setAttribute` |
-| 可維護性 | 19 | 20 | S-263（殘留「←」註解 / assert message） |
+| 可維護性 | 19 | 20 | S-270（殘留「←」註解 / assert message） |
 | 測試覆蓋 | 14 | 15 | S-261 TDD 次序（記錄）；計劃模擬考冇獨立 test |
 | 性能 | 10 | 10 | 冇變 |
 | 代碼風格 | 10 | 10 | |
@@ -256,14 +256,14 @@ blockers: ["W-072", "W-073", "W-074"]
 
 ## 新發現
 
-### 🟢 S-262 — 舊 locale（混合 cache）：🏠 icon 但撳落去入口，唔係 Home
+### 🟢 S-269 — 舊 locale（混合 cache）：🏠 icon 但撳落去入口，唔係 Home
 
 - **位置**：`js/screens/sideSession.js` `setEntryBack()`（`if (!text) { setQuizBackHome(back); return; }`）、`js/screens/planRun.js` `setQuizBackHome()` → `setQuizBackAction`
 - **描述**：Reviewer probe：current shell + v2.0.2 `locales/en.js`，Flagged practice → header 顯示 🏠（aria-label「Home」，冇 raw key ✓），但 `data-action="goBack"`，撳落去 Flagged list；Similar session 會返原 session。冇 error、唔係死掣，只係 icon / 名同去向唔一致，最多 HTTP cache 10 分鐘。正常（非混合）情況下 🏠 只出現喺 Home 入口 session，`goBack` → `goHome`，一致。
 - **方案 A**：`setEntryBack` 喺 label 存在但 locale 缺 key 嗰陣 `setQuizBackHome(back); back.dataset.action = 'goHome';`（或者 `setQuizBackHome(back, { action: 'goHome' })`）。Trade-off：多一行；🏠 永遠 = Home。
 - **方案 B**：接受（混合 cache 短暫、可以離開 session、行為合理）。推薦 B，或者下次郁呢度先做 A。
 
-### 🟢 S-263 — 殘留「←」：註解同 test assert message
+### 🟢 S-270 — 殘留「←」：註解同 test assert message
 
 - **位置**：`js/screens/planRun.js:230`（`planLeaveSession` 註解「← mid-session」）；`tests/plan-run-test.js:131,190,205,257,389,391,530` assert message 仍寫「← Today's tasks」/「←」（判斷值已係「‹」，只係字串描述）
 - **建議 A**：一個 docs/test commit 改做「‹」。**建議 B**：留低（唔影響行為）。推薦 A，同下一次碰 plan-run 一齊。
@@ -286,8 +286,8 @@ blockers: ["W-072", "W-073", "W-074"]
 
 | 次序 | ID | 必要性 |
 |---|---|---|
-| 1 | S-263 | 可選，下次碰 plan-run |
-| 2 | S-262 | 可選（推薦接受） |
+| 1 | S-270 | 可選，下次碰 plan-run |
+| 2 | S-269 | 可選（推薦接受） |
 
 ## Handoff receipt（re-review）
 
@@ -305,7 +305,7 @@ hard_gates:
 next_action: invoke_qa
 next_agent: quality-assurance
 branch: "fix/quiz/back-to-entry"
-context: "Re-review v2.0.5 back-to-entry (68acc31..1a5b1a8, HEAD 1a5b1a8) pass 97, 0 C / 0 W / 2 S. run-all 66/67 first pass, the 1 fail is the known fontsize-test S-203 flake (no CSS change), fontsize-test rerun 3/3 PASS; back-to-entry, upgrade, structure, header-icons, lang-switch, plan-run, plan-run2 PASS. W-072 fixed (typeof guards, index.html stays goHome + setQuizBackAction upgrades to goBack only when ACTIONS.goBack exists, upgrade-test case 12 PASS; reviewer probe of v2.0.2 planRun.js / result.js mixes also 0 errors). W-073 fixed (APP_VERSION 2.0.5, HANDOFF row). W-074 fixed (short '‹ Q{n}' label + 'Back to Q{n}' accessible name, 320px en large test). S-257/S-258/S-259 fixed, S-260 resolved by user decision (all back arrows ‹; plan.day.backToday chip unchanged), S-261 audit file now on branch (TDD order noted). New: S-262 stale-locale mix shows 🏠 but goBack goes to the entry (harmless, ≤10 min); S-263 leftover '←' in a planRun.js comment and plan-run-test assert messages. Version 2.0.3/2.0.4 reserved for the two unmerged branches - keep merge order in mind."
+context: "Re-review v2.0.5 back-to-entry (68acc31..1a5b1a8, HEAD 1a5b1a8) pass 97, 0 C / 0 W / 2 S. run-all 66/67 first pass, the 1 fail is the known fontsize-test S-203 flake (no CSS change), fontsize-test rerun 3/3 PASS; back-to-entry, upgrade, structure, header-icons, lang-switch, plan-run, plan-run2 PASS. W-072 fixed (typeof guards, index.html stays goHome + setQuizBackAction upgrades to goBack only when ACTIONS.goBack exists, upgrade-test case 12 PASS; reviewer probe of v2.0.2 planRun.js / result.js mixes also 0 errors). W-073 fixed (APP_VERSION 2.0.5, HANDOFF row). W-074 fixed (short '‹ Q{n}' label + 'Back to Q{n}' accessible name, 320px en large test). S-257/S-258/S-259 fixed, S-260 resolved by user decision (all back arrows ‹; plan.day.backToday chip unchanged), S-261 audit file now on branch (TDD order noted). New: S-269 stale-locale mix shows 🏠 but goBack goes to the entry (harmless, ≤10 min); S-270 leftover '←' in a planRun.js comment and plan-run-test assert messages. Version 2.0.3/2.0.4 reserved for the two unmerged branches - keep merge order in mind."
 blockers: []
 ```
 
