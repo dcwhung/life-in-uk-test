@@ -168,7 +168,8 @@ function renderPlanQuizHeader() {
   const back = byId('screenQuiz').querySelector('.back-btn');
   const session = isPlanSession(), plan = session || isPlanMock();
   if (plan) setQuizBackText(back, planQuizBackHtml(session));
-  else if (isMemoSession()) { setQuizBackAction(back); setQuizBackMemo(back); } // C2: "‹ Memory" back to the group (memo.js)
+  // C2: "‹ Memory" back to the group (memo.js). W-072: a cached pre-v2.0.4 sideSession.js has no isMemoSession (as goHome)
+  else if (typeof isMemoSession === 'function' && isMemoSession()) { setQuizBackAction(back); setQuizBackMemo(back); }
   else if (typeof setEntryBack === 'function') setEntryBack(back);
   else setQuizBackHome(back); // W-071: an HTTP-cached pre-v2.1.1 sideSession.js (no setEntryBack) keeps the 🏠
   if (!session) return;
