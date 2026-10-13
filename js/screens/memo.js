@@ -13,15 +13,21 @@ const memoView = { id: null, step: MEMO_STEP.look, listScrollY: 0, result: null 
 
 // a cached older index.html (SW cutover) has neither the tab nor the screen: the memo tab stays out of reach there
 function memoShellReady() { return !!byId('screenMemo') && !!document.querySelector('.study-tab[data-tab="memo"]'); }
+// W-383 (W-057): a pre-v2.2.0 study.js has neither the mode check (the mode reads as on) nor the default tab
+const MEMO_FALLBACK_TAB = 'chapters';
+const memoModeReady = () => typeof isMemoModeReady !== 'function' || isMemoModeReady();
+const memoFallbackTab = () => (typeof STUDY_DEFAULT_TAB === 'undefined' ? MEMO_FALLBACK_TAB : STUDY_DEFAULT_TAB);
 
 // ── v2.2.0: ⚙ "🧠 Memory study mode" (user-confirmed preview mockups/memo-switch.html, deleted at release) ──
 // the row: a switch + On / Off pill + note like the translation row; built once, then updated in place (W-032).
-// W-057: a pre-v2.2.0 store.js (no switch), locale (no row words) or cached index.html (no tab) hides the row
+// W-057: a pre-v2.2.0 store.js (no switch), actions.js (no handler, S-203), locale (no row words) or cached index.html
+// (no tab) hides the row
 function renderMemoSetting() {
   const row = byId('settingsMemoRow');
   if (!row) return;
   const labelKey = 'app.memoSwitchLabel';
-  row.hidden = typeof isMemoModeOn !== 'function' || !memoShellReady() || t(labelKey) === labelKey;
+  row.hidden = typeof isMemoModeOn !== 'function' || typeof ACTIONS.toggleMemoMode !== 'function' || !memoShellReady()
+    || t(labelKey) === labelKey;
   if (row.hidden) return;
   const on = isMemoModeOn();
   const noteKey = on ? 'app.memoOnNote' : 'app.memoOffNote';
@@ -49,19 +55,23 @@ function setMemoMode(on) {
   const leaving = !on && isOnMemoScreen();
   setMemoModeOn(on);
   renderMemoSetting();
-  if (!on && study.tab === MEMO_TAB) { study.tab = STUDY_DEFAULT_TAB; studySavePrefs(); }
+  const onStudy = byId('screenStudy').classList.contains('active');
+  // W-384: off on the memo list = a tab change (saved, the new list from its start); elsewhere only the stored tab moves
+  if (!on && study.tab === MEMO_TAB && onStudy) studySetTab(memoFallbackTab());
+  else if (!on && study.tab === MEMO_TAB) { study.tab = memoFallbackTab(); studySavePrefs(); }
+  else if (onStudy) renderStudy();
   if (leaving) leaveMemoToStudy();
-  else if (byId('screenStudy').classList.contains('active')) renderStudy();
   if (typeof runRefits === 'function') runRefits(); // v2.0.0 desktop: the rail's tabs changed
   const toastKey = on ? 'app.memoToastOn' : 'app.memoToastOff';
   showToast(t(toastKey));
 }
-// a group's test ends unrecorded; the group screen goes; Study opens at its top
+// a group's test ends unrecorded (the same clean-up as leaveMemoTest); the group screen goes; Study opens at its top
+// (W-384: on desktop the cards scroll in their panel, setStudyScroll)
 function leaveMemoToStudy() {
   if (isMemoSession()) { clearSideSession(); stopExamTimer(); }
   showScreen('screenStudy');
   renderStudy();
-  window.scrollTo(0, 0);
+  if (typeof setStudyScroll === 'function') setStudyScroll(0); else window.scrollTo(0, 0);
 }
 
 // ── Study tab 5: the group list ──
@@ -121,7 +131,7 @@ function renderStudyMemo() {
 // ── #screenMemo ──
 // from the Study list (remember its scroll) or from a result's "Next" (keep the list's scroll)
 function openMemoGroup(id) {
-  if (!memoShellReady() || !isMemoModeReady() || !memoGroupById(id)) return;
+  if (!memoShellReady() || !memoModeReady() || !memoGroupById(id)) return;
   // v2.0.0 desktop: the Study cards scroll in their panel, not the page (js/screens/study.js studyScrollTop)
   if (byId('screenStudy').classList.contains('active')) memoView.listScrollY = typeof studyScrollTop === 'function' ? studyScrollTop() : window.scrollY;
   Object.assign(memoView, { id, step: MEMO_STEP.look, result: null });

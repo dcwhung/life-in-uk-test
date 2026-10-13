@@ -58,8 +58,9 @@ function setTranslationOn(on) {
   applyTranslation();
 }
 // v2.2.0: memory-note study mode (⚙ Features). Off = <html data-memo="off">, which hides the Study memo tab
-// (css/components/chips.css); the stored progress stays; nothing is written until the user picks; an unknown value reads as on
-function isMemoModeOn() { return getLS(MEMO_ENABLED_LS) !== MEMO_MODE_OFF; }
+// (css/components/chips.css); the stored progress stays; nothing is written until the user picks; an unknown value reads as on.
+// W-383 (W-057): an HTTP-cached pre-v2.2.0 config.js has no switch constants: on
+function isMemoModeOn() { return typeof MEMO_ENABLED_LS === 'undefined' || getLS(MEMO_ENABLED_LS) !== MEMO_MODE_OFF; }
 function applyMemoMode() {
   const root = document.documentElement;
   if (isMemoModeOn()) delete root.dataset.memo;

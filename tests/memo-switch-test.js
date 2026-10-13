@@ -147,6 +147,76 @@ async function checkZh(pg) {
   await pg.click('#settingsBtn');
 }
 
+// W-385: cancel mid-test keeps the test; confirm hands focus back to ⚙; zh-HK confirm words
+async function checkCancelMidTest(pg) {
+  await fresh(pg);
+  await openStudyTab(pg, 'memo');
+  await pg.evaluate(() => { openMemoGroup('vote'); startMemoTest(); });
+  await pg.waitForTimeout(GUARD_WAIT_MS);
+  await toggleMemo(pg);
+  await pg.click('#confirmCancel');
+  const r = await pg.evaluate(() => ({ memo: isMemoSession(), screen: document.querySelector('.screen.active').id }));
+  assert(r.memo && r.screen === 'screenQuiz' && await stored(pg) === null, 'cancel mid-test: the test goes on, nothing stored');
+  await pg.click(SWITCH);
+  await pg.click('#confirmOk');
+  assert(await pg.evaluate(() => document.activeElement.id) === 'settingsBtn', 'confirm: focus back on ⚙');
+  await fresh(pg);
+  await pg.evaluate(() => setLang('zh-HK'));
+  await openStudyTab(pg, 'memo');
+  await pg.evaluate(() => openMemoGroup('vote'));
+  await pg.waitForTimeout(GUARD_WAIT_MS);
+  await toggleMemo(pg);
+  assert(await pg.$eval('#confirmTitle', e => e.textContent) === '關閉記憶法溫習模式？', 'zh-HK confirm title');
+  assert(await pg.$eval('#confirmOk', e => e.textContent) === '確定' && await pg.$eval('#confirmCancel', e => e.textContent) === '取消', 'zh-HK confirm buttons');
+  await pg.click('#confirmCancel');
+}
+
+// W-383 (W-057): a cached pre-v2.2.0 actions.js (no handler) or locale (no row words) hides the row
+async function checkMixedCache(pg) {
+  await fresh(pg);
+  const hidden = await pg.evaluate(() => {
+    const keep = ACTIONS.toggleMemoMode;
+    ACTIONS.toggleMemoMode = undefined; renderMemoSetting();
+    const noAction = byId('settingsMemoRow').hidden;
+    ACTIONS.toggleMemoMode = keep;
+    const word = LOCALES.en.app.memoSwitchLabel;
+    delete LOCALES.en.app.memoSwitchLabel; renderMemoSetting();
+    const noWords = byId('settingsMemoRow').hidden;
+    LOCALES.en.app.memoSwitchLabel = word; renderMemoSetting();
+    return { noAction, noWords, back: byId('settingsMemoRow').hidden };
+  });
+  assert(hidden.noAction && hidden.noWords && !hidden.back, 'old actions.js / locale: the row hides: ' + JSON.stringify(hidden));
+}
+
+// W-384: off from the bottom of the memo list / the group screen opens Study at the top (phone page, desktop panel)
+async function checkScroll(b, viewport, label) {
+  const pg = await b.newPage({ viewport });
+  await fresh(pg);
+  await openStudyTab(pg, 'memo');
+  const scrollOf = () => pg.evaluate(() => (studyPanelScrolls() ? studyPanel().scrollTop : window.scrollY));
+  // the list starts right under the pinned block (phone, studyShowListStart) / the card panel is at its top (desktop)
+  const atListStart = () => pg.evaluate(() => {
+    if (studyPanelScrolls()) return studyPanel().scrollTop === 0;
+    const top = document.querySelector('#screenStudy .study-top');
+    return byId('studyCount').getBoundingClientRect().top >= top.getBoundingClientRect().bottom - 1;
+  });
+  const toBottom = () => pg.evaluate(() => { studyPanel().scrollTop = 1e6; window.scrollTo(0, 1e6); });
+  await toBottom();
+  assert(await scrollOf() > 0, label + ': the memo list is scrolled');
+  await toggleMemo(pg);
+  assert(await atListStart(), label + ': off on the list → Chapters from its start');
+  await toggleMemo(pg);
+  await pg.waitForTimeout(GUARD_WAIT_MS);
+  await pg.click(MEMO_TAB);
+  await toBottom();
+  await pg.evaluate(() => openMemoGroup('vote'));
+  await pg.waitForTimeout(GUARD_WAIT_MS);
+  await toggleMemo(pg);
+  await pg.click('#confirmOk');
+  assert(await activeScreen(pg) === 'screenStudy' && await scrollOf() === 0, label + ': off from the group screen → Study from its top');
+  await pg.close();
+}
+
 // desktop: the rail's 🧠 tab hides too
 async function checkDesktop(b) {
   const pg = await b.newPage({ viewport: DESKTOP });
@@ -167,7 +237,11 @@ async function checkDesktop(b) {
   await checkStudyTab(pg);
   await checkConfirm(pg);
   await checkZh(pg);
+  await checkCancelMidTest(pg);
+  await checkMixedCache(pg);
   await checkDesktop(b);
+  await checkScroll(b, PHONE, 'phone');
+  await checkScroll(b, DESKTOP, 'desktop');
   assert(errs.length === 0, 'no page errors: ' + errs.join(' | '));
   await b.close();
   console.log('MEMO SWITCH PASS');
