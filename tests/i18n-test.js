@@ -18,7 +18,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
 const CJK = /[　-〿㐀-鿿豈-﫿＀-￯]/;
 // en keeps the Cantonese section labels in Chinese (user decision, see HANDOFF.md › i18n); the ⚙ language options
 // name themselves in their own language (v1.2.0), so in en 中文 stays Chinese
-const CJK_WHITELIST = ['common.yueTitle', 'common.noteLabel', 'app.langZh', 'study.memoryAid']; // v0.71: labels a Cantonese memory note, like noteLabel
+const CJK_WHITELIST = ['common.yueTitle', 'app.langZh']; // v2.2.0: noteLabel / study.memoryAid are English in en (the notes are, data/notesEn.js)
 // zh-HK copies these from en: meta description and the manifest stay English (plan R-001); <title> follows the language (v1.0.5)
 const SAME_AS_EN_KEYS = ['app.description', 'app.shortName', 'app.installName', 'app.installShortName'];
 const ZH_HK = 'zh-HK';
@@ -179,7 +179,7 @@ function zhHkChecks() {
   const wrongNote = [['en', enMap], [ZH_HK, zhMap]].flatMap(([l, m]) => [...m]
     .filter(([, v]) => Object.values(formsOf(v)).some(s => s.includes(WRONG_NOTE))).map(([k]) => `${l} ${k}`));
   assert(wrongNote.length === 0, `no locale string contains ${WRONG_NOTE}` + (wrongNote.length ? ': ' + wrongNote.join(', ') : ''));
-  assert(enMap.get('common.noteLabel') === '💡 備註：' && zhMap.get('common.noteLabel') === '💡 備註：', 'noteLabel reads 💡 備註： in both locales');
+  assert(enMap.get('common.noteLabel') === '💡 Note:' && zhMap.get('common.noteLabel') === '💡 備註：', 'noteLabel reads 💡 Note: in en (v2.2.0: English notes), 💡 備註： in zh-HK');
 }
 
 async function runtimeChecks(en) {

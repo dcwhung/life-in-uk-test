@@ -173,7 +173,7 @@ LOCALES.en = {
     bookmark: 'Bookmark',
     mastered: 'Mastered',
     masteredDerived: '🏆 Mastered — every source question mastered',
-    memoryAid: '💡 記憶法', // the memory notes are in Cantonese, like common.noteLabel
+    memoryAid: '💡 Memory aid', // v2.2.0: the English UI shows the English memory notes (data/notesEn.js)
     progress: '🏆 {n} / {total}', // v1.2.0 (Q11): the words are the pill's tooltip / label
     progressLabel: '{n} of {total} facts mastered',
     // the fact's number within its chapter (chapterFactNumber); no UI text shows the global fact id (W-016)
@@ -271,7 +271,7 @@ LOCALES.en = {
     difficultyTitle: 'Difficulty {d}/{max}',
     // Cantonese section labels stay in Chinese in en (whitelisted in tests/i18n-test.js)
     yueTitle: '【廣東話翻譯】',
-    noteLabel: '💡 備註：',
+    noteLabel: '💡 Note:', // v2.2.0: the English UI shows the English notes (data/notesEn.js)
   },
 
   plan: {

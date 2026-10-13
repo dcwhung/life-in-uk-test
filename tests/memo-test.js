@@ -72,8 +72,9 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   assert(await pg.$('#studyContent .memo-due') === null, 'no due banner with no progress');
   const first = await pg.$eval('#studyContent .memo-card', e => ({ title: e.querySelector('.memo-name').textContent, lang: e.querySelector('.memo-name').getAttribute('lang'),
     badge: e.querySelector('.memo-badge').textContent, meta: e.querySelector('.memo-meta').textContent, bar: e.querySelector('.memo-bar i').style.width }));
-  assert(first.title === '🎆 英國節日' && first.lang === 'zh-HK' && first.badge === 'New' && first.meta === '16 questions' && first.bar === '0%',
-    'new groups by question count: first card 🎆 英國節日 · New · 16 questions · empty bar (title lang zh-HK): ' + JSON.stringify(first));
+  // v2.2.0: the English UI shows the English group title (titleEn), marked lang="en"
+  assert(first.title === '🎆 UK festivals' && first.lang === 'en' && first.badge === 'New' && first.meta === '16 questions' && first.bar === '0%',
+    'new groups by question count: first card 🎆 UK festivals · New · 16 questions · empty bar (title lang en): ' + JSON.stringify(first));
   const single = await pg.$eval('#studyContent .memo-card[data-arg="single"] .memo-meta', e => e.textContent);
   assert(/8 questions$/.test(single), 'single-note group card: 8 questions: ' + single);
 
@@ -107,7 +108,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   await pg.evaluate(([k, v]) => localStorage.setItem(k, JSON.stringify(v)), [MEMO_LS, { vote: { lv: 2, due: day }, ww2: { lv: 1, due: yesterday }, parliament: { lv: 4, due: later }, writers: { lv: 1, due: later } }]);
   await pg.reload(); await openMemoTab();
   const banner = await pg.$eval('#studyContent .memo-due', e => ({ title: e.querySelector('b').textContent, sub: e.querySelector('small').textContent, lang: e.querySelector('small').getAttribute('lang'), start: e.querySelector('button').textContent }));
-  assert(banner.title === '2 groups to review today' && banner.sub === '投票權 · 二次世界大戰' && banner.lang === 'zh-HK' && banner.start === 'Start',
+  assert(banner.title === '2 groups to review today' && banner.sub === 'Right to vote · Second World War' && banner.lang === 'en' && banner.start === 'Start',
     'banner: "2 groups to review today", due titles (vote has more questions, first), Start ▶: ' + JSON.stringify(banner));
   const order = await cardIds();
   assert(order[0] === 'vote' && order[1] === 'ww2' && order[GROUP_COUNT - 1] === 'parliament' && order[GROUP_COUNT - 2] === 'writers', 'list: due first, then new, learning, done last');
@@ -127,15 +128,16 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   const listY = await pg.evaluate(() => window.scrollY);
   // a DOM click: Playwright's own click would first scroll the banner (top of the list) into view
   await pg.$eval('#studyContent .memo-due button', e => e.click());
-  assert(await pg.$eval('#screenMemo', e => e.classList.contains('active')) && await text('#memoTitle') === '🗳️ 投票權', 'Start opens the first due group (🗳️ 投票權)');
+  assert(await pg.$eval('#screenMemo', e => e.classList.contains('active')) && await text('#memoTitle') === '🗳️ Right to vote', 'Start opens the first due group (🗳️ Right to vote)');
   const look = await pg.evaluate(() => ({
     steps: [...document.querySelectorAll('#memoSteps .memo-step')].map(e => e.textContent + (e.classList.contains('on') ? '*' : '')),
     hook: (document.querySelector('#memoBody .memo-hook') || {}).textContent, hookLang: (document.querySelector('#memoBody .memo-hook [lang]') || {}).lang,
     table: document.querySelectorAll('#memoBody .note-table tbody tr').length, start: (document.querySelector('#memoBody .memo-start') || {}).textContent,
-    heading: document.querySelector('#memoBody').textContent.includes('記憶法（投票權）'),
+    heading: /記憶法（投票權）|Memory aid \(Right to vote\)/.test(document.querySelector('#memoBody').textContent),
+    noteLang: (document.querySelector('#memoBody .memo-note') || {}).lang,
   }));
   assert(look.steps.join('|') === '① Look*|② Test (5)', 'steps ① Look (on) / ② Test (5): ' + look.steps.join('|'));
-  assert(/89 冇票/.test(look.hook) && look.hookLang === 'zh-HK' && look.table === 7 && !look.heading, 'hook box + the 7-row table (no repeated heading line)');
+  assert(/89 no votes/.test(look.hook) && look.hookLang === 'en' && look.table === 7 && !look.heading && look.noteLang === 'en', 'hook box + the 7-row table (no repeated heading line), English in the English UI (v2.2.0)');
   assert(look.start === 'Got it — start the test', 'start button text');
   assert(await pg.evaluate(() => document.activeElement === byId('memoTitle')), 'S-227: opening a group moves focus to its title');
 
@@ -161,9 +163,9 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   // language switch / re-render never records twice
   await pg.evaluate(() => { setLang('zh-HK'); setLang('en'); rerenderCurrentScreen(); });
   assert(JSON.stringify((await stored()).vote) === JSON.stringify({ lv: 3, due: due7 }) && await pg.$eval('#memoBody .memo-pct', e => e.textContent) === '80%', 're-render keeps the result, records nothing more');
-  assert(res.next === 'Next: 二次世界大戰', 'next group = the next due / new group in list order: ' + res.next);
+  assert(res.next === 'Next: Second World War', 'next group = the next due / new group in list order: ' + res.next);
   await pg.click('#memoBody .memo-next');
-  assert(await text('#memoTitle') === '✈️ 二次世界大戰' && await pg.$('#memoBody .memo-start') !== null, 'next group opens on its look view');
+  assert(await text('#memoTitle') === '✈️ Second World War' && await pg.$('#memoBody .memo-start') !== null, 'next group opens on its look view');
 
   // back to the list at the same scroll
   await pg.click('#screenMemo .memo-back');
@@ -280,25 +282,30 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   await pg.fill('#studySearch', '');
   await pg.click('#studyContent .memo-card[data-arg="single"]');
   const singles = await pg.$$eval('#memoBody .memo-single-item', els => els.map(e => [e.querySelector('.memo-single-q').getAttribute('lang'), e.querySelector('.memo-single-note').getAttribute('lang'), e.querySelector('.memo-single-note').textContent.length]));
-  assert(singles.length === 8 && singles.every(([en, zh, n]) => en === 'en' && zh === 'zh-HK' && n > 0), 'single-note group: 8 questions (lang en) with their notes (lang zh-HK)');
+  assert(singles.length === 8 && singles.every(([q, note, n]) => q === 'en' && note === 'en' && n > 0), 'single-note group: 8 questions (lang en) with their English notes (lang en, v2.2.0)');
 
   // ── zh-HK strings ──
   await pg.evaluate(() => setLang('zh-HK'));
-  assert(await text('#memoSteps .memo-step') === '① 睇' && await text('#memoBody .memo-start') === '記住咗，開始試' && await text('#screenMemo .memo-back') === '記憶法', 'zh-HK look view: ① 睇 / 記住咗，開始試 ▶ / ‹ 記憶法');
+  // v2.2.0: back in zh-HK, the group screen shows the Cantonese title and notes again
+  const zhSingle = await pg.evaluate(() => ({ title: byId('memoTitle').textContent, lang: byId('memoTitle').lang,
+    notes: [...document.querySelectorAll('#memoBody .memo-single-note')].map(e => e.lang) }));
+  assert(zhSingle.title === '📝 單題注解' && zhSingle.lang === 'zh-HK' && zhSingle.notes.length === 8 && zhSingle.notes.every(l => l === 'zh-HK'),
+    'zh-HK: Cantonese group title and notes (lang zh-HK): ' + JSON.stringify(zhSingle));
+  assert(await text('#memoSteps .memo-step') === '① 細閱' && await text('#memoBody .memo-start') === '已記住，開始測驗' && await text('#screenMemo .memo-back') === '記憶法', 'zh-HK look view: ① 細閱 / 已記住，開始測驗 ▶ / ‹ 記憶法');
   await pg.click('#screenMemo .memo-back');
   await pg.evaluate(([k, v]) => localStorage.setItem(k, JSON.stringify(v)), [MEMO_LS, { vote: { lv: 1, due: day }, parliament: { lv: 4, due: later } }]);
   await pg.evaluate(() => renderStudy());
   const zh = await pg.evaluate(() => ({ tab: document.querySelector('.study-tab[data-tab="memo"] [data-i18n]').textContent, banner: document.querySelector('.memo-due b').textContent,
     start: document.querySelector('.memo-due button').textContent, count: document.querySelector('#studyCount').textContent,
     badges: [...document.querySelectorAll('.memo-card')].map(e => e.querySelector('.memo-badge').textContent) }));
-  assert(zh.tab === '記憶法' && zh.banner === '今日要溫 1 組' && zh.start === '開始' && zh.count === `${GROUP_COUNT} / ${GROUP_COUNT} 組`, 'zh-HK list: 記憶法 tab, 今日要溫 1 組, 開始 ▶, count: ' + JSON.stringify(zh).slice(0, 160));
-  assert(zh.badges[0] === '今日到期' && zh.badges.includes('未溫') && zh.badges[GROUP_COUNT - 1] === '已熟 · 9 日後', 'zh-HK badges: 今日到期 / 未溫 / 已熟 · 9 日後');
+  assert(zh.tab === '記憶法' && zh.banner === '今日需溫習 1 組' && zh.start === '開始' && zh.count === `${GROUP_COUNT} / ${GROUP_COUNT} 組`, 'zh-HK list: 記憶法 tab, 今日需溫習 1 組, 開始 ▶, count: ' + JSON.stringify(zh).slice(0, 160));
+  assert(zh.badges[0] === '今日到期' && zh.badges.includes('未溫習') && zh.badges[GROUP_COUNT - 1] === '已熟記 · 9 日後', 'zh-HK badges: 今日到期 / 未溫習 / 已熟記 · 9 日後');
   await pg.click('.memo-due button');
   await runTest([true, true, true, true, true]);
-  assert(await text('#memoBody .memo-verdict') === '試 5/5（≥ 70%）→ 升到 Lv2' && await text('#memoBody .memo-again') === '再溫一次', 'zh-HK result: 試 5/5（≥ 70%）→ 升到 Lv2 / 再溫一次');
+  assert(await text('#memoBody .memo-verdict') === '測驗 5/5（≥ 70%）→ 升至 Lv2' && await text('#memoBody .memo-again') === '再溫習一次', 'zh-HK result: 測驗 5/5（≥ 70%）→ 升至 Lv2 / 再溫習一次');
   assert((await text('#memoBody .memo-next')).startsWith('下一組：'), 'zh-HK next: 下一組：…');
   const zhFail = await pg.evaluate(() => [memoVerdictText({ passed: false, prevLv: 4, lv: 3, correct: 0, total: 5 }), memoVerdictText({ passed: false, prevLv: 0, lv: 0, correct: 1, total: 5 }), t('memo.noAnswers'), t('memo.tomorrow')]);
-  assert(zhFail.join('|') === '試 0/5 · 未夠 70%，跌返 Lv3，聽日再溫|試 1/5 · 未夠 70%，聽日再溫|一題都未答，冇記錄進度|聽日', 'zh-HK fail texts: ' + zhFail.join('|'));
+  assert(zhFail.join('|') === '測驗 0/5 · 未達 70%，降至 Lv3，明日再溫習|測驗 1/5 · 未達 70%，明日再溫習|未有作答任何題目，不會記錄進度|明日', 'zh-HK fail texts: ' + zhFail.join('|'));
   await pg.evaluate(() => setLang('en'));
 
   // ── 360px: tabs fit, no horizontal scroll (list, look, result) ──

@@ -23,9 +23,11 @@ function memoChapterChipsHtml() {
     + chapters.join('');
 }
 const memoInChapter = g => study.memoChapter === ALL_FILTER || g.ch === study.memoChapter;
+// v2.2.0: the search reads both languages (like the Study search), whatever the UI language
 function memoMatches(g) {
   if (!study.search) return true;
-  return [g.title, g.body || '', g.hook].join(MEMO_SEARCH_SEP).toLowerCase().includes(study.search);
+  const english = g.body && typeof NOTES_EN !== 'undefined' ? NOTES_EN[g.body] : '';
+  return [g.title, g.body || '', g.hook, g.titleEn || '', english || '', g.hookEn || ''].join(MEMO_SEARCH_SEP).toLowerCase().includes(study.search);
 }
 function memoBadgeText(rec, status, today) {
   const params = rec ? { lv: rec.lv, n: memoDaysUntil(rec, today) } : {};
@@ -38,9 +40,9 @@ function memoMetaText(g) {
 }
 function memoCardHtml(g, progress, today) {
   const rec = memoRecord(progress, g.id), status = memoStatus(rec, today);
-  const width = percent(rec ? rec.lv : 0, MEMO_MAX_LV);
+  const width = percent(rec ? rec.lv : 0, MEMO_MAX_LV), local = memoLocal(g);
   return `<button class="memo-card ${status}" type="button" data-action="openMemoGroup" data-arg="${escapeHtml(g.id)}">
-      <span class="memo-card-row"><span class="memo-name" lang="zh-HK">${escapeHtml(g.icon + ' ' + g.title)}</span>
+      <span class="memo-card-row"><span class="memo-name" lang="${local.lang}">${escapeHtml(g.icon + ' ' + local.title)}</span>
         <span class="memo-badge ${status}">${escapeHtml(memoBadgeText(rec, status, today))}</span></span>
       <span class="memo-meta">${escapeHtml(memoMetaText(g))}</span>
       <span class="memo-bar" aria-hidden="true"><i style="width:${width}%"></i></span>
@@ -50,9 +52,9 @@ function memoCardHtml(g, progress, today) {
 const MEMO_DUE_TITLES_SHOWN = 3;
 function memoDueBannerHtml(due) {
   if (!due.length) return '';
-  const titles = due.slice(0, MEMO_DUE_TITLES_SHOWN).map(g => g.title).join(LIST_SEP);
+  const titles = due.slice(0, MEMO_DUE_TITLES_SHOWN).map(g => memoLocal(g).title).join(LIST_SEP);
   return `<div class="memo-due">
-      <div class="memo-due-text"><b>${escapeHtml(t('memo.dueTitle', { n: due.length }))}</b><small lang="zh-HK">${escapeHtml(titles)}</small></div>
+      <div class="memo-due-text"><b>${escapeHtml(t('memo.dueTitle', { n: due.length }))}</b><small lang="${memoLocal(due[0]).lang}">${escapeHtml(titles)}</small></div>
       ${iconButtonHtml('memo-due-start', ` data-action="openMemoGroup" data-arg="${escapeHtml(due[0].id)}"`, escapeHtml(t('memo.start')), MEMO_GO_ICONS)}
     </div>`;
 }
@@ -94,8 +96,9 @@ function memoLook() {
   showMemo();
 }
 function renderMemo() {
-  const g = memoGroupById(memoView.id);
-  byId('memoTitle').textContent = g.icon + ' ' + g.title;
+  const g = memoGroupById(memoView.id), local = memoLocal(g), title = byId('memoTitle');
+  title.textContent = g.icon + ' ' + local.title;
+  title.lang = local.lang;
   byId('memoSteps').innerHTML = memoStepsHtml(g);
   byId('memoBody').innerHTML = memoView.step === MEMO_STEP.result ? memoResultHtml(g, memoView.result) : memoLookHtml(g);
   if (typeof refreshFades === 'function') refreshFades(byId('memoBody')); // v2.0.0 desktop: the panel's fades
@@ -123,18 +126,21 @@ memoMarkFit();
 
 // ── ① look ──
 function memoHookHtml(g) {
-  if (!g.hook) return '';
-  return `<div class="memo-hook"><b>${escapeHtml(t('memo.hookLabel'))}</b> <span lang="zh-HK">${escapeHtml(g.hook)}</span></div>`;
+  const local = memoLocal(g);
+  if (!local.hook) return '';
+  return `<div class="memo-hook"><b>${escapeHtml(t('memo.hookLabel'))}</b> <span lang="${local.lang}">${escapeHtml(local.hook)}</span></div>`;
 }
-// the memory note without its heading line (the screen title already names the group), like the Study fact card
+// the memory note without its heading line (the screen title already names the group), like the Study fact card;
+// v2.2.0: in the UI language (localNote)
 function memoNoteHtml(g) {
-  return memoScrollHtml(`<div class="memo-panel memo-note fit-panel" lang="zh-HK">${noteHtml(g.body.split('\n').slice(1).join('\n'))}</div>`);
+  const note = localNote(g.body);
+  return memoScrollHtml(`<div class="memo-panel memo-note fit-panel" lang="${note.lang}">${noteHtml(note.text.split('\n').slice(1).join('\n'), note.lang)}</div>`);
 }
 // the single-note group: each distinct question (English) with its own note
 function memoSingleHtml(g) {
   const items = questionGroups(g.qkeys).map(keys => questionByKey(keys[0]).q).map(q =>
     `<div class="memo-single-item"><div class="memo-single-q" lang="en">${escapeHtml(q.q)}</div>`
-    + `<div class="memo-single-note" lang="zh-HK">${noteHtml(q.note)}</div></div>`);
+    + `${localNoteHtml(q.note, 'memo-single-note')}</div>`);
   return memoScrollHtml(`<div class="memo-panel memo-single fit-panel">${items.join('')}</div>`);
 }
 function memoLookHtml(g) {
@@ -212,16 +218,17 @@ function memoNextGroup(id) {
   const todo = [MEMO_STATUS.due, MEMO_STATUS.new];
   return memoSortedGroups(memoGroups(), progress, today).find(g => g.id !== id && todo.includes(memoStatus(memoRecord(progress, g.id), today)));
 }
-// a UI label holding a group title: the title (Cantonese data) in a lang="zh-HK" span, the rest escaped
-function memoLabelHtml(label, title) {
+// a UI label holding a group title: the title (Cantonese data; v2.2.0: English in the English UI) in a span marked
+// with its language, the rest escaped
+function memoLabelHtml(label, title, lang) {
   const at = label.indexOf(title);
   if (at < 0) return escapeHtml(label);
-  return escapeHtml(label.slice(0, at)) + `<span lang="zh-HK">${escapeHtml(title)}</span>` + escapeHtml(label.slice(at + title.length));
+  return escapeHtml(label.slice(0, at)) + `<span lang="${lang}">${escapeHtml(title)}</span>` + escapeHtml(label.slice(at + title.length));
 }
 function memoResultActionsHtml(g, withNext) {
-  const next = withNext ? memoNextGroup(g.id) : null;
+  const next = withNext ? memoNextGroup(g.id) : null, local = next && memoLocal(next);
   const nextBtn = next ? iconButtonHtml('nav-btn memo-next', ` data-action="openMemoGroup" data-arg="${escapeHtml(next.id)}"`,
-    memoLabelHtml(t('memo.next', { title: next.title }), next.title), MEMO_GO_ICONS) : '';
+    memoLabelHtml(t('memo.next', { title: local.title }), local.title, local.lang), MEMO_GO_ICONS) : '';
   return `<div class="memo-actions"><button class="nav-btn secondary memo-again" type="button" data-action="memoLook">${escapeHtml(t('memo.again'))}</button>${nextBtn}</div>`;
 }
 function memoResultHtml(g, r) {

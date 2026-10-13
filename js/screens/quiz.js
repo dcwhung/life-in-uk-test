@@ -87,11 +87,11 @@ function renderQuestion() {
   }
 }
 // W-016: a fact set's "Ch c #n" is English in every language (S-057), so it goes in a lang="en" span; v1.6.0: a memo
-// set's group title is Cantonese data (lang="zh-HK"). Built from text nodes, never innerHTML, so the locale string
+// set's group title is Cantonese data (lang="zh-HK"; v2.2.0: English in the English UI, memoLocal). Built from text nodes, never innerHTML, so the locale string
 // cannot inject markup
 function examLabelPart(examNum) {
   if (isFactExam(examNum)) return { text: t('study.chapterFactId', factSetParams(examNum)), lang: 'en' };
-  return { text: memoSetTitle(examNum), lang: 'zh-HK' };
+  return { text: memoSetTitle(examNum), lang: memoSetLang(examNum) };
 }
 function setExamLabel(el, examNum) {
   const label = examLabel(examNum), part = examLabelPart(examNum);
@@ -214,7 +214,9 @@ function renderAnswerBox(q, idx, showAnswer) {
   byId('ansEn').textContent = q.a.map(ai => q.o[ai]).join(ANSWER_SEP);
   renderAnswerTranslation(q);
   // v0.70: one row per note line (noteHtml), as on the Results review, so wrapped bullets keep a hanging indent
-  byId('ansNote').innerHTML = q.note ? `<strong>${t('common.noteLabel')}</strong><div class="ans-note-text" lang="zh-HK">${noteHtml(q.note)}</div>` : '';
+  // v2.2.0: the note in the UI language (localNote); #ansNote carries its lang, so the 💡 label reads with it (S-048)
+  byId('ansNote').innerHTML = q.note ? `<strong>${t('common.noteLabel')}</strong>${localNoteHtml(q.note, 'ans-note-text')}` : '';
+  byId('ansNote').lang = q.note ? localNote(q.note).lang : ZH_HK_LANG;
 }
 // S-048: an answer with no Cantonese text (True / False / years) falls back to the English option, marked lang="en"
 const answerYueHtml = (q, ai) => (q.oy && q.oy[ai] ? escapeHtml(q.oy[ai]) : `<span lang="en">${escapeHtml(q.o[ai])}</span>`);

@@ -20,6 +20,9 @@
 .note-table tr:last-child td { border-bottom: 0; }
 .note-table td:first-child { font-weight: 700; color: var(--navy); }
 .note-table th.multi, .note-table td.multi { white-space: normal; }
+/* v2.2.0: an English note's cells (English UI, data/notesEn.js) wrap at the spaces between words, never inside one,
+   so a long English cell fits a narrow phone instead of scrolling; Cantonese cells keep nowrap (W-050) */
+.note-table:lang(en) th, .note-table:lang(en) td { white-space: normal; }
 /* V4 in-cell remark: its own line, small and muted, never bold (even in the bold first column) */
 .note-cell-sub { display: block; margin-top: var(--space-1); font-size: var(--fs-xs); font-weight: 400; color: var(--text-muted); line-height: 1.45; }
 /* v1.0.10 "• " remark: "•" about one character in, wrapped lines continue under its text (hanging indent);
