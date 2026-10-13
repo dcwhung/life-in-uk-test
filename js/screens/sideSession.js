@@ -93,20 +93,26 @@ function goBack() {
   goHome();
 }
 // the header's words while away from Home (escaped html); null = the 🏠 icon. A plan session has its own (planRun.js)
+// W-071: a stale locale without the key (t returns the key) keeps the 🏠 rather than a raw key
+function entryBackText(key, params) {
+  const text = t(key, params);
+  return text === key ? null : escapeHtml(text);
+}
 const SESSION_BACK_LABELS = {
-  [SESSION_RETURN_KIND.quiz]: ret => t('quiz.backToQuestion', { n: ret.state.current + 1 }),
-  [SESSION_RETURN_KIND.study]: () => t('quiz.backToStudy'),
-  [SESSION_RETURN_KIND.memo]: () => t('quiz.backToMemo'),
+  [SESSION_RETURN_KIND.quiz]: ret => entryBackText('quiz.backToQuestion', { n: ret.state.current + 1 }),
+  [SESSION_RETURN_KIND.study]: () => entryBackText('quiz.backToStudy'),
+  [SESSION_RETURN_KIND.memo]: () => entryBackText('quiz.backToMemo'),
 };
 function entryBackHtml() {
   if (isSideSession()) {
     const label = SESSION_BACK_LABELS[sessionReturn.kind];
-    return label ? escapeHtml(label(sessionReturn)) : null;
+    return label ? label(sessionReturn) : null;
   }
-  return isFlaggedSession() ? escapeHtml(t('quiz.backToFlagged')) : null;
+  return isFlaggedSession() ? entryBackText('quiz.backToFlagged') : null;
 }
+// W-071: without a goBack handler (cached pre-v2.0.3 actions.js / planRun.js) the header goes Home, so it says 🏠
 function setEntryBack(back) {
-  const html = entryBackHtml();
+  const html = typeof hasGoBackAction === 'function' && hasGoBackAction() ? entryBackHtml() : null;
   if (html) setQuizBackText(back, html);
   else setQuizBackHome(back);
 }

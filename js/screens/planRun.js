@@ -126,7 +126,12 @@ function planRunBackHtml(from) {
 // a fact's session is named like the Study one ("Fact Ch c #n", setExamLabel)
 // v1.2.0 (Q11): Home is an icon button; a plan's text back label keeps its words, and those words name it (S-188: an
 // aria-label would hide the <span lang="en">Day n</span> language from screen readers)
+// W-071: index.html says goHome; goBack only once this page's actions.js has it (an HTTP-cached pre-v2.0.3 actions.js
+// would leave the header a dead button mid-session). goHome still leaves a plan session for its day.
+function hasGoBackAction() { return typeof ACTIONS !== 'undefined' && typeof ACTIONS.goBack === 'function'; }
+function setQuizBackAction(back) { back.dataset.action = hasGoBackAction() ? 'goBack' : 'goHome'; }
 function setQuizBackText(back, html) {
+  setQuizBackAction(back);
   back.classList.add('plan-hit');
   back.classList.remove('icon-btn');
   back.innerHTML = html;
@@ -134,21 +139,25 @@ function setQuizBackText(back, html) {
   back.removeAttribute('title');
 }
 function setQuizBackHome(back) {
+  setQuizBackAction(back);
   back.classList.remove('plan-hit');
   back.classList.add('icon-btn');
   back.innerHTML = lineIconSvg('home');
   setAccessibleName(back, t('common.homeLabel'));
 }
 // v2.0.3: one fact's ▶ Practise reads "← Back to the fact" (planLeaveSession); a session from elsewhere names its entry
+// W-071: a locale without plan.run.backFact keeps the day's label rather than the raw key
 function planQuizBackHtml(session) {
-  if (session && planRunPart(sessionReturn).fact !== undefined) return escapeHtml(t('plan.run.backFact'));
+  const fact = t('plan.run.backFact');
+  if (session && planRunPart(sessionReturn).fact !== undefined && fact !== 'plan.run.backFact') return escapeHtml(fact);
   return planRunBackHtml((session ? sessionReturn : planMockRun).from);
 }
 function renderPlanQuizHeader() {
   const back = byId('screenQuiz').querySelector('.back-btn');
   const session = isPlanSession(), plan = session || isPlanMock();
   if (plan) setQuizBackText(back, planQuizBackHtml(session));
-  else setEntryBack(back);
+  else if (typeof setEntryBack === 'function') setEntryBack(back);
+  else setQuizBackHome(back); // W-071: an HTTP-cached pre-v2.0.3 sideSession.js (no setEntryBack) keeps the 🏠
   if (!session) return;
   if (planRunPart(sessionReturn).fact !== undefined) setExamLabel(byId('quizLabel'), FACT_PREFIX + sessionReturn.fact);
   else byId('quizLabel').textContent = planRunLabel(sessionReturn);
