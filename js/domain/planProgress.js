@@ -470,7 +470,7 @@ function planFrozenDays(plan, todayIso) {
   return [...kept, ...gap];
 }
 function replanFrom(plan, goal, todayIso, log) {
-  // CUI-0037: a changed goal has a new plan's limits (G28: today + 7, 7 study days; G36 retired)
+  // CUI-0038: a changed goal has a new plan's limits (G28: today + 7, 7 study days; G36 retired)
   if (!validatePlanGoal(goal, todayIso).ok) return null;
   const history = [...(plan.goalHistory || []), { at: todayIso, goal: plan.goal }];
   // clock moved before Day 1: nothing is frozen, the plan restarts today

@@ -4,7 +4,7 @@
 // whether the time is enough (✓ / △ / ✕; G13: ✕ still builds, with longer days). Fewer than PLAN_MIN_STUDY_DAYS
 // study days disables the CTA with a hint (G28). Create = clear the old plan + log, then store buildPlan().
 // "Change goal" (schedule) opens the same form prefilled with the plan's goal; its CTA re-plans from today
-// (replanFrom, G7: past days frozen, Day 1 unchanged). CUI-0037: with the same limits as a new plan (G36's tomorrow /
+// (replanFrom, G7: past days frozen, Day 1 unchanged). CUI-0038: with the same limits as a new plan (G36's tomorrow /
 // 1 study day retired); a stored exam already inside the 7-day window is shown as it is, blocked with the hint, until
 // a later date is chosen. Either way the schedule opens next.
 // ════════════════════════════════════════
@@ -17,7 +17,7 @@ const PLAN_PERCENT = 100;
 let planGoalDraft = null; // { examDate, dailyMins, restDays, level } being edited
 let planGoalEditing = false; // true: changing the stored plan's goal; false: a new plan
 let planGoalNotice = false; // S-115: the last Build / Update failed because the day changed; cleared by any edit
-let planGoalStoredDate = null; // CUI-0037: the changed goal's own exam date, kept even inside the 7-day window
+let planGoalStoredDate = null; // CUI-0038: the changed goal's own exam date, kept even inside the 7-day window
 
 function planDefaultDraft(todayIso) {
   const d = PLAN_DEFAULT_GOAL;
@@ -80,7 +80,7 @@ function renderPlanDateInput(todayIso) {
   if (document.activeElement !== input) input.value = planGoalDraft.examDate;
 }
 // S-111: a draft left open past midnight moves up to the new minimum (as a date past the maximum moves down).
-// CUI-0037: a changed goal's own exam still ahead stays as it is (silently moving the user's real exam date would let
+// CUI-0038: a changed goal's own exam still ahead stays as it is (silently moving the user's real exam date would let
 // Update store a date they never chose); the CTA is disabled with the hint instead. One already past moves up
 function planClampDraftDate(todayIso) {
   const date = planGoalDraft.examDate, min = planExamDateRange(todayIso).min;
@@ -135,7 +135,7 @@ function renderPlanFeasibility(todayIso) {
   meter.style.width = Math.min(PLAN_PERCENT, Math.round(f.ratio * PLAN_PERCENT / PLAN_FEAS_METER_SCALE)) + '%';
   byId('planFeasMsg').textContent = t(msgKey, { n: planHours(f.diffMins), m: PLAN_MINS.step });
 }
-// CUI-0037: one rule for both modes (G28); only the wording differs (built / updated)
+// CUI-0038: one rule for both modes (G28); only the wording differs (built / updated)
 function renderPlanCta(todayIso) {
   const check = validatePlanGoal(planGoalDraft, todayIso);
   byId('planCreateBtn').disabled = !check.ok;

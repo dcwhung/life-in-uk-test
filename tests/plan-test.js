@@ -158,25 +158,25 @@ function checkValidation() {
   assert(!v(null).ok && !v({}).ok && !v(undefined).ok, 'missing goal is invalid and does not throw');
   checkEditValidation();
 }
-// CUI-0037 (user 2026-10-13): changing a running plan's goal follows the same limits as a new plan (G28: exam from
+// CUI-0038 (user 2026-10-13): changing a running plan's goal follows the same limits as a new plan (G28: exam from
 // today + 7, at least 7 study days); G36's looser edit limits (tomorrow, 1 study day) are retired, so no mode is taken
 function checkEditValidation() {
   const v = (goal, mode) => g('validatePlanGoal')(goal, TODAY, mode);
   assert(['PLAN_EDIT_MIN_DAYS_AHEAD', 'PLAN_EDIT_MIN_STUDY_DAYS', 'PLAN_GOAL_LIMITS'].every(n => g('typeof ' + n) === 'undefined'),
-    'CUI-0037: the G36 edit limits are gone');
+    'CUI-0038: the G36 edit limits are gone');
   // W-382: the names a cached pre-v2.1.0 planGoal.js / planProgress.js still uses stay one version, with one set of limits
   const unified = { minDaysAhead: 7, minStudyDays: 7 };
   assert(same(g('planGoalLimits')(g('PLAN_GOAL_MODE').edit), unified) && same(g('planGoalLimits')(g('PLAN_GOAL_MODE').create), unified),
     'W-382: the PLAN_GOAL_MODE / planGoalLimits shim gives a new plan\'s limits in both modes');
   assert(same(g('planExamDateRange')(TODAY), { min: '2026-10-15', max: '2027-04-08' }) && same(g('planExamDateRange')(TODAY, 'edit'), g('planExamDateRange')(TODAY)),
-    'CUI-0037: one exam date range for a new plan and a changed goal: today + 7 … + 6 months');
+    'CUI-0038: one exam date range for a new plan and a changed goal: today + 7 … + 6 months');
   assert(v(goalFor(1, 60, []), 'edit').errors.includes('examDate') && v(goalFor(6, 60, []), 'edit').errors.includes('examDate') && v(goalFor(7, 60, []), 'edit').ok,
-    'CUI-0037: an exam tomorrow or 6 days out is rejected whatever the caller passes; 7 days out accepted');
-  assert(v(goalFor(7, 60, [0]), 'edit').errors.includes('studyDays') && v(goalFor(8, 60, [0]), 'edit').ok, 'CUI-0037: 6 study days rejected, 7 accepted (G28)');
+    'CUI-0038: an exam tomorrow or 6 days out is rejected whatever the caller passes; 7 days out accepted');
+  assert(v(goalFor(7, 60, [0]), 'edit').errors.includes('studyDays') && v(goalFor(8, 60, [0]), 'edit').ok, 'CUI-0038: 6 study days rejected, 7 accepted (G28)');
   // a running plan's exam already inside the 7-day window: the form keeps that date, so it must say why it is blocked
-  assert([1, 3, 6].every(n => v(goalFor(n, 60, [])).errors.includes('studyDays')), 'CUI-0037: a real exam date before today + 7 also counts as too few study days');
-  assert(v(goalFor(0, 60, [])).errors.includes('studyDays') && v(goalFor(-3, 60, [])).errors.includes('studyDays'), 'CUI-0037: an exam today or past: too few study days, no throw');
-  assert(!v({ ...goalFor(21), examDate: '2026-13-01' }).errors.includes('studyDays'), 'CUI-0037: a malformed date is only an examDate error');
+  assert([1, 3, 6].every(n => v(goalFor(n, 60, [])).errors.includes('studyDays')), 'CUI-0038: a real exam date before today + 7 also counts as too few study days');
+  assert(v(goalFor(0, 60, [])).errors.includes('studyDays') && v(goalFor(-3, 60, [])).errors.includes('studyDays'), 'CUI-0038: an exam today or past: too few study days, no throw');
+  assert(!v({ ...goalFor(21), examDate: '2026-13-01' }).errors.includes('studyDays'), 'CUI-0038: a malformed date is only an examDate error');
 }
 
 function checkFeasibility() {
@@ -623,17 +623,17 @@ function checkReplan() {
   assert(same(futureFacts, g('PLAN_LEARN_ORDER').filter(id => !readDone.includes(id))), 'unfinished facts are re-planned once each, in learn order');
   assert(g('planCarryTasks')(re, log, today).length === 0, 'nothing from before the re-plan is carried');
   assert(g('replanFrom')(clone(plan), goalFor(0, 60, [0], 'none', today), today, log) === null, 'an invalid new goal (exam today) is refused');
-  assert([1, 3, 6].every(n => g('replanFrom')(clone(plan), goalFor(n, 60, [], 'none', today), today, log) === null), 'CUI-0037: a changed goal with fewer than 7 study days is refused (G36 retired)');
-  assert(g('replanFrom')(clone(plan), goalFor(8, 60, [g('isoWeekday')(today)], 'none', today), today, log) === null, 'CUI-0037: 7 days out with today a rest day (6 study days) refused');
+  assert([1, 3, 6].every(n => g('replanFrom')(clone(plan), goalFor(n, 60, [], 'none', today), today, log) === null), 'CUI-0038: a changed goal with fewer than 7 study days is refused (G36 retired)');
+  assert(g('replanFrom')(clone(plan), goalFor(8, 60, [g('isoWeekday')(today)], 'none', today), today, log) === null, 'CUI-0038: 7 days out with today a rest day (6 study days) refused');
   const late = isoAddDays(plan.goal.examDate, 3);
   const after = g('replanFrom')(clone(plan), goalFor(21, 60, [0], 'none', late), late, log);
   assert(after.days.every((d, i) => d.date === isoAddDays(TODAY, i)) && same(after.days.slice(0, 21), plan.days), 'a re-plan after the exam keeps the old days and fills the gap');
   assert(after.days.slice(21, 24).every(d => d.phase === 'rest'), 'gap days are rest days');
 }
 
-// CUI-0037: a goal changed late must still leave 7 study days (G28); the re-plan then learns every unfinished fact once
+// CUI-0038: a goal changed late must still leave 7 study days (G28); the re-plan then learns every unfinished fact once
 // (G13: longer days), keeps a mock day and ends on the light review. No plan is built with 1–6 study days any more,
-// but planFeasibility still splits a draft's 1–6 days (S-251), so the short splits are checked directly below
+// but planFeasibility still splits a draft's 1–6 days (S-255), so the short splits are checked directly below
 function checkReplanLastWeek() {
   const readFacts = days => days.flatMap(d => d.tasks.filter(t => t.type === 'read').flatMap(t => t.facts));
   const practised = days => days.flatMap(d => d.tasks.filter(t => t.type === 'practice').flatMap(t => t.qids));
@@ -644,18 +644,18 @@ function checkReplanLastWeek() {
   const leftQids = left.flatMap(id => g('planFactQids')(STUDY.find(f => f.id === id)));
   const rank = { learn: 0, drill: 1, mock: 2 };
   const re = g('replanFrom')(clone(plan), goalFor(7, 60, [], 'none', today), today, log);
-  assert(re && same(re.days.slice(0, past), plan.days.slice(0, past)), 'CUI-0037 7 study days: past days frozen word for word (G7)');
-  assert(re.start === TODAY && re.days.length === past + 7 && re.days.every((d, i) => d.date === isoAddDays(TODAY, i)), 'CUI-0037 7: Day numbers from the original Day 1');
+  assert(re && same(re.days.slice(0, past), plan.days.slice(0, past)), 'CUI-0038 7 study days: past days frozen word for word (G7)');
+  assert(re.start === TODAY && re.days.length === past + 7 && re.days.every((d, i) => d.date === isoAddDays(TODAY, i)), 'CUI-0038 7: Day numbers from the original Day 1');
   const fresh = re.days.slice(past);
-  assert(same(readFacts(fresh), left) && same(practised(fresh), leftQids), `CUI-0037 7: each of the ${left.length} unfinished facts read and practised exactly once, in learn order`);
-  assert(fresh.every(d => d.tasks.length > 0) && fresh.every((d, i) => i === 0 || rank[d.phase] >= rank[fresh[i - 1].phase]), 'CUI-0037 7: no empty study day; learn → drill → mock');
-  assert(/^learn(,learn)*(,drill)*,mock(,mock)*,light$/.test(fresh.map(d => (d.light ? 'light' : d.phase)).join(',')), 'CUI-0037 7: learn first, at least one mock day, light last');
+  assert(same(readFacts(fresh), left) && same(practised(fresh), leftQids), `CUI-0038 7: each of the ${left.length} unfinished facts read and practised exactly once, in learn order`);
+  assert(fresh.every(d => d.tasks.length > 0) && fresh.every((d, i) => i === 0 || rank[d.phase] >= rank[fresh[i - 1].phase]), 'CUI-0038 7: no empty study day; learn → drill → mock');
+  assert(/^learn(,learn)*(,drill)*,mock(,mock)*,light$/.test(fresh.map(d => (d.light ? 'light' : d.phase)).join(',')), 'CUI-0038 7: learn first, at least one mock day, light last');
   const shape = (n, ids) => g('buildPlanDays')(today, goalFor(n, 60, [], 'none', today), ids).map(d => (d.light ? 'light' : d.phase)).join(',');
   assert(shape(1, left) === 'learn' && shape(2, left) === 'learn,light' && shape(3, left) === 'learn,mock,light', 'short splits stay defined: 1 learn / 2 learn + light / 3 learn + mock + light');
   assert(shape(1, []) === 'light' && shape(3, []) === 'drill,mock,light', 'short splits with every fact done: light / drill + mock + light');
   const f1 = g('planFeasibility')(goalFor(1, 30, [], 'none', today), today, left);
   assert(f1.studyDays === 1 && f1.status === 'short' && f1.overload, '1 day: feasibility is short and overloaded (no throw)');
-  assert(g('replanFrom')(clone(plan), goalFor(3, 60, [], 'none', '2026-10-05'), '2026-10-05', emptyLog()) === null, 'CUI-0037: clock before Day 1 with 3 days left is refused');
+  assert(g('replanFrom')(clone(plan), goalFor(3, 60, [], 'none', '2026-10-05'), '2026-10-05', emptyLog()) === null, 'CUI-0038: clock before Day 1 with 3 days left is refused');
   const early = g('replanFrom')(clone(plan), goalFor(7, 60, [], 'none', '2026-10-05'), '2026-10-05', emptyLog());
   assert(early && early.start === '2026-10-05' && early.days.length === 7 && readFacts(early.days).length === FACT_COUNT, 'clock before Day 1 restarts the plan today (7 study days)');
 }

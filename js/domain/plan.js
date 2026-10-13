@@ -27,7 +27,7 @@ const PLAN_MINS = { min: 30, max: 120, step: 15 };
 const PLAN_EXAM_DAY_PRESETS = [14, 21, 28, 42];
 const PLAN_MIN_DAYS = 7; // earliest exam date = today + 7
 const PLAN_MAX_MONTHS = 6; // latest exam date = today + 6 months
-// G28; CUI-0037 (user 2026-10-13): a changed goal keeps these too (G36's tomorrow / 1 study day for a change retired)
+// G28; CUI-0038 (user 2026-10-13): a changed goal keeps these too (G36's tomorrow / 1 study day for a change retired)
 const PLAN_MIN_STUDY_DAYS = 7;
 const PLAN_SAFE_SCORE = 21; // "mock ≥ 21 / 24" progress bar
 const PLAN_SCHEMA_VERSION = 1;
@@ -72,10 +72,10 @@ function planTodayIso(now = new Date()) {
   return `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
 }
 // W-382 (v2.1.0): a cached pre-v2.1.0 planGoal.js / planProgress.js still names these (mixed SW / HTTP cache, W-057);
-// any mode now gets a new plan's limits (CUI-0037). Nothing current reads them: remove after v2.2
+// any mode now gets a new plan's limits (CUI-0038). Nothing current reads them: remove after v2.2
 const PLAN_GOAL_MODE = { create: 'create', edit: 'edit' };
 function planGoalLimits() { return { minDaysAhead: PLAN_MIN_DAYS, minStudyDays: PLAN_MIN_STUDY_DAYS }; }
-// CUI-0037: one range for a new plan and a changed goal
+// CUI-0038: one range for a new plan and a changed goal
 function planExamDateRange(todayIso) {
   return { min: isoAddDays(todayIso, PLAN_MIN_DAYS), max: isoAddMonths(todayIso, PLAN_MAX_MONTHS) };
 }
@@ -150,7 +150,7 @@ function planChunkWeighted(items, dayCount) {
 
 // G13: learn days first fit all the reading / practice (overload when even all-but-one day is not enough); mock days
 // take their share of what is left (at least one), drill days the rest. A single day learns (no mock). No plan is
-// built with fewer than 7 study days since CUI-0037, but planFeasibility still splits a draft's 1–6 days (S-251)
+// built with fewer than 7 study days since CUI-0038, but planFeasibility still splits a draft's 1–6 days (S-255)
 function planSplitStudyDays(n, goal, learnMins) {
   if (n <= 0) return { learn: 0, drill: 0, mock: 0, overload: learnMins > 0 };
   const lv = PLAN_LEVELS[goal.level];
@@ -163,7 +163,7 @@ function planSplitStudyDays(n, goal, learnMins) {
   return { learn, drill: rest - mock, mock, overload: fit > learn };
 }
 // all study days: the last is the light review, except when it is the only one and facts are left (learning what is
-// left comes first, G13). S-251: since CUI-0037 only planFeasibility meets such a count (a draft's 1–6 study days)
+// left comes first, G13). S-255: since CUI-0038 only planFeasibility meets such a count (a draft's 1–6 study days)
 function planStudySplit(studyCount, goal, learnMins) {
   const light = studyCount > 1 || (studyCount === 1 && learnMins === 0);
   return { light, ...planSplitStudyDays(studyCount - (light ? 1 : 0), goal, learnMins) };
@@ -199,7 +199,7 @@ function planValidExamDate(examIso, todayIso) {
   const range = planExamDateRange(todayIso);
   return isoIsValid(examIso) && examIso >= range.min && examIso <= range.max;
 }
-// a new plan and a changed goal alike (G28, CUI-0037). Any real exam date counts its study days, so one still
+// a new plan and a changed goal alike (G28, CUI-0038). Any real exam date counts its study days, so one still
 // before today + 7 (a running plan's exam inside its last week, shown as it is when changing the goal) is also
 // studyDays: the form then says why Update is disabled
 function validatePlanGoal(goal, todayIso) {

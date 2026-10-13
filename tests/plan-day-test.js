@@ -600,7 +600,7 @@ async function checkMidnightCta(pg) {
   await seedPlan(pg, { log: false });
   await pg.evaluate(() => openPlanSchedule());
   await pg.click('#screenPlanSchedule [data-action="planEditGoal"]');
-  // CUI-0037: a changed goal has a new plan's limits: today + 7 with no rest day has the 7 study days it needs
+  // CUI-0038: a changed goal has a new plan's limits: today + 7 with no rest day has the 7 study days it needs
   await pg.click('#planRestChips .chip >> nth=0');
   await pg.fill('#planExamDate', '2026-10-08');
   await pg.$eval('#planExamDate', e => e.blur());

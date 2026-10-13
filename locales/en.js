@@ -392,7 +392,7 @@ LOCALES.en = {
       update: 'Update my plan',
       // S-115: the day changed while the form was open, so Build / Update failed and the date moved
       dateMoved: 'The day has changed, so the exam date moved to the earliest one allowed. Please check it and press again.',
-      // CUI-0037: a changed goal needs the same {n} = 7 study days as a new plan (G28; the one form stays for the plural)
+      // CUI-0038: a changed goal needs the same {n} = 7 study days as a new plan (G28; the one form stays for the plural)
       editMinStudyDays: {
         one: "At least {n} study day is needed before the exam, so the plan can't be updated. Choose fewer rest days or a later exam date.",
         other: "At least {n} study days are needed before the exam, so the plan can't be updated. Choose fewer rest days or a later exam date.",
@@ -405,7 +405,7 @@ LOCALES.en = {
       editGoal: 'Change goal',
       title: 'Your study schedule',
       summary: 'Starts {start} · exam {exam} · up to {mins} a day · {level}',
-      // CUI-0037: the phase card's title counts the phases the plan has (a short plan has no drill); the three-phase
+      // CUI-0038: the phase card's title counts the phases the plan has (a short plan has no drill); the three-phase
       // key keeps its old name, which an older cached index.html still names
       phasesTitleOne: 'One phase',
       phasesTitleTwo: 'Two phases',
@@ -525,7 +525,7 @@ LOCALES.en = {
       tight: '△ Just enough',
       short: '✕ Not enough',
       studyDays: 'Study days',
-      studyDaysSub: { one: '{n} day, {rest} rest', other: '{n} days, {rest} rest' }, // n: all days to the exam (a kept exam inside the window can be 1, CUI-0037)
+      studyDaysSub: { one: '{n} day, {rest} rest', other: '{n} days, {rest} rest' }, // n: all days to the exam (a kept exam inside the window can be 1, CUI-0038)
       avail: 'Available',
       availSub: 'daily limit × study days',
       need: 'Suggested',

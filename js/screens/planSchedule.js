@@ -17,7 +17,7 @@ const PLAN_ORDER_WHY_KEYS = { 1: 'plan.order.whyWarmUp', 5: 'plan.order.whyGov',
 const PLAN_WHEN = { today: 'today', past: 'past', ahead: '' };
 const PLAN_SHOWN_PHASES = [PLAN_PHASE.learn, PLAN_PHASE.drill, PLAN_PHASE.mock];
 const PLAN_PHASE_LABEL_KEYS = { learn: 'plan.phase.learn', drill: 'plan.phase.drill', mock: 'plan.phase.mock' };
-// CUI-0037: the phase card's title by the number of phases shown (a short plan has no drill)
+// CUI-0038: the phase card's title by the number of phases shown (a short plan has no drill)
 const PLAN_PHASES_TITLE_KEYS = { 1: 'plan.schedule.phasesTitleOne', 2: 'plan.schedule.phasesTitleTwo', 3: 'plan.schedule.phasesTitle' };
 const PLAN_TASK_ICONS = { read: '📖', practice: '📝', drill: '📝', wrongFacts: '📖', review: '🔁', mock: '🎯' };
 const PLAN_REST_ICON = '😴';
@@ -115,7 +115,7 @@ function planPhaseDays(plan) {
   return out;
 }
 function planShownPhases(phases) { return PLAN_SHOWN_PHASES.filter(k => phases[k].length); }
-// CUI-0037: the title ("Two phases") and the Daily tasks legend name only the phases the plan has. Both keep their
+// CUI-0038: the title ("Two phases") and the Daily tasks legend name only the phases the plan has. Both keep their
 // data-i18n (the key swapped here), so a language switch's static pass and this re-render agree. An old cached
 // index.html without the ids keeps its static text
 function renderPlanPhaseCount(phases) {
@@ -127,7 +127,7 @@ function renderPlanPhaseCount(phases) {
   }
   if (legend) legend.innerHTML = shown.map(planLegendItemHtml).join('');
 }
-// S-250: a cached pre-v2.1.0 locale has no One / Two keys: the three-phase title (the static one) instead of a raw key
+// S-254: a cached pre-v2.1.0 locale has no One / Two keys: the three-phase title (the static one) instead of a raw key
 const PLAN_PHASES_TITLE_DEFAULT_KEY = PLAN_PHASES_TITLE_KEYS[PLAN_SHOWN_PHASES.length];
 function planPhasesTitleKey(count) {
   const key = PLAN_PHASES_TITLE_KEYS[count] || PLAN_PHASES_TITLE_DEFAULT_KEY;

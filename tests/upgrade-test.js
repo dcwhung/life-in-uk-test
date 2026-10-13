@@ -430,7 +430,7 @@ async function v140SingleFile(b, file) {
   await pg.close();
 }
 
-// W-382 (v2.1.0, CUI-0037): the current shell with ONE file still from v2.0.2 (pinned c6b0806, the v2.0.2 merge): an
+// W-382 (v2.1.0, CUI-0038): the current shell with ONE file still from v2.0.2 (pinned c6b0806, the v2.0.2 merge): an
 // HTTP-cached planGoal.js (toggles #planDateNote, names PLAN_GOAL_MODE / planGoalLimits) or planProgress.js
 // (replanFrom names PLAN_GOAL_MODE) still opens the goal form in both modes and updates the plan, no page errors
 const V202_REF = 'c6b0806';
@@ -462,7 +462,7 @@ async function v202SingleFile(b, file) {
   await pg.close();
 }
 
-// S-250 (v2.1.0, CUI-0037): the current files with a cached v2.0.2 locales/en.js (no plan.schedule.phasesTitleOne / Two):
+// S-254 (v2.1.0, CUI-0038): the current files with a cached v2.0.2 locales/en.js (no plan.schedule.phasesTitleOne / Two):
 // a 2-phase plan's schedule keeps the static title instead of the raw key, no missing-key warning from it
 async function v202Locale(b) {
   const dir = tmpDir('v202locale');
@@ -481,7 +481,7 @@ async function v202Locale(b) {
     return { bar: byId('planPhaseBar').children.length, title: byId('planPhasesTitle').textContent };
   });
   assert(r.bar === 2 && r.title === 'Three phases' && warns.length === 0 && errs.length === 0,
-    'S-250 v2.0.2 locales/en.js + current files: a 2-phase plan keeps the static title, no raw key: ' + JSON.stringify({ ...r, warns, errs }));
+    'S-254 v2.0.2 locales/en.js + current files: a 2-phase plan keeps the static title, no raw key: ' + JSON.stringify({ ...r, warns, errs }));
   await pg.close();
 }
 
