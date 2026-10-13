@@ -530,7 +530,7 @@ async function v202BackSingleFile(b, file) {
   const fromResult = await pg.evaluate(() => document.querySelector('.screen.active').id);
   assert(['screenHome', 'screenFlagged'].includes(fromResult) && warns.length === 0 && errs.length === 0,
     `v2.0.2 ${file} + current files: the Result header back works (${fromResult}): ` + JSON.stringify({ warns, errs }));
-  // W-077 (v2.2.1): a plan practice task's "Back" is named "Back to today's tasks"; a v2.0.2 locale has no
+  // W-077 (v2.3.2): a plan practice task's "Back" is named "Back to today's tasks"; a v2.0.2 locale has no
   // plan.run.backTodayLabel, so the name falls back to the visible word, never a raw key
   await pg.evaluate(() => {
     leaveToHome(); openPlanGoal(); byId('planCreateBtn').click();

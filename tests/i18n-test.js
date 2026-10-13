@@ -36,7 +36,7 @@ const ZH_HK_WRITTEN_SCOPES = ['plan.', 'data.weekdays.', 'data.planLevels.', 'mo
 const ZH_HK_COLLOQUIAL = ['唔', '嘅', '咗', '冇', '嚟', '睇', '喺', '啱', '嗰', '佢', '哋', '咩', '啲', '嘢', '乜', '俾', '畀', '做緊', '幾耐', '係咪', '點樣'];
 // keys no source file reads: manifest.webmanifest mirrors them (static JSON), tests/pwa-test.js compares the two
 const MANIFEST_KEYS = ['app.installName', 'app.installShortName'];
-// v2.2.1 (W-077, S-271): keys the current js no longer reads but an HTTP-cached older planRun.js (main up to v2.2.0) still
+// v2.3.2 (W-077, S-271): keys the current js no longer reads but an HTTP-cached older planRun.js (main up to v2.3.1) still
 // does for its header back label (W-072 mixed cache: a new locale must not show it a raw key). Values unchanged.
 const CACHED_JS_KEYS = ['plan.run.backToday', 'plan.run.backDayHtml'];
 const SECTIONS = ['app', 'home', 'quiz', 'exam', 'result', 'review', 'similar', 'flagged', 'study', 'memo', 'modal', 'common', 'plan', 'data'];

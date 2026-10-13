@@ -45,6 +45,12 @@ LOCALES['zh-HK'] = {
     translationSwitchLabel: '廣東話翻譯功能',
     translationToastOn: '已開啟廣東話翻譯',
     translationToastOff: '已關閉廣東話翻譯',
+    memoFeature: '🧠 記憶法溫習模式',
+    memoOnNote: '已在溫習頁顯示「記憶法」分頁',
+    memoOffNote: '「記憶法」分頁已隱藏，進度會保留',
+    memoSwitchLabel: '記憶法溫習模式',
+    memoToastOn: '已開啟記憶法溫習模式',
+    memoToastOff: '已關閉記憶法溫習模式',
   },
 
   home: {
@@ -233,6 +239,10 @@ LOCALES['zh-HK'] = {
     planOffMessage: '所有溫習計劃相關功能將會隱藏，並會離開溫習計劃畫面。你的計劃及進度將會保留，重新開啟後可從原本的進度繼續。',
     planOffOk: '確定',
     planOffCancel: '取消',
+    memoOffTitle: '關閉記憶法溫習模式？',
+    memoOffMessage: '今次試題將不會記錄。你的記憶法進度將會保留，重新開啟後可繼續。',
+    memoOffOk: '確定',
+    memoOffCancel: '取消',
     planResetTitle: '重設溫習計劃？',
     planResetMessage: '此計劃及每日完成度將會清除，不可還原，但之後可重新建立。\n溫習及練習記錄（掌握進度、錯題、標記）則不受影響。',
     planResetOk: '確定',

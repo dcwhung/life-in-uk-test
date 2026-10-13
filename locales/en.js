@@ -52,6 +52,13 @@ LOCALES.en = {
     // v1.4.1: toast after the switch (like plan.toastOn / plan.toastOff)
     translationToastOn: 'Cantonese translation turned on',
     translationToastOff: 'Cantonese translation turned off',
+    // v2.3.0: the memory-note study mode switch (same On / Off pill words as the plan row)
+    memoFeature: '🧠 Memory study mode',
+    memoOnNote: 'The Memory tab shows on the Study screen',
+    memoOffNote: 'The Memory tab is hidden; your progress is kept',
+    memoSwitchLabel: 'Memory study mode',
+    memoToastOn: 'Memory study mode turned on',
+    memoToastOff: 'Memory study mode turned off',
   },
 
   home: {
@@ -243,6 +250,11 @@ LOCALES.en = {
     planOffMessage: "All study plan features will be hidden, and you'll leave the study plan screens. Your plan and progress will be kept, so you can carry on where you left off when you turn it back on.",
     planOffOk: 'Confirm',
     planOffCancel: 'Cancel',
+    // v2.3.0: memory-note study mode off from the group screen or a group's test
+    memoOffTitle: 'Turn off memory study mode?',
+    memoOffMessage: "This test won't be recorded. Your memory progress will be kept, so you can carry on when you turn it back on.",
+    memoOffOk: 'Confirm',
+    memoOffCancel: 'Cancel',
     // "↺ Reset plan" on the schedule: deletes the plan and its log only
     planResetTitle: 'Reset the study plan?',
     planResetMessage: "This plan and its daily progress will be deleted and can't be restored, but you can create a new one afterwards.\nYour study and practice records (mastery, wrong answers, flags) are not affected.",
@@ -489,15 +501,15 @@ LOCALES.en = {
     },
     // runner (PR6a): a task on the Practice screen, its Result card; Day n stays English (lang="en")
     run: {
-      // backToday / backDayHtml: no longer read since v2.2.1 (backTodayLabel / backDayLabel); kept for an HTTP-cached
-      // planRun.js up to v2.2.0 (W-072 mixed cache), which still names its back button with them. S-271: can go once
-      // no supported cache can hold a pre-v2.2.1 planRun.js (a later release that drops the old-file guards)
+      // backToday / backDayHtml: no longer read since v2.3.2 (backTodayLabel / backDayLabel); kept for an HTTP-cached
+      // planRun.js up to v2.3.1 (W-072 mixed cache), which still names its back button with them. S-271: can go once
+      // no supported cache can hold a pre-v2.3.2 planRun.js (a later release that drops the old-file guards)
       backToday: "Today's tasks",
       backDayHtml: '{day} tasks',
       // one fact's ▶ Practise, mid-session: the header reads quiz.back ("Back", short beside "Fact Ch c #n"), named this
       // (contains the visible word; planRun.js planQuizBackName)
       backFactLabel: 'Back to the fact',
-      // v2.2.1 (W-077): the plan header / #planRunBack "‹ Back" is named after the day it goes back to, starting with the
+      // v2.3.2 (W-077): the plan header / #planRunBack "‹ Back" is named after the day it goes back to, starting with the
       // visible word (planRun.js planRunBackName); plain text, never HTML (an aria-label)
       backTodayLabel: "Back to today's tasks",
       backDayLabel: 'Back to {day} tasks',

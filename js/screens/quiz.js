@@ -77,9 +77,11 @@ function renderQuestion() {
     renderNavButtons(idx, total, revealed);
     forgetQuizPanelsOnNewQuestion();
     quizDeskStale = true; // S-233: the desktop parts are filled by arrangeQuiz, and only on desktop
-    arrangeQuiz(deskOn()); // v2.0.0: the desktop columns first, so the counter below measures the row it ends up in
-    fitQuestionCounter(); // C3: measured once the counter's row (bookmark, arrows) is final
-    desktopRefit('screenQuiz', fitQuiz);
+    arrangeQuiz(deskOn()); // v2.0.0: the desktop columns first, so the counter measures the row it ends up in
+    // C3: the counter is fitted by fitQuiz (v2.1.2 review S-262: once per render, not here as well); a cached shell
+    // without fit.js (W-057) never runs fitQuiz, so it is fitted here
+    if (typeof runRefits === 'function') desktopRefit('screenQuiz', fitQuiz);
+    else fitQuestionCounter();
   } finally {
     quizMainHold = null; // S-249: used by fitQuiz above; never carried to a later resize, even if the render throws
   }
@@ -154,16 +156,6 @@ function questionRowFitsEveryState(qNum) {
     quick.className = saved.quickClass;
   }
 }
-// a rotation / resize changes the room the counter has. S-257: a drag fires many resize events a frame; each fit
-// measures every row state (forced layouts), so they are merged into one fit on the next frame
-let questionCounterFitFrame = 0;
-window.addEventListener('resize', () => {
-  if (questionCounterFitFrame) return;
-  questionCounterFitFrame = requestAnimationFrame(() => {
-    questionCounterFitFrame = 0;
-    if (byId('screenQuiz').classList.contains('active')) fitQuestionCounter();
-  });
-});
 function renderQuizHeader(q, idx, total) {
   const label = byId('quizLabel');
   if (state.examNum === ALL_EXAM && !isRandomExam(state.examNum)) label.textContent = t('quiz.allShuffled');
@@ -557,8 +549,12 @@ function syncExamTimerCopy() {
 }
 // mockup fitOptions(): options always 2 × 2 (css), one height while it fits; ① rows by content (is-tight) →
 // ② tighter card / option padding (is-compact) → ③ only then does the column scroll
+// v2.1.2 review S-262: fitQuiz runs at every width (onRefit), on render and on resize (fit.js, once per frame), so it
+// also fits the question counter: after arrangeQuiz (the counter measures the row it ends up in) and before fitSteps
+// (the column is measured with the counter it will show; a resize across a counter tier changes the card's height)
 function fitQuiz(desktop) {
   arrangeQuiz(desktop);
+  fitQuestionCounter();
   if (!quizDesk) return; // S-233: never built on a phone, so no steps to take off
   const d = quizDesk;
   fitSteps(d.main, [[d.moved.options, 'is-tight'], 'is-compact']);
