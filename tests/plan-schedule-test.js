@@ -441,6 +441,20 @@ async function checkChangeGoalExamInWindow(pg) {
   await pg.click('#screenPlanSchedule [data-action="planEditGoal"]');
   const gone = await goalForm(pg);
   assert(gone.exam === '2026-10-15' && gone.field === '2026-10-15' && !gone.cta, 'CUI-0037: exam already past: the date moves up to today + 7: ' + JSON.stringify(gone));
+  // S-252: the keep rule's edges: an exam today is not ahead (moves like a past one); tomorrow is kept, 1 study day
+  const stored = await editStoredExam(pg, TODAY);
+  assert(stored.exam === '2026-10-15' && stored.field === '2026-10-15' && !stored.cta, 'S-252: exam today: the date moves up to today + 7: ' + JSON.stringify(stored));
+  const tomorrow = await editStoredExam(pg, '2026-10-09');
+  assert(tomorrow.exam === '2026-10-09' && tomorrow.field === '2026-10-09' && tomorrow.study === '1' && tomorrow.cta && tomorrow.hint === EDIT_HINT_EN && !tomorrow.msg,
+    'S-252: exam tomorrow: kept (1 study day), Update disabled with the 7-day hint: ' + JSON.stringify(tomorrow));
+}
+// a running plan (Day 1 on 28 Sep, no rest days) whose stored exam is examIso, opened in Change goal
+async function editStoredExam(pg, examIso) {
+  await fresh(pg);
+  await pg.evaluate(exam => writeStudyPlan(buildPlan({ examDate: exam, dailyMins: 120, restDays: [], level: 'none' }, '2026-09-28')), examIso);
+  await pg.evaluate(() => openPlanSchedule());
+  await pg.click('#screenPlanSchedule [data-action="planEditGoal"]');
+  return goalForm(pg);
 }
 
 // CUI-0037 B2 / B3 (every width; here 390px): the Daily tasks legend lists only the phases the plan has, and the phase
