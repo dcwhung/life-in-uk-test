@@ -38,7 +38,7 @@
 </style>
 </head>
 <body>
-<h1>Preview：⚙ 設定加「🧠 記憶法溫習」開關</h1>
+<h1>Preview：⚙ 設定加「🧠 記憶法溫習模式」開關</h1>
 <p class="lead">紅色虛線框 = 新加。開關放喺「功能」區，排喺「🌐 廣東話翻譯」同「🗓️ 溫習計劃」中間；樣式同其他兩個開關一樣（On 綠 pill / Off 紅 pill + 說明字 + switch）。預設 <b>開啟</b>（現有用戶冇改變）。</p>
 
 <div class="grid">
@@ -58,7 +58,7 @@
             <span><button type="button" class="switch" role="switch" aria-checked="true"><i></i></button></span>
           </div>
           <div class="plan-setting-row new">
-            <span><b>🧠 記憶法溫習</b><span class="feature-pill on">已開啟</span><span class="plan-setting-note">已在溫習頁顯示「記憶法」分頁</span></span>
+            <span><b>🧠 記憶法溫習模式</b><span class="feature-pill on">已開啟</span><span class="plan-setting-note">已在溫習頁顯示「記憶法」分頁</span></span>
             <span><button type="button" class="switch" role="switch" aria-checked="true"><i></i></button></span>
           </div>
           <div class="plan-setting-row">
@@ -86,7 +86,7 @@
             <span><button type="button" class="switch" role="switch" aria-checked="true"><i></i></button></span>
           </div>
           <div class="plan-setting-row new">
-            <span><b>🧠 記憶法溫習</b><span class="feature-pill off">已關閉</span><span class="plan-setting-note">「記憶法」分頁已隱藏，進度會保留</span></span>
+            <span><b>🧠 記憶法溫習模式</b><span class="feature-pill off">已關閉</span><span class="plan-setting-note">「記憶法」分頁已隱藏，進度會保留</span></span>
             <span><button type="button" class="switch" role="switch" aria-checked="false"><i></i></button></span>
           </div>
           <div class="plan-setting-row">
@@ -95,7 +95,7 @@
           </div>
         </div>
       </div>
-      <div class="toast">已關閉記憶法溫習</div>
+      <div class="toast">已關閉記憶法溫習模式</div>
     </div>
   </div>
 
@@ -128,9 +128,9 @@
   <tr><th>項目</th><th>建議行為</th></tr>
   <tr><td>預設</td><td>開啟（新 key <code>lifeuk.memoEnabled</code>，冇值 = 開），現有用戶睇落冇變</td></tr>
   <tr><td>關閉後收埋</td><td>溫習頁 🧠「記憶法」分頁；記憶法組畫面（<code>#screenMemo</code>）；desktop 側欄嗰粒全闊 🧠 掣</td></tr>
-  <tr><td>唔受影響</td><td>答案框入面嘅 note（包括「記憶法（…）：」字眼）、Study 知識點卡入面「💡 記憶法」摺疊框 —— 呢啲係題目注解，唔係「記憶法溫習」功能</td></tr>
+  <tr><td>唔受影響</td><td>答案框入面嘅 note（包括「記憶法（…）：」字眼）、Study 知識點卡入面「💡 記憶法」摺疊框 —— 呢啲係題目注解，唔係「記憶法溫習模式」功能</td></tr>
   <tr><td>進度</td><td>保留 <code>lifeuk.memoProgress</code>（Lv / 到期日），重新開啟由原本進度繼續</td></tr>
-  <tr><td>確認視窗</td><td>唔使（同 🌐 翻譯一樣即撳即轉 + toast）；只有喺記憶法畫面 / 試緊題時先彈確認（同 🗓️ 溫習計劃一樣：「關閉記憶法溫習？今次試題不會記錄。」）</td></tr>
+  <tr><td>確認視窗</td><td>唔使（同 🌐 翻譯一樣即撳即轉 + toast）；只有喺記憶法畫面 / 試緊題時先彈確認（同 🗓️ 溫習計劃一樣：「關閉記憶法溫習模式？今次試題不會記錄。」）</td></tr>
   <tr><td>版本</td><td>新功能 → v2.2.0（minor）</td></tr>
 </table>
 </body>
