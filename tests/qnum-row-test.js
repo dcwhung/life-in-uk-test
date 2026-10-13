@@ -10,7 +10,7 @@
 // - #qText's offset below the row's top (less the row's margin) changes by ≤ 0.5px
 // - where there is room (1280 × 800), the full counter stays
 // Also: the pressed Translate button reads "Hide" (中文 "隱藏", W-071) and keeps its full name for assistive tech, and the
-// counter is re-fitted on a resize, a language / text size / translation switch.
+// counter is re-fitted on a resize (once per frame, S-257), a language / text size / translation switch.
 const dt = require('./desktop-helpers');
 const { assert } = dt;
 
@@ -189,8 +189,28 @@ async function checkRefit(b) {
   await page.close();
 }
 
+// S-257: resize events within one frame (a drag, a rotation) are merged: the counter is fitted once, on the next frame
+async function checkResizeMerged(b) {
+  const { page, errors } = await dt.openDesktop(b, { viewport: dt.VIEWPORTS.phone, lang: 'en', fontSize: 'large', translation: true });
+  await page.evaluate(n => { pendingMode = 'practice'; startExam(n); }, EXAM_ONE);
+  await dt.nextFrame(page);
+  const fits = await page.evaluate(() => new Promise(resolve => {
+    const fit = window.fitQuestionCounter;
+    let calls = 0;
+    window.fitQuestionCounter = () => { calls++; fit(); };
+    for (let i = 0; i < 5; i++) window.dispatchEvent(new Event('resize'));
+    const sync = calls;
+    requestAnimationFrame(() => requestAnimationFrame(() => { window.fitQuestionCounter = fit; resolve({ sync, calls }); }));
+  }));
+  assert(fits.sync === 0 && fits.calls === 1, '5 resize events in one frame: the counter is fitted once, on the next frame: ' + JSON.stringify(fits));
+  assert(await page.$eval('#qNum > span[data-full]', e => e.textContent) === 'Q 1/24', 'after the merged resize: still "Q 1/24" at 390 large');
+  assert(errors.length === 0, 'no page error: ' + errors.join(' | '));
+  await page.close();
+}
+
 (async () => {
   const b = await dt.launch();
+  await checkResizeMerged(b);
   await checkHideLabel(b);
   for (const c of CASES) await checkCase(b, c);
   await checkRefit(b);

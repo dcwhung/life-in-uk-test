@@ -154,8 +154,16 @@ function questionRowFitsEveryState(qNum) {
     quick.className = saved.quickClass;
   }
 }
-// a rotation / resize changes the room the counter has
-window.addEventListener('resize', () => { if (byId('screenQuiz').classList.contains('active')) fitQuestionCounter(); });
+// a rotation / resize changes the room the counter has. S-257: a drag fires many resize events a frame; each fit
+// measures every row state (forced layouts), so they are merged into one fit on the next frame
+let questionCounterFitFrame = 0;
+window.addEventListener('resize', () => {
+  if (questionCounterFitFrame) return;
+  questionCounterFitFrame = requestAnimationFrame(() => {
+    questionCounterFitFrame = 0;
+    if (byId('screenQuiz').classList.contains('active')) fitQuestionCounter();
+  });
+});
 function renderQuizHeader(q, idx, total) {
   const label = byId('quizLabel');
   if (state.examNum === ALL_EXAM && !isRandomExam(state.examNum)) label.textContent = t('quiz.allShuffled');
