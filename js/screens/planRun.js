@@ -122,10 +122,12 @@ function planRunBackHtml(from) {
   if (!plan) return escapeHtml(t('plan.run.backToday'));
   return t('plan.run.backDayHtml', { day: `<span lang="en">${t('plan.dayN', { n: planDayNumber(plan, from) })}</span>` });
 }
-// the quiz header's 🏠 reads "‹ Today's tasks" in a plan session or mock (goHome goes back to the day there);
-// a fact's session is named like the Study one ("Fact Ch c #n", setExamLabel)
+// the quiz header's back button reads "‹ Today's tasks" in a plan session or mock: goBack (sideSession.js) leaves a
+// session through planLeaveSession, a mock through goHome (planLeaveMock asks first); a fact's session is named like
+// the Study one ("Fact Ch c #n", setExamLabel)
 // v1.2.0 (Q11): Home is an icon button; a plan's text back label keeps its words, and those words name it (S-188: an
-// aria-label would hide the <span lang="en">Day n</span> language from screen readers)
+// aria-label would hide the <span lang="en">Day n</span> language from screen readers; a shortened label passes
+// its full words as `name`, W-073)
 // W-071: index.html says goHome; goBack only once this page's actions.js has it (an HTTP-cached pre-v2.0.5 actions.js
 // would leave the header a dead button mid-session). goHome still leaves a plan session for its day.
 function hasGoBackAction() { return typeof ACTIONS !== 'undefined' && typeof ACTIONS.goBack === 'function'; }
@@ -213,8 +215,8 @@ function planReviewNextAction(ret) {
   }
   return planAction(t('quiz.finishButton'), PLAN_RUN_SYMBOL.finish, () => planBackToDay(), t('quiz.finish'));
 }
-// ← (quiz header in a plan session, Result card header, "Back to the task list"): the day screen it came from,
-// focus on the task's box when it is listed there
+// ‹ (Result card header, "Back to the task list", a whole task's quiz header via goBack → planLeaveSession): the day
+// screen it came from, focus on the task's box when it is listed there
 function planBackToDay() {
   const ret = isPlanSession() ? sessionReturn : planRunView || planMockRun;
   clearSideSession();

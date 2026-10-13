@@ -167,7 +167,9 @@ function startFlaggedPractice() { pendingMode = PRACTICE_MODE; startExam(FLAGGED
 
 // ── back to home (asks first while an exam is running) ──
 function goHome() {
-  if (isPlanSession()) { planBackToDay(); return; } // the quiz header reads "‹ Today's tasks" in a plan task
+  // the quiz header is goBack (planLeaveSession) in a plan task since v2.0.5; this stays for goHome callers, and for a
+  // cached pre-v2.0.5 actions.js where the header is still goHome (W-071)
+  if (isPlanSession()) { planBackToDay(); return; }
   if (isExamRunning()) {
     showConfirm({ title: t('modal.leaveTitle'), message: t('modal.leaveMessage'),
       okLabel: t('modal.leaveOk'), cancelLabel: t('modal.leaveCancel'), onOk: isPlanMock() ? planLeaveMock : leaveToHome, focusCancel: true });
