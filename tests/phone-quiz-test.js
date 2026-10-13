@@ -125,6 +125,68 @@ async function checkBreakpoint(b) {
   await page.close();
 }
 
+// C-007 / W-078: short phones (≥ 500px high, so the one-screen layout is on). The fixed question card may leave the
+// panel little room: then the screen falls back to the scrolling page (main's layout), re-checked on every render.
+// Every question of Exam 1 with its translation shown (the tallest cards), large text: either the panel keeps at least
+// MIN_PANEL_PX (about two option rows) or the screen falls back; every option and Prev / Next can be reached
+const MIN_PANEL_PX = 120;
+const SHORT_PHONES = [
+  { viewport: { width: 375, height: 553 }, fontSize: 'small' }, // iPhone SE / 8 in Safari with its bars
+  { viewport: { width: 375, height: 553 }, fontSize: 'large' },
+  { viewport: { width: 320, height: 568 }, fontSize: 'large' },
+  { viewport: { width: 360, height: 640 }, fontSize: 'large' },
+];
+const LANDSCAPE = { width: 844, height: 390 }; // below the 500px floor: the one-screen layout is off
+const TIGHT = { width: 360, height: 520 }; // large text + translation: no room for the panel at all
+const fitState = page => page.evaluate(sel => {
+  const screen = byId('screenQuiz'), panel = document.querySelector(sel), el = document.scrollingElement;
+  return { fit: getComputedStyle(screen).display === 'flex', panelH: panel ? panel.clientHeight : 0,
+    pageScrolls: el.scrollHeight > el.clientHeight + 1, sideways: el.scrollWidth > el.clientWidth + 1 };
+}, PANEL);
+async function checkShortPhones(b) {
+  for (const { viewport, fontSize } of SHORT_PHONES) {
+    const { page, errors, label } = await dt.openDesktop(b, { viewport, lang: 'zh-HK', fontSize, translation: true });
+    let fits = 0, falls = 0;
+    for (const mode of ['practice', 'exam']) {
+      await page.evaluate(([m, n]) => { pendingMode = m; startExam(n); }, [mode, EXAM_ONE]);
+      const total = await page.evaluate(() => state.questions.length);
+      for (let i = 0; i < total; i++) {
+        await page.evaluate(k => { goToQuestion(k); if (state.mode === 'practice') { state.yueShown[k] = true; renderQuestion(); } }, i);
+        await dt.nextFrame(page);
+        const f = await fitState(page);
+        assert(!f.sideways, `${label} ${mode} Q${i + 1}: no sideways scroll`);
+        if (f.fit) fits++; else falls++;
+        assert(!f.fit || f.panelH >= MIN_PANEL_PX, `${label} ${mode} Q${i + 1}: one screen high only with room for the options (panel ${f.panelH}px ≥ ${MIN_PANEL_PX}), else the page scrolls`);
+        const reach = await dt.controlsReachable(page, '#screenQuiz .options, #screenQuiz .nav-row');
+        assert(reach.ok && reach.count > 0, `${label} ${mode} Q${i + 1}: every option and Prev / Next reachable (${reach.detail})`);
+      }
+    }
+    console.log(`  ${label}: ${fits} one-screen, ${falls} scrolling-page renders`);
+    assert(errors.length === 0, `${label} short phone: no page errors ` + errors.join(' | '));
+    await page.close();
+  }
+}
+// the fallback itself: no room → the page scrolls as before v2.2.0 (the card, options and Prev / Next in the page flow);
+// a roomy screen again → one screen high again (re-checked on resize); a landscape phone (< 500px high) never goes one-screen
+async function checkFallback(b) {
+  const { page, errors } = await dt.openDesktop(b, { viewport: TIGHT, lang: 'zh-HK', fontSize: 'large', translation: true });
+  await page.evaluate(n => { pendingMode = 'practice'; startExam(n); state.yueShown[0] = true; renderQuestion(); }, EXAM_ONE);
+  await dt.nextFrame(page);
+  let f = await fitState(page);
+  assert(!f.fit && f.pageScrolls, `${TIGHT.width}×${TIGHT.height} large: no room, the page scrolls instead (${JSON.stringify(f)})`);
+  const reach = await dt.controlsReachable(page);
+  assert(reach.ok, `${TIGHT.width}×${TIGHT.height}: every control reachable on the scrolling page (${reach.detail})`);
+  await dt.setViewport(page, dt.VIEWPORTS.phone);
+  f = await fitState(page);
+  assert(f.fit && f.panelH >= MIN_PANEL_PX && !f.pageScrolls, `390×844 after a resize: one screen high again (${JSON.stringify(f)})`);
+  await dt.setViewport(page, LANDSCAPE);
+  f = await fitState(page);
+  assert(!f.fit, `${LANDSCAPE.width}×${LANDSCAPE.height} (landscape, < 500px high): the page layout (${JSON.stringify(f)})`);
+  assert((await dt.controlsReachable(page)).ok, 'landscape: every control reachable');
+  assert(errors.length === 0, 'fallback: no page errors ' + errors.join(' | '));
+  await page.close();
+}
+
 (async () => {
   const b = await dt.launch();
   let failed = false;
@@ -138,6 +200,8 @@ async function checkBreakpoint(b) {
       assert(errors.length === 0, `${label}: no page errors ` + errors.join(' | '));
       await page.close();
     }
+    await checkShortPhones(b);
+    await checkFallback(b);
     await checkNewQuestionTop(b);
     await checkBreakpoint(b);
     console.log('PHONE-QUIZ PASS');

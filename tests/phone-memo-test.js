@@ -229,6 +229,67 @@ async function checkPhoneOneScreen(b) {
   }
 }
 
+// C-007 / W-078: the same guard on short phones (≥ 500px high): the memo panel keeps at least MIN_PANEL_PX or the
+// screen falls back to the scrolling page; every control reachable. Large text, translation on, every group's look
+// (the hook is fixed above the panel) and a 5-wrong result
+const MIN_PANEL_PX = 120;
+const SHORT_PHONES = [
+  { viewport: { width: 375, height: 553 }, fontSize: 'small' },
+  { viewport: { width: 375, height: 553 }, fontSize: 'large' },
+  { viewport: { width: 320, height: 568 }, fontSize: 'large' },
+  { viewport: { width: 360, height: 640 }, fontSize: 'large' },
+];
+const LANDSCAPE = { width: 844, height: 390 };
+const TIGHT = { width: 320, height: 500 };
+const memoFit = page => page.evaluate(() => {
+  const panel = document.querySelector('#memoBody > .memo-scroll > .fit-panel'), el = document.scrollingElement;
+  return { fit: getComputedStyle(byId('screenMemo')).display === 'flex', panelH: panel ? panel.clientHeight : 0,
+    pageScrolls: el.scrollHeight > el.clientHeight + 1, sideways: el.scrollWidth > el.clientWidth + 1 };
+});
+async function checkMemoShortPhones(b) {
+  for (const { viewport, fontSize } of SHORT_PHONES) {
+    const { page, errors, label } = await dt.openDesktop(b, { viewport, lang: 'zh-HK', fontSize, translation: true });
+    const ids = await page.evaluate(() => memoGroups().map(g => g.id));
+    for (const id of ids) {
+      await openGroup(page, id);
+      const f = await memoFit(page);
+      assert(!f.sideways && (!f.fit || f.panelH >= MIN_PANEL_PX), `${label} look ${id}: one screen high only with room (panel ${f.panelH}px), else the page scrolls`);
+    }
+    const longest = await page.evaluate(() => memoGroups().filter(g => g.hook).sort((a, c) => c.hook.length - a.hook.length)[0].id);
+    await openGroup(page, longest);
+    const reach = await dt.controlsReachable(page);
+    assert(reach.ok, `${label} look ${longest}: every control reachable (${reach.detail})`);
+    await page.evaluate(gid => {
+      const wrong = allQuestions().slice(0, 5).map(it => ({ q: it.q.q, yue: it.q.yue || '', keys: [qKey(it)] }));
+      Object.assign(memoView, { id: gid, step: 'result', result: { passed: false, lv: 1, prevLv: 2, correct: 0, total: 5, wrong } });
+      showMemo();
+    }, longest);
+    const r = await memoFit(page);
+    assert(!r.fit || r.panelH >= MIN_PANEL_PX, `${label} result: one screen high only with room (panel ${r.panelH}px)`);
+    assert((await dt.controlsReachable(page)).ok, `${label} result: every control reachable`);
+    assert(errors.length === 0, `${label} memo short phone: no page errors ` + errors.join(' | '));
+    await page.close();
+  }
+}
+// the fallback itself: the longest hook at 320 × 500 large leaves no room → the page scrolls; 390 × 844 → one screen
+// again on resize; landscape (< 500px high) → the page layout
+async function checkMemoFallback(b) {
+  const { page, errors } = await dt.openDesktop(b, { viewport: TIGHT, lang: 'zh-HK', fontSize: 'large', translation: true });
+  const longest = await page.evaluate(() => memoGroups().filter(g => g.hook).sort((a, c) => c.hook.length - a.hook.length)[0].id);
+  await openGroup(page, longest);
+  let f = await memoFit(page);
+  assert(!f.fit && f.pageScrolls, `${TIGHT.width}×${TIGHT.height} large (${longest}): no room, the page scrolls instead (${JSON.stringify(f)})`);
+  assert((await dt.controlsReachable(page)).ok, `${TIGHT.width}×${TIGHT.height}: every control reachable on the scrolling page`);
+  await dt.setViewport(page, dt.VIEWPORTS.phone);
+  f = await memoFit(page);
+  assert(f.fit && f.panelH >= MIN_PANEL_PX && !f.pageScrolls, `390×844 after a resize: one screen high again (${JSON.stringify(f)})`);
+  await dt.setViewport(page, LANDSCAPE);
+  f = await memoFit(page);
+  assert(!f.fit && (await dt.controlsReachable(page)).ok, `landscape ${LANDSCAPE.width}×${LANDSCAPE.height}: the page layout, controls reachable`);
+  assert(errors.length === 0, 'memo fallback: no page errors ' + errors.join(' | '));
+  await page.close();
+}
+
 (async () => {
   const b = await dt.launch();
   let failed = false;
@@ -238,6 +299,8 @@ async function checkPhoneOneScreen(b) {
     await checkPhoneResult(b);
     await checkPhoneList(b);
     await checkPhoneOneScreen(b);
+    await checkMemoShortPhones(b);
+    await checkMemoFallback(b);
     console.log('PHONE-MEMO PASS');
   } catch (e) {
     failed = true;
