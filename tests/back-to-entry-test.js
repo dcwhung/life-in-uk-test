@@ -240,6 +240,13 @@ async function checkSimilarNarrow(b) {
   const back = await backOf(pg, 'screenQuiz');
   assert(start >= 9 && isTextBack(back, `Q${start + 1}`) && r.large === 'large', `320px en large: Similar from Q${start + 1} reads "${back.text}"`);
   assert(r.page <= r.vw && r.header !== false, `W-074 320px en large: no sideways scroll (${JSON.stringify(r)})`);
+  // v2.1.4 (user): the wrapped "SIMILAR QUESTIONS" sits against the badge, its lines right-aligned
+  const lab = await pg.$eval('#screenQuiz .quiz-meta .quiz-label', e => {
+    const range = document.createRange(); range.selectNodeContents(e);
+    const lines = [...range.getClientRects()].filter(q => q.width > 0);
+    return { align: getComputedStyle(e).textAlign, right: e.getBoundingClientRect().right, ends: lines.map(q => Math.round(q.right)), n: new Set(lines.map(q => Math.round(q.top))).size };
+  });
+  assert(lab.align === 'right' && lab.n >= 2 && lab.ends.every(x => Math.abs(x - lab.right) <= 2), `320px en large: the wrapped Similar label is right-aligned (${JSON.stringify(lab)})`);
   assert(errors.length === 0, `320px: no page errors (${errors.join(' | ')})`);
   await ctx.close();
 }

@@ -11,6 +11,9 @@
 /* S-241: the label is the flex item that gives way — it may shrink below its longest word and break inside it, so an
    unbreakable title (en "🧠 CROWN DEPENDENCY" at 320px, large text) never pushes the badge into the right gutter */
 .quiz-label { min-width: 0; overflow-wrap: anywhere; }
+/* v2.1.4 (user 2026-10-13): a label that wraps (en "SIMILAR QUESTIONS" at 320px, large text) stays against the badge,
+   as a one-line label does; one line looks the same either way */
+.quiz-meta .quiz-label { text-align: right; }
 
 /* review round note (above the question card, right) */
 .round-row { display: flex; justify-content: flex-end; margin: calc(-1 * var(--space-2)) 0 var(--space-4); }
