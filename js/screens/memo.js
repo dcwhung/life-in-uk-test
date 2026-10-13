@@ -164,7 +164,7 @@ const MEMO_ITEM_MARK = '#';
 function memoPillsHtml(keys, n) {
   const ch = questionByKey(keys[0]).q.ch;
   const chapter = `<span class="tag" lang="en"><span aria-hidden="true">${CHAPTER_ICONS[ch]}</span> ${escapeHtml(t('common.chapterShort', { n: ch }))}</span>`;
-  const node = `<span class="sqm-node${questionNodeClass(keys[0])}" lang="en">${escapeHtml(copiesNodeText(keys))}</span>`;
+  const node = questionNodeHtml(keys, { lang: 'en' }); // S-265: the Similar map / fact card's own node
   return `<div class="memo-pills"><span class="tag" lang="en">${MEMO_ITEM_MARK}${n}</span>${chapter}${node}</div>`;
 }
 // one question in a list: its pill row (when its keys are known), the English question and its translation
