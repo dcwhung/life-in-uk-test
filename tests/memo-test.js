@@ -114,8 +114,8 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   assert(order[0] === 'vote' && order[1] === 'ww2' && order[GROUP_COUNT - 1] === 'parliament' && order[GROUP_COUNT - 2] === 'writers', 'list: due first, then new, learning, done last');
   const badges = await pg.$$eval('#studyContent .memo-card', els => Object.fromEntries(els.map(e => [e.dataset.arg, [e.querySelector('.memo-badge').textContent, e.querySelector('.memo-bar i').style.width, e.className]])));
   assert(badges.vote[0] === 'Due today' && badges.vote[1] === '67%' && /\bdue\b/.test(badges.vote[2]), 'due card: "Due today", bar Lv2 of 3 = 67%');
-  assert(badges.writers[0] === 'Started · in 9 days' && badges.writers[1] === '33%' && /\blearning\b/.test(badges.writers[2]), 'learning card (v2.4.2): "Started · in 9 days", bar 33%');
-  assert(badges.parliament[0] === 'Known · in 9 days' && badges.parliament[1] === '100%' && /\bdone\b/.test(badges.parliament[2]), 'done card (v2.4.2: a stored Lv4 reads as Lv3): "Known · in 9 days", full bar');
+  assert(badges.writers[0] === 'Started' && badges.writers[1] === '33%' && /\blearning\b/.test(badges.writers[2]), 'learning card (v2.4.2): "Started", bar 33%');
+  assert(badges.parliament[0] === 'Known' && badges.parliament[1] === '100%' && /\bdone\b/.test(badges.parliament[2]), 'done card (v2.4.2: a stored Lv4 reads as Lv3): "Known", full bar');
   const cardColour = await pg.evaluate(() => {
     const probe = name => { const i = document.createElement('i'); i.style.color = `var(${name})`; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c; };
     const left = sel => getComputedStyle(document.querySelector(sel)).borderLeftColor;
@@ -206,7 +206,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   assert(await schedule() === 'past:Lv1Started|retry:Lv2FamiliarTomorrow|:Lv3Known' && await pg.$('#memoBody .memo-lv.next') === null,
     'W-065: fail schedule: Lv1 past, Lv2 "Tomorrow", no "next" interval: ' + await schedule());
   await pg.click('#screenMemo .memo-back');
-  assert(await pg.$eval('#studyContent .memo-card[data-arg="parliament"] .memo-badge', e => e.textContent) === 'Familiar · in 1 day', 'W-064: the list reads "Familiar · in 1 day", not Known');
+  assert(await pg.$eval('#studyContent .memo-card[data-arg="parliament"] .memo-badge', e => e.textContent) === 'Familiar', 'W-064: the list reads "Familiar", not Known');
 
   // ── S-232 (user): unanswered questions do not count ──
   const voteBefore = (await stored()).vote;
@@ -312,7 +312,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
     start: document.querySelector('.memo-due button').textContent, count: document.querySelector('#studyCount').textContent,
     badges: [...document.querySelectorAll('.memo-card')].map(e => e.querySelector('.memo-badge').textContent) }));
   assert(zh.tab === '記憶法' && zh.banner === '今日需溫習 1 組' && zh.start === '開始' && zh.count === `${GROUP_COUNT} / ${GROUP_COUNT} 組`, 'zh-HK list: 記憶法 tab, 今日需溫習 1 組, 開始 ▶, count: ' + JSON.stringify(zh).slice(0, 160));
-  assert(zh.badges[0] === '今日到期' && zh.badges.includes('未溫習') && zh.badges[GROUP_COUNT - 1] === '已掌握 · 9 日後再溫', 'zh-HK badges: 今日到期 / 未溫習 / 已掌握 · 9 日後再溫');
+  assert(zh.badges[0] === '今日到期' && zh.badges.includes('未溫習') && zh.badges[GROUP_COUNT - 1] === '已掌握', 'zh-HK badges: 今日到期 / 未溫習 / 已掌握');
   await pg.click('.memo-due button');
   await runTest([true, true, true, true, true]);
   assert(await text('#memoBody .memo-verdict') === '測驗 5/5（≥ 70%）→ 升至 Lv2 熟練' && await text('#memoBody .memo-again') === '再溫習一次', 'zh-HK result: 測驗 5/5（≥ 70%）→ 升至 Lv2 熟練 / 再溫習一次');

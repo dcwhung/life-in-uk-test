@@ -240,12 +240,39 @@ async function checkBackKeepsPanel(b) {
   await page.close();
 }
 
+// v2.4.3 (user, iPad Safari): after an answer (translation shown) the options covered the question card. The card and
+// the options start at their content height and never shrink below it: the card shows all of itself, the options start
+// under it — every question of the biggest group, EN / 中 × small / large, three desktop sizes
+const IPAD_VIEWPORT = { width: 1180, height: 820 };
+const cardLayout = page => page.evaluate(() => {
+  const card = document.querySelector('.quiz-main > .q-card'), opts = document.querySelector('.quiz-main > .options');
+  return { clipped: card.scrollHeight > card.clientHeight + 1, gap: opts.getBoundingClientRect().top - card.getBoundingClientRect().bottom };
+});
+async function checkAnsweredCardShows(b) {
+  for (const viewport of [dt.VIEWPORTS.small, IPAD_VIEWPORT, dt.VIEWPORTS.wide]) for (const lang of dt.LANGS) for (const fontSize of dt.FONT_SIZES) {
+    const label = `${viewport.width}×${viewport.height} ${lang} ${fontSize}`;
+    const { page, errors } = await dt.openDesktop(b, { viewport, lang, fontSize, translation: true });
+    await openGroup(page, 'uk-festivals');
+    await page.evaluate(() => startMemoTest());
+    const n = await page.evaluate(() => state.questions.length);
+    for (let i = 0; i < n; i++) {
+      await page.click('.quiz-main .opt');
+      const c = await cardLayout(page);
+      assert(!c.clipped && c.gap >= -PX, `${label} Q${i + 1} answered: the question card shows in full, options below it (gap ${Math.round(c.gap)}px)`);
+      if (i < n - 1) await page.click('.quiz-main .q-card [data-action="next"]');
+    }
+    assert(errors.length === 0, `${label} answered card: no page errors ` + errors.join(' | '));
+    await page.context().close();
+  }
+}
+
 (async () => {
   const b = await dt.launch();
   let failed = false;
   try {
     await checkCases(b);
     await checkBackKeepsPanel(b);
+    await checkAnsweredCardShows(b);
     console.log('DESKTOP-MEMO PASS');
   } catch (e) {
     failed = true;
