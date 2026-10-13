@@ -158,7 +158,7 @@
 ## Tickets
 
 - [CUI-0043](../.tickets/pending/0001-0200/CUI-0043.md) — 🟢 Low layout 穩定性（舊有，v2.0.4 已一樣）：desktop 1024×600／768 翻譯開，撳 Translate／答題觸發 `.quiz-main.is-compact`，題號行 margin 收窄令 `#qText` 郁約 21.6px（v2.0.5 題號行 review S-258；開時叫 CUI-0038，merge `main` v2.1.1 改號）
-- [CUI-0044](../.tickets/pending/0001-0200/CUI-0044.md) — 🟢 Low 排版：記憶鈎普通空格令「1928 / 年」「N. / Ireland」「AD / 43」喺窄 / 大字時斷開兩行（320 大字最多 8 個 token）；建議 `memoHookHtml` render 時換 NBSP，唔郁定稿 data（QA v2.2.0 F-1；原 CUI-0043，merge main 時改號）；**pending**
+- [CUI-0044](../.tickets/completed/0001-0200/CUI-0044.md) — 🟢 Low 排版：記憶鈎普通空格令「1928 / 年」「N. / Ireland」「AD / 43」喺窄 / 大字時斷開兩行（320 大字最多 8 個 token）（QA v2.2.0 F-1；原 CUI-0043，merge main 時改號）；**已修 v2.2.0**（`/fix CUI-0044`，紅 0665d6d → 綠 c8c4d3e / e6b29aa）：`memoHookNoBreak` render 時 token 空格換 U+00A0（數字 + 年 / 歲 / 月 / 國 / 個 / 位…、N. Ireland、AD n、n BC；範圍 dash 後加 U+2060），`data/memo.js` 冇郁、搜尋照讀 data；token-split script 0 / 0（之前 49）
 - [CUI-0042](../.tickets/pending/0001-0200/CUI-0042.md) — 🟢 Low latent bug：計劃 practice task 存咗過時 qid（將來題庫刪題 / 重排）→ `planLearnContentDone` 讀原始 `task.qids`，Learn 階段永遠唔完成、標題數多（QA v2.1.1 F-2）；**pending**
 - [CUI-0041](../.tickets/pending/0001-0200/CUI-0041.md) — 🟡 Medium release 協調：`claude/charming-archimedes-hrh4wd` 同 `origin/fix/quiz/back-to-entry` 都係 `APP_VERSION 2.1.1`（SW cache 撞名，後 deploy 嗰條已裝用戶收唔到）；後 merge 嗰條升 2.1.2（QA v2.1.1 F-1）；**pending**
 - [CUI-0039](../.tickets/completed/0001-0200/CUI-0039.md) — 🟢 Low bug：錯題 / 旗標清單有冇對應題目嘅 key 時 tile 數多咗、撳落去 TypeError（QA v2.0.5 F-1）；已修 **v2.1.1**（開發時叫 v2.0.6）：`isValidQuestionKey` + 載入時 `pruneStaleQuestionKeys`，計劃 review `qids` 過濾（S-262）
