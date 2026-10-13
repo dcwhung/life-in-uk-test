@@ -121,6 +121,10 @@
 
 - [2026-10-12_deploy_v150.md](deploys/2026-10-12_deploy_v150.md) — v1.5.0 主頁計劃卡今日進度環 deploy（PR #103，`a191835`；Pages run 38277273934 success；smoke 12/12 + plan-day PASS 喺 a191835 tree；live host 被 session proxy 擋（403），未直接 probe）
 
+## Tickets
+
+- [CUI-0030](tickets/pending/0001-0200/CUI-0030.md) — 🔴 Critical bug：PC / Tablet 訂立目標考試日期驗證不一致（Mac Chrome 擋 < 7 日、iPad Safari 放行 3 日）；兩階段（冇 Drill）時 Phase detail 卡唔全寬、Daily tasks legend 仍顯示 Drill；mobile 版未驗證；pending；截圖 `tickets/screenshots/CUI-0030/`
+
 ## Plans
 
 - [2026-10-12_handoff_memo-followup-apply.md](plans/2026-10-12_handoff_memo-followup-apply.md) + [2026-10-12_memo-followup-spec.json](plans/2026-10-12_memo-followup-spec.json) — 記憶法跟進（67 題 note、#126 併入 #125 + migration）；v1.3.2 已套用（#125 d 用 5，見 HANDOFF v1.3.2）；review 過程喺 branch `claude/relaxed-hamilton-3x7vm6`
