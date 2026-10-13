@@ -462,16 +462,39 @@ async function checkMainKeptOnAnswer(b, viewport, lang, { translate = false } = 
     await startSet(page, 'practice', ++exam);
     longs = await mainLongs(page, translate);
   }
-  const how = translate ? ', Translate on' : '';
-  assert(longs.length > 0, `${label}${how}: Exam ${exam}: a question whose left column scrolls before answering (${longs.map(i => 'Q' + (i + 1)).join(' ')})`);
+  const trHow = translate ? ', Translate on' : '';
+  assert(longs.length > 0, `${label}${trHow}: Exam ${exam}: a question whose left column scrolls before answering (${longs.map(i => 'Q' + (i + 1)).join(' ')})`);
   for (const i of longs) {
-    for (const where of ['bottom', 'middle']) {
-      await page.evaluate(n => { delete state.answers[n]; delete state.revealed[n]; goToQuestion(n); }, i);
+    for (const [where, how] of [['bottom', 'dom'], ['middle', 'dom'], ['bottom', 'pointer'], ['middle', 'pointer']]) {
+      // pointer: the last pick is a real mouse click, so every option but one is picked first (a multi-answer question
+      // reveals on its last pick)
+      await page.evaluate(([n, pre]) => {
+        delete state.revealed[n];
+        if (pre) state.answers[n] = state.questions[n].a.slice(0, -1); else delete state.answers[n];
+        goToQuestion(n);
+      }, [i, how === 'pointer']);
       if (where === 'bottom') await scrollToBottom(page, PANE.main); else await scrollToMiddle(page, PANE.main);
       const before = await mainView(page);
       assert(before.st > 0, `${label}: Q${i + 1} left column scrolled to the ${where} (${before.st}px)`);
-      // a DOM click: page.click would first scroll the option into view, which is not what is being measured
-      await page.evaluate(() => state.questions[state.current].a.forEach(oi => byId('opt' + oi).click()));
+      if (how === 'dom') {
+        // a DOM click: page.click would first scroll the option into view, which is not what is being measured
+        await page.evaluate(() => state.questions[state.current].a.forEach(oi => byId('opt' + oi).click()));
+      } else {
+        // CUI-0034 review S-250: page.mouse.click at an unpicked option's middle, wholly inside the column's view, so
+        // nothing scrolls it into view first; the browser's own pointer handling (focus included) is what is measured
+        const at = await page.$eval(PANE.main, main => {
+          const view = main.getBoundingClientRect(), picked = state.answers[state.current] || [];
+          const opt = [...main.querySelectorAll('#optionsContainer .opt')].find((el, oi) => {
+            const r = el.getBoundingClientRect();
+            return !picked.includes(oi) && r.top >= view.top && r.bottom <= view.bottom;
+          });
+          if (!opt) return null;
+          const r = opt.getBoundingClientRect();
+          return { x: r.left + r.width / 2, y: r.top + r.height / 2, id: opt.id };
+        });
+        assert(at, `${label}: Q${i + 1} scrolled to the ${where}: an unpicked option wholly in view to click`);
+        await page.mouse.click(at.x, at.y);
+      }
       await dt.nextFrame(page);
       assert(await page.evaluate(() => state.current in state.revealed), `${label}: Q${i + 1} answered`);
       const st = await page.$eval(PANE.main, el => el.scrollTop), max = await page.$eval(PANE.main, el => el.scrollHeight - el.clientHeight);
@@ -480,7 +503,7 @@ async function checkMainKeptOnAnswer(b, viewport, lang, { translate = false } = 
       const clamped = (wanted > max + 1 && st >= max - 1) || (wanted < -1 && st <= 1);
       const fade = await paneState(page, PANE.main);
       assert((Math.abs(moved) <= 2 || clamped) && fade.up === st > 1 && fade.down === st < max - 1,
-        `${label}${how}: CUI-0034 Q${i + 1} scrolled to the ${where} (${before.st}/${before.max}px), answered: #${before.id} moved ${moved.toFixed(1)}px (scroll ${st}/${max}${clamped ? ', clamped' : ''}, fades ${fade.up}/${fade.down})`);
+        `${label}${trHow}: CUI-0034 Q${i + 1} scrolled to the ${where} (${before.st}/${before.max}px), answered by ${how === 'pointer' ? 'a real pointer click (S-250)' : 'DOM click'}: #${before.id} moved ${moved.toFixed(1)}px (scroll ${st}/${max}${clamped ? ', clamped' : ''}, fades ${fade.up}/${fade.down})`);
     }
   }
   assert(errors.length === 0, 'no page error: ' + errors.join(' | '));
