@@ -26,6 +26,7 @@ const ACTIONS = {
     if (typeof syncFontSetting === 'function') syncFontSetting();
     renderPlanSettings();
     if (typeof renderTranslationSetting === 'function') renderTranslationSetting(); // W-057: a pre-v1.4.0 planHome.js
+    if (typeof renderMemoSetting === 'function') renderMemoSetting(); // v2.3.0 (W-057: a pre-v2.3.0 memo.js)
     toggleSettingsPopover();
   },
   // v1.2.0 (Q10): a choice closes the ⚙ popover. R-002: switching with the confirm modal open would leave its text in
@@ -50,6 +51,8 @@ const ACTIONS = {
     rerenderCurrentScreen();
     showTranslationToast(on);
   },
+  // v2.3.0: memory-note study mode on / off (js/screens/memo.js)
+  toggleMemoMode: () => { if (!isConfirmOpen()) toggleMemoMode(); },
   install: () => promptInstall(),
   dismissInstall: () => dismissInstallBanner(),
   openStudy: () => openStudy(),

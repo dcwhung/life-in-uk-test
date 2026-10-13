@@ -13,6 +13,66 @@ const memoView = { id: null, step: MEMO_STEP.look, listScrollY: 0, result: null 
 
 // a cached older index.html (SW cutover) has neither the tab nor the screen: the memo tab stays out of reach there
 function memoShellReady() { return !!byId('screenMemo') && !!document.querySelector('.study-tab[data-tab="memo"]'); }
+// W-383 (W-057): a pre-v2.3.0 study.js has neither the mode check (the mode reads as on) nor the default tab
+const MEMO_FALLBACK_TAB = 'chapters';
+const memoModeReady = () => typeof isMemoModeReady !== 'function' || isMemoModeReady();
+const memoFallbackTab = () => (typeof STUDY_DEFAULT_TAB === 'undefined' ? MEMO_FALLBACK_TAB : STUDY_DEFAULT_TAB);
+
+// ── v2.3.0: ⚙ "🧠 Memory study mode" (user-confirmed preview mockups/memo-switch.html, deleted at release) ──
+// the row: a switch + On / Off pill + note like the translation row; built once, then updated in place (W-032).
+// W-057: a pre-v2.3.0 store.js (no switch), actions.js (no handler, S-203), locale (no row words), cached index.html
+// (no tab) or a pre-v1.4.0 planHome.js (no shared pill, renderFeaturePill) hides the row
+function renderMemoSetting() {
+  const row = byId('settingsMemoRow');
+  if (!row) return;
+  const labelKey = 'app.memoSwitchLabel';
+  row.hidden = typeof isMemoModeOn !== 'function' || typeof ACTIONS.toggleMemoMode !== 'function'
+    || typeof renderFeaturePill !== 'function' || !memoShellReady() || t(labelKey) === labelKey;
+  if (row.hidden) return;
+  const on = isMemoModeOn();
+  const noteKey = on ? 'app.memoOnNote' : 'app.memoOffNote';
+  byId('settingsMemoStatus').textContent = t(noteKey);
+  renderFeaturePill(byId('settingsMemoPill'), on);
+  const sw = byId('memoFeatureSwitch');
+  if (sw) {
+    setSwitchOn(sw, on);
+    sw.setAttribute('aria-label', t(labelKey));
+    return;
+  }
+  byId('settingsMemoSwitch').innerHTML = switchHtml({ id: 'memoFeatureSwitch', on, action: 'toggleMemoMode',
+    labelKey, describedBy: 'settingsMemoStatus' });
+}
+// the group screen, or a group's test on the quiz screen
+function isOnMemoScreen() { return byId('screenMemo').classList.contains('active') || isMemoSession(); }
+// on needs no confirm; off asks first only from the group screen / a group's test (it ends unrecorded, like the plan's
+// G15); cancelling leaves the popover open (nothing was chosen)
+function toggleMemoMode() {
+  if (!isMemoModeOn() || !isOnMemoScreen()) { setSettingsOpen(false); setMemoMode(!isMemoModeOn()); return; }
+  showConfirm({ title: t('modal.memoOffTitle'), message: t('modal.memoOffMessage'), okLabel: t('modal.memoOffOk'),
+    cancelLabel: t('modal.memoOffCancel'), onOk: () => { setSettingsOpen(false); setMemoMode(false); }, focusCancel: true, danger: true });
+}
+function setMemoMode(on) {
+  const leaving = !on && isOnMemoScreen();
+  setMemoModeOn(on);
+  renderMemoSetting();
+  const onStudy = byId('screenStudy').classList.contains('active');
+  // W-384: off on the memo list = a tab change (saved, the new list from its start); elsewhere only the stored tab moves
+  if (!on && study.tab === MEMO_TAB && onStudy) studySetTab(memoFallbackTab());
+  else if (!on && study.tab === MEMO_TAB) { study.tab = memoFallbackTab(); studySavePrefs(); }
+  else if (onStudy) renderStudy();
+  if (leaving) leaveMemoToStudy();
+  if (typeof runRefits === 'function') runRefits(); // v2.0.0 desktop: the rail's tabs changed
+  const toastKey = on ? 'app.memoToastOn' : 'app.memoToastOff';
+  showToast(t(toastKey));
+}
+// a group's test ends unrecorded (the same clean-up as leaveMemoTest); the group screen goes; Study opens at its top
+// (W-384: on desktop the cards scroll in their panel, setStudyScroll)
+function leaveMemoToStudy() {
+  if (isMemoSession()) { clearSideSession(); stopExamTimer(); }
+  showScreen('screenStudy');
+  renderStudy();
+  if (typeof setStudyScroll === 'function') setStudyScroll(0); else window.scrollTo(0, 0);
+}
 
 // ── Study tab 5: the group list ──
 function memoChapterChipsHtml() {
@@ -73,7 +133,7 @@ function renderStudyMemo() {
 // ── #screenMemo ──
 // from the Study list (remember its scroll) or from a result's "Next" (keep the list's scroll)
 function openMemoGroup(id) {
-  if (!memoShellReady() || !memoGroupById(id)) return;
+  if (!memoShellReady() || !memoModeReady() || !memoGroupById(id)) return;
   // v2.0.0 desktop: the Study cards scroll in their panel, not the page (js/screens/study.js studyScrollTop)
   if (byId('screenStudy').classList.contains('active')) memoView.listScrollY = typeof studyScrollTop === 'function' ? studyScrollTop() : window.scrollY;
   Object.assign(memoView, { id, step: MEMO_STEP.look, result: null });
