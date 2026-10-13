@@ -98,7 +98,7 @@ function studySetGroup(g) { study.group = g; studyRefilter(); }
 function studySetMemoChapter(ch) { study.memoChapter = ch; studyRefilter(); }
 // CUI-0044 renders a memory hook's token spaces as U+00A0 and puts U+2060 after a range dash: text copied from the hook box
 // and pasted here must still match the data's plain spaces (review_v220-hooks S-271). The query and every haystack read
-// U+00A0 (and any other no-break space) as a space and drop U+2060; js/screens/memo.js memoMatches uses it too.
+// U+00A0 and U+202F (no-break spaces) as a space and drop U+2060; js/screens/memo.js memoMatches uses it too.
 const SEARCH_NO_BREAK_SPACE_RE = /[\u00a0\u202f]/g, SEARCH_WORD_JOINER_RE = /\u2060/g;
 const searchText = s => s.replace(SEARCH_NO_BREAK_SPACE_RE, ' ').replace(SEARCH_WORD_JOINER_RE, '').toLowerCase();
 function studySetSearch(v) { study.search = searchText(v).trim(); renderNewStudyList(); }

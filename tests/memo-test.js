@@ -420,15 +420,15 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
       const out = [];
       let found = 0, measured = 0;
       const re = getLang() === 'en'
-        ? /N\.[  ]Ireland|AD[  ]\d+|\d+[  ]BC|\d+–⁠?\d+/g
-        : /N\.[  ]Ireland|AD[  ]\d+|\d+[  ]BC|\d+(?:–⁠?\d+)?[  ](?:年|歲|月|國|個|位|世紀|日|星期|萬|時)/g;
+        ? /N\.[ \u00a0]Ireland|AD[ \u00a0]\d+|\d+[ \u00a0]BC|\d+–\u2060?\d+/g
+        : /N\.[ \u00a0]Ireland|AD[ \u00a0]\d+|\d+[ \u00a0]BC|\d+(?:–\u2060?\d+)?[ \u00a0](?:年|歲|月|國|個|位|世紀|日|星期|萬|時)/g;
       MEMO_GROUPS.filter(g => g.hook).forEach(g => {
         openMemoGroup(g.id);
         const hook = memoLocal(g).hook; // the UI language's hook: hookEn in English (v2.4.1, every titled group has one)
         const span = document.querySelector('#memoBody .memo-hook span');
         if (!span) { out.push(`${tag} ${g.id}: no hook box`); return; }
         const tn = span.firstChild;
-        const shown = span.textContent.replace(/ /g, ' ').replace(/⁠/g, '');
+        const shown = span.textContent.replace(/\u00a0/g, ' ').replace(/\u2060/g, '');
         if (span.childNodes.length !== 1 || shown !== hook || span.lang !== getLang()) out.push(`${tag} ${g.id}: hook text / lang differs from the data`);
         const top = i => { const r = document.createRange(); r.setStart(tn, i); r.setEnd(tn, i + 1); const rs = [...r.getClientRects()].filter(x => x.width > 0); return rs.length ? Math.round(rs[0].top) : null; };
         let m;
@@ -437,7 +437,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
           const a = top(m.index), z = top(m.index + m[0].length - 1);
           if (a === null || z === null) continue;
           measured++;
-          if (a !== z) out.push(`${tag} ${g.id}: 「${m[0].replace(/ /g, ' ').replace(/⁠/g, '')}」 split`);
+          if (a !== z) out.push(`${tag} ${g.id}: 「${m[0].replace(/\u00a0/g, ' ').replace(/\u2060/g, '')}」 split`);
         }
       });
       return { out, found, measured };
