@@ -7,6 +7,23 @@ let wrongList = getLS(WRONG_LS) || {};       // { "exam.idx": true } — practic
 
 function saveStreaks() { setLS(STREAK_LS, streaks); }
 
+// CUI-0039: the three "exam.idx"-keyed records may hold keys with no question (a removed exam / index, MERGE_LS data
+// from an older version, a hand edit); questionByKey trusts its key, so every consumer (Home tiles, review rounds,
+// Flagged list, plan tasks, mastery) reads these already pruned. Runs once at start (main.js startApp, after the lazy
+// legacy migration in getLS), after questions.js defines isValidQuestionKey. Only a { key: value } object that lost a
+// key is written back, so a clean load writes nothing; any other stored value is left as is and reads as empty.
+function pruneStaleQuestionKeys() {
+  const prune = (key, record) => {
+    if (!record || typeof record !== 'object' || Array.isArray(record)) return {};
+    const kept = Object.fromEntries(Object.entries(record).filter(([k]) => isValidQuestionKey(k)));
+    if (Object.keys(kept).length !== Object.keys(record).length) setLS(key, kept);
+    return kept;
+  };
+  streaks = prune(STREAK_LS, streaks);
+  practiceFlags = prune(FLAGS_LS, practiceFlags);
+  wrongList = prune(WRONG_LS, wrongList);
+}
+
 // v1.3.0: text size (⚙ settings). Small = the design sizes; large = <html data-font-size="large">, which moves every
 // --fs-* token up 2px (css/base/tokens.css). Nothing is written until the user picks; nothing stored or an unknown value
 // reads as DEFAULT_FONT_SIZE (v1.4.2: large)
