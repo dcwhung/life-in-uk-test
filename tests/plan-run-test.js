@@ -123,7 +123,7 @@ async function checkRounds(pg) {
   assert(await hitOk(pg, taskBox(TODAY, i)), `task box: ${HIT_MIN_PX}px tap area`);
   await tap(pg, taskBox(TODAY, i));
   const head = await pg.evaluate(() => ({ screen: document.querySelector('.screen.active').id, label: byId('quizLabel').textContent,
-    badge: byId('modeBadge').textContent, back: document.querySelector('#screenQuiz .back-btn').textContent, n: state.questions.length,
+    badge: byId('modeBadge').textContent, back: document.querySelector('#screenQuiz .back-btn').getAttribute('aria-label'), n: state.questions.length,
     dots: byId('navDots').children.length, planDay: state.planDay, timer: byId('examTimer').hidden }));
   const ch = p.days[0].tasks[i].ch;
   assert(head.screen === 'screenQuiz' && head.label === `Chapter ${ch}` && head.badge === 'Practice' && head.timer,
@@ -177,7 +177,7 @@ async function checkResultCard(pg, { i, qids }) {
     sub: document.querySelector('#planRunBody .result-sub').textContent, note: (document.querySelector('#planRunBody .plan-note') || { textContent: '' }).textContent,
     next: (document.querySelector('#planRunBody .plan-run-next') || { textContent: '' }).textContent,
     acts: [...document.querySelectorAll('#planRunBody .nav-btn')].map(b => [b.textContent, b.dataset.action]),
-    back: byId('planRunBack').textContent, head: byId('planRunLabel').textContent,
+    back: byId('planRunBack').getAttribute('aria-label'), head: byId('planRunLabel').textContent,
     want: planDayCompletion(planLoad().days[0], planDayLog(planLoadLog(), '2026-10-01')).pct, side: isSideSession() }));
   assert(r.emoji === '✅' && r.score === `${r.want}%` && r.label === "Task done · today's progress", `Result card: ✅ ${r.want}% · Task done · today's progress`);
   assert(r.sub === `All ${qids.length} questions right, 1 of them after a redo.`, 'summary: ' + r.sub);
@@ -248,8 +248,9 @@ async function checkDays(pg) {
   await tap(pg, '#planDayPrev');
   const d2 = '2026-09-29', i2 = taskIndexOf(p, d2, t => t.type === 'practice');
   await tap(pg, taskBox(d2, i2));
-  assert(await text(pg, '#screenQuiz .back-btn') === 'Day 2 tasks' && await pg.$eval('#screenQuiz .back-btn [lang="en"]', e => e.textContent) === 'Day 2',
-    'a past day: "← Day 2 tasks" (Day 2 lang="en")');
+  // v2.1.1 (user): the button reads "Back"; the day is its name (an aria-label has no lang span: S-188 trade-off)
+  assert(await text(pg, '#screenQuiz .back-btn') === 'Back' && await pg.$eval('#screenQuiz .back-btn', e => e.getAttribute('aria-label')) === 'Day 2 tasks',
+    'a past day: "‹ Back" named "Day 2 tasks"');
   const k2 = (await cur(pg)).key;
   await answer(pg, true);
   assert((await dayLog(pg, d2)).ok[k2] === 1, 'G5: a past day\'s answer counts for that day (catch-up)');
@@ -383,7 +384,7 @@ async function checkMidnight(pg) {
   await pg.clock.setFixedTime(at('2026-10-02', '00:01:00'));
   for (;;) { const c = await cur(pg); await answer(pg, true); await tap(pg, '#nextBtn'); if (c.idx === c.n - 1) break; }
   const r = await pg.evaluate(() => ({ score: document.querySelector('#planRunBody .result-score').textContent,
-    label: document.querySelector('#planRunBody .result-label').textContent, back: byId('planRunBack').textContent,
+    label: document.querySelector('#planRunBody .result-label').textContent, back: byId('planRunBack').getAttribute('aria-label'),
     want: planDayCompletion(planLoad().days[0], planDayLog(planLoadLogView(), '2026-10-01')).pct }));
   assert(r.score === `${r.want}%` && r.want > 0 && r.label === "Task done · that day's progress", `QA O-2: after midnight the card shows the task's day: ${r.score} · ${r.label}`);
   assert(r.back === 'Day 1 tasks', 'QA O-2: ← names that day: ' + r.back);

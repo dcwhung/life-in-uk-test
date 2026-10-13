@@ -78,14 +78,14 @@ async function checkPlanIcons(pg, lang) {
   assert(await hitOk(pg, '#screenPlanSchedule [data-action="planEditGoal"]'), `${lang}: ✏️ has a ${HIT_MIN_PX}px tap area`);
 }
 
-// a plan session keeps the words on the quiz back button ("‹ Today's tasks"), and its label follows them
+// a plan session's quiz back button reads "‹ Back" and is named after the day (v2.1.1, user: the label beside it stays whole)
 async function checkPlanSessionBack(pg) {
   await fresh(pg, 'en');
   await openPlan(pg, 'day');
   await pg.click('#planTaskList .plan-task.practice.plan-task-btn'); // a practice task opens the quiz (a reading task opens Study)
   const back = await pg.$eval('#screenQuiz .back-btn', e => ({ text: e.textContent.trim(), label: e.getAttribute('aria-label'), title: e.getAttribute('title'), icon: !!e.querySelector('svg'), cls: e.classList.contains('icon-btn') }));
   // v1.6.1: its ← is a decorative line icon before the words, not a glyph
-  assert(back.text === "Today's tasks" && back.icon && !back.cls && back.label === null && back.title === null, 'plan session: the quiz back button keeps its words and they name it (S-188: no aria-label / title): ' + JSON.stringify(back));
+  assert(back.text === 'Back' && back.icon && !back.cls && back.label === "Today's tasks" && back.title === "Today's tasks", 'plan session: the quiz back button reads "Back", named "Today\'s tasks": ' + JSON.stringify(back));
   await pg.evaluate(() => { goHome(); pendingMode = 'practice'; startExam(1); });
   const home = await iconButton(pg, '#screenQuiz .back-btn');
   assert(home.icon && home.cls && home.text === '' && home.label === 'Home', 'a normal quiz after it: the back button is 🏠 again: ' + JSON.stringify(home));

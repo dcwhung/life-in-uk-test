@@ -122,13 +122,17 @@ function planRunLabel({ type, ch, exam }) {
   if (type === PLAN_TASK.mock) return t('common.examN', { n: exam });
   return t('common.chapterN', { n: ch });
 }
-function planRunBackHtml(from) {
-  const plan = from && from !== planTodayIso() ? planLoad() : null;
-  const label = plan ? t('plan.run.backDayHtml', { day: `<span lang="en">${t('plan.dayN', { n: planDayNumber(plan, from) })}</span>` })
-    : escapeHtml(t('plan.run.backToday'));
-  return iconLabelHtml(label, HEADER_BACK_ICONS); // v1.6.1: the glyph is a line icon (v2.1.1 S-260: the back chevron)
+// v2.1.1 (user 2026-10-13): the button reads "‹ Back" so the label beside it ("Chapter 1") stays whole at 320px; the
+// day it goes back to ("Today's tasks" / "Day n tasks") is its accessible name (planRunBackName)
+function planRunBackHtml() {
+  return iconLabelHtml(escapeHtml(t('quiz.back')), HEADER_BACK_ICONS); // v1.6.1: the glyph is a line icon (S-260: chevron)
 }
-// the quiz header's back button reads "‹ Today's tasks" in a plan session or mock: goBack (sideSession.js) leaves a
+// plain words: an aria-label carries no lang span, so "Day n" is read in the page language (S-188 trade-off, user choice)
+function planRunBackName(from) {
+  const plan = from && from !== planTodayIso() ? planLoad() : null;
+  return plan ? t('plan.run.backDayHtml', { day: t('plan.dayN', { n: planDayNumber(plan, from) }) }) : t('plan.run.backToday');
+}
+// the quiz header's back button reads "‹ Back" (named "Today's tasks") in a plan session or mock: goBack (sideSession.js) leaves a
 // session through planLeaveSession, a mock through goHome (planLeaveMock asks first); a fact's session is named like
 // the Study one ("Fact Ch c #n", setExamLabel)
 // v1.2.0 (Q11): Home is an icon button; a plan's text back label keeps its words, and those words name it (S-188: an
@@ -163,12 +167,13 @@ function planQuizBackHtml(session) {
   if (session && planRunPart(sessionReturn).fact !== undefined && fact !== 'plan.run.backFact') {
     return iconLabelHtml(escapeHtml(fact), HEADER_BACK_ICONS);
   }
-  return planRunBackHtml((session ? sessionReturn : planMockRun).from);
+  return planRunBackHtml();
 }
-// the fact's full words as the accessible name; none (the visible words name it) otherwise or for a stale locale
+// the accessible name: the fact's full words (a stale locale without them: the day's), else the day it goes back to
 function planQuizBackName(session) {
   const name = t('plan.run.backFactLabel');
-  return session && planRunPart(sessionReturn).fact !== undefined && name !== 'plan.run.backFactLabel' ? name : undefined;
+  if (session && planRunPart(sessionReturn).fact !== undefined && name !== 'plan.run.backFactLabel') return name;
+  return planRunBackName((session ? sessionReturn : planMockRun).from);
 }
 function renderPlanQuizHeader() {
   const back = byId('screenQuiz').querySelector('.back-btn');
@@ -289,7 +294,8 @@ function renderPlanRun() {
   if (!ctx) { planBackToDay(); return; }
   const focusKey = planRunFocusKey();
   byId('planRunBack').classList.add('with-icon');
-  byId('planRunBack').innerHTML = planRunBackHtml(view.from);
+  byId('planRunBack').innerHTML = planRunBackHtml();
+  setAccessibleName(byId('planRunBack'), planRunBackName(view.from));
   byId('planRunLabel').textContent = planRunLabel(ctx.task);
   const badgeKey = PLAN_RUN_BADGE_KEYS[ctx.task.type] || 'common.practice';
   byId('planRunBadge').textContent = t(badgeKey);

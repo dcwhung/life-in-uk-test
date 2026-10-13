@@ -90,7 +90,7 @@ const contrastOf = (pg, sel) => pg.evaluate(sel => {
 }, sel);
 const runView = pg => pg.evaluate(() => ({
   screen: document.querySelector('.screen.active').id, label: byId('planRunLabel').textContent, badge: byId('planRunBadge').textContent,
-  back: byId('planRunBack').textContent, meta: (document.querySelector('#planRunBody .plan-run-meta') || { textContent: '' }).textContent.replace(/\s+/g, ' ').trim(),
+  back: byId('planRunBack').getAttribute('aria-label'), meta: (document.querySelector('#planRunBody .plan-run-meta') || { textContent: '' }).textContent.replace(/\s+/g, ' ').trim(),
   fact: (document.querySelector('#planRunBody .fact') || { dataset: {} }).dataset.factId || null,
   sqm: !!document.querySelector('#planRunBody .sqm.show .sqm-head'),
   note: (document.querySelector('#planRunBody .plan-note') || { textContent: '' }).textContent,
@@ -295,7 +295,7 @@ async function fillExam(pg, right) {
 }
 const mockState = pg => pg.evaluate(() => ({ screen: document.querySelector('.screen.active').id, mode: state.mode, exam: state.examNum,
   day: state.planDay, n: state.questions.length, timer: !byId('examTimer').hidden, random: isRandomExam(state.examNum),
-  back: (b => (b.classList.contains('icon-btn') ? `icon:${b.getAttribute('aria-label')}` : b.textContent))(document.querySelector('#screenQuiz .back-btn')) }));
+  back: (b => (b.classList.contains('icon-btn') ? `icon:${b.getAttribute('aria-label')}` : b.getAttribute('aria-label')))(document.querySelector('#screenQuiz .back-btn')) }));
 
 // G10 / G25 / G11 / G15 / G32: Exam mode itself; pass = done + score; fail = retake as a Random Exam; Leave = nothing
 async function checkMock(pg) {

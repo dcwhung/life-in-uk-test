@@ -138,14 +138,14 @@ async function checkPlanFact(pg) {
   // S-258: focus goes back to the card's ▶ Practise (the control that opened the quiz)
   const focus = await pg.evaluate(() => { const el = document.activeElement; return { action: el && el.dataset.action, inBody: byId('planRunBody').contains(el) }; });
   assert(focus.action === 'planPractiseFact' && focus.inBody, `#11 focus is on the fact card's ▶ Practise (${JSON.stringify(focus)})`);
-  // a whole practice task (the reading's pair, G3) keeps "‹ Today's tasks" and goes back to the day
+  // a whole practice task (the reading's pair, G3) reads "‹ Back" (named "Today's tasks") and goes back to the day
   await pg.evaluate(() => {
     const today = planTodayIso(), day = planDayAt(planLoad(), today);
     planOpenTask(today, day.tasks.findIndex(task => task.type === PLAN_TASK.practice));
   });
   assert(await activeScreen(pg) === 'screenQuiz', 'a plan practice task opens the quiz');
   const task = await backOf(pg, 'screenQuiz');
-  assert(isTextBack(task, "Today's tasks"), `a plan practice task keeps "‹ Today's tasks" (${task.text})`);
+  assert(isTextBack(task, 'Back') && task.name === "Today's tasks", `a plan practice task reads "‹ Back", named "Today's tasks" (${JSON.stringify(task)})`);
   await tapBack(pg, 'screenQuiz');
   assert(await activeScreen(pg) === 'screenPlanDay', 'a plan practice task goes back to the day');
 }
