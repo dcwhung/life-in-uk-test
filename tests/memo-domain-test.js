@@ -17,7 +17,6 @@ const MARK = '記憶法';
 const QUESTION_COUNT = 408;
 const TITLED_GROUPS = 61;
 const NO_MEMO_QUESTIONS = 8;
-const HOOK_BATCH = 15; // batch 1: the 15 groups with the most distinct questions
 const TODAY = '2026-10-12';
 
 let asserts = 0;
@@ -83,19 +82,29 @@ function checkGroups({ g }) {
   assert(g("memoMainChapter(['1.0', '3.6', '1.2', '3.7'])") === 5, 'main chapter = the one with most questions');
 }
 
-// hooks: batch 1 = the 15 groups with the most distinct questions (tie: more copies, then MEMO_GROUPS order)
-// user-confirmed wording (review W-066, 2026-10-12)
-const HOOK_EARLY_BRITAIN = '「凱撒 55 BC 打唔入，Claudius AD 43 先打得入」\n→ AD 60 Boudicca 反抗、AD 122 Hadrian 起長城、AD 410 羅馬人走 → Jutes、Angles、Saxons 移入 → 之後 Vikings 坐長船嚟。';
-const HOOK_VOTE = '「89 冇票、32 中產、18 男21女30、28 同齡、69 變 18」\n→ 1918 女性要 30 歲，十年後 1928 先同男人一樣 21。';
+// hooks: every titled group has one (user-reviewed 2026-10-13, all 61 groups); 'single' has none.
+// Pinned verbatim (a sample of the user-approved wording, incl. W-066 early-britain and the 「年」 year rule).
+const PINNED_HOOKS = {
+  'vote': '「89 年冇票、32 年中產、18 年男 21 女 30、28 年同齡 21、69 年變 18」\n→ 1918 年女性要 30 歲，十年後 1928 年先同男人一樣 21。',
+  'early-britain': '「凱撒 55 BC 打唔入，Claudius AD 43 先打得入」\n→ AD 60 Boudicca 反抗、AD 122 Hadrian 起長城、AD 410 羅馬人走 → Jutes、Angles、Saxons 移入 → 之後 Vikings 坐長船嚟。',
+  'post-war': '「45 年 Attlee 贏 Churchill、45–51 年福利國家、48 年 NHS + Windrush」\n→ 1948 年雙響：Bevan 推動 NHS（用嗰陣免費）、Empire Windrush 載第一批 Caribbean 移民。',
+  'great-fire': "「1666 年 Charles II 時期大火燒 St Paul's → Pepys 寫日記 → Wren 重新設計」",
+  'king-parliament': '「28 年 Petition of Right、42 年內戰、49 年斬王、60 年Restoration (復辟)、88 年Glorious (光榮)」\n→ 1649 年 Charles I 被處決，Cromwell 做護國公；1688 年 William of Orange 做國王，開始君主立憲。',
+};
+const THREE_LINE_HOOKS = ['nation-symbols']; // user-approved: two 「」 lines (flowers, capitals) + one → line
+// year rule: a four-digit year (1000–2099) is followed by 「年」 (or is the start of a range 1853–56 年)
+const BARE_YEAR = /(?<![\d,])(1\d{3}|20\d{2})(?!\d)(?!–\d{2,4})(?! ?年)/;
 function checkHooks({ g }) {
-  assert(g("memoGroupById('early-britain').hook") === HOOK_EARLY_BRITAIN, 'W-066: early-britain hook puts Jutes / Angles / Saxons after AD 410, Vikings later');
-  assert(g("memoGroupById('vote').hook") === HOOK_VOTE, 'vote hook: 1928 = 同齡');
+  for (const [id, hook] of Object.entries(PINNED_HOOKS)) assert(g(`memoGroupById('${id}').hook`) === hook, `${id} hook: user-approved wording, verbatim`);
   const groups = g('memoGroups()').filter(gr => gr.id !== 'single');
   const order = [...groups].sort((a, b) => b.count - a.count || b.qkeys.length - a.qkeys.length);
   assert(same(order.map(gr => gr.id), groups.map(gr => gr.id)), 'MEMO_GROUPS is listed most distinct questions first (ties: more copies)');
-  const batch = new Set(order.slice(0, HOOK_BATCH).map(gr => gr.id));
-  assert(groups.every(gr => (batch.has(gr.id) ? gr.hook.trim().length > 0 : gr.hook === '')), `the ${HOOK_BATCH} biggest groups have a hook, the others ''`);
-  assert(groups.every(gr => gr.hook.split('\n').length <= 2), 'a hook is at most two lines');
+  assert(groups.length === TITLED_GROUPS && groups.every(gr => gr.hook.trim().length > 0), `all ${TITLED_GROUPS} titled groups have a hook`);
+  assert(g("memoGroupById('single').hook") === '', "the single-note group has no hook ('')");
+  const badLines = groups.filter(gr => gr.hook.split('\n').length > (THREE_LINE_HOOKS.includes(gr.id) ? 3 : 2) || gr.hook.split('\n').some(l => !l.trim()));
+  assert(badLines.length === 0, `a hook is one or two non-empty lines (${THREE_LINE_HOOKS.join()}: three) (bad: ${badLines.map(gr => gr.id).join()})`);
+  const bareYears = groups.filter(gr => BARE_YEAR.test(gr.hook));
+  assert(bareYears.length === 0, `year rule: every four-digit year is followed by 「年」 (bare: ${bareYears.map(gr => gr.id).join()})`);
 }
 
 // ── progress: lifeuk.memoProgress = { [id]: { lv, due } } ──
