@@ -190,6 +190,7 @@ async function checkRefit(b) {
 }
 
 // S-257: resize events within one frame (a drag, a rotation) are merged: the counter is fitted once, on the next frame
+// (v2.1.2 review S-262: by fit.js's one refit run, fitQuiz)
 async function checkResizeMerged(b) {
   const { page, errors } = await dt.openDesktop(b, { viewport: dt.VIEWPORTS.phone, lang: 'en', fontSize: 'large', translation: true });
   await page.evaluate(n => { pendingMode = 'practice'; startExam(n); }, EXAM_ONE);
@@ -204,6 +205,23 @@ async function checkResizeMerged(b) {
   }));
   assert(fits.sync === 0 && fits.calls === 1, '5 resize events in one frame: the counter is fitted once, on the next frame: ' + JSON.stringify(fits));
   assert(await page.$eval('#qNum > span[data-full]', e => e.textContent) === 'Q 1/24', 'after the merged resize: still "Q 1/24" at 390 large');
+  // v2.1.2 review S-262: the counter is fitted inside fitQuiz (one refit run, fit.js), before fitSteps measures the
+  // column: a resize across a tier (390 "Q 1/24" → 1280 full) has fitSteps see the new counter, not the old one
+  await page.evaluate(() => {
+    const steps = window.fitSteps, fit = window.fitQuestionCounter;
+    window.qnumSeen = { steps: [], fits: 0 };
+    window.fitSteps = (el, ...rest) => {
+      if (typeof quizDesk !== 'undefined' && quizDesk && el === quizDesk.main) window.qnumSeen.steps.push(document.querySelector('#qNum > span[data-full]').textContent);
+      return steps(el, ...rest);
+    };
+    window.fitQuestionCounter = () => { window.qnumSeen.fits++; fit(); };
+  });
+  await dt.setViewport(page, dt.VIEWPORTS.wide);
+  const seen = await page.evaluate(() => window.qnumSeen);
+  const counter = await page.$eval('#qNum > span[data-full]', e => e.textContent);
+  assert(counter === 'Question 1 of 24' && seen.steps.length > 0 && seen.steps.every(text => text === counter),
+    'resize 390 → 1280: fitSteps measures the column with the new counter (S-262): ' + JSON.stringify({ counter, seen }));
+  assert(seen.fits === seen.steps.length, 'resize 390 → 1280: one counter fit per column fit: ' + JSON.stringify(seen));
   assert(errors.length === 0, 'no page error: ' + errors.join(' | '));
   await page.close();
 }
