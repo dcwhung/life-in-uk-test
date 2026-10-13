@@ -447,6 +447,10 @@ async function checkChangeGoalExamInWindow(pg) {
   const tomorrow = await editStoredExam(pg, '2026-10-09');
   assert(tomorrow.exam === '2026-10-09' && tomorrow.field === '2026-10-09' && tomorrow.study === '1' && tomorrow.cta && tomorrow.hint === EDIT_HINT_EN && !tomorrow.msg,
     'S-256: exam tomorrow: kept (1 study day), Update disabled with the 7-day hint: ' + JSON.stringify(tomorrow));
+  // QA E2: the window's last day (today + 6) is kept too: 6 study days, still blocked
+  const six = await editStoredExam(pg, '2026-10-14');
+  assert(six.exam === '2026-10-14' && six.field === '2026-10-14' && six.study === '6' && six.cta && six.hint === EDIT_HINT_EN && !six.msg,
+    'QA E2: exam at today + 6: kept (6 study days), Update disabled with the 7-day hint: ' + JSON.stringify(six));
 }
 // a running plan (Day 1 on 28 Sep, no rest days) whose stored exam is examIso, opened in Change goal
 async function editStoredExam(pg, examIso) {
@@ -466,6 +470,23 @@ const phaseLook = pg => pg.evaluate(() => {
     hidden: legend.getAttribute('aria-hidden'), title: btn.textContent.trim(), chev: !!btn.querySelector('.plan-fold-chev svg'),
     bar: byId('planPhaseBar').children.length };
 });
+// QA E4: a 3-phase plan changed (Change goal → Update) to a goal with no drill shows 2 phases at once on the schedule:
+// bar, cards, legend and title, with no reload. The plan starts today, so no frozen past day keeps a drill phase (G7)
+async function checkPhaseCountAfterChange(pg) {
+  await fresh(pg);
+  await pg.evaluate(goal => { writeStudyPlan(buildPlan(goal, planTodayIso())); openPlanSchedule(); }, GOAL);
+  assert((await phaseLook(pg)).bar === 3, 'QA E4: the seeded plan has 3 phases');
+  await pg.click('#screenPlanSchedule [data-action="planEditGoal"]');
+  await pg.click('#planRestChips .chip >> nth=0'); // no rest day: today + 7 has 7 study days
+  await pg.evaluate(() => planSetMins('30'));
+  await pickExamDate(pg, '2026-10-15');
+  await pg.click('#planCreateBtn');
+  const two = await phaseLook(pg);
+  const cards = await pg.evaluate(() => [...document.querySelectorAll('#planStrategy .plan-strat')].map(c => [...c.classList].find(k => k !== 'plan-strat')));
+  assert(await activeScreen(pg) === 'screenPlanSchedule' && two.bar === 2 && JSON.stringify(cards) === '["learn","mock"]'
+    && JSON.stringify(two.swatches) === '["plan-bg-learn","plan-bg-mock"]' && two.title === 'Two phases',
+    'QA E4: after Update the schedule shows 2 phases at once (bar, cards, legend, title): ' + JSON.stringify({ ...two, cards }));
+}
 async function checkPhaseCount(pg) {
   await fresh(pg);
   await pg.evaluate(plan => { writeStudyPlan(buildPlan(plan, planTodayIso())); openPlanSchedule(); }, TWO_PHASE_PLAN);
@@ -692,7 +713,7 @@ async function main() {
   const errs = [];
   pg.on('pageerror', e => errs.push(e.message));
   await pg.clock.setFixedTime(NOW);
-  for (const check of [checkHidden, checkCreateOpensSchedule, checkOverview, checkDayList, checkPills, checkScrollToToday, checkChangeGoal, checkChangeGoalFeasibility, checkChangeGoalSameLimits, checkChangeGoalExamInWindow, checkPhaseCount,
+  for (const check of [checkHidden, checkCreateOpensSchedule, checkOverview, checkDayList, checkPills, checkScrollToToday, checkChangeGoal, checkChangeGoalFeasibility, checkChangeGoalSameLimits, checkChangeGoalExamInWindow, checkPhaseCount, checkPhaseCountAfterChange,
     checkReset, pg2 => checkReset(pg2, { corruptLog: true }), checkSwitchModalKeepsPopover, checkEnded, checkWidths, checkLangKeepsScroll]) {
     await check(pg);
   }

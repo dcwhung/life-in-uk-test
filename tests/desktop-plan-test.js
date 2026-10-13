@@ -226,8 +226,10 @@ const stratLook = page => page.evaluate(() => {
     barL: bar.left, barR: bar.right, boxW: box.width, barW: bar.width, firstL: cards[0].left, lastR: cards[cards.length - 1].right,
     widths: cards.map(c => c.width), tops: cards.map(c => c.top) };
 });
+// QA E3: also 1440 wide, where the content stops at its 1280px maximum and is centred
+const TWO_PHASE_VIEWPORTS = [...dt.DESKTOP_VIEWPORTS, { width: 1440, height: 900 }];
 async function checkTwoPhaseStrats(b) {
-  for (const viewport of dt.DESKTOP_VIEWPORTS) {
+  for (const viewport of TWO_PHASE_VIEWPORTS) {
     for (const lang of dt.LANGS) {
       const { page, errors } = await dt.openDesktop(b, { viewport, lang });
       await seedPlan(page, { days: 7, dayN: 1, goal: TWO_PHASE_GOAL });
