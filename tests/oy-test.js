@@ -31,7 +31,9 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert((await pg.$eval('#yueToggle', e => e.textContent)) === 'Translate', 'button says Translate');
   assert((await pg.$$('.opt-yue')).length === 0, 'no option translations before toggle');
   await pg.click('#yueToggle');
-  assert((await pg.$eval('#yueToggle', e => e.textContent)) === 'Hide translation', 'button flips');
+  // v2.0.5 C3: the pressed button reads the short "Hide"; its accessible name stays "Hide translation"
+  assert((await pg.$eval('#yueToggle', e => e.textContent)) === 'Hide', 'button flips');
+  assert((await pg.$eval('#yueToggle', e => e.getAttribute('aria-label'))) === 'Hide translation', 'button keeps the full name');
   const n = await pg.$$eval('.opt-yue', els => els.length);
   const expected = await pg.evaluate(() => state.questions[0].oy.filter(Boolean).length);
   assert(n === expected && n > 0, `option translations shown: ${n}`);

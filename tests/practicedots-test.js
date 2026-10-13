@@ -57,7 +57,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.click('#navDots .dot:nth-child(2)');
   assert(await pg.evaluate(() => state.current === 1) && await pg.$eval('#opt0', e => e.disabled || e.className.includes('correct') || e.className.includes('wrong')), 'jump back to an answered question shows its result');
   await pg.click('#navDots .dot:nth-child(12)');
-  assert(await pg.evaluate(() => state.current === 11) && (await text('#qNum')).startsWith('Question 12 of 24'), 'jump ahead to an unanswered question');
+  assert(await pg.evaluate(() => state.current === 11) && (await pg.$eval('#qNum > span', e => e.dataset.full)) === 'Question 12 of 24', 'jump ahead to an unanswered question');
 
   // smaller sets: one dot per question
   await pg.evaluate(() => { pendingMode = 'practice'; startExam('ch1'); });
