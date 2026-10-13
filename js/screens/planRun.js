@@ -122,15 +122,20 @@ function planRunLabel({ type, ch, exam }) {
   if (type === PLAN_TASK.mock) return t('common.examN', { n: exam });
   return t('common.chapterN', { n: ch });
 }
-// v2.1.1 (user 2026-10-13): the button reads "‹ Back" so the label beside it ("Chapter 1") stays whole at 320px; the
-// day it goes back to ("Today's tasks" / "Day n tasks") is its accessible name (planRunBackName)
+// v2.1.1 (user 2026-10-13): the button reads "‹ Back" so the label beside it ("Chapter 1") stays whole at 320px; its
+// accessible name says which day it goes back to (planRunBackName)
 function planRunBackHtml() {
   return iconLabelHtml(escapeHtml(t('quiz.back')), HEADER_BACK_ICONS); // v1.6.1: the glyph is a line icon (S-260: chevron)
 }
-// plain words: an aria-label carries no lang span, so "Day n" is read in the page language (S-188 trade-off, user choice)
+// W-077 (WCAG 2.5.3 Label in Name): the name starts with the visible word ("Back to today's tasks" / "Back to Day 3 tasks"),
+// so "click Back" works by voice. Plain-text …Label keys (S-267: an aria-label is never HTML; an aria-label carries no
+// lang span either, so "Day n" is read in the page language, S-188 trade-off). W-072: a stale locale without them is
+// named by the visible word itself, never a raw key
 function planRunBackName(from) {
   const plan = from && from !== planTodayIso() ? planLoad() : null;
-  return plan ? t('plan.run.backDayHtml', { day: t('plan.dayN', { n: planDayNumber(plan, from) }) }) : t('plan.run.backToday');
+  const nameKey = plan ? 'plan.run.backDayLabel' : 'plan.run.backTodayLabel';
+  const name = plan ? t(nameKey, { day: t('plan.dayN', { n: planDayNumber(plan, from) }) }) : t(nameKey);
+  return name === nameKey ? t('quiz.back') : name;
 }
 // the quiz header's back button reads "‹ Back" (named "Today's tasks") in a plan session or mock: goBack (sideSession.js) leaves a
 // session through planLeaveSession, a mock through goHome (planLeaveMock asks first); a fact's session is named like

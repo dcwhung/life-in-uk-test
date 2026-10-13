@@ -29,7 +29,8 @@ const { startPagesServer, appFiles } = require('./pages-server');
 //  12. S-237 (v1.6.1): a v1.6.0 cached shell (pinned f55a945) + current js — every static control gets its line icon
 //  13. W-072 (v2.1.1): the current shell with one v2.0.2 file (sideSession.js: no setEntryBack / goBack; actions.js: no
 //      goBack handler; locales/en.js: no back labels) — a Flagged practice still renders every question and the Result,
-//      the header back button still leaves the quiz, no raw key, no page errors
+//      the header back button still leaves the quiz, no raw key, no page errors; a plan task header reads "Back", named
+//      "Back to today's tasks" (W-077; a v2.0.2 locale: "Back", the visible word)
 //  14. W-075 (v2.1.1 CUI-0039): current files with the v2.0.5 questions.js (no isValidQuestionKey) + a wrong list — Home
 //      still renders with no page error; the lists are kept as stored (no prune without the predicate)
 // The v0.57 files come from git: V057_REF is the last v0.57 commit on main (merge of PR #29), pinned so a later
@@ -529,6 +530,17 @@ async function v202BackSingleFile(b, file) {
   const fromResult = await pg.evaluate(() => document.querySelector('.screen.active').id);
   assert(['screenHome', 'screenFlagged'].includes(fromResult) && warns.length === 0 && errs.length === 0,
     `v2.0.2 ${file} + current files: the Result header back works (${fromResult}): ` + JSON.stringify({ warns, errs }));
+  // W-077 (v2.1.2): a plan practice task's "Back" is named "Back to today's tasks"; a v2.0.2 locale has no
+  // plan.run.backTodayLabel, so the name falls back to the visible word, never a raw key
+  await pg.evaluate(() => {
+    leaveToHome(); openPlanGoal(); byId('planCreateBtn').click();
+    const today = planTodayIso();
+    planOpenTask(today, planDayAt(planLoad(), today).tasks.findIndex(task => task.type === PLAN_TASK.practice));
+  });
+  const plan = await pg.$eval('#screenQuiz .back-btn', e => ({ text: e.textContent.trim(), name: e.getAttribute('aria-label') }));
+  const wantName = file === 'locales/en.js' ? 'Back' : "Back to today's tasks";
+  assert(plan.text === 'Back' && plan.name === wantName && errs.length === 0,
+    `v2.0.2 ${file} + current files: the plan task header reads "Back", named "${wantName}" (no raw key): ` + JSON.stringify({ ...plan, errs }));
   await pg.close();
 }
 

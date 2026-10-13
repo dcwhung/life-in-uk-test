@@ -123,8 +123,8 @@ async function checkRead(pg) {
   const before = await storage(pg);
   await tap(pg, taskBox(TODAY, ri));
   let v = await runView(pg);
-  assert(v.screen === 'screenPlanRun' && v.label === `Chapter ${task.ch}` && v.badge === 'Study' && v.back === "Today's tasks",
-    `reading: #screenPlanRun, "Chapter ${task.ch}" · Study, ← Today's tasks`);
+  assert(v.screen === 'screenPlanRun' && v.label === `Chapter ${task.ch}` && v.badge === 'Study' && v.back === "Back to today's tasks",
+    `reading: #screenPlanRun, "Chapter ${task.ch}" · Study, "‹ Back" named "Back to today's tasks" (W-077)`);
   assert(v.meta.endsWith(`Fact 1 of ${n}`) && v.meta.startsWith(`Read Ch ${task.ch}`), 'top line: task · Fact 1 of n: ' + v.meta);
   assert(Number(v.fact) === task.facts[0] && v.note === '', 'the first fact\'s Study card, no review note');
   const card = await pg.evaluate(() => {
@@ -313,7 +313,7 @@ async function checkMock(pg) {
   let m = await mockState(pg);
   assert(m.screen === 'screenQuiz' && m.mode === 'exam' && m.exam === exam && m.n === 24 && m.timer && m.day === iso,
     `Exam mode: Exam ${exam}, 24 questions, timer, for the plan day (Home's mode was Practice)`);
-  assert(m.back === "Today's tasks", 'header: ← Today\'s tasks');
+  assert(m.back === "Back to today's tasks", 'header: "‹ Back" named "Back to today\'s tasks" (W-077)');
   // Leave = not submitted
   const before = await storage(pg);
   await tap(pg, '#screenQuiz .back-btn');

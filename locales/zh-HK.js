@@ -455,6 +455,8 @@ LOCALES['zh-HK'] = {
       backDayHtml: '{day} 任務',
       backFact: '返回',
       backFactLabel: '返回知識點',
+      backTodayLabel: '返回今日任務',
+      backDayLabel: '返回 {day} 任務',
       roundOf: '第 {n} 輪（共 {rounds} 輪）',
       nextRound: '下一輪',
       retryWrong: '重做答錯的題目（尚餘 {n} 題）',

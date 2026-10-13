@@ -28,6 +28,8 @@ const backOf = (pg, screen) => pg.$eval(`#${screen} .back-btn`, e => ({
 }));
 // a text back button: these words (no glyph) after the chevron line icon
 const isTextBack = (back, words) => back.text === words && back.chevron && !back.icon;
+// the reading screen's own back button (#planRunBack, not .back-btn)
+const planRunBackOf = pg => pg.$eval('#planRunBack', e => ({ text: e.textContent.trim(), name: e.getAttribute('aria-label'), title: e.getAttribute('title') }));
 const tapBack = (pg, screen) => pg.click(`#${screen} .back-btn`);
 // answer the current question (right or wrong) and move to the next one, so the session is mid-way
 const answerAndNext = pg => pg.evaluate(() => {
@@ -138,14 +140,17 @@ async function checkPlanFact(pg) {
   // S-258: focus goes back to the card's ▶ Practise (the control that opened the quiz)
   const focus = await pg.evaluate(() => { const el = document.activeElement; return { action: el && el.dataset.action, inBody: byId('planRunBody').contains(el) }; });
   assert(focus.action === 'planPractiseFact' && focus.inBody, `#11 focus is on the fact card's ▶ Practise (${JSON.stringify(focus)})`);
-  // a whole practice task (the reading's pair, G3) reads "‹ Back" (named "Today's tasks") and goes back to the day
+  // W-077 (WCAG 2.5.3 Label in Name): the reading's "‹ Back" is named "Back to today's tasks" (the visible word first)
+  const run = await planRunBackOf(pg);
+  assert(run.text === 'Back' && run.name === "Back to today's tasks" && run.title === run.name, `#planRunBack reads "‹ Back", named "Back to today's tasks" (${JSON.stringify(run)})`);
+  // a whole practice task (the reading's pair, G3) reads "‹ Back" (named "Back to today's tasks", W-077) and goes back to the day
   await pg.evaluate(() => {
     const today = planTodayIso(), day = planDayAt(planLoad(), today);
     planOpenTask(today, day.tasks.findIndex(task => task.type === PLAN_TASK.practice));
   });
   assert(await activeScreen(pg) === 'screenQuiz', 'a plan practice task opens the quiz');
   const task = await backOf(pg, 'screenQuiz');
-  assert(isTextBack(task, 'Back') && task.name === "Today's tasks", `a plan practice task reads "‹ Back", named "Today's tasks" (${JSON.stringify(task)})`);
+  assert(isTextBack(task, 'Back') && task.name === "Back to today's tasks" && task.title === task.name, `a plan practice task reads "‹ Back", named "Back to today's tasks" (${JSON.stringify(task)})`);
   await tapBack(pg, 'screenQuiz');
   assert(await activeScreen(pg) === 'screenPlanDay', 'a plan practice task goes back to the day');
 }
@@ -175,6 +180,13 @@ async function checkZhHk(pg) {
   await pg.click('#planRunBody [data-action=planPractiseFact]');
   const zhFact = await backOf(pg, 'screenQuiz');
   assert(isTextBack(zhFact, '返回') && zhFact.name === '返回知識點', `zh-HK #11 quiz header reads "‹ 返回", named "返回知識點" (${JSON.stringify(zhFact)})`);
+  // W-077: the day's names start with the visible 「返回」 too
+  await tapBack(pg, 'screenQuiz');
+  const zhRun = await planRunBackOf(pg);
+  assert(zhRun.text === '返回' && zhRun.name === '返回今日任務' && zhRun.title === zhRun.name, `zh-HK #planRunBack reads "‹ 返回", named "返回今日任務" (${JSON.stringify(zhRun)})`);
+  await pg.evaluate(() => { const today = planTodayIso(); planOpenTask(today, planDayAt(planLoad(), today).tasks.findIndex(task => task.type === PLAN_TASK.practice)); });
+  const zhTask = await backOf(pg, 'screenQuiz');
+  assert(isTextBack(zhTask, '返回') && zhTask.name === '返回今日任務' && zhTask.title === zhTask.name, `zh-HK plan practice task reads "‹ 返回", named "返回今日任務" (${JSON.stringify(zhTask)})`);
 }
 
 // S-259: Similar inside a Flagged practice: back → the Flagged session at the same question ("‹ Flagged"), back → the list

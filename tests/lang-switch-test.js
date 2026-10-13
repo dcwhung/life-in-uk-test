@@ -438,9 +438,9 @@ async function checkPlanRun(pg, ctx) {
     return k;
   });
   await switchOn(sp, ctx, 'plan runner', '#screenQuiz .back-btn');
-  // v2.1.1 (user): the button reads 「返回」 and is named after the day
+  // v2.1.1 (user): the button reads 「返回」 and is named after the day; v2.1.2 W-077: the name starts with 「返回」
   const zhBack = await sp.$eval('#screenQuiz .back-btn', e => [e.textContent.trim(), e.getAttribute('aria-label')]);
-  assert(zhBack[0] === '返回' && zhBack[1] === 'Day 3 任務' && await textOf(sp, '#ansLabel') === '✗ 錯誤 · 🔥 0/3', 'plan runner zh-HK: 「‹ 返回」 named Day 3 任務, answer box re-rendered: ' + zhBack.join(' | '));
+  assert(zhBack[0] === '返回' && zhBack[1] === '返回 Day 3 任務' && await textOf(sp, '#ansLabel') === '✗ 錯誤 · 🔥 0/3', 'plan runner zh-HK: 「‹ 返回」 named 返回 Day 3 任務, answer box re-rendered: ' + zhBack.join(' | '));
   await switchOn(sp, ctx, 'plan runner', '#screenQuiz .back-btn');
   await sp.evaluate(k => planShowTaskDone('2026-09-30', k, '2026-09-30'), i);
   await switchOn(sp, ctx, 'plan Result card', '#planRunBody .result-label');
