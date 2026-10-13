@@ -11,7 +11,9 @@ const path = require('path');
 //   128px), v1.3.1 goal form rows fit their texts (replaces W-056 / C7), 320–400px en + zh-HK never scroll sideways on 13 screens (S-195)
 // - C3: the quiz counter reads "Question 1 of 24" unless that wraps, then "Question 1/24" ("第 1/24 題"), then (v2.0.5
 //   C3, user 2026-10-13) "Q 1/24" ("1/24 題"). v2.0.5 (方案 Y): "wraps" is the counter or its stars, in any state of
-//   the question (Translate / "Hide" before answering, ← → after), so a question keeps one form throughout (qnum-row-test)
+//   the question (Translate / "Hide" before answering, ← → after), so a question keeps one form throughout (qnum-row-test).
+//   S-254: the stars are checked with the counter; 320 large English before answering is the accepted exception (user
+//   2026-10-13: the stars may wrap); a text size switch and a resize are each checked on their own
 // - S-193: ⓘ has a 44px tap area
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
 const launchOpts = { args: ['--no-sandbox'] };
@@ -121,17 +123,21 @@ const ANSWER_FIRST_SINGLE = `window.answerFirstSingle = () => {
   const q = state.questions[0];
   selectOption(q.o.indexOf(q.a[0]));
 }`;
-// C3: the counter only turns short where the long one wraps
+// C3: the counter only turns short where the long one wraps. S-254: its lines, and whether the stars sit on its line
+// (qnum-row-test's starsOnCounterLine)
 const counter = pg => pg.evaluate(() => {
   const s = document.querySelector('#qNum > span');
   const r = document.createRange();
   r.selectNodeContents(s);
-  return { text: s.textContent, lines: new Set([...r.getClientRects()].map(x => Math.round(x.top))).size };
+  const c = s.getBoundingClientRect(), st = document.querySelector('#qNum > .stars').getBoundingClientRect();
+  return { text: s.textContent, lines: new Set([...r.getClientRects()].map(x => Math.round(x.top))).size, starsOnLine: st.top < c.bottom && st.bottom > c.top };
 });
+// a re-fit waits for the counter to read `want` (a resize event can land late in a long suite run, S-242)
+const counterReads = (pg, want) => pg.waitForFunction(w => document.querySelector('#qNum > span').textContent === w, want, { timeout: REFIT_WAIT_MS }).catch(() => {});
 async function checkCounter(pg) {
   // v2.0.5 (方案 Y): the form is the one that fits before and after answering (Translate / "Hide" needs it before);
   // C3 (user 2026-10-13): a third tier "Q 1/24" (中文 "1/24 題") where even the short form would wrap
-  const cases = [['en', 320, 'large', 'Q 1/24'], ['en', 390, 'large', 'Q 1/24'], ['en', 430, 'small', 'Question 1 of 24'],
+  const cases = [['en', 320, 'large', 'Q 1/24'], ['en', 320, 'small', 'Q 1/24'], ['en', 390, 'large', 'Q 1/24'], ['en', 430, 'small', 'Question 1 of 24'],
     ['zh-HK', 320, 'large', '1/24 題'], ['zh-HK', 390, 'small', '第 1 題（共 24 題）']];
   for (const [lang, w, size, want] of cases) {
     await pg.setViewportSize({ width: w, height: 760 });
@@ -141,27 +147,42 @@ async function checkCounter(pg) {
     // one needs its Check button before it reveals, so the wide Translate button stays (the C3b case)
     await pg.evaluate(() => { answerFirstSingle(); });
     const c = await counter(pg);
-    assert(c.text === want && c.lines === 1, `C3 ${lang} ${w}px ${size}, answered: "${want}" on one line: ` + JSON.stringify(c));
+    assert(c.text === want && c.lines === 1 && c.starsOnLine, `C3 ${lang} ${w}px ${size}, answered: "${want}" and its stars on one line: ` + JSON.stringify(c));
   }
-  // not yet answered, the wider "Translate" button is in the row: v2.0.5 C3, the tiny form on one line
-  await pg.setViewportSize({ width: 320, height: 760 });
-  await fresh(pg);
-  await chooseSize(pg, 'large');
-  await pg.evaluate(() => { pendingMode = 'practice'; startExam(1); });
-  const unanswered = await counter(pg);
-  assert(unanswered.text === 'Q 1/24' && unanswered.lines === 1, 'C3 en 320px large, not answered: the tiny form on one line: ' + JSON.stringify(unanswered));
-  // the size switch and a resize re-measure it
-  await pg.setViewportSize({ width: 430, height: 760 });
+  // not yet answered, the wider "Translate" button is in the row: v2.0.5 C3, the tiny form, one line. At 320 large
+  // English the stars drop below it here (an exception the user accepted 2026-10-13; qnum-row-test KNOWN_EN), so this
+  // checks the counter's own line and the 中文 / small text stars
+  const unansweredCases = [['en', 'large', 'Q 1/24', false], ['en', 'small', 'Q 1/24', true], ['zh-HK', 'large', '1/24 題', true]];
+  for (const [lang, size, want, starsOnLine] of unansweredCases) {
+    await pg.setViewportSize({ width: 320, height: 760 });
+    await fresh(pg, lang);
+    if (size === 'large') await chooseSize(pg, 'large');
+    await pg.evaluate(() => { pendingMode = 'practice'; startExam(1); });
+    const c = await counter(pg);
+    const stars = starsOnLine ? 'its stars on that line' : 'the stars may wrap below it (accepted 320 exception)';
+    assert(c.text === want && c.lines === 1 && (!starsOnLine || c.starsOnLine), `C3 ${lang} 320px ${size}, not answered: "${want}" on one line, ${stars}: ` + JSON.stringify(c));
+  }
+  // S-254: a text size switch alone re-measures (same width, no resize)
+  await pg.setViewportSize({ width: 390, height: 760 });
   await fresh(pg);
   await pg.evaluate(() => { answerFirstSingle(); });
+  assert((await counter(pg)).text === 'Question 1 of 24', 'C3: 390px small text: long');
   await chooseSize(pg, 'large');
-  await pg.setViewportSize({ width: 320, height: 760 });
-  await pg.waitForTimeout(100);
-  assert((await counter(pg)).text === 'Q 1/24', 'C3: a resize to 320px re-measures → tiny');
+  assert((await counter(pg)).text === 'Q 1/24', 'C3: large text at 390px, no resize, re-measures → tiny');
   await chooseSize(pg, 'small');
+  assert((await counter(pg)).text === 'Question 1 of 24', 'C3: back to small text at 390px, no resize, re-measures → long');
+  // and a resize alone re-measures (same text size)
+  await chooseSize(pg, 'large');
   await pg.setViewportSize({ width: 430, height: 760 });
-  await pg.waitForTimeout(100);
-  assert((await counter(pg)).text === 'Question 1 of 24', 'C3: back to small text at 430px re-measures → long');
+  const wide = 'Question 1 of 24'; // answered: only the small ← → share the row, so 430px large has room for the long form
+  await counterReads(pg, wide);
+  assert((await counter(pg)).text === wide, `C3: large text, a resize to 430px re-measures → "${wide}"`);
+  await pg.setViewportSize({ width: 320, height: 760 });
+  await counterReads(pg, 'Q 1/24');
+  assert((await counter(pg)).text === 'Q 1/24', 'C3: large text, a resize to 320px re-measures → tiny');
+  await pg.setViewportSize({ width: 430, height: 760 });
+  await counterReads(pg, wide);
+  assert((await counter(pg)).text === wide, `C3: large text, a resize back to 430px re-measures → "${wide}" again`);
 }
 
 // L4b: in large text the plan task card puts "Start ›" under the text; L5: the order count column is 128px and fits
