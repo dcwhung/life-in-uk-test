@@ -82,16 +82,53 @@ function openStudy() {
   renderStudy();
   setStudyScroll(0);
 }
-// a new list (tab, chip, filter, search) starts at its top. On a phone the controls sit above the list, so the page
-// is near the top already; on desktop they stay beside the card panel, which would otherwise keep the old offset
+// a tab / chip in the pinned block (css/screens/study.css .study-top) picks a new list: save, redraw, show it from its start.
+// v2.0.0 desktop: the controls stay in the rail beside the card panel, which would otherwise keep the old offset, so the
+// panel goes back to its top (on a phone #studyContent does not scroll: a no-op); on a phone the page scrolls back so the
+// list starts right under the pinned block (studyShowListStart)
 function renderNewStudyList() { renderStudy(); studyPanel().scrollTop = 0; }
-function studySetTab(tab) { study.tab = tab; studySavePrefs(); renderNewStudyList(); }
-function studySetChapter(ch) { study.chapter = ch; studySavePrefs(); renderNewStudyList(); }
-function studySetNation(n) { study.nation = n; studySavePrefs(); renderNewStudyList(); }
-function studySetGroup(g) { study.group = g; studySavePrefs(); renderNewStudyList(); }
-function studySetMemoChapter(ch) { study.memoChapter = ch; studySavePrefs(); renderNewStudyList(); }
+function studyRefilter() { studySavePrefs(); renderNewStudyList(); studyShowListStart(); }
+function studySetTab(tab) { study.tab = tab; studyRefilter(); }
+function studySetChapter(ch) { study.chapter = ch; studyRefilter(); }
+function studySetNation(n) { study.nation = n; studyRefilter(); }
+function studySetGroup(g) { study.group = g; studyRefilter(); }
+function studySetMemoChapter(ch) { study.memoChapter = ch; studyRefilter(); }
 function studySetSearch(v) { study.search = v.trim().toLowerCase(); renderNewStudyList(); }
-function studyToggle(key) { study[key] = !study[key]; studySavePrefs(); renderNewStudyList(); }
+function studyToggle(key) { study[key] = !study[key]; studyRefilter(); }
+// v1.6.1: tapped while the list is scrolled under the pinned block, the new list would open mid-way (or past its end):
+// scroll back so it starts right under the block. At rest (or unpinned, short screens) the list already starts below
+// it: no-op. A cached older index.html (before v1.6.1) has no block: nothing to do. Desktop (v2.0.4 merge): the block
+// is not pinned (display: contents in the rail) and the page does not scroll, only the card panel
+function studyShowListStart() {
+  const top = document.querySelector('#screenStudy .study-top');
+  if (!top || studyPanelScrolls()) return;
+  const overlap = top.getBoundingClientRect().bottom - byId('studyCount').getBoundingClientRect().top;
+  if (overlap > 0) window.scrollBy(0, -overlap);
+}
+// the pinned block's height as --study-top-h (scroll-padding-top in css/screens/study.css): follows the tab (its chip
+// rows), text size, language and rotation. Also measured on demand (W-067): while Study is hidden (a fact session) the
+// observer reports 0, and a scroll right after Study shows again (flashStudyFact) runs before the observer's next
+// callback. An older cached index.html has no block: nothing to measure. A browser without ResizeObserver
+// (Safari < 13.1) still gets the on-demand measure (as js/screens/flagged.js otherwise)
+function studySyncTopHeight() {
+  const top = document.querySelector('#screenStudy .study-top');
+  if (top) document.documentElement.style.setProperty('--study-top-h', `${top.offsetHeight}px`);
+}
+const studyTop = document.querySelector('#screenStudy .study-top');
+if (studyTop && typeof ResizeObserver !== 'undefined') new ResizeObserver(studySyncTopHeight).observe(studyTop);
+// W-068 (user): each chip row is one line that scrolls sideways (css/screens/study.css). A re-render (tab switch, reload,
+// language) can leave the selected chip past an edge, and a browser's own focus scroll leaves a half-shown chip as it is:
+// scroll the row (never the page, so no scrollIntoView, whose block axis could move it) until the chip clears the row's
+// scroll-padding (its edge fade). A hidden row or screen has no box: nothing to do
+function studyRevealChip(row, chip) {
+  if (!chip || !row.clientWidth) return;
+  const inset = parseFloat(getComputedStyle(row).scrollPaddingLeft) || 0;
+  const r = row.getBoundingClientRect(), c = chip.getBoundingClientRect();
+  if (c.left < r.left + inset) row.scrollLeft -= r.left + inset - c.left;
+  else if (c.right > r.right - inset) row.scrollLeft += c.right - (r.right - inset);
+}
+const STUDY_CHIP_ROWS = ['studyChips', 'studySubChips'];
+STUDY_CHIP_ROWS.forEach(id => byId(id).addEventListener('focusin', e => studyRevealChip(e.currentTarget, e.target.closest('.chip'))));
 // kind: 'mastered' | 'bookmarks' — per-fact marks, saved straight away
 function studyToggleMark(kind, id) {
   const marks = study[kind];
@@ -122,7 +159,9 @@ function renderFact(f, opts = {}) {
 function studyChipsHtml() {
   // decorative icon: the chip text already says "Bookmarked" (a labelled SVG would read "Flagged")
   const bookmarkLabel = bookmarkSvg('chip-flag', { decorative: true }) + t('study.bookmarkedOnly');
-  let chips = chipHtml({ active: study.hideMastered, action: 'studyToggle', arg: 'hideMastered', label: t('study.hideMastered') })
+  // v1.6.1: the ✓ before "Hide mastered" is the check line icon (the fact card's mastered tick)
+  const masteredLabel = iconLabelHtml(t('study.hideMastered'), { lead: 'check' });
+  let chips = chipHtml({ extraCls: ' with-icon', active: study.hideMastered, action: 'studyToggle', arg: 'hideMastered', label: masteredLabel })
     + chipHtml({ active: study.bookmarksOnly, action: 'studyToggle', arg: 'bookmarksOnly', label: bookmarkLabel });
   if (study.tab === 'timeline') {
     chips += chipHtml({ extraCls: ' war', active: study.warsOnly, action: 'studyToggle', arg: 'warsOnly', label: t('study.warsOnly') });
@@ -151,7 +190,15 @@ function studySubChipsHtml() {
 // One screen high: a left rail (20%: search, tabs, sub chips, count, then the filter chips at its foot) beside the
 // card panel, which scrolls on its own with fades (js/components/fit.js). index.html keeps the flat phone markup, so
 // the wrappers are added here once; below 1024px they are display: contents and the phone layout is unchanged.
+// v2.0.4 merge: the v1.6.1 pinned block (.study-top: tabs + chip rows) moves into the rail as one piece and is
+// display: contents there (css/screens/study.css), so the rail still lays out search, tabs, chips, count. An older cached
+// index.html (before v1.6.1) has no block: its tabs and chip rows go into the rail one by one, as in v2.0.0
 const STUDY_RAIL_IDS = ['studySearch', 'studyTabs', 'studyChips', 'studySubChips', 'studyCount'];
+function studyRailEls() {
+  const top = document.querySelector('#screenStudy .study-top');
+  if (!top) return STUDY_RAIL_IDS.map(byId).filter(Boolean);
+  return [byId('studySearch'), top, byId('studyCount')].filter(Boolean);
+}
 function wrapStudyEl(cls, children) {
   const box = document.createElement('div');
   box.className = cls;
@@ -162,7 +209,7 @@ function ensureStudyLayout() {
   const screen = byId('screenStudy');
   if (screen.querySelector('.study-cols')) return;
   const content = byId('studyContent');
-  const rail = wrapStudyEl('study-rail', STUDY_RAIL_IDS.map(byId).filter(Boolean));
+  const rail = wrapStudyEl('study-rail', studyRailEls());
   content.classList.add('fit-panel');
   const cols = wrapStudyEl('study-cols fit-grow', [rail, wrapStudyEl('study-main fit-fade', [content])]);
   screen.append(cols);
@@ -198,6 +245,7 @@ function renderStudy() {
     t.classList.toggle('active', t.dataset.tab === study.tab));
   fillChipRow('studyChips', study.tab === MEMO_TAB ? '' : studyChipsHtml());
   fillChipRow('studySubChips', studySubChipsHtml());
+  STUDY_CHIP_ROWS.forEach(id => studyRevealChip(byId(id), byId(id).querySelector('.chip.active')));
   byId('studySearch').placeholder = study.tab === MEMO_TAB ? t('memo.search') : t('study.search');
   // a renderer may name its own count / empty-state words (memo: groups, not facts)
   const { html, shown, total, countKey = 'study.count', emptyKey = 'study.empty' } = STUDY_RENDERERS[study.tab]();
@@ -210,10 +258,23 @@ function renderStudy() {
 
 // Q8: after ↩ Back from a fact session its card flashes gold; R-010: when the restored scroll no longer shows it
 // (the list changed while practising) bring it into view. Gone (e.g. Hide mastered): nothing to do.
+// CUI-0036 (user 2026-10-12: align the card top): when the card's top is hidden (behind the pinned block on a phone,
+// above the card panel's edge on desktop) it lands right under the block / below the panel's top fade ('start': phone
+// scroll-padding-top = header + block, css/screens/study.css; desktop scroll-margin-top = the fade), so its year / title
+// show even when the card is taller than the room and its ▶ goes off-screen. 'nearest' left a tall card's top hidden
+// (both edges out of view: no scroll). A card whose top already shows keeps the restored scroll ('nearest', as before)
+function studyCardTopHidden(el) {
+  const top = el.getBoundingClientRect().top;
+  if (studyPanelScrolls()) {
+    return top < studyPanel().getBoundingClientRect().top - 1; // above the panel's edge (inside the fade still reads)
+  }
+  return top < (parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0) - 1;
+}
 function flashStudyFact(id) {
   const el = document.querySelector(`#studyContent .fact[data-fact-id="${id}"]`);
   if (!el) return;
-  el.scrollIntoView({ block: 'nearest' });
+  studySyncTopHeight(); // W-067: Study was hidden a moment ago, so --study-top-h may still read 0
+  el.scrollIntoView({ block: studyCardTopHidden(el) ? 'start' : 'nearest' });
   el.classList.add('flash');
   setTimeout(() => el.classList.remove('flash'), FACT_HIGHLIGHT_MS);
 }

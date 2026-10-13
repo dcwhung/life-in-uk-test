@@ -128,7 +128,7 @@ async function checkRounds(pg) {
   const ch = p.days[0].tasks[i].ch;
   assert(head.screen === 'screenQuiz' && head.label === `Chapter ${ch}` && head.badge === 'Practice' && head.timer,
     `the Practice screen itself: "Chapter ${ch}" · Practice, no timer`);
-  assert(head.back === "‹ Today's tasks" && head.n === 24 && head.dots === 24 && head.planDay === TODAY, 'round 1: 24 questions, 24 dots, ‹ Today\'s tasks, counts for today');
+  assert(head.back === "Today's tasks" && head.n === 24 && head.dots === 24 && head.planDay === TODAY, 'round 1: 24 questions, 24 dots, ← Today\'s tasks, counts for today');
   assert((await cur(pg)).note === 'Round 1 of 2', 'round note: Round 1 of 2');
   const first = await cur(pg);
   const wrongKey = first.key;
@@ -144,7 +144,7 @@ async function checkRounds(pg) {
   assert(log.bad[wrongKey] === 1 && !log.ok[wrongKey], 'a wrong answer only goes to bad (it counts for nothing)');
   await tap(pg, '#nextBtn');
   const r1 = await playRound(pg, { skipKeys: [skipKey] });
-  assert(r1.last.next === 'Next round →', 'round 1 last question: "Next round →": ' + r1.last.next);
+  assert(r1.last.next === 'Next round', 'round 1 last question: "Next round →": ' + r1.last.next);
   const c2 = await cur(pg);
   assert(c2.plan && c2.n === qids.length - 24 + 2 && c2.note === 'Round 2 of 2', `round 2: the ${qids.length - 24} new ones, the skipped one, the wrong one (${c2.n}); Round 2 of 2`);
   const t2 = await pg.evaluate(() => { const keep = state.current; state.current = state.questions.length - 1; renderQuestion();
@@ -155,14 +155,14 @@ async function checkRounds(pg) {
   assert(order[order.length - 2] === skipKey && order[order.length - 1] === wrongKey, 'order: new questions, then the skipped one, then the wrong one');
   const r2 = await playRound(pg, { wrongKeys: [wrongKey] });
   const redo = r2.seen[r2.seen.length - 1];
-  assert(redo.key === wrongKey && redo.note === '🔁 Redo the wrong answer (1 left)', 'a question answered wrong before: "🔁 Redo … (1 left)": ' + redo.note);
-  assert(r2.last.next === '🔁 Redo the wrong answer (1 left)', 'wrong again: the last button redoes it the same day: ' + r2.last.next);
+  assert(redo.key === wrongKey && redo.note === 'Redo the wrong answer (1 left)', 'a question answered wrong before: "🔁 Redo … (1 left)": ' + redo.note);
+  assert(r2.last.next === 'Redo the wrong answer (1 left)', 'wrong again: the last button redoes it the same day: ' + r2.last.next);
   const c3 = await cur(pg);
   assert(c3.n === 1 && c3.key === wrongKey, 'redo round: only the wrong one');
   await answer(pg, true);
-  assert((await cur(pg)).next === 'Finish ✓', 'all right: "Finish ✓"');
-  const t3 = await pg.evaluate(() => [byId('quickNext').textContent, byId('quickNext').title, byId('quickNext').getAttribute('aria-label')]);
-  assert(t3.join('|') === '✓|Finish|Finish', 'QA O-3: the quick ✓ button is titled "Finish" (no symbol): ' + t3);
+  assert((await cur(pg)).next === 'Finish', 'all right: "Finish ✓"');
+  const t3 = await pg.evaluate(() => [byId('quickNext').querySelector('svg.line-icon').dataset.iconName + byId('quickNext').textContent, byId('quickNext').title, byId('quickNext').getAttribute('aria-label')]);
+  assert(t3.join('|') === 'check|Finish|Finish', 'QA O-3: the quick check-icon button is titled "Finish" (no symbol; C1: line icon, no glyph): ' + t3);
   log = await dayLog(pg, TODAY);
   assert(qids.every(k => log.ok[k]), 'every question of the task is right for today');
   await tap(pg, '#nextBtn');
@@ -182,12 +182,12 @@ async function checkResultCard(pg, { i, qids }) {
   assert(r.emoji === '✅' && r.score === `${r.want}%` && r.label === "Task done · today's progress", `Result card: ✅ ${r.want}% · Task done · today's progress`);
   assert(r.sub === `All ${qids.length} questions right, 1 of them after a redo.`, 'summary: ' + r.sub);
   assert(/^The matching “Read Ch \d .+” now counts as read automatically\.$/.test(r.note), 'G3: the matching reading task now counts as read: ' + r.note);
-  assert(r.next.startsWith('Next') && r.acts[0][1] === 'planReviewTask' && r.acts[1][0] === 'Start next →', 'next task card + "Review this task" / "Start next →": ' + r.next);
+  assert(r.next.startsWith('Next') && r.acts[0][1] === 'planReviewTask' && r.acts[1][0] === 'Start next', 'next task card + "Review this task" / "Start next →": ' + r.next);
   assert(await pg.evaluate(() => document.activeElement === document.querySelector('#planRunBody .result-label') && document.activeElement.tabIndex === -1),
     'S-121: the Result card takes focus on its result line (screen readers read it)');
   const desc = await pg.evaluate(() => (document.activeElement.getAttribute('aria-describedby') || '').split(' ').map(id => byId(id) && byId(id).textContent));
   assert(desc[0] === `${r.want}%` && desc[1] === r.sub, 'S-121: the result line is described by the % and the summary: ' + desc);
-  assert(r.back === "‹ Today's tasks" && !r.side, 'header ‹ Today\'s tasks; the side session has ended');
+  assert(r.back === "Today's tasks" && !r.side, 'header ← Today\'s tasks; the side session has ended');
   for (const s of ['#planRunBack', '#planRunBody [data-action="planReviewTask"]', '#planRunBody [data-action="planOpenTask"]']) assert(await hitOk(pg, s), `${s}: ${HIT_MIN_PX}px`);
   const low = (await contrastOf(pg, '#screenPlanRun .result-label, #screenPlanRun .result-sub, #screenPlanRun .plan-note, #screenPlanRun .plan-muted, #screenPlanRun .section-title, #screenPlanRun b'))
     .filter(c => c.ratio < MIN_CONTRAST || !c.opaque);
@@ -198,7 +198,7 @@ async function checkResultCard(pg, { i, qids }) {
   await checkReviewMode(pg, qids, before);
   // back on the day screen, the box reads "✓ Review ›" and opens review mode again
   assert(await activeScreen(pg) === 'screenPlanDay', 'review: the last question\'s "Finish ✓" goes back to the day');
-  assert(await text(pg, taskBox(TODAY, i) + ' .plan-task-go') === '✓ Review ›', 'the finished task box: ✓ Review ›');
+  assert(await text(pg, taskBox(TODAY, i) + ' .plan-task-go') === 'Review', 'the finished task box: ✓ Review ›');
   await tap(pg, taskBox(TODAY, i));
   assert(await pg.evaluate(() => isPlanReviewMode() && state.current === 0), 'a finished task box opens review mode');
   await tap(pg, '#screenQuiz .back-btn');
@@ -221,7 +221,7 @@ async function checkReviewMode(pg, qids, before) {
   for (let k = 0; k < 60; k++) {
     const c = await cur(pg);
     await tap(pg, '#nextBtn');
-    if (c.idx === c.n - 1 && c.next === 'Finish ✓') break;
+    if (c.idx === c.n - 1 && c.next === 'Finish') break;
   }
   assert(await storage(pg) === before, 'G17: review mode writes nothing to storage (taps, Next, pages)');
 }
@@ -248,8 +248,8 @@ async function checkDays(pg) {
   await tap(pg, '#planDayPrev');
   const d2 = '2026-09-29', i2 = taskIndexOf(p, d2, t => t.type === 'practice');
   await tap(pg, taskBox(d2, i2));
-  assert(await text(pg, '#screenQuiz .back-btn') === '‹ Day 2 tasks' && await pg.$eval('#screenQuiz .back-btn [lang="en"]', e => e.textContent) === 'Day 2',
-    'a past day: "‹ Day 2 tasks" (Day 2 lang="en")');
+  assert(await text(pg, '#screenQuiz .back-btn') === 'Day 2 tasks' && await pg.$eval('#screenQuiz .back-btn [lang="en"]', e => e.textContent) === 'Day 2',
+    'a past day: "← Day 2 tasks" (Day 2 lang="en")');
   const k2 = (await cur(pg)).key;
   await answer(pg, true);
   assert((await dayLog(pg, d2)).ok[k2] === 1, 'G5: a past day\'s answer counts for that day (catch-up)');
@@ -280,7 +280,7 @@ async function checkClearWrong(pg) {
   const r = await playRound(pg, { wrongKeys: ['1.0'] });
   const wl = await pg.evaluate(() => Object.keys(wrongList));
   assert(!wl.includes(DUP_COPY_KEY) && !wl.includes(DUP_CANON_KEY) && wl.includes('1.0'), 'W-030: right on 3.12 clears 3.12 and 4.14; 1.0 (wrong) stays: ' + wl);
-  assert(r.last.next === '🔁 Redo the wrong answer (1 left)', 'the wrong one comes back: ' + r.last.next);
+  assert(r.last.next === 'Redo the wrong answer (1 left)', 'the wrong one comes back: ' + r.last.next);
   await answer(pg, true);
   await tap(pg, '#nextBtn');
   assert(await activeScreen(pg) === 'screenPlanRun' && !(await pg.evaluate(() => wrongList['1.0'])), 'redone right: cleared, Result card');
@@ -386,7 +386,7 @@ async function checkMidnight(pg) {
     label: document.querySelector('#planRunBody .result-label').textContent, back: byId('planRunBack').textContent,
     want: planDayCompletion(planLoad().days[0], planDayLog(planLoadLogView(), '2026-10-01')).pct }));
   assert(r.score === `${r.want}%` && r.want > 0 && r.label === "Task done · that day's progress", `QA O-2: after midnight the card shows the task's day: ${r.score} · ${r.label}`);
-  assert(r.back === '‹ Day 1 tasks', 'QA O-2: ‹ names that day: ' + r.back);
+  assert(r.back === 'Day 1 tasks', 'QA O-2: ← names that day: ' + r.back);
   await tap(pg, '#planRunBack');
   assert(await text(pg, '#planDayTitle') === 'Day 1 tasks', 'QA O-2: ‹ goes back to that day');
 }

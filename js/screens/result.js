@@ -38,7 +38,7 @@ function renderResults() {
   renderResultActions();
   renderResultPlanRow(); // a study plan mock: task done / retake as a Random Exam (js/screens/planRun.js)
   setExamLabel(byId('resultLabel'), state.examNum);
-  // v2.0.5: a Flagged practice reads "‹ Flagged"; W-071: a cached pre-v2.0.5 sideSession.js keeps the 🏠 (index.html)
+  // v2.1.1: a Flagged practice reads "‹ Flagged"; W-071: a cached pre-v2.1.1 sideSession.js keeps the 🏠 (index.html)
   if (typeof setEntryBack === 'function') setEntryBack(byId('screenResult').querySelector('.back-btn'));
   byId('diffTable').innerHTML = diffTableHtml();
   renderResultDots();
@@ -121,10 +121,8 @@ function renderResultDots() {
   byId('resultDots').innerHTML = reviewItems.map(r => dotButtonHtml(resultDotClass(r), 'jumpToReview', r.idx)).join('');
   const count = pred => reviewItems.filter(pred).length;
   byId('resultDotsMeta').innerHTML = countsLegendHtml([
-    ['lg-ok', t('common.correct'), count(r => r.isCorrect)],
-    ['lg-bad', t('common.wrong'), count(r => !r.isCorrect && r.userAns.length)],
-    ['lg-skip', t('common.unanswered'), count(r => !r.userAns.length)],
-    ['lg-flag', t('common.flagged'), count(r => r.flagged)],
+    [['lg-ok', t('common.correct'), count(r => r.isCorrect)], ['lg-skip', t('common.unanswered'), count(r => !r.userAns.length)]],
+    [['lg-bad', t('common.wrong'), count(r => !r.isCorrect && r.userAns.length)], ['lg-flag', t('common.flagged'), count(r => r.flagged)]],
   ]);
 }
 // tap a result dot: show that question's review (switch to All if the filter hides it) and highlight it

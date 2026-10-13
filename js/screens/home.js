@@ -158,7 +158,8 @@ function renderMyReview() {
   // G40: distinct questions (copies of one text are one question, as in the rounds and the result note)
   const wrongN = questionGroups(keysOf(wrongList)).length, flagN = questionGroups(keysOf(practiceFlags)).length;
   byId('myReview').classList.toggle('show', pendingMode === PRACTICE_MODE && (wrongN + flagN) > 0);
-  renderReviewTile('tileWrong', wrongN, '✗', t('home.wrongTitle'), wrongTileBody(wrongN));
+  // CUI-0037: a line icon like the flagged tile's bookmark SVG (controls use line icons, never glyphs)
+  renderReviewTile('tileWrong', wrongN, lineIconSvg('cross'), t('home.wrongTitle'), wrongTileBody(wrongN));
   renderReviewTile('tileFlagged', flagN, bookmarkSvg('rv-flag-tile'), t('home.flaggedTitle'), flaggedTileBody(flagN));
   fitRows(byId('myReview')); // v1.3.1: side by side unless a title or empty line would wrap, or the note pass MY_REVIEW_NOTE_LINES
 }
@@ -167,9 +168,11 @@ function startFlaggedPractice() { pendingMode = PRACTICE_MODE; startExam(FLAGGED
 
 // ── back to home (asks first while an exam is running) ──
 function goHome() {
-  // the quiz header is goBack (planLeaveSession) in a plan task since v2.0.5; this stays for goHome callers, and for a
-  // cached pre-v2.0.5 actions.js where the header is still goHome (W-071)
+  // the quiz header is goBack (planLeaveSession) in a plan task since v2.1.1; this stays for goHome callers, and for a
+  // cached pre-v2.1.1 actions.js where the header is still goHome (W-071)
   if (isPlanSession()) { planBackToDay(); return; }
+  // C2: a memo test's header reads "‹ Memory": back to the group, nothing recorded. W-057: a cached pre-v1.6.1 sideSession.js
+  if (typeof isMemoSession === 'function' && isMemoSession()) { leaveMemoTest(); return; }
   if (isExamRunning()) {
     showConfirm({ title: t('modal.leaveTitle'), message: t('modal.leaveMessage'),
       okLabel: t('modal.leaveOk'), cancelLabel: t('modal.leaveCancel'), onOk: isPlanMock() ? planLeaveMock : leaveToHome, focusCancel: true });

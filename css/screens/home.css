@@ -124,12 +124,15 @@
   padding: var(--space-6) var(--space-6) 11px; text-align: left; cursor: pointer; box-shadow: var(--shadow-sm); font: inherit;
 }
 .my-tile .t-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-4); }
-.my-tile .t-icon { width: 30px; height: 30px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: var(--fs-lg); font-weight: 900; }
+.my-tile .t-icon { width: 30px; height: 30px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; }
 .my-tile.wrong { border-left: 4px solid var(--red-light); }
 .my-tile.wrong .t-icon { background: var(--danger-bg); color: var(--red-light); }
 .my-tile.flagged { border-left: 4px solid var(--orange); }
 .my-tile.flagged .t-icon { background: var(--flag-bg); }
 .my-tile .t-icon svg { width: 17px; height: 17px; }
+/* CUI-0037: the wrong tile's cross (stroke = the box's --red-light via currentColor) a touch heavier than buttons' 2.2 so it
+   holds its own beside the flagged tile's filled bookmark */
+.my-tile .t-icon .line-icon { stroke-width: 2.6; }
 .my-tile .t-num { font-size: var(--fs-6xl); font-weight: 900; color: var(--navy); line-height: 1; }
 .my-tile b { display: block; font-size: var(--fs-base-plus); color: var(--navy); }
 .my-tile .sub, .my-tile .t-note { display: block; font-size: var(--fs-xs); color: var(--text-muted); margin-top: var(--space-1); line-height: 1.4; }

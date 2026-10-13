@@ -26,7 +26,8 @@ const { startPagesServer, appFiles } = require('./pages-server');
 //      that file's own static study.search, no raw key)
 //  11. v1.4.2: the current shell with one v1.4.0 file (config.js: no INITIAL_LANG / DEFAULT_FONT_SIZE; i18n.js; store.js),
 //      nothing stored (legacy seed off) — still starts with no page errors; each old file keeps its own first-run default
-//  12. W-071 (v2.0.5): the current shell with one v2.0.2 file (sideSession.js: no setEntryBack / goBack; actions.js: no
+//  12. S-237 (v1.6.1): a v1.6.0 cached shell (pinned f55a945) + current js — every static control gets its line icon
+//  13. W-071 (v2.1.1): the current shell with one v2.0.2 file (sideSession.js: no setEntryBack / goBack; actions.js: no
 //      goBack handler; locales/en.js: no back labels) — a Flagged practice still renders every question and the Result,
 //      the header back button still leaves the quiz, no raw key, no page errors
 // The v0.57 files come from git: V057_REF is the last v0.57 commit on main (merge of PR #29), pinned so a later
@@ -266,6 +267,49 @@ async function v112Shell(b) {
   await pg.close();
 }
 
+// S-237 / v1.6.1: a v1.6.0 cached index.html (main at the PR #105 merge) + current js: its static controls had glyphs
+// ("←" on the quick Prev, "‹ ›" on the plan arrows, "✕" on the install banner) and data-i18n words on the button itself;
+// main.js upgradeLegacyIconMarkup() gives each its line icon, the words stay (no glyph left, no [i18n] warning)
+const V160_SHELL_REF = 'f55a945';
+// v2.0.4: main's v2.0.1 shell (5cecb72, the desktop release) is the one most devices have cached: same static controls
+const V201_SHELL_REF = '5cecb72';
+const CONTROL_GLYPHS = '[←→↩✓▶🔁↺✕‹›ⓘ]'; // CUI-0035: + the header ⓘ
+const V160_EXPECTED = { '#quickPrev': ['', 'arrowLeft'], '#prevBtn': ['Prev', 'arrowLeft'], '.install-close': ['', 'close'],
+  '#planDayPrev': ['', 'chevronLeft'], '#planCalNext': ['', 'chevronRight'], '.reset-btn[data-action="resetPracticeProgress"]': ['Reset progress', 'reset'],
+  '#screenMemo .memo-back': ['Memory', 'chevronLeft'], '#planBackToday': ['Back to today', 'arrowLeft'], '#infoBtn': ['', 'info'] };
+async function v160Shell(b, ref = V160_SHELL_REF, name = 'v1.6.0') {
+  const dir = tmpDir(`shell-${ref}`);
+  copyCurrent(dir);
+  fs.writeFileSync(path.join(dir, 'old.html'), execFileSync('git', ['-C', ROOT, 'show', `${ref}:index.html`]));
+  const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
+  const errs = []; pg.on('pageerror', e => errs.push(e.message));
+  const warns = []; pg.on('console', m => { if (m.type() === 'warning') warns.push(m.text()); });
+  await pg.goto('file://' + path.join(dir, 'old.html'));
+  await seed(pg, {});
+  await pg.reload();
+  await pg.waitForSelector('#examGrid .exam-btn', { state: 'attached' });
+  await pg.evaluate(() => { pendingMode = 'practice'; startExam(1); });
+  const r = await pg.evaluate(sels => Object.fromEntries(sels.map(sel => {
+    const e = document.querySelector(sel), svg = e && e.querySelector('svg.line-icon');
+    return [sel, e ? [e.textContent.trim(), svg ? svg.dataset.iconName : null] : null];
+  })), Object.keys(V160_EXPECTED));
+  const glyphs = await pg.$$eval('button', (els, re) => els.map(e => e.textContent.trim()).filter(t => new RegExp(re, 'u').test(t)), CONTROL_GLYPHS);
+  assert(JSON.stringify(r) === JSON.stringify(V160_EXPECTED),
+    `${name} shell: every static control gets its line icon, words without a glyph (S-237: no "←" beside the quick Next icon): ` + JSON.stringify(r));
+  assert(!glyphs.length, `${name} shell: no button text holds a control glyph: ` + JSON.stringify(glyphs));
+  // v2.0.4 merge: an old shell has no .study-top: desktop Study still moves its tabs / chips into the rail one by one
+  await pg.setViewportSize({ width: 1280, height: 800 });
+  const desk = await pg.evaluate(() => {
+    openStudy();
+    const rail = document.querySelector('#screenStudy .study-rail');
+    return { block: !!document.querySelector('#screenStudy .study-top'), rail: !!rail && ['studyTabs', 'studySubChips', 'studyChips'].every(id => rail.contains(byId(id))) };
+  });
+  assert(!desk.block && desk.rail, `${name} shell at 1280px: no pinned block, the Study tabs and chips sit in the desktop rail ` + JSON.stringify(desk));
+  assert(warns.filter(w => w.includes('[i18n]')).length === 0, `${name} shell: no [i18n] missing-key warnings: ` + warns.join(' | '));
+  assert(errs.length === 0, `${name} shell: no page errors: ` + errs.join(' | '));
+  await pg.close();
+}
+
 // W-058 (v1.3.1): a v1.3.0 cached index.html (no data-fit-row) + current css / js: the rows that replaced W-036 /
 // W-056 / the portrait rule still fit at 320px: the presets go 2 × 2 with no label cut, the level cards and the My Review
 // tiles stack
@@ -389,13 +433,67 @@ async function v140SingleFile(b, file) {
   await pg.close();
 }
 
-// 12. W-071 (v2.0.5): the current shell with ONE file still from v2.0.2 (pinned c6b0806, the v2.0.2 merge). The
-// back-to-entry calls are guarded: an old sideSession.js keeps the 🏠 (no ReferenceError on each question / the Result);
-// an old actions.js leaves the header on goHome (no dead button); a locale without the labels keeps the 🏠
+// W-382 (v2.1.0, CUI-0038): the current shell with ONE file still from v2.0.2 (pinned c6b0806, the v2.0.2 merge): an
+// HTTP-cached planGoal.js (toggles #planDateNote, names PLAN_GOAL_MODE / planGoalLimits) or planProgress.js
+// (replanFrom names PLAN_GOAL_MODE) still opens the goal form in both modes and updates the plan, no page errors
 const V202_REF = 'c6b0806';
-const V202_SINGLES = ['js/screens/sideSession.js', 'js/core/actions.js', 'locales/en.js'];
+const V202_SINGLES = ['js/screens/planGoal.js', 'js/domain/planProgress.js'];
 async function v202SingleFile(b, file) {
   const dir = tmpDir('v202one');
+  copyCurrent(dir);
+  fs.writeFileSync(path.join(dir, file), execFileSync('git', ['-C', ROOT, 'show', `${V202_REF}:${file}`]));
+  const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
+  const errs = []; pg.on('pageerror', e => errs.push(e.message));
+  await pg.goto('file://' + path.join(dir, 'index.html'));
+  await seed(pg, {});
+  await pg.waitForSelector('#examGrid .exam-btn', { state: 'attached' });
+  await pg.evaluate(() => { openPlanGoal(); });
+  const create = await pg.evaluate(() => ({ screen: document.querySelector('.screen.active').id, min: byId('planExamDate').min }));
+  await pg.evaluate(() => {
+    const today = planTodayIso(), start = isoAddDays(today, -3);
+    writeStudyPlan(buildPlan({ examDate: isoAddDays(start, 21), dailyMins: 120, restDays: [], level: 'none' }, start));
+    openPlanSchedule();
+  });
+  await pg.click('#screenPlanSchedule [data-action="planEditGoal"]');
+  const edit = await pg.evaluate(() => ({ screen: document.querySelector('.screen.active').id, note: byId('planDateNote') ? byId('planDateNote').textContent : null }));
+  await pg.click('#planDaysChips .chip >> nth=1'); // 3 weeks from today
+  await pg.click('#planCreateBtn');
+  const after = await pg.evaluate(() => ({ screen: document.querySelector('.screen.active').id, exam: planLoad().goal.examDate, want: isoAddDays(planTodayIso(), 21) }));
+  assert(create.screen === 'screenPlanGoal' && edit.screen === 'screenPlanGoal' && !/plan\./.test(edit.note || '') && after.screen === 'screenPlanSchedule'
+    && after.exam === after.want && errs.length === 0,
+    `W-382 v2.0.2 ${file} + current files: the goal form opens (new plan / change goal), Update re-plans, no raw key, no page errors: ` + JSON.stringify({ create, edit, after, errs }));
+  await pg.close();
+}
+
+// S-254 (v2.1.0, CUI-0038): the current files with a cached v2.0.2 locales/en.js (no plan.schedule.phasesTitleOne / Two):
+// a 2-phase plan's schedule keeps the static title instead of the raw key, no missing-key warning from it
+async function v202Locale(b) {
+  const dir = tmpDir('v202locale');
+  copyCurrent(dir);
+  fs.writeFileSync(path.join(dir, 'locales/en.js'), execFileSync('git', ['-C', ROOT, 'show', `${V202_REF}:locales/en.js`]));
+  const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
+  const errs = []; pg.on('pageerror', e => errs.push(e.message));
+  const warns = []; pg.on('console', m => { if (m.type() === 'warning' && m.text().includes('phasesTitle')) warns.push(m.text()); });
+  await pg.goto('file://' + path.join(dir, 'index.html'));
+  await seed(pg, {});
+  await pg.waitForSelector('#examGrid .exam-btn', { state: 'attached' });
+  const r = await pg.evaluate(() => {
+    setLang('en');
+    writeStudyPlan(buildPlan({ examDate: isoAddDays(planTodayIso(), 7), dailyMins: 30, restDays: [], level: 'none' }, planTodayIso()));
+    openPlanSchedule();
+    return { bar: byId('planPhaseBar').children.length, title: byId('planPhasesTitle').textContent };
+  });
+  assert(r.bar === 2 && r.title === 'Three phases' && warns.length === 0 && errs.length === 0,
+    'S-254 v2.0.2 locales/en.js + current files: a 2-phase plan keeps the static title, no raw key: ' + JSON.stringify({ ...r, warns, errs }));
+  await pg.close();
+}
+
+// 13. W-071 (v2.1.1): the current shell with ONE file still from v2.0.2 (V202_REF above). The back-to-entry calls are
+// guarded: an old sideSession.js keeps the 🏠 (no ReferenceError on each question / the Result); an old actions.js leaves
+// the header on goHome (no dead button); a locale without the labels keeps the 🏠
+const V202_BACK_SINGLES = ['js/screens/sideSession.js', 'js/core/actions.js', 'locales/en.js'];
+async function v202BackSingleFile(b, file) {
+  const dir = tmpDir('v202back');
   copyCurrent(dir);
   fs.writeFileSync(path.join(dir, file), execFileSync('git', ['-C', ROOT, 'show', `${V202_REF}:${file}`]));
   const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
@@ -649,12 +747,16 @@ function checkV057Ref() {
   for (const file of V120_SINGLES) await v120SingleFile(b, file);
   for (const file of V130_SINGLES) await v130SingleFile(b, file);
   await v130Shell(b);
+  await v160Shell(b);
+  await v160Shell(b, V201_SHELL_REF, 'v2.0.1');
   for (const file of Object.keys(V140_SINGLES)) await v140SingleFile(b, file);
   await oldShellZhHk(b);
   await zhHkLocaleMissing(b);
+  for (const file of V202_SINGLES) await v202SingleFile(b, file);
+  await v202Locale(b);
+  for (const file of V202_BACK_SINGLES) await v202BackSingleFile(b, file);
   await v143Shell(b);
   await v143StudyJs(b);
-  for (const file of V202_SINGLES) await v202SingleFile(b, file);
   console.log('UPGRADE PASS');
   await b.close();
   cleanUp();

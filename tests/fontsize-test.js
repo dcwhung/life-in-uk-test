@@ -25,6 +25,8 @@ const LANGS = ['en', 'zh-HK'];
 const GOAL = { examDate: '2026-10-22', dailyMins: 120, restDays: [0], level: 'none' };
 const NOW = new Date('2026-10-11T09:00:00');
 const L5_COUNT_W_PX = 128;
+const NO_SEED_TRIES = 3; // S-242
+const REFIT_WAIT_MS = 2000; // S-242: a resize event can land later than two frames late in a long suite run
 
 const fresh = async (pg, lang = 'en') => {
   await pg.goto(APP_URL);
@@ -51,10 +53,19 @@ const tokens = pg => pg.evaluate(names => {
 
 // v1.4.2: default large (first run, nothing stored), the row, a choice, storage, reload, back to small. The real first
 // run, so the legacy small seed is off here; the language stays en (only the text size default is under test)
+// S-242: on file:// Chromium now and then navigates before the sessionStorage write commits, so the legacy seed ran and
+// stored small text (2/60 runs). Check the flag survived the navigation; if not, write it again and reload.
+async function gotoFirstRun(pg) {
+  await pg.goto(APP_URL);
+  for (let i = 0; i < NO_SEED_TRIES; i++) {
+    await pg.evaluate(([ss, langKey]) => { sessionStorage.setItem(ss, '1'); localStorage.clear(); localStorage.setItem(langKey, JSON.stringify('en')); }, [NO_SEED_SS, 'lifeuk.uiLang']);
+    await pg.goto(APP_URL);
+    if (await pg.evaluate(ss => sessionStorage.getItem(ss) === '1', NO_SEED_SS)) return;
+  }
+  assert(false, `S-242: the no-seed flag survives the navigation (${NO_SEED_TRIES} tries)`);
+}
 async function checkSwitch(pg) {
-  await pg.goto(APP_URL);
-  await pg.evaluate(([ss, langKey]) => { sessionStorage.setItem(ss, '1'); localStorage.clear(); localStorage.setItem(langKey, JSON.stringify('en')); }, [NO_SEED_SS, 'lifeuk.uiLang']);
-  await pg.goto(APP_URL);
+  await gotoFirstRun(pg);
   assert(await sizeOf(pg) === 'large' && await stored(pg) === null, 'v1.4.2 default: large text, nothing stored');
   await pg.click('#settingsBtn');
   const row = await pg.evaluate(() => [...document.querySelectorAll('#settingsFontRow [data-arg]')].map(b => {
@@ -264,22 +275,24 @@ async function checkGoalLayout(pg) {
 // S-203: an open goal screen fits again on resize, a language switch and a text size switch (no reopen)
 async function checkGoalRefit(pg) {
   const levels = () => pg.evaluate(() => byId('planLevelGrid').classList.contains('is-stacked'));
+  // S-242: after a viewport resize, wait for fitRows (window resize event) to reach the expected state, not two rAFs
+  const resized = async (width, stacked) => {
+    await pg.setViewportSize({ width, height: 900 });
+    await pg.waitForFunction(want => byId('planLevelGrid').classList.contains('is-stacked') === want, stacked, { timeout: REFIT_WAIT_MS }).catch(() => {});
+  };
   await pg.setViewportSize({ width: 600, height: 900 });
   await fresh(pg, 'en');
   await pg.evaluate(() => openPlanGoal());
   assert(!(await levels()), 'S-203 small en 600px: level cards in one row');
-  await pg.setViewportSize({ width: 320, height: 900 });
-  await pg.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
+  await resized(320, true);
   assert(await levels(), 'S-203 resize to 320px on the open screen: level cards stack');
-  await pg.setViewportSize({ width: 430, height: 900 });
-  await pg.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
+  await resized(430, true);
   assert(await levels(), 'S-203 small en 430px: level cards still stacked');
   await pg.evaluate(() => setLang('zh-HK'));
   assert(!(await levels()), 'S-203 switch to zh-HK at 430px on the open screen: level cards back in one row');
   await chooseSize(pg, 'large');
   assert(!(await levels()), 'S-203 large zh-HK 430px on the open screen: still one row');
-  await pg.setViewportSize({ width: 375, height: 900 });
-  await pg.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
+  await resized(375, true);
   assert(await levels(), 'S-203 large zh-HK 375px: level cards stack');
   await chooseSize(pg, 'small');
   assert(!(await levels()), 'S-203 switch to small text at 375px on the open screen: level cards back in one row');

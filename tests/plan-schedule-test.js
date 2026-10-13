@@ -11,7 +11,8 @@ const path = require('path');
 //   past days dimmed, status pills (✓ / heat band / today n% / rest), task text without minutes or 🏆,
 //   exam day row with the amber lattice; every row is a button that opens its day (PR5, plan-day-test)
 // - Change goal: the goal screen is prefilled; past days (tasks + completion) unchanged; Day 1 unchanged (G7)
-// - G36: Change goal takes an exam from tomorrow with 1 study day (note + edit hint); a new plan keeps today + 7 / 7
+// - CUI-0038: Change goal keeps a new plan's limits (today + 7, 7 study days; G36 retired); an exam already inside
+//   the window opens blocked; the legend and the phase title follow the phases the plan has (2 or 3)
 // - Reset: app modal (Confirm), plan + log deleted, practice records + switch kept, toast, Home create card;
 //   a corrupt log is cleared the same way (S-110 / O-1)
 // - S-112: Cancel / Confirm / Esc on the switch-off modal keep the ⓘ popover open with focus on the switch
@@ -332,7 +333,7 @@ async function checkChangeGoal(pg) {
   const g = await pg.evaluate(() => ({ draft: JSON.parse(JSON.stringify(planGoalDraft)), step: byId('planGoalStep').textContent, cta: byId('planCreateBtn').textContent, steps: byId('planGoalSteps').hidden }));
   assert(g.steps, 'edit mode: no 1 / 2 stepper');
   assert(JSON.stringify(g.draft) === JSON.stringify(GOAL), 'goal screen prefilled with the current goal: ' + JSON.stringify(g.draft));
-  assert(g.step === 'Change goal' && g.cta === 'Update my plan →', 'goal screen in edit mode: header + CTA: ' + g.step + ' / ' + g.cta);
+  assert(g.step === 'Change goal' && g.cta === 'Update my plan', 'goal screen in edit mode: header + CTA: ' + g.step + ' / ' + g.cta);
   await pg.click('#planRestChips .chip >> nth=6');
   await pg.click('#planCreateBtn');
   assert(await activeScreen(pg) === 'screenPlanSchedule', 'Update my plan → back to the schedule');
@@ -349,7 +350,7 @@ async function checkChangeGoal(pg) {
   await pg.click('#screenPlanGoal .back-btn');
   assert(await activeScreen(pg) === 'screenHome', 'goal screen ← Home');
   const create = await pg.evaluate(() => { openPlanGoal(); return { step: byId('planGoalStep').textContent, cta: byId('planCreateBtn').textContent, steps: byId('planGoalSteps').hidden }; });
-  assert(!create.steps && create.step === 'New plan · 1 / 2' && create.cta === 'Build my plan →', 'a new plan opens the goal screen in create mode again');
+  assert(!create.steps && create.step === 'New plan · 1 / 2' && create.cta === 'Build my plan', 'a new plan opens the goal screen in create mode again');
 }
 
 // W-035: Change goal measures the time against the facts still to learn (review case: 21 days at 60 min, 12 days in,
@@ -371,50 +372,143 @@ async function checkChangeGoalFeasibility(pg) {
   assert((await pg.$eval('#planFeasPill', e => e.className)).includes('short'), 'W-035: the same goal as a new plan still measures the whole syllabus (✕)');
 }
 
-// G36: Change goal may pick an exam as soon as tomorrow and keep as little as 1 study day; a new plan keeps today + 7
-// and 7 study days (G28)
-async function checkChangeGoalLastWeek(pg) {
+// CUI-0038 A (user 2026-10-13): Change goal follows the same limits as a new plan (G28: exam from today + 7, at least 7
+// study days); G36 (tomorrow, 1 study day) is retired with its note. Fewer than 7 disables Update with the 7-day hint
+const EDIT_HINT_EN = "At least 7 study days are needed before the exam, so the plan can't be updated. Choose fewer rest days or a later exam date.";
+const EDIT_HINT_ZH = '考試前最少需要 7 個溫習日，未能更新進度表。請減少休息日或延後考試日期。';
+const goalForm = pg => pg.evaluate(() => ({ exam: planGoalDraft.examDate, field: byId('planExamDate').value, min: byId('planExamDate').min,
+  study: byId('planFeasDays').textContent, cta: byId('planCreateBtn').disabled, hint: byId('planGoalHint').hidden ? null : byId('planGoalHint').textContent,
+  msg: !byId('planFeasMsg').hidden }));
+async function pickExamDate(pg, iso) {
+  await pg.fill('#planExamDate', iso);
+  await pg.click('#planDaysVal'); // leave the field (commits it, W-033)
+}
+async function checkChangeGoalSameLimits(pg) {
   await fresh(pg);
   await seedPlan(pg);
   await pg.evaluate(() => openPlanSchedule());
   const before = await pg.evaluate(() => parseStoredPlan(readStudyPlan()));
   await pg.click('#screenPlanSchedule [data-action="planEditGoal"]');
-  const edit = await pg.evaluate(() => ({ min: byId('planExamDate').min, note: byId('planDateNote').getClientRects().length > 0, noteText: byId('planDateNote').textContent }));
-  assert(edit.min === '2026-10-09' && edit.note && edit.noteText === 'When you change your goal, the exam date can be as soon as tomorrow.',
-    'G36: Change goal: the date field starts tomorrow, with a note: ' + JSON.stringify(edit));
-  await pg.fill('#planExamDate', '2026-10-09');
-  await pg.click('#planDaysVal'); // leave the field (commits it, W-033)
-  const r = await pg.evaluate(() => ({ exam: planGoalDraft.examDate, field: byId('planExamDate').value, days: byId('planDaysVal').textContent,
-    study: byId('planFeasDays').textContent, sub: byId('planFeasDaysSub').textContent, cta: byId('planCreateBtn').disabled, hint: byId('planGoalHint').hidden, chips: document.querySelectorAll('#planDaysChips .chip.active').length }));
-  assert(r.exam === '2026-10-09' && r.field === '2026-10-09' && r.days === '1 day' && r.study === '1' && r.sub === '1 day, 0 rest', 'G36: exam tomorrow taken (1 day, 1 study day): ' + JSON.stringify(r));
-  assert(!r.cta && r.hint && r.chips === 0, 'G36: 1 study day is enough to update (no hint), no preset chip on: ' + JSON.stringify(r));
-  await pg.click('#planRestChips .chip >> nth=4'); // Thursday = today: no study day left
-  const none = await pg.evaluate(() => ({ cta: byId('planCreateBtn').disabled, hint: byId('planGoalHint').hidden ? null : byId('planGoalHint').textContent, msg: byId('planFeasMsg').hidden }));
-  assert(none.cta && none.hint === "At least 1 study day is needed before the exam, so the plan can't be updated. Choose fewer rest days or a later exam date." && none.msg,
-    'G36: 0 study days disables the update with the edit hint: ' + JSON.stringify(none));
+  const open = await goalForm(pg);
+  const note = await pg.evaluate(() => byId('planDateNote').getClientRects().length > 0 || byId('planDateNote').textContent !== '');
+  assert(open.min === '2026-10-15' && !note, 'CUI-0038: Change goal: the date field starts at today + 7, no G36 note (W-382: an empty hidden node stays): ' + JSON.stringify(open));
+  await pickExamDate(pg, '2026-10-09');
+  assert((await goalForm(pg)).exam === '2026-10-29', 'CUI-0038: an exam tomorrow is not taken when changing the goal');
+  await pickExamDate(pg, '2026-10-15'); // 7 days, Sunday a rest day: 6 study days
+  const six = await goalForm(pg);
+  assert(six.exam === '2026-10-15' && six.study === '6' && six.cta && six.hint === EDIT_HINT_EN && !six.msg, 'CUI-0038: 6 study days disables Update with the 7-day hint: ' + JSON.stringify(six));
+  await pickExamDate(pg, '2026-10-16');
+  const seven = await goalForm(pg);
+  assert(seven.study === '7' && !seven.cta && seven.hint === null && seven.msg, 'CUI-0038: 7 study days enables Update, no hint: ' + JSON.stringify(seven));
+  await pg.click('#planRestChips .chip >> nth=4'); // Thursday = today rests too: 6 study days
+  assert((await goalForm(pg)).cta, 'CUI-0038: a rest day taking it to 6 study days disables Update again');
   await pg.click('#planRestChips .chip >> nth=4');
-  assert(!(await pg.$eval('#planCreateBtn', e => e.disabled)), 'G36: Thursday studied again → update enabled');
   await pg.click('#planCreateBtn');
   const after = await pg.evaluate(() => parseStoredPlan(readStudyPlan()));
   const past = p => JSON.stringify(p.days.filter(d => d.date < TODAY));
-  assert(await activeScreen(pg) === 'screenPlanSchedule' && after.goal.examDate === '2026-10-09' && after.days.length === 11, 'G36: re-planned to tomorrow, the schedule opens (11 days from Day 1)');
-  assert(past(after) === past(before) && after.start === START, 'G36 / G7: past days unchanged word for word, Day 1 unchanged');
-  const last = after.days[10];
-  const left = await pg.evaluate(() => planFactsLeft(planLoadLog()));
-  const reads = last.tasks.filter(t => t.type === 'read').flatMap(t => t.facts);
-  assert(last.date === TODAY && last.phase === 'learn' && JSON.stringify(reads) === JSON.stringify(left), `G36: the one day left reads all ${left.length} unfinished facts once (G13)`);
+  assert(await activeScreen(pg) === 'screenPlanSchedule' && after.goal.examDate === '2026-10-16' && after.days.length === 18, 'CUI-0038: re-planned to today + 8 (7 study days), the schedule opens');
+  assert(past(after) === past(before) && after.start === START, 'CUI-0038 / G7: past days unchanged word for word, Day 1 unchanged');
   await pg.evaluate(() => openPlanGoal());
-  const create = await pg.evaluate(() => ({ min: byId('planExamDate').min, note: byId('planDateNote').getClientRects().length > 0 }));
-  assert(create.min === '2026-10-15' && !create.note, 'G28: a new plan still starts at today + 7, no note: ' + JSON.stringify(create));
-  await pg.fill('#planExamDate', '2026-10-09');
-  await pg.click('#planDaysVal');
-  assert(await pg.evaluate(() => planGoalDraft.examDate) !== '2026-10-09', 'G28: a new plan does not take tomorrow');
+  const create = await goalForm(pg);
+  assert(create.min === open.min, 'CUI-0038: a new plan and a changed goal share the earliest exam date: ' + create.min);
   await pg.evaluate(() => { setLang('zh-HK'); openPlanSchedule(); });
   await pg.click('#screenPlanSchedule [data-action="planEditGoal"]');
-  await pg.click('#planRestChips .chip >> nth=4');
-  const zh = await pg.evaluate(() => ({ note: byId('planDateNote').textContent, hint: byId('planGoalHint').textContent }));
-  assert(zh.note === '更改目標時，考試日期最早可選為明日。' && zh.hint === '考試前最少需要 1 個溫習日，未能更新進度表。請減少休息日或延後考試日期。', 'G36 zh-HK: note + hint: ' + JSON.stringify(zh));
+  await pickExamDate(pg, '2026-10-15');
+  const zh = await goalForm(pg);
+  assert(zh.cta && zh.hint === EDIT_HINT_ZH, 'CUI-0038 zh-HK: the 7-day hint: ' + JSON.stringify(zh));
   await pg.evaluate(() => setLang('en'));
+}
+// CUI-0038: a running plan whose exam is already inside the 7-day window opens Change goal without an error, keeps
+// its date, and stays blocked (hint, Update disabled; a forced planCreate() changes nothing) until a valid date is
+// chosen. An exam already past has no date worth keeping: it moves up to the earliest one (S-111)
+async function checkChangeGoalExamInWindow(pg) {
+  await fresh(pg);
+  await pg.evaluate(() => writeStudyPlan(buildPlan({ examDate: '2026-10-11', dailyMins: 120, restDays: [], level: 'none' }, '2026-10-01')));
+  await pg.evaluate(() => openPlanSchedule());
+  await pg.click('#screenPlanSchedule [data-action="planEditGoal"]');
+  const kept = await goalForm(pg);
+  assert(await activeScreen(pg) === 'screenPlanGoal' && kept.exam === '2026-10-11' && kept.field === '2026-10-11' && kept.study === '3',
+    'CUI-0038: exam 3 days away: Change goal opens with that date kept: ' + JSON.stringify(kept));
+  assert(kept.cta && kept.hint === EDIT_HINT_EN && !kept.msg, 'CUI-0038: …blocked with the 7-day hint, no "build anyway" advice: ' + JSON.stringify(kept));
+  await pg.evaluate(() => planCreate());
+  assert(await activeScreen(pg) === 'screenPlanGoal' && await pg.evaluate(() => planLoad().goal.examDate) === '2026-10-11', 'CUI-0038: a forced Update changes nothing');
+  await pg.click('#planDaysChips .chip >> nth=0'); // 2 weeks
+  const ok = await goalForm(pg);
+  assert(ok.exam === '2026-10-22' && !ok.cta && ok.hint === null, 'CUI-0038: a 2-week preset unblocks Update: ' + JSON.stringify(ok));
+  await fresh(pg);
+  await pg.evaluate(() => writeStudyPlan(buildPlan({ examDate: '2026-10-05', dailyMins: 120, restDays: [], level: 'none' }, '2026-09-20')));
+  await pg.evaluate(() => openPlanSchedule());
+  await pg.click('#screenPlanSchedule [data-action="planEditGoal"]');
+  const gone = await goalForm(pg);
+  assert(gone.exam === '2026-10-15' && gone.field === '2026-10-15' && !gone.cta, 'CUI-0038: exam already past: the date moves up to today + 7: ' + JSON.stringify(gone));
+  // S-256: the keep rule's edges: an exam today is not ahead (moves like a past one); tomorrow is kept, 1 study day
+  const stored = await editStoredExam(pg, TODAY);
+  assert(stored.exam === '2026-10-15' && stored.field === '2026-10-15' && !stored.cta, 'S-256: exam today: the date moves up to today + 7: ' + JSON.stringify(stored));
+  const tomorrow = await editStoredExam(pg, '2026-10-09');
+  assert(tomorrow.exam === '2026-10-09' && tomorrow.field === '2026-10-09' && tomorrow.study === '1' && tomorrow.cta && tomorrow.hint === EDIT_HINT_EN && !tomorrow.msg,
+    'S-256: exam tomorrow: kept (1 study day), Update disabled with the 7-day hint: ' + JSON.stringify(tomorrow));
+  // QA E2: the window's last day (today + 6) is kept too: 6 study days, still blocked
+  const six = await editStoredExam(pg, '2026-10-14');
+  assert(six.exam === '2026-10-14' && six.field === '2026-10-14' && six.study === '6' && six.cta && six.hint === EDIT_HINT_EN && !six.msg,
+    'QA E2: exam at today + 6: kept (6 study days), Update disabled with the 7-day hint: ' + JSON.stringify(six));
+}
+// a running plan (Day 1 on 28 Sep, no rest days) whose stored exam is examIso, opened in Change goal
+async function editStoredExam(pg, examIso) {
+  await fresh(pg);
+  await pg.evaluate(exam => writeStudyPlan(buildPlan({ examDate: exam, dailyMins: 120, restDays: [], level: 'none' }, '2026-09-28')), examIso);
+  await pg.evaluate(() => openPlanSchedule());
+  await pg.click('#screenPlanSchedule [data-action="planEditGoal"]');
+  return goalForm(pg);
+}
+
+// CUI-0038 B2 / B3 (every width; here 390px): the Daily tasks legend lists only the phases the plan has, and the phase
+// card's title counts them ("Two phases"); both follow a language switch, and the title's fold toggle keeps working
+const TWO_PHASE_PLAN = { examDate: '2026-10-15', dailyMins: 30, restDays: [], level: 'none' }; // from today: learn + mock
+const phaseLook = pg => pg.evaluate(() => {
+  const legend = document.querySelector('#screenPlanSchedule .plan-legend'), btn = byId('planPhasesToggle');
+  return { swatches: [...legend.querySelectorAll('i')].map(i => i.className), names: [...legend.querySelectorAll('span')].map(e => e.textContent),
+    hidden: legend.getAttribute('aria-hidden'), title: btn.textContent.trim(), chev: !!btn.querySelector('.plan-fold-chev svg'),
+    bar: byId('planPhaseBar').children.length };
+});
+// QA E4: a 3-phase plan changed (Change goal → Update) to a goal with no drill shows 2 phases at once on the schedule:
+// bar, cards, legend and title, with no reload. The plan starts today, so no frozen past day keeps a drill phase (G7)
+async function checkPhaseCountAfterChange(pg) {
+  await fresh(pg);
+  await pg.evaluate(goal => { writeStudyPlan(buildPlan(goal, planTodayIso())); openPlanSchedule(); }, GOAL);
+  assert((await phaseLook(pg)).bar === 3, 'QA E4: the seeded plan has 3 phases');
+  await pg.click('#screenPlanSchedule [data-action="planEditGoal"]');
+  await pg.click('#planRestChips .chip >> nth=0'); // no rest day: today + 7 has 7 study days
+  await pg.evaluate(() => planSetMins('30'));
+  await pickExamDate(pg, '2026-10-15');
+  await pg.click('#planCreateBtn');
+  const two = await phaseLook(pg);
+  const cards = await pg.evaluate(() => [...document.querySelectorAll('#planStrategy .plan-strat')].map(c => [...c.classList].find(k => k !== 'plan-strat')));
+  assert(await activeScreen(pg) === 'screenPlanSchedule' && two.bar === 2 && JSON.stringify(cards) === '["learn","mock"]'
+    && JSON.stringify(two.swatches) === '["plan-bg-learn","plan-bg-mock"]' && two.title === 'Two phases',
+    'QA E4: after Update the schedule shows 2 phases at once (bar, cards, legend, title): ' + JSON.stringify({ ...two, cards }));
+}
+async function checkPhaseCount(pg) {
+  await fresh(pg);
+  await pg.evaluate(plan => { writeStudyPlan(buildPlan(plan, planTodayIso())); openPlanSchedule(); }, TWO_PHASE_PLAN);
+  const two = await phaseLook(pg);
+  assert(two.bar === 2 && JSON.stringify(two.swatches) === '["plan-bg-learn","plan-bg-mock"]' && JSON.stringify(two.names) === '["Read + practise","Mocks"]' && two.hidden === 'true',
+    'CUI-0038 B2: a 2-phase plan: the legend has no Drill: ' + JSON.stringify(two));
+  assert(two.title === 'Two phases' && two.chev, 'CUI-0038 B3: the title counts 2 phases, the fold chevron stays: ' + JSON.stringify(two));
+  await pg.click('#planPhasesToggle');
+  const folded = await pg.evaluate(() => ({ exp: byId('planPhasesToggle').getAttribute('aria-expanded'), strat: byId('planStrategy').hidden, title: byId('planPhasesToggle').textContent.trim() }));
+  assert(folded.exp === 'false' && folded.strat && folded.title === 'Two phases', 'CUI-0038 B3: the toggle still folds the card: ' + JSON.stringify(folded));
+  await pg.evaluate(() => setLang('zh-HK'));
+  const zh = await phaseLook(pg);
+  assert(zh.title === '兩個階段' && zh.swatches.length === 2 && JSON.stringify(zh.names) === JSON.stringify(await pg.evaluate(() => [t('plan.phase.learn'), t('plan.phase.mock')])),
+    'CUI-0038 B2 / B3 zh-HK: 兩個階段, legend without Drill: ' + JSON.stringify(zh));
+  await pg.evaluate(() => setLang('en'));
+  assert((await phaseLook(pg)).title === 'Two phases', 'CUI-0038 B3: back to en: Two phases');
+  await fresh(pg);
+  await seedPlan(pg);
+  await pg.evaluate(() => openPlanSchedule());
+  const three = await phaseLook(pg);
+  assert(JSON.stringify(three.swatches) === '["plan-bg-learn","plan-bg-drill","plan-bg-mock"]' && three.title === 'Three phases' && three.bar === 3,
+    'CUI-0038 B2 / B3: a 3-phase plan keeps all three in the legend and "Three phases": ' + JSON.stringify(three));
 }
 
 async function checkReset(pg, { corruptLog = false } = {}) {
@@ -619,7 +713,7 @@ async function main() {
   const errs = [];
   pg.on('pageerror', e => errs.push(e.message));
   await pg.clock.setFixedTime(NOW);
-  for (const check of [checkHidden, checkCreateOpensSchedule, checkOverview, checkDayList, checkPills, checkScrollToToday, checkChangeGoal, checkChangeGoalFeasibility, checkChangeGoalLastWeek,
+  for (const check of [checkHidden, checkCreateOpensSchedule, checkOverview, checkDayList, checkPills, checkScrollToToday, checkChangeGoal, checkChangeGoalFeasibility, checkChangeGoalSameLimits, checkChangeGoalExamInWindow, checkPhaseCount, checkPhaseCountAfterChange,
     checkReset, pg2 => checkReset(pg2, { corruptLog: true }), checkSwitchModalKeepsPopover, checkEnded, checkWidths, checkLangKeepsScroll]) {
     await check(pg);
   }

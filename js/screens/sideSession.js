@@ -16,6 +16,8 @@ function isSideSession() { return sessionReturn !== null; }
 function clearSideSession() { sessionReturn = null; }
 function isPlanReturn(ret) { return ret !== null && ret.kind === SESSION_RETURN_KIND.plan; }
 function isPlanSession() { return isPlanReturn(sessionReturn); }
+// v1.6.1 (C2): a memory-note group's test (its quiz header reads "‹ Memory" instead of 🏠)
+function isMemoSession() { return sessionReturn !== null && sessionReturn.kind === SESSION_RETURN_KIND.memo; }
 
 // every state field is set here (no spread of the previous session): review counters, the set pool, exam flags
 // and the mode would otherwise leak in. Always Practice, whatever Home's pendingMode says, and no exam timer.
@@ -75,14 +77,14 @@ function returnFromSideSession() {
   SESSION_RETURNS[ret.kind](ret);
 }
 
-// ── v2.0.5: back mid-session (quiz / Result header; .proj-docs/qa/quiz-entry-back-audit.html #6–#9, #11) ──
+// ── v2.1.1: back mid-session (quiz / Result header; .proj-docs/qa/quiz-entry-back-audit.html #6–#9, #11) ──
 // Each session goes back to where it started; the Home entries keep the 🏠 and go Home (goHome asks first in an exam).
-// Leaving mid-way is the last "↩ Back" without its finish: a memory-note test records nothing and shows ① look.
-const SESSION_LEAVES = { ...SESSION_RETURNS, [SESSION_RETURN_KIND.memo]: ret => leaveMemoTest(ret) };
+// Leaving mid-way is the last "↩ Back" without its finish. A memory-note test is main's C2 path (memo.js leaveMemoTest:
+// nothing recorded, the group's look view), the same one goHome takes for a cached pre-v2.1.1 actions.js.
 function leaveSideSession() {
   const ret = sessionReturn;
   sessionReturn = null;
-  SESSION_LEAVES[ret.kind](ret);
+  SESSION_RETURNS[ret.kind](ret);
 }
 // Flagged list › Practise is an ordinary session (Retry keeps it), so its set id names the list it came from
 function isFlaggedSession() { return !isSideSession() && state.examNum === FLAGGED_EXAM; }
@@ -94,16 +96,17 @@ function focusFlaggedEntry() {
 }
 function goBack() {
   if (isPlanSession()) { planLeaveSession(); return; }
+  if (isMemoSession()) { leaveMemoTest(); return; }
   if (isSideSession()) { leaveSideSession(); return; }
   if (isFlaggedSession()) { openFlagged(); window.scrollTo(0, 0); focusFlaggedEntry(); return; }
   goHome();
 }
-// the header's words while away from Home; null = the 🏠 icon. A plan session has its own (planRun.js)
+// the header's words while away from Home; null = the 🏠 icon. A plan session (planRun.js) and a memo test (memo.js
+// setQuizBackMemo) have their own.
 // { textKey, params, nameKey }: the visible words, and (W-073) the full words as the accessible name when they are shortened
 const SESSION_BACK_LABELS = {
   [SESSION_RETURN_KIND.quiz]: ret => ({ textKey: 'quiz.backToQuestion', nameKey: 'quiz.backToQuestionLabel', params: { n: ret.state.current + 1 } }),
   [SESSION_RETURN_KIND.study]: () => ({ textKey: 'quiz.backToStudy' }),
-  [SESSION_RETURN_KIND.memo]: () => ({ textKey: 'quiz.backToMemo' }),
 };
 function entryBackLabel() {
   if (isSideSession()) {
@@ -117,12 +120,15 @@ function entryBackText(textKey, params) {
   const text = t(textKey, params);
   return text === textKey ? null : text;
 }
-// W-071: without a goBack handler (cached pre-v2.0.5 actions.js / planRun.js) the header goes Home, so it says 🏠
+// W-071: without a goBack handler (cached pre-v2.1.1 actions.js / planRun.js) the header goes Home, so it says 🏠.
+// v1.6.1 rule: the words carry no glyph; the back chevron is a line icon (planRun.js HEADER_BACK_ICONS, present
+// whenever hasGoBackAction is: both are v2.1.1 planRun.js)
 function setEntryBack(back) {
   const label = typeof hasGoBackAction === 'function' && hasGoBackAction() ? entryBackLabel() : null;
   const text = label && entryBackText(label.textKey, label.params);
   if (!text) { setQuizBackHome(back); return; }
-  setQuizBackText(back, escapeHtml(text), label.nameKey && entryBackText(label.nameKey, label.params));
+  setQuizBackText(back, iconLabelHtml(escapeHtml(text), HEADER_BACK_ICONS),
+    label.nameKey && entryBackText(label.nameKey, label.params));
 }
 
 function isStudyReturn(ret) { return ret !== null && ret.kind === SESSION_RETURN_KIND.study; }
