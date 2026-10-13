@@ -5,31 +5,32 @@
 // Which questions belong to a group is derived from the notes at run time (js/domain/memo.js), never listed here.
 // id: short stable ascii slug (lifeuk.memoProgress keys) — never reuse or rename one.
 // hook: 記憶鈎 (one or two lines, "\n" between; nation-symbols three) — all 61 titled groups, user-reviewed 2026-10-13
-// (year rule: a year number is followed by 「年」, e.g. 「45 年 Attlee」; 55 BC / AD 43 as is); 'single' has ''.
+// (year rule: a year number is followed by 「年」, e.g. 「45 年 Attlee」; 55 BC / AD 43 as is; brackets full-width （）;
+// Northern Ireland written 「N. Ireland」); 'single' has ''.
 // Order: most distinct questions first (ties: more copies first) — the list's tie-break after its status / count sort.
 // ════════════════════════════════════════
 const MEMO_GROUPS = [
   { id: 'uk-festivals', title: '英國節日', icon: '🎆', hook: '「25/1 Burns、31/10 Halloween、5/11 Bonfire、11/11 Remembrance、26/12 Boxing、31/12 Hogmanay」\n→ 一頭一尾都係蘇格蘭。' },
   { id: 'vote', title: '投票權', icon: '🗳️', hook: '「89 年冇票、32 年中產、18 年男 21 女 30、28 年同齡 21、69 年變 18」\n→ 1918 年女性要 30 歲，十年後 1928 年先同男人一樣 21。' },
-  { id: 'parliament', title: '國會兩院', icon: '🏛️', hook: '「Commons (下議院) 650 個 MP 係選出嚟；Lords (上議院) 唔使選：終身貴族、世襲 92 個、主教 26 個」\n→ 上議院審議同修訂法案，但唔可以拒絕財政法案。' },
-  { id: 'nation-symbols', title: '四地象徵', icon: '🌼', hook: '「England Rose、Scotland Thistle、Wales Daffodil、Ireland Shamrock」\n「England London、Scotland Edinburgh、Wales Cardiff、Ireland Belfast」\n→ Gaelic 係 Scotland 同 Ireland 部分地區講。' },
+  { id: 'parliament', title: '國會兩院', icon: '🏛️', hook: '「Commons（下議院）650 個 MP 係選出嚟；Lords（上議院）唔使選：終身貴族、世襲 92 個、主教 26 個」\n→ 上議院審議同修訂法案，但唔可以拒絕財政法案。' },
+  { id: 'nation-symbols', title: '四地象徵', icon: '🌼', hook: '「England Rose、Scotland Thistle、Wales Daffodil、N. Ireland Shamrock」\n「England London、Scotland Edinburgh、Wales Cardiff、N. Ireland Belfast」\n→ Gaelic 係 Scotland 同 Ireland 部分地區講。' },
   { id: 'patron-saints', title: '守護聖人', icon: '😇', hook: '「GE23、AS30、DW1、PI17」\n→ Union Jack = England、Scotland、Ireland 三個聖人十字，冇 Wales。' },
   { id: 'religious-festivals', title: '節日同假期', icon: '🎉', hook: '「Lent 40 日 → Easter；Ramadan 完 → Eid al-Fitr；Ibrahim → Eid ul Adha」\n→ Diwali 排燈 = Hindu + Sikh；Vaisakhi 4 月 = 淨係 Sikh。' },
   { id: 'ww2', title: '二次世界大戰', icon: '✈️', hook: '「39 年入波蘭、40 年邱吉爾 + Dunkirk + 空戰、40–41 年 Blitz、44 年 D-Day、45 年 VE 8/5 VJ 15/8」\n→ 先撤（Dunkirk）、再守（Battle of Britain）、後攻（D-Day）。' },
   { id: 'early-britain', title: '早期英國', icon: '🏺', hook: '「凱撒 55 BC 打唔入，Claudius AD 43 先打得入」\n→ AD 60 Boudicca 反抗、AD 122 Hadrian 起長城、AD 410 羅馬人走 → Jutes、Angles、Saxons 移入 → 之後 Vikings 坐長船嚟。' },
-  { id: 'devolved', title: '四地議會', icon: '🏢', hook: '「Scotland 129、Ireland 90、Wales 60、UK 650」\n→ England 冇自己嘅地方議會，由 Westminster 英國國會直接負責。' },
+  { id: 'devolved', title: '四地議會', icon: '🏢', hook: '「Scotland 129、N. Ireland 90、Wales 60、UK 650」\n→ England 冇自己嘅地方議會，由 Westminster 英國國會直接負責。' },
   { id: 'spain-france', title: '打敗西班牙同法國', icon: '⚓', hook: '「1588 年打沉無敵艦隊、1805 年 Nelson 海上贏但陣亡、1815 年 Wellington 陸上滑鐵盧」\n→ 先西班牙、再法西聯合、最後法國（英法最後一戰）。' },
   { id: 'inventors', title: '發明家', icon: '💡', hook: '「Newton 引力 → Brunel 鐵路 → Bell 電話 → Fleming 盤尼西林 → Whittle 噴射引擎 → Crick DNA → Berners-Lee 萬維網」\n→ Bell 同 Fleming 都同蘇格蘭有關；Crick 同 James Watson 一齊發現 DNA 結構。' },
   { id: 'c18', title: '18 世紀', icon: '🕰️', hook: '「1721 年 Walpole 第一位首相、1745 年 Bonnie Prince Charlie 起兵、1776 年美國獨立」\n→ 同期仲有 Enlightenment（Adam Smith《國富論》）同工業革命（農業轉工業）。' },
   { id: 'writers', title: '作家', icon: '✒️', hook: '「劇本得一個：Shakespeare；小說四個：Austen PP、Brontë JE、Shelley F、Dickens CC」\n→ Shakespeare 喺 Stratford-upon-Avon 出世同讀書。' },
-  { id: 'king-parliament', title: '國王 vs 國會', icon: '👑', hook: '「28 年 Petition of Right、42 年內戰、49 年斬王、60 年Restoration (復辟)、88 年Glorious (光榮)」\n→ 1649 年 Charles I 被處決，Cromwell 做護國公；1688 年 William of Orange 做國王，開始君主立憲。' },
-  { id: 'intl-orgs', title: '國際組織', icon: '🌐', hook: '「Commonwealth (英聯邦) 54 國、UN 1945 年、UNSC (安理會) 5 常任、UNGA (大會) 一齊投票、NATO 1949 年」\n→ 英國係安理會 5 個常任理事國之一，亦係 NATO 創始成員。' },
+  { id: 'king-parliament', title: '國王 vs 國會', icon: '👑', hook: '「28 年 Petition of Right、42 年內戰、49 年斬王、60 年 Restoration（復辟）、88 年 Glorious（光榮）」\n→ 1649 年 Charles I 被處決，Cromwell 做護國公；1688 年 William of Orange 做國王，開始君主立憲。' },
+  { id: 'intl-orgs', title: '國際組織', icon: '🌐', hook: '「Commonwealth（英聯邦）54 國、UN 1945 年、UNSC（安理會）5 常任、UNGA（大會）一齊投票、NATO 1949 年」\n→ 英國係安理會 5 個常任理事國之一，亦係 NATO 創始成員。' },
   { id: 'ministers', title: '部長同公職', icon: '💼', hook: '「Home 管罪案警政移民、Chancellor of the Exchequer 管財政、Lord Chancellor 管法院、Attorney General 做法律顧問」\n→ Civil Service 要政治中立，Ombudsman 查市民對政府嘅投訴。' },
   { id: 'parks', title: '國家公園同山', icon: '🏞️', hook: '「England Lake District、Scotland Loch Lomond & Trossachs、Wales Snowdonia」\n→ 最高山：全英國 Ben Nevis（Scotland），威爾斯係 Snowdon；國家公園一共 15 個。' },
   { id: 'post-war', title: '戰後重建', icon: '🏗️', hook: '「45 年 Attlee 贏 Churchill、45–51 年福利國家、48 年 NHS + Windrush」\n→ 1948 年雙響：Bevan 推動 NHS（用嗰陣免費）、Empire Windrush 載第一批 Caribbean 移民。' },
   { id: 'art', title: '藝術同建築', icon: '🎨', hook: '「畫：Turner 風景、Hockney pop art；樂：Purcell + Handel 巴洛克；建：Rogers 千禧穹頂」\n→ Tate 喺 London、National Galleries of Scotland 喺 Edinburgh；Turner Prize 每年頒俾視覺藝術家。' },
   { id: 'norman', title: '諾曼征服', icon: '🏰', hook: '「1066 年 William the Conqueror 喺 Hastings 打敗 Harold → Bayeux Tapestry 刺繡記錄 → 1086 年 Domesday Book 記土地財產」\n→ 之後兩種語言：貴族講 Norman French，農民講 Anglo-Saxon。' },
-  { id: 'magna-carta', title: 'Magna Carta 大憲章', icon: '📜', hook: '「1215 年King John 簽：冇人凌駕法律，國王都唔例外」\n→ 限制國王權力，奠定法治（rule of law）基礎。' },
+  { id: 'magna-carta', title: 'Magna Carta 大憲章', icon: '📜', hook: '「1215 年 King John 簽：冇人凌駕法律，國王都唔例外」\n→ 限制國王權力，奠定法治（rule of law）基礎。' },
   { id: 'monarch', title: '君主', icon: '🤴', hook: '「禮儀性元首要中立、任命首相、國會開幕讀 King\'s Speech」\n→ 首相按慣例係下議院最多議席政黨嘅領袖；King\'s Speech 由政府寫。' },
   { id: 'churches', title: '四地國教', icon: '⛪', hook: '「四地得 England 有國教：Church of England，Henry VIII 創立，君主係最高領袖」\n→ Church of Scotland 係 Presbyterian 國家教會，唔係國教；Wales、北愛都冇國教。' },
   { id: 'performing', title: '表演同節慶', icon: '🎭', hook: '「Proms 8 星期古典、Notting Hill 8 月加勒比、Glastonbury 喺 Somerset、Theatreland 喺 West End」\n→ Proms 喺 Royal Albert Hall；Notting Hill 同 Theatreland 都喺 London。' },
