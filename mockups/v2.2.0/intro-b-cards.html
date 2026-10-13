@@ -17,7 +17,7 @@
     --b-scene-w: 330px;              /* illustration box; PC scales it by --b-scene-scale */
     --b-scene-scale: 1.3;
     --b-edge-pad: 20px;              /* min gap between a scattered piece and the illustration edge */
-    --b-orbit-size: 200px; --b-orbit-dur: 14s;
+    --b-orbit-size: 230px; --b-planet-size: 92px;
     /* copied from css/base/tokens.css (study plan heat scale + flag) */
     --flag-bg: #fdf3e8; --red-light: #e74c3c;
     --plan-heat-0: #e3e7f1; --plan-heat-1: #e8735f; --plan-heat-2: #f0a54a; --plan-heat-3: #c9cf4f; --plan-heat-4: var(--green-light);
@@ -27,23 +27,20 @@
 
   /* ── Loading ── */
   .b-load { height: 100%; display: grid; place-content: center; justify-items: center; gap: var(--space-8); padding: var(--space-12); text-align: center; }
-  /* logo stage: the logo turns on its Y axis; a dashed ring and four feature badges orbit around it */
-  .b-orbit { position: relative; width: var(--b-orbit-size); height: var(--b-orbit-size); display: grid; place-items: center; perspective: 600px; }
-  .b-ring { position: absolute; inset: 0; border-radius: 50%; border: 2px dashed var(--border); animation: bSpin 18s linear infinite; }
-  .b-sat { position: absolute; inset: 0; animation: bSpin var(--b-orbit-dur) linear infinite; }
-  /* each badge sits on the ring at angle --a; its inner <i> undoes --a and the orbit spin so the emoji stays upright */
-  .b-sat span { position: absolute; left: 50%; top: 0; width: 38px; height: 38px; margin: -19px 0 0 -19px;
-    transform-origin: 19px calc(var(--b-orbit-size) / 2 + 19px); transform: rotate(var(--a)); }
-  .b-sat i { width: 100%; height: 100%; border-radius: var(--radius-md); background: var(--card); box-shadow: var(--shadow-md); display: grid; place-items: center;
-    font-style: normal; font-size: var(--fs-xl); transform: rotate(calc(-1 * var(--a))); animation: bSpin var(--b-orbit-dur) linear infinite reverse; }
-  .b-sat span:nth-child(1) { --a: 0deg; } .b-sat span:nth-child(2) { --a: 90deg; } .b-sat span:nth-child(3) { --a: 180deg; } .b-sat span:nth-child(4) { --a: 270deg; }
-  .b-logo { width: 96px; height: 96px; border-radius: 24px; box-shadow: var(--shadow-md); animation: bTurn 3.2s var(--intro-ease) infinite; }
-  @keyframes bSpin { to { rotate: 360deg; } }
-  @keyframes bTurn { 0%, 30% { transform: rotateY(0deg); } 70%, 100% { transform: rotateY(360deg); } }
-  .b-status { font-size: var(--fs-sm); color: var(--text-muted); min-height: 1.5em; }
-  .b-bar { width: 180px; height: 6px; border-radius: var(--radius-pill); background: var(--border); overflow: hidden; }
-  .b-bar i { display: block; height: 100%; width: 0; border-radius: var(--radius-pill); background: linear-gradient(90deg, var(--green-light), var(--gold)); animation: bFill 2.3s var(--intro-ease) forwards; }
-  @keyframes bFill { to { width: 100%; } }
+  /* logo = the planet; three tilted orbits cross it like an atom, and a comet (head + fading tail) runs each orbit (SVG animateMotion) */
+  .b-orbit { position: relative; width: var(--b-orbit-size); height: var(--b-orbit-size); display: grid; place-items: center; }
+  .b-orbit svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .b-orbit .back ellipse, .b-orbit .front ellipse { fill: none; stroke: var(--navy); stroke-width: 1.4; opacity: .28; }
+  .b-orbit .front { z-index: 2; }   /* the front half of each orbit and the comets pass over the planet */
+  .b-orbit .c1 { fill: var(--gold); } .b-orbit .c2 { fill: var(--navy-light); } .b-orbit .c3 { fill: var(--green-light); }
+  .b-logo { position: relative; z-index: 1; width: var(--b-planet-size); height: var(--b-planet-size); border-radius: 50%; object-fit: cover;
+    box-shadow: 0 0 0 6px var(--card), var(--shadow-md); }
+  .b-dots { display: flex; gap: var(--space-3); }
+  .b-dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--gold); animation: bBounce 1s ease-in-out infinite; }
+  .b-dots i:nth-child(2) { background: var(--navy-light); animation-delay: .15s; }
+  .b-dots i:nth-child(3) { background: var(--green-light); animation-delay: .3s; }
+  @keyframes bBounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-8px); } }
+  .b-status { font-size: var(--fs-sm); color: var(--text-muted); min-height: 1.5em; margin-top: calc(var(--space-4) * -1); }
   .b-name { font-size: var(--fs-5xl); font-weight: 800; }
   .b-sub { font-size: var(--fs-md); color: var(--text-muted); margin-top: calc(var(--space-6) * -1); }
   .b-note { position: relative; width: 300px; background: var(--gold-bg); border-radius: var(--radius-xs); padding: var(--space-10) var(--space-8) var(--space-8);
@@ -195,7 +192,16 @@
   const TILT_MAX_DEG = 8;
   const CARD_TILT_MAX_DEG = 5;   // the big cards tilt less so they stay readable
   const POP_STAGGER_S = 0.07;
-  const STATUS_STEP_MS = 760;
+  const MOCK_LOADING_MS = 4200;   // option B shows the splash longer in the mock (real app: max(boot, 800ms))
+  const STATUS_STEP_MS = 1300;
+  // orbits: tilt (deg), half-axes, comet lap time (s) — different speeds so the comets never line up
+  const ORBITS = [
+    { tilt: -28, rx: 108, ry: 34, dur: 3.6 },
+    { tilt: 32, rx: 100, ry: 40, dur: 5.2 },
+    { tilt: 88, rx: 96, ry: 30, dur: 7.4 },
+  ];
+  const TAIL = [{ r: 7, lag: 0, o: 1 }, { r: 5, lag: 0.05, o: 0.55 }, { r: 3.6, lag: 0.1, o: 0.32 }, { r: 2.4, lag: 0.15, o: 0.16 }];
+  const ORBIT_C = 115;   // centre of the 230 × 230 viewBox
   const SIM_NODES = ['E3·Q12', 'E7·Q4', 'E11·Q20', 'E15·Q8'];  // E{exam}·Q{n}, as similar.node
   // slots in % of the scene box: one centre slot for the main card, edge slots for the pills
   const SLOTS = {
@@ -236,15 +242,26 @@
     return `<div class="piece pop ${cls}" style="--x:${jx}%;--y:${jy}%;--r:${tilt(maxTilt).toFixed(1)}deg;--d:${(order * POP_STAGGER_S).toFixed(2)}s">${html}</div>`;
   }
 
+  // one orbit: the whole ellipse in the back layer, its lower (front) half again in the front layer, and the comet in front
+  function orbitSvg() {
+    const ellipse = (o) => `<ellipse cx="${ORBIT_C}" cy="${ORBIT_C}" rx="${o.rx}" ry="${o.ry}" transform="rotate(${o.tilt} ${ORBIT_C} ${ORBIT_C})"/>`;
+    const path = (o) => `M${ORBIT_C - o.rx},${ORBIT_C} a${o.rx},${o.ry} 0 1,0 ${2 * o.rx},0 a${o.rx},${o.ry} 0 1,0 ${-2 * o.rx},0`;
+    const comet = (o, i) => `<g transform="rotate(${o.tilt} ${ORBIT_C} ${ORBIT_C})">${TAIL.map((t) =>
+      `<circle class="c${i + 1}" r="${t.r}" opacity="${t.o}"><animateMotion dur="${o.dur}s" repeatCount="indefinite" begin="-${(t.lag * o.dur).toFixed(2)}s" path="${path(o)}"/></circle>`).join('')}</g>`;
+    const half = (o) => `<clipPath id="fh${o.dur}"><rect x="0" y="${ORBIT_C}" width="${ORBIT_C * 2}" height="${ORBIT_C}" transform="rotate(${o.tilt} ${ORBIT_C} ${ORBIT_C})"/></clipPath>`;
+    // comets are drawn twice in sync: the back copy is hidden by the planet, the front copy only shows on the near half
+    return `<svg class="back" viewBox="0 0 230 230" aria-hidden="true">${ORBITS.map((o, i) => ellipse(o) + comet(o, i)).join('')}</svg>
+      <svg class="front" viewBox="0 0 230 230" aria-hidden="true"><defs>${ORBITS.map(half).join('')}</defs>
+        ${ORBITS.map((o, i) => `<g clip-path="url(#fh${o.dur})">${ellipse(o)}${comet(o, i)}</g>`).join('')}</svg>`;
+  }
+
   function renderLoading(root, x) {
     const { c, logo, randomTip } = x;
     const status = ART[x.state.lang].status;
     root.innerHTML = `<div class="b-load">
-      <div class="b-orbit"><div class="b-ring"></div>
-        <div class="b-sat"><span><i>📖</i></span><span><i>📝</i></span><span><i>🎯</i></span><span><i>🗓️</i></span></div>
-        <img class="b-logo" src="${logo}" alt=""></div>
+      <div class="b-orbit">${orbitSvg()}<img class="b-logo" src="${logo}" alt=""></div>
       <div class="b-name">${c.appTitle}</div><div class="b-sub">${c.appSub}</div>
-      <div class="b-bar" role="progressbar" aria-label="${c.loading}"><i></i></div>
+      <div class="b-dots" role="progressbar" aria-label="${c.loading}"><i></i><i></i><i></i></div>
       <div class="b-status" aria-live="polite">${status[0]}</div>
       <div class="b-note"><b>📌 ${c.tipLabel}</b><span>${randomTip()}</span></div></div>`;
     const el = root.querySelector('.b-status');
@@ -406,9 +423,13 @@
   }
 
   Mock.init({
-    name: '方案 B · 輕鬆卡片 Friendly（rev 4）',
-    renderLoading, renderIntro,
+    name: '方案 B · 輕鬆卡片 Friendly（rev 5）',
+    renderLoading, renderIntro, loadingMs: MOCK_LOADING_MS,
     notes: `
+      <div class="note"><h3>rev 5 改動</h3><ul>
+        <li>Loading 留耐啲（mock 4.2 秒）。</li>
+        <li>Logo 唔再自己翻轉，做「星球」：三條斜嘅軌道好似原子咁交叉圍住佢，每條軌道有一粒慧星（頭 + 漸淡尾巴）用唔同速度轉；軌道近你嗰半同慧星會喺星球前面經過，遠嗰半會被星球遮住，有立體感。</li>
+        <li>拎走 loading bar，用返三粒跳跳點；載入狀態字保留。</li></ul></div>
       <div class="note"><h3>rev 4 改動</h3><ul>
         <li>所有散開元素同插畫邊界最少保持 20px（<code>--b-edge-pad</code>），render 後量度再推返入嚟。</li>
         <li>溫習：5 個模式 pill 唔再輪流亮起。</li>

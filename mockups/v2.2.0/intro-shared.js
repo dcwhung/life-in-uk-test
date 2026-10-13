@@ -167,7 +167,7 @@ const Mock = (() => {
     document.documentElement.lang = state.lang === 'zh' ? 'zh-HK' : 'en';
     const root = view('loading');
     opts.renderLoading(root, ctx());
-    later(() => (state.firstRun ? showIntro() : showHome(t().home.toastReturning)), MOCK_LOADING_MS);
+    later(() => (state.firstRun ? showIntro() : showHome(t().home.toastReturning)), opts.loadingMs || MOCK_LOADING_MS);
   }
 
   function showIntro() {

@@ -39,3 +39,8 @@ Mockup：`mockups/v2.2.0/intro-index.html`（入口）、`intro-a-classic.html`�
 - 溫習 5 個模式 pill 唔要輪流亮起。
 - 練習頁加返「相似題目」（賣點：一次看清所有相似題）。
 - Loading 加豐富：logo Y 軸旋轉、環繞 badge、進度條 + 載入狀態字。
+
+## rev 5（2026-10-13）
+- Loading 留長啲（mock 4.2 秒；實際 app 嘅最短時間實作時再定）。
+- Logo 唔再翻轉；做星球，三條斜軌道（原子咁）+ 三粒慧星（頭 + 漸淡尾巴）唔同速度轉，近半喺星球前、遠半被遮。
+- 唔用 loading bar，用返三粒跳跳點；保留載入狀態字。
