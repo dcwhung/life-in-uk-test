@@ -1,7 +1,7 @@
 # Grill：Desktop 記憶法（溫習模式 › 記憶法）layout
 
 **日期**：2026-10-13
-**狀態**：rev 6（見「第六輪決定」）；所有開放問題已答，等用戶最後確認 mockup 定案
+**狀態**：rev 6 定案（見「第六輪決定」），已實作為 v2.2.0（branch `claude/quirky-newton-wdelbs`；開發時叫 v2.1.0，merge `main` v2.1.1 後改號）；merge 時嘅用戶決定見「Merge `main` v1.6.1 嘅決定」
 **Mockup**：[`mockups/v2.0.0/desktop-memo.html`](../../mockups/v2.0.0/desktop-memo.html)（第 13 份 desktop mockup；rev 3 起亦包手機 390px）
 **Branch**：`claude/quirky-newton-wdelbs`（由 `main` v2.0.2 `c6b0806` 開）
 
@@ -124,3 +124,11 @@ Mockup 已經改做 rev 1，淨係保留定案嘅排法（3 欄、A、C 已經�
 - 結果嘅錯題而家只記 `{ q, yue }`（`finishMemoTest`），要加埋 key 先出到 pill（`questionNodeHtml(keys)` 要 key 清單）。
 - Pill 行用現有 helper：`chapterPillHtml` 嘅樣式（題目版冇 `#n`，可能要加一個 `questionChapterPillHtml`）、`questionNodeHtml`；冇新顏色 token。
 - Q3 新 key 要加落 `locales/en.js`、`locales/zh-HK.js`（i18n parity test）。
+
+## Merge `main` v1.6.1 嘅決定（用戶 2026-10-13）
+
+`main` 喺呢個 grill 之後出咗 v1.6.1（iPhone 回饋：記憶法清單兩欄、badge 喺組名下面、「今日要溫」banner 係清單一行會碌走、Study tab + chip 行 sticky `.study-top`）。v2.2.0 merge 時用戶決定：**保持現狀**——
+
+- rev 6 蓋過 v1.6.1：badge 永遠右上；desktop < 1280 3 欄、≥ 1280 4 欄；「今日要溫」banner 固定（desktop 喺卡片 panel 上面，手機 sticky）。
+- 手機 banner 黐住 `main` 嘅 sticky `.study-top`（tab + chip 行）正下面（`top: calc(var(--header-h) + var(--study-top-h))`、`box-shadow: var(--shadow)`），接受佢喺 390 × 844 佔大約 35% 畫面，同 320px 大字卡片擠（badge 太窄時喺自己格換行）。
+- Review v2.2.0 C-007 之後：手機一屏高（記憶法、Quiz）喺 panel 細過 `--fit-phone-min-panel`（大約兩粒選項）時退返成頁碌。
