@@ -14,6 +14,56 @@ const memoView = { id: null, step: MEMO_STEP.look, listScrollY: 0, result: null 
 // a cached older index.html (SW cutover) has neither the tab nor the screen: the memo tab stays out of reach there
 function memoShellReady() { return !!byId('screenMemo') && !!document.querySelector('.study-tab[data-tab="memo"]'); }
 
+// ── v2.2.0: ⚙ "🧠 Memory study mode" (user-confirmed preview mockups/memo-switch.html, deleted at release) ──
+// the row: a switch + On / Off pill + note like the translation row; built once, then updated in place (W-032).
+// W-057: a pre-v2.2.0 store.js (no switch), locale (no row words) or cached index.html (no tab) hides the row
+function renderMemoSetting() {
+  const row = byId('settingsMemoRow');
+  if (!row) return;
+  const labelKey = 'app.memoSwitchLabel';
+  row.hidden = typeof isMemoModeOn !== 'function' || !memoShellReady() || t(labelKey) === labelKey;
+  if (row.hidden) return;
+  const on = isMemoModeOn();
+  const noteKey = on ? 'app.memoOnNote' : 'app.memoOffNote';
+  byId('settingsMemoStatus').textContent = t(noteKey);
+  renderFeaturePill(byId('settingsMemoPill'), on);
+  const sw = byId('memoFeatureSwitch');
+  if (sw) {
+    setSwitchOn(sw, on);
+    sw.setAttribute('aria-label', t(labelKey));
+    return;
+  }
+  byId('settingsMemoSwitch').innerHTML = switchHtml({ id: 'memoFeatureSwitch', on, action: 'toggleMemoMode',
+    labelKey, describedBy: 'settingsMemoStatus' });
+}
+// the group screen, or a group's test on the quiz screen
+function isOnMemoScreen() { return byId('screenMemo').classList.contains('active') || isMemoSession(); }
+// on needs no confirm; off asks first only from the group screen / a group's test (it ends unrecorded, like the plan's
+// G15); cancelling leaves the popover open (nothing was chosen)
+function toggleMemoMode() {
+  if (!isMemoModeOn() || !isOnMemoScreen()) { setSettingsOpen(false); setMemoMode(!isMemoModeOn()); return; }
+  showConfirm({ title: t('modal.memoOffTitle'), message: t('modal.memoOffMessage'), okLabel: t('modal.memoOffOk'),
+    cancelLabel: t('modal.memoOffCancel'), onOk: () => { setSettingsOpen(false); setMemoMode(false); }, focusCancel: true, danger: true });
+}
+function setMemoMode(on) {
+  const leaving = !on && isOnMemoScreen();
+  setMemoModeOn(on);
+  renderMemoSetting();
+  if (!on && study.tab === MEMO_TAB) { study.tab = STUDY_DEFAULT_TAB; studySavePrefs(); }
+  if (leaving) leaveMemoToStudy();
+  else if (byId('screenStudy').classList.contains('active')) renderStudy();
+  if (typeof runRefits === 'function') runRefits(); // v2.0.0 desktop: the rail's tabs changed
+  const toastKey = on ? 'app.memoToastOn' : 'app.memoToastOff';
+  showToast(t(toastKey));
+}
+// a group's test ends unrecorded; the group screen goes; Study opens at its top
+function leaveMemoToStudy() {
+  if (isMemoSession()) { clearSideSession(); stopExamTimer(); }
+  showScreen('screenStudy');
+  renderStudy();
+  window.scrollTo(0, 0);
+}
+
 // ── Study tab 5: the group list ──
 function memoChapterChipsHtml() {
   // S-057: "Ch {n}" stays English in zh-HK too, as on the chapters tab
@@ -71,7 +121,7 @@ function renderStudyMemo() {
 // ── #screenMemo ──
 // from the Study list (remember its scroll) or from a result's "Next" (keep the list's scroll)
 function openMemoGroup(id) {
-  if (!memoShellReady() || !memoGroupById(id)) return;
+  if (!memoShellReady() || !isMemoModeReady() || !memoGroupById(id)) return;
   // v2.0.0 desktop: the Study cards scroll in their panel, not the page (js/screens/study.js studyScrollTop)
   if (byId('screenStudy').classList.contains('active')) memoView.listScrollY = typeof studyScrollTop === 'function' ? studyScrollTop() : window.scrollY;
   Object.assign(memoView, { id, step: MEMO_STEP.look, result: null });

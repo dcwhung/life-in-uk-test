@@ -57,6 +57,18 @@ function setTranslationOn(on) {
   setLS(TRANSLATION_LS, on ? TRANSLATION_ON : TRANSLATION_OFF);
   applyTranslation();
 }
+// v2.2.0: memory-note study mode (⚙ Features). Off = <html data-memo="off">, which hides the Study memo tab
+// (css/components/chips.css); the stored progress stays; nothing is written until the user picks; an unknown value reads as on
+function isMemoModeOn() { return getLS(MEMO_ENABLED_LS) !== MEMO_MODE_OFF; }
+function applyMemoMode() {
+  const root = document.documentElement;
+  if (isMemoModeOn()) delete root.dataset.memo;
+  else root.dataset.memo = MEMO_MODE_OFF;
+}
+function setMemoModeOn(on) {
+  setLS(MEMO_ENABLED_LS, on ? MEMO_MODE_ON : MEMO_MODE_OFF);
+  applyMemoMode();
+}
 // G40 (user 2026-10-10): copies of one question text share a flag, so a toggle writes every copy
 // (questionCopies: js/domain/questions.js, loaded later; only called at run time)
 function setPracticeFlag(key, on) {

@@ -16,6 +16,8 @@
   gap: var(--space-3); margin-bottom: var(--space-6);
 }
 /* v0.62: selection is navy like .practice-tab / .chip (purple means Cantonese only); class name is an upgrade-test hook */
+/* v2.2.0: memory-note study mode off (⚙, <html data-memo="off">): no memo tab; the others share the row */
+:root[data-memo="off"] .study-tab[data-tab="memo"] { display: none; }
 .study-tab.active { background: var(--navy); border-color: var(--navy); color: var(--text-inverse); }
 /* v1.2.0 (C4): every study tab is icon over label, at every width */
 .study-tab { display: flex; flex-direction: column; align-items: center; gap: var(--space-1); line-height: 1.25; }

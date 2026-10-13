@@ -26,11 +26,12 @@ const CHIP_FIELD = 'chip';
 const ALL_FILTER = 'all';
 const STUDY_PREF_KEYS = ['tab', 'chapter', 'hideMastered', 'bookmarksOnly', 'warsOnly', 'nation', 'group', 'memoChapter'];
 const MEMO_TAB = 'memo'; // v1.6.0: memory-note groups (js/screens/memo.js)
+const STUDY_DEFAULT_TAB = 'chapters'; // v2.2.0: also where the memo tab falls back when its mode turns off
 const STUDY_MARK_LS = { mastered: STUDY_LS.mastered, bookmarks: STUDY_LS.bookmarks };
 const UNDATED_SORT_YEAR = 9999; // monarchs without a year sort last
 
 const study = {
-  tab: 'chapters',
+  tab: STUDY_DEFAULT_TAB,
   chapter: 1,
   search: '',
   hideMastered: false,
@@ -47,7 +48,9 @@ const study = {
 const hasKey = (obj, k) => Object.prototype.hasOwnProperty.call(obj, k);
 // v1.6.0: the memo tab needs its screen + tab markup and js/screens/memo.js; a cached older index.html (SW cutover)
 // has neither, so a stored 'memo' tab falls back to the default there
-const isStudyTabReady = v => v !== MEMO_TAB || (typeof memoShellReady === 'function' && memoShellReady());
+// v2.2.0: and the memory-note study mode on (⚙; a pre-v2.2.0 store.js has no switch: on)
+const isMemoModeReady = () => typeof isMemoModeOn !== 'function' || isMemoModeOn();
+const isStudyTabReady = v => v !== MEMO_TAB || (typeof memoShellReady === 'function' && memoShellReady() && isMemoModeReady());
 const STUDY_PREF_CHECKS = {
   tab: v => hasKey(STUDY_RENDERERS, v) && isStudyTabReady(v),
   chapter: v => CHAPTERS.includes(v),
