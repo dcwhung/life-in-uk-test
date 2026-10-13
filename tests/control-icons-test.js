@@ -14,7 +14,8 @@ const launchOpts = { args: ['--no-sandbox'] };
 if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_PATH;
 const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('ok:', m); };
 
-const GLYPHS = '←→↩✓▶🔁↺✕‹›';
+// CUI-0035 (user 2026-10-12: convert): the header ⓘ and the fact card memory note's ▸ / ▾ too
+const GLYPHS = '←→↩✓▶🔁↺✕‹›ⓘ▸▾';
 const STATUS_PARTS = '.plan-pill, .plan-task-ic, .plan-day-ic, .plan-task-st, .memo-badge';
 const WIDTHS = [320, 360, 390];
 const LANGS = ['en', 'zh-HK'];
@@ -27,11 +28,13 @@ const CENTRE_TOL_PX = 2.5;
 // card's Continue, the Plan Schedule ‹ › column scrollers, the exam rail's Submit)
 const DESKTOP_CASES = [[{ width: 1280, height: 800 }, 'en', 'small'], [{ width: 1024, height: 768 }, 'zh-HK', 'large']];
 
-// every button / role=button in the document (hidden screens included): its text without status parts
-const glyphButtons = pg => pg.evaluate(({ glyphs, status }) => [...document.querySelectorAll('button, [role="button"]')].map(b => {
+// every button / role=button / summary in the document (hidden screens included): its text without status parts, and
+// its ::before / ::after generated content (CUI-0035: the memory note's ▸ / ▾ came from summary::before)
+const glyphButtons = pg => pg.evaluate(({ glyphs, status }) => [...document.querySelectorAll('button, [role="button"], summary')].map(b => {
   const c = b.cloneNode(true);
   c.querySelectorAll(status).forEach(s => s.remove());
-  return { id: b.id || b.className || b.dataset.action, text: c.textContent.replace(/\s+/g, ' ').trim() };
+  const generated = ['::before', '::after'].map(p => getComputedStyle(b, p).content).filter(v => v && v !== 'none' && v !== 'normal').join(' ');
+  return { id: b.id || b.className || b.dataset.action || b.tagName, text: `${c.textContent.replace(/\s+/g, ' ').trim()} ${generated}` };
 }).filter(b => [...glyphs].some(g => b.text.includes(g))), { glyphs: GLYPHS, status: STATUS_PARTS });
 
 // one control: its icons (names, in order), where they sit and the layout
@@ -129,7 +132,22 @@ async function checkStudy(pg, tag) {
     ['#studyContent .fact-practise', 'lead', ['play']],
     ['#studyContent .fact-btn.tick', 'only', ['check']],
     ['[data-action="studyToggle"][data-arg="hideMastered"]', 'lead', ['check']],
+    // CUI-0035: the header ⓘ (named by aria-label) and the memory note's expander chevron
+    ['#infoBtn', 'icon', ['info']],
+    ['#studyContent .fact-mem summary', 'lead', ['chevronRight']],
   ]);
+  // open, the chevron turns down (one icon, rotated); the summary keeps its words as its name
+  const mem = await pg.evaluate(() => {
+    const d = document.querySelector('#studyContent .fact-mem');
+    const turn = () => getComputedStyle(d.querySelector('summary svg.line-icon')).transform;
+    const closed = turn();
+    d.open = true;
+    const open = turn();
+    d.open = false;
+    return { closed, open, name: d.querySelector('summary').textContent.trim(), info: byId('infoBtn').getAttribute('aria-label') };
+  });
+  assert(mem.closed === 'none' && mem.open !== 'none' && mem.name.length > 0 && !!mem.info,
+    `${tag} memory note chevron turns when open, names unchanged: ` + JSON.stringify(mem));
   await pg.evaluate(() => {
     const f = {};
     for (let i = 0; i < 3; i++) f[`1.${i}`] = true;

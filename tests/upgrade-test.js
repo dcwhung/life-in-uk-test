@@ -268,10 +268,10 @@ async function v112Shell(b) {
 // ("←" on the quick Prev, "‹ ›" on the plan arrows, "✕" on the install banner) and data-i18n words on the button itself;
 // main.js upgradeLegacyIconMarkup() gives each its line icon, the words stay (no glyph left, no [i18n] warning)
 const V160_SHELL_REF = 'f55a945';
-const CONTROL_GLYPHS = '[←→↩✓▶🔁↺✕‹›]';
+const CONTROL_GLYPHS = '[←→↩✓▶🔁↺✕‹›ⓘ]'; // CUI-0035: + the header ⓘ
 const V160_EXPECTED = { '#quickPrev': ['', 'arrowLeft'], '#prevBtn': ['Prev', 'arrowLeft'], '.install-close': ['', 'close'],
   '#planDayPrev': ['', 'chevronLeft'], '#planCalNext': ['', 'chevronRight'], '.reset-btn[data-action="resetPracticeProgress"]': ['Reset progress', 'reset'],
-  '#screenMemo .memo-back': ['Memory', 'chevronLeft'], '#planBackToday': ['Back to today', 'arrowLeft'] };
+  '#screenMemo .memo-back': ['Memory', 'chevronLeft'], '#planBackToday': ['Back to today', 'arrowLeft'], '#infoBtn': ['', 'info'] };
 async function v160Shell(b) {
   const dir = tmpDir('v160shell');
   copyCurrent(dir);
