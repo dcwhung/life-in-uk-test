@@ -1,8 +1,9 @@
 // QA v2.3.0 (branch claude/quirky-newton-wdelbs @ 4913ce1): memo desktop + phone layout (mockup
 // mockups/v2.0.0/desktop-memo.html rev 6) + phone one-screen Quiz (P6) + per-session fallback latch (W-082 / S-268).
 // Exploratory checks beyond tests/*.js: real taps (isMobile + hasTouch below 1024px) / mouse clicks, whole flows.
-//   NODE_PATH=/opt/node-tools/node_modules CHROMIUM_PATH=… node .proj-docs/qa/scripts/2026-10-13_qa-v230.js [M E Q P L R D] [--shots DIR]
-// Sections: M memo flow matrix, E English reminders, Q phone quiz every mode, P plan review mode, L latch, R regression smoke, D documented risks
+//   NODE_PATH=/opt/node-tools/node_modules CHROMIUM_PATH=… node .proj-docs/qa/scripts/2026-10-13_qa-v230.js [M E Q P L R D S C B] [--shots DIR]
+// Sections: M memo flow matrix, E English reminders, Q phone quiz every mode, P plan review mode, L latch, R regression smoke, D documented risks;
+// v2.4.0: S memo mode off / on × rev 6, C question counter fit × one-screen latch, B back-to-entry (#121) × latch
 // Soft checks: every check is printed (ok / FAIL) and counted; exit code 1 when any check fails.
 const path = require('path');
 const fs = require('fs');
@@ -61,8 +62,10 @@ async function open(b, cfg) {
 async function press(page, phone, sel) {
   const el = await page.$(sel);
   if (!el) throw new Error('no element ' + sel);
-  await el.scrollIntoViewIfNeeded();
-  if (phone) await el.tap(); else await el.click();
+  try {
+    await el.scrollIntoViewIfNeeded({ timeout: 5000 });
+    if (phone) await el.tap({ timeout: 5000 }); else await el.click({ timeout: 5000 });
+  } catch (e) { throw new Error(`press ${sel}: ${e.message.split('\n')[0]}`); }
   await frame(page);
 }
 async function shot(page, name) { if (SHOTS) await page.screenshot({ path: path.join(SHOTS, name + '.png') }); }
@@ -461,6 +464,7 @@ async function sectionQ(b) {
         check('Q', `${L} exam Submit: confirm modal buttons reachable`, reach.ok, reach.detail);
         await sleep(GUARD_WAIT_MS);
         await press(page, phone, '#confirmOk');
+      await sleep(GUARD_WAIT_MS); // OK changes the screen: a tap at the same spot within 350ms is a stray tap (CUI-0011)
       }
       const res = await page.evaluate(() => document.querySelector('.screen.active').id);
       check('Q', `${L} exam Submit: lands on the result`, res === 'screenResult', res);
@@ -524,6 +528,235 @@ async function sectionP(b) {
       check('P', `${L}: no page errors`, errors.length === 0, errors.join(' | '));
     } catch (e) {
       check('P', `${L}: flow ran`, false, e.message.split('\n')[0]);
+    }
+    await page.context().close();
+  }
+}
+
+// ════ v2.4.0 regression additions (QA 2026-10-13_qa_v240.md): S memo mode × rev 6, C counter fit × latch, B back-to-entry × latch ════
+const shownSel = (page, sel) => page.evaluate(s => [...document.querySelectorAll(s)].some(e => e.getClientRects().length > 0), sel);
+async function toggleMemoMode(page, phone) {
+  await press(page, phone, '#settingsBtn');
+  await press(page, phone, '#memoFeatureSwitch');
+}
+async function checkMemoOffStudy(sec, L, page, phone, { anyTab = false } = {}) {
+  const st = await page.evaluate(() => ({ tab: study.tab, active: document.querySelector('.study-tab.active').dataset.tab,
+    lead: (() => { const l = document.querySelector('#screenStudy .study-lead, #studyLead'); return l ? { hidden: l.hidden, h: l.getBoundingClientRect().height } : null; })() }));
+  check(sec, `${L} off: no memo tab`, !(await shownSel(page, '.study-tab[data-tab="memo"]')));
+  // straight after switching off on the memo tab: Chapters; after a reload: the last tab used (never memo)
+  if (anyTab) check(sec, `${L} off: Study on a non-memo tab (${st.active})`, st.active !== 'memo' && st.tab !== 'memo', JSON.stringify(st));
+  else check(sec, `${L} off: Study on Chapters`, st.active === 'chapters', JSON.stringify(st));
+  check(sec, `${L} off: no #studyLead banner (no .memo-due, lead hidden or 0px)`, !(await shownSel(page, '#screenStudy .memo-due')) && (!st.lead || st.lead.hidden || st.lead.h === 0), JSON.stringify(st.lead));
+  check(sec, `${L} off: no memo grid / cards`, !(await shownSel(page, '#studyContent .memo-grid, #studyContent .memo-card')));
+  check(sec, `${L} off: no sideways scroll`, (await dt.noHorizontalScroll(page)).ok);
+  if (!phone) check(sec, `${L} off: desktop Study one screen`, (await dt.pageNotScrolling(page)).ok);
+  const reach = await dt.controlsReachable(page);
+  check(sec, `${L} off: every control reachable`, reach.ok, reach.detail);
+}
+async function sectionS(b) {
+  for (const viewport of [DESKS[0], DESKS[1], PHONES[0], PHONES[3]]) for (const lang of LANGS) {
+    const cfg = { viewport, lang, fontSize: 'large', translation: true };
+    const { page, errors, phone, label: L } = await open(b, cfg);
+    try {
+      await seedMemo(page);
+      const before = await page.evaluate(() => JSON.stringify(memoLoadProgress()));
+      await page.evaluate(() => openStudy());
+      await sleep(GUARD_WAIT_MS);
+      await press(page, phone, '.study-tab[data-tab="memo"]');
+      await toggleMemoMode(page, phone);
+      check('S', `${L} off on the memo list: no confirm`, !(await page.evaluate(() => isConfirmOpen())));
+      await checkMemoOffStudy('S', L, page, phone);
+      // every other tab with the mode off
+      const tabs = await page.evaluate(() => [...document.querySelectorAll('.study-tab')].filter(t => t.getClientRects().length).map(t => t.dataset.tab));
+      for (const tab of tabs) {
+        await press(page, phone, `.study-tab[data-tab="${tab}"]`);
+        check('S', `${L} off, ${tab} tab: no memo banner, no sideways scroll`, !(await shownSel(page, '#screenStudy .memo-due')) && (await dt.noHorizontalScroll(page)).ok);
+      }
+      await page.reload();
+      await page.evaluate(() => openStudy());
+      await checkMemoOffStudy('S', `${L} (reload)`, page, phone, { anyTab: true });
+      // back on: banner + columns + phone sticky
+      await toggleMemoMode(page, phone);
+      check('S', `${L} on again: memo tab shows`, await shownSel(page, '.study-tab[data-tab="memo"]'));
+      await sleep(GUARD_WAIT_MS);
+      await press(page, phone, '.study-tab[data-tab="memo"]');
+      await checkList('S', `${L} on again`, cfg, page, phone);
+      check('S', `${L} on again: progress kept`, (await page.evaluate(() => JSON.stringify(memoLoadProgress()))) === before);
+      // off from the group screen and from a test: confirm; cancel keeps; ok → Study, nothing recorded
+      const id = await page.evaluate(() => document.querySelector('#studyContent .memo-card').dataset.arg);
+      await press(page, phone, `#studyContent .memo-card[data-arg="${id}"]`);
+      await sleep(GUARD_WAIT_MS);
+      await toggleMemoMode(page, phone);
+      check('S', `${L} off on ① look asks first`, await page.evaluate(() => isConfirmOpen()));
+      await press(page, phone, '#confirmCancel');
+      check('S', `${L} cancel: still on ① look, mode on`, await page.evaluate(() => byId('screenMemo').classList.contains('active') && isMemoModeOn()));
+      await page.evaluate(() => { if (!byId('settingsPop').checkVisibility()) byId('settingsBtn').click(); });
+      await sleep(GUARD_WAIT_MS);
+      await press(page, phone, '#memoFeatureSwitch');
+      await press(page, phone, '#confirmOk');
+      await sleep(GUARD_WAIT_MS); // OK changes the screen: a tap at the same spot within 350ms is a stray tap (CUI-0011)
+      await checkMemoOffStudy('S', `${L} (off from ① look)`, page, phone);
+      await toggleMemoMode(page, phone);
+      await page.evaluate(gid => { openStudy(); studySetTab('memo'); openMemoGroup(gid); }, id);
+      await sleep(GUARD_WAIT_MS);
+      await press(page, phone, '#memoBody .memo-start');
+      await sleep(GUARD_WAIT_MS);
+      const a = await page.evaluate(() => state.questions[0].a);
+      for (const k of a) await press(page, phone, `#opt${k}`);
+      await sleep(GUARD_WAIT_MS);
+      await toggleMemoMode(page, phone);
+      check('S', `${L} off during a memo test asks first`, await page.evaluate(() => isConfirmOpen()));
+      await press(page, phone, '#confirmOk');
+      await sleep(GUARD_WAIT_MS); // OK changes the screen: a tap at the same spot within 350ms is a stray tap (CUI-0011)
+      const after = await page.evaluate(() => ({ side: isSideSession(), screen: document.querySelector('.screen.active').id, p: JSON.stringify(memoLoadProgress()) }));
+      check('S', `${L} confirm during a test: session ended, Study, nothing recorded`, !after.side && after.screen === 'screenStudy' && after.p === before, JSON.stringify({ ...after, p: after.p === before }));
+      await checkMemoOffStudy('S', `${L} (off from a test)`, page, phone);
+      await toggleMemoMode(page, phone);
+      check('S', `${L}: no page errors`, errors.length === 0, errors.join(' | '));
+    } catch (e) {
+      check('S', `${L}: flow ran`, false, e.message.split('\n')[0]);
+    }
+    await page.context().close();
+  }
+}
+
+// C: the question counter is fitted inside fitQuiz, before the phone's one-screen choice. Every render: the counter
+// row fits in every state (or sits at its tiny tier), and the choice agrees with the panel measured WITH that counter
+// (until the session's first fallback: F only when the panel ≥ min; the first s only when it is < min); a second
+// render / refit of the same question changes nothing; real taps (Translate, an option) never flip back to one screen
+const counterState = page => page.evaluate(() => {
+  const s = byId('screenQuiz'), p = document.querySelector('#screenQuiz .quiz-scroll > .fit-panel');
+  const c = document.querySelector('#qNum > span[data-full]');
+  const fit = s.classList.contains('is-fit-phone') && getComputedStyle(s).display === 'flex';
+  // what the panel measures one screen high with the counter as it is now (class put back as it was)
+  const had = s.classList.contains('is-fit-phone');
+  s.classList.add('is-fit-phone');
+  const panelH = p.clientHeight, min = phoneFitMinPanelPx(s);
+  if (!had) s.classList.remove('is-fit-phone');
+  const row = byId('qNum');
+  return { fit, panelH, min, text: c && c.textContent, tier: c ? (c.textContent === c.dataset.full ? 'full' : c.textContent === c.dataset.short ? 'short' : 'tiny') : null,
+    rowFits: typeof questionRowFitsEveryState === 'function' ? questionRowFitsEveryState(row) : null, cur: state.current };
+});
+async function sectionC(b) {
+  for (const viewport of [PHONES[1], PHONES[3]]) for (const lang of LANGS) {
+    const cfg = { viewport, lang, fontSize: 'large', translation: true };
+    const { page, errors, phone, label: L } = await open(b, cfg);
+    try {
+      for (const mode of ['practice', 'exam']) {
+        await seedRandom(page);
+        await page.evaluate(m => { pendingMode = m; startExam(1); }, mode);
+        const n = await page.evaluate(() => state.questions.length);
+        let run = '', latched = false, tiers = {};
+        for (let i = 0; i < n; i++) {
+          await page.evaluate(k => goToQuestion(k), i);
+          await frame(page);
+          const c = await counterState(page);
+          tiers[c.tier] = (tiers[c.tier] || 0) + 1;
+          run += c.fit ? 'F' : 's';
+          check('C', `${L} ${mode} Q${i + 1}: counter fits its row in every state (or tiny)`, c.rowFits === true || c.tier === 'tiny', JSON.stringify(c));
+          if (!latched) check('C', `${L} ${mode} Q${i + 1}: one-screen choice agrees with the panel measured with the fitted counter (${c.fit ? 'F' : 's'} ${Math.round(c.panelH)}/${Math.round(c.min)})`, c.fit === (c.panelH >= c.min));
+          latched = latched || !c.fit;
+          await page.evaluate(() => { renderQuestion(); runRefits(); });
+          await frame(page);
+          const again = await counterState(page);
+          check('C', `${L} ${mode} Q${i + 1}: render + refit again → same counter and layout`, again.text === c.text && again.fit === c.fit);
+        }
+        check('C', `${L} ${mode}: never back to one screen after a fallback (${run}); tiers ${JSON.stringify(tiers)}`, !/s.*F/.test(run));
+      }
+      // real taps in practice: Translate then answer on each of 6 questions
+      await seedRandom(page);
+      await page.evaluate(() => { pendingMode = 'practice'; startExam(1); });
+      let run = '';
+      for (let i = 0; i < 6; i++) {
+        if (await shownSel(page, '#yueToggle')) { await press(page, phone, '#yueToggle'); run += (await counterState(page)).fit ? 'F' : 's'; }
+        const a = await page.evaluate(() => state.questions[state.current].a);
+        for (const k of a) await press(page, phone, `#opt${k}`);
+        const c = await counterState(page);
+        run += c.fit ? 'F' : 's';
+        check('C', `${L} taps Q${i + 1}: counter fits after Translate + answer`, c.rowFits === true || c.tier === 'tiny', JSON.stringify(c));
+        await press(page, phone, '#nextBtn');
+        run += (await counterState(page)).fit ? 'F' : 's';
+      }
+      check('C', `${L} taps: Translate / answer / Next never flip back to one screen (${run})`, !/s.*F/.test(run));
+      check('C', `${L}: no page errors`, errors.length === 0, errors.join(' | '));
+    } catch (e) {
+      check('C', `${L}: flow ran`, false, e.message.split('\n')[0]);
+    }
+    await page.context().close();
+  }
+}
+
+// B: #121 the quiz header back returns to the session's entry; the original session keeps its one-screen choice
+const HEADER_BACK = '#screenQuiz .quiz-header .back-btn';
+async function sectionB(b) {
+  for (const cfg of [{ viewport: PHONES[1], lang: 'zh-HK', fontSize: 'large', translation: true }, { viewport: PHONES[0], lang: 'en', fontSize: 'small', translation: true },
+    { viewport: PHONES[3], lang: 'en', fontSize: 'large', translation: true }]) {
+    const { page, errors, phone, label: L } = await open(b, cfg);
+    try {
+      // one header back button in the quiz header
+      check('B', `${L}: one header back button`, (await page.$$(HEADER_BACK)).length === 1);
+      // Similar: a session that fell back (translation shown on every question until a fallback), a question with Similar
+      await seedRandom(page);
+      await page.evaluate(() => { pendingMode = 'practice'; startExam(1); });
+      const fell = await page.evaluate(() => {
+        for (let i = 0; i < state.questions.length; i++) { goToQuestion(i); state.yueShown[i] = true; renderQuestion(); if (!byId('screenQuiz').classList.contains('is-fit-phone')) return i; }
+        return -1;
+      });
+      await frame(page);
+      const sim = await page.evaluate(() => { const i = state.questions.findIndex(q => similarKeys(q).length); if (i < 0) return -1; goToQuestion(i); state.answers[i] = [...state.questions[i].a]; revealAnswer(); return i; });
+      const origFit = await fitNow(page);
+      note('B', `${L}: session ${fell >= 0 ? 'fell back at Q' + (fell + 1) : 'stays one screen'}; Similar from Q${sim + 1} (${origFit ? 'one screen' : 'page'})`);
+      if (sim >= 0 && await shownSel(page, '#similarBox [data-action="startSimilarPractice"]')) {
+        await press(page, phone, '#similarBox [data-action="startSimilarPractice"]');
+        await sleep(GUARD_WAIT_MS);
+        const head = await page.evaluate(sel => ({ action: document.querySelector(sel).dataset.action, text: document.querySelector(sel).textContent.trim() }), HEADER_BACK);
+        check('B', `${L} Similar: header back is goBack, names the question ("${head.text}")`, head.action === 'goBack' && head.text.includes(String(sim + 1)));
+        const a = await page.evaluate(() => state.questions[0].a);
+        for (const k of a) await press(page, phone, `#opt${k}`);
+        await sleep(GUARD_WAIT_MS);
+        await press(page, phone, HEADER_BACK);
+        const back = await page.evaluate(() => ({ side: isSideSession(), cur: state.current, screen: document.querySelector('.screen.active').id }));
+        check('B', `${L} Similar ‹ back mid-way: original session, Q${sim + 1}`, !back.side && back.cur === sim && back.screen === 'screenQuiz', JSON.stringify(back));
+        check('B', `${L} Similar ‹ back: the original session keeps its layout (${origFit ? 'F' : 's'} → ${(await fitNow(page)) ? 'F' : 's'})`, (await fitNow(page)) === origFit);
+        if (!origFit) {
+          await page.evaluate(() => { goToQuestion(0); state.yueShown[0] = false; renderQuestion(); });
+          await frame(page);
+          check('B', `${L} Similar ‹ back: latch kept (a short question still on the page)`, !(await fitNow(page)));
+        }
+        await press(page, phone, '#nextBtn');
+        check('B', `${L} Similar ‹ back: the original session goes on (Next)`, (await page.evaluate(() => state.current)) >= 1);
+      } else note('B', `${L}: no Similar session to try`);
+      // memo test: header back mid-way → the group's look, nothing recorded; a new test decides afresh
+      await seedMemo(page);
+      const before = await page.evaluate(() => JSON.stringify(memoLoadProgress()));
+      await page.evaluate(() => { openStudy(); studySetTab('memo'); openMemoGroup(memoDueGroups(memoLoadProgress(), planTodayIso())[0].id); });
+      await sleep(GUARD_WAIT_MS);
+      await press(page, phone, '#memoBody .memo-start');
+      const memoQs = await page.evaluate(() => state.questions);
+      await sleep(GUARD_WAIT_MS);
+      await press(page, phone, HEADER_BACK);
+      const m = await page.evaluate(() => ({ screen: document.querySelector('.screen.active').id, step: memoView.step, side: isSideSession(), p: JSON.stringify(memoLoadProgress()) }));
+      check('B', `${L} memo test ‹ back: group's ① look, session ended, nothing recorded`, m.screen === 'screenMemo' && m.step === 'look' && !m.side && m.p === before);
+      // plan practice task: header back mid-way → the day's list; re-open = a new round
+      await seedPlan(page);
+      const idx = await page.evaluate(() => planLoad().days.find(d => d.date === planTodayIso()).tasks.findIndex(t => t.type === 'practice'));
+      await page.evaluate(k => planOpenTask(planTodayIso(), k), idx);
+      const qs1 = await page.evaluate(() => { const q = state.questions[0]; return { n: state.questions.length, plan: isPlanSession() }; });
+      const a = await page.evaluate(() => state.questions[0].a);
+      await sleep(GUARD_WAIT_MS);
+      for (const k of a) await press(page, phone, `#opt${k}`);
+      const fit1 = await fitNow(page);
+      await sleep(GUARD_WAIT_MS);
+      await press(page, phone, HEADER_BACK);
+      const p = await page.evaluate(() => ({ screen: document.querySelector('.screen.active').id, side: isSideSession() }));
+      check('B', `${L} plan task ‹ back mid-way: the day's tasks (${p.screen})`, p.screen === 'screenPlanDay' && !p.side, JSON.stringify(p));
+      await page.evaluate(k => planOpenTask(planTodayIso(), k), idx);
+      await frame(page);
+      const re = await page.evaluate(() => ({ plan: isPlanSession(), n: state.questions.length }));
+      check('B', `${L} plan task re-opened: a new round decides on its own (${(await fitNow(page)) ? 'one screen' : 'page'}), no sideways scroll`, re.plan && (await dt.noHorizontalScroll(page)).ok);
+      check('B', `${L}: no page errors`, errors.length === 0, errors.join(' | '));
+    } catch (e) {
+      check('B', `${L}: flow ran`, false, e.message.split('\n')[0]);
     }
     await page.context().close();
   }
@@ -645,6 +878,7 @@ async function sectionR(b) {
       await common('practice result');
       await page.evaluate(() => { pendingMode = 'exam'; startExam(2); state.questions.forEach((q, i) => { state.answers[i] = [...q.a]; }); submitExam(); });
       if (await page.evaluate(() => byId('confirmOk').checkVisibility())) await press(page, phone, '#confirmOk');
+      await sleep(GUARD_WAIT_MS); // OK changes the screen: a tap at the same spot within 350ms is a stray tap (CUI-0011)
       await common('exam result');
       await page.evaluate(() => openStudy());
       const tabs = await page.evaluate(() => [...document.querySelectorAll('.study-tab')].map(t => t.dataset.tab));
@@ -719,6 +953,9 @@ async function sectionD(b) {
     if (want('L')) await sectionL(b);
     if (want('R')) await sectionR(b);
     if (want('D')) await sectionD(b);
+    if (want('S')) await sectionS(b);
+    if (want('C')) await sectionC(b);
+    if (want('B')) await sectionB(b);
   } finally {
     await b.close();
   }
