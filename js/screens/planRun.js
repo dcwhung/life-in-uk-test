@@ -15,7 +15,7 @@ const PLAN_RUN_ICON = { next: 'arrowRight', finish: 'check', redo: 'arrowRight' 
 // v1.6.1: the bottom button's icon, where its glyph was (→ / ✓ after the words, 🔁 before them)
 const PLAN_RUN_LABEL_ICONS = { next: { trail: 'arrowRight' }, finish: { trail: 'check' }, redo: { lead: 'redo' } };
 const PLAN_NEXT_ICONS = PLAN_RUN_LABEL_ICONS.next, PLAN_BACK_ICONS = { lead: 'arrowLeft' }; // → after / ← before the words
-// v2.1.1 (S-257): every header back button with words leads with the same chevron as memo's "‹ Memory" (memo.js
+// v2.1.1 (S-260): every header back button with words leads with the same chevron as memo's "‹ Memory" (memo.js
 // MEMO_BACK_ICONS): the plan day / fact labels here, the side session / Flagged ones (sideSession.js setEntryBack)
 const HEADER_BACK_ICONS = { lead: 'chevronLeft' };
 const PLAN_RUN_VIEW = { done: 'done', facts: 'facts' };
@@ -126,19 +126,19 @@ function planRunBackHtml(from) {
   const plan = from && from !== planTodayIso() ? planLoad() : null;
   const label = plan ? t('plan.run.backDayHtml', { day: `<span lang="en">${t('plan.dayN', { n: planDayNumber(plan, from) })}</span>` })
     : escapeHtml(t('plan.run.backToday'));
-  return iconLabelHtml(label, HEADER_BACK_ICONS); // v1.6.1: the glyph is a line icon (v2.1.1 S-257: the back chevron)
+  return iconLabelHtml(label, HEADER_BACK_ICONS); // v1.6.1: the glyph is a line icon (v2.1.1 S-260: the back chevron)
 }
 // the quiz header's back button reads "‹ Today's tasks" in a plan session or mock: goBack (sideSession.js) leaves a
 // session through planLeaveSession, a mock through goHome (planLeaveMock asks first); a fact's session is named like
 // the Study one ("Fact Ch c #n", setExamLabel)
 // v1.2.0 (Q11): Home is an icon button; a plan's text back label keeps its words, and those words name it (S-188: an
 // aria-label would hide the <span lang="en">Day n</span> language from screen readers; a shortened label passes
-// its full words as `name`, W-073)
-// W-071: index.html says goHome; goBack only once this page's actions.js has it (an HTTP-cached pre-v2.1.1 actions.js
+// its full words as `name`, W-074)
+// W-072: index.html says goHome; goBack only once this page's actions.js has it (an HTTP-cached pre-v2.1.1 actions.js
 // would leave the header a dead button mid-session). goHome still leaves a plan session for its day.
 function hasGoBackAction() { return typeof ACTIONS !== 'undefined' && typeof ACTIONS.goBack === 'function'; }
 function setQuizBackAction(back) { back.dataset.action = hasGoBackAction() ? 'goBack' : 'goHome'; }
-// W-073: an optional accessible name for a shortened label ("Q24" → "Back to Q24"); it must contain the visible words
+// W-074: an optional accessible name for a shortened label ("Q24" → "Back to Q24"); it must contain the visible words
 function setQuizBackText(back, html, name) {
   setQuizBackAction(back);
   back.classList.add('plan-hit', 'with-icon');
@@ -156,7 +156,7 @@ function setQuizBackHome(back) {
   setAccessibleName(back, t('common.homeLabel'));
 }
 // v2.1.1: one fact's ▶ Practise reads "‹ Back to the fact" (planLeaveSession); a session from elsewhere names its entry
-// W-071: a locale without plan.run.backFact keeps the day's label rather than the raw key
+// W-072: a locale without plan.run.backFact keeps the day's label rather than the raw key
 function planQuizBackHtml(session) {
   const fact = t('plan.run.backFact');
   if (session && planRunPart(sessionReturn).fact !== undefined && fact !== 'plan.run.backFact') {
@@ -171,7 +171,7 @@ function renderPlanQuizHeader() {
   // C2: "‹ Memory" back to the group (memo.js). W-072: a cached pre-v2.0.4 sideSession.js has no isMemoSession (as goHome)
   else if (typeof isMemoSession === 'function' && isMemoSession()) { setQuizBackAction(back); setQuizBackMemo(back); }
   else if (typeof setEntryBack === 'function') setEntryBack(back);
-  else setQuizBackHome(back); // W-071: an HTTP-cached pre-v2.1.1 sideSession.js (no setEntryBack) keeps the 🏠
+  else setQuizBackHome(back); // W-072: an HTTP-cached pre-v2.1.1 sideSession.js (no setEntryBack) keeps the 🏠
   if (!session) return;
   if (planRunPart(sessionReturn).fact !== undefined) setExamLabel(byId('quizLabel'), FACT_PREFIX + sessionReturn.fact);
   else byId('quizLabel').textContent = planRunLabel(sessionReturn);
@@ -243,7 +243,7 @@ function planLeaveSession() {
   const ctx = planVisible() && planRunPart(ret).fact !== undefined ? planRunContext(ret.date, ret.taskIndex) : null;
   if (!ctx) { planBackToDay(); return; }
   planShowFacts({ date: ret.date, taskIndex: ret.taskIndex, from: ret.from }, ret.pos, planTaskProgress(ctx.task, ctx.dayLog).complete);
-  // S-255: focus back on the card's ▶ Practise that opened the quiz (gone in review: the nav-row's main button), as
+  // S-258: focus back on the card's ▶ Practise that opened the quiz (gone in review: the nav-row's main button), as
   // planShowTaskDone focuses its result line
   const body = byId('planRunBody');
   const target = body.querySelector('[data-action="planPractiseFact"]:not([disabled])')

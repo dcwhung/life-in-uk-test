@@ -43,7 +43,7 @@ function actionNames() {
     const src = fs.readFileSync(f, 'utf8').split('\n').filter(l => !/^\s*\/\//.test(l)).join('\n'); // skip comments
     for (const m of src.matchAll(/data-(?:input-|blur-)?action="(\w+)"/g)) names.add(m[1]);
     for (const m of src.matchAll(/\baction: '(\w+)'/g)) names.add(m[1]);
-    // W-071 (v2.0.5): the quiz / Result header's action is set at run time (planRun.js setQuizBackAction)
+    // W-072 (v2.1.1): the quiz / Result header's action is set at run time (planRun.js setQuizBackAction)
     for (const m of src.matchAll(/\bdataset\.action = (.*)/g)) {
       for (const q of m[1].matchAll(/'(\w+)'/g)) names.add(q[1]);
     }

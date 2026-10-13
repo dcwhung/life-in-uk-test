@@ -88,7 +88,7 @@ function leaveSideSession() {
 }
 // Flagged list › Practise is an ordinary session (Retry keeps it), so its set id names the list it came from
 function isFlaggedSession() { return !isSideSession() && state.examNum === FLAGGED_EXAM; }
-// S-255: showScreen drops the focus; the list's Practise button (else its first control) takes it, as memoLook / planBackToDay
+// S-258: showScreen drops the focus; the list's Practise button (else its first control) takes it, as memoLook / planBackToDay
 function focusFlaggedEntry() {
   const start = byId('flaggedStart');
   const target = start && start.getClientRects().length ? start : document.querySelector('#flaggedList button');
@@ -103,7 +103,7 @@ function goBack() {
 }
 // the header's words while away from Home; null = the 🏠 icon. A plan session (planRun.js) and a memo test (memo.js
 // setQuizBackMemo) have their own.
-// { textKey, params, nameKey }: the visible words, and (W-073) the full words as the accessible name when they are shortened
+// { textKey, params, nameKey }: the visible words, and (W-074) the full words as the accessible name when they are shortened
 const SESSION_BACK_LABELS = {
   [SESSION_RETURN_KIND.quiz]: ret => ({ textKey: 'quiz.backToQuestion', nameKey: 'quiz.backToQuestionLabel', params: { n: ret.state.current + 1 } }),
   [SESSION_RETURN_KIND.study]: () => ({ textKey: 'quiz.backToStudy' }),
@@ -115,12 +115,12 @@ function entryBackLabel() {
   }
   return isFlaggedSession() ? { textKey: 'quiz.backToFlagged' } : null;
 }
-// W-071: a stale locale without the key (t returns the key) gets null rather than a raw key
+// W-072: a stale locale without the key (t returns the key) gets null rather than a raw key
 function entryBackText(textKey, params) {
   const text = t(textKey, params);
   return text === textKey ? null : text;
 }
-// W-071: without a goBack handler (cached pre-v2.1.1 actions.js / planRun.js) the header goes Home, so it says 🏠.
+// W-072: without a goBack handler (cached pre-v2.1.1 actions.js / planRun.js) the header goes Home, so it says 🏠.
 // v1.6.1 rule: the words carry no glyph; the back chevron is a line icon (planRun.js HEADER_BACK_ICONS, present
 // whenever hasGoBackAction is: both are v2.1.1 planRun.js)
 function setEntryBack(back) {

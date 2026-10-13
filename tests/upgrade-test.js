@@ -27,7 +27,7 @@ const { startPagesServer, appFiles } = require('./pages-server');
 //  11. v1.4.2: the current shell with one v1.4.0 file (config.js: no INITIAL_LANG / DEFAULT_FONT_SIZE; i18n.js; store.js),
 //      nothing stored (legacy seed off) — still starts with no page errors; each old file keeps its own first-run default
 //  12. S-237 (v1.6.1): a v1.6.0 cached shell (pinned f55a945) + current js — every static control gets its line icon
-//  13. W-071 (v2.1.1): the current shell with one v2.0.2 file (sideSession.js: no setEntryBack / goBack; actions.js: no
+//  13. W-072 (v2.1.1): the current shell with one v2.0.2 file (sideSession.js: no setEntryBack / goBack; actions.js: no
 //      goBack handler; locales/en.js: no back labels) — a Flagged practice still renders every question and the Result,
 //      the header back button still leaves the quiz, no raw key, no page errors
 // The v0.57 files come from git: V057_REF is the last v0.57 commit on main (merge of PR #29), pinned so a later
@@ -488,7 +488,7 @@ async function v202Locale(b) {
   await pg.close();
 }
 
-// 13. W-071 (v2.1.1): the current shell with ONE file still from v2.0.2 (V202_REF above). The back-to-entry calls are
+// 13. W-072 (v2.1.1): the current shell with ONE file still from v2.0.2 (V202_REF above). The back-to-entry calls are
 // guarded: an old sideSession.js keeps the 🏠 (no ReferenceError on each question / the Result); an old actions.js leaves
 // the header on goHome (no dead button); a locale without the labels keeps the 🏠
 const V202_BACK_SINGLES = ['js/screens/sideSession.js', 'js/core/actions.js', 'locales/en.js'];

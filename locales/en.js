@@ -100,7 +100,7 @@ LOCALES.en = {
     // is a line icon, sideSession.js setEntryBack)
     backToStudy: 'Study',
     backToFlagged: 'Flagged',
-    backToQuestion: 'Q{n}', // W-073: short enough for a 320px large-text header; the words are the label below
+    backToQuestion: 'Q{n}', // W-074: short enough for a 320px large-text header; the words are the label below
     backToQuestionLabel: 'Back to Q{n}',
     correct: '✓ Correct!',
     wrong: '✗ Wrong',
