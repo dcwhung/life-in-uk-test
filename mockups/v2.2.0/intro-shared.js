@@ -15,7 +15,7 @@ const Mock = (() => {
   const COPY = {
     zh: {
       appTitle: 'Life in the UK Test', appSub: '應試練習', loading: '載入中…', tipLabel: '小貼士',
-      skip: '略過', next: '下一步', back: '上一步', start: '直接開始', setupPlan: '設定溫習計劃',
+      skip: '略過', next: '下一步', back: '上一步', start: '直接開始', setupPlan: '製定溫習計劃',
       langLabel: '介面語言', yueLabel: '廣東話翻譯', yueNote: '題目、答案及重點均顯示廣東話翻譯',
       langZh: '中文', langEn: 'EN', step: '{n} / 3', settingsHint: '之後可以喺 ⚙ 設定隨時更改',
       tips: [
@@ -26,12 +26,12 @@ const Mock = (() => {
         '答錯的題目會自動加入「錯題」，於主頁「我的複習」再做一次。',
       ],
       pages: [
-        { kicker: '溫習', title: '先讀懂，再應考', body: '按章節閱讀事實卡、時間線及重要人物；用記憶法分級溫習，由 Lv0 練到 Lv4。',
-          chips: ['事實卡', '時間線', '人物', '記憶法'] },
-        { kicker: '練習 · 模擬考試', title: '由練習到實戰', body: '按難度、章節或試卷練習，即時顯示答案；錯題及已標記題目自動整理。準備好就挑戰 17 份模擬試卷。',
-          chips: ['即時答案', '錯題', '相似題', '17 份試卷'] },
-        { kicker: '溫習計劃 · 廣東話', title: '按你的步伐溫習', body: '設定考試日期，自動編排每日進度；題目、答案及重點附廣東話翻譯，離線亦可使用。',
-          chips: ['每日進度', '廣東話翻譯', '離線使用'] },
+        { kicker: '溫習', title: '先讀懂，再應考', body: '五種溫習模式：章節、時間線、地理、人物及記憶法。每張知識卡標示難度星級，可加書籤稍後再溫。',
+          chips: ['五種模式', '難度星級', '書籤', '記憶法 Lv0–Lv4'] },
+        { kicker: '練習 · 模擬考試', title: '由練習到實戰', body: '按難度、章節、試卷或隨機試卷練習，即時顯示答案；答錯的題目自動加入錯題重溫。準備好就用模擬考試計時實戰。',
+          chips: ['即時答案', '錯題重溫', '相似題', '隨機試卷'] },
+        { kicker: '溫習計劃 · 廣東話翻譯', title: '按你的步伐溫習', body: '輸入考試日期及程度，為你製定溫習策略；題目、答案及重點附廣東話翻譯，離線亦可使用。',
+          chips: ['溫習策略', '廣東話翻譯', '離線使用'] },
       ],
       demo: {
         flipFront: '《大憲章》於哪一年簽署？', flipBack: '1215 年', flipHint: '撳一下翻卡', lvUp: 'Lv0 → Lv1',
@@ -48,7 +48,7 @@ const Mock = (() => {
     },
     en: {
       appTitle: 'Life in the UK Test', appSub: 'Exam Practice', loading: 'Loading…', tipLabel: 'Tip',
-      skip: 'Skip', next: 'Next', back: 'Back', start: 'Start now', setupPlan: 'Set up a study plan',
+      skip: 'Skip', next: 'Next', back: 'Back', start: 'Start now', setupPlan: 'Make a study plan',
       langLabel: 'Language', yueLabel: 'Cantonese translation', yueNote: 'Questions, answers and key points show Cantonese',
       langZh: '中文', langEn: 'EN', step: '{n} / 3', settingsHint: 'You can change these any time in ⚙ Settings',
       tips: [
@@ -59,12 +59,12 @@ const Mock = (() => {
         'Questions you get wrong go to “Wrong answers” under My Review automatically.',
       ],
       pages: [
-        { kicker: 'Study', title: 'Understand first, then test', body: 'Read fact cards, the timeline and key people by chapter. Memory notes level you up from Lv0 to Lv4.',
-          chips: ['Fact cards', 'Timeline', 'People', 'Memory notes'] },
-        { kicker: 'Practice · Mock exam', title: 'From practice to the real thing', body: 'Practise by difficulty, chapter or exam with instant answers. Wrong and flagged questions are collected for you. Then take 17 mock exams.',
-          chips: ['Instant answers', 'Wrong answers', 'Similar questions', '17 exams'] },
-        { kicker: 'Study plan · Cantonese', title: 'Study at your own pace', body: 'Set your test date and get a daily plan. Questions, answers and key points come with Cantonese — and it all works offline.',
-          chips: ['Daily plan', 'Cantonese', 'Works offline'] },
+        { kicker: 'Study', title: 'Understand first, then test', body: 'Five ways to study: Chapters, Timeline, Geo, People and Memory. Every fact card shows its difficulty stars, and you can bookmark it for later.',
+          chips: ['5 study modes', 'Difficulty stars', 'Bookmarks', 'Memory Lv0–Lv4'] },
+        { kicker: 'Practice · Mock exam', title: 'From practice to the real thing', body: 'Practise by difficulty, chapter, exam or a random exam with instant answers. Wrong answers are saved for review. When you are ready, take a timed mock exam.',
+          chips: ['Instant answers', 'Wrong answer review', 'Similar questions', 'Random exam'] },
+        { kicker: 'Study plan · Cantonese translation', title: 'Study at your own pace', body: 'Enter your test date and level to get a study strategy made for you. Questions, answers and key points come with Cantonese translation, and it all works offline.',
+          chips: ['Study strategy', 'Cantonese translation', 'Works offline'] },
       ],
       demo: {
         flipFront: 'When was Magna Carta signed?', flipBack: '1215', flipHint: 'Tap to flip', lvUp: 'Lv0 → Lv1',

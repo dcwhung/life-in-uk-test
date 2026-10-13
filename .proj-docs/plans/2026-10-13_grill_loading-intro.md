@@ -18,3 +18,10 @@ Mockup：`mockups/v2.2.0/intro-index.html`（入口）、`intro-a-classic.html`�
 - Intro：`startApp()` `applyLanguage()` 之後檢查新 key `lifeuk.introSeen`（`getLS` / `setLS`，常數加入 `js/core/config.js`）。
 - 新檔要入 `sw.js` SHELL；新 global 要 `typeof` guard（W-057）；`js/pwa/pwa.js` 只喺 `screenHome` active 先 reload，intro 開住時要考慮。
 - `prefers-reduced-motion`、44px touch target、≥ 1024px `--desktop-scale`。
+
+## 用戶選擇 + rev 2（2026-10-13）
+揀咗 **方案 B**，`intro-b-cards.html` 改 rev 2：
+- 「下一步」上面加返 dots（可撳）+ ‹ › 箭咀；卡片左右 swipe；頂部改「1 / 3」。
+- 溫習卡：5 個溫習模式 tab（章節 / 時間線 / 地理 / 人物 / 記憶法）+ 知識卡難度星 + 書籤 flag。
+- 練習 / 模擬考試卡：題目卡有難度星 + flag，選項 A / B / C / D；練習 📝 / 模擬考試 🎯 icon + ⏱ timer。文案唔提 17 份試卷，改提隨機試卷；「錯題」→「錯題重溫」。
+- 溫習計劃卡：倒數、溫習策略、一週熱圖、今日任務、進度環 + 廣東話翻譯示範。文案「廣東話」→「廣東話翻譯」、「自動編排每日進度」→「製定溫習策略」、CTA →「製定溫習計劃」（共用文案，A / C 一齊改）。
