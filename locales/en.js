@@ -491,8 +491,9 @@ LOCALES.en = {
       // v2.1.1 planRun.js (W-072 mixed cache), which still names its back button with them
       backToday: "Today's tasks",
       backDayHtml: '{day} tasks',
-      backFact: 'Back', // v2.1.1: one fact's ▶ Practise, mid-session (planRun.js planQuizBackHtml); short beside the "Fact Ch c #n" label
-      backFactLabel: 'Back to the fact', // its accessible name (contains the visible word)
+      // one fact's ▶ Practise, mid-session: the header reads quiz.back ("Back", short beside "Fact Ch c #n"), named this
+      // (contains the visible word; planRun.js planQuizBackName)
+      backFactLabel: 'Back to the fact',
       // v2.1.2 (W-077): the plan header / #planRunBack "‹ Back" is named after the day it goes back to, starting with the
       // visible word (planRun.js planRunBackName); plain text, never HTML (an aria-label)
       backTodayLabel: "Back to today's tasks",

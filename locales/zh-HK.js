@@ -453,7 +453,6 @@ LOCALES['zh-HK'] = {
     run: {
       backToday: '今日任務',
       backDayHtml: '{day} 任務',
-      backFact: '返回',
       backFactLabel: '返回知識點',
       backTodayLabel: '返回今日任務',
       backDayLabel: '返回 {day} 任務',
