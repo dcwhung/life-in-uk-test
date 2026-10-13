@@ -210,7 +210,8 @@ async function answerTest(sec, L, page, phone, { wrongFirst }) {
   await sleep(GUARD_WAIT_MS);
   const n = await page.evaluate(() => state.questions.length);
   const head = await page.evaluate(() => {
-    const back = document.querySelector('#screenQuiz [data-action="goHome"]');
+    // v2.4.0 merge (main v2.3.2 back-to-entry): the header back is data-action goBack in a session; select it by its place
+    const back = document.querySelector('#screenQuiz .quiz-header .back-btn');
     return { text: back.textContent.trim(), memo: back.classList.contains('memo-back') };
   });
   check(sec, `${L} test: quiz header back reads "${head.text}" (memo back)`, head.memo);
@@ -302,7 +303,7 @@ async function sectionM(b) {
       await press(page, phone, '#memoBody .memo-start');
       await press(page, phone, '#opt0');
       await sleep(GUARD_WAIT_MS);
-      await press(page, phone, '#screenQuiz [data-action="goHome"]');
+      await press(page, phone, '#screenQuiz .quiz-header .back-btn');
       const left = await page.evaluate(() => ({ step: memoView.step, active: byId('screenMemo').classList.contains('active'), p: JSON.stringify(memoLoadProgress()) }));
       check('M', `${L} test ‹ Memory mid-way: back on ① look, nothing recorded`, left.active && left.step === 'look' && left.p === before);
       // all right → result reminder; Next → the next group's look; ‹ → the list

@@ -256,10 +256,11 @@ async function checkPlanRun(pg, tag) {
     state.answers[state.current] = q.o.map((_, k) => k).filter(k => !q.a.includes(k)).slice(0, q.a.length);
     revealAnswer();
   }, { iso: TODAY, i: p });
-  await checkControls(pg, `${tag} Plan run`, [['#screenQuiz .back-btn', 'lead', ['arrowLeft']], ['#nextBtn', 'lead', ['redo']]]);
+  // v2.1.1 (S-260, one back arrow): the plan header's back leads with the same chevron as "‹ Memory"
+  await checkControls(pg, `${tag} Plan run`, [['#screenQuiz .back-btn', 'lead', ['chevronLeft']], ['#nextBtn', 'lead', ['redo']]]);
   await seedPlan(pg, { ok: { [TODAY]: tasks[p].qids } });
   await pg.evaluate(({ iso, i }) => planShowTaskDone(iso, i, null), { iso: TODAY, i: p });
-  await checkControls(pg, `${tag} Plan task done`, [['#planRunBack', 'lead', ['arrowLeft']]]);
+  await checkControls(pg, `${tag} Plan task done`, [['#planRunBack', 'lead', ['chevronLeft']]]);
   await seedPlan(pg);
   await pg.evaluate(({ iso, i }) => planShowFacts({ date: iso, taskIndex: i, from: null }, 1, false), { iso: TODAY, i: r });
   await checkControls(pg, `${tag} Plan facts`, [

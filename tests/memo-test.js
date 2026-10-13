@@ -270,7 +270,8 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   await pg.waitForTimeout(GUARD_WAIT_MS);
   await pg.evaluate(() => startFactPractice(21)); // switching sessions straight from a memo test
   qb = await quizBack();
-  assert(!qb.memo && qb.icon && qb.label === 'Home' && await homeShown(), 'C2: Study fact practice after it: 🏠 Home again: ' + JSON.stringify(qb));
+  // v2.1.1 (back-to-entry #7): a Study fact practice's header names Study (no longer the memo label)
+  assert(!qb.memo && !qb.icon && qb.text === 'Study' && qb.chev, 'C2: Study fact practice after it: "‹ Study", not the memo label: ' + JSON.stringify(qb));
   await pg.evaluate(() => { goHome(); pendingMode = 'practice'; startExam(1); });
   qb = await quizBack();
   assert(!qb.memo && qb.icon && qb.label === 'Home' && qb.text === '' && await pg.evaluate(() => sessionReturn === null), 'C2: a later Practice exam: 🏠 Home, no side session: ' + JSON.stringify(qb));

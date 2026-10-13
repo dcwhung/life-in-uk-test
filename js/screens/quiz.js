@@ -161,7 +161,7 @@ function renderQuizHeader(q, idx, total) {
   const label = byId('quizLabel');
   if (state.examNum === ALL_EXAM && !isRandomExam(state.examNum)) label.textContent = t('quiz.allShuffled');
   else setExamLabel(label, state.examNum);
-  renderPlanQuizHeader(); // a plan task: its own label, "← Today's tasks"
+  renderPlanQuizHeader(); // a plan task: its own label, "‹ Back" (named "Back to today's tasks"); a side session: its entry
   byId('modeBadge').textContent = state.mode === PRACTICE_MODE ? t('common.practice') : t('common.exam');
   // progress: the question card's top border
   byId('progressFill').style.width = percent(idx + 1, total) + '%';

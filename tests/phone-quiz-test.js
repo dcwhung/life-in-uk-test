@@ -11,6 +11,7 @@ const dt = require('./desktop-helpers');
 const { assert } = dt;
 
 const EXAM_ONE = 1;
+const GUARD_WAIT_MS = 400; // > SCREEN_CHANGE_CLICK_GUARD_MS: a tap right after a screen change at the same point is eaten
 const BOTTOM_ROOM = 40; // the nav row sits in the screen's last 40px (main's bottom padding + rounding)
 const GOAL = { dailyMins: 120, restDays: [0], level: 'none' };
 const PANEL = '#screenQuiz .quiz-scroll > .fit-panel';
@@ -297,9 +298,62 @@ async function checkCounterThenFit(b) {
         assert(justified.h < justified.min, `${label} Q${i + 1}: the session's first fallback is measured on the fitted card (panel ${justified.h} < ${justified.min})`);
       }
     }
+    // S-269: the check above only means something when the session did fall back
+    assert(firstFallback !== null, `${label}: the session falls back somewhere (the fitted-card check ran)`);
     assert(errors.length === 0, `${label} counter + fit: no page errors ` + errors.join(' | '));
     await page.close();
   }
+}
+
+// v2.4.0 merge (main v2.3.2: the quiz header's back button returns to where the session started): on the phone's
+// one-screen quiz the back button is on screen and reachable; ↩ from a Similar side session lands on the parent session,
+// which keeps its fallback latch (its question list is the latch's key); a memo test's back returns to the memo look
+// view, one screen high again
+const BACK_PHONE = { width: 375, height: 667 };
+const quizBack = page => page.$eval('#screenQuiz .back-btn', el => { const r = el.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, h: innerHeight }; });
+async function checkBackToEntry(b) {
+  const { page, errors, label } = await dt.openDesktop(b, { viewport: BACK_PHONE, lang: 'zh-HK', fontSize: 'large', translation: true });
+  const start = await page.evaluate(() => {
+    startDifficulty(1);
+    state.current = state.questions.findIndex(q => similarKeys(q).length);
+    state.yueShown[state.current] = true;
+    const q = state.questions[state.current];
+    state.answers[state.current] = [...q.a];
+    revealAnswer();
+    window.__parentQuestions = state.questions;
+    return state.current;
+  });
+  await dt.nextFrame(page);
+  assert(!(await fitState(page)).fit, `${label}: the parent session fell back (answered card with translation; precondition)`);
+  await page.evaluate(() => startSimilarPractice());
+  await page.waitForTimeout(GUARD_WAIT_MS);
+  await dt.nextFrame(page);
+  let back = await quizBack(page);
+  assert(back.top >= 0 && back.bottom <= back.h, `${label} Similar side session: the back button is on screen (${Math.round(back.top)})`);
+  assert((await dt.controlsReachable(page, '#screenQuiz .quiz-header')).ok, `${label} Similar side session: the header controls are reachable`);
+  await page.click('#screenQuiz .back-btn');
+  await dt.nextFrame(page);
+  const after = await page.evaluate(() => ({ same: state.questions === window.__parentQuestions, cur: state.current, side: isSideSession(),
+    latched: quizPhoneFallbacks.get(state.questions) === quizPhoneContext() }));
+  const f = await fitState(page);
+  assert(after.same && after.cur === start && !after.side && after.latched && !f.fit,
+    `${label} ↩ back: the parent session at Q${start + 1}, its fallback latch kept (${JSON.stringify(after)}, fit ${f.fit})`);
+  await page.close();
+
+  const phone = await dt.openDesktop(b, { viewport: dt.VIEWPORTS.phone, lang: 'zh-HK', fontSize: 'large' });
+  await phone.page.evaluate(() => { openStudy(); studySetTab('memo'); openMemoGroup('vote'); startMemoTest(); });
+  await phone.page.waitForTimeout(GUARD_WAIT_MS);
+  await dt.nextFrame(phone.page);
+  back = await quizBack(phone.page);
+  assert((await fitState(phone.page)).fit && back.top >= 0 && back.bottom <= back.h, `${phone.label} memo test: one screen high, the back button on screen`);
+  await phone.page.click('#screenQuiz .back-btn');
+  await dt.nextFrame(phone.page);
+  const memo = await phone.page.evaluate(() => ({ screen: document.querySelector('.screen.active').id, step: memoView.step,
+    flex: getComputedStyle(byId('screenMemo')).display === 'flex' }));
+  assert(memo.screen === 'screenMemo' && memo.step === 'look' && memo.flex && (await dt.pageNotScrolling(phone.page)).ok,
+    `${phone.label} memo test ‹ back: the group's look view, one screen high (${JSON.stringify(memo)})`);
+  assert(errors.length === 0 && phone.errors.length === 0, 'back to entry: no page errors ' + errors.concat(phone.errors).join(' | '));
+  await phone.page.close();
 }
 
 (async () => {
@@ -320,6 +374,7 @@ async function checkCounterThenFit(b) {
     await checkSessionLatch(b);
     await checkHeightOnlyChange(b);
     await checkCounterThenFit(b);
+    await checkBackToEntry(b);
     await checkNewQuestionTop(b);
     await checkBreakpoint(b);
     console.log('PHONE-QUIZ PASS');

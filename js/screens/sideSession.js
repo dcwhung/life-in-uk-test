@@ -77,6 +77,60 @@ function returnFromSideSession() {
   SESSION_RETURNS[ret.kind](ret);
 }
 
+// ── v2.1.1: back mid-session (quiz / Result header; .proj-docs/qa/quiz-entry-back-audit.html #6–#9, #11) ──
+// Each session goes back to where it started; the Home entries keep the 🏠 and go Home (goHome asks first in an exam).
+// Leaving mid-way is the last "↩ Back" without its finish. A memory-note test is main's C2 path (memo.js leaveMemoTest:
+// nothing recorded, the group's look view), the same one goHome takes for a cached pre-v2.1.1 actions.js.
+function leaveSideSession() {
+  const ret = sessionReturn;
+  sessionReturn = null;
+  SESSION_RETURNS[ret.kind](ret);
+}
+// Flagged list › Practise is an ordinary session (Retry keeps it), so its set id names the list it came from
+function isFlaggedSession() { return !isSideSession() && state.examNum === FLAGGED_EXAM; }
+// S-258: showScreen drops the focus; the list's Practise button (else its first control) takes it, as memoLook / planBackToDay
+function focusFlaggedEntry() {
+  const start = byId('flaggedStart');
+  const target = start && start.getClientRects().length ? start : document.querySelector('#flaggedList button');
+  if (target) target.focus({ preventScroll: true });
+}
+function goBack() {
+  if (isPlanSession()) { planLeaveSession(); return; }
+  if (isMemoSession()) { leaveMemoTest(); return; }
+  if (isSideSession()) { leaveSideSession(); return; }
+  if (isFlaggedSession()) { openFlagged(); window.scrollTo(0, 0); focusFlaggedEntry(); return; }
+  goHome();
+}
+// the header's words while away from Home; null = the 🏠 icon. A plan session (planRun.js) and a memo test (memo.js
+// setQuizBackMemo) have their own.
+// { textKey, params, nameKey }: the visible words, and (W-074) the full words as the accessible name when they are shortened
+const SESSION_BACK_LABELS = {
+  [SESSION_RETURN_KIND.quiz]: ret => ({ textKey: 'quiz.backToQuestion', nameKey: 'quiz.backToQuestionLabel', params: { n: ret.state.current + 1 } }),
+  [SESSION_RETURN_KIND.study]: () => ({ textKey: 'quiz.backToStudy' }),
+};
+function entryBackLabel() {
+  if (isSideSession()) {
+    const label = SESSION_BACK_LABELS[sessionReturn.kind];
+    return label ? label(sessionReturn) : null;
+  }
+  return isFlaggedSession() ? { textKey: 'quiz.backToFlagged' } : null;
+}
+// W-072: a stale locale without the key (t returns the key) gets null rather than a raw key
+function entryBackText(textKey, params) {
+  const text = t(textKey, params);
+  return text === textKey ? null : text;
+}
+// W-072: without a goBack handler (cached pre-v2.1.1 actions.js / planRun.js) the header goes Home, so it says 🏠.
+// v1.6.1 rule: the words carry no glyph; the back chevron is a line icon (planRun.js HEADER_BACK_ICONS, present
+// whenever hasGoBackAction is: both are v2.1.1 planRun.js)
+function setEntryBack(back) {
+  const label = typeof hasGoBackAction === 'function' && hasGoBackAction() ? entryBackLabel() : null;
+  const text = label && entryBackText(label.textKey, label.params);
+  if (!text) { setQuizBackHome(back); return; }
+  setQuizBackText(back, iconLabelHtml(escapeHtml(text), HEADER_BACK_ICONS),
+    label.nameKey && entryBackText(label.nameKey, label.params));
+}
+
 function isStudyReturn(ret) { return ret !== null && ret.kind === SESSION_RETURN_KIND.study; }
 // CUI-0010: a second call while already on the way back to Study (double tap / key repeat on the fact card's
 // "▶ Practise") keeps the saved Study scroll — window.scrollY belongs to the quiz screen by then

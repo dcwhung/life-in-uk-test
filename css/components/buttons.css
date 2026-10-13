@@ -41,7 +41,7 @@
 .with-icon > .icon-label { min-width: 0; }
 /* the short Prev beside a long main button ("Redo the wrong answers (n left)") keeps its word on one line; the main one wraps */
 .nav-row > .nav-btn.secondary.with-icon { flex-shrink: 0; white-space: nowrap; }
-/* a text back button ("← Today's tasks", "‹ Memory") shares the quiz header with the set label and mode badge: at 320px
+/* a text back button ("‹ Back", "‹ Memory", "‹ Q24") shares the quiz header with the set label and mode badge: at 320px
    with large text it keeps 10px sides, a 4px gap and a 1em icon, so the header row stays inside the screen */
 .back-btn.with-icon { padding-left: var(--space-5); padding-right: var(--space-5); gap: var(--space-2); }
 .back-btn.with-icon > .line-icon { width: 1em; height: 1em; }
