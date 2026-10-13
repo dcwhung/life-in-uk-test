@@ -6,7 +6,7 @@
 <title>方案 B · 輕鬆卡片</title>
 <link rel="stylesheet" href="intro-shared.css">
 <style>
-  /* ══ 方案 B — Friendly: light background, card stack + mini UI illustrations (rev 2: user feedback 2026-10-13) ══ */
+  /* ══ 方案 B — Friendly: light background, card stack + scattered mini UI (rev 3: user feedback 2026-10-13) ══ */
   :root {
     /* proposed tokens (option B): one tint per intro page */
     --b-tint-1: var(--success-bg); --b-ink-1: var(--green);
@@ -14,6 +14,8 @@
     --b-tint-3: var(--yue-bg); --b-ink-3: var(--purple);
     --b-note-tape: rgba(201,168,76,0.45);
     --b-card-tilt: -2deg;
+    --b-scene-w: 330px;              /* illustration box; PC scales it by --b-scene-scale */
+    --b-scene-scale: 1.3;
     /* copied from css/base/tokens.css (study plan heat scale + flag) */
     --flag-bg: #fdf3e8; --red-light: #e74c3c;
     --plan-heat-0: #e3e7f1; --plan-heat-1: #e8735f; --plan-heat-2: #f0a54a; --plan-heat-3: #c9cf4f; --plan-heat-4: var(--green-light);
@@ -49,60 +51,57 @@
   .b-card[data-pos="2"] { transform: translateY(34px) scale(.88); opacity: .45; }
   .b-card[data-pos="out"] { transform: translateX(-120%) rotate(-12deg); opacity: 0; pointer-events: none; }
   .b-card[data-pos="hide"] { opacity: 0; pointer-events: none; }
-  .b-art { height: 268px; display: grid; place-items: center; position: relative; overflow: hidden; }
+  .b-art { height: 300px; display: grid; place-items: center; position: relative; overflow: hidden; }
   .b-card.p1 .b-art { background: var(--b-tint-1); --ink: var(--b-ink-1); }
-  .b-card.p2 .b-art { background: var(--b-tint-2); --ink: var(--b-ink-2); }
-  .b-card.p3 .b-art { background: var(--b-tint-3); --ink: var(--b-ink-3); height: 252px; }
-  .b-card.p2 .b-art { height: 318px; }
-  .b-card.p2 .ui { gap: var(--space-3); }
-  .b-card.p2 .ui-card { gap: var(--space-2); padding: var(--space-4) var(--space-6); }
+  .b-card.p2 .b-art { background: var(--b-tint-2); --ink: var(--b-ink-2); height: 336px; }
+  .b-card.p3 .b-art { background: var(--b-tint-3); --ink: var(--b-ink-3); height: 276px; }
   .b-text { padding: var(--space-6) var(--space-10) var(--space-8); display: grid; align-content: start; gap: var(--space-4); overflow: auto; }
   .b-kicker { justify-self: start; font-size: var(--fs-sm); font-weight: 800; padding: var(--space-1) var(--space-5); border-radius: var(--radius-pill); color: var(--card); }
   .p1 .b-kicker { background: var(--b-ink-1); } .p2 .b-kicker { background: var(--b-ink-2); } .p3 .b-kicker { background: var(--b-ink-3); }
-  .b-title { font-size: var(--fs-6xl); font-weight: 800; line-height: 1.3; }
+  .b-title { font-size: var(--fs-5xl); font-weight: 800; line-height: 1.3; text-wrap: balance; }
   .b-body { font-size: var(--fs-md); line-height: 1.65; color: var(--text-muted); }
   .b-list { list-style: none; display: flex; flex-wrap: wrap; gap: var(--space-3); }
   .b-list li { font-size: var(--fs-sm); font-weight: 700; padding: var(--space-2) var(--space-5); border-radius: var(--radius-pill); background: var(--bg); }
   .p3 .b-list { display: none; }  /* last card needs the room for the settings */
 
-  /* footer: dots above the button (feedback: swipe + dots back) */
-  .b-foot { display: grid; gap: var(--space-6); }
-  .b-pager { display: flex; align-items: center; justify-content: center; gap: var(--space-6); }
-  .b-pager .nav { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; color: var(--text-muted); }
-  .b-pager .nav svg { width: 18px; height: 18px; }
-  .b-pager .nav[disabled] { opacity: .25; cursor: default; }
-  .b-dotrow { display: flex; gap: var(--space-4); }
+  /* footer: dots only (rev 3), above the button; the card stack still swipes */
+  .b-foot { display: grid; gap: var(--space-8); }
+  .b-dotrow { display: flex; justify-content: center; gap: var(--space-4); }
   .b-dotrow button { width: 9px; height: 9px; border-radius: var(--radius-pill); background: var(--border); transition: width var(--intro-dur) var(--intro-ease), background .2s; }
   .b-dotrow button[aria-current="true"] { width: 26px; background: var(--navy); }
-  .b-swipe { font-size: var(--fs-xs); color: var(--text-muted); text-align: center; margin-top: calc(var(--space-4) * -1); }
   .b-next { min-height: 52px; border-radius: var(--radius); background: var(--navy); color: var(--text-inverse); font-weight: 800; font-size: var(--fs-lg); }
   .b-ctas { display: grid; gap: var(--space-4); }
   .b-ctas .b-alt { min-height: 48px; border-radius: var(--radius); background: var(--card); border: 1.5px solid var(--border); font-weight: 800; font-size: var(--fs-md); }
   .b-ctas[hidden], .b-next[hidden] { display: none; }
 
-  /* ── mini UI (same parts as the app: .stars, bookmark, .opt-letter, .exam-timer, plan heat) ── */
-  .ui { position: relative; width: 318px; display: grid; gap: var(--space-4); font-size: var(--fs-sm); }
+  /* ── scattered scene: each piece is its own element, placed by JS (slot + jitter) with a small random tilt ── */
+  .scene { position: relative; width: var(--b-scene-w); height: calc(100% - var(--space-8)); font-size: var(--fs-sm); }
+  .piece { position: absolute; left: var(--x); top: var(--y); transform: translate(-50%, -50%) rotate(var(--r)); }
+  .piece.front { z-index: 2; }
+  .pop { animation: bIn .5s var(--intro-ease) both; animation-delay: var(--d, 0s); }
+  @keyframes bIn { from { opacity: 0; transform: translate(-50%, -50%) rotate(0deg) scale(.8); } }
   .ui-card { background: var(--card); border-radius: var(--radius-md); box-shadow: var(--shadow-md); padding: var(--space-5) var(--space-6); display: grid; gap: var(--space-3); }
+  .pill { display: inline-flex; align-items: center; gap: var(--space-3); background: var(--card); border-radius: var(--radius-md); box-shadow: var(--shadow-md);
+    padding: var(--space-3) var(--space-6); font-weight: 800; font-size: var(--fs-sm); white-space: nowrap; transition: background .3s, color .3s; }
+  .pill i { font-style: normal; font-size: var(--fs-xl); }
+  .pill.on { background: var(--ink); color: var(--card); }
   .stars { color: var(--gold); letter-spacing: 1px; font-size: var(--fs-sm); white-space: nowrap; }
   .stars .off { color: var(--border); }
   .bm { width: 30px; height: 30px; border-radius: var(--radius-sm); border: 1.5px solid var(--orange); background: var(--flag-bg); color: var(--orange); display: grid; place-items: center; flex: none; }
   .bm svg { width: 16px; height: 16px; } .bm path { fill: currentColor; }
-  .bm.off { border-color: var(--border); background: var(--card); color: var(--text-muted); } .bm.off path { fill: none; stroke: currentColor; stroke-width: 2; }
   .row { display: flex; align-items: center; gap: var(--space-4); }
   .row .sp { flex: 1; }
   .tag { font-size: var(--fs-2xs); font-weight: 800; padding: 1px var(--space-3); border-radius: var(--radius-pill); background: var(--bg); color: var(--text-muted); }
   .muted { color: var(--text-muted); }
 
-  /* P1: five study tabs + fact card */
-  .tabs { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--space-2); background: var(--card); border-radius: var(--radius-md); padding: var(--space-2); box-shadow: var(--shadow-sm); }
-  .tabs span { display: grid; justify-items: center; gap: 1px; padding: var(--space-2) 0; border-radius: var(--radius-xs); font-size: var(--fs-2xs); font-weight: 700; color: var(--text-muted); transition: background .3s, color .3s; }
-  .tabs span i { font-style: normal; font-size: var(--fs-lg); }
-  .tabs span.on { background: var(--ink); color: var(--card); }
+  /* P1: fact card */
+  .fact { width: 214px; }
   .fact-q { font-size: var(--fs-md); font-weight: 800; line-height: 1.4; }
   .fact-a { color: var(--green); font-weight: 700; }
-  .lv { display: flex; gap: 3px; } .lv i { flex: 1; height: 6px; border-radius: var(--radius-pill); background: var(--border); } .lv i.on { background: var(--ink); }
+  .lv { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; } .lv i { height: 6px; border-radius: var(--radius-pill); background: var(--border); } .lv i.on { background: var(--ink); }
 
-  /* P2: question card with A–D + mode chips with timer */
+  /* P2: question card with A–D; mode + timer pills */
+  .qcard { width: 220px; gap: var(--space-2); padding: var(--space-4) var(--space-6); }
   .q-head { display: flex; align-items: center; gap: var(--space-4); font-weight: 800; font-size: var(--fs-xs); color: var(--text-muted); }
   .q-text { font-size: var(--fs-base); font-weight: 800; line-height: 1.35; }
   .opt { display: flex; align-items: center; gap: var(--space-4); border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 3px var(--space-4); font-size: var(--fs-sm); font-weight: 600; }
@@ -111,32 +110,26 @@
   .opt.correct .opt-letter { background: var(--green); border-color: var(--green); color: var(--card); }
   .opt.wrong { border-color: var(--red-light); background: var(--danger-bg); color: var(--red); }
   .opt.wrong .opt-letter { background: var(--red-light); border-color: var(--red-light); color: var(--card); }
-  .modes { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
-  .mode { background: var(--card); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); padding: var(--space-4) var(--space-5); display: flex; align-items: center; gap: var(--space-4); font-weight: 800; font-size: var(--fs-sm); }
-  .mode .ic { width: 30px; height: 30px; border-radius: var(--radius-sm); display: grid; place-items: center; font-size: var(--fs-lg); background: var(--bg); }
-  .mode small { display: block; font-size: var(--fs-2xs); color: var(--text-muted); font-weight: 600; }
-  .exam-timer { display: inline-flex; align-items: center; background: var(--navy); color: var(--text-inverse); border-radius: var(--radius-pill); padding: 2px var(--space-4);
-    font-size: var(--fs-2xs); font-weight: 800; font-variant-numeric: tabular-nums; }
+  .pill.timer { background: var(--navy); color: var(--text-inverse); font-variant-numeric: tabular-nums; }
 
   /* P3: plan card (countdown, week heat, today's tasks, ring) + translation card */
+  .plan { width: 236px; }
   .plan-grid { display: grid; grid-template-columns: 1fr auto; gap: var(--space-4); align-items: start; }
   .countdown b { font-size: var(--fs-5xl); line-height: 1; color: var(--ink); }
   .week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
   .week span { display: grid; justify-items: center; gap: 2px; font-size: var(--fs-3xs); color: var(--text-muted); }
-  .week span i { width: 100%; height: 14px; border-radius: 3px; background: var(--plan-heat-0); }
+  .week span i { width: 100%; height: 12px; border-radius: 3px; background: var(--plan-heat-0); }
   .week .h1 i { background: var(--plan-heat-1); } .week .h2 i { background: var(--plan-heat-2); } .week .h3 i { background: var(--plan-heat-3); } .week .h4 i { background: var(--plan-heat-4); }
   .week .today { color: var(--ink); font-weight: 800; } .week .today i { outline: 2px solid var(--ink); outline-offset: 1px; }
-  .ring { width: 58px; height: 58px; border-radius: 50%; background: conic-gradient(var(--green-light) calc(var(--p, 0) * 1%), var(--plan-heat-0) 0); display: grid; place-items: center; }
-  .ring b { width: 44px; height: 44px; border-radius: 50%; background: var(--card); display: grid; place-items: center; font-size: var(--fs-sm); }
+  .ring { width: 54px; height: 54px; border-radius: 50%; background: conic-gradient(var(--green-light) calc(var(--p, 0) * 1%), var(--plan-heat-0) 0); display: grid; place-items: center; }
+  .ring b { width: 40px; height: 40px; border-radius: 50%; background: var(--card); display: grid; place-items: center; font-size: var(--fs-xs); }
   .task { display: flex; align-items: center; gap: var(--space-3); font-size: var(--fs-xs); }
   .task i { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--border); display: grid; place-items: center; font-style: normal; font-size: var(--fs-3xs); color: var(--card); flex: none; }
   .task.done i { background: var(--green-light); border-color: var(--green-light); }
   .task.done span { color: var(--text-muted); text-decoration: line-through; }
-  .yue { display: flex; align-items: flex-start; gap: var(--space-4); }
+  .yue { width: 196px; display: flex; align-items: flex-start; gap: var(--space-4); }
   .yue .badge { width: 26px; height: 26px; border-radius: 50%; background: var(--ink); color: var(--card); font-weight: 800; display: grid; place-items: center; flex: none; font-size: var(--fs-sm); }
   .yue p { font-size: var(--fs-xs); line-height: 1.45; } .yue p span { display: block; color: var(--purple); }
-  .float { animation: bFloat 3s ease-in-out infinite; }
-  @keyframes bFloat { 50% { transform: translateY(-4px); } }
 
   /* last-page settings */
   .set { display: grid; gap: var(--space-2); }
@@ -145,8 +138,6 @@
   .set-seg { display: inline-flex; background: var(--bg); border-radius: var(--radius-pill); padding: var(--space-1); }
   .set-seg button { min-width: 56px; min-height: 34px; border-radius: var(--radius-pill); font-weight: 700; color: var(--text-muted); }
   .set-seg button[aria-pressed="true"] { background: var(--card); color: var(--navy); box-shadow: var(--shadow-sm); }
-  .set-hint { font-size: var(--fs-xs); color: var(--text-muted); }
-  .p3 .b-title { font-size: var(--fs-5xl); }
 
   /* ── PC ── */
   .is-pc .b-load { grid-template-columns: auto auto; column-gap: 64px; align-items: center; text-align: left; justify-items: start; }
@@ -156,14 +147,13 @@
   .is-pc .b-intro { width: 980px; justify-self: center; padding: 32px 0 40px; }
   .is-pc .b-card { grid-template-rows: none; grid-template-columns: 1fr 1fr; }
   .is-pc .b-art, .is-pc .b-card.p2 .b-art, .is-pc .b-card.p3 .b-art { height: auto; }
-  .is-pc .ui { transform: scale(1.22); }
+  .is-pc .scene { height: 340px; transform: scale(var(--b-scene-scale)); }
   .is-pc .b-text { padding: 40px; align-content: center; }
   .is-pc .b-title { font-size: var(--fs-display-sm); }
   .is-pc .p3 .b-title { font-size: var(--fs-7xl); }
   .is-pc .b-body { font-size: var(--fs-lg); }
   .is-pc .b-foot { grid-template-columns: 1fr auto; align-items: center; }
-  .is-pc .b-pager { justify-content: flex-start; }
-  .is-pc .b-swipe { display: none; }
+  .is-pc .b-dotrow { justify-content: flex-start; }
   .is-pc .b-next { padding: 0 48px; }
   .is-pc .b-ctas { grid-auto-flow: column; justify-content: end; }
   .is-pc .b-ctas button { padding: 0 32px; }
@@ -178,26 +168,48 @@
   const TIMER_START_S = 45 * 60;
   const SECOND_MS = 1000;
   const RING_PCT = 65;
-  const BOOKMARK_PATH = 'M7.5 3.5h9A2.5 2.5 0 0 1 19 6v14.5l-7-5.1-7 5.1V6a2.5 2.5 0 0 1 2.5-2.5z'; // js/components/icons.js
   const MAX_DIFFICULTY = 5;
+  const BOOKMARK_PATH = 'M7.5 3.5h9A2.5 2.5 0 0 1 19 6v14.5l-7-5.1-7 5.1V6a2.5 2.5 0 0 1 2.5-2.5z'; // js/components/icons.js
+  // scatter: every piece gets a slot (shuffled for the small pills), ± jitter in %, and a tilt of MIN–MAX deg either way
+  const JITTER_PCT = 4;
+  const TILT_MIN_DEG = 2;
+  const TILT_MAX_DEG = 8;
+  const CARD_TILT_MAX_DEG = 5;   // the big cards tilt less so they stay readable
+  const POP_STAGGER_S = 0.07;
+  // slots in % of the scene box: one centre slot for the main card, edge slots for the pills
+  const SLOTS = {
+    p1: { card: [50, 52], pills: [[17, 8], [52, 7], [84, 9], [16, 91], [52, 92], [84, 91]] },
+    p2: { card: [50, 50], pills: [[20, 7], [80, 7], [80, 91], [20, 91]] },
+    p3: { card: [46, 38], extra: [64, 80], pills: [[18, 89]] },
+  };
   let page = 0;
 
   // option-B-only strings (illustration labels); app wording from locales/*.js
   const ART = {
     zh: { tabs: ['章節', '時間線', '地理', '人物', '記憶法'], tabIcons: ['📚', '⏳', '🗺️', '👤', '🧠'],
       factQ: '《大憲章》於哪一年簽署？', factA: '1215 年 — 限制了國王的權力', memoLv: '記憶法 Lv2',
-      qNum: '第 3 題', practice: '練習', practiceSub: '即時答案', exam: '模擬考試', examSub: '24 題 · 計時',
-      wrongNote: '已加入錯題重溫', countdown: '距離考試', days: '日', strategy: '溫習策略 · 基礎程度',
+      qNum: '第 3 題', practice: '練習', exam: '模擬考試',
+      countdown: '距離考試', days: '日', strategy: '溫習策略 · 基礎程度', streak: '連續 4 日',
       week: ['一', '二', '三', '四', '五', '六', '日'], tasks: ['溫習 Ch 2 · 15 分鐘', '練習 20 題', '記憶法 3 組'], today: '今日' },
     en: { tabs: ['Chapters', 'Timeline', 'Geo', 'People', 'Memory'], tabIcons: ['📚', '⏳', '🗺️', '👤', '🧠'],
       factQ: 'When was Magna Carta signed?', factA: '1215 — it limited the power of the king', memoLv: 'Memory Lv2',
-      qNum: 'Question 3', practice: 'Practice', practiceSub: 'Instant answers', exam: 'Mock exam', examSub: '24 Qs · timed',
-      wrongNote: 'Saved to wrong answer review', countdown: 'Test in', days: 'days', strategy: 'Strategy · Basic level',
+      qNum: 'Question 3', practice: 'Practice', exam: 'Mock exam',
+      countdown: 'Test in', days: 'days', strategy: 'Strategy · Basic level', streak: '4-day streak',
       week: ['M', 'T', 'W', 'T', 'F', 'S', 'S'], tasks: ['Study Ch 2 · 15 min', 'Practise 20 Qs', '3 memory sets'], today: 'Today' },
   };
 
-  const bookmark = (on = true) => `<span class="bm ${on ? '' : 'off'}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${BOOKMARK_PATH}"/></svg></span>`;
+  const rand = (min, max) => min + Math.random() * (max - min);
+  const tilt = (max = TILT_MAX_DEG) => (Math.random() < 0.5 ? -1 : 1) * rand(TILT_MIN_DEG, max);
+  const shuffle = (arr) => arr.map((v) => [Math.random(), v]).sort((a, b) => a[0] - b[0]).map(([, v]) => v);
+  const bookmark = () => `<span class="bm"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${BOOKMARK_PATH}"/></svg></span>`;
   const stars = (d) => `<span class="stars">${'★'.repeat(d)}<span class="off">${'★'.repeat(MAX_DIFFICULTY - d)}</span></span>`;
+
+  // one absolutely placed piece; slot = [x%, y%]
+  function piece(html, [x, y], { cls = '', maxTilt = TILT_MAX_DEG, order = 0 } = {}) {
+    const jx = x + rand(-JITTER_PCT, JITTER_PCT);
+    const jy = y + rand(-JITTER_PCT, JITTER_PCT);
+    return `<div class="piece pop ${cls}" style="--x:${jx}%;--y:${jy}%;--r:${tilt(maxTilt).toFixed(1)}deg;--d:${(order * POP_STAGGER_S).toFixed(2)}s">${html}</div>`;
+  }
 
   function renderLoading(root, { c, logo, randomTip }) {
     root.innerHTML = `<div class="b-load"><img class="b-logo" src="${logo}" alt="">
@@ -206,52 +218,55 @@
       <div class="b-note"><b>📌 ${c.tipLabel}</b><span>${randomTip()}</span></div></div>`;
   }
 
+  // P1: five study-mode pills around a tilted fact card
   function artStudy(a) {
-    return `<div class="ui">
-      <div class="tabs">${a.tabs.map((t, i) => `<span class="${i === 0 ? 'on' : ''}"><i>${a.tabIcons[i]}</i>${t}</span>`).join('')}</div>
-      <div class="ui-card float">
-        <div class="row"><span class="tag">Ch 1 #12</span>${stars(2)}<span class="sp"></span>${bookmark(true)}</div>
+    const slots = shuffle(SLOTS.p1.pills).slice(0, a.tabs.length);
+    const card = `<div class="ui-card fact">
+        <div class="row"><span class="tag">Ch 1 #12</span>${stars(2)}<span class="sp"></span>${bookmark()}</div>
         <div class="fact-q">${a.factQ}</div><div class="fact-a">${a.factA}</div>
-        <div class="row"><span class="muted" style="font-size:var(--fs-2xs)">🧠 ${a.memoLv}</span><span class="sp"></span></div>
-        <div class="lv"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div>
-      </div></div>`;
+        <div class="muted" style="font-size:var(--fs-2xs)">🧠 ${a.memoLv}</div>
+        <div class="lv"><i class="on"></i><i class="on"></i><i></i></div></div>`;
+    const pills = a.tabs.map((t, i) => piece(`<span class="pill ${i === 0 ? 'on' : ''}" data-tab><i>${a.tabIcons[i]}</i>${t}</span>`, slots[i], { cls: 'front', order: i + 1 }));
+    return `<div class="scene">${piece(card, SLOTS.p1.card, { maxTilt: CARD_TILT_MAX_DEG })}${pills.join('')}</div>`;
   }
 
+  // P2: tilted question card (stars, flag, A–D) + three separate pills: practice, mock exam, timer
   function artPractice(a, d) {
     const letters = ['A', 'B', 'C', 'D'];
     const cls = (k) => (k === d.correctIdx ? 'correct' : k === 0 ? 'wrong' : '');
-    return `<div class="ui">
-      <div class="ui-card">
-        <div class="q-head"><span>${a.qNum}</span>${stars(3)}<span class="sp" style="flex:1"></span>${bookmark(true)}</div>
+    const slots = shuffle(SLOTS.p2.pills);
+    const card = `<div class="ui-card qcard">
+        <div class="q-head"><span>${a.qNum}</span>${stars(3)}<span style="flex:1"></span>${bookmark()}</div>
         <div class="q-text">${d.q}</div>
-        ${d.opts.map((o, k) => `<div class="opt ${cls(k)}"><span class="opt-letter">${letters[k]}</span>${o}</div>`).join('')}
-        <div style="font-size:var(--fs-2xs);color:var(--red);font-weight:800">✗ ${a.wrongNote}</div>
-      </div>
-      <div class="modes">
-        <div class="mode"><span class="ic">📝</span><div>${a.practice}<small>${a.practiceSub}</small></div></div>
-        <div class="mode"><span class="ic">🎯</span><div>${a.exam}<small>${a.examSub}</small><span class="exam-timer" data-timer>⏱ 45:00</span></div></div>
-      </div></div>`;
+        ${d.opts.map((o, k) => `<div class="opt ${cls(k)}"><span class="opt-letter">${letters[k]}</span>${o}</div>`).join('')}</div>`;
+    const pills = [
+      `<span class="pill"><i>📝</i>${a.practice}</span>`,
+      `<span class="pill"><i>🎯</i>${a.exam}</span>`,
+      `<span class="pill timer" data-timer>⏱ 45:00</span>`,
+    ].map((h, i) => piece(h, slots[i], { cls: 'front', order: i + 1 }));
+    return `<div class="scene">${piece(card, SLOTS.p2.card, { maxTilt: CARD_TILT_MAX_DEG })}${pills.join('')}</div>`;
   }
 
+  // P3: tilted plan card + translation card + two small pills
   function artPlan(a, d) {
     const heat = ['h4', 'h3', 'h4', 'h2', 'today', '', ''];
-    return `<div class="ui">
-      <div class="ui-card">
+    const slots = shuffle(SLOTS.p3.pills);
+    const plan = `<div class="ui-card plan">
         <div class="plan-grid">
           <div class="countdown"><span class="muted" style="font-size:var(--fs-2xs)">🗓️ ${a.countdown}</span><br><b>21</b> ${a.days}
             <div class="muted" style="font-size:var(--fs-2xs);margin-top:2px">${a.strategy}</div></div>
-          <div class="ring" data-ring><b>0%</b></div>
-        </div>
+          <div class="ring" data-ring><b>0%</b></div></div>
         <div class="week">${a.week.map((w, i) => `<span class="${heat[i]}"><i></i>${heat[i] === 'today' ? a.today : w}</span>`).join('')}</div>
-        ${a.tasks.map((t, i) => `<div class="task ${i === 0 ? 'done' : ''}"><i>${i === 0 ? '✓' : ''}</i><span>${t}</span></div>`).join('')}
-      </div>
-      <div class="ui-card yue float"><span class="badge">粵</span><p>${d.yueQ}<span>${d.yueA}</span></p></div>
-    </div>`;
+        ${a.tasks.map((t, i) => `<div class="task ${i === 0 ? 'done' : ''}"><i>${i === 0 ? '✓' : ''}</i><span>${t}</span></div>`).join('')}</div>`;
+    const yue = `<div class="ui-card yue"><span class="badge">粵</span><p>${d.yueQ}<span>${d.yueA}</span></p></div>`;
+    return `<div class="scene">${piece(plan, SLOTS.p3.card, { maxTilt: CARD_TILT_MAX_DEG })}
+      ${piece(yue, SLOTS.p3.extra, { cls: 'front', maxTilt: CARD_TILT_MAX_DEG, order: 1 })}
+      ${piece(`<span class="pill"><i>🔥</i>${a.streak}</span>`, slots[0], { cls: 'front', order: 2 })}</div>`;
   }
 
   function cardHtml(p, i, x, a) {
     const last = i === PAGE_COUNT - 1;
-    const art = [artStudy(a), artPractice(a, x.c.demo), artPlan(a, x.c.demo)][i];
+    const art = [artStudy, artPractice, artPlan][i](a, x.c.demo);
     return `<article class="b-card p${i + 1}" data-i="${i}">
       <div class="b-art">${art}</div>
       <div class="b-text"><span class="b-kicker">${p.kicker}</span><h2 class="b-title">${p.title}</h2>
@@ -261,19 +276,13 @@
   }
 
   function renderIntro(root, x) {
-    const { c, icon } = x;
+    const { c } = x;
     const a = ART[x.state.lang];
-    const swipeHint = x.state.lang === 'zh' ? '← 左右滑動切換 →' : '← Swipe to move →';
     root.innerHTML = `<div class="b-intro">
       <div class="b-top"><span class="b-step"></span><button class="b-skip" data-b="skip">${c.skip}</button></div>
       <div class="b-stack">${c.pages.map((p, i) => cardHtml(p, i, x, a)).join('')}</div>
       <div class="b-foot">
-        <div class="b-pager">
-          <button class="nav" data-b="prev" aria-label="${c.back}">${icon('arrowL')}</button>
-          <div class="b-dotrow">${c.pages.map((_, i) => `<button data-b="go" data-i="${i}" aria-label="${i + 1}"></button>`).join('')}</div>
-          <button class="nav" data-b="next" aria-label="${c.next}">${icon('arrowR')}</button>
-        </div>
-        <div class="b-swipe">${swipeHint}</div>
+        <div class="b-dotrow">${c.pages.map((_, i) => `<button data-b="go" data-i="${i}" aria-label="${i + 1}"></button>`).join('')}</div>
         <button class="b-next" data-b="next">${c.next} →</button>
         <div class="b-ctas"><button class="b-alt" data-b="start">${c.start}</button>
           <button class="b-next" data-b="plan">🗓️ ${c.setupPlan}</button></div></div></div>`;
@@ -283,7 +292,6 @@
       if (!b) return;
       const act = b.dataset.b;
       if (act === 'next') go(page + 1);
-      if (act === 'prev') go(page - 1);
       if (act === 'go') go(Number(b.dataset.i));
       if (act === 'skip' || act === 'start' || act === 'plan') { page = 0; x.finish(act); }
     };
@@ -295,9 +303,9 @@
     sync(root, x);
   }
 
-  // P1: the highlighted study tab walks through the five modes
+  // P1: the highlighted pill walks through the five study modes
   function animateTabs(root, x) {
-    const tabs = root.querySelectorAll('.tabs span');
+    const tabs = root.querySelectorAll('[data-tab]');
     let i = 0;
     const step = () => {
       if (!tabs[0].isConnected) return;
@@ -309,7 +317,7 @@
     x.later(step, TAB_CYCLE_MS);
   }
 
-  // P2: the mock-exam chip counts down like .exam-timer
+  // P2: the timer pill counts down like .exam-timer
   function animateTimer(root, x) {
     const el = root.querySelector('[data-timer]');
     let left = TIMER_START_S;
@@ -348,8 +356,6 @@
     });
     root.querySelector('.b-step').textContent = x.fmt(x.c.step, { n: page + 1 });
     root.querySelectorAll('.b-dotrow button').forEach((d, i) => d.setAttribute('aria-current', String(i === page)));
-    root.querySelector('.b-pager [data-b="prev"]').disabled = page === 0;
-    root.querySelector('.b-pager [data-b="next"]').disabled = last;
     root.querySelector('.b-foot > .b-next').hidden = last;
     root.querySelector('.b-ctas').hidden = !last;
     root.querySelector('.b-skip').style.visibility = last ? 'hidden' : 'visible';
@@ -357,23 +363,20 @@
   }
 
   Mock.init({
-    name: '方案 B · 輕鬆卡片 Friendly（rev 2）',
+    name: '方案 B · 輕鬆卡片 Friendly（rev 3）',
     renderLoading, renderIntro,
     notes: `
-      <div class="note"><h3>rev 2 改動（2026-10-13 feedback）</h3><ul>
-        <li>「下一步」上面加返 dots（可撳）+ ‹ › 箭咀，卡片左右 swipe 都得；頂部改做「1 / 3」。</li>
-        <li>溫習卡：5 個溫習模式 tab（章節 / 時間線 / 地理 / 人物 / 記憶法，自動輪流 highlight）+ 知識卡有難度星 ★★☆☆☆ 同書籤 flag + 記憶法 Lv。</li>
-        <li>練習 / 模擬考試卡：題目卡有「第 3 題」+ 難度星 + flag，4 個選項 A / B / C / D（A 答錯紅、B 正確綠）；下面練習 📝 同模擬考試 🎯 icon，模擬考試有 ⏱ 倒數 timer。</li>
-        <li>文字：唔再提 17 份試卷，改提隨機試卷；錯題 →「錯題重溫」。</li>
-        <li>溫習計劃卡：距離考試倒數、溫習策略程度、一週完成度熱圖（今日有框）、今日任務 checklist、進度環 0→65%，再加一張廣東話翻譯示範卡。</li>
-        <li>文字：「廣東話」→「廣東話翻譯」；「自動編排每日進度」→「製定溫習策略」；CTA「設定溫習計劃」→「製定溫習計劃」。</li></ul></div>
-      <div class="note"><h3>沿用</h3><ul>
-        <li>淺色 <code>--bg</code> 底 + 疊卡飛走；每頁一個淡色主題（綠 / 藍 / 紫）。</li>
-        <li>插畫用 app 真實元件嘅樣式：<code>.stars</code>、bookmark SVG、<code>.opt-letter</code>、<code>.exam-timer</code>、<code>--plan-heat-*</code>。</li>
-        <li>電腦：卡片左圖右文（980px），dots 靠左、按鈕靠右，← → 鍵可切換。</li></ul></div>
-      <div class="note"><h3>待確認</h3><ul>
-        <li>知識卡嘅 flag 喺 app 入面叫「書籤」（溫習），題目嘅叫「標記」（練習）；兩個 icon 一樣。intro 文案跟 app 分開叫，OK？</li>
-        <li>dots + 箭咀 + 「左右滑動」提示同時出，會唔會太多？可以淨係留 dots。</li></ul></div>`,
+      <div class="note"><h3>rev 3 改動</h3><ul>
+        <li>換頁：淨係留 dots（可撳），拎走箭咀同「左右滑動」提示；卡片照樣可以左右 swipe。</li>
+        <li>插畫唔再打直排：每個元素獨立、圓角、隨機細角度（±2–8°，大卡 ±2–5°），位置由幾個預設位隨機抽 + ±4% 偏移，每次 render 都唔同（撳「↻ 重播」睇效果）。</li>
+        <li>溫習：5 個模式各自一粒 pill，散喺知識卡四圍，自動輪流亮起；知識卡都斜少少；記憶法只有 Lv1–Lv3（3 格）。</li>
+        <li>練習：題目卡（星 + flag + A–D）斜少少；「📝 練習」「🎯 模擬考試」「⏱ timer」三粒獨立 pill 散開放。</li>
+        <li>溫習計劃：計劃卡 + 廣東話翻譯卡 + 「🔥 連續 4 日」pill 一樣散開；拎走「之後可以喺 ⚙ 設定隨時更改」。</li>
+        <li>文案改用「唔同人唔同溫法」角度：想了解背景 → 讀知識卡；想操題 → 練習；想操卷 → 模擬考試；再製定溫習策略，目標一次合格。</li></ul></div>
+      <div class="note"><h3>實作注意</h3><ul>
+        <li>隨機位置用「預設位 + 偏移」而唔係完全隨機，確保唔會疊住或者出界。</li>
+        <li><code>prefers-reduced-motion</code>：保留角度，唔做彈入動畫同輪流亮起。</li>
+        <li>新 token：<code>--b-scene-w</code> <code>--b-scene-scale</code>（電腦版插畫放大 1.3×）。</li></ul></div>`,
   });
 })();
 </script>

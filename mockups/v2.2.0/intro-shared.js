@@ -26,12 +26,12 @@ const Mock = (() => {
         '答錯的題目會自動加入「錯題」，於主頁「我的複習」再做一次。',
       ],
       pages: [
-        { kicker: '溫習', title: '先讀懂，再應考', body: '五種溫習模式：章節、時間線、地理、人物及記憶法。每張知識卡標示難度星級，可加書籤稍後再溫。',
-          chips: ['五種模式', '難度星級', '書籤', '記憶法 Lv0–Lv4'] },
-        { kicker: '練習 · 模擬考試', title: '由練習到實戰', body: '按難度、章節、試卷或隨機試卷練習，即時顯示答案；答錯的題目自動加入錯題重溫。準備好就用模擬考試計時實戰。',
-          chips: ['即時答案', '錯題重溫', '相似題', '隨機試卷'] },
-        { kicker: '溫習計劃 · 廣東話翻譯', title: '按你的步伐溫習', body: '輸入考試日期及程度，為你製定溫習策略；題目、答案及重點附廣東話翻譯，離線亦可使用。',
-          chips: ['溫習策略', '廣東話翻譯', '離線使用'] },
+        { kicker: '溫習', title: '想先了解背景？由知識卡讀起', body: '每個人的溫習方式都不同。想先打好基礎，就用章節、時間線、地理、人物及記憶法五種模式閱讀知識卡；難度星級及書籤助你抓緊重點。',
+          chips: ['了解背景', '五種模式', '難度星級', '書籤'] },
+        { kicker: '練習 · 模擬考試', title: '想操題？想操卷？', body: '想操題，就直接練習，每題即時看答案，答錯的自動加入錯題重溫；想操卷，就做模擬考試或隨機試卷，仿照真實考試計時作答。',
+          chips: ['操題', '錯題重溫', '操卷', '隨機試卷'] },
+        { kicker: '溫習計劃 · 廣東話翻譯', title: '定好策略，一次合格', body: '輸入考試日期及程度，為你製定溫習策略，好好安排時間；配合廣東話翻譯，輕鬆掌握及記住要點，務求一次考過。',
+          chips: ['溫習策略', '廣東話翻譯', '一次合格'] },
       ],
       demo: {
         flipFront: '《大憲章》於哪一年簽署？', flipBack: '1215 年', flipHint: '撳一下翻卡', lvUp: 'Lv0 → Lv1',
@@ -59,12 +59,12 @@ const Mock = (() => {
         'Questions you get wrong go to “Wrong answers” under My Review automatically.',
       ],
       pages: [
-        { kicker: 'Study', title: 'Understand first, then test', body: 'Five ways to study: Chapters, Timeline, Geo, People and Memory. Every fact card shows its difficulty stars, and you can bookmark it for later.',
-          chips: ['5 study modes', 'Difficulty stars', 'Bookmarks', 'Memory Lv0–Lv4'] },
-        { kicker: 'Practice · Mock exam', title: 'From practice to the real thing', body: 'Practise by difficulty, chapter, exam or a random exam with instant answers. Wrong answers are saved for review. When you are ready, take a timed mock exam.',
-          chips: ['Instant answers', 'Wrong answer review', 'Similar questions', 'Random exam'] },
-        { kicker: 'Study plan · Cantonese translation', title: 'Study at your own pace', body: 'Enter your test date and level to get a study strategy made for you. Questions, answers and key points come with Cantonese translation, and it all works offline.',
-          chips: ['Study strategy', 'Cantonese translation', 'Works offline'] },
+        { kicker: 'Study', title: 'Want the background first? Start with the facts', body: 'Everyone studies differently. To build a solid base, read the fact cards in five modes: Chapters, Timeline, Geo, People and Memory. Difficulty stars and bookmarks keep you on the key points.',
+          chips: ['Background', '5 study modes', 'Difficulty stars', 'Bookmarks'] },
+        { kicker: 'Practice · Mock exam', title: 'Drill questions? Sit full papers?', body: 'To drill questions, practise with instant answers; anything you get wrong goes to wrong answer review. To sit full papers, take a mock exam or a random exam, timed like the real test.',
+          chips: ['Drill questions', 'Wrong answer review', 'Full papers', 'Random exam'] },
+        { kicker: 'Study plan · Cantonese translation', title: 'Plan it, pass first time', body: 'Enter your test date and level to get a study strategy and use your time well. With Cantonese translation, the key points are easy to learn and remember, so you can pass first time.',
+          chips: ['Study strategy', 'Cantonese translation', 'Pass first time'] },
       ],
       demo: {
         flipFront: 'When was Magna Carta signed?', flipBack: '1215', flipHint: 'Tap to flip', lvUp: 'Lv0 → Lv1',
@@ -229,7 +229,7 @@ const Mock = (() => {
         <button data-lang="en" aria-pressed="${state.lang === 'en'}">${c.langEn}</button></div></div>
       <div class="set-row"><div><b>${c.yueLabel}</b><small>${c.yueNote}</small></div>
         <button class="sw" role="switch" data-yue aria-checked="${state.yue}" aria-label="${c.yueLabel}"></button></div>
-      <p class="set-hint">${c.settingsHint}</p></div>`;
+</div>`;
   }
 
   // wires the settings block; onLang re-renders the intro at the same page in the new language
