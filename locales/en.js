@@ -407,10 +407,11 @@ LOCALES.en = {
       editGoal: 'Change goal',
       title: 'Your study schedule',
       summary: 'Starts {start} · exam {exam} · up to {mins} a day · {level}',
-      // CUI-0037: the phase card's title counts the phases the plan has (a short plan has no drill)
+      // CUI-0037: the phase card's title counts the phases the plan has (a short plan has no drill); the three-phase
+      // key keeps its old name, which an older cached index.html still names
       phasesTitleOne: 'One phase',
       phasesTitleTwo: 'Two phases',
-      phasesTitleThree: 'Three phases',
+      phasesTitle: 'Three phases',
       phaseDaysN: { one: '{n} day', other: '{n} days' }, // phase bar line 2, under the phase name
       dayRange: 'Day {from}–{to}',
       orderTitle: 'Study order: chapters from easy to hard, History last',

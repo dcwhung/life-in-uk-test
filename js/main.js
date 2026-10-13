@@ -85,8 +85,15 @@ function upgradeLegacyFitRows() {
     if (row && !row.dataset.fitRow) row.dataset.fitRow = textSel;
   });
 }
+// CUI-0037 (v2.1.0): a pre-v2.1.0 cached index.html still has the retired G36 date note, whose key is gone: drop it
+// (it was only ever shown by the old planGoal.js)
+function removeLegacyPlanMarkup() {
+  const note = byId('planDateNote');
+  if (note) note.remove();
+}
 function startApp() {
   upgradeLegacyHeaderMarkup();
+  removeLegacyPlanMarkup();
   upgradeLegacyFitRows();
   // v1.3.0: before anything renders at the default size; W-057: an HTTP-cached pre-v1.3.0 store.js has no text size
   if (typeof applyFontSize === 'function') applyFontSize();

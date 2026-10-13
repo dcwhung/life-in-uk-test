@@ -382,7 +382,7 @@ LOCALES['zh-HK'] = {
       summary: '{start} 開始 · {exam} 考試 · 每日最多 {mins} · {level}',
       phasesTitleOne: '一個階段',
       phasesTitleTwo: '兩個階段',
-      phasesTitleThree: '三個階段',
+      phasesTitle: '三個階段',
       phaseDaysN: '{n} 日',
       dayRange: 'Day {from}–{to}',
       orderTitle: '溫習次序：章節由易到難，歷史放在最後',

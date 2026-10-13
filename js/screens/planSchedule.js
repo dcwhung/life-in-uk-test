@@ -18,7 +18,7 @@ const PLAN_WHEN = { today: 'today', past: 'past', ahead: '' };
 const PLAN_SHOWN_PHASES = [PLAN_PHASE.learn, PLAN_PHASE.drill, PLAN_PHASE.mock];
 const PLAN_PHASE_LABEL_KEYS = { learn: 'plan.phase.learn', drill: 'plan.phase.drill', mock: 'plan.phase.mock' };
 // CUI-0037: the phase card's title by the number of phases shown (a short plan has no drill)
-const PLAN_PHASES_TITLE_KEYS = { 1: 'plan.schedule.phasesTitleOne', 2: 'plan.schedule.phasesTitleTwo', 3: 'plan.schedule.phasesTitleThree' };
+const PLAN_PHASES_TITLE_KEYS = { 1: 'plan.schedule.phasesTitleOne', 2: 'plan.schedule.phasesTitleTwo', 3: 'plan.schedule.phasesTitle' };
 const PLAN_TASK_ICONS = { read: '📖', practice: '📝', drill: '📝', wrongFacts: '📖', review: '🔁', mock: '🎯' };
 const PLAN_REST_ICON = '😴';
 const PLAN_LIGHT_ICON = '🔁';
