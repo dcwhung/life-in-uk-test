@@ -115,7 +115,7 @@ async function checkInSession(pg) {
   assert(await text(pg, '#quizLabel') === FACT_LABEL['zh-HK'], `zh-HK header: ${FACT_LABEL['zh-HK']} (${await text(pg, '#quizLabel')})`);
   await checkHeaderNumberLang(pg, 'zh-HK');
   await pg.evaluate(() => setLang('en'));
-  assert((await text(pg, '#qNum')).startsWith('Question 1 of 6'), 'Question 1 of 6 (8 sources, 6 distinct: G40)');
+  assert((await pg.$eval('#qNum > span', e => e.dataset.full)) === 'Question 1 of 6', 'Question 1 of 6 (8 sources, 6 distinct: G40)');
   await pg.evaluate(() => { state.reviewTotal = 50; renderQuestion(); renderRoundNote(); });
   assert(!(await shown(pg, '#roundRow')), 'no round note inside a side session (even with a review total)');
   await answer(pg, false);

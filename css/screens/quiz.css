@@ -45,11 +45,13 @@
   font-size: var(--fs-xs); font-weight: 700; color: var(--text-muted);
   text-transform: uppercase; letter-spacing: 0.05em;
   margin-bottom: var(--space-5);
-  display: flex; align-items: center; gap: var(--space-4); min-height: 30px;
+  display: flex; align-items: center; gap: var(--space-2); min-height: 30px; /* v2.0.5 C3: tighter, for one line */
 }
 /* "Question X of Y" ★★★ ✓ n/m — the pill wraps to a second line when the row is full.
    CUI-0013: min-width 0 + white-space normal keep the quick nav inside .q-card on narrow screens if the header text ever grows */
-.q-num .q-num-text { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; column-gap: var(--space-3); row-gap: var(--space-2); white-space: normal; }
+.q-num .q-num-text { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; column-gap: var(--space-2); row-gap: var(--space-2); white-space: normal; }
+/* v2.0.5 C3 (user 2026-10-13): the counter row's stars only, at every width (beats chips.css .stars and its desktop ×1.2) */
+.q-num .stars { letter-spacing: 0; }
 .yue-toggle {
   text-transform: none; letter-spacing: 0;
   background: var(--yue-bg);
@@ -92,7 +94,9 @@
   color: var(--text);
   cursor: pointer;
   display: flex; align-items: flex-start; gap: var(--space-6);
-  transition: all 0.15s;
+  /* CUI-0034 review S-251: only the colours ease (hover / selected / correct / wrong); `all` also eased padding and
+     height changes, which fitQuiz then measured mid-way (CUI-0034) */
+  transition: border-color 0.15s, background-color 0.15s, color 0.15s;
   text-align: left;
 }
 .opt:hover:not(.disabled) { border-color: var(--navy-light); background: var(--selected-bg); }
@@ -241,10 +245,7 @@
     flex: 1 1 0; min-height: min-content; margin: 0;
     display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 1fr; gap: var(--space-5);
   }
-  /* CUI-0034: .opt's `transition: all` also eased the is-compact padding, so fitQuiz measured the padding it started
-     from and the column kept changing height for 0.15s after every render (scroll clamped, content moved); only the
-     colours ease here */
-  .quiz-main .opt { height: 100%; align-items: flex-start; transition-property: border-color, background-color, color; }
+  .quiz-main .opt { height: 100%; align-items: flex-start; }
   /* fitQuiz() ① rows follow their content → ② tighter padding and gaps → ③ the column scrolls (rev 10) */
   .quiz-main > .options.is-tight { grid-auto-rows: auto; align-content: stretch; }
   .quiz-main.is-compact { gap: var(--space-4); }

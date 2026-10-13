@@ -101,15 +101,69 @@ function setExamLabel(el, examNum) {
   el.replaceChildren(label.slice(0, at), partEl, label.slice(at + part.text.length));
 }
 // C3 (v1.3.0, user): "Question 1 of 24" unless it wraps (large text at 320px), then quiz.questionOfShort ("Question 1/24");
-// where even that wraps (the wide Translate button in the row) it stays short on two lines (user)
+// where even that wraps (the wide Translate button in the row) it stays short on two lines (user).
+// v2.0.5 (proposal "question-row option Y", user 2026-10-13): the counter and its stars share the row with Translate (before
+// answering) and the quick ← → (after answering; always on desktop, F4). Measured against every state the question
+// goes through, not only the one on screen: if any of them would push the stars or the counter onto a second line,
+// every state uses the short form, so the row (and the question text below it) never changes height on answering
 function fitQuestionCounter() {
   const counter = document.querySelector('#qNum > span[data-full]');
   if (!counter) return;
-  counter.textContent = counter.dataset.full;
-  if (textLineCount(counter) > 1) counter.textContent = counter.dataset.short;
+  const qNum = byId('qNum');
+  // v2.0.5 C3 (user 2026-10-13): full → short → tiny ("Q 1/24"); the first that fits every state. Where even tiny
+  // cannot, tiny stays (the stars then wrap below it; they never disappear)
+  const tiers = [counter.dataset.full, counter.dataset.short, counter.dataset.tiny || counter.dataset.short];
+  const fits = tiers.find(text => {
+    counter.textContent = text;
+    return questionRowFitsEveryState(qNum);
+  });
+  counter.textContent = fits || tiers[tiers.length - 1];
 }
-// a rotation / resize changes the room the counter has
-window.addEventListener('resize', () => { if (byId('screenQuiz').classList.contains('active')) fitQuestionCounter(); });
+// the row's controls in each state: practice shows Translate (either label) until answered, then the quick pair;
+// an exam has the quick pair throughout (renderTranslation, renderNavButtons). Desktop css shows the pair regardless
+function questionRowStates() {
+  const answered = { yue: false, quick: true };
+  if (state.mode !== PRACTICE_MODE) return [answered];
+  return [
+    { yue: true, label: t('quiz.translate'), quick: false },
+    { yue: true, label: yueHideLabel(), quick: false },
+    answered,
+  ];
+}
+// C3 (user 2026-10-13): the pressed button reads the short "Hide" (quiz.hideShort) so the row keeps room for the counter;
+// its accessible name stays the full quiz.hideTranslation. A pre-v2.0.5 locale has no hideShort: the full words
+function yueHideLabel() {
+  const hideKey = 'quiz.hideShort', text = t(hideKey);
+  return text === hideKey ? t('quiz.hideTranslation') : text;
+}
+// true when the counter and stars stay on one line in every state; the controls are put back as they were before the
+// next paint (translation off keeps Translate hidden: its !important rule beats .visible)
+function questionRowFitsEveryState(qNum) {
+  const yue = byId('yueToggle'), quick = byId('quickNav');
+  const saved = { yueClass: yue.className, yueLabel: yue.textContent, quickClass: quick.className };
+  try {
+    return questionRowStates().every(row => {
+      yue.classList.toggle('visible', row.yue);
+      if (row.label) yue.textContent = row.label;
+      quick.classList.toggle('visible', row.quick);
+      return textLineCount(qNum) === 1;
+    });
+  } finally {
+    yue.className = saved.yueClass;
+    yue.textContent = saved.yueLabel;
+    quick.className = saved.quickClass;
+  }
+}
+// a rotation / resize changes the room the counter has. S-257: a drag fires many resize events a frame; each fit
+// measures every row state (forced layouts), so they are merged into one fit on the next frame
+let questionCounterFitFrame = 0;
+window.addEventListener('resize', () => {
+  if (questionCounterFitFrame) return;
+  questionCounterFitFrame = requestAnimationFrame(() => {
+    questionCounterFitFrame = 0;
+    if (byId('screenQuiz').classList.contains('active')) fitQuestionCounter();
+  });
+});
 function renderQuizHeader(q, idx, total) {
   const label = byId('quizLabel');
   if (state.examNum === ALL_EXAM && !isRandomExam(state.examNum)) label.textContent = t('quiz.allShuffled');
@@ -122,14 +176,20 @@ function renderQuizHeader(q, idx, total) {
   const full = escapeHtml(t('quiz.questionOf', { n: idx + 1, total }));
   // W-057: a pre-v1.3.0 locale has no short form; t() would return the key, so the long form stays
   const shortKey = 'quiz.questionOfShort', shortText = t(shortKey, { n: idx + 1, total }), short = shortText === shortKey ? full : escapeHtml(shortText);
-  byId('qNum').innerHTML = `<span data-full="${full}" data-short="${short}">${full}</span>${starsHtml(q.d)}`;
+  // v2.0.5 C3: the third tier "Q 1/24"; a locale without it falls back to the short form
+  const tinyKey = 'quiz.questionOfTiny', tinyText = t(tinyKey, { n: idx + 1, total }), tiny = tinyText === tinyKey ? short : escapeHtml(tinyText);
+  byId('qNum').innerHTML = `<span data-full="${full}" data-short="${short}" data-tiny="${tiny}">${full}</span>${starsHtml(q.d)}`;
   byId('qText').textContent = q.q;
 }
 function renderTranslation(q, revealed, yueOn) {
   const yueToggle = byId('yueToggle');
   yueToggle.classList.toggle('visible', state.mode === PRACTICE_MODE && !revealed);
   yueToggle.classList.toggle('on', yueOn);
-  yueToggle.textContent = yueOn ? t('quiz.hideTranslation') : t('quiz.translate');
+  yueToggle.textContent = yueOn ? yueHideLabel() : t('quiz.translate');
+  // C3: the visible "Hide" is short; the name and tooltip keep the full words
+  const yueName = yueOn ? t('quiz.hideTranslation') : t('quiz.translate');
+  yueToggle.setAttribute('aria-label', yueName);
+  yueToggle.title = yueName;
   const qYue = byId('qYue');
   qYue.textContent = q.yue;
   qYue.classList.toggle('show', yueOn);

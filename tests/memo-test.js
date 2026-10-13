@@ -285,21 +285,21 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
 
   // ── zh-HK strings ──
   await pg.evaluate(() => setLang('zh-HK'));
-  assert(await text('#memoSteps .memo-step') === '① 睇' && await text('#memoBody .memo-start') === '記住咗，開始試' && await text('#screenMemo .memo-back') === '記憶法', 'zh-HK look view: ① 睇 / 記住咗，開始試 ▶ / ‹ 記憶法');
+  assert(await text('#memoSteps .memo-step') === '① 細閱' && await text('#memoBody .memo-start') === '已記住，開始測驗' && await text('#screenMemo .memo-back') === '記憶法', 'zh-HK look view: ① 細閱 / 已記住，開始測驗 ▶ / ‹ 記憶法');
   await pg.click('#screenMemo .memo-back');
   await pg.evaluate(([k, v]) => localStorage.setItem(k, JSON.stringify(v)), [MEMO_LS, { vote: { lv: 1, due: day }, parliament: { lv: 4, due: later } }]);
   await pg.evaluate(() => renderStudy());
   const zh = await pg.evaluate(() => ({ tab: document.querySelector('.study-tab[data-tab="memo"] [data-i18n]').textContent, banner: document.querySelector('.memo-due b').textContent,
     start: document.querySelector('.memo-due button').textContent, count: document.querySelector('#studyCount').textContent,
     badges: [...document.querySelectorAll('.memo-card')].map(e => e.querySelector('.memo-badge').textContent) }));
-  assert(zh.tab === '記憶法' && zh.banner === '今日要溫 1 組' && zh.start === '開始' && zh.count === `${GROUP_COUNT} / ${GROUP_COUNT} 組`, 'zh-HK list: 記憶法 tab, 今日要溫 1 組, 開始 ▶, count: ' + JSON.stringify(zh).slice(0, 160));
-  assert(zh.badges[0] === '今日到期' && zh.badges.includes('未溫') && zh.badges[GROUP_COUNT - 1] === '已熟 · 9 日後', 'zh-HK badges: 今日到期 / 未溫 / 已熟 · 9 日後');
+  assert(zh.tab === '記憶法' && zh.banner === '今日需溫習 1 組' && zh.start === '開始' && zh.count === `${GROUP_COUNT} / ${GROUP_COUNT} 組`, 'zh-HK list: 記憶法 tab, 今日需溫習 1 組, 開始 ▶, count: ' + JSON.stringify(zh).slice(0, 160));
+  assert(zh.badges[0] === '今日到期' && zh.badges.includes('未溫習') && zh.badges[GROUP_COUNT - 1] === '已熟記 · 9 日後', 'zh-HK badges: 今日到期 / 未溫習 / 已熟記 · 9 日後');
   await pg.click('.memo-due button');
   await runTest([true, true, true, true, true]);
-  assert(await text('#memoBody .memo-verdict') === '試 5/5（≥ 70%）→ 升到 Lv2' && await text('#memoBody .memo-again') === '再溫一次', 'zh-HK result: 試 5/5（≥ 70%）→ 升到 Lv2 / 再溫一次');
+  assert(await text('#memoBody .memo-verdict') === '測驗 5/5（≥ 70%）→ 升至 Lv2' && await text('#memoBody .memo-again') === '再溫習一次', 'zh-HK result: 測驗 5/5（≥ 70%）→ 升至 Lv2 / 再溫習一次');
   assert((await text('#memoBody .memo-next')).startsWith('下一組：'), 'zh-HK next: 下一組：…');
   const zhFail = await pg.evaluate(() => [memoVerdictText({ passed: false, prevLv: 4, lv: 3, correct: 0, total: 5 }), memoVerdictText({ passed: false, prevLv: 0, lv: 0, correct: 1, total: 5 }), t('memo.noAnswers'), t('memo.tomorrow')]);
-  assert(zhFail.join('|') === '試 0/5 · 未夠 70%，跌返 Lv3，聽日再溫|試 1/5 · 未夠 70%，聽日再溫|一題都未答，冇記錄進度|聽日', 'zh-HK fail texts: ' + zhFail.join('|'));
+  assert(zhFail.join('|') === '測驗 0/5 · 未達 70%，降至 Lv3，明日再溫習|測驗 1/5 · 未達 70%，明日再溫習|未有作答任何題目，不會記錄進度|明日', 'zh-HK fail texts: ' + zhFail.join('|'));
   await pg.evaluate(() => setLang('en'));
 
   // ── 360px: tabs fit, no horizontal scroll (list, look, result) ──
