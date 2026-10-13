@@ -89,11 +89,23 @@ const PINNED_HOOKS = {
   'early-britain': '「凱撒 55 BC 打唔入，Claudius AD 43 先打得入」\n→ AD 60 Boudicca 反抗、AD 122 Hadrian 起長城、AD 410 羅馬人走 → Jutes、Angles、Saxons 移入 → 之後 Vikings 坐長船嚟。',
   'post-war': '「45 年 Attlee 贏 Churchill、45–51 年福利國家、48 年 NHS + Windrush」\n→ 1948 年雙響：Bevan 推動 NHS（用嗰陣免費）、Empire Windrush 載第一批 Caribbean 移民。',
   'great-fire': "「1666 年 Charles II 時期大火燒 St Paul's → Pepys 寫日記 → Wren 重新設計」",
-  'king-parliament': '「28 年 Petition of Right、42 年內戰、49 年斬王、60 年Restoration (復辟)、88 年Glorious (光榮)」\n→ 1649 年 Charles I 被處決，Cromwell 做護國公；1688 年 William of Orange 做國王，開始君主立憲。',
+  'king-parliament': '「28 年 Petition of Right、42 年內戰、49 年斬王、60 年 Restoration（復辟）、88 年 Glorious（光榮）」\n→ 1649 年 Charles I 被處決，Cromwell 做護國公；1688 年 William of Orange 做國王，開始君主立憲。',
+  // review_v220 follow-ups (user): W-077 Northern Ireland reads 「N. Ireland」; a space after 「年」 before a Latin word
+  'magna-carta': '「1215 年 King John 簽：冇人凌駕法律，國王都唔例外」\n→ 限制國王權力，奠定法治（rule of law）基礎。',
+  'devolved': '「Scotland 129、N. Ireland 90、Wales 60、UK 650」\n→ England 冇自己嘅地方議會，由 Westminster 英國國會直接負責。',
+  'nation-symbols': '「England Rose、Scotland Thistle、Wales Daffodil、N. Ireland Shamrock」\n「England London、Scotland Edinburgh、Wales Cardiff、N. Ireland Belfast」\n→ Gaelic 係 Scotland 同 Ireland 部分地區講。',
 };
 const THREE_LINE_HOOKS = ['nation-symbols']; // user-approved: two 「」 lines (flowers, capitals) + one → line
-// year rule: a four-digit year (1000–2099) is followed by 「年」 (or is the start of a range 1853–56 年)
-const BARE_YEAR = /(?<![\d,])(1\d{3}|20\d{2})(?!\d)(?!–\d{2,4})(?! ?年)/;
+// year rule: a four-digit year (1000–2099) is followed by 「年」, or starts a range whose end is (1853–56 年, 1337–1453 年).
+// The (?!\d) after the range end stops 「1337–145」 backtracking into a match of 「1337–1453 年」.
+const BARE_YEAR = /(?<![\d,])(1\d{3}|20\d{2})(?!\d)(?!–\d{2,4}(?!\d) ?年)(?! ?年)/;
+// S-265: every number range ends in a unit — 年 (years, incl. two-digit 45–51 年), 歲 (16–17 歲) or 月 (6–7 月).
+// Bare two-digit years (「45 年」 vs 「47 國」「18 至 70 歲」) cannot be told apart from counts / ages, so they are
+// covered by the verbatim pins and review only.
+const RANGE_NO_UNIT = /\d[–-]\d+(?!\d)(?! ?[年歲月])/;
+// S-267 (user): brackets in hooks are full-width （）; spacing (user): 「年」 before a Latin word takes a space
+const HALF_WIDTH_PAREN = /[()]/;
+const NIAN_LATIN = /年[A-Za-z]/;
 function checkHooks({ g }) {
   for (const [id, hook] of Object.entries(PINNED_HOOKS)) assert(g(`memoGroupById('${id}').hook`) === hook, `${id} hook: user-approved wording, verbatim`);
   const groups = g('memoGroups()').filter(gr => gr.id !== 'single');
@@ -105,6 +117,20 @@ function checkHooks({ g }) {
   assert(badLines.length === 0, `a hook is one or two non-empty lines (${THREE_LINE_HOOKS.join()}: three) (bad: ${badLines.map(gr => gr.id).join()})`);
   const bareYears = groups.filter(gr => BARE_YEAR.test(gr.hook));
   assert(bareYears.length === 0, `year rule: every four-digit year is followed by 「年」 (bare: ${bareYears.map(gr => gr.id).join()})`);
+  const noUnit = groups.filter(gr => RANGE_NO_UNIT.test(gr.hook));
+  assert(noUnit.length === 0, `S-265: every number range ends in 年 / 歲 / 月 (bad: ${noUnit.map(gr => gr.id).join()})`);
+  const halfParen = groups.filter(gr => HALF_WIDTH_PAREN.test(gr.hook));
+  assert(halfParen.length === 0, `S-267: hooks use full-width （）, no half-width ( ) (bad: ${halfParen.map(gr => gr.id).join()})`);
+  const nianLatin = groups.filter(gr => NIAN_LATIN.test(gr.hook));
+  assert(nianLatin.length === 0, `spacing: 「年」 is followed by a space before a Latin word (bad: ${nianLatin.map(gr => gr.id).join()})`);
+  // self-check of the year / range regexes against known shapes (S-265: must flag the bad, pass the non-years)
+  const flagged = ['1853–56 Nightingale', '1945', '1940s', '1337–1453 Hundred', '45–51 Attlee', '1215 年King']
+    .filter(x => BARE_YEAR.test(x) || RANGE_NO_UNIT.test(x) || NIAN_LATIN.test(x));
+  assert(flagged.length === 6, `year / range / spacing rules flag bad shapes (missed: ${6 - flagged.length})`);
+  const clean = ['1853–56 年', '1337–1453 年', '1899–1902 年', '45–51 年', '40–41 年', '1840 年代', '650', '47 國', '18 至 70 歲', '25/1', '£50',
+    '14 世紀', '1p', '20,000', '16–17 歲', '10–17 歲', '6–7 月', '55 BC', 'AD 410', 'D-Day', 'Royal Air Force — RAF']
+    .filter(x => BARE_YEAR.test(x) || RANGE_NO_UNIT.test(x));
+  assert(clean.length === 0, `year / range rules pass years with 年 and non-years (flagged: ${clean.join(' | ')})`);
 }
 
 // ── progress: lifeuk.memoProgress = { [id]: { lv, due } } ──

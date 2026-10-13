@@ -281,6 +281,8 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   await pg.click('#studyContent .memo-card[data-arg="single"]');
   const singles = await pg.$$eval('#memoBody .memo-single-item', els => els.map(e => [e.querySelector('.memo-single-q').getAttribute('lang'), e.querySelector('.memo-single-note').getAttribute('lang'), e.querySelector('.memo-single-note').textContent.length]));
   assert(singles.length === 8 && singles.every(([en, zh, n]) => en === 'en' && zh === 'zh-HK' && n > 0), 'single-note group: 8 questions (lang en) with their notes (lang zh-HK)');
+  // W-078: the only group with hook '' — no empty "Memory hook:" box
+  assert(await pg.$('#memoBody .memo-hook') === null, 'single-note group: no hook → no hook box');
 
   // ── zh-HK strings ──
   await pg.evaluate(() => setLang('zh-HK'));
