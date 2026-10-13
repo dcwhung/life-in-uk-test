@@ -24,14 +24,17 @@ const ANDROID = { width: 360, height: 640 };
 // - English, translation on: all of them, before Translate is pressed (the "Translate" button is the widest control)
 // - 中文: a few, once answered (the quick ← →) or throughout an exam; which ones follows the number's digits and their
 //   glyphs ("14/24 題" is wider than "4/24 題"), not the question: any question at number 24 wraps (v2.1.2 review S-260)
-// knownWrap locks them in by question number (i + 1), so practice keeps its real random order. A wrap outside the list
-// fails; a listed number that no longer wraps is only logged (the list can be narrowed). 'all': any number may wrap.
-// A listed number may only have its stars drop below the counter (and #qText move with them); the counter itself
-// stays one line and the same in every state.
+// knownWrap { states, positions } locks them in: by question number (i + 1), so practice keeps its real random order,
+// and by the states (questionStates' names) the wrap is seen in (v2.1.2 review S-261). Only a listed number in a listed
+// state may have its stars drop below the counter (and #qText move with them); every other state of that question
+// still keeps one line and #qText still against the others. A wrap outside the list (number or state) fails; a listed
+// number + state that no longer wraps is only logged (the list can be narrowed). positions 'all': any number. The
+// counter itself stays one line and the same in every state, listed or not.
 // Taken from runs of this suite at v2.1.2 with 中文 "隱藏" (W-071; "隱藏翻譯" wrapped all 24 中文 questions)
-const KNOWN_EN = 'all'; // user 2026-10-13: 320 exception accepted
-const KNOWN_ZH = [14, 20, 22, 23, 24]; // translation on or off, practice (random order) and exam alike
-const KNOWN_ZH_EXAM = KNOWN_ZH;
+const ZH_WRAP_POSITIONS = [14, 20, 22, 23, 24]; // translation on or off, practice (random order) and exam alike
+const KNOWN_EN = { states: ['unanswered'], positions: 'all' }; // user 2026-10-13: 320 exception accepted
+const KNOWN_ZH = { states: ['answered'], positions: ZH_WRAP_POSITIONS }; // the quick ← → once answered
+const KNOWN_ZH_EXAM = { states: ['unanswered', 'answered'], positions: ZH_WRAP_POSITIONS }; // ← → throughout an exam
 const CASES = [
   { viewport: dt.VIEWPORTS.tiny, lang: 'en', fontSize: 'large', translation: true },
   { viewport: dt.VIEWPORTS.phone, lang: 'en', fontSize: 'large', translation: false },
@@ -87,43 +90,48 @@ async function questionStates(page, i, translation) {
   await dt.nextFrame(page);
   return states;
 }
-// the misses of one question: a wrap in any state, #qText moving, the counter changing between states. A known
-// exception (knownWrap) may have its stars drop below the counter, and #qText move with them; nothing else
-function stateMisses(n, states, known = false) {
+// the misses of one question: a wrap in any state, #qText moving, the counter changing between states. allowed: the
+// states of a known exception (knownWrap), which may have their stars drop below the counter and #qText move with
+// them; #qText is still held against the first state that is not allowed to wrap
+function stateMisses(n, states, allowed = []) {
   const [, first] = states[0];
+  const still = states.find(([what]) => !allowed.includes(what));
   const misses = [];
   states.forEach(([what, st]) => {
+    const known = allowed.includes(what);
     if (st.counterLines !== 1 || (!known && wraps(st))) misses.push(`Q${n} ${what}: "${st.text}" ${st.counterLines} line(s), stars ${st.starsOnCounterLine ? 'on' : 'below'} its line`);
-    if (!known && Math.abs(st.offset - first.offset) > MOVE_SLACK_PX) misses.push(`Q${n} ${what}: #qText moved ${(st.offset - first.offset).toFixed(1)}px`);
+    if (!known && Math.abs(st.offset - still[1].offset) > MOVE_SLACK_PX) misses.push(`Q${n} ${what}: #qText moved ${(st.offset - still[1].offset).toFixed(1)}px (against ${still[0]})`);
     if (st.text !== first.text) misses.push(`Q${n} ${what}: counter "${st.text}" (was "${first.text}")`);
   });
   return misses;
 }
-const isKnownWrap = (knownWrap, n) => knownWrap === 'all' || (knownWrap || []).includes(n);
+const isKnownPosition = (knownWrap, n) => !!knownWrap && (knownWrap.positions === 'all' || knownWrap.positions.includes(n));
+const knownStates = (knownWrap, n) => (isKnownPosition(knownWrap, n) ? knownWrap.states : []);
 
 async function checkCase(b, { viewport, lang, fontSize, translation, mode = 'practice', full, knownWrap }) {
   const opened = await dt.openDesktop(b, { viewport, lang, fontSize, translation });
   const { page, errors } = opened, label = `${opened.label} ${mode}`;
   await page.evaluate(([m, n]) => { pendingMode = m; startExam(n); }, [mode, EXAM_ONE]);
   const count = await page.evaluate(() => state.questions.length);
-  const misses = [], wrapped = [], tiers = {};
+  const misses = [], wrapped = [], tiers = {}, notWrapping = [];
   let fullCount = 0;
   for (let i = 0; i < count; i++) {
     const n = i + 1, key = await page.evaluate(at => qKey(state.questions[at]), i);
     const states = await questionStates(page, i, translation && mode === 'practice');
-    misses.push(...stateMisses(n, states, isKnownWrap(knownWrap, n)));
-    if (states.some(([, st]) => wraps(st))) wrapped.push(`Q${n}=${key}`);
+    const allowed = knownStates(knownWrap, n);
+    misses.push(...stateMisses(n, states, allowed));
+    const wrapIn = states.filter(([, st]) => wraps(st)).map(([what]) => what);
+    if (wrapIn.length) wrapped.push(`Q${n}=${key} (${wrapIn.join(', ')})`);
+    allowed.filter(what => states.some(([w]) => w === what) && !wrapIn.includes(what)).forEach(what => notWrapping.push(`Q${n} ${what}`));
     const [, first] = states[0];
     if (first.full) fullCount++;
     const tier = first.text.replace(/\d+/g, 'n');
     tiers[tier] = (tiers[tier] || 0) + 1;
   }
   console.log(`note: ${label}: ${wrapped.length}/${count} question(s) wrap ${JSON.stringify(wrapped)}; counters ${JSON.stringify(tiers)}`);
-  if (Array.isArray(knownWrap)) {
-    const gone = knownWrap.filter(n => !wrapped.some(w => w.startsWith(`Q${n}=`)));
-    if (gone.length) console.log(`note: ${label}: known exception(s) ${JSON.stringify(gone)} no longer wrap; the knownWrap list can be narrowed`);
-  }
-  const what = knownWrap ? `outside the known exceptions (${knownWrap === 'all' ? 'all, user 2026-10-13' : knownWrap.length})` : 'every question';
+  if (notWrapping.length) console.log(`note: ${label}: known exception(s) ${JSON.stringify(notWrapping)} no longer wrap; the knownWrap list can be narrowed`);
+  const where = knownWrap && `${knownWrap.positions === 'all' ? 'every number' : 'Q' + knownWrap.positions.join(' / Q')} when ${knownWrap.states.join(' / ')}`;
+  const what = knownWrap ? `outside the known exceptions (${where}; user 2026-10-13)` : 'every question';
   assert(misses.length === 0, `${label}: counter + stars on one line before / after answering, #qText still, ${what} (${misses.slice(0, 4).join(' | ') || count + ' questions'})`);
   if (full) assert(fullCount === count, `${label}: room for the full counter on all ${count} questions (${fullCount})`);
   assert(errors.length === 0, 'no page error: ' + errors.join(' | '));
