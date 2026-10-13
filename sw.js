@@ -21,6 +21,7 @@ const SHELL = [
   'data/exams.js',
   'data/study.js',
   'data/memo.js',
+  'data/notesEn.js',
   'css/base/tokens.css',
   'css/base/layout.css',
   'css/components/buttons.css',

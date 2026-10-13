@@ -72,8 +72,9 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   assert(await pg.$('#studyContent .memo-due') === null, 'no due banner with no progress');
   const first = await pg.$eval('#studyContent .memo-card', e => ({ title: e.querySelector('.memo-name').textContent, lang: e.querySelector('.memo-name').getAttribute('lang'),
     badge: e.querySelector('.memo-badge').textContent, meta: e.querySelector('.memo-meta').textContent, bar: e.querySelector('.memo-bar i').style.width }));
-  assert(first.title === '🎆 英國節日' && first.lang === 'zh-HK' && first.badge === 'New' && first.meta === '16 questions' && first.bar === '0%',
-    'new groups by question count: first card 🎆 英國節日 · New · 16 questions · empty bar (title lang zh-HK): ' + JSON.stringify(first));
+  // v2.2.0: the English UI shows the English group title (titleEn), marked lang="en"
+  assert(first.title === '🎆 UK festivals' && first.lang === 'en' && first.badge === 'New' && first.meta === '16 questions' && first.bar === '0%',
+    'new groups by question count: first card 🎆 UK festivals · New · 16 questions · empty bar (title lang en): ' + JSON.stringify(first));
   const single = await pg.$eval('#studyContent .memo-card[data-arg="single"] .memo-meta', e => e.textContent);
   assert(/8 questions$/.test(single), 'single-note group card: 8 questions: ' + single);
 
@@ -107,7 +108,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   await pg.evaluate(([k, v]) => localStorage.setItem(k, JSON.stringify(v)), [MEMO_LS, { vote: { lv: 2, due: day }, ww2: { lv: 1, due: yesterday }, parliament: { lv: 4, due: later }, writers: { lv: 1, due: later } }]);
   await pg.reload(); await openMemoTab();
   const banner = await pg.$eval('#studyContent .memo-due', e => ({ title: e.querySelector('b').textContent, sub: e.querySelector('small').textContent, lang: e.querySelector('small').getAttribute('lang'), start: e.querySelector('button').textContent }));
-  assert(banner.title === '2 groups to review today' && banner.sub === '投票權 · 二次世界大戰' && banner.lang === 'zh-HK' && banner.start === 'Start',
+  assert(banner.title === '2 groups to review today' && banner.sub === 'Right to vote · Second World War' && banner.lang === 'en' && banner.start === 'Start',
     'banner: "2 groups to review today", due titles (vote has more questions, first), Start ▶: ' + JSON.stringify(banner));
   const order = await cardIds();
   assert(order[0] === 'vote' && order[1] === 'ww2' && order[GROUP_COUNT - 1] === 'parliament' && order[GROUP_COUNT - 2] === 'writers', 'list: due first, then new, learning, done last');
@@ -127,15 +128,16 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   const listY = await pg.evaluate(() => window.scrollY);
   // a DOM click: Playwright's own click would first scroll the banner (top of the list) into view
   await pg.$eval('#studyContent .memo-due button', e => e.click());
-  assert(await pg.$eval('#screenMemo', e => e.classList.contains('active')) && await text('#memoTitle') === '🗳️ 投票權', 'Start opens the first due group (🗳️ 投票權)');
+  assert(await pg.$eval('#screenMemo', e => e.classList.contains('active')) && await text('#memoTitle') === '🗳️ Right to vote', 'Start opens the first due group (🗳️ Right to vote)');
   const look = await pg.evaluate(() => ({
     steps: [...document.querySelectorAll('#memoSteps .memo-step')].map(e => e.textContent + (e.classList.contains('on') ? '*' : '')),
     hook: (document.querySelector('#memoBody .memo-hook') || {}).textContent, hookLang: (document.querySelector('#memoBody .memo-hook [lang]') || {}).lang,
     table: document.querySelectorAll('#memoBody .note-table tbody tr').length, start: (document.querySelector('#memoBody .memo-start') || {}).textContent,
-    heading: document.querySelector('#memoBody').textContent.includes('記憶法（投票權）'),
+    heading: /記憶法（投票權）|Memory aid \(Right to vote\)/.test(document.querySelector('#memoBody').textContent),
+    noteLang: (document.querySelector('#memoBody .memo-note') || {}).lang,
   }));
   assert(look.steps.join('|') === '① Look*|② Test (5)', 'steps ① Look (on) / ② Test (5): ' + look.steps.join('|'));
-  assert(/89 冇票/.test(look.hook) && look.hookLang === 'zh-HK' && look.table === 7 && !look.heading, 'hook box + the 7-row table (no repeated heading line)');
+  assert(/89 no votes/.test(look.hook) && look.hookLang === 'en' && look.table === 7 && !look.heading && look.noteLang === 'en', 'hook box + the 7-row table (no repeated heading line), English in the English UI (v2.2.0)');
   assert(look.start === 'Got it — start the test', 'start button text');
   assert(await pg.evaluate(() => document.activeElement === byId('memoTitle')), 'S-227: opening a group moves focus to its title');
 
@@ -161,9 +163,9 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   // language switch / re-render never records twice
   await pg.evaluate(() => { setLang('zh-HK'); setLang('en'); rerenderCurrentScreen(); });
   assert(JSON.stringify((await stored()).vote) === JSON.stringify({ lv: 3, due: due7 }) && await pg.$eval('#memoBody .memo-pct', e => e.textContent) === '80%', 're-render keeps the result, records nothing more');
-  assert(res.next === 'Next: 二次世界大戰', 'next group = the next due / new group in list order: ' + res.next);
+  assert(res.next === 'Next: Second World War', 'next group = the next due / new group in list order: ' + res.next);
   await pg.click('#memoBody .memo-next');
-  assert(await text('#memoTitle') === '✈️ 二次世界大戰' && await pg.$('#memoBody .memo-start') !== null, 'next group opens on its look view');
+  assert(await text('#memoTitle') === '✈️ Second World War' && await pg.$('#memoBody .memo-start') !== null, 'next group opens on its look view');
 
   // back to the list at the same scroll
   await pg.click('#screenMemo .memo-back');
@@ -280,10 +282,15 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   await pg.fill('#studySearch', '');
   await pg.click('#studyContent .memo-card[data-arg="single"]');
   const singles = await pg.$$eval('#memoBody .memo-single-item', els => els.map(e => [e.querySelector('.memo-single-q').getAttribute('lang'), e.querySelector('.memo-single-note').getAttribute('lang'), e.querySelector('.memo-single-note').textContent.length]));
-  assert(singles.length === 8 && singles.every(([en, zh, n]) => en === 'en' && zh === 'zh-HK' && n > 0), 'single-note group: 8 questions (lang en) with their notes (lang zh-HK)');
+  assert(singles.length === 8 && singles.every(([q, note, n]) => q === 'en' && note === 'en' && n > 0), 'single-note group: 8 questions (lang en) with their English notes (lang en, v2.2.0)');
 
   // ── zh-HK strings ──
   await pg.evaluate(() => setLang('zh-HK'));
+  // v2.2.0: back in zh-HK, the group screen shows the Cantonese title and notes again
+  const zhSingle = await pg.evaluate(() => ({ title: byId('memoTitle').textContent, lang: byId('memoTitle').lang,
+    notes: [...document.querySelectorAll('#memoBody .memo-single-note')].map(e => e.lang) }));
+  assert(zhSingle.title === '📝 單題注解' && zhSingle.lang === 'zh-HK' && zhSingle.notes.length === 8 && zhSingle.notes.every(l => l === 'zh-HK'),
+    'zh-HK: Cantonese group title and notes (lang zh-HK): ' + JSON.stringify(zhSingle));
   assert(await text('#memoSteps .memo-step') === '① 細閱' && await text('#memoBody .memo-start') === '已記住，開始測驗' && await text('#screenMemo .memo-back') === '記憶法', 'zh-HK look view: ① 細閱 / 已記住，開始測驗 ▶ / ‹ 記憶法');
   await pg.click('#screenMemo .memo-back');
   await pg.evaluate(([k, v]) => localStorage.setItem(k, JSON.stringify(v)), [MEMO_LS, { vote: { lv: 1, due: day }, parliament: { lv: 4, due: later } }]);
