@@ -32,9 +32,9 @@
   .b-orbit svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
   .b-orbit .back ellipse, .b-orbit .front ellipse { fill: none; stroke: var(--navy); stroke-width: 1.4; opacity: .28; }
   .b-orbit .front { z-index: 2; }   /* the front half of each orbit and the comets pass over the planet */
-  .b-orbit .c1 { fill: var(--gold); } .b-orbit .c2 { fill: var(--navy-light); } .b-orbit .c3 { fill: var(--green-light); }
-  .b-logo { position: relative; z-index: 1; width: var(--b-planet-size); height: var(--b-planet-size); border-radius: 50%; object-fit: cover;
-    box-shadow: 0 0 0 6px var(--card), var(--shadow-md); }
+  .b-orbit .c1 { fill: var(--gold); } .b-orbit .c2 { fill: var(--navy-light); } .b-orbit .c3 { fill: var(--green-light); } .b-orbit .c4 { fill: var(--purple-light); }
+  .b-logo { position: relative; z-index: 1; width: var(--b-planet-size); height: var(--b-planet-size); border-radius: 22px;
+    box-shadow: var(--shadow-md); }   /* the app icon keeps its own rounded-square shape */
   .b-dots { display: flex; gap: var(--space-3); }
   .b-dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--gold); animation: bBounce 1s ease-in-out infinite; }
   .b-dots i:nth-child(2) { background: var(--navy-light); animation-delay: .15s; }
@@ -156,10 +156,17 @@
   .set-seg button[aria-pressed="true"] { background: var(--card); color: var(--navy); box-shadow: var(--shadow-sm); }
 
   /* ── PC ── */
-  .is-pc .b-load { grid-template-columns: auto auto; column-gap: 64px; align-items: center; text-align: left; justify-items: start; }
-  .is-pc .b-load > :not(.b-note) { grid-column: 1; }
-  .is-pc .b-load .b-note { grid-column: 2; grid-row: 1 / span 4; margin: 0; width: 340px; }
-  .is-pc .b-sub { margin-top: 0; }
+  .b-note.n2, .b-note.n3 { display: none; }   /* phone: one memo */
+  /* PC: the brand column stays centred; three memos are pinned around it at different tilts */
+  .is-pc .b-load { position: relative; }
+  .is-pc .b-orbit { --b-orbit-size: 280px; --b-planet-size: 112px; }
+  .is-pc .b-name { font-size: var(--fs-display-sm); }
+  .is-pc .b-sub { font-size: var(--fs-xl); margin-top: calc(var(--space-4) * -1); }
+  .is-pc .b-status { font-size: var(--fs-md); }
+  .is-pc .b-load .b-note { display: block; position: absolute; width: 290px; margin: 0; }
+  .is-pc .b-note.n1 { left: 6%; top: 14%; transform: rotate(-4deg); }
+  .is-pc .b-note.n2 { right: 6%; top: 34%; transform: rotate(3deg); }
+  .is-pc .b-note.n3 { left: 10%; bottom: 10%; transform: rotate(2deg); }
   .is-pc .b-intro { width: 980px; justify-self: center; padding: 32px 0 40px; }
   .is-pc .b-card { grid-template-rows: none; grid-template-columns: 1fr 1fr; }
   .is-pc .b-art, .is-pc .b-card.p2 .b-art, .is-pc .b-card.p3 .b-art { height: auto; }
@@ -194,13 +201,22 @@
   const POP_STAGGER_S = 0.07;
   const MOCK_LOADING_MS = 4200;   // option B shows the splash longer in the mock (real app: max(boot, 800ms))
   const STATUS_STEP_MS = 1300;
+  const NOTE_COUNT = 3;
   // orbits: tilt (deg), half-axes, comet lap time (s) — different speeds so the comets never line up
   const ORBITS = [
     { tilt: -28, rx: 108, ry: 34, dur: 3.6 },
     { tilt: 32, rx: 100, ry: 40, dur: 5.2 },
     { tilt: 88, rx: 96, ry: 30, dur: 7.4 },
   ];
-  const TAIL = [{ r: 7, lag: 0, o: 1 }, { r: 5, lag: 0.05, o: 0.55 }, { r: 3.6, lag: 0.1, o: 0.32 }, { r: 2.4, lag: 0.15, o: 0.16 }];
+  // comets: the four feature icons (no box) as heads, each with a fading dot tail; 🗓️ shares orbit 0, half a lap behind 📖
+  const COMETS = [
+    { orbit: 0, icon: '📖', phase: 0 },
+    { orbit: 1, icon: '📝', phase: 0 },
+    { orbit: 2, icon: '🎯', phase: 0 },
+    { orbit: 0, icon: '🗓️', phase: 0.5 },
+  ];
+  const ICON_SIZE = 20;   // viewBox units (the 230 box renders at --b-orbit-size)
+  const TAIL = [{ r: 4, lag: 0.04, o: 0.6 }, { r: 3, lag: 0.08, o: 0.36 }, { r: 2.2, lag: 0.12, o: 0.18 }];
   const ORBIT_C = 115;   // centre of the 230 × 230 viewBox
   const SIM_NODES = ['E3·Q12', 'E7·Q4', 'E11·Q20', 'E15·Q8'];  // E{exam}·Q{n}, as similar.node
   // slots in % of the scene box: one centre slot for the main card, edge slots for the pills
@@ -246,24 +262,36 @@
   function orbitSvg() {
     const ellipse = (o) => `<ellipse cx="${ORBIT_C}" cy="${ORBIT_C}" rx="${o.rx}" ry="${o.ry}" transform="rotate(${o.tilt} ${ORBIT_C} ${ORBIT_C})"/>`;
     const path = (o) => `M${ORBIT_C - o.rx},${ORBIT_C} a${o.rx},${o.ry} 0 1,0 ${2 * o.rx},0 a${o.rx},${o.ry} 0 1,0 ${-2 * o.rx},0`;
-    const comet = (o, i) => `<g transform="rotate(${o.tilt} ${ORBIT_C} ${ORBIT_C})">${TAIL.map((t) =>
-      `<circle class="c${i + 1}" r="${t.r}" opacity="${t.o}"><animateMotion dur="${o.dur}s" repeatCount="indefinite" begin="-${(t.lag * o.dur).toFixed(2)}s" path="${path(o)}"/></circle>`).join('')}</g>`;
+    // the motion is added inside the orbit's rotate(), so the icon gets rotate(-tilt) to stay upright
+    const motion = (o, lag) => `<animateMotion dur="${o.dur}s" repeatCount="indefinite" begin="-${(lag * o.dur).toFixed(2)}s" path="${path(o)}"/>`;
+    const comet = (m, i) => {
+      const o = ORBITS[m.orbit];
+      const tail = TAIL.map((t) => `<circle class="c${i + 1}" r="${t.r}" opacity="${t.o}">${motion(o, m.phase + t.lag)}</circle>`).join('');
+      const head = `<text class="ic" font-size="${ICON_SIZE}" text-anchor="middle" dominant-baseline="central" transform="rotate(${-o.tilt})">${m.icon}${motion(o, m.phase)}</text>`;
+      return `<g transform="rotate(${o.tilt} ${ORBIT_C} ${ORBIT_C})">${tail}${head}</g>`;
+    };
+    const cometsOn = (k) => COMETS.map((m, i) => (m.orbit === k ? comet(m, i) : '')).join('');
     const half = (o) => `<clipPath id="fh${o.dur}"><rect x="0" y="${ORBIT_C}" width="${ORBIT_C * 2}" height="${ORBIT_C}" transform="rotate(${o.tilt} ${ORBIT_C} ${ORBIT_C})"/></clipPath>`;
     // comets are drawn twice in sync: the back copy is hidden by the planet, the front copy only shows on the near half
-    return `<svg class="back" viewBox="0 0 230 230" aria-hidden="true">${ORBITS.map((o, i) => ellipse(o) + comet(o, i)).join('')}</svg>
+    return `<svg class="back" viewBox="0 0 230 230" aria-hidden="true">${ORBITS.map((o, k) => ellipse(o) + cometsOn(k)).join('')}</svg>
       <svg class="front" viewBox="0 0 230 230" aria-hidden="true"><defs>${ORBITS.map(half).join('')}</defs>
-        ${ORBITS.map((o, i) => `<g clip-path="url(#fh${o.dur})">${ellipse(o)}${comet(o, i)}</g>`).join('')}</svg>`;
+        ${ORBITS.map((o, k) => `<g clip-path="url(#fh${o.dur})">${ellipse(o)}${cometsOn(k)}</g>`).join('')}</svg>`;
+  }
+
+  // three different tips: phone shows the first (the others are hidden), desktop shows all three around the centre column
+  function pickTips(tips, n) {
+    return shuffle(tips).slice(0, n);
   }
 
   function renderLoading(root, x) {
-    const { c, logo, randomTip } = x;
+    const { c, logo } = x;
     const status = ART[x.state.lang].status;
     root.innerHTML = `<div class="b-load">
       <div class="b-orbit">${orbitSvg()}<img class="b-logo" src="${logo}" alt=""></div>
       <div class="b-name">${c.appTitle}</div><div class="b-sub">${c.appSub}</div>
       <div class="b-dots" role="progressbar" aria-label="${c.loading}"><i></i><i></i><i></i></div>
       <div class="b-status" aria-live="polite">${status[0]}</div>
-      <div class="b-note"><b>📌 ${c.tipLabel}</b><span>${randomTip()}</span></div></div>`;
+      ${pickTips(c.tips, NOTE_COUNT).map((tip, i) => `<div class="b-note n${i + 1}"><b>📌 ${c.tipLabel}</b><span>${tip}</span></div>`).join('')}</div>`;
     const el = root.querySelector('.b-status');
     status.forEach((txt, i) => i && x.later(() => { el.textContent = txt; }, i * STATUS_STEP_MS));
   }
@@ -423,9 +451,13 @@
   }
 
   Mock.init({
-    name: '方案 B · 輕鬆卡片 Friendly（rev 5）',
+    name: '方案 B · 輕鬆卡片 Friendly（rev 6）',
     renderLoading, renderIntro, loadingMs: MOCK_LOADING_MS,
     notes: `
+      <div class="note"><h3>rev 6 改動</h3><ul>
+        <li>Logo 保留原本圓角四方形。</li>
+        <li>慧星頭換返 📖📝🎯🗓️ 四個 icon（冇框），尾巴係漸淡色點；🗓️ 同 📖 共用一條軌道，相隔半圈。</li>
+        <li>電腦版：品牌資訊置中（星球放大到 280px），四圍貼三張唔同小貼士 memo（唔同角度）；手機版維持一張。</li></ul></div>
       <div class="note"><h3>rev 5 改動</h3><ul>
         <li>Loading 留耐啲（mock 4.2 秒）。</li>
         <li>Logo 唔再自己翻轉，做「星球」：三條斜嘅軌道好似原子咁交叉圍住佢，每條軌道有一粒慧星（頭 + 漸淡尾巴）用唔同速度轉；軌道近你嗰半同慧星會喺星球前面經過，遠嗰半會被星球遮住，有立體感。</li>

@@ -44,3 +44,7 @@ Mockup：`mockups/v2.2.0/intro-index.html`（入口）、`intro-a-classic.html`�
 - Loading 留長啲（mock 4.2 秒；實際 app 嘅最短時間實作時再定）。
 - Logo 唔再翻轉；做星球，三條斜軌道（原子咁）+ 三粒慧星（頭 + 漸淡尾巴）唔同速度轉，近半喺星球前、遠半被遮。
 - 唔用 loading bar，用返三粒跳跳點；保留載入狀態字。
+
+## rev 6（2026-10-13）
+- Logo 保留原本形狀；慧星頭用返 📖📝🎯🗓️ 四個 icon（冇框）。
+- 電腦版 loading：文字資訊置中，加到三張小貼士 memo。
