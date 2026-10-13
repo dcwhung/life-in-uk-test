@@ -84,7 +84,7 @@ LOCALES['zh-HK'] = {
     answerTab: '答案', // v2.0.0 desktop: the right column's tab beside Similar Questions (F5)
     translate: '翻譯',
     hideTranslation: '隱藏翻譯',
-    hideShort: '隱藏翻譯',
+    hideShort: '隱藏', // W-071: the pressed button's visible words, short like en "Hide" (aria-label / title keep 隱藏翻譯)
     previous: '上一題',
     next: '下一題',
     back: '返回',

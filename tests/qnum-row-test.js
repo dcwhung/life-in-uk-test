@@ -4,17 +4,34 @@
 // counter is fitted against every state the question goes through, tier by tier: full "Question n of N"
 // (quiz.questionOf) → short "Question n/N" (quiz.questionOfShort) → tiny "Q n/N" (quiz.questionOfTiny); the first one
 // that stays on one line in all states is used in all of them.
-// Per case, every question of Exam 1 in practice: unanswered, Translate pressed, answered:
-// - the counter is one line and the stars sit on that line (C3: no question may wrap, user)
+// Per case, every question of Exam 1 in practice (or an exam): unanswered, Translate pressed, answered:
+// - the counter is one line and the stars sit on that line (C3: no question may wrap, user; at 320 large text the
+//   known exceptions below, user 2026-10-13)
 // - #qText's offset below the row's top (less the row's margin) changes by ≤ 0.5px
 // - where there is room (1280 × 800), the full counter stays
-// Also: the pressed Translate button reads "Hide" in English and keeps its full name for assistive tech, and the
+// Also: the pressed Translate button reads "Hide" (中文 "隱藏", W-071) and keeps its full name for assistive tech, and the
 // counter is re-fitted on a resize, a language / text size / translation switch.
 const dt = require('./desktop-helpers');
 const { assert } = dt;
 
 const EXAM_ONE = 1;
 const MOVE_SLACK_PX = 0.5;
+const ORDER_SEED = 20261013;
+// phone sizes below the 390 one the desktop helpers know: the smallest phone (iPhone SE 1st gen) and a common Android
+const SMALLEST = { width: 320, height: 568 };
+const ANDROID = { width: 360, height: 640 };
+// W-071 / S-256 (user 2026-10-13 accepted 320 large text as an exception): at 320 × 568 in large text some questions
+// cannot keep the stars on the counter's line in every state, even with the tiny counter and the short "Hide" / 隱藏:
+// - English, translation on: all of them, before Translate is pressed (the "Translate" button is the widest control)
+// - 中文: a few, once answered (the quick ← →); which ones follows their stars and their number
+//   ("14/24 題" is wider than "4/24 題")
+// knownWrap locks them in by question key (qKey "exam.origIdx"); practice order is seeded (ORDER_SEED) so each key keeps
+// its number from run to run. A wrap outside the list fails; a listed question that no longer wraps is only logged (the
+// list can be narrowed). 'all': any question may wrap. A listed question may only have its stars drop below the
+// counter (and #qText move with them); the counter itself stays one line and the same in every state.
+// Taken from a run of this suite at v2.0.5 with 中文 "隱藏" (W-071; "隱藏翻譯" wrapped all 24 中文 questions)
+const KNOWN_EN = 'all'; // user 2026-10-13: 320 exception accepted
+const KNOWN_ZH = ['1.0', '1.1', '1.9', '1.10', '1.20']; // Q20, Q24, Q23, Q14, Q22 in the seeded order; translation on or off
 const CASES = [
   { viewport: dt.VIEWPORTS.tiny, lang: 'en', fontSize: 'large', translation: true },
   { viewport: dt.VIEWPORTS.phone, lang: 'en', fontSize: 'large', translation: false },
@@ -23,6 +40,10 @@ const CASES = [
   { viewport: dt.VIEWPORTS.wide, lang: 'en', fontSize: 'large', translation: true, full: true },
   { viewport: dt.VIEWPORTS.tiny, lang: 'zh-HK', fontSize: 'large', translation: true },
   { viewport: dt.VIEWPORTS.phone, lang: 'zh-HK', fontSize: 'large', translation: true },
+  // W-071 / S-256: 320 large text, the accepted exception
+  { viewport: SMALLEST, lang: 'en', fontSize: 'large', translation: true, knownWrap: KNOWN_EN },
+  { viewport: SMALLEST, lang: 'zh-HK', fontSize: 'large', translation: true, knownWrap: KNOWN_ZH },
+  { viewport: SMALLEST, lang: 'zh-HK', fontSize: 'large', translation: false, knownWrap: KNOWN_ZH },
 ];
 
 // the row as drawn now: #qText below the row's top, the counter's lines, the stars against the counter's line
@@ -60,36 +81,51 @@ async function questionStates(page, i, translation) {
   await dt.nextFrame(page);
   return states;
 }
-// the misses of one question: a wrap in any state, #qText moving, the counter changing between states
-function stateMisses(n, states) {
+// the misses of one question: a wrap in any state, #qText moving, the counter changing between states. A known
+// exception (knownWrap) may have its stars drop below the counter, and #qText move with them; nothing else
+function stateMisses(n, states, known = false) {
   const [, first] = states[0];
   const misses = [];
   states.forEach(([what, st]) => {
-    if (wraps(st)) misses.push(`Q${n} ${what}: "${st.text}" ${st.counterLines} line(s), stars ${st.starsOnCounterLine ? 'on' : 'below'} its line`);
-    if (Math.abs(st.offset - first.offset) > MOVE_SLACK_PX) misses.push(`Q${n} ${what}: #qText moved ${(st.offset - first.offset).toFixed(1)}px`);
+    if (st.counterLines !== 1 || (!known && wraps(st))) misses.push(`Q${n} ${what}: "${st.text}" ${st.counterLines} line(s), stars ${st.starsOnCounterLine ? 'on' : 'below'} its line`);
+    if (!known && Math.abs(st.offset - first.offset) > MOVE_SLACK_PX) misses.push(`Q${n} ${what}: #qText moved ${(st.offset - first.offset).toFixed(1)}px`);
     if (st.text !== first.text) misses.push(`Q${n} ${what}: counter "${st.text}" (was "${first.text}")`);
   });
   return misses;
 }
+const isKnownWrap = (knownWrap, key) => knownWrap === 'all' || (knownWrap || []).includes(key);
 
-async function checkCase(b, { viewport, lang, fontSize, translation, full }) {
-  const { page, errors, label } = await dt.openDesktop(b, { viewport, lang, fontSize, translation });
-  await page.evaluate(n => { pendingMode = 'practice'; startExam(n); }, EXAM_ONE);
+async function checkCase(b, { viewport, lang, fontSize, translation, mode = 'practice', full, knownWrap }) {
+  const opened = await dt.openDesktop(b, { viewport, lang, fontSize, translation });
+  const { page, errors } = opened, label = `${opened.label} ${mode}`;
+  await page.evaluate(([m, n, seed]) => {
+    // practice shuffles: a seeded Math.random (mulberry32) keeps each question at the same number on every run, so
+    // a known exception (whose wrap depends on its number's digits too) stays put
+    let a = seed;
+    Math.random = () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+    pendingMode = m; startExam(n);
+  }, [mode, EXAM_ONE, ORDER_SEED]);
   const count = await page.evaluate(() => state.questions.length);
-  const misses = [], wrapped = new Set(), tiers = {};
+  const misses = [], wrapped = [], tiers = {}, numbers = {};
   let fullCount = 0;
   for (let i = 0; i < count; i++) {
-    const states = await questionStates(page, i, translation);
-    const own = stateMisses(i + 1, states);
-    misses.push(...own);
-    if (states.some(([, st]) => wraps(st))) wrapped.add(i + 1);
+    const key = await page.evaluate(n => qKey(state.questions[n]), i);
+    const states = await questionStates(page, i, translation && mode === 'practice');
+    misses.push(...stateMisses(i + 1, states, isKnownWrap(knownWrap, key)));
+    if (states.some(([, st]) => wraps(st))) wrapped.push(key);
+    numbers[key] = i + 1;
     const [, first] = states[0];
     if (first.full) fullCount++;
     const tier = first.text.replace(/\d+/g, 'n');
     tiers[tier] = (tiers[tier] || 0) + 1;
   }
-  console.log(`note: ${label}: ${wrapped.size}/${count} question(s) wrap; counters ${JSON.stringify(tiers)}`);
-  assert(misses.length === 0, `${label}: counter + stars on one line before / after answering, #qText still (${misses.slice(0, 4).join(' | ') || count + ' questions'})`);
+  console.log(`note: ${label}: ${wrapped.length}/${count} question(s) wrap ${JSON.stringify(wrapped.map(k => `Q${numbers[k]}=${k}`))}; counters ${JSON.stringify(tiers)}`);
+  if (Array.isArray(knownWrap)) {
+    const gone = knownWrap.filter(key => !wrapped.includes(key));
+    if (gone.length) console.log(`note: ${label}: known exception(s) ${JSON.stringify(gone)} no longer wrap; the knownWrap list can be narrowed`);
+  }
+  const what = knownWrap ? `outside the known exceptions (${knownWrap === 'all' ? 'all, user 2026-10-13' : knownWrap.length})` : 'every question';
+  assert(misses.length === 0, `${label}: counter + stars on one line before / after answering, #qText still, ${what} (${misses.slice(0, 4).join(' | ') || count + ' questions'})`);
   if (full) assert(fullCount === count, `${label}: room for the full counter on all ${count} questions (${fullCount})`);
   assert(errors.length === 0, 'no page error: ' + errors.join(' | '));
   await page.close();
@@ -107,7 +143,7 @@ async function checkHideLabel(b) {
   assert(btn.text === 'Hide' && btn.aria === 'Hide translation' && btn.title === 'Hide translation', 'pressed: reads "Hide", named "Hide translation": ' + JSON.stringify(btn));
   await page.evaluate(() => setLang('zh-HK'));
   btn = await yueButton(page);
-  assert(btn.text === '隱藏翻譯' && btn.aria === '隱藏翻譯', '中文 pressed: 隱藏翻譯: ' + JSON.stringify(btn));
+  assert(btn.text === '隱藏' && btn.aria === '隱藏翻譯' && btn.title === '隱藏翻譯', '中文 pressed: reads 隱藏 (W-071), named 隱藏翻譯: ' + JSON.stringify(btn));
   await page.click('#yueToggle');
   btn = await yueButton(page);
   assert(btn.text === '翻譯' && btn.aria === '翻譯', '中文 not pressed: 翻譯: ' + JSON.stringify(btn));
