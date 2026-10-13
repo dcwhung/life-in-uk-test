@@ -213,7 +213,11 @@
   #screenQuiz.is-fit > .quiz-cols { flex: 1 1 auto; min-height: 0; }
   /* F4 (rev 8 / rev 12): no bottom Prev / Next; the card's ← → always shown, beside Translate before answering */
   #screenQuiz > .nav-row { display: none; }
-  #screenQuiz > .quiz-scroll { display: none; } /* v2.1.0: the phone's panel (empty here: the columns hold its parts) */
+  /* v2.1.0: the phone's panel (.quiz-scroll) stays a box here: the refit empties it into the columns (or keeps exam's
+     hidden answer / Similar), so it is 0px high. Never display: none — the focused option inside it would lose focus
+     (S-228) in the frame between the resize and the refit. Its fades (absolute, 36px × scale) would still stick out
+     under the screen and scroll the page: none here */
+  #screenQuiz > .quiz-scroll::before, #screenQuiz > .quiz-scroll::after { content: none; }
   #screenQuiz .quick-nav { display: inline-flex; }
 
   .quiz-cols { display: grid; gap: var(--space-10); grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }

@@ -116,8 +116,9 @@ async function checkBreakpoint(b) {
   await page.evaluate(n => { pendingMode = 'practice'; startExam(n); }, EXAM_ONE);
   await dt.setViewport(page, dt.VIEWPORTS.wide);
   const desk = await page.evaluate(() => ({ cols: !!document.querySelector('#screenQuiz .quiz-cols:not([hidden])'),
-    phonePanel: document.querySelector('#screenQuiz .quiz-scroll').getClientRects().length }));
-  assert(desk.cols && desk.phonePanel === 0 && (await dt.pageNotScrolling(page)).ok, '1280px: the desktop columns, no phone panel: ' + JSON.stringify(desk));
+    phonePanel: document.querySelector('#screenQuiz .quiz-scroll').getBoundingClientRect().height,
+    inCols: ['optionsContainer', 'answerBox', 'similarBox'].every(id => byId(id).closest('.quiz-cols')) }));
+  assert(desk.cols && desk.inCols && desk.phonePanel === 0 && (await dt.pageNotScrolling(page)).ok, '1280px: the desktop columns hold the parts, the phone panel is empty (0px): ' + JSON.stringify(desk));
   await dt.setViewport(page, dt.VIEWPORTS.phone);
   await checkCase(page, '390 again', 'practice, unanswered', {});
   assert(errors.length === 0, 'breakpoint: no page errors ' + errors.join(' | '));

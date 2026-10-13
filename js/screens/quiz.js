@@ -476,8 +476,8 @@ function fitQuiz(desktop) {
 // One screen high (.is-fit-phone, css/components/fit.css): the quiz header and the question card stay put; the parts
 // after the card (options, answer box, the plan pair note, the Similar panel) share one panel that scrolls on its own
 // with fades; Prev / Next stay at the bottom. The panel is built once, on the first phone render (never on a desktop,
-// like the desktop parts never on a phone), before Prev / Next, and kept; from 1024px it draws nothing (quiz.css) and
-// the desktop columns take the parts (their phone place, deskRemember, may then be inside this panel)
+// like the desktop parts never on a phone), before Prev / Next, and kept; from 1024px the desktop columns take the
+// parts and it is left empty, 0px high (their phone place, deskRemember, may be inside it; quiz.css)
 const QUIZ_PHONE_PART_IDS = ['optionsContainer', 'answerBox', 'planPairNote', 'similarBox'];
 let quizPhone = null;
 function buildQuizPhone() {
