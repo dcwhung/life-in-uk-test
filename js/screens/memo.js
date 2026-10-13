@@ -116,6 +116,26 @@ function memoMarkFit() {
 }
 memoMarkFit();
 
+// ── a question's pill row (v2.1.0, mockup desktop-memo.html rev 3 pillsHtml): ".tag #n" · ".tag <icon> Ch c" ·
+// the question's node (js/components/tags.js: copies joined COPY_SEP, mastery colours), the app's own pills. Used by
+// the group's questions, the result's wrong questions and the single-note group. S-057: English in every language ──
+const MEMO_ITEM_MARK = '#';
+function memoPillsHtml(keys, n) {
+  const ch = questionByKey(keys[0]).q.ch;
+  const chapter = `<span class="tag" lang="en"><span aria-hidden="true">${CHAPTER_ICONS[ch]}</span> ${escapeHtml(t('common.chapterShort', { n: ch }))}</span>`;
+  const node = `<span class="sqm-node${questionNodeClass(keys[0])}" lang="en">${escapeHtml(copiesNodeText(keys))}</span>`;
+  return `<div class="memo-pills"><span class="tag" lang="en">${MEMO_ITEM_MARK}${n}</span>${chapter}${node}</div>`;
+}
+// one question in a list: its pill row (when its keys are known), the English question and its translation
+// (.memo-wrong-yue: hidden with translation off, css/base/layout.css)
+function memoQuestionItemHtml({ q, yue, keys }, n) {
+  const pills = keys && keys.length ? memoPillsHtml(keys, n) : '';
+  return `<li>${pills}<span class="memo-q" lang="en">${escapeHtml(q)}</span><span class="memo-wrong-yue" lang="zh-HK">${escapeHtml(yue)}</span></li>`;
+}
+function memoQuestionListHtml(items, extraCls = '') {
+  return `<ul class="memo-qlist${extraCls}">${items.map((it, i) => memoQuestionItemHtml(it, i + 1)).join('')}</ul>`;
+}
+
 // ── ① look ──
 function memoHookHtml(g) {
   if (!g.hook) return '';
@@ -125,11 +145,13 @@ function memoHookHtml(g) {
 function memoNoteHtml(g) {
   return memoScrollHtml(`<div class="memo-panel memo-note fit-panel" lang="zh-HK">${noteHtml(g.body.split('\n').slice(1).join('\n'))}</div>`);
 }
-// the single-note group: each distinct question (English) with its own note
+// the single-note group: each distinct question (its pill row, English) with its own note
 function memoSingleHtml(g) {
-  const items = questionGroups(g.qkeys).map(keys => questionByKey(keys[0]).q).map(q =>
-    `<div class="memo-single-item"><div class="memo-single-q" lang="en">${escapeHtml(q.q)}</div>`
-    + `<div class="memo-single-note" lang="zh-HK">${noteHtml(q.note)}</div></div>`);
+  const items = questionGroups(g.qkeys).map((keys, i) => {
+    const q = questionByKey(keys[0]).q;
+    return `<div class="memo-single-item">${memoPillsHtml(keys, i + 1)}<div class="memo-single-q" lang="en">${escapeHtml(q.q)}</div>`
+      + `<div class="memo-single-note" lang="zh-HK">${noteHtml(q.note)}</div></div>`;
+  });
   return memoScrollHtml(`<div class="memo-panel memo-single fit-panel">${items.join('')}</div>`);
 }
 function memoLookHtml(g) {
@@ -149,11 +171,18 @@ function startMemoTest() {
 // nothing answered → nothing recorded, the result says so
 function finishMemoTest(ret) {
   const answered = state.questions.map((q, i) => ({ q, i })).filter(({ i }) => i in state.revealed);
-  const wrong = answered.filter(({ q, i }) => !isCorrectAnswer(q, state.answers[i])).map(({ q }) => ({ q: q.q, yue: q.yue }));
+  const wrong = answered.filter(({ q, i }) => !isCorrectAnswer(q, state.answers[i])).map(({ q }) => ({ q: q.q, yue: q.yue, keys: memoCopyKeys(ret.id, q) }));
   const total = answered.length, correct = total - wrong.length;
   const rec = recordMemoResult(ret.id, correct, total, planTodayIso());
   Object.assign(memoView, { id: ret.id, step: MEMO_STEP.result, result: rec ? { ...rec, correct, total, wrong } : { none: true } });
   showMemo();
+}
+
+// v2.1.0: a wrong question's copies in its group (for its pill row: "E1·Q8 = E11·Q9"); the asked copy at least
+function memoCopyKeys(id, q) {
+  const g = memoGroupById(id), k = qKey(q);
+  const copies = g ? questionGroups(g.qkeys).find(keys => keys.includes(k)) : null;
+  return copies || [k];
 }
 
 // ── result ──
@@ -177,10 +206,10 @@ function memoScheduleHtml(r) {
     return `<div class="memo-lv${cls}"><b>${escapeHtml(t('memo.lv', { lv: level }))}</b>${escapeHtml(wait)}</div>`;
   }).join('');
 }
+// a result kept from before v2.1.0 has no keys: its questions are listed without pills
 function memoWrongHtml(wrong) {
   if (!wrong.length) return '';
-  const items = wrong.map(w => `<li><span lang="en">${escapeHtml(w.q)}</span><span class="memo-wrong-yue" lang="zh-HK">${escapeHtml(w.yue)}</span></li>`);
-  return `<p class="memo-wrong-title">${escapeHtml(t('memo.wrongTitle'))}</p><ul class="memo-wrong">${items.join('')}</ul>`;
+  return `<p class="memo-wrong-title">${escapeHtml(t('memo.wrongTitle'))}</p>${memoQuestionListHtml(wrong, ' memo-wrong')}`;
 }
 // the next group to do: the first due / new one in list order (every chapter), not this one
 function memoNextGroup(id) {

@@ -87,9 +87,16 @@
 .memo-lv.retry { border-color: var(--memo-due); border-style: dashed; color: var(--memo-due-text); background: var(--flag-bg); }
 .memo-none { margin: 0; text-align: center; color: var(--text-muted); padding: var(--space-6) 0; }
 .memo-wrong-title { font-weight: 800; color: var(--red); margin: 0 0 var(--space-3); }
-.memo-wrong { margin: 0; padding-left: 18px; }
-.memo-wrong li + li { margin-top: var(--space-3); }
+/* v2.1.0 question lists (the group's questions, the wrong questions; mockup desktop-memo.html rev 3 .mx-qlist): each
+   question = its pill row, the English question, its translation; a rule between questions */
+.memo-qlist { list-style: none; margin: 0; padding: 0; }
+.memo-qlist li + li { border-top: 1px solid var(--border); margin-top: var(--space-5); padding-top: var(--space-5); }
+.memo-q { display: block; }
 .memo-wrong-yue { display: block; color: var(--purple); }
+/* the pill row (js/screens/memo.js memoPillsHtml): the fact card's pills and gaps (css/components/fact.css .fact-meta,
+   .fact-src .sqm-node) */
+.memo-pills { --memo-pill-gap: 5px; display: flex; flex-wrap: wrap; gap: var(--memo-pill-gap); align-items: center; margin-bottom: var(--space-3); }
+.memo-pills .sqm-node { padding: 3px var(--space-4); }
 .memo-actions { display: flex; gap: var(--space-4); }
 .memo-actions .nav-btn { flex: 1 1 0; min-width: 0; padding-left: var(--space-5); padding-right: var(--space-5); }
 .nav-btn.memo-next { background: var(--gold); color: var(--navy); }
@@ -118,5 +125,6 @@
   .memo-bar { height: calc(6px * var(--desktop-scale)); }
   .memo-step { padding-top: calc(7px * var(--desktop-scale)); padding-bottom: calc(7px * var(--desktop-scale)); }
   .memo-back::before { height: max(100%, calc(44px * var(--desktop-scale))); }
-  .memo-wrong { padding-left: calc(18px * var(--desktop-scale)); }
+  .memo-pills { --memo-pill-gap: calc(5px * var(--desktop-scale)); }
+  .memo-pills .sqm-node { padding: calc(3px * var(--desktop-scale)) var(--space-4); }
 }

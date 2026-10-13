@@ -145,7 +145,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   const res = await pg.evaluate(() => ({
     pct: document.querySelector('#memoBody .memo-pct').textContent, verdict: document.querySelector('#memoBody .memo-verdict').textContent,
     sched: [...document.querySelectorAll('#memoBody .memo-lv')].map(e => e.className.replace('memo-lv', '').trim() + ':' + e.textContent),
-    wrong: [...document.querySelectorAll('#memoBody .memo-wrong li')].map(li => [li.querySelector('[lang="en"]').textContent, li.querySelector('[lang="zh-HK"]').textContent]),
+    wrong: [...document.querySelectorAll('#memoBody .memo-wrong li')].map(li => [li.querySelector('.memo-q').textContent, li.querySelector('.memo-wrong-yue').textContent]),
     steps: [...document.querySelectorAll('#memoSteps .memo-step')].map(e => e.textContent),
     next: (document.querySelector('#memoBody .memo-next') || {}).textContent,
   }));
