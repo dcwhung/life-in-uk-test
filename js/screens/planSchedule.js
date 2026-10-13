@@ -121,11 +121,18 @@ function planShownPhases(phases) { return PLAN_SHOWN_PHASES.filter(k => phases[k
 function renderPlanPhaseCount(phases) {
   const shown = planShownPhases(phases), title = byId('planPhasesTitle'), legend = byId('planPhaseLegend');
   if (title) {
-    const titleKey = PLAN_PHASES_TITLE_KEYS[shown.length] || PLAN_PHASES_TITLE_KEYS[PLAN_SHOWN_PHASES.length];
+    const titleKey = planPhasesTitleKey(shown.length);
     title.dataset.i18n = titleKey;
     title.textContent = t(titleKey);
   }
   if (legend) legend.innerHTML = shown.map(planLegendItemHtml).join('');
+}
+// S-250: a cached pre-v2.1.0 locale has no One / Two keys: the three-phase title (the static one) instead of a raw key
+const PLAN_PHASES_TITLE_DEFAULT_KEY = PLAN_PHASES_TITLE_KEYS[PLAN_SHOWN_PHASES.length];
+function planPhasesTitleKey(count) {
+  const key = PLAN_PHASES_TITLE_KEYS[count] || PLAN_PHASES_TITLE_DEFAULT_KEY;
+  const known = [getLang(), DEFAULT_LANG].some(lang => lookupKey(lang, key) !== undefined);
+  return known ? key : PLAN_PHASES_TITLE_DEFAULT_KEY;
 }
 function planLegendItemHtml(k) {
   const nameKey = PLAN_PHASE_LABEL_KEYS[k];
