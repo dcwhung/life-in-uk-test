@@ -164,6 +164,7 @@
 
 ## Deploys
 
+- [2026-10-13_deploy_v240.md](deploys/2026-10-13_deploy_v240.md) — v2.4.0 記憶法 layout（desktop + 手機 rev 6）+ 手機一屏高 Quiz deploy（PR #123，`e5d4641`；Pages run 38466144343 success；smoke 8/8 suites + SW cache `lifeuk-v2.4.0` 喺 e5d4641 tree；live host 被 session proxy 擋（403），未直接 probe）
 - [2026-10-12_deploy_v150.md](deploys/2026-10-12_deploy_v150.md) — v1.5.0 主頁計劃卡今日進度環 deploy（PR #103，`a191835`；Pages run 38277273934 success；smoke 12/12 + plan-day PASS 喺 a191835 tree；live host 被 session proxy 擋（403），未直接 probe）
 
 ## Tickets
