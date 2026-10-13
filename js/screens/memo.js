@@ -2,7 +2,7 @@
 // MEMO SCREEN — memory-note study (v1.6.0, memo mockup v2 (deleted at release; design: .proj-docs/design-baselines/2026-10-12_memo-*.png)): Study tab 5 lists the groups
 // (js/domain/memo.js); a group opens #screenMemo: ① look (the memory hook + the memory note) → ② test (a side session on
 // the quiz screen, js/screens/sideSession.js) → result (score, new level, next review) on the same screen.
-// v2.2.0 layout (desktop + phone): Design Origin mockup: mockups/v2.0.0/desktop-memo.html (rev 6), decision log
+// v2.3.0 layout (desktop + phone): Design Origin mockup: mockups/v2.0.0/desktop-memo.html (rev 6), decision log
 // .proj-docs/plans/2026-10-13_grill_desktop-memo.md
 // ════════════════════════════════════════
 const MEMO_STEP = { look: 'look', result: 'result' };
@@ -25,9 +25,11 @@ function memoChapterChipsHtml() {
     + chapters.join('');
 }
 const memoInChapter = g => study.memoChapter === ALL_FILTER || g.ch === study.memoChapter;
+// v2.2.0: the search reads both languages (like the Study search), whatever the UI language
 function memoMatches(g) {
   if (!study.search) return true;
-  return [g.title, g.body || '', g.hook].join(MEMO_SEARCH_SEP).toLowerCase().includes(study.search);
+  const english = g.body && typeof NOTES_EN !== 'undefined' ? NOTES_EN[g.body] : '';
+  return [g.title, g.body || '', g.hook, g.titleEn || '', english || '', g.hookEn || ''].join(MEMO_SEARCH_SEP).toLowerCase().includes(study.search);
 }
 function memoBadgeText(rec, status, today) {
   const params = rec ? { lv: rec.lv, n: memoDaysUntil(rec, today) } : {};
@@ -40,9 +42,9 @@ function memoMetaText(g) {
 }
 function memoCardHtml(g, progress, today) {
   const rec = memoRecord(progress, g.id), status = memoStatus(rec, today);
-  const width = percent(rec ? rec.lv : 0, MEMO_MAX_LV);
+  const width = percent(rec ? rec.lv : 0, MEMO_MAX_LV), local = memoLocal(g);
   return `<button class="memo-card ${status}" type="button" data-action="openMemoGroup" data-arg="${escapeHtml(g.id)}">
-      <span class="memo-card-row"><span class="memo-name" lang="zh-HK">${escapeHtml(g.icon + ' ' + g.title)}</span>
+      <span class="memo-card-row"><span class="memo-name" lang="${local.lang}">${escapeHtml(g.icon + ' ' + local.title)}</span>
         <span class="memo-badge ${status}">${escapeHtml(memoBadgeText(rec, status, today))}</span></span>
       <span class="memo-meta">${escapeHtml(memoMetaText(g))}</span>
       <span class="memo-bar" aria-hidden="true"><i style="width:${width}%"></i></span>
@@ -52,9 +54,9 @@ function memoCardHtml(g, progress, today) {
 const MEMO_DUE_TITLES_SHOWN = 3;
 function memoDueBannerHtml(due) {
   if (!due.length) return '';
-  const titles = due.slice(0, MEMO_DUE_TITLES_SHOWN).map(g => g.title).join(LIST_SEP);
+  const titles = due.slice(0, MEMO_DUE_TITLES_SHOWN).map(g => memoLocal(g).title).join(LIST_SEP);
   return `<div class="memo-due">
-      <div class="memo-due-text"><b>${escapeHtml(t('memo.dueTitle', { n: due.length }))}</b><small lang="zh-HK">${escapeHtml(titles)}</small></div>
+      <div class="memo-due-text"><b>${escapeHtml(t('memo.dueTitle', { n: due.length }))}</b><small lang="${memoLocal(due[0]).lang}">${escapeHtml(titles)}</small></div>
       ${iconButtonHtml('memo-due-start', ` data-action="openMemoGroup" data-arg="${escapeHtml(due[0].id)}"`, escapeHtml(t('memo.start')), MEMO_GO_ICONS)}
     </div>`;
 }
@@ -63,7 +65,7 @@ function renderStudyMemo() {
   // count = shown / the chapter's groups (like the chapters tab); the search narrows inside the chapter
   const pool = memoSortedGroups(memoGroups(), progress, today).filter(memoInChapter);
   const shown = pool.filter(memoMatches);
-  // v1.6.1 (user): the cards sit in .memo-grid (DOM order = row by row, so Tab runs row-wise). v2.2.0 (mockup
+  // v1.6.1 (user): the cards sit in .memo-grid (DOM order = row by row, so Tab runs row-wise). v2.3.0 (mockup
   // desktop-memo.html rev 4): the due banner is the list's lead, above the cards (js/screens/study.js #studyLead):
   // desktop, outside the card panel's scroll; phone, it sticks under the pinned tabs (css/screens/memo.css)
   const lead = memoDueBannerHtml(memoDueGroups(progress, today));
@@ -96,15 +98,16 @@ function memoLook() {
   Object.assign(memoView, { step: MEMO_STEP.look, result: null });
   showMemo();
 }
-// v2.2.0: the body is drawn for the layout it shows in (desktop columns or the phone's one column); a resize across
+// v2.3.0: the body is drawn for the layout it shows in (desktop columns or the phone's one column); a resize across
 // 1024px draws it again (fitMemo). An open questions fold stays open when the same view is drawn again
 let memoDrawn = { desktop: null, view: null };
 function renderMemo() {
-  const g = memoGroupById(memoView.id);
+  const g = memoGroupById(memoView.id), local = memoLocal(g), title = byId('memoTitle');
   const desktop = deskOn(), view = memoView.id + ':' + memoView.step;
   const keepOpen = memoDrawn.view === view && !!document.querySelector('#memoBody details.memo-questions[open]');
   memoArrangeTop();
-  byId('memoTitle').textContent = g.icon + ' ' + g.title;
+  title.textContent = g.icon + ' ' + local.title; // v2.2.0 (main): the English title in the English UI
+  title.lang = local.lang;
   byId('memoSteps').innerHTML = memoStepsHtml(g);
   byId('screenMemo').dataset.memoStep = memoView.step;
   byId('memoBody').innerHTML = memoView.step === MEMO_STEP.result ? memoResultHtml(g, memoView.result, desktop) : memoLookHtml(g, desktop);
@@ -146,10 +149,10 @@ function memoStepsHtml(g) {
   return `<div class="memo-step ${done ? 'ok' : 'on'}">${escapeHtml(look)}</div><div class="memo-step${done ? ' ok' : ''}">${escapeHtml(test)}</div>`;
 }
 
-// one screen high (desktop and, v2.2.0, phone; css/screens/memo.css): long content scrolls in its panel (.fit-panel)
+// one screen high (desktop and, v2.3.0, phone; css/screens/memo.css): long content scrolls in its panel (.fit-panel)
 // with fades (.fit-fade, js/components/fit.js), so the buttons under it stay on the screen
 function memoScrollHtml(panel) { return `<div class="memo-scroll fit-fade">${panel}</div>`; }
-// one screen high from 1024px (css/components/fit.css .screen.is-fit) and, v2.2.0, on a phone too (.is-fit-phone:
+// one screen high from 1024px (css/components/fit.css .screen.is-fit) and, v2.3.0, on a phone too (.is-fit-phone:
 // the hook and buttons stay put, the panel between them scrolls); a cached older index.html has no #screenMemo
 function memoMarkFit() {
   const screen = byId('screenMemo');
@@ -157,7 +160,7 @@ function memoMarkFit() {
 }
 memoMarkFit();
 
-// ── a question's pill row (v2.2.0, mockup desktop-memo.html rev 3 pillsHtml): ".tag #n" · ".tag <icon> Ch c" ·
+// ── a question's pill row (v2.3.0, mockup desktop-memo.html rev 3 pillsHtml): ".tag #n" · ".tag <icon> Ch c" ·
 // the question's node (js/components/tags.js: copies joined COPY_SEP, mastery colours), the app's own pills. Used by
 // the group's questions, the result's wrong questions and the single-note group. S-057: English in every language ──
 const MEMO_ITEM_MARK = '#';
@@ -177,29 +180,36 @@ function memoQuestionListHtml(items, extraCls = '') {
   return `<ul class="memo-qlist${extraCls}">${items.map((it, i) => memoQuestionItemHtml(it, i + 1)).join('')}</ul>`;
 }
 
-// ── ① look (v2.2.0, Design Origin: mockup: mockups/v2.0.0/desktop-memo.html rev 6) ──
+// ── ① look (v2.3.0, Design Origin: mockup: mockups/v2.0.0/desktop-memo.html rev 6) ──
 // desktop: the top row, then left 7/12 = the hook (fixed) + the memory note panel, right 5/12 = the group's questions
 // panel, both as high as the screen allows (scrolling, fading); "start the test" under the right column. The single-note
 // group: one white card, centred (Plan Run's 760 × scale), its button under the card's right edge.
 // phone: hook, then the note with the group's questions folded under it (<details>, closed), then the button
 // "💡 Memory hook:" on its own line, the hook under it (css: .memo-hook b is a block)
 function memoHookHtml(g) {
-  if (!g.hook) return '';
-  return `<div class="memo-hook"><b>${escapeHtml(t('memo.hookLabel'))}</b> <span lang="zh-HK">${escapeHtml(g.hook)}</span></div>`;
+  const local = memoLocal(g);
+  if (!local.hook) return '';
+  return `<div class="memo-hook"><b>${escapeHtml(t('memo.hookLabel'))}</b> <span lang="${local.lang}">${escapeHtml(local.hook)}</span></div>`;
 }
-// the memory note without its heading line (the screen title already names the group), like the Study fact card
-function memoNoteBodyHtml(g) { return noteHtml(g.body.split('\n').slice(1).join('\n')); }
+// the memory note without its heading line (the screen title already names the group), like the Study fact card;
+// main v2.2.0: in the UI language (localNote: the English note in the English UI). { html, lang }
+function memoNoteBody(g) {
+  const note = localNote(g.body);
+  return { html: noteHtml(note.text.split('\n').slice(1).join('\n'), note.lang), lang: note.lang };
+}
 // the group's questions: each distinct question (G40) with its pill row, English and Cantonese; no answers (P1)
 function memoGroupQuestions(g) {
   return questionGroups(g.qkeys).map(keys => { const q = questionByKey(keys[0]).q; return { q: q.q, yue: q.yue || '', keys }; });
 }
 function memoQuestionsTitle(g) { return escapeHtml(t('memo.questions', { n: questionGroups(g.qkeys).length })); }
-// the single-note group (design C): each distinct question = pill row → question → common.noteLabel + its own note
+// the single-note group (design C): each distinct question = pill row → question → common.noteLabel + its own note (in
+// the UI language, localNote; the label is a UI string, so it carries the UI's language)
 function memoSingleItemsHtml(g) {
+  const label = `<div class="memo-note-label" lang="${getLang()}">${escapeHtml(t('common.noteLabel'))}</div>`;
   return questionGroups(g.qkeys).map((keys, i) => {
-    const q = questionByKey(keys[0]).q;
+    const q = questionByKey(keys[0]).q, note = localNote(q.note);
     return `<div class="memo-single-item">${memoPillsHtml(keys, i + 1)}<div class="memo-single-q" lang="en">${escapeHtml(q.q)}</div>`
-      + `<div class="memo-single-note" lang="zh-HK"><div class="memo-note-label">${escapeHtml(t('common.noteLabel'))}</div>${noteHtml(q.note)}</div></div>`;
+      + `<div class="memo-single-note" lang="${note.lang}">${label}${noteHtml(note.text, note.lang)}</div></div>`;
   }).join('');
 }
 const memoStartHtml = () => iconButtonHtml('nav-btn memo-start', ' data-action="startMemoTest"', escapeHtml(t('memo.startTest')), MEMO_GO_ICONS);
@@ -210,15 +220,17 @@ function memoLookDeskHtml(g) {
     return `<div class="memo-cols memo-look-cols is-single"><div class="memo-col">${memoHookHtml(g)}${memoScrollHtml(card)}</div></div>`
       + `<div class="memo-foot is-single">${memoStartHtml()}</div>`;
   }
-  const note = `<div class="memo-scroll memo-note-scroll fit-fade"><div class="memo-panel memo-note fit-panel" lang="zh-HK">${memoNoteBodyHtml(g)}</div></div>`;
+  const body = memoNoteBody(g);
+  const note = `<div class="memo-scroll memo-note-scroll fit-fade"><div class="memo-panel memo-note fit-panel" lang="${body.lang}">${body.html}</div></div>`;
   const questions = memoScrollHtml(`<div class="memo-panel memo-questions fit-panel"><p class="memo-questions-title">${memoQuestionsTitle(g)}</p>`
     + `${memoQuestionListHtml(memoGroupQuestions(g))}</div>`);
   return `<div class="memo-cols memo-look-cols"><div class="memo-col">${memoHookHtml(g)}${note}</div><div class="memo-col">${questions}</div></div>`
     + `<div class="memo-foot">${memoStartHtml()}</div>`;
 }
 function memoLookPhoneHtml(g) {
-  const content = g.body
-    ? `<div class="memo-panel memo-note" lang="zh-HK">${memoNoteBodyHtml(g)}</div>`
+  const body = g.body ? memoNoteBody(g) : null;
+  const content = body
+    ? `<div class="memo-panel memo-note" lang="${body.lang}">${body.html}</div>`
       + `<details class="memo-panel memo-questions"><summary class="memo-questions-title">${memoQuestionsTitle(g)}</summary>${memoQuestionListHtml(memoGroupQuestions(g))}</details>`
     : `<div class="memo-panel memo-single">${memoSingleItemsHtml(g)}</div>`;
   return memoHookHtml(g) + `<div class="memo-scroll fit-fade"><div class="memo-scroll-panel fit-panel">${content}</div></div>` + memoStartHtml();
@@ -261,7 +273,7 @@ function finishMemoTest(ret) {
   showMemo();
 }
 
-// v2.2.0: a wrong question's copies in its group (for its pill row: "E1·Q8 = E11·Q9"); the asked copy at least
+// v2.3.0: a wrong question's copies in its group (for its pill row: "E1·Q8 = E11·Q9"); the asked copy at least
 function memoCopyKeys(id, q) {
   const g = memoGroupById(id), k = qKey(q);
   const copies = g ? questionGroups(g.qkeys).find(keys => keys.includes(k)) : null;
@@ -289,7 +301,7 @@ function memoScheduleHtml(r) {
     return `<div class="memo-lv${cls}"><b>${escapeHtml(t('memo.lv', { lv: level }))}</b>${escapeHtml(wait)}</div>`;
   }).join('');
 }
-// a result kept from before v2.2.0 has no keys: its questions are listed without pills
+// a result kept from before v2.3.0 has no keys: its questions are listed without pills
 function memoWrongHtml(wrong) {
   if (!wrong.length) return '';
   return `<p class="memo-wrong-title">${escapeHtml(t('memo.wrongTitle'))}</p>${memoQuestionListHtml(wrong, ' memo-wrong')}`;
@@ -300,26 +312,27 @@ function memoNextGroup(id) {
   const todo = [MEMO_STATUS.due, MEMO_STATUS.new];
   return memoSortedGroups(memoGroups(), progress, today).find(g => g.id !== id && todo.includes(memoStatus(memoRecord(progress, g.id), today)));
 }
-// a UI label holding a group title: the title (Cantonese data) in a lang="zh-HK" span, the rest escaped
-function memoLabelHtml(label, title) {
+// a UI label holding a group title: the title (Cantonese data; v2.2.0: English in the English UI) in a span marked
+// with its language, the rest escaped
+function memoLabelHtml(label, title, lang) {
   const at = label.indexOf(title);
   if (at < 0) return escapeHtml(label);
-  return escapeHtml(label.slice(0, at)) + `<span lang="zh-HK">${escapeHtml(title)}</span>` + escapeHtml(label.slice(at + title.length));
+  return escapeHtml(label.slice(0, at)) + `<span lang="${lang}">${escapeHtml(title)}</span>` + escapeHtml(label.slice(at + title.length));
 }
 function memoResultActionsHtml(g, withNext) {
-  const next = withNext ? memoNextGroup(g.id) : null;
+  const next = withNext ? memoNextGroup(g.id) : null, local = next && memoLocal(next);
   const nextBtn = next ? iconButtonHtml('nav-btn memo-next', ` data-action="openMemoGroup" data-arg="${escapeHtml(next.id)}"`,
-    memoLabelHtml(t('memo.next', { title: next.title }), next.title), MEMO_GO_ICONS) : '';
+    memoLabelHtml(t('memo.next', { title: local.title }), local.title, local.lang), MEMO_GO_ICONS) : '';
   return `<div class="memo-actions"><button class="nav-btn secondary memo-again" type="button" data-action="memoLook">${escapeHtml(t('memo.again'))}</button>${nextBtn}</div>`;
 }
-// v2.2.0 (decision log Q3): with nothing wrong (or nothing answered) the result shows the memory aid once more: the
+// v2.3.0 (decision log Q3): with nothing wrong (or nothing answered) the result shows the memory aid once more: the
 // hook; a group without one shows its memory note, the single-note group its questions' notes. All correct says so
 // first (memo.hookAgain / memo.noteAgain); nothing answered shows the aid alone
 function memoReminderHtml(g, withWords) {
-  const againKey = g.hook ? 'memo.hookAgain' : 'memo.noteAgain';
+  const againKey = memoLocal(g).hook ? 'memo.hookAgain' : 'memo.noteAgain';
   const words = withWords ? `<p class="memo-again-text">${escapeHtml(t(againKey))}</p>` : '';
-  if (g.hook) return words + memoHookHtml(g);
-  if (g.body) return words + `<div class="memo-note" lang="zh-HK">${memoNoteBodyHtml(g)}</div>`;
+  if (memoLocal(g).hook) return words + memoHookHtml(g);
+  if (g.body) { const body = memoNoteBody(g); return words + `<div class="memo-note" lang="${body.lang}">${body.html}</div>`; }
   return words + `<div class="memo-single">${memoSingleItemsHtml(g)}</div>`;
 }
 function memoScoreHtml(r) {

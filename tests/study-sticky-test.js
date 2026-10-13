@@ -157,7 +157,7 @@ async function timelineChecks(pg) {
   assert(res.pos === 'static' && res.inBlock, 'timeline era bar scrolls under the pinned block (not sticky, not on top)');
 }
 
-// memo: v2.2.0 (mockup desktop-memo.html rev 4 / rev 5, user 2026-10-13: 「今日要溫」固定唔郁, superseding v1.6.1's banner
+// memo: v2.3.0 (mockup desktop-memo.html rev 4 / rev 5, user 2026-10-13: 「今日要溫」固定唔郁, superseding v1.6.1's banner
 // as a list row) the "due today" banner stays on screen: it sticks right under the pinned block
 async function memoChecks(pg) {
   await pg.evaluate(id => {
@@ -450,7 +450,7 @@ async function widthChecks(browser) {
 // v2.0.4 merge: the v1.6.1 block in main's v2.0.0 desktop Study (rail + card panel), then back to a phone width
 const DESKTOP_VIEWPORTS = [{ width: 1024, height: 768 }, { width: 1280, height: 800 }];
 const DESKTOP_CASES = [['en', 'large'], ['zh-HK', 'small']];
-const MEMO_DESKTOP_COLS = { narrow: 3, wide: 4, wideFrom: 1280 }; // v2.2.0 (mockup desktop-memo.html rev 2): 4 from 1280px
+const MEMO_DESKTOP_COLS = { narrow: 3, wide: 4, wideFrom: 1280 }; // v2.3.0 (mockup desktop-memo.html rev 2): 4 from 1280px
 async function desktopChecks(browser) {
   for (const vp of DESKTOP_VIEWPORTS) for (const [lang, size] of DESKTOP_CASES) {
     const label = `desktop ${vp.width}x${vp.height} ${lang} ${size}`;

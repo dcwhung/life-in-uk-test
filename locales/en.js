@@ -86,10 +86,12 @@ LOCALES.en = {
   quiz: {
     questionOf: 'Question {n} of {total}',
     questionOfShort: 'Question {n}/{total}', // C3 (v1.3.0): only where questionOf would wrap
+    questionOfTiny: 'Q {n}/{total}', // v2.0.5 C3: only where questionOfShort would wrap too
     allShuffled: 'All Questions (shuffled)',
     answerTab: 'Answer', // v2.0.0 desktop: the right column's tab beside Similar Questions (F5)
     translate: 'Translate',
-    hideTranslation: 'Hide translation',
+    hideTranslation: 'Hide translation', // the pressed button's accessible name and tooltip
+    hideShort: 'Hide', // v2.0.5 C3: the pressed button's visible words, short so the question row keeps one line
     previous: 'Previous',
     // v1.6.1: the bottom button's words and the quick button's name (the icons are line icons, no glyph in the words)
     next: 'Next',
@@ -171,7 +173,7 @@ LOCALES.en = {
     bookmark: 'Bookmark',
     mastered: 'Mastered',
     masteredDerived: '🏆 Mastered — every source question mastered',
-    memoryAid: '💡 記憶法', // the memory notes are in Cantonese, like common.noteLabel
+    memoryAid: '💡 Memory aid', // v2.2.0: the English UI shows the English memory notes (data/notesEn.js)
     progress: '🏆 {n} / {total}', // v1.2.0 (Q11): the words are the pill's tooltip / label
     progressLabel: '{n} of {total} facts mastered',
     // the fact's number within its chapter (chapterFactNumber); no UI text shows the global fact id (W-016)
@@ -210,7 +212,7 @@ LOCALES.en = {
     lv: 'Lv{lv}',
     days: { one: '{n} day', other: '{n} days' },
     wrongTitle: 'Look at these again:',
-    // v2.2.0 (decision log Q3): the result with nothing wrong shows the hook again; a group without a hook shows its
+    // v2.3.0 (decision log Q3): the result with nothing wrong shows the hook again; a group without a hook shows its
     // memory note (the single-note group: its notes)
     hookAgain: 'All correct 🎉 The memory hook once more:',
     noteAgain: 'All correct 🎉 The notes once more:',
@@ -273,7 +275,7 @@ LOCALES.en = {
     difficultyTitle: 'Difficulty {d}/{max}',
     // Cantonese section labels stay in Chinese in en (whitelisted in tests/i18n-test.js)
     yueTitle: '【廣東話翻譯】',
-    noteLabel: '💡 備註：',
+    noteLabel: '💡 Note:', // v2.2.0: the English UI shows the English notes (data/notesEn.js)
   },
 
   plan: {

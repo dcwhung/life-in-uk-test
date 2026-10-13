@@ -9,7 +9,7 @@
    - .fit-fade            wraps one .fit-panel: top / bottom fades while content is out of view (js sets can-up /
                           can-down on it, mockup afterRender()). Per panel: --fit-fade-color (the surface under the
                           panel: --bg by default, --card inside a card), --fit-fade-h, --fit-panel-gutter (scrollbar room)
-   v2.2.0 phone (< 1024px; mockup mockups/v2.0.0/desktop-memo.html rev 4–6): a screen opts in with .is-fit-phone (memo,
+   v2.3.0 phone (< 1024px; mockup mockups/v2.0.0/desktop-memo.html rev 4–6): a screen opts in with .is-fit-phone (memo,
    quiz): one screen high under the header, its .fit-panel / .fit-fade work as on the desktop (fades in --bg, no
    scrollbar gutter: phone scrollbars float). Only on a screen at least --fit-phone-min-h high (the literal 500px in the
    media query below): a landscape phone keeps its scrolling page, as the fixed parts would leave no room
@@ -52,7 +52,7 @@
   .fit-fade::before, .fit-fade::after { transition: none; }
 }
 
-/* v2.2.0 phone one-screen screens (.is-fit-phone; js/screens/memo.js, js/screens/quiz.js). Min height 500px =
+/* v2.3.0 phone one-screen screens (.is-fit-phone; js/screens/memo.js, js/screens/quiz.js). Min height 500px =
    --fit-phone-min-h (media queries cannot read custom properties) */
 @media (max-width: 1023px) and (min-height: 500px) {
   main:has(> .screen.is-fit-phone.active) { padding-bottom: var(--fit-phone-pad-bottom); }

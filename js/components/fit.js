@@ -4,7 +4,7 @@
 // - isDesktop(): the desktop layout is on (DESKTOP_QUERY, the same breakpoint as the css)
 // - fitSteps(el, steps): adds step classes one at a time until el's content fits (scrollHeight <= clientHeight + 1)
 // - watchFade(panel) / refreshFades(): can-up / can-down on a .fit-panel's .fit-fade wrapper
-// - fitPhoneScreen(screen, panel) (v2.2.0, C-007): a phone screen one screen high only while its panel keeps room
+// - fitPhoneScreen(screen, panel) (v2.3.0, C-007): a phone screen one screen high only while its panel keeps room
 // - onRefit(fn, screenId?) / runRefits(): one registry of fits, re-run at the end of a render (the screen calls
 //   runRefits()), on resize (once per frame), and after a language, text size or translation change (i18n.js
 //   rerenderCurrentScreen). Every run ends with refreshFades(), so a panel's fades follow its new content
@@ -57,7 +57,7 @@ function watchFade(panel) {
 }
 function refreshFades(root = document) { root.querySelectorAll(FADE_PANEL_SELECTOR).forEach(watchFade); }
 
-// ── v2.2.0 phone one-screen screens (.is-fit-phone, css/components/fit.css; C-007) ──
+// ── v2.3.0 phone one-screen screens (.is-fit-phone, css/components/fit.css; C-007) ──
 // A screen opts in with fitPhoneScreen(screen, panel) at the end of every render and refit: it tries one screen high,
 // and when the parts fixed above / below leave the panel less than --fit-phone-min-panel (about two option rows, from
 // the text size) it falls back to the scrolling page (no .is-fit-phone), so nothing is ever squeezed out of reach.

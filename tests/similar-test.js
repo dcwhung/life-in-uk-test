@@ -94,7 +94,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   // CUI-0007: the button label is a plural — one similar question reads "this one", not "these 1"
   assert(await pg.evaluate(() => t('similar.practise', { n: 1 })) === 'Practise this one', 'practise plural one: Practise this one');
   assert(await pg.evaluate(() => t('similar.practise', { n: 3 })) === 'Practise these 3', 'practise plural other: Practise these 3');
-  // v2.2.0 (mockup desktop-memo.html rev 5, every quiz on a phone): the similar section scrolls in the panel after the
+  // v2.3.0 (mockup desktop-memo.html rev 5, every quiz on a phone): the similar section scrolls in the panel after the
   // question card; Prev / Next stay at the bottom, under it
   assert(await pg.evaluate(() => {
     const nav = document.querySelector('#screenQuiz .nav-row'), box = document.getElementById('similarBox');
@@ -139,7 +139,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.click('#similarBox .sqm-cta button');
   assert(await pg.evaluate(() => state.questions.map(qKey).join(',') === '9.14,12.18'), 'temporary session holds only the similar questions');
   assert((await text('#quizLabel')) === 'Similar Questions', 'session label');
-  assert((await text('#qNum')).startsWith('Question 1 of 2'), 'progress counts the similar questions');
+  assert((await pg.$eval('#qNum > span', e => e.dataset.full)) === 'Question 1 of 2', 'progress counts the similar questions');
   await answer(false);
   assert(!(await vis('#similarBox')), 'no nested similar section inside the temporary session');
   assert(await pg.evaluate(() => state.questions.length === 2), 'wrong answer is not re-queued (each question once)');

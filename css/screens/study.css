@@ -171,7 +171,7 @@ html:has(#screenStudy.active .study-top :focus-visible) { scroll-padding-top: va
   /* CUI-0036: ↩ Back from a fact session (flashStudyFact, block: start) puts the card's top below the panel's top fade */
   #screenStudy .study-main .fact { scroll-margin-top: var(--fit-fade-h); }
   #screenStudy .study-main { display: flex; --fit-fade-h: calc(40px * var(--desktop-scale)); } /* mockup .right fades */
-  /* v2.2.0 (mockup desktop-memo.html rev 4): the right column = the tab's lead (the memo banner) above the card panel;
+  /* v2.3.0 (mockup desktop-memo.html rev 4): the right column = the tab's lead (the memo banner) above the card panel;
      only the panel scrolls */
   #screenStudy .study-body { display: flex; flex-direction: column; gap: var(--space-5); min-height: 0; }
   #screenStudy .study-lead { display: block; flex: none; }

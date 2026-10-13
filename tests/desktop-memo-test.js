@@ -1,5 +1,5 @@
 // v2.0.0 desktop layout — the memory-note group screen #screenMemo (v1.6.0, js/screens/memo.js), merged into v2.0.0.
-// v2.2.0 Design Origin: mockup: mockups/v2.0.0/desktop-memo.html (rev 6); decision log
+// v2.3.0 Design Origin: mockup: mockups/v2.0.0/desktop-memo.html (rev 6); decision log
 // .proj-docs/plans/2026-10-13_grill_desktop-memo.md:
 // - ≥ 1024px: one screen high; a top row (‹ Memory + group title | ① Look / ② Test), both halves
 // - ① look: left 7/12 = the hook (fixed, its label on its own line) + the memory note panel; right 5/12 = the group's

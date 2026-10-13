@@ -161,7 +161,7 @@ async function checkBreakpoint(b) {
   await page.close();
 }
 
-// v2.2.0 memo tab (mockup desktop-memo.html rev 6): cards in 3 columns below 1280px, 4 from 1280px; badge top right,
+// v2.3.0 memo tab (mockup desktop-memo.html rev 6): cards in 3 columns below 1280px, 4 from 1280px; badge top right,
 // bar at the foot, a row's cards equally high; the "due today" banner above the card panel (not in it), so it stays put
 // while the cards scroll. Seeded with groups due today so the banner shows
 const MEMO_LS = 'lifeuk.memoProgress';

@@ -211,7 +211,7 @@ function ensureStudyLayout() {
   const content = byId('studyContent');
   const rail = wrapStudyEl('study-rail', studyRailEls());
   content.classList.add('fit-panel');
-  // v2.2.0: a tab's lead (the memo tab's "due today" banner) sits above the card panel, outside its scroll
+  // v2.3.0: a tab's lead (the memo tab's "due today" banner) sits above the card panel, outside its scroll
   const lead = wrapStudyEl('study-lead', []);
   lead.id = 'studyLead';
   lead.hidden = true;

@@ -1,4 +1,4 @@
-// v2.2.0 Quiz on a phone (390 × 844; mockup mockups/v2.0.0/desktop-memo.html rev 5 / rev 6 placeQuizPhone, decision log
+// v2.3.0 Quiz on a phone (390 × 844; mockup mockups/v2.0.0/desktop-memo.html rev 5 / rev 6 placeQuizPhone, decision log
 // .proj-docs/plans/2026-10-13_grill_desktop-memo.md P6: every quiz, not only the memo test):
 // - #screenQuiz is one screen high, the page never scrolls (no sideways scroll either)
 // - the quiz header on top and the question card (dots, number, question, translation) stay put; everything after the
@@ -166,7 +166,7 @@ async function checkShortPhones(b) {
     await page.close();
   }
 }
-// the fallback itself: no room → the page scrolls as before v2.2.0 (the card, options and Prev / Next in the page flow);
+// the fallback itself: no room → the page scrolls as before v2.3.0 (the card, options and Prev / Next in the page flow);
 // a roomy screen again → one screen high again (re-checked on resize); a landscape phone (< 500px high) never goes one-screen
 async function checkFallback(b) {
   const { page, errors } = await dt.openDesktop(b, { viewport: TIGHT, lang: 'zh-HK', fontSize: 'large', translation: true });

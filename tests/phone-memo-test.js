@@ -1,4 +1,4 @@
-// v2.2.0 memory-note screens on a phone (390 × 844; mockup mockups/v2.0.0/desktop-memo.html rev 6, decision log
+// v2.3.0 memory-note screens on a phone (390 × 844; mockup mockups/v2.0.0/desktop-memo.html rev 6, decision log
 // .proj-docs/plans/2026-10-13_grill_desktop-memo.md):
 // - pill row per question (shared with the desktop): ".tag #n" · ".tag <icon> Ch c" (lang en) · ".sqm-node" E·Q (copies
 //   joined " = ", mastery colours); in the group's questions, the result's wrong questions and the single-note group
@@ -118,7 +118,7 @@ async function checkPhoneResult(b) {
     const r = await page.evaluate(() => ({ text: (document.querySelector('#memoBody .memo-again-text') || {}).textContent,
       hook: !!document.querySelector('#memoBody .memo-hook'), note: !!document.querySelector('#memoBody .memo-note'),
       pct: !!document.querySelector('#memoBody .memo-pct') }));
-    const words = pick === 'hook' ? '全部答啱 🎉 記憶鈎再睇多次：' : await page.evaluate(() => t('memo.noteAgain'));
+    const words = pick === 'hook' ? '全部答對 🎉 再看一次記憶鈎：' : await page.evaluate(() => t('memo.noteAgain'));
     assert(r.pct && r.text === words && (pick === 'hook' ? r.hook : r.note), `phone result all correct (${id}): "${r.text}" + the ${pick === 'hook' ? 'hook' : 'memory note'}`);
   }
   assert(errors.length === 0, 'phone result: no page errors ' + errors.join(' | '));
@@ -145,7 +145,7 @@ async function checkPhoneList(b) {
     await page.evaluate(y => window.scrollTo(0, y), PHONE_SCROLL);
     await dt.nextFrame(page);
     const after = await dt.memoListLayout(page);
-    // v2.2.0 merge: Study's tabs + chip rows are pinned under the header (v1.6.1 .study-top); the banner sticks right
+    // v2.3.0 merge: Study's tabs + chip rows are pinned under the header (v1.6.1 .study-top); the banner sticks right
     // under that block, whose --bg bottom margin is the gap
     const gap = await page.evaluate(() => ({ scrollY: window.scrollY, block: document.querySelector('#screenStudy .study-top').getBoundingClientRect().bottom }));
     assert(gap.scrollY > 0 && Math.abs(after.due.top - gap.block) <= 1 && gap.block > after.header.bottom,

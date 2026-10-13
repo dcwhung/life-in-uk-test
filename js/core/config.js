@@ -2,7 +2,7 @@
 // CONFIG — app-wide constants. sw.js loads this file with importScripts() to name its cache,
 // so it must stay worker-safe: plain constants only, no DOM and no question data.
 // ════════════════════════════════════════
-const APP_VERSION = '2.2.0';
+const APP_VERSION = '2.3.0';
 
 // ── modes and special set ids (state.examNum is 1..EXAM_COUNT or one of these) ──
 const PRACTICE_MODE = 'practice';
@@ -58,7 +58,8 @@ const STUDY_PLAN_READY = true;
 const INSTALL_TOUCH_QUERY = '(pointer: coarse)';
 
 // ── i18n (js/core/i18n.js; strings in locales/*.js) ──
-const DEFAULT_LANG = 'en';   // also the fallback for keys a language lacks
+const EN_LANG = 'en';        // v2.2.0: English, also the language of the translated notes (data/notesEn.js)
+const DEFAULT_LANG = EN_LANG; // also the fallback for keys a language lacks
 const ZH_HK_LANG = 'zh-HK';  // v0.65: the other UI language (header pill toggles between the two)
 // v1.4.2: the first-run UI language (nothing stored, or a stored language with no locale); DEFAULT_LANG stays the
 // fallback for missing keys

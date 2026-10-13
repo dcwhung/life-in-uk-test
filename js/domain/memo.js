@@ -52,6 +52,11 @@ function memoGroups() {
   return memoGroupCache;
 }
 function memoGroupById(id) { return memoGroups().find(g => g.id === id); }
+// v2.2.0: a group's title / hook in the UI language (titleEn / hookEn, data/memo.js, in the English UI) and their lang
+function memoLocal(g) {
+  if (getLang() === EN_LANG && g.titleEn) return { title: g.titleEn, hook: g.hookEn || '', lang: EN_LANG };
+  return { title: g.title, hook: g.hook, lang: ZH_HK_LANG };
+}
 
 // ── progress: { [group id]: { lv: 0..MEMO_MAX_LV, due: 'YYYY-MM-DD' } } ──
 // stored data can be stale or hand-edited (like studyLoad, CUI-0003): unknown ids and bad records are dropped
