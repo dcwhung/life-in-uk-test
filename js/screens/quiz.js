@@ -535,13 +535,15 @@ function arrangeQuizPhone(desktop) {
 // scrolls instead, as before v2.2.0). W-082 (user 2026-10-13, option A): decided once per quiz session, so the layout
 // (and Prev / Next with it) does not flip from question to question: once a render falls back, the session keeps the
 // scrolling page. The session is its question list (state.questions: a new set, round or side session has its own;
-// ↩ Back to a session finds its decision again). A new screen size, text size, translation setting or language is a
-// new start: the latch is kept with that context and decided afresh when it differs
+// ↩ Back to a session finds its decision again). A new screen width (rotation, a resized window), text size,
+// translation setting or language is a new start: the latch is kept with that context and decided afresh when it
+// differs. S-268: the height is left out — a phone browser's toolbar folding away while the page scrolls changes only
+// innerHeight, and that must not re-decide mid-session
 const QUIZ_PHONE_FIT_CLASS = 'is-fit-phone';
 const quizPhoneFallbacks = new WeakMap(); // state.questions → the layout context it fell back in
 function quizPhoneContext() {
   const root = document.documentElement;
-  return [innerWidth, innerHeight, root.lang, root.dataset.fontSize || '', root.dataset.translation || ''].join('|');
+  return [innerWidth, root.lang, root.dataset.fontSize || '', root.dataset.translation || ''].join('|');
 }
 function fitQuizPhone() {
   if (typeof fitPhoneScreen !== 'function') return; // W-057: a cached shell may load js/components/fit.js late
