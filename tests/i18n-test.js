@@ -18,7 +18,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
 const CJK = /[　-〿㐀-鿿豈-﫿＀-￯]/;
 // en keeps the Cantonese section labels in Chinese (user decision, see HANDOFF.md › i18n); the ⚙ language options
 // name themselves in their own language (v1.2.0), so in en 中文 stays Chinese
-const CJK_WHITELIST = ['common.yueTitle', 'common.noteLabel', 'app.langZh', 'study.memoryAid']; // v0.71: labels a Cantonese memory note, like noteLabel
+const CJK_WHITELIST = ['common.yueTitle', 'app.langZh']; // v2.2.0: noteLabel / study.memoryAid are English in en (the notes are, data/notesEn.js)
 // zh-HK copies these from en: meta description and the manifest stay English (plan R-001); <title> follows the language (v1.0.5)
 const SAME_AS_EN_KEYS = ['app.description', 'app.shortName', 'app.installName', 'app.installShortName'];
 const ZH_HK = 'zh-HK';
@@ -36,6 +36,9 @@ const ZH_HK_WRITTEN_SCOPES = ['plan.', 'data.weekdays.', 'data.planLevels.', 'mo
 const ZH_HK_COLLOQUIAL = ['唔', '嘅', '咗', '冇', '嚟', '睇', '喺', '啱', '嗰', '佢', '哋', '咩', '啲', '嘢', '乜', '俾', '畀', '做緊', '幾耐', '係咪', '點樣'];
 // keys no source file reads: manifest.webmanifest mirrors them (static JSON), tests/pwa-test.js compares the two
 const MANIFEST_KEYS = ['app.installName', 'app.installShortName'];
+// v2.3.2 (W-077, S-271): keys the current js no longer reads but an HTTP-cached older planRun.js (main up to v2.3.1) still
+// does for its header back label (W-072 mixed cache: a new locale must not show it a raw key). Values unchanged.
+const CACHED_JS_KEYS = ['plan.run.backToday', 'plan.run.backDayHtml', 'memo.days']; // v2.4.2: memo.days (pre-v2.4.2 memo.js schedule boxes)
 const SECTIONS = ['app', 'home', 'quiz', 'exam', 'result', 'review', 'similar', 'flagged', 'study', 'memo', 'modal', 'common', 'plan', 'data'];
 const KEY_LITERAL = new RegExp(`'((?:${SECTIONS.join('|')})\\.[\\w.]+)'`, 'g');
 const PLURAL_FORMS = ['zero', 'one', 'two', 'few', 'many', 'other'];
@@ -104,7 +107,7 @@ function staticChecks() {
   assert(missing.length === 0, 'every key used in js/ and index.html exists in LOCALES.en' + (missing.length ? ': ' + missing.join(', ') : ''));
   const emptyPrefix = [...dynamics].filter(p => ![...enKeys].some(k => k.startsWith(p)));
   assert(emptyPrefix.length === 0, 'every dynamic prefix has keys in en' + (emptyPrefix.length ? ': ' + emptyPrefix.join(', ') : ''));
-  const unused = [...enKeys].filter(k => !statics.has(k) && !MANIFEST_KEYS.includes(k) && !DYNAMIC_PREFIXES.some(p => k.startsWith(p)));
+  const unused = [...enKeys].filter(k => !statics.has(k) && !MANIFEST_KEYS.includes(k) && !CACHED_JS_KEYS.includes(k) && !DYNAMIC_PREFIXES.some(p => k.startsWith(p)));
   assert(unused.length === 0, 'no unused en keys' + (unused.length ? ': ' + unused.join(', ') : ''));
   const strings = ([, v]) => (typeof v === 'string' ? [v] : Object.values(v));
   const cjkValues = enLeaves.filter(([k, v]) => !CJK_WHITELIST.includes(k) && strings([k, v]).some(s => CJK.test(s)));
@@ -179,7 +182,7 @@ function zhHkChecks() {
   const wrongNote = [['en', enMap], [ZH_HK, zhMap]].flatMap(([l, m]) => [...m]
     .filter(([, v]) => Object.values(formsOf(v)).some(s => s.includes(WRONG_NOTE))).map(([k]) => `${l} ${k}`));
   assert(wrongNote.length === 0, `no locale string contains ${WRONG_NOTE}` + (wrongNote.length ? ': ' + wrongNote.join(', ') : ''));
-  assert(enMap.get('common.noteLabel') === '💡 備註：' && zhMap.get('common.noteLabel') === '💡 備註：', 'noteLabel reads 💡 備註： in both locales');
+  assert(enMap.get('common.noteLabel') === '💡 Note:' && zhMap.get('common.noteLabel') === '💡 備註：', 'noteLabel reads 💡 Note: in en (v2.2.0: English notes), 💡 備註： in zh-HK');
 }
 
 async function runtimeChecks(en) {

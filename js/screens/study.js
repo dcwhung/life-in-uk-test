@@ -26,11 +26,12 @@ const CHIP_FIELD = 'chip';
 const ALL_FILTER = 'all';
 const STUDY_PREF_KEYS = ['tab', 'chapter', 'hideMastered', 'bookmarksOnly', 'warsOnly', 'nation', 'group', 'memoChapter'];
 const MEMO_TAB = 'memo'; // v1.6.0: memory-note groups (js/screens/memo.js)
+const STUDY_DEFAULT_TAB = 'chapters'; // v2.3.0: also where the memo tab falls back when its mode turns off
 const STUDY_MARK_LS = { mastered: STUDY_LS.mastered, bookmarks: STUDY_LS.bookmarks };
 const UNDATED_SORT_YEAR = 9999; // monarchs without a year sort last
 
 const study = {
-  tab: 'chapters',
+  tab: STUDY_DEFAULT_TAB,
   chapter: 1,
   search: '',
   hideMastered: false,
@@ -47,7 +48,9 @@ const study = {
 const hasKey = (obj, k) => Object.prototype.hasOwnProperty.call(obj, k);
 // v1.6.0: the memo tab needs its screen + tab markup and js/screens/memo.js; a cached older index.html (SW cutover)
 // has neither, so a stored 'memo' tab falls back to the default there
-const isStudyTabReady = v => v !== MEMO_TAB || (typeof memoShellReady === 'function' && memoShellReady());
+// v2.3.0: and the memory-note study mode on (⚙; a pre-v2.3.0 store.js has no switch: on)
+const isMemoModeReady = () => typeof isMemoModeOn !== 'function' || isMemoModeOn();
+const isStudyTabReady = v => v !== MEMO_TAB || (typeof memoShellReady === 'function' && memoShellReady() && isMemoModeReady());
 const STUDY_PREF_CHECKS = {
   tab: v => hasKey(STUDY_RENDERERS, v) && isStudyTabReady(v),
   chapter: v => CHAPTERS.includes(v),
@@ -93,7 +96,12 @@ function studySetChapter(ch) { study.chapter = ch; studyRefilter(); }
 function studySetNation(n) { study.nation = n; studyRefilter(); }
 function studySetGroup(g) { study.group = g; studyRefilter(); }
 function studySetMemoChapter(ch) { study.memoChapter = ch; studyRefilter(); }
-function studySetSearch(v) { study.search = v.trim().toLowerCase(); renderNewStudyList(); }
+// CUI-0044 renders a memory hook's token spaces as U+00A0 and puts U+2060 after a range dash: text copied from the hook box
+// and pasted here must still match the data's plain spaces (review_v220-hooks S-271). The query and every haystack read
+// U+00A0 and U+202F (no-break spaces) as a space and drop U+2060; js/screens/memo.js memoMatches uses it too.
+const SEARCH_NO_BREAK_SPACE_RE = /[\u00a0\u202f]/g, SEARCH_WORD_JOINER_RE = /\u2060/g;
+const searchText = s => s.replace(SEARCH_NO_BREAK_SPACE_RE, ' ').replace(SEARCH_WORD_JOINER_RE, '').toLowerCase();
+function studySetSearch(v) { study.search = searchText(v).trim(); renderNewStudyList(); }
 function studyToggle(key) { study[key] = !study[key]; studyRefilter(); }
 // v1.6.1: tapped while the list is scrolled under the pinned block, the new list would open mid-way (or past its end):
 // scroll back so it starts right under the block. At rest (or unpinned, short screens) the list already starts below
@@ -143,7 +151,7 @@ function factMatches(f) {
   if (study.hideMastered && isFactMastered(f)) return false;
   if (study.bookmarksOnly && !study.bookmarks[f.id]) return false;
   if (!study.search) return true;
-  const hay = (f.en + ' ' + f.yue + ' ' + (f.p ? f.p[0] : '') + ' ' + (f.yl || '')).toLowerCase();
+  const hay = searchText(f.en + ' ' + f.yue + ' ' + (f.p ? f.p[0] : '') + ' ' + (f.yl || ''));
   return hay.includes(study.search);
 }
 
@@ -211,7 +219,12 @@ function ensureStudyLayout() {
   const content = byId('studyContent');
   const rail = wrapStudyEl('study-rail', studyRailEls());
   content.classList.add('fit-panel');
-  const cols = wrapStudyEl('study-cols fit-grow', [rail, wrapStudyEl('study-main fit-fade', [content])]);
+  // v2.4.0: a tab's lead (the memo tab's "due today" banner) sits above the card panel, outside its scroll
+  const lead = wrapStudyEl('study-lead', []);
+  lead.id = 'studyLead';
+  lead.hidden = true;
+  const body = wrapStudyEl('study-body', [lead, wrapStudyEl('study-main fit-fade', [content])]);
+  const cols = wrapStudyEl('study-cols fit-grow', [rail, body]);
   screen.append(cols);
   screen.classList.add('is-fit');
 }
@@ -248,9 +261,12 @@ function renderStudy() {
   STUDY_CHIP_ROWS.forEach(id => studyRevealChip(byId(id), byId(id).querySelector('.chip.active')));
   byId('studySearch').placeholder = study.tab === MEMO_TAB ? t('memo.search') : t('study.search');
   // a renderer may name its own count / empty-state words (memo: groups, not facts)
-  const { html, shown, total, countKey = 'study.count', emptyKey = 'study.empty' } = STUDY_RENDERERS[study.tab]();
+  const { html, lead = '', shown, total, countKey = 'study.count', emptyKey = 'study.empty' } = STUDY_RENDERERS[study.tab]();
   byId('studyCount').textContent = t(countKey, { shown, total, n: total });
   renderStudyProgress();
+  const leadBox = byId('studyLead');
+  leadBox.innerHTML = shown ? lead : '';
+  leadBox.hidden = !leadBox.innerHTML;
   byId('studyContent').innerHTML =
     shown ? html : `<div class="study-empty">${t(emptyKey)}</div>`;
   desktopRefit('screenStudy', placeStudyFilterChips); // registered lazily (js/components/deskPlace.js)

@@ -144,11 +144,12 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(await pg.$eval('.tl-item:not(.war) .tl-year', e => getComputedStyle(e, '::after').backgroundColor) === accent, 'timeline dot is study accent');
   // v1.1.1: timeline layout (year above the card, dot on the rail, no page overflow) lives in tests/timeline-test.js
   // v0.71 (B3): a card whose source questions carry a memory method (note from "記憶法…") shows it in a closed
-  // <details> "💡 記憶法" (the "記憶法（…）：" heading line dropped, rows as on the answer box); other cards have none
+  // <details> "💡 記憶法" (v2.2.0, English UI: "💡 Memory aid" over the English text) (the "記憶法（…）：" heading line dropped, rows as on the answer box); other cards have none
   // v1.0.7: "|" note lines are table rows — each <tr> is compared as its cells' segments (main text + <br> remarks)
   const memBad = await pg.evaluate(() => {
     const rowOf = l => JSON.stringify(l.trim().replace(/^\||\|$/g, '').split('|').map(c => c.trim().split('<br>')));
-    const memOf = f => { for (const k of f.src) { const [e, i] = k.split('.'); const n = EXAMS[e][i].note || ''; const at = n.indexOf('記憶法'); if (at >= 0) return n.slice(at).split('\n').slice(1).map(l => (l.trim().startsWith('|') ? rowOf(l) : l.trim())); } return null; };
+    // v2.2.0: the English UI shows the memory method's English text (data/notesEn.js, keyed by the Cantonese part)
+    const memOf = f => { for (const k of f.src) { const [e, i] = k.split('.'); const n = EXAMS[e][i].note || ''; const at = n.indexOf('記憶法'); if (at >= 0) return NOTES_EN[n.slice(at)].split('\n').slice(1).map(l => (l.trim().startsWith('|') ? rowOf(l) : l.trim())); } return null; };
     const cellOf = c => [c.firstChild && c.firstChild.nodeType === Node.TEXT_NODE ? c.firstChild.textContent : '', ...[...c.querySelectorAll('.note-cell-sub')].map(x => x.textContent)];
     const rowText = r => (r.classList.contains('rv-note-gap') ? '' : r.tagName === 'TR' ? JSON.stringify([...r.cells].map(cellOf)) : r.textContent);
     const out = []; let withMem = 0;
@@ -160,15 +161,15 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
         withMem++;
         const rows = d ? [...d.querySelectorAll('.rv-note-line, .rv-note-gap, .note-table tr')].map(rowText) : null;
         const tap = d ? d.querySelector('summary').getBoundingClientRect().height : 0;
-        const ok = d && !d.open && d.querySelector('summary').textContent.trim() === '💡 記憶法' && JSON.stringify(rows) === JSON.stringify(want) && tap >= 44
-          && d.querySelector('.fact-mem-body').getAttribute('lang') === 'zh-HK';
+        const ok = d && !d.open && d.querySelector('summary').textContent.trim() === '💡 Memory aid' && JSON.stringify(rows) === JSON.stringify(want) && tap >= 44
+          && d.querySelector('.fact-mem-body').getAttribute('lang') === 'en';
         if (!ok) out.push(`#${f.id}`);
       }
     }
     studySetTab('timeline');
     return { withMem, out };
   });
-  assert(memBad.withMem >= 50 && memBad.out.length === 0, `B3: ${memBad.withMem} cards with a memory method show it closed under 💡 記憶法 (bad: ${memBad.out.slice(0, 5).join(', ')})`);
+  assert(memBad.withMem >= 50 && memBad.out.length === 0, `B3: ${memBad.withMem} cards with a memory method show it (English) closed under 💡 Memory aid (bad: ${memBad.out.slice(0, 5).join(', ')})`);
   // v0.70: the difficulty stars take a line of their own under the card's tags, at its left edge
   const starsOff = await pg.$$eval('#studyContent .fact', cards => cards.map(c => {
     const meta = c.querySelector('.fact-meta'), stars = meta.querySelector('.stars').getBoundingClientRect();

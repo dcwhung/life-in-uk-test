@@ -52,6 +52,13 @@ LOCALES.en = {
     // v1.4.1: toast after the switch (like plan.toastOn / plan.toastOff)
     translationToastOn: 'Cantonese translation turned on',
     translationToastOff: 'Cantonese translation turned off',
+    // v2.3.0: the memory-note study mode switch (same On / Off pill words as the plan row)
+    memoFeature: '🧠 Memory study mode',
+    memoOnNote: 'The Memory tab shows on the Study screen',
+    memoOffNote: 'The Memory tab is hidden; your progress is kept',
+    memoSwitchLabel: 'Memory study mode',
+    memoToastOn: 'Memory study mode turned on',
+    memoToastOff: 'Memory study mode turned off',
   },
 
   home: {
@@ -86,16 +93,24 @@ LOCALES.en = {
   quiz: {
     questionOf: 'Question {n} of {total}',
     questionOfShort: 'Question {n}/{total}', // C3 (v1.3.0): only where questionOf would wrap
+    questionOfTiny: 'Q {n}/{total}', // v2.0.5 C3: only where questionOfShort would wrap too
     allShuffled: 'All Questions (shuffled)',
     answerTab: 'Answer', // v2.0.0 desktop: the right column's tab beside Similar Questions (F5)
     translate: 'Translate',
-    hideTranslation: 'Hide translation',
+    hideTranslation: 'Hide translation', // the pressed button's accessible name and tooltip
+    hideShort: 'Hide', // v2.0.5 C3: the pressed button's visible words, short so the question row keeps one line
     previous: 'Previous',
     // v1.6.1: the bottom button's words and the quick button's name (the icons are line icons, no glyph in the words)
     next: 'Next',
     back: 'Back',
     finish: 'Finish',
     prevButton: 'Prev',
+    // v2.1.1: the quiz / Result header's back button mid-session, named after where it goes (words only: the chevron
+    // is a line icon, sideSession.js setEntryBack)
+    backToStudy: 'Study',
+    backToFlagged: 'Flagged',
+    backToQuestion: 'Q{n}', // W-074: short enough for a 320px large-text header; the words are the label below
+    backToQuestionLabel: 'Back to Q{n}',
     correct: '✓ Correct!',
     wrong: '✗ Wrong',
     yueQ: 'Q)',
@@ -171,7 +186,7 @@ LOCALES.en = {
     bookmark: 'Bookmark',
     mastered: 'Mastered',
     masteredDerived: '🏆 Mastered — every source question mastered',
-    memoryAid: '💡 記憶法', // the memory notes are in Cantonese, like common.noteLabel
+    memoryAid: '💡 Memory aid', // v2.2.0: the English UI shows the English memory notes (data/notesEn.js)
     progress: '🏆 {n} / {total}', // v1.2.0 (Q11): the words are the pill's tooltip / label
     progressLabel: '{n} of {total} facts mastered',
     // the fact's number within its chapter (chapterFactNumber); no UI text shows the global fact id (W-016)
@@ -189,8 +204,8 @@ LOCALES.en = {
     start: 'Start',
     statusNew: 'New',
     statusDue: 'Due today',
-    statusLearning: 'Learning · Lv{lv}',
-    statusDone: { one: 'Known · in {n} day', other: 'Known · in {n} days' },
+    statusLearning: { one: '{name} · in {n} day', other: '{name} · in {n} days' },
+    statusDone: { one: '{name} · in {n} day', other: '{name} · in {n} days' },
     questions: { one: '{n} question', other: '{n} questions' },
     singleMeta: 'Questions with their own note',
     setLabel: '🧠 {title}', // quiz header of a group's test
@@ -201,15 +216,27 @@ LOCALES.en = {
     stepTestDone: '✓ Test {correct}/{total}',
     hookLabel: '💡 Memory hook:',
     startTest: 'Got it — start the test',
-    resultPass: 'Test {correct}/{total} (≥ {pct}%) → up to Lv{lv}',
-    resultKeep: 'Test {correct}/{total} (≥ {pct}%) → stays at Lv{lv}',
-    resultFail: 'Test {correct}/{total} · below {pct}%, review again tomorrow',
-    resultFailDrop: 'Test {correct}/{total} · below {pct}%, down to Lv{lv}, review again tomorrow', // W-064: a fail drops a level
+    resultPass: 'Test {correct}/{total} (≥ {pct}%) → up to Lv{lv} {name}',
+    resultKeep: 'Test {correct}/{total} (≥ {pct}%) → stays at Lv{lv} {name}',
+    resultFail: 'Test {correct}/{total} · below {pct}%',
+    resultFailDrop: 'Test {correct}/{total} · below {pct}%, down to Lv{lv} {name}', // W-064: a fail drops a level
+    // v2.4.2: when the group comes back, and what each level means (mastery)
+    nextDue: { one: '📅 Next review in {n} day ({date})', other: '📅 Next review in {n} days ({date})' },
+    nextDueTomorrow: '📅 Next review tomorrow ({date})',
+    date: '{d}/{m}',
+    lvName0: 'Not yet',
+    lvName1: 'Started',
+    lvName2: 'Familiar',
+    lvName3: 'Known',
     noAnswers: 'No answers were recorded — nothing changed.', // S-232: skipped questions do not count
     tomorrow: 'Tomorrow', // W-065: the schedule box of the level due again tomorrow
     lv: 'Lv{lv}',
-    days: { one: '{n} day', other: '{n} days' },
+    days: { one: '{n} day', other: '{n} days' }, // not read since v2.4.2; kept for an HTTP-cached pre-v2.4.2 memo.js (W-077)
     wrongTitle: 'Look at these again:',
+    // v2.4.0 (decision log Q3): the result with nothing wrong shows the hook again; a group without a hook shows its
+    // memory note (the single-note group: its notes)
+    hookAgain: 'All correct 🎉 The memory hook once more:',
+    noteAgain: 'All correct 🎉 The notes once more:',
     again: 'Review again',
     next: 'Next: {title}',
   },
@@ -235,6 +262,11 @@ LOCALES.en = {
     planOffMessage: "All study plan features will be hidden, and you'll leave the study plan screens. Your plan and progress will be kept, so you can carry on where you left off when you turn it back on.",
     planOffOk: 'Confirm',
     planOffCancel: 'Cancel',
+    // v2.3.0: memory-note study mode off from the group screen or a group's test
+    memoOffTitle: 'Turn off memory study mode?',
+    memoOffMessage: "This test won't be recorded. Your memory progress will be kept, so you can carry on when you turn it back on.",
+    memoOffOk: 'Confirm',
+    memoOffCancel: 'Cancel',
     // "↺ Reset plan" on the schedule: deletes the plan and its log only
     planResetTitle: 'Reset the study plan?',
     planResetMessage: "This plan and its daily progress will be deleted and can't be restored, but you can create a new one afterwards.\nYour study and practice records (mastery, wrong answers, flags) are not affected.",
@@ -269,7 +301,7 @@ LOCALES.en = {
     difficultyTitle: 'Difficulty {d}/{max}',
     // Cantonese section labels stay in Chinese in en (whitelisted in tests/i18n-test.js)
     yueTitle: '【廣東話翻譯】',
-    noteLabel: '💡 備註：',
+    noteLabel: '💡 Note:', // v2.2.0: the English UI shows the English notes (data/notesEn.js)
   },
 
   plan: {
@@ -481,8 +513,18 @@ LOCALES.en = {
     },
     // runner (PR6a): a task on the Practice screen, its Result card; Day n stays English (lang="en")
     run: {
+      // backToday / backDayHtml: no longer read since v2.3.2 (backTodayLabel / backDayLabel); kept for an HTTP-cached
+      // planRun.js up to v2.3.1 (W-072 mixed cache), which still names its back button with them. S-271: can go once
+      // no supported cache can hold a pre-v2.3.2 planRun.js (a later release that drops the old-file guards)
       backToday: "Today's tasks",
       backDayHtml: '{day} tasks',
+      // one fact's ▶ Practise, mid-session: the header reads quiz.back ("Back", short beside "Fact Ch c #n"), named this
+      // (contains the visible word; planRun.js planQuizBackName)
+      backFactLabel: 'Back to the fact',
+      // v2.3.2 (W-077): the plan header / #planRunBack "‹ Back" is named after the day it goes back to, starting with the
+      // visible word (planRun.js planRunBackName); plain text, never HTML (an aria-label)
+      backTodayLabel: "Back to today's tasks",
+      backDayLabel: 'Back to {day} tasks',
       roundOf: 'Round {n} of {rounds}',
       nextRound: 'Next round', // also the quick button's title / aria-label (QA O-3)
       retryWrong: { one: 'Redo the wrong answer ({n} left)', other: 'Redo wrong answers ({n} left)' },
