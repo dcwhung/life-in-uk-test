@@ -49,10 +49,17 @@
   /* ③ card fan: four tinted cards (one per feature) behind the logo fan out and fold back, like flicking through fact cards */
   .b-orbit .fan { position: relative; width: var(--b-planet-size); height: var(--b-planet-size); }
   .b-orbit .fan-c { position: absolute; left: 4%; right: 4%; bottom: 0; height: 150%; border-radius: 16px; background: var(--card); box-shadow: var(--shadow-md);
-    display: flex; justify-content: center; padding-top: var(--space-4); font-size: 22px; transform-origin: 50% 100%; animation: bFan 3.4s var(--intro-ease) infinite; }
-  .b-orbit .fan-c:nth-child(1) { --fa: -38deg; background: var(--success-bg); } .b-orbit .fan-c:nth-child(2) { --fa: -13deg; background: var(--selected-bg); }
-  .b-orbit .fan-c:nth-child(3) { --fa: 13deg; background: var(--gold-bg); } .b-orbit .fan-c:nth-child(4) { --fa: 38deg; background: var(--yue-bg); }
-  @keyframes bFan { 0%, 12% { transform: rotate(0deg); } 40%, 72% { transform: rotate(var(--fa)) translateY(-8px); } 96%, 100% { transform: rotate(0deg); } }
+    display: flex; justify-content: center; padding-top: var(--space-4); font-size: 22px; transform-origin: 50% 100%;
+    animation: bFan var(--fan-dur) var(--intro-ease) infinite, var(--fade) var(--fan-dur) ease infinite; }
+  .b-orbit .fan { --fan-dur: 4.2s; }
+  .b-orbit .fan-c:nth-child(1) { --fa: -38deg; --fade: bFade1; background: var(--yue-bg); } .b-orbit .fan-c:nth-child(2) { --fa: -13deg; --fade: bFade2; background: var(--success-bg); }
+  .b-orbit .fan-c:nth-child(3) { --fa: 13deg; --fade: bFade3; background: var(--selected-bg); } .b-orbit .fan-c:nth-child(4) { --fa: 38deg; --fade: bFade4; background: var(--gold-bg); }
+  /* fan out together, then fade out one by one in order (plan → study → practice → exam), fold back and fade in again */
+  @keyframes bFan { 0%, 10% { transform: rotate(0deg); } 30%, 80% { transform: rotate(var(--fa)) translateY(-8px); } 95%, 100% { transform: rotate(0deg); } }
+  @keyframes bFade1 { 0%, 36% { opacity: 1; } 42%, 84% { opacity: 0; } 96%, 100% { opacity: 1; } }
+  @keyframes bFade2 { 0%, 44% { opacity: 1; } 50%, 84% { opacity: 0; } 96%, 100% { opacity: 1; } }
+  @keyframes bFade3 { 0%, 52% { opacity: 1; } 58%, 84% { opacity: 0; } 96%, 100% { opacity: 1; } }
+  @keyframes bFade4 { 0%, 60% { opacity: 1; } 66%, 84% { opacity: 0; } 96%, 100% { opacity: 1; } }
   .b-orbit .fan .b-logo { position: absolute; inset: 0; z-index: 2; }
   /* ④ progress ring: a gold → green arc draws once round the logo while loading; each icon on the ring lights up as the arc reaches it */
   .b-orbit .rl-track { fill: none; stroke: var(--border); stroke-width: 6; }
@@ -230,23 +237,23 @@
   const MOCK_LOADING_MS = 4200;   // option B shows the splash longer in the mock (real app: max(boot, 800ms))
   const STATUS_STEP_MS = 1300;
   const NOTE_COUNT = 3;
-  const FEATURE_ICONS = ['📖', '📝', '🎯', '🗓️'];
+  const FEATURE_ICONS = ['🗓️', '📖', '📝', '🎯'];   // fixed order everywhere: plan, study, practice, exam
   const RIPPLE_COUNT = 3; const RIPPLE_GAP_S = 1; const ICON_GAP_S = 0.5;
   const ICON_SPOTS = [[50, 3], [97, 50], [50, 97], [3, 50]];   // N, E, S, W in % of the stage
   const RING_R = 100; const RING_MS = 4000;                    // the arc finishes just before the mock splash ends
-  const RING_SPOTS = [[1, 0.25], [2, 0.5], [3, 0.75], [0, 1]]; // [icon index at E/S/W/N, share of RING_MS when the arc gets there]
+  const RING_SPOTS = [[0, 0.02], [1, 0.25], [2, 0.5], [3, 0.75]]; // [icon at 12 / 3 / 6 / 9 o'clock = plan / study / practice / exam, share of RING_MS when the arc gets there]
   // orbits: tilt (deg), half-axes, comet lap time (s) — different speeds so the comets never line up
   const ORBITS = [
     { tilt: -28, rx: 108, ry: 34, dur: 3.6 },
     { tilt: 32, rx: 100, ry: 40, dur: 5.2 },
     { tilt: 88, rx: 96, ry: 30, dur: 7.4 },
   ];
-  // comets: the four feature icons (no box, no tail); 🗓️ shares orbit 0, half a lap behind 📖
+  // comets: the four feature icons (no box, no tail), in the order plan, study, practice, exam; 🎯 shares orbit 0, half a lap behind 🗓️
   const COMETS = [
-    { orbit: 0, icon: '📖', phase: 0 },
-    { orbit: 1, icon: '📝', phase: 0 },
-    { orbit: 2, icon: '🎯', phase: 0 },
-    { orbit: 0, icon: '🗓️', phase: 0.5 },
+    { orbit: 0, icon: '🗓️', phase: 0 },
+    { orbit: 1, icon: '📖', phase: 0 },
+    { orbit: 2, icon: '📝', phase: 0 },
+    { orbit: 0, icon: '🎯', phase: 0.5 },
   ];
   const ICON_SIZE = 20;   // viewBox units (the 230 box renders at --b-orbit-size)
   const ORBIT_C = 115;   // centre of the 230 × 230 viewBox
@@ -507,7 +514,7 @@
   }
 
   Mock.init({
-    name: '方案 B · 輕鬆卡片 Friendly（rev 8）',
+    name: '方案 B · 輕鬆卡片 Friendly（rev 9）',
     renderLoading, renderIntro, loadingMs: MOCK_LOADING_MS,
     extraSegs: [{ label: 'Logo 動畫', key: 'logoAnim', default: 'orbit',
       options: [['orbit', '① 軌道'], ['ripple', '② 波紋'], ['fan', '③ 卡片扇'], ['ring', '④ 進度環']] }],
@@ -515,8 +522,9 @@
       <div class="note"><h3>rev 8：Logo 動畫 4 個方案（頂部「Logo 動畫」切換）</h3><ul>
         <li><b>① 軌道</b>（rev 7 保留）：淺色虛線軌道好似原子咁交叉，📖📝🎯🗓️ 繞住 logo 轉，近半喺前、遠半被遮。</li>
         <li><b>② 波紋</b>：logo 輕輕呼吸，同 logo 一樣形狀嘅圓角框一圈圈擴散淡出；四個 icon 喺上右下左輪流彈出再收起。最安靜。</li>
-        <li><b>③ 卡片扇</b>：logo 後面四張淡色卡（每張一個功能 icon）好似揭知識卡咁扇開再合埋。最有「溫習」感覺。</li>
-        <li><b>④ 進度環</b>：logo 外圈一條金 → 綠弧線由 0 畫到滿圈（真正反映載入進度），經過邊個 icon 就由灰色亮起。最有「載入中」意思，亦可以接真進度。</li></ul></div>
+        <li><b>③ 卡片扇</b>：logo 後面四張淡色卡（每張一個功能 icon）扇開，再按次序（計劃 → 溫習 → 練習 → 考試）逐張淡出，合埋再淡入。</li>
+        <li><b>④ 進度環</b>：logo 外圈一條金 → 綠弧線由 12 點順時針畫到滿圈；12 點計劃、3 點溫習、6 點練習、9 點考試，弧線到邊個 icon 就由灰色亮起。可以接真進度。</li>
+        <li>rev 9：四個 icon 喺所有動畫統一次序：🗓️ 計劃、📖 溫習、📝 練習、🎯 考試。</li></ul></div>
       <div class="note"><h3>rev 8：重看介紹（撳頂部「ⓘ 預覽」）</h3><ul>
         <li>ⓘ popover 照返 app 現有樣式（標題 + 版本、介紹、4 個 badge），喺 badge 下面用金色細線分隔，加一行「▶ 重看介紹 NEW / 3 頁快速認識…  播放 ›」。</li>
         <li>箭咀對準 ⓘ（同 <code>popover.js</code> pointArrowAt 一樣計法）；電腦版闊度跟主欄 780px。</li></ul></div>
