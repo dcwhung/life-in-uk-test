@@ -101,6 +101,15 @@ function spyWrites(keys) {
   assert(JSON.stringify(Object.keys(await json(FLAGS))) === JSON.stringify(copies), 'G40 copies kept in practiceFlags');
   assert((await text('#tileWrong .t-num')) === '1', 'copies of one question count once');
 
+  // S-264: a pre-v0.58 unprefixed key (no migration marker) is migrated first, then pruned
+  await pg.evaluate(v => { localStorage.clear(); Object.entries(v).forEach(([k, val]) => localStorage.setItem(k, val)); },
+    { wrongList: JSON.stringify(marks(['99.99', '1.999', REAL])), 'lifeuk.homePrefs': JSON.stringify({ mode: 'practice', view: 'difficulty' }) });
+  await pg.reload();
+  await pg.waitForSelector('#screenHome.active');
+  assert(JSON.stringify(await json(WRONG)) === JSON.stringify({ [REAL]: true }) && (await raw('wrongList')) === null,
+    'legacy unprefixed wrongList: migrated to lifeuk.wrongList, then pruned to {"1.2":true}');
+  assert((await text('#tileWrong .t-num')) === '1', 'legacy wrongList: tile counts 1');
+
   // a value that is not a { key: mark } object is left in storage as is and reads as empty (no crash)
   errs.length = 0;
   await seed({ [WRONG]: '"oops"', [FLAGS]: '["1.2"]' });
