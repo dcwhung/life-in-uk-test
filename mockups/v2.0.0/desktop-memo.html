@@ -57,7 +57,7 @@
 <body>
 
 <div class="mock-bar">
-  <b>v2.0.0 Desktop · Mockup 13 · 溫習模式 › 記憶法（清單 → ① 睇 → ② 試 → 結果）· rev 5（手機 banner 空位、記憶鉤固定、② 試掣貼底、單題組 pill）· 待確認</b>
+  <b>v2.0.0 Desktop · Mockup 13 · 溫習模式 › 記憶法（清單 → ① 睇 → ② 試 → 結果）· rev 6（手機題目卡固定；P5 加題組問題；P6 所有 Quiz）· 待確認</b>
   <div class="mock-row"><span class="lbl">裝置</span><button class="mock-tab on" data-k="dev" data-v="desk">Desktop</button><button class="mock-tab" data-k="dev" data-v="mb">手機</button><span class="lbl">語言</span><button class="mock-tab on" data-k="lang" data-v="zh-HK">中文</button><button class="mock-tab" data-k="lang" data-v="en">EN</button><span class="lbl">大字</span><button class="mock-tab on" data-k="large" data-v="off">關</button><button class="mock-tab" data-k="large" data-v="on">開</button><span class="lbl">翻譯</span><button class="mock-tab on" data-k="yue" data-v="on">開</button><button class="mock-tab" data-k="yue" data-v="off">關</button><span class="lbl">縮放</span><button class="mock-tab on" data-k="zoom" data-v="fit">適合畫面</button><button class="mock-tab" data-k="zoom" data-v="100">100%</button></div>
   <div class="mock-row"><span class="lbl">畫面</span>
     <button class="mock-tab on" data-k="st" data-v="list">清單</button>
@@ -79,10 +79,10 @@
       <li>全局規則照舊：≥ <b>1024px</b>、最闊 <b>1280px</b>、token <b>×1.2</b>、⚙ 大字 (基礎 + 2px) × 1.2、一屏高（長內容喺 panel 入面碌，上下淡出）</li>
       <li>v2.0.0 嘅記憶法冇 mockup，直接用咗「Plan Run 置中欄」做 baseline，即係下面嘅方案 A。今次補返成個流程嘅設計：<b>清單 → ① 睇 → ② 試 → 結果</b></li>
       <li>內容係 app 自己 render 出嚟（v2.0.2，模擬進度：3 組今日到期、6 組學緊、4 組已識，其餘未溫）。每個 frame 都係真 app 嘅 HTML + CSS，用真實畫面大小行</li>
-      <li>第一輪（3 欄／4 欄、A／B／C）用戶揀咗：<b>清單 4 欄、badge 永遠右上</b>；<b>① 睇</b>：組名 + 步驟一行，左邊記憶鉤 + 筆記，右邊題組問題，開始掣靠右；<b>② 試</b> OK；<b>結果</b>用 B，加組名 + 步驟一行。rev 2：清單 1280 以下 3 欄；記憶鉤標題自己一行；題目加編號 + Ch · Exam · Q。<b>rev 3</b>：編號同 Ch · Exam · Q 改用系統 pill（<code>#1</code>、<code>📜 Ch 3</code>、<code>E2·Q15</code>）；題組問題唔顯示答案（P1）；單題組重新設計，出 A／B／C（P2）；記憶鉤分行手機都改（P4）；上面「裝置」可以切去<b>手機</b>睇成個 flow（P5）。<b>rev 4</b>：單題組用 C；「今日要溫」固定唔郁（PC + 手機）；手機清單 2 欄；手機 ① 睇／結果一屏高，中間 panel 碌，掣永遠喺最底。<b>rev 5</b>：手機 banner 同 header 留空位；手機記憶鉤固定；手機 ② 試上一題／下一題貼底；單題組放返白卡入面，pill 同其他一致</li>
+      <li>第一輪（3 欄／4 欄、A／B／C）用戶揀咗：<b>清單 4 欄、badge 永遠右上</b>；<b>① 睇</b>：組名 + 步驟一行，左邊記憶鉤 + 筆記，右邊題組問題，開始掣靠右；<b>② 試</b> OK；<b>結果</b>用 B，加組名 + 步驟一行。rev 2：清單 1280 以下 3 欄；記憶鉤標題自己一行；題目加編號 + Ch · Exam · Q。<b>rev 3</b>：編號同 Ch · Exam · Q 改用系統 pill（<code>#1</code>、<code>📜 Ch 3</code>、<code>E2·Q15</code>）；題組問題唔顯示答案（P1）；單題組重新設計，出 A／B／C（P2）；記憶鉤分行手機都改（P4）；上面「裝置」可以切去<b>手機</b>睇成個 flow（P5）。<b>rev 4</b>：單題組用 C；「今日要溫」固定唔郁（PC + 手機）；手機清單 2 欄；手機 ① 睇／結果一屏高，中間 panel 碌，掣永遠喺最底。<b>rev 5</b>：手機 banner 同 header 留空位；手機記憶鉤固定；手機 ② 試上一題／下一題貼底；單題組放返白卡入面，pill 同其他一致。<b>rev 6</b>：手機 ② 試題目卡固定；P5 手機加題組問題；P6 手機一屏高 Quiz 用喺所有練習／考試</li>
     </ul>
     <div class="flow" id="flow"></div>
-    <p>請確認 rev 5，同埋決定 P5（手機要唔要題組問題，「裝置：手機」→「① 睇」並排比較）。</p>
+    <p>請確認 rev 6。</p>
   </div>
   <div id="opts"></div>
 </div>
@@ -2910,6 +2910,7 @@ const BASE_CSS = `
     #screenQuiz > * { flex: none; }
     #screenQuiz > .mx-mwrap { flex: 1 1 auto; min-height: 0; position: relative; display: flex; flex-direction: column; margin-bottom: var(--space-6); }
     #screenQuiz > .nav-row { margin: 0; }
+    #screenQuiz > .q-card { margin-bottom: var(--space-5); }
   }
 `;
 // list: 3 columns below 1280px, 4 from 1280px (rev 2); the status badge always top right
@@ -3107,7 +3108,10 @@ function placeQuizPhone(doc) {
   const head = screen.querySelector(':scope > .quiz-header'), nav = screen.querySelector(':scope > .nav-row');
   const wrap = make(doc, 'mx-mwrap fit-fade'), panel = make(doc, 'mx-mpanel fit-panel');
   wrap.append(panel);
-  [...screen.children].filter(c => c !== head && c !== nav && !c.hidden).forEach(c => panel.append(c));
+  // rev 6: the question box (dots + question) stays put under the header; the options and below scroll
+  const card = screen.querySelector(':scope > .q-card');
+  const kids = [...screen.children];
+  kids.slice(card ? kids.indexOf(card) + 1 : 0).filter(c => c !== nav && !c.hidden).forEach(c => panel.append(c));
   nav.before(wrap);
 }
 // desktop list: the due banner out of the scrolling card panel, above it (rev 4)
@@ -3153,13 +3157,13 @@ const ANN = {
   result: `<ul><li>B：頂行同 ① 睇一樣。<b>左 5/12</b>：成績卡，「再溫一次」／「下一組」貼底。<b>右 7/12</b>：要再睇嘅題目（pill 行）。全對顯示記憶鉤（Q3），冇答題淨係顯示記憶鉤。</li></ul>`,
   phoneList: `<ul><li><b>手機清單</b>：卡片 <b>2 × 2</b>（2 欄）。「今日要溫」banner <b>固定唔郁</b>：頁面碌嘅時候停喺 header 下面；<b>rev 5</b> 同 header 之間留返空位（frame 入面碌落去試吓）。</li></ul>`,
   phoneMemo: `<ul><li><b>rev 4 手機 ① 睇／結果</b>：成個畫面一屏高。頂部 ‹ 記憶法 + 組名、步驟；<b>中間一個 scroll panel 用盡高度</b>（筆記／成績 + 錯題），上下淡出；<b>rev 5</b>：記憶鉤固定喺 panel 上面，唔跟筆記碌；<b>「記住咗，開始試」／「再溫一次」+「下一組」永遠喺最底</b>。</li></ul>`,
-  phoneLook: `<ul><li><b>P5</b>：左邊係<b>冇題組問題</b>；右邊係<b>加題組問題</b>：喺 panel 入面、筆記下面，預設收埋（撳「關聯 n 題」打開）。</li></ul>`,
-  phoneTest: `<ul><li><b>rev 5 手機 ② 試</b>：一屏高。頂部 🏠 + 組名；中間（題號點、題目、選項、答案、相似題目）一個 panel 碌；<b>「上一題／下一題」永遠喺最底</b>。</li>
-    <li><b>待確認</b>：手機 Quiz 係所有練習／考試共用嘅畫面，實作時只改記憶法嘅 ② 試，定所有 Quiz 都一齊改？</li></ul>`,
+  phoneLook: `<ul><li><b>P5 = 加（用戶 2026-10-13）</b>：題組問題喺 panel 入面、筆記下面，預設收埋（撳「關聯 n 題」打開）。</li></ul>`,
+  phoneTest: `<ul><li><b>手機 ② 試</b>：一屏高。頂部 🏠 + 組名；<b>rev 6 題目卡（題號點 + 題目）固定</b>；下面選項、答案、相似題目一個 panel 碌；<b>「上一題／下一題」永遠喺最底</b>。</li>
+    <li><b>P6 = 所有 Quiz 一齊改（用戶 2026-10-13）</b>：練習、考試、記憶法 ② 試都用呢個手機排法。</li></ul>`,
 };
 const KIND = { list: 'list', lookLong: 'look', lookShort: 'look', lookSingle: 'single', test: 'test', resultFail: 'result', resultPass: 'result', resultAll: 'result', resultNone: 'result' };
 const TITLE = { list: '清單 · 3 欄（< 1280）／4 欄（≥ 1280）· banner 固定', look: '① 睇', single: '① 睇 · 單題組 C', test: '② 試 · 沿用 Quiz 畫面', result: '結果 · B' };
-const REC = '<span class="rec">rev 5 · 待確認</span>';
+const REC = '<span class="rec">rev 6</span>';
 
 function deskSections() {
   const kind = KIND[S.st];
@@ -3172,7 +3176,7 @@ function phoneSections() {
   const frame = (label, v, css = '', place = placePhone) => ({ ...PHONE, label, css, place, v, phone: true, grow: false });
   if (kind === 'list') return [{ title: '手機 · 清單', ann: ANN.phoneList, frames: [frame('390 × 844px', {}, LIST_CSS, () => {})] }];
   if (kind === 'test') return [{ title: '手機 · ② 試', ann: ANN.phoneTest, frames: [frame('390 × 844px', {}, '', placeQuizPhone)] }];
-  if (kind === 'look') return [{ title: '手機 · ① 睇', ann: ANN.phoneMemo + ANN.phoneLook, frames: [frame('390 × 844px · 冇題組問題', {}), frame('390 × 844px · 加題組問題（P5）', { qs: true })] }];
+  if (kind === 'look') return [{ title: '手機 · ① 睇', ann: ANN.phoneMemo + ANN.phoneLook, frames: [frame('390 × 844px', { qs: true })] }];
   return [{ title: `手機 · ${kind === 'single' ? '① 睇 · 單題組 C' : '結果'}`, ann: ANN.phoneMemo, frames: [frame('390 × 844px', {})] }];
 }
 

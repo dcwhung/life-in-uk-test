@@ -1,7 +1,7 @@
 # Grill：Desktop 記憶法（溫習模式 › 記憶法）layout
 
 **日期**：2026-10-13
-**狀態**：rev 5（見「第五輪決定」），等用戶確認同決定 P5、P6
+**狀態**：rev 6（見「第六輪決定」）；所有開放問題已答，等用戶最後確認 mockup 定案
 **Mockup**：[`mockups/v2.0.0/desktop-memo.html`](../../mockups/v2.0.0/desktop-memo.html)（第 13 份 desktop mockup；rev 3 起亦包手機 390px）
 **Branch**：`claude/quirky-newton-wdelbs`（由 `main` v2.0.2 `c6b0806` 開）
 
@@ -102,19 +102,21 @@ Mockup 已經改做 rev 1，淨係保留定案嘅排法（3 欄、A、C 已經�
 | 單題組 pill | 同有筆記嘅組唔 match | rev 4 喺灰色背景上將 `.tag` 改咗白底；rev 5 放返入白色卡（同題組問題、錯題一樣），pill 用返系統灰底。Desktop 張卡 760 × 1.2px 置中，「記住咗，開始試」對齊卡右邊 |
 | Mockup | （截圖 logo 爛咗） | Header logo 改為 data URI 嵌入，mockup 唔再靠 `icons/icon.svg` 相對路徑 |
 
-## 待用戶確認（rev 5）
+## 第六輪決定（用戶 2026-10-13）→ rev 6
 
-| # | 問題 |
-|---|---|
-| P5 | 手機加唔加題組問題（喺筆記下面，`<details>` 預設收埋）？ |
-| P6 | 手機 Quiz 一屏高（掣貼底）只改記憶法 ② 試，定所有練習／考試嘅 Quiz 都一齊改？（Quiz 係共用畫面） |
+| # | 決定 | rev 6 做法 |
+|---|---|---|
+| — | 手機 ② 試：題目卡要固定 | 題目卡（題號點 + 題號 + 題目 + 翻譯）固定喺 header 下面；選項、答案、相似題目喺 panel 碌；上一題／下一題貼底 |
+| P5 | 手機**加**題組問題 | 喺 scroll panel 入面、筆記下面，`<details>` 預設收埋；mockup 手機 ① 睇淨係保留呢個版本 |
+| P6 | 手機一屏高 Quiz **所有 Quiz 一齊改** | 練習、考試、記憶法 ② 試都用：題目卡固定 + 中間碌 + 掣貼底 |
 
 ## 實作備忘（揀咗之後）
 
 - Design Origin 會由 `baseline: Plan Run desktop 置中欄` 改做 `mockup: mockups/v2.0.0/desktop-memo.html`。
 - 要更新 `tests/desktop-memo-test.js`：而家佢會檢查「置中欄 ≤ 912px」，要改做頂行 + 兩欄 + 開始掣對齊右欄。
 - 用 `js/components/deskPlace.js` 搬 DOM（`setDesktopColumns`），< 1024px 要還原手機次序。
-- 題組問題 panel 係新 render（`memo.js`）：用 `questionGroups(g.qkeys)`，同單題組 render 方法一樣；手機加唔加等 P5。
+- 題組問題 panel 係新 render（`memo.js`）：用 `questionGroups(g.qkeys)`，同單題組 render 方法一樣；手機都加（P5），收埋喺筆記下面。
+- P6：手機 Quiz 一屏高係**所有 Quiz** 嘅改動（`css/screens/quiz.css` + `quiz.js`／examTools），影響現有 390px Playwright suite（`test.js`、`quicknav-test`、`practicedots-test`、`examtools-test` 等會碌頁面嘅 assert），要逐個更新；Exam 模式手機計時器位置要再對一次。
 - 手機一屏高（rev 4）係新行為：`#screenMemo` 要喺 < 1024px 都用一屏高 + scroll panel（而家 `.is-fit` / `.fit-panel` 只限 desktop）；要加手機 test（390 × 844：成頁唔碌、掣喺畫面、panel 碌）。
 - 「今日要溫」banner：desktop 要喺 `renderStudyMemo` 之外 render（唔再喺 `#studyContent` 入面），或者 JS 搬；手機 sticky 要避開 Flagged 嗰種 `--header-h` 做法撞位。
 - 單題組 C：`memoSingleHtml` 改做區塊 + pill 行 + 備註標題。
