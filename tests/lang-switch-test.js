@@ -235,7 +235,7 @@ async function checkQuizPractice(pg, ctx) {
     ['#ansEn', EN], ['#ansYue .ans-yue-row > span', ZH_HK], ['#ansNote .ans-note-text', ZH_HK, true],
     ['#similarBox .sqm-q', EN], ['#similarBox .sqm-qy', ZH_HK], ['#similarBox .sqm-fact-en', EN], ['#similarBox .sqm-fact-yue', ZH_HK],
     ['#ansNote > strong', ZH_HK], // S-048: the 💡 label reads with the note
-  ], [['#ansNote > strong', ZH_HK], ['#ansNote .ans-note-text', ZH_HK]]);
+  ], [['#ansNote > strong', EN], ['#ansNote .ans-note-text', EN]]); // v2.2.0: the English UI shows the English note
 }
 
 // S-048: an answer with no Cantonese option text (True / False / years) falls back to English, marked lang="en"
@@ -335,7 +335,7 @@ async function checkResult(pg, ctx) {
   await switchCheckBoth(pg, ctx, 'result (filter Wrong)', '#resultLabel2', [
     ['#reviewList .rv-q-text', EN], ['#reviewList .rv-correct-ans', EN], ['#reviewList .rv-yue', ZH_HK], ['#reviewList .rv-note-line', ZH_HK, true],
     ['#reviewList .rv-your > span', EN], // S-047: the chosen option, not the 你的答案： label
-  ], [['#reviewList .rv-note-label', ZH_HK]]);
+  ], [['#reviewList .rv-note-label', EN], ['#reviewList .rv-note-line', EN]]); // v2.2.0: English note in the English UI
   // S-047: the label and 未作答 stay in the page language (no lang="en" around them)
   const yourLines = await pg.evaluate(() => [...document.querySelectorAll('#reviewList .rv-your')].map(e => ({ n: e.querySelectorAll('[lang]').length, label: e.firstChild.nodeType === Node.TEXT_NODE })));
   assert(yourLines.filter(l => l.n === 1).length === 1 && yourLines.every(l => l.n <= 1 && l.label), 'S-047: one answered wrong line with a lang="en" answer, labels unmarked: ' + JSON.stringify(yourLines));

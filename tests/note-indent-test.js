@@ -112,6 +112,7 @@ async function checkCellLayout(pg, font) {
 async function checkTudorPractice(pg) {
   const r = await pg.evaluate(({ e, idx, measureSrc }) => {
     const m = new Function('return ' + measureSrc)();
+    setLang(ZH_HK_LANG); // v2.2.0: the English UI shows the English note; this checks the Cantonese one
     pendingMode = 'practice'; startExam(e);
     state.current = state.questions.findIndex(q => q.examNum === e && q.origIdx === idx);
     if (state.current < 0) return { missing: true };

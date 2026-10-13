@@ -179,7 +179,7 @@ LOCALES.en = {
     bookmark: 'Bookmark',
     mastered: 'Mastered',
     masteredDerived: '🏆 Mastered — every source question mastered',
-    memoryAid: '💡 記憶法', // the memory notes are in Cantonese, like common.noteLabel
+    memoryAid: '💡 Memory aid', // v2.2.0: the English UI shows the English memory notes (data/notesEn.js)
     progress: '🏆 {n} / {total}', // v1.2.0 (Q11): the words are the pill's tooltip / label
     progressLabel: '{n} of {total} facts mastered',
     // the fact's number within its chapter (chapterFactNumber); no UI text shows the global fact id (W-016)
@@ -277,7 +277,7 @@ LOCALES.en = {
     difficultyTitle: 'Difficulty {d}/{max}',
     // Cantonese section labels stay in Chinese in en (whitelisted in tests/i18n-test.js)
     yueTitle: '【廣東話翻譯】',
-    noteLabel: '💡 備註：',
+    noteLabel: '💡 Note:', // v2.2.0: the English UI shows the English notes (data/notesEn.js)
   },
 
   plan: {
@@ -489,14 +489,15 @@ LOCALES.en = {
     },
     // runner (PR6a): a task on the Practice screen, its Result card; Day n stays English (lang="en")
     run: {
-      // backToday / backDayHtml: no longer read since v2.1.2 (backTodayLabel / backDayLabel); kept for an HTTP-cached
-      // v2.1.1 planRun.js (W-072 mixed cache), which still names its back button with them
+      // backToday / backDayHtml: no longer read since v2.2.1 (backTodayLabel / backDayLabel); kept for an HTTP-cached
+      // planRun.js up to v2.2.0 (W-072 mixed cache), which still names its back button with them. S-271: can go once
+      // no supported cache can hold a pre-v2.2.1 planRun.js (a later release that drops the old-file guards)
       backToday: "Today's tasks",
       backDayHtml: '{day} tasks',
       // one fact's ▶ Practise, mid-session: the header reads quiz.back ("Back", short beside "Fact Ch c #n"), named this
       // (contains the visible word; planRun.js planQuizBackName)
       backFactLabel: 'Back to the fact',
-      // v2.1.2 (W-077): the plan header / #planRunBack "‹ Back" is named after the day it goes back to, starting with the
+      // v2.2.1 (W-077): the plan header / #planRunBack "‹ Back" is named after the day it goes back to, starting with the
       // visible word (planRun.js planRunBackName); plain text, never HTML (an aria-label)
       backTodayLabel: "Back to today's tasks",
       backDayLabel: 'Back to {day} tasks',

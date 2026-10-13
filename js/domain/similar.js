@@ -34,13 +34,31 @@ const CHAPTER_FACT_NUMBER = buildChapterFactNumbers(); // fact id → number; ST
 function chapterFactNumber(id) { return CHAPTER_FACT_NUMBER[id]; }
 
 // v0.71 (B3): a fact's memory method = the part of its first source question's note that starts at the memory-method
-// heading word, without that heading line; '' when none. Read from the notes, so Study never drifts from the questions
+// heading word, without that heading line; null when none. Read from the notes, so Study never drifts from the questions
 const MEMORY_MARK = '\u8A18\u61B6\u6CD5'; // the heading word notes use for a memory method (see HANDOFF note format rules)
-function factMemoryText(f) {
+const MEMORY_MARK_EN = 'Memory aid';       // v2.2.0: the same heading word in the English notes (data/notesEn.js)
+// v2.2.0: { text, lang } of the fact's memory method in the UI language (localNote), or null
+function factMemory(f) {
   for (const k of f.src) {
     const note = questionByKey(k).q.note || '';
-    const at = note.indexOf(MEMORY_MARK);
-    if (at >= 0) return note.slice(at).split('\n').slice(1).join('\n');
+    if (note.indexOf(MEMORY_MARK) < 0) continue;
+    const local = localNote(note), mark = local.lang === EN_LANG ? MEMORY_MARK_EN : MEMORY_MARK;
+    return { text: local.text.slice(local.text.indexOf(mark)).split('\n').slice(1).join('\n'), lang: local.lang };
   }
-  return '';
+  return null;
+}
+
+// v2.2.0: a note in the UI language. The English UI shows the English note (data/notesEn.js) when every part of it is
+// translated; otherwise (and in zh-HK) the Cantonese note. A note is translated in parts: the text before the
+// memory-method heading, and the memory method from the heading to the end (shared by every question of its group)
+function noteParts(note) {
+  const at = note.indexOf(MEMORY_MARK);
+  return at > 0 ? [note.slice(0, at).replace(/\n$/, ''), note.slice(at)] : [note];
+}
+// { text, lang } — lang marks the note's markup; a cached older index.html (SW cutover) has no NOTES_EN
+function localNote(note) {
+  const cantonese = { text: note, lang: ZH_HK_LANG };
+  if (!note || getLang() !== EN_LANG || typeof NOTES_EN === 'undefined') return cantonese;
+  const parts = noteParts(note).map(part => NOTES_EN[part]);
+  return parts.every(Boolean) ? { text: parts.join('\n'), lang: EN_LANG } : cantonese;
 }

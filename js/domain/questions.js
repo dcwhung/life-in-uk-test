@@ -88,10 +88,18 @@ function isMemoExam(examNum) {
   return typeof examNum === 'string' && typeof MEMO_PREFIX !== 'undefined' && examNum.startsWith(MEMO_PREFIX);
 }
 function memoIdOf(examNum) { return examNum.slice(MEMO_PREFIX.length); }
-// the group title inside a memo set label (Cantonese data, marked lang="zh-HK" by setExamLabel); '' for other sets
+// the group title inside a memo set label (Cantonese data, marked lang="zh-HK" by setExamLabel; v2.2.0: in the UI
+// language, memoLocal); '' for other sets
+function memoSetGroup(examNum) {
+  return isMemoExam(examNum) && typeof memoGroupById === 'function' ? memoGroupById(memoIdOf(examNum)) : null;
+}
 function memoSetTitle(examNum) {
-  const group = isMemoExam(examNum) && typeof memoGroupById === 'function' ? memoGroupById(memoIdOf(examNum)) : null;
-  return group ? group.title : '';
+  const group = memoSetGroup(examNum);
+  return group ? memoLocal(group).title : '';
+}
+function memoSetLang(examNum) {
+  const group = memoSetGroup(examNum);
+  return group ? memoLocal(group).lang : ZH_HK_LANG;
 }
 // W-016: a fact set is named by its Study card's chapter number (chapterFactNumber), never the global id
 function factSetParams(examNum) {
