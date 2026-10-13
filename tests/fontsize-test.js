@@ -9,10 +9,9 @@ const path = require('path');
 //   focus goes back to ⚙; nothing is written until the user picks (lifeuk.fontSize), the choice survives a reload
 // - Q3 / M2: large text keeps the layout: L4b (plan task card: "Start ›" under the text), L5 (study order count column
 //   128px), v1.3.1 goal form rows fit their texts (replaces W-056 / C7), 320–400px en + zh-HK never scroll sideways on 13 screens (S-195)
-// - C3: the quiz counter reads "Question 1 of 24" unless that wraps, then "Question 1/24" ("第 1/24 題"); where even the
-//   short form wraps (320px large, the wide "Translate" button in the row) it stays short on two lines (user).
-//   v2.0.5 (方案 Y): "wraps" is the counter or its stars, in any state of the question (Translate / "Hide
-//   translation" before answering, ← → after), so a question keeps one form throughout (qnum-row-test)
+// - C3: the quiz counter reads "Question 1 of 24" unless that wraps, then "Question 1/24" ("第 1/24 題"), then (v2.0.5
+//   C3, user 2026-10-13) "Q 1/24" ("1/24 題"). v2.0.5 (方案 Y): "wraps" is the counter or its stars, in any state of
+//   the question (Translate / "Hide" before answering, ← → after), so a question keeps one form throughout (qnum-row-test)
 // - S-193: ⓘ has a 44px tap area
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
 const launchOpts = { args: ['--no-sandbox'] };
@@ -130,9 +129,10 @@ const counter = pg => pg.evaluate(() => {
   return { text: s.textContent, lines: new Set([...r.getClientRects()].map(x => Math.round(x.top))).size };
 });
 async function checkCounter(pg) {
-  // v2.0.5 (方案 Y): 390 large and 中文 320 large keep the short form after answering too (Translate needed it before)
-  const cases = [['en', 320, 'large', 'Question 1/24'], ['en', 390, 'large', 'Question 1/24'], ['en', 430, 'small', 'Question 1 of 24'],
-    ['zh-HK', 320, 'large', '第 1/24 題'], ['zh-HK', 390, 'small', '第 1 題（共 24 題）']];
+  // v2.0.5 (方案 Y): the form is the one that fits before and after answering (Translate / "Hide" needs it before);
+  // C3 (user 2026-10-13): a third tier "Q 1/24" (中文 "1/24 題") where even the short form would wrap
+  const cases = [['en', 320, 'large', 'Q 1/24'], ['en', 390, 'large', 'Q 1/24'], ['en', 430, 'small', 'Question 1 of 24'],
+    ['zh-HK', 320, 'large', '1/24 題'], ['zh-HK', 390, 'small', '第 1 題（共 24 題）']];
   for (const [lang, w, size, want] of cases) {
     await pg.setViewportSize({ width: w, height: 760 });
     await fresh(pg, lang);
@@ -143,13 +143,13 @@ async function checkCounter(pg) {
     const c = await counter(pg);
     assert(c.text === want && c.lines === 1, `C3 ${lang} ${w}px ${size}, answered: "${want}" on one line: ` + JSON.stringify(c));
   }
-  // not yet answered, the wider "Translate" button is in the row: the short form, and two lines are accepted (user)
+  // not yet answered, the wider "Translate" button is in the row: v2.0.5 C3, the tiny form on one line
   await pg.setViewportSize({ width: 320, height: 760 });
   await fresh(pg);
   await chooseSize(pg, 'large');
   await pg.evaluate(() => { pendingMode = 'practice'; startExam(1); });
   const unanswered = await counter(pg);
-  assert(unanswered.text === 'Question 1/24', 'C3 en 320px large, not answered: the short form (two lines accepted): ' + JSON.stringify(unanswered));
+  assert(unanswered.text === 'Q 1/24' && unanswered.lines === 1, 'C3 en 320px large, not answered: the tiny form on one line: ' + JSON.stringify(unanswered));
   // the size switch and a resize re-measure it
   await pg.setViewportSize({ width: 430, height: 760 });
   await fresh(pg);
@@ -157,7 +157,7 @@ async function checkCounter(pg) {
   await chooseSize(pg, 'large');
   await pg.setViewportSize({ width: 320, height: 760 });
   await pg.waitForTimeout(100);
-  assert((await counter(pg)).text === 'Question 1/24', 'C3: a resize to 320px re-measures → short');
+  assert((await counter(pg)).text === 'Q 1/24', 'C3: a resize to 320px re-measures → tiny');
   await chooseSize(pg, 'small');
   await pg.setViewportSize({ width: 430, height: 760 });
   await pg.waitForTimeout(100);

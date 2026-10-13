@@ -86,10 +86,12 @@ LOCALES.en = {
   quiz: {
     questionOf: 'Question {n} of {total}',
     questionOfShort: 'Question {n}/{total}', // C3 (v1.3.0): only where questionOf would wrap
+    questionOfTiny: 'Q {n}/{total}', // v2.0.5 C3: only where questionOfShort would wrap too
     allShuffled: 'All Questions (shuffled)',
     answerTab: 'Answer', // v2.0.0 desktop: the right column's tab beside Similar Questions (F5)
     translate: 'Translate',
-    hideTranslation: 'Hide translation',
+    hideTranslation: 'Hide translation', // the pressed button's accessible name and tooltip
+    hideShort: 'Hide', // v2.0.5 C3: the pressed button's visible words, short so the question row keeps one line
     previous: 'Previous',
     // v1.6.1: the bottom button's words and the quick button's name (the icons are line icons, no glyph in the words)
     next: 'Next',

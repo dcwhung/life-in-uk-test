@@ -109,8 +109,15 @@ function setExamLabel(el, examNum) {
 function fitQuestionCounter() {
   const counter = document.querySelector('#qNum > span[data-full]');
   if (!counter) return;
-  counter.textContent = counter.dataset.full;
-  if (!questionRowFitsEveryState(byId('qNum'))) counter.textContent = counter.dataset.short;
+  const qNum = byId('qNum');
+  // v2.0.5 C3 (user 2026-10-13): full → short → tiny ("Q 1/24"); the first that fits every state. Where even tiny
+  // cannot, tiny stays (the stars then wrap below it; they never disappear)
+  const tiers = [counter.dataset.full, counter.dataset.short, counter.dataset.tiny || counter.dataset.short];
+  const fits = tiers.find(text => {
+    counter.textContent = text;
+    return questionRowFitsEveryState(qNum);
+  });
+  counter.textContent = fits || tiers[tiers.length - 1];
 }
 // the row's controls in each state: practice shows Translate (either label) until answered, then the quick pair;
 // an exam has the quick pair throughout (renderTranslation, renderNavButtons). Desktop css shows the pair regardless
@@ -119,9 +126,15 @@ function questionRowStates() {
   if (state.mode !== PRACTICE_MODE) return [answered];
   return [
     { yue: true, label: t('quiz.translate'), quick: false },
-    { yue: true, label: t('quiz.hideTranslation'), quick: false },
+    { yue: true, label: yueHideLabel(), quick: false },
     answered,
   ];
+}
+// C3 (user 2026-10-13): the pressed button reads the short "Hide" (quiz.hideShort) so the row keeps room for the counter;
+// its accessible name stays the full quiz.hideTranslation. A pre-v2.0.5 locale has no hideShort: the full words
+function yueHideLabel() {
+  const hideKey = 'quiz.hideShort', text = t(hideKey);
+  return text === hideKey ? t('quiz.hideTranslation') : text;
 }
 // true when the counter and stars stay on one line in every state; the controls are put back as they were before the
 // next paint (translation off keeps Translate hidden: its !important rule beats .visible)
@@ -155,14 +168,20 @@ function renderQuizHeader(q, idx, total) {
   const full = escapeHtml(t('quiz.questionOf', { n: idx + 1, total }));
   // W-057: a pre-v1.3.0 locale has no short form; t() would return the key, so the long form stays
   const shortKey = 'quiz.questionOfShort', shortText = t(shortKey, { n: idx + 1, total }), short = shortText === shortKey ? full : escapeHtml(shortText);
-  byId('qNum').innerHTML = `<span data-full="${full}" data-short="${short}">${full}</span>${starsHtml(q.d)}`;
+  // v2.0.5 C3: the third tier "Q 1/24"; a locale without it falls back to the short form
+  const tinyKey = 'quiz.questionOfTiny', tinyText = t(tinyKey, { n: idx + 1, total }), tiny = tinyText === tinyKey ? short : escapeHtml(tinyText);
+  byId('qNum').innerHTML = `<span data-full="${full}" data-short="${short}" data-tiny="${tiny}">${full}</span>${starsHtml(q.d)}`;
   byId('qText').textContent = q.q;
 }
 function renderTranslation(q, revealed, yueOn) {
   const yueToggle = byId('yueToggle');
   yueToggle.classList.toggle('visible', state.mode === PRACTICE_MODE && !revealed);
   yueToggle.classList.toggle('on', yueOn);
-  yueToggle.textContent = yueOn ? t('quiz.hideTranslation') : t('quiz.translate');
+  yueToggle.textContent = yueOn ? yueHideLabel() : t('quiz.translate');
+  // C3: the visible "Hide" is short; the name and tooltip keep the full words
+  const yueName = yueOn ? t('quiz.hideTranslation') : t('quiz.translate');
+  yueToggle.setAttribute('aria-label', yueName);
+  yueToggle.title = yueName;
   const qYue = byId('qYue');
   qYue.textContent = q.yue;
   qYue.classList.toggle('show', yueOn);

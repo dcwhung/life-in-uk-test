@@ -45,11 +45,13 @@
   font-size: var(--fs-xs); font-weight: 700; color: var(--text-muted);
   text-transform: uppercase; letter-spacing: 0.05em;
   margin-bottom: var(--space-5);
-  display: flex; align-items: center; gap: var(--space-4); min-height: 30px;
+  display: flex; align-items: center; gap: var(--space-2); min-height: 30px; /* v2.0.5 C3: tighter, for one line */
 }
 /* "Question X of Y" ★★★ ✓ n/m — the pill wraps to a second line when the row is full.
    CUI-0013: min-width 0 + white-space normal keep the quick nav inside .q-card on narrow screens if the header text ever grows */
-.q-num .q-num-text { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; column-gap: var(--space-3); row-gap: var(--space-2); white-space: normal; }
+.q-num .q-num-text { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; column-gap: var(--space-2); row-gap: var(--space-2); white-space: normal; }
+/* v2.0.5 C3 (user 2026-10-13): the counter row's stars only, at every width (beats chips.css .stars and its desktop ×1.2) */
+.q-num .stars { letter-spacing: 0; }
 .yue-toggle {
   text-transform: none; letter-spacing: 0;
   background: var(--yue-bg);
