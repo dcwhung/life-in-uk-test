@@ -241,6 +241,29 @@ async function checkSessionLatch(b) {
   assert(fellBack, 'W-082: the matrix has a session that falls back (the latch is exercised)');
 }
 
+// S-268: a phone browser's toolbar folding away while the page scrolls (the fallback) changes only the viewport's
+// height. That must not re-decide mid-session: after a fallback, 375 × 667 → 375 × 740 keeps the scrolling page, even
+// on a short card that would fit; a width change (rotation) still decides afresh
+const TOOLBAR_FOLDED = { width: 375, height: 740 };
+async function checkHeightOnlyChange(b) {
+  const { page, errors, label } = await dt.openDesktop(b, { viewport: LATCH_PHONES[0].viewport, lang: 'zh-HK', fontSize: 'large', translation: true });
+  await seedRandom(page);
+  await page.evaluate(n => { pendingMode = 'practice'; startExam(n); state.yueShown[0] = true; renderQuestion(); }, EXAM_ONE);
+  await dt.nextFrame(page);
+  assert(!(await fitState(page)).fit, `${label}: the first card with its translation falls back (precondition)`);
+  await dt.setViewport(page, TOOLBAR_FOLDED);
+  await page.evaluate(() => goToQuestion(1)); // no translation: a short card that fits 375 × 740 on its own
+  await dt.nextFrame(page);
+  const run = await modeRun(page, { showYue: false });
+  assert(!run.includes('F'), `S-268 ${TOOLBAR_FOLDED.width}×${TOOLBAR_FOLDED.height} (height only, toolbar folded): the session keeps the scrolling page (${run})`);
+  await dt.setViewport(page, dt.VIEWPORTS.phone);
+  await page.evaluate(() => goToQuestion(1));
+  await dt.nextFrame(page);
+  assert((await fitState(page)).fit, 'S-268: a width change (390 × 844) decides afresh: one screen high again');
+  assert(errors.length === 0, 'height-only change: no page errors ' + errors.join(' | '));
+  await page.close();
+}
+
 (async () => {
   const b = await dt.launch();
   let failed = false;
@@ -257,6 +280,7 @@ async function checkSessionLatch(b) {
     await checkShortPhones(b);
     await checkFallback(b);
     await checkSessionLatch(b);
+    await checkHeightOnlyChange(b);
     await checkNewQuestionTop(b);
     await checkBreakpoint(b);
     console.log('PHONE-QUIZ PASS');
