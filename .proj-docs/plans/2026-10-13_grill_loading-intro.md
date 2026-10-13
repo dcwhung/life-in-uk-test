@@ -1,0 +1,20 @@
+# Loading page + 首次介紹 — grill 記錄（2026-10-13）
+
+Mockup：`mockups/v2.2.0/intro-index.html`（入口）、`intro-a-classic.html`、`intro-b-cards.html`、`intro-c-interactive.html`；共用 `intro-shared.css` / `intro-shared.js`。狀態：**等用戶揀方案**。
+
+| # | 問題 | 決定 |
+|---|------|------|
+| Q1 | Loading 幾時出、出幾耐 | 每次開 app 都出；真 loading，等 `startApp()` 完成先收，最短顯示 `--splash-min-ms` 800ms（mock 用 2400ms 方便睇） |
+| Q2 | Loading 內容 | Logo + 名 + 隨機小貼士（只用確定事實：24 題 / 45 分鐘 / 18 題合格、四個地區、Magna Carta 1215、兩院、錯題提示） |
+| Q3 | Intro 介紹邊啲功能 | 溫習 + 記憶法、練習、模擬考試、溫習計劃 + 廣東話翻譯 |
+| Q4 | 4 組點分 3 頁 | P1 溫習；P2 練習 → 模擬考試；P3 溫習計劃 + 廣東話 + 離線 |
+| Q5 | Intro 操作 | 第 1–2 頁有「略過」；第 3 頁揀語言（中文 / EN）+ 廣東話翻譯 switch；CTA「設定溫習計劃」/「直接開始」 |
+| Q6 | 重看介紹 | 放 header ⓘ info popover（`#infoPop`）入面 |
+| Q7 | 三方案差異 | 視覺風格 + 互動都唔同（A 官方典雅 carousel / B 輕鬆疊卡 / C 互動 demo） |
+| Q8 | 交付 | HTML mockup 放 `mockups/v2.2.0/`，繁中為主可切 EN，手機 / 電腦可切 |
+
+## 實作 hook 點（揀咗方案之後 `/plan`）
+- Splash：`index.html` `<body>` 後 static overlay（JS 未行已見到）；`js/main.js` `startApp()` 尾或 `onI18nBootFailure` 收起。
+- Intro：`startApp()` `applyLanguage()` 之後檢查新 key `lifeuk.introSeen`（`getLS` / `setLS`，常數加入 `js/core/config.js`）。
+- 新檔要入 `sw.js` SHELL；新 global 要 `typeof` guard（W-057）；`js/pwa/pwa.js` 只喺 `screenHome` active 先 reload，intro 開住時要考慮。
+- `prefers-reduced-motion`、44px touch target、≥ 1024px `--desktop-scale`。

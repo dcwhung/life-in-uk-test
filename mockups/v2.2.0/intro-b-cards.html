@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>方案 B · 輕鬆卡片</title>
+<link rel="stylesheet" href="intro-shared.css">
+<style>
+  /* ══ 方案 B — Friendly: light background, card stack + mini UI illustrations ══ */
+  :root {
+    /* proposed tokens (option B): one tint per intro page */
+    --b-tint-1: var(--success-bg); --b-ink-1: var(--green);
+    --b-tint-2: var(--selected-bg); --b-ink-2: var(--navy-light);
+    --b-tint-3: var(--yue-bg); --b-ink-3: var(--purple);
+    --b-note-tape: rgba(201,168,76,0.45);
+    --b-card-tilt: -2deg;
+  }
+  .loading, .intro { background: var(--bg); color: var(--text); }
+
+  /* ── Loading ── */
+  .b-load { height: 100%; display: grid; place-content: center; justify-items: center; gap: var(--space-8); padding: var(--space-12); text-align: center; }
+  .b-logo { width: 84px; height: 84px; border-radius: 22px; box-shadow: var(--shadow-md); animation: bPop .6s var(--intro-ease) both; }
+  @keyframes bPop { from { transform: scale(.6); opacity: 0; } }
+  .b-name { font-size: var(--fs-5xl); font-weight: 800; }
+  .b-sub { font-size: var(--fs-md); color: var(--text-muted); margin-top: calc(var(--space-6) * -1); }
+  .b-dots { display: flex; gap: var(--space-3); }
+  .b-dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--gold); animation: bBounce 1s ease-in-out infinite; }
+  .b-dots i:nth-child(2) { background: var(--navy-light); animation-delay: .15s; }
+  .b-dots i:nth-child(3) { background: var(--green-light); animation-delay: .3s; }
+  @keyframes bBounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-8px); } }
+  .b-note { position: relative; width: 300px; background: var(--gold-bg); border-radius: var(--radius-xs); padding: var(--space-10) var(--space-8) var(--space-8);
+    box-shadow: var(--shadow-md); transform: rotate(var(--b-card-tilt)); text-align: left; font-size: var(--fs-md); line-height: 1.6; margin-top: var(--space-8); }
+  .b-note::before { content: ''; position: absolute; top: -10px; left: 50%; width: 80px; height: 22px; transform: translateX(-50%) rotate(3deg); background: var(--b-note-tape); }
+  .b-note b { display: block; font-size: var(--fs-sm); color: var(--orange); margin-bottom: var(--space-2); }
+
+  /* ── Intro ── */
+  .b-intro { height: 100%; display: grid; grid-template-rows: auto 1fr auto; padding: var(--space-8) var(--space-8) var(--space-12); gap: var(--space-8); }
+  .b-top { display: flex; align-items: center; gap: var(--space-6); }
+  .b-prog { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3); }
+  .b-prog i { height: 6px; border-radius: var(--radius-pill); background: var(--border); position: relative; overflow: hidden; }
+  .b-prog i::after { content: ''; position: absolute; inset: 0; background: var(--navy); transform: scaleX(0); transform-origin: left; transition: transform var(--intro-dur) var(--intro-ease); }
+  .b-prog i.on::after { transform: scaleX(1); }
+  .b-skip { min-height: 44px; padding: 0 var(--space-4); color: var(--text-muted); font-weight: 700; font-size: var(--fs-md); }
+  .b-stack { position: relative; margin-bottom: 36px; }
+  .b-foot { display: grid; }
+  .b-card { position: absolute; inset: 0; background: var(--card); border-radius: 24px; box-shadow: var(--shadow-md); display: grid; grid-template-rows: auto 1fr;
+    overflow: hidden; transition: transform var(--intro-dur) var(--intro-ease), opacity var(--intro-dur) var(--intro-ease); }
+  .b-card[data-pos="1"] { transform: translateY(22px) scale(.94); opacity: .75; }
+  .b-card[data-pos="2"] { transform: translateY(42px) scale(.88); opacity: .45; }
+  .b-card[data-pos="out"] { transform: translateX(-120%) rotate(-12deg); opacity: 0; pointer-events: none; }
+  .b-card[data-pos="hide"] { opacity: 0; pointer-events: none; }
+  .b-art { height: 250px; display: grid; place-items: center; position: relative; }
+  .b-card.p1 .b-art { background: var(--b-tint-1); --ink: var(--b-ink-1); }
+  .b-card.p2 .b-art { background: var(--b-tint-2); --ink: var(--b-ink-2); }
+  .b-card.p3 .b-art { background: var(--b-tint-3); --ink: var(--b-ink-3); }
+  .b-text { padding: var(--space-10) var(--space-10) var(--space-8); display: grid; align-content: start; gap: var(--space-5); overflow: auto; }
+  .b-kicker { justify-self: start; font-size: var(--fs-sm); font-weight: 800; padding: var(--space-1) var(--space-5); border-radius: var(--radius-pill); color: var(--card); }
+  .p1 .b-kicker { background: var(--b-ink-1); } .p2 .b-kicker { background: var(--b-ink-2); } .p3 .b-kicker { background: var(--b-ink-3); }
+  .b-title { font-size: var(--fs-6xl); font-weight: 800; line-height: 1.3; }
+  .b-body { font-size: var(--fs-md); line-height: 1.7; color: var(--text-muted); }
+  .b-list { list-style: none; display: flex; flex-wrap: wrap; gap: var(--space-3); }
+  .b-list li { font-size: var(--fs-sm); font-weight: 700; padding: var(--space-2) var(--space-5); border-radius: var(--radius-pill); background: var(--bg); }
+  .p3 .b-list { display: none; }  /* last card needs the room for the settings */
+  .b-next { min-height: 52px; border-radius: var(--radius); background: var(--navy); color: var(--text-inverse); font-weight: 800; font-size: var(--fs-lg); }
+  .b-ctas { display: grid; gap: var(--space-4); }
+  .b-ctas .b-alt { min-height: 48px; border-radius: var(--radius); background: var(--card); border: 1.5px solid var(--border); font-weight: 800; font-size: var(--fs-md); }
+  .b-ctas[hidden], .b-next[hidden] { display: none; }
+
+  /* mini UI illustrations (pure CSS, colour from --ink) */
+  .ill { position: relative; width: 230px; height: 190px; }
+  .ill .card { position: absolute; background: var(--card); border-radius: var(--radius-md); box-shadow: var(--shadow-md); padding: var(--space-5) var(--space-6); font-size: var(--fs-sm); }
+  .ill .bar { height: 7px; border-radius: var(--radius-pill); background: var(--border); margin-top: var(--space-3); }
+  .ill .bar.ink { background: var(--ink); width: 60%; }
+  .ill .emoji { position: absolute; font-size: 34px; filter: drop-shadow(var(--shadow-sm)); }
+  .ill .opt { display: flex; justify-content: space-between; border: 1.5px solid var(--border); border-radius: var(--radius-xs); padding: var(--space-2) var(--space-4); margin-top: var(--space-3); font-size: var(--fs-xs); }
+  .ill .opt.ok { border-color: var(--green-light); background: var(--success-bg); color: var(--green); font-weight: 800; }
+  .ill .ring { width: 74px; height: 74px; border-radius: 50%; background: conic-gradient(var(--ink) 0 65%, var(--border) 65% 100%); display: grid; place-items: center; }
+  .ill .ring b { width: 56px; height: 56px; border-radius: 50%; background: var(--card); display: grid; place-items: center; font-size: var(--fs-md); }
+  .ill .bubble { position: absolute; background: var(--ink); color: var(--card); border-radius: 16px 16px 16px 4px; padding: var(--space-3) var(--space-6); font-weight: 800; font-size: var(--fs-md); box-shadow: var(--shadow-md); }
+  .float { animation: bFloat 3s ease-in-out infinite; }
+  @keyframes bFloat { 50% { transform: translateY(-6px); } }
+
+  /* last-page settings */
+  .set { display: grid; gap: var(--space-3); }
+  .set-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-5); min-height: 44px; font-size: var(--fs-md); }
+  .set-row small { display: block; font-size: var(--fs-xs); color: var(--text-muted); }
+  .set-seg { display: inline-flex; background: var(--bg); border-radius: var(--radius-pill); padding: var(--space-1); }
+  .set-seg button { min-width: 56px; min-height: 34px; border-radius: var(--radius-pill); font-weight: 700; color: var(--text-muted); }
+  .set-seg button[aria-pressed="true"] { background: var(--card); color: var(--navy); box-shadow: var(--shadow-sm); }
+  .set-hint { font-size: var(--fs-xs); color: var(--text-muted); }
+  .b-card.p3 .b-art { height: 150px; }
+  .b-card.p3 .b-text { gap: var(--space-4); padding-top: var(--space-8); }
+
+  /* ── PC ── */
+  .is-pc .b-load { grid-template-columns: auto auto; column-gap: 64px; align-items: center; text-align: left; justify-items: start; }
+  .is-pc .b-load > :not(.b-note) { grid-column: 1; }
+  .is-pc .b-load .b-note { grid-column: 2; grid-row: 1 / span 4; margin: 0; width: 340px; }
+  .is-pc .b-sub { margin-top: 0; }
+  .is-pc .b-intro { width: 960px; justify-self: center; padding: 40px 0 48px; }
+  .is-pc .b-card { grid-template-rows: none; grid-template-columns: 1fr 1fr; }
+  .is-pc .b-art, .is-pc .b-card.p3 .b-art { height: auto; }
+  .is-pc .ill { transform: scale(1.3); }
+  .is-pc .b-text { padding: 48px 40px; align-content: center; }
+  .is-pc .b-title { font-size: var(--fs-display-sm); }
+  .is-pc .b-body { font-size: var(--fs-lg); }
+  .is-pc .b-foot { display: flex; justify-content: flex-end; }
+  .is-pc .b-next { padding: 0 48px; }
+  .is-pc .b-ctas { grid-auto-flow: column; justify-content: end; }
+  .is-pc .b-ctas button { padding: 0 32px; }
+</style>
+</head>
+<body>
+<script src="intro-shared.js"></script>
+<script>
+(() => {
+  const PAGE_COUNT = 3;
+  let page = 0;
+
+  function renderLoading(root, { c, logo }) {
+    const tips = c.tips;
+    let i = Math.floor(Math.random() * tips.length);
+    root.innerHTML = `<div class="b-load"><img class="b-logo" src="${logo}" alt="">
+      <div class="b-name">${c.appTitle}</div><div class="b-sub">${c.appSub}</div>
+      <div class="b-dots" role="progressbar" aria-label="${c.loading}"><i></i><i></i><i></i></div>
+      <div class="b-note"><b>📌 ${c.tipLabel}</b><span>${tips[i]}</span></div></div>`;
+  }
+
+  // mini UI scenes (illustrations made of app-like parts)
+  function art(i, c) {
+    const d = c.demo;
+    if (i === 0) return `<div class="ill">
+      <div class="card float" style="left:0;top:18px;width:170px"><b>📖 Ch 2</b><div class="bar"></div><div class="bar"></div><div class="bar ink"></div></div>
+      <div class="card" style="right:0;top:92px;width:150px;transform:rotate(4deg)"><b>🧠 Lv3</b><div class="bar ink" style="width:75%"></div></div>
+      <span class="emoji" style="left:150px;top:0">💡</span></div>`;
+    if (i === 1) return `<div class="ill">
+      <div class="card" style="left:6px;top:0;width:190px"><b style="font-size:11px">${d.q}</b>
+        <div class="opt">${d.opts[0]}</div><div class="opt ok">${d.opts[1]} <span>✓</span></div><div class="opt">${d.opts[2]}</div></div>
+      <span class="emoji float" style="right:0;bottom:0">🎯</span></div>`;
+    return `<div class="ill" style="height:120px">
+      <div class="ring" style="position:absolute;left:24px;top:20px"><b>65%</b></div>
+      <div class="bubble float" style="right:10px;top:4px">粵</div>
+      <span class="emoji" style="right:56px;bottom:-4px;font-size:28px">🗓️</span></div>`;
+  }
+
+  function cardHtml(p, i, x) {
+    const last = i === PAGE_COUNT - 1;
+    return `<article class="b-card p${i + 1}" data-i="${i}">
+      <div class="b-art">${art(i, x.c)}</div>
+      <div class="b-text"><span class="b-kicker">${p.kicker}</span><h2 class="b-title">${p.title}</h2>
+        <p class="b-body">${p.body}</p>
+        <ul class="b-list">${p.chips.map((ch) => `<li>✓ ${ch}</li>`).join('')}</ul>${last ? Mock.settingsBlock(x.c) : ''}</div></article>`;
+  }
+
+  function renderIntro(root, x) {
+    const { c } = x;
+    root.innerHTML = `<div class="b-intro">
+      <div class="b-top"><div class="b-prog">${c.pages.map(() => '<i></i>').join('')}</div>
+        <button class="b-skip" data-b="skip">${c.skip}</button></div>
+      <div class="b-stack">${c.pages.map((p, i) => cardHtml(p, i, x)).join('')}</div>
+      <div class="b-foot"><button class="b-next" data-b="next">${c.next} →</button>
+        <div class="b-ctas"><button class="b-alt" data-b="start">${c.start}</button>
+          <button class="b-next" data-b="plan">🗓️ ${c.setupPlan}</button></div></div></div>`;
+    const go = (n) => { page = Math.max(0, Math.min(PAGE_COUNT - 1, n)); sync(root); };
+    root.onclick = (e) => {
+      const b = e.target.closest('[data-b]');
+      if (!b) return;
+      const a = b.dataset.b;
+      if (a === 'next') go(page + 1);
+      if (a === 'skip' || a === 'start' || a === 'plan') { page = 0; x.finish(a); }
+    };
+    Mock.onSwipe(root.querySelector('.b-stack'), (d) => go(page + d));
+    Mock.onKeys((d) => go(page + d));
+    Mock.bindSettings(root, () => Mock.showIntro());
+    sync(root);
+  }
+
+  function sync(root) {
+    const last = page === PAGE_COUNT - 1;
+    root.querySelectorAll('.b-card').forEach((card, i) => {
+      const rel = i - page;
+      card.dataset.pos = rel < 0 ? 'out' : rel > 2 ? 'hide' : String(rel);
+      card.style.zIndex = String(PAGE_COUNT - rel);
+      card.setAttribute('aria-hidden', String(rel !== 0));
+    });
+    root.querySelectorAll('.b-prog i').forEach((s, i) => s.classList.toggle('on', i <= page));
+    root.querySelector('.b-foot > .b-next').hidden = last;
+    root.querySelector('.b-ctas').hidden = !last;
+    root.querySelector('.b-skip').style.visibility = last ? 'hidden' : 'visible';
+  }
+
+  Mock.init({
+    name: '方案 B · 輕鬆卡片 Friendly',
+    renderLoading, renderIntro,
+    notes: `
+      <div class="note"><h3>概念</h3><ul>
+        <li>淺色 <code>--bg</code> 底，同主頁一樣嘅白卡 + 圓角，由 intro 過渡到主頁最順。</li>
+        <li>Loading：logo 彈出 + 三色跳點 + 「便利貼」小貼士（微斜 + 膠紙）。</li>
+        <li>Intro：疊卡（card stack），每頁一個淡色主題（綠 / 藍 / 紫）＋用 app 真實 UI 砌嘅迷你插畫（事實卡、選項 ✓、進度環、粵字泡泡）。</li></ul></div>
+      <div class="note"><h3>互動</h3><ul>
+        <li>撳「下一步 →」或向左 swipe，前一張卡斜飛走，後面兩張卡浮上。</li>
+        <li>頂部 3 段進度條取代 dots，一眼知仲有幾多頁。</li>
+        <li>電腦：卡片變左圖右文兩欄（960px），按鈕靠右。</li>
+        <li>第 3 頁：語言 + 粵語 switch；主 CTA「設定溫習計劃」、副 CTA「直接開始」。</li></ul></div>
+      <div class="note"><h3>優缺點</h3><ul>
+        <li>✅ 最親切、最似「app 導覽」，插畫用 CSS 砌，唔使額外圖檔（離線 OK）。</li>
+        <li>⚠️ 插畫要隨 UI 改版同步維護；冇「返上一頁」按鈕（可 swipe 右返）。</li>
+        <li>新 token：<code>--b-tint-1..3</code> <code>--b-ink-1..3</code> <code>--b-note-tape</code> <code>--b-card-tilt</code>。</li></ul></div>`,
+  });
+})();
+</script>
+</body>
+</html>

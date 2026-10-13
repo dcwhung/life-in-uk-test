@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>方案 A · 官方典雅</title>
+<link rel="stylesheet" href="intro-shared.css">
+<style>
+  /* ══ 方案 A — Classic: navy + gold, full-screen carousel ══ */
+  :root {
+    /* proposed tokens (option A) */
+    --a-glow: radial-gradient(120% 80% at 50% 0%, var(--navy-light) 0%, var(--navy) 62%);
+    --a-hairline: rgba(201,168,76,0.35);
+    --a-glass: rgba(255,255,255,0.06);
+    --a-logo-size: 96px;
+    --a-hero-size: 132px;
+  }
+  .loading, .intro { background: var(--a-glow); color: var(--text-inverse); }
+
+  /* ── Loading ── */
+  .a-load { height: 100%; display: grid; grid-template-rows: 1fr auto auto; justify-items: center; padding: var(--space-12); text-align: center; }
+  .a-brand { align-self: center; display: grid; justify-items: center; gap: var(--space-6); }
+  .a-logo { width: var(--a-logo-size); height: var(--a-logo-size); border-radius: 24px; box-shadow: 0 0 0 6px var(--a-glass), 0 12px 40px rgba(0,0,0,0.35);
+    animation: aPulse 2.4s ease-in-out infinite; }
+  @keyframes aPulse { 50% { transform: scale(1.04); box-shadow: 0 0 0 12px var(--a-glass), 0 12px 40px rgba(0,0,0,0.35); } }
+  .a-name { font-size: var(--fs-6xl); font-weight: 800; letter-spacing: .01em; }
+  .a-sub { font-size: var(--fs-md); color: var(--gold-light); letter-spacing: .3em; }
+  .a-line { width: 140px; height: 2px; background: var(--a-hairline); border-radius: var(--radius-pill); overflow: hidden; margin-top: var(--space-4); }
+  .a-line i { display: block; width: 40%; height: 100%; background: var(--gold); animation: aSlide 1.2s var(--intro-ease) infinite; }
+  @keyframes aSlide { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+  .a-tip { max-width: 420px; width: 100%; background: var(--a-glass); border: 1px solid var(--a-hairline); border-radius: var(--radius);
+    padding: var(--space-7) var(--space-8); text-align: left; font-size: var(--fs-md); line-height: 1.6; color: var(--text-inverse-strong); }
+  .a-tip b { display: block; font-size: var(--fs-xs); letter-spacing: .14em; color: var(--gold); margin-bottom: var(--space-2); }
+  .a-ver { margin-top: var(--space-8); font-size: var(--fs-xs); color: var(--text-inverse-faint); }
+
+  /* ── Intro ── */
+  .a-intro { height: 100%; display: grid; grid-template-rows: auto 1fr auto; }
+  .a-top { display: flex; justify-content: space-between; align-items: center; padding: var(--space-8) var(--space-10); font-size: var(--fs-sm); }
+  .a-count { color: var(--gold-light); letter-spacing: .12em; font-weight: 700; }
+  .a-skip { color: var(--text-inverse-strong); min-height: 44px; padding: 0 var(--space-4); }
+  .a-viewport { overflow: hidden; position: relative; touch-action: pan-y; }
+  .a-track { display: flex; height: 100%; transition: transform var(--intro-dur) var(--intro-ease); }
+  .a-page { flex: 0 0 100%; display: grid; align-content: center; justify-items: center; gap: var(--space-6); padding: 0 var(--space-12); text-align: center; overflow: auto; }
+  .a-hero { width: var(--a-hero-size); height: var(--a-hero-size); border-radius: 50%; display: grid; place-items: center; color: var(--gold);
+    border: 1.5px solid var(--a-hairline); box-shadow: inset 0 0 0 12px var(--a-glass); margin-bottom: var(--space-4); }
+  .a-hero svg { width: 56px; height: 56px; }
+  .a-kicker { font-size: var(--fs-sm); color: var(--gold); letter-spacing: .2em; font-weight: 700; }
+  .a-title { font-size: var(--fs-7xl); font-weight: 800; line-height: 1.3; }
+  .a-body { font-size: var(--fs-lg); line-height: 1.7; color: var(--text-inverse-strong); max-width: 520px; }
+  .a-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-3); }
+  .a-chips span { font-size: var(--fs-sm); padding: var(--space-2) var(--space-5); border-radius: var(--radius-pill); border: 1px solid var(--a-hairline); color: var(--gold-light); }
+  .a-bottom { display: grid; gap: var(--space-8); padding: var(--space-8) var(--space-10) var(--space-12); }
+  .a-dots { display: flex; justify-content: center; gap: var(--space-4); }
+  .a-dots button { width: 8px; height: 8px; border-radius: var(--radius-pill); background: var(--text-inverse-faint); transition: width var(--intro-dur) var(--intro-ease), background .2s; }
+  .a-dots button[aria-current="true"] { width: 28px; background: var(--gold); }
+  .a-actions { display: flex; gap: var(--space-5); }
+  .a-btn { flex: 1; min-height: 50px; border-radius: var(--radius-md); font-weight: 800; font-size: var(--fs-lg); }
+  .a-btn.gold { background: var(--gold); color: var(--navy); }
+  .a-btn.line { border: 1.5px solid var(--text-inverse-faint); color: var(--text-inverse); }
+  .a-btn.ghost { flex: 0 0 auto; padding: 0 var(--space-6); color: var(--text-inverse-strong); }
+  .a-btn[hidden] { display: none; }
+  .a-arrow { display: none; }
+
+  /* last page settings */
+  .set { width: 100%; max-width: 420px; display: grid; gap: var(--space-4); background: var(--a-glass); border: 1px solid var(--a-hairline);
+    border-radius: var(--radius); padding: var(--space-6) var(--space-8); text-align: left; }
+  .set-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-6); min-height: 44px; font-size: var(--fs-md); }
+  .set-row small { display: block; font-size: var(--fs-xs); color: var(--text-inverse-soft); }
+  .set-seg { display: inline-flex; border: 1px solid var(--a-hairline); border-radius: var(--radius-pill); padding: var(--space-1); }
+  .set-seg button { min-width: 56px; min-height: 34px; border-radius: var(--radius-pill); font-weight: 700; color: var(--text-inverse-strong); }
+  .set-seg button[aria-pressed="true"] { background: var(--gold); color: var(--navy); }
+  .set .sw { background: var(--text-inverse-faint); }
+  .set .sw[aria-checked="true"] { background: var(--green-light); }
+  .set-hint { font-size: var(--fs-xs); color: var(--text-inverse-faint); }
+  .a-page.last { gap: var(--space-5); }
+  .a-page.last .a-hero { --a-hero-size: 88px; margin-bottom: 0; }
+  .a-page.last .a-hero svg { width: 40px; height: 40px; }
+
+  /* ── PC (≥ 1024px in the real app) ── */
+  .is-pc .a-load { padding: var(--space-12) 0 32px; }
+  .is-pc .a-logo { --a-logo-size: 120px; }
+  .is-pc .a-name { font-size: var(--fs-display-sm); }
+  .is-pc .a-intro { grid-template-rows: auto 1fr auto; }
+  .is-pc .a-top { padding: var(--space-10) 48px; width: 100%; }
+  .is-pc .a-intro { position: relative; }
+  .is-pc .a-viewport { width: 780px; justify-self: center; position: static; }  /* arrows sit on the frame edges, outside the 780px column */
+  .is-pc .a-page { grid-template-columns: auto 1fr; justify-items: start; text-align: left; column-gap: 40px; padding: 0 var(--space-10); }
+  .is-pc .a-page > .a-hero { grid-row: span 5; align-self: center; --a-hero-size: 180px; }
+  .is-pc .a-page > .a-hero svg { width: 76px; height: 76px; }
+  .is-pc .a-chips { justify-content: flex-start; }
+  .is-pc .a-page.last { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+  .is-pc .a-page.last > .a-hero { grid-row: auto; }
+  .is-pc .a-bottom { width: 780px; justify-self: center; padding: var(--space-8) var(--space-10) 48px; grid-template-columns: 1fr auto; align-items: center; }
+  .is-pc .a-dots { justify-content: flex-start; }
+  .is-pc .a-actions .a-btn { flex: 0 0 auto; padding: 0 32px; }
+  .is-pc .a-arrow { display: grid; place-items: center; position: absolute; top: 50%; width: 52px; height: 52px; border-radius: 50%;
+    border: 1.5px solid var(--a-hairline); color: var(--gold); transform: translateY(-50%); }
+  .is-pc .a-arrow svg { width: 22px; height: 22px; }
+  .is-pc .a-arrow.l { left: 48px; } .is-pc .a-arrow.r { right: 48px; }
+  .is-pc .a-arrow[disabled] { opacity: .25; cursor: default; }
+</style>
+</head>
+<body>
+<script src="intro-shared.js"></script>
+<script>
+(() => {
+  const PAGE_COUNT = 3;
+  let page = 0;
+
+  function renderLoading(root, { c, logo, version, randomTip }) {
+    root.innerHTML = `<div class="a-load">
+      <div class="a-brand"><img class="a-logo" src="${logo}" alt=""><div class="a-name">${c.appTitle}</div>
+        <div class="a-sub">${c.appSub}</div><div class="a-line" role="progressbar" aria-label="${c.loading}"><i></i></div></div>
+      <div class="a-tip"><b>💡 ${c.tipLabel}</b>${randomTip()}</div>
+      <div class="a-ver">${version}</div></div>`;
+  }
+
+  function pageHtml(p, i, x) {
+    const last = i === PAGE_COUNT - 1;
+    return `<section class="a-page ${last ? 'last' : ''}" aria-hidden="${i !== page}">
+      <div class="a-hero">${x.icon(x.pageIcons[i])}</div>
+      <div class="a-kicker">${p.kicker}</div><h2 class="a-title">${p.title}</h2>
+      <p class="a-body">${p.body}</p>
+      <div class="a-chips">${p.chips.map((ch) => `<span>${ch}</span>`).join('')}</div>
+      ${last ? Mock.settingsBlock(x.c) : ''}</section>`;
+  }
+
+  function renderIntro(root, x) {
+    const { c } = x;
+    root.innerHTML = `<div class="a-intro">
+      <div class="a-top"><span class="a-count"></span><button class="a-skip" data-a="skip">${c.skip}</button></div>
+      <div class="a-viewport">
+        <div class="a-track">${c.pages.map((p, i) => pageHtml(p, i, x)).join('')}</div>
+        <button class="a-arrow l" data-a="prev" aria-label="${c.back}">${x.icon('arrowL')}</button>
+        <button class="a-arrow r" data-a="next" aria-label="${c.next}">${x.icon('arrowR')}</button>
+      </div>
+      <div class="a-bottom">
+        <div class="a-dots">${c.pages.map((_, i) => `<button data-a="go" data-i="${i}" aria-label="${i + 1}"></button>`).join('')}</div>
+        <div class="a-actions">
+          <button class="a-btn ghost" data-a="prev">${c.back}</button>
+          <button class="a-btn gold" data-a="next">${c.next}</button>
+          <button class="a-btn line" data-a="start">${c.start}</button>
+          <button class="a-btn gold" data-a="plan">${c.setupPlan}</button>
+        </div></div></div>`;
+    const go = (n) => { page = Math.max(0, Math.min(PAGE_COUNT - 1, n)); sync(root, x); };
+    root.onclick = (e) => {
+      const b = e.target.closest('[data-a]');
+      if (!b) return;
+      const a = b.dataset.a;
+      if (a === 'next') go(page + 1);
+      if (a === 'prev') go(page - 1);
+      if (a === 'go') go(Number(b.dataset.i));
+      if (a === 'skip' || a === 'start' || a === 'plan') { const choice = a; page = 0; x.finish(choice); }
+    };
+    Mock.onSwipe(root.querySelector('.a-viewport'), (d) => go(page + d));
+    Mock.onKeys((d) => go(page + d));
+    Mock.bindSettings(root, () => Mock.showIntro());
+    sync(root, x);
+  }
+
+  function sync(root, { c, fmt }) {
+    const last = page === PAGE_COUNT - 1;
+    root.querySelector('.a-track').style.transform = `translateX(-${page * 100}%)`;
+    root.querySelector('.a-count').textContent = fmt(c.step, { n: page + 1 });
+    root.querySelectorAll('.a-dots button').forEach((d, i) => d.setAttribute('aria-current', String(i === page)));
+    root.querySelectorAll('.a-page').forEach((p, i) => p.setAttribute('aria-hidden', String(i !== page)));
+    const vis = { prev: page > 0 && !last, next: !last, start: last, plan: last };
+    root.querySelectorAll('.a-actions [data-a]').forEach((b) => { b.hidden = !vis[b.dataset.a]; });
+    root.querySelector('.a-arrow.l').disabled = page === 0;
+    root.querySelector('.a-arrow.r').disabled = last;
+    root.querySelector('.a-skip').style.visibility = last ? 'hidden' : 'visible';
+  }
+
+  Mock.init({
+    name: '方案 A · 官方典雅 Classic',
+    renderLoading, renderIntro,
+    notes: `
+      <div class="note"><h3>概念</h3><ul>
+        <li>全 navy 漸層 + gold 細線，延續 header / manifest <code>#1a2744</code>，開 app 由 splash 到 intro 色調一致，感覺似官方手冊。</li>
+        <li>Loading：logo 輕微呼吸 + gold 細進度線（indeterminate）+ 一條隨機小貼士。</li>
+        <li>Intro：全屏 carousel，大 line icon 做主視覺。</li></ul></div>
+      <div class="note"><h3>互動</h3><ul>
+        <li>手機：左右 swipe / dots / 「下一步」；第 1 頁冇「上一步」。</li>
+        <li>電腦：兩邊圓形箭咀 + 鍵盤 ← →；icon 左、文字右。</li>
+        <li>第 3 頁：揀語言（即時切換）+ 廣東話翻譯 switch，CTA「設定溫習計劃」/「直接開始」；「略過」只喺第 1–2 頁。</li>
+        <li>完成 / 略過 → 主頁，ⓘ popover 新增「重看介紹」。</li></ul></div>
+      <div class="note"><h3>優缺點</h3><ul>
+        <li>✅ 最貼現有品牌、實作最簡單（純 CSS transform）。</li>
+        <li>⚠️ 三頁結構相同，比較「正經」，記憶點較弱。</li>
+        <li>新 token：<code>--a-glow</code> <code>--a-hairline</code> <code>--a-glass</code> <code>--a-logo-size</code> <code>--a-hero-size</code>。</li></ul></div>`,
+  });
+})();
+</script>
+</body>
+</html>

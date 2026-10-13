@@ -160,6 +160,7 @@
 
 ## Plans
 
+- [2026-10-13_grill_loading-intro.md](plans/2026-10-13_grill_loading-intro.md) — Loading page + 首次 3 頁介紹 grill（Q1–Q8）+ 三個 mockup 方案 `mockups/v2.2.0/intro-*.html`（A 官方典雅 / B 輕鬆卡片 / C 互動示範），等用戶揀
 - [2026-10-12_handoff_memo-followup-apply.md](plans/2026-10-12_handoff_memo-followup-apply.md) + [2026-10-12_memo-followup-spec.json](plans/2026-10-12_memo-followup-spec.json) — 記憶法跟進（67 題 note、#126 併入 #125 + migration）；v1.3.2 已套用（#125 d 用 5，見 HANDOFF v1.3.2）；review 過程喺 branch `claude/relaxed-hamilton-3x7vm6`
 - [2026-10-12_handoff_desktop-layout.md](plans/2026-10-12_handoff_desktop-layout.md) — v2.0.0 desktop / 平板橫版 layout 開發 handoff：12 份 mockup 定案總表、功能改動 F1–F8、自動適配規則、實作建議、測試、開放問題 O1–O3（下個 session 由 `/plan` 開始）
 - [2026-10-12_grill_desktop-layout.md](plans/2026-10-12_grill_desktop-layout.md) — v2.0.0 desktop / 平板橫版 layout grill（Q1–Q11：≥ 1024px、最闊 1280px、token ×1.2、大字 (基礎+2)×1.2、12 份 mockup 跟 user flow、全部 approve 後一個 PR）+ mockup 進度表；mockup `mockups/v2.0.0/desktop-*.html`（12 份全部定案）

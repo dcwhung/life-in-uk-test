@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>方案 C · 互動示範</title>
+<link rel="stylesheet" href="intro-shared.css">
+<style>
+  /* ══ 方案 C — Live demo: deep navy, stepper, a playable mini demo per page ══ */
+  :root {
+    /* proposed tokens (option C) */
+    --c-deep: #111a30;                 /* darker than --navy for the stage */
+    --c-panel: var(--navy-mid);
+    --c-line: rgba(255,255,255,0.12);
+    --c-flip-dur: 520ms;
+  }
+  .loading, .intro { background: var(--c-deep); color: var(--text-inverse); }
+
+  /* ── Loading ── */
+  .c-load { height: 100%; display: grid; grid-template-rows: auto 1fr auto; padding: var(--space-12); }
+  .c-brand { display: flex; align-items: center; gap: var(--space-5); }
+  .c-brand img { width: 44px; height: 44px; border-radius: var(--radius-md); }
+  .c-brand b { font-size: var(--fs-lg); } .c-brand small { display: block; color: var(--gold-light); font-size: var(--fs-xs); }
+  .c-say { align-self: center; display: grid; gap: var(--space-6); }
+  .c-say b { font-size: var(--fs-sm); color: var(--gold); letter-spacing: .2em; }
+  .c-type { font-size: var(--fs-6xl); font-weight: 800; line-height: 1.45; min-height: 5.8em; }
+  .c-type::after { content: '▍'; color: var(--gold); animation: cBlink 1s steps(1) infinite; }
+  @keyframes cBlink { 50% { opacity: 0; } }
+  .c-meter { display: grid; gap: var(--space-3); font-size: var(--fs-xs); color: var(--text-inverse-soft); }
+  .c-meter i { display: block; height: 4px; border-radius: var(--radius-pill); background: var(--c-line); overflow: hidden; }
+  .c-meter i::after { content: ''; display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--gold), var(--gold-light)); animation: cFill 2.3s var(--intro-ease) forwards; }
+  @keyframes cFill { to { width: 100%; } }
+
+  /* ── Intro ── */
+  .c-intro { height: 100%; display: grid; grid-template-rows: auto 1fr auto; }
+  .c-top { display: flex; align-items: center; gap: var(--space-6); padding: var(--space-8) var(--space-8) 0; }
+  .c-steps { flex: 1; display: flex; align-items: center; gap: var(--space-3); list-style: none; }
+  .c-steps li { display: flex; align-items: center; gap: var(--space-3); font-size: var(--fs-xs); color: var(--text-inverse-faint); flex: 1; }
+  .c-steps li span { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid currentColor; display: grid; place-items: center; font-weight: 800; flex: none; }
+  .c-steps li em { font-style: normal; display: none; }
+  .c-steps li::after { content: ''; flex: 1; height: 1.5px; background: var(--c-line); }
+  .c-steps li:last-child { flex: 0 0 auto; } .c-steps li:last-child::after { display: none; }
+  .c-steps li.now { color: var(--gold); } .c-steps li.now em { display: inline; }
+  .c-steps li.done { color: var(--green-light); }
+  .c-steps li.done span { background: var(--green-light); color: var(--c-deep); border-color: var(--green-light); }
+  .c-skip { min-height: 44px; padding: 0 var(--space-3); color: var(--text-inverse-soft); font-size: var(--fs-sm); }
+  .c-main { overflow: auto; padding: var(--space-10) var(--space-10) 0; display: grid; align-content: start; gap: var(--space-6); }
+  .c-head h2 { font-size: var(--fs-6xl); font-weight: 800; line-height: 1.3; margin: var(--space-2) 0 var(--space-4); }
+  .c-head .k { font-size: var(--fs-sm); color: var(--gold); letter-spacing: .14em; font-weight: 700; }
+  .c-head p { font-size: var(--fs-md); line-height: 1.65; color: var(--text-inverse-strong); }
+  .c-demo { background: var(--c-panel); border: 1px solid var(--c-line); border-radius: var(--radius); padding: var(--space-8); display: grid; gap: var(--space-5); }
+  .c-demo-tag { justify-self: start; font-size: var(--fs-xs); font-weight: 800; color: var(--c-deep); background: var(--gold-light); padding: var(--space-1) var(--space-4); border-radius: var(--radius-pill); }
+  .c-foot { padding: var(--space-8) var(--space-10) var(--space-12); display: grid; gap: var(--space-4); }
+  .c-btn { min-height: 52px; border-radius: var(--radius-md); font-weight: 800; font-size: var(--fs-lg); background: var(--c-line); color: var(--text-inverse); transition: background .25s, color .25s; }
+  .c-btn.ready { background: var(--gold); color: var(--navy); }
+  .c-btn.line { background: none; border: 1.5px solid var(--text-inverse-faint); }
+  .c-btn[hidden] { display: none; }
+  .c-back { justify-self: center; min-height: 36px; color: var(--text-inverse-soft); font-size: var(--fs-sm); }
+  .c-back[hidden] { display: none; }
+
+  /* demo 1: flip card */
+  .flip { perspective: 900px; height: 150px; cursor: pointer; }
+  .flip-in { position: relative; height: 100%; transition: transform var(--c-flip-dur) var(--intro-ease); transform-style: preserve-3d; }
+  .flip.on .flip-in { transform: rotateY(180deg); }
+  .flip-f, .flip-b { position: absolute; inset: 0; border-radius: var(--radius-md); backface-visibility: hidden; display: grid; place-content: center; text-align: center; padding: var(--space-8); gap: var(--space-3); }
+  .flip-f { background: var(--card); color: var(--text); font-size: var(--fs-xl); font-weight: 800; }
+  .flip-f small { font-size: var(--fs-xs); color: var(--text-muted); font-weight: 400; }
+  .flip-b { background: var(--success-bg); color: var(--green); transform: rotateY(180deg); font-size: var(--fs-display-sm); font-weight: 800; }
+  .lv { justify-self: start; font-size: var(--fs-sm); font-weight: 800; color: var(--green-light); opacity: 0; transform: translateY(6px); transition: .3s var(--intro-ease); }
+  .lv.on { opacity: 1; transform: none; }
+
+  /* demo 2: answer a question */
+  .q { font-size: var(--fs-lg); font-weight: 800; }
+  .q-yue { font-size: var(--fs-sm); color: var(--purple-light); margin-top: calc(var(--space-3) * -1); }
+  .opts { display: grid; gap: var(--space-3); }
+  .opts button { min-height: 44px; text-align: left; padding: 0 var(--space-6); border-radius: var(--radius-sm); background: var(--card); color: var(--text); font-weight: 700; font-size: var(--fs-md); border: 2px solid transparent; }
+  .opts button.ok { border-color: var(--green-light); background: var(--success-bg); color: var(--green); }
+  .opts button.bad { border-color: var(--red-light); background: var(--danger-bg); color: var(--red); }
+  .opts[data-done] button { pointer-events: none; }
+  .fb { font-size: var(--fs-sm); font-weight: 800; min-height: 1.4em; }
+  .fb.ok { color: var(--green-light); } .fb.bad { color: var(--red-light); }
+  .exam-chip { justify-self: start; font-size: var(--fs-sm); color: var(--gold-light); border: 1px solid var(--c-line); border-radius: var(--radius-pill); padding: var(--space-2) var(--space-6); font-variant-numeric: tabular-nums; }
+
+  /* demo 3: Cantonese toggle + plan ring */
+  .yue-row { display: flex; align-items: center; gap: var(--space-6); }
+  .yue-card { flex: 1; background: var(--card); color: var(--text); border-radius: var(--radius-sm); padding: var(--space-6); font-size: var(--fs-md); font-weight: 700; }
+  .yue-card .tr { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .3s var(--intro-ease); }
+  .yue-card .tr > span { overflow: hidden; color: var(--purple); font-weight: 400; }
+  .yue-card.on .tr { grid-template-rows: 1fr; }
+  .yue-card.on .tr > span { padding-top: var(--space-3); }
+  .yue-btn { width: 52px; height: 52px; border-radius: 50%; background: var(--c-line); color: var(--text-inverse); font-weight: 800; font-size: var(--fs-xl); flex: none; }
+  .yue-btn[aria-pressed="true"] { background: var(--purple-light); }
+  .ring-row { display: flex; align-items: center; gap: var(--space-6); font-size: var(--fs-sm); color: var(--text-inverse-strong); }
+  .ring { --p: 0; width: 56px; height: 56px; border-radius: 50%; background: conic-gradient(var(--green-light) calc(var(--p) * 1%), var(--c-line) 0); display: grid; place-items: center; flex: none; transition: --p 1s; }
+  .ring b { width: 42px; height: 42px; border-radius: 50%; background: var(--c-panel); display: grid; place-items: center; font-size: var(--fs-sm); }
+  .set { display: grid; gap: var(--space-3); border-top: 1px solid var(--c-line); padding-top: var(--space-5); }
+  .set-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-5); min-height: 44px; font-size: var(--fs-md); }
+  .set-row small { display: block; font-size: var(--fs-xs); color: var(--text-inverse-soft); }
+  .set-seg { display: inline-flex; border: 1px solid var(--c-line); border-radius: var(--radius-pill); padding: var(--space-1); }
+  .set-seg button { min-width: 56px; min-height: 34px; border-radius: var(--radius-pill); font-weight: 700; color: var(--text-inverse-strong); }
+  .set-seg button[aria-pressed="true"] { background: var(--gold); color: var(--navy); }
+  .set .sw { background: var(--c-line); }
+  .set .sw[aria-checked="true"] { background: var(--green-light); }
+  .set-hint { font-size: var(--fs-xs); color: var(--text-inverse-faint); }
+
+  /* ── PC: left vertical stepper, right title + demo side by side ── */
+  .is-pc .c-load { padding: 48px 80px; }
+  .is-pc .c-type { font-size: var(--fs-display-sm); max-width: 900px; min-height: 4.4em; }
+  .is-pc .c-intro { grid-template-columns: 300px 1fr; grid-template-rows: 1fr auto; }
+  .is-pc .c-top { grid-row: 1 / span 2; flex-direction: column; align-items: stretch; justify-content: space-between; background: var(--navy); padding: 40px var(--space-12); }
+  .is-pc .c-steps { flex: 0 0 auto; flex-direction: column; align-items: stretch; gap: 0; }
+  .is-pc .c-steps li { flex-wrap: wrap; font-size: var(--fs-md); padding: var(--space-6) 0; gap: var(--space-5); }
+  .is-pc .c-steps li em { display: inline; }
+  .is-pc .c-steps li::after { display: none; }
+  .is-pc .c-steps li span { width: 32px; height: 32px; }
+  .is-pc .c-skip { align-self: flex-start; }
+  .is-pc .c-main { grid-template-columns: 1fr 1fr; align-content: center; gap: 48px; padding: 48px 64px 0; }
+  .is-pc .c-head h2 { font-size: var(--fs-display-sm); }
+  .is-pc .c-head p { font-size: var(--fs-lg); }
+  .is-pc .c-foot { grid-column: 2; display: flex; justify-content: flex-end; align-items: center; padding: var(--space-12) 64px 48px; }
+  .is-pc .c-btn { padding: 0 40px; }
+  .is-pc .c-back { order: -1; margin-right: auto; }
+</style>
+</head>
+<body>
+<script src="intro-shared.js"></script>
+<script>
+(() => {
+  const PAGE_COUNT = 3;
+  const TYPE_MS = 28;
+  const RING_TARGET_PCT = 35;
+  const EXAM_SECONDS = 45 * 60;
+  const SECOND_MS = 1000;
+  let page = 0;
+  let tried = [false, false, false];
+
+  function renderLoading(root, x) {
+    const { c, logo } = x;
+    const tip = x.randomTip();
+    root.innerHTML = `<div class="c-load">
+      <div class="c-brand"><img src="${logo}" alt=""><div><b>${c.appTitle}</b><small>${c.appSub}</small></div></div>
+      <div class="c-say"><b>💡 ${c.tipLabel}</b><div class="c-type" aria-label="${tip}"></div></div>
+      <div class="c-meter"><span>${c.loading}</span><i role="progressbar" aria-label="${c.loading}"></i></div></div>`;
+    const el = root.querySelector('.c-type');
+    const chars = Array.from(tip);
+    chars.forEach((_, i) => x.later(() => { el.textContent = chars.slice(0, i + 1).join(''); }, i * TYPE_MS));
+  }
+
+  function demoHtml(i, x) {
+    const d = x.c.demo;
+    if (i === 0) return `<span class="c-demo-tag">${d.flipHint} 👆</span>
+      <div class="flip" data-c="flip" role="button" tabindex="0"><div class="flip-in">
+        <div class="flip-f">${d.flipFront}<small>Ch 2 · 🧠 Lv0</small></div><div class="flip-b">${d.flipBack}</div></div></div>
+      <span class="lv">✓ ${d.lvUp}</span>`;
+    if (i === 1) return `<span class="c-demo-tag">${x.c.pages[1].kicker}</span>
+      <div class="q">${d.q}</div>${x.state.yue ? `<div class="q-yue">${d.qYue}</div>` : ''}
+      <div class="opts">${d.opts.map((o, k) => `<button data-c="opt" data-k="${k}">${o}</button>`).join('')}</div>
+      <div class="fb" aria-live="polite"></div><span class="exam-chip">⏱ ${d.examChip}</span>`;
+    return `<div class="yue-row"><div class="yue-card ${x.state.yue ? 'on' : ''}">${d.yueQ}<div class="tr"><span>${d.yueA}</span></div></div>
+        <button class="yue-btn" data-c="yue" aria-pressed="${x.state.yue}">${d.yueToggle}</button></div>
+      <div class="ring-row"><div class="ring"><b>0%</b></div><span>🗓️ ${d.ring}</span></div>
+      ${Mock.settingsBlock(x.c)}`;
+  }
+
+  function renderIntro(root, x) {
+    const { c } = x;
+    root.innerHTML = `<div class="c-intro">
+      <div class="c-top"><ol class="c-steps">${c.pages.map((p, i) => `<li><span>${i + 1}</span><em>${p.kicker}</em></li>`).join('')}</ol>
+        <button class="c-skip" data-c="skip">${c.skip} ›</button></div>
+      <div class="c-main"></div>
+      <div class="c-foot"><button class="c-back" data-c="prev">‹ ${c.back}</button>
+        <button class="c-btn" data-c="next"></button>
+        <button class="c-btn line" data-c="start" hidden>${c.start}</button>
+        <button class="c-btn ready" data-c="plan" hidden>🗓️ ${c.setupPlan}</button></div></div>`;
+    root.onclick = (e) => onClick(e, root, x);
+    root.onkeydown = (e) => { if (e.key === 'Enter' && e.target.matches('.flip')) e.target.click(); };
+    Mock.onSwipe(root.querySelector('.c-main'), (d) => go(root, x, page + d));
+    Mock.onKeys((d) => go(root, x, page + d));
+    Mock.bindSettings(root, () => Mock.showIntro());
+    // the settings switch and the 粵 demo button show the same state
+    root.addEventListener('click', (e) => {
+      if (!e.target.closest('[data-yue]')) return;
+      root.querySelector('.yue-card')?.classList.toggle('on', x.state.yue);
+      root.querySelector('.yue-btn')?.setAttribute('aria-pressed', String(x.state.yue));
+    });
+    go(root, x, page);
+  }
+
+  function go(root, x, n) {
+    page = Math.max(0, Math.min(PAGE_COUNT - 1, n));
+    const p = x.c.pages[page];
+    const main = root.querySelector('.c-main');
+    main.innerHTML = `<div class="c-head fade-in"><div class="k">${p.kicker}</div><h2>${p.title}</h2><p>${p.body}</p></div>
+      <div class="c-demo fade-in">${demoHtml(page, x)}</div>`;
+    if (page === 1) startExamClock(root, x);
+    if (page === 2) x.later(() => fillRing(root), 300);
+    sync(root, x);
+  }
+
+  function startExamClock(root, x) {
+    let left = EXAM_SECONDS;
+    const chip = root.querySelector('.exam-chip');
+    const base = x.c.demo.examChip.replace('45:00', '');
+    const tick = () => {
+      if (!chip.isConnected) return;
+      left -= 1;
+      chip.textContent = `⏱ ${base}${String(Math.floor(left / 60)).padStart(2, '0')}:${String(left % 60).padStart(2, '0')}`;
+      x.later(tick, SECOND_MS);
+    };
+    x.later(tick, SECOND_MS);
+  }
+
+  function fillRing(root) {
+    const ring = root.querySelector('.ring');
+    if (!ring) return;
+    let v = 0;
+    const step = () => {
+      if (!ring.isConnected || v >= RING_TARGET_PCT) return;
+      v += 1;
+      ring.style.setProperty('--p', v);
+      ring.querySelector('b').textContent = `${v}%`;
+      requestAnimationFrame(step);
+    };
+    step();
+  }
+
+  function onClick(e, root, x) {
+    const b = e.target.closest('[data-c]');
+    if (!b) return;
+    const a = b.dataset.c;
+    if (a === 'next') go(root, x, page + 1);
+    if (a === 'prev') go(root, x, page - 1);
+    if (a === 'skip' || a === 'start' || a === 'plan') { page = 0; tried = [false, false, false]; x.finish(a); return; }
+    if (a === 'flip') {
+      b.classList.toggle('on');
+      root.querySelector('.lv').classList.add('on');
+      markTried(root, x);
+    }
+    if (a === 'opt') answer(b, root, x);
+    if (a === 'yue') {
+      x.state.yue = !x.state.yue;
+      b.setAttribute('aria-pressed', String(x.state.yue));
+      root.querySelector('.yue-card').classList.toggle('on', x.state.yue);
+      root.querySelector('[data-yue]').setAttribute('aria-checked', String(x.state.yue));
+      markTried(root, x);
+    }
+  }
+
+  function answer(b, root, x) {
+    const d = x.c.demo;
+    const k = Number(b.dataset.k);
+    const opts = b.parentElement;
+    opts.dataset.done = '';
+    opts.children[d.correctIdx].classList.add('ok');
+    if (k !== d.correctIdx) b.classList.add('bad');
+    const fb = root.querySelector('.fb');
+    fb.className = `fb ${k === d.correctIdx ? 'ok' : 'bad'}`;
+    fb.textContent = k === d.correctIdx ? `✓ ${d.right}` : `✗ ${d.wrong}`;
+    markTried(root, x);
+  }
+
+  function markTried(root, x) {
+    tried[page] = true;
+    sync(root, x);
+  }
+
+  function sync(root, x) {
+    const { c } = x;
+    const last = page === PAGE_COUNT - 1;
+    root.querySelectorAll('.c-steps li').forEach((li, i) => {
+      li.className = i < page ? 'done' : i === page ? 'now' : '';
+      li.querySelector('span').textContent = i < page ? '✓' : String(i + 1);
+    });
+    const next = root.querySelector('[data-c="next"]');
+    next.hidden = last;
+    next.classList.toggle('ready', tried[page]);
+    next.textContent = tried[page] ? `${c.demo.done} →` : `${c.next} →`;
+    root.querySelector('[data-c="start"]').hidden = !last;
+    root.querySelector('[data-c="plan"]').hidden = !last;
+    root.querySelector('.c-back').hidden = page === 0;
+    root.querySelector('.c-skip').style.visibility = last ? 'hidden' : 'visible';
+  }
+
+  Mock.init({
+    name: '方案 C · 互動示範 Live demo',
+    renderLoading, renderIntro,
+    notes: `
+      <div class="note"><h3>概念</h3><ul>
+        <li>深 navy 舞台，「試玩先過講解」：每頁一個可以撳嘅迷你 demo，用家未入 app 已經用過核心功能。</li>
+        <li>Loading：小 logo 置頂，小貼士逐字打出（大字），底部 gold 進度條。</li></ul></div>
+      <div class="note"><h3>互動</h3><ul>
+        <li>P1 溫習：撳卡翻轉 → 顯示答案 + 「Lv0 → Lv1」。</li>
+        <li>P2 練習 / 模擬考試：答一題示範題，即時對錯（錯會講「已加入錯題」），模擬考計時 chip 倒數。</li>
+        <li>P3：撳「粵」即時顯示 / 收起廣東話翻譯（同下面 switch 連動），計劃環由 0% 跑到 35%；揀語言；CTA 兩個。</li>
+        <li>試完 demo，「下一步」變 gold +「試過了」；唔試都可以直接下一步（唔會 block）。</li>
+        <li>電腦：左邊 vertical stepper（navy 側欄）、右邊文字 + demo 兩欄。</li></ul></div>
+      <div class="note"><h3>優缺點</h3><ul>
+        <li>✅ 記憶點最強，直接教識點用（翻卡 / 答題 / 粵語）。</li>
+        <li>⚠️ 實作最多（demo 要用真 component：<code>factCard.js</code>、quiz option、<code>switch.js</code>），文案 + 測試量最大；深色同主頁淺色有對比落差。</li>
+        <li>新 token：<code>--c-deep</code> <code>--c-panel</code> <code>--c-line</code> <code>--c-flip-dur</code>。</li></ul></div>`,
+  });
+})();
+</script>
+</body>
+</html>
