@@ -1,7 +1,7 @@
 # Grill：Desktop 記憶法（溫習模式 › 記憶法）layout
 
 **日期**：2026-10-13
-**狀態**：mockup 已出，等用戶揀方案
+**狀態**：rev 1（用戶第一輪揀咗，見「第一輪決定」），等用戶確認 2 個細節
 **Mockup**：[`mockups/v2.0.0/desktop-memo.html`](../../mockups/v2.0.0/desktop-memo.html)（第 13 份 desktop mockup）
 **Branch**：`claude/quirky-newton-wdelbs`（由 `main` v2.0.2 `c6b0806` 開）
 
@@ -50,17 +50,30 @@ v2.0.0 desktop layout 嘅 12 份 mockup 喺記憶法溫習（v1.6.0）merge 入�
 - panel 以外嘅掣全部喺畫面入面；
 - B 嘅左欄唔使碌。
 
-## 待用戶揀
+## 第一輪決定（用戶 2026-10-13）→ rev 1
 
-| # | 問題 |
+Mockup 已經改做 rev 1，淨係保留定案嘅排法（3 欄、A、C 已經刪走）。
+
+| 畫面 | 定案 |
 |---|---|
-| P1 | 清單用 3 欄定 4 欄？ |
-| P2 | ① 睇 + 結果用 A、B 定 C？要唔要改？ |
+| 清單 | **4 欄** grid；狀態 badge **永遠喺右上**（組名太長就喺自己嗰格換行，唔會推 badge 落去）；「今日要溫」banner 橫跨頂部；bar 貼卡底 |
+| ① 睇 | **頂行**：‹ 記憶法 + 組名｜① 睇／② 試。**左 7/12**：記憶鉤 + 筆記 panel。**右 5/12**：**題組問題 panel**（新：呢組嘅題目，英文 + 廣東話，標題沿用 `memo.questions`「關聯 n 題」）。兩個 panel 一樣高，長就各自碌。「記住咗，開始試」靠右，對齊右欄 |
+| ② 試 | OK，沿用 Quiz #8 |
+| 結果 | **B 改**：頂行同 ① 睇一樣。**左 5/12**：成績卡（% + 結果字 + Lv1–4），再溫一次／下一組直排貼底。**右 7/12**：要再睇嘅題目；全對就顯示「全部答啱 🎉 記憶鉤再睇多次」+ 記憶鉤（Q3），冇答題就淨係顯示記憶鉤 |
+
+## 待用戶確認（rev 1）
+
+| # | 問題 | Mockup 預設 |
+|---|---|---|
+| P1 | 題組問題 panel 要唔要顯示答案？（mock bar「題目答案」可以切換） | 唔顯示：答案留返去 ② 試先知 |
+| P2 | 單題組（📝 單題注解）每題本身已經有題目 + 注解，再加右欄會重複 | 一個全闊 panel 分 2 欄，冇右欄 |
+| — | 已知取捨：1024 嘅時候 4 欄卡大約 165px 闊，badge 固定喺右上之後，多數組名要拆成兩行（例如「投票／權」） | 照用戶規則做 |
 
 ## 實作備忘（揀咗之後）
 
 - Design Origin 會由 `baseline: Plan Run desktop 置中欄` 改做 `mockup: mockups/v2.0.0/desktop-memo.html`。
-- 揀 B／C 要更新 `tests/desktop-memo-test.js`：而家佢會檢查「置中欄 ≤ 912px」。
-- 揀 B 要用 `js/components/deskPlace.js` 搬 DOM（`setDesktopColumns`），< 1024px 要還原手機次序。
-- 清單 grid 要更新 `tests/desktop-study-test.js`（記憶法 tab），同 `desktop-short-test`（1366 × 657、1280 × 720、1024 × 600）。
+- 要更新 `tests/desktop-memo-test.js`：而家佢會檢查「置中欄 ≤ 912px」，要改做頂行 + 兩欄 + 開始掣對齊右欄。
+- 用 `js/components/deskPlace.js` 搬 DOM（`setDesktopColumns`），< 1024px 要還原手機次序。
+- 題組問題 panel 係新 render（`memo.js`）：用 `questionGroups(g.qkeys)`，同單題組 render 方法一樣；只喺 desktop 顯示，手機唔加（要用戶確認）。
+- 清單 4 欄 grid 要更新 `tests/desktop-study-test.js`（記憶法 tab：badge 喺右上），同 `desktop-short-test`（1366 × 657、1280 × 720、1024 × 600）。
 - Q3 新 key 要加落 `locales/en.js`、`locales/zh-HK.js`（i18n parity test）。
