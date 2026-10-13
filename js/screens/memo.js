@@ -122,9 +122,23 @@ function memoMarkFit() {
 memoMarkFit();
 
 // ── ① look ──
+// CUI-0044: the approved hook data keeps plain spaces ("1928 年", "N. Ireland"), which are line-break points in the narrow hook
+// box. At render time those token spaces become U+00A0 (and a range "1853–56 年" gets U+2060 after the dash) so a year never
+// sits at a line end with its 年 on the next line. Search still reads the raw data (memoMatches), so typed plain spaces match.
+const MEMO_NBSP = ' ', MEMO_WORD_JOINER = '⁠';
+const MEMO_UNIT = '(?:年|歲|月|國|個|位|世紀|日|星期|萬|時)'; // "年" also covers 年代
+const MEMO_NO_BREAK_RULES = [
+  [new RegExp(`(\\d)–(?=\\d+ ${MEMO_UNIT})`, 'g'), `$1–${MEMO_WORD_JOINER}`], // range end stays with its start: 1853–56 年
+  [new RegExp(`(\\d) (?=${MEMO_UNIT})`, 'g'), `$1${MEMO_NBSP}`],               // 1928 年, 70 歲, 650 個
+  [/\bN\. (?=Ireland)/g, `N.${MEMO_NBSP}`],                                      // N. Ireland
+  [/\bAD (?=\d)/g, `AD${MEMO_NBSP}`],                                            // AD 43
+  [/(\d) (?=BC\b)/g, `$1${MEMO_NBSP}`],                                          // 55 BC
+];
+const memoHookNoBreak = text => MEMO_NO_BREAK_RULES.reduce((s, [re, to]) => s.replace(re, to), text);
 function memoHookHtml(g) {
   if (!g.hook) return '';
-  return `<div class="memo-hook"><b>${escapeHtml(t('memo.hookLabel'))}</b> <span lang="zh-HK">${escapeHtml(g.hook)}</span></div>`;
+  // U+00A0 / U+2060 are plain characters to escapeHtml: escaped once, never an &nbsp; entity
+  return `<div class="memo-hook"><b>${escapeHtml(t('memo.hookLabel'))}</b> <span lang="zh-HK">${escapeHtml(memoHookNoBreak(g.hook))}</span></div>`;
 }
 // the memory note without its heading line (the screen title already names the group), like the Study fact card
 function memoNoteHtml(g) {

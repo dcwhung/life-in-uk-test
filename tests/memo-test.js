@@ -135,7 +135,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
     heading: document.querySelector('#memoBody').textContent.includes('記憶法（投票權）'),
   }));
   assert(look.steps.join('|') === '① Look*|② Test (5)', 'steps ① Look (on) / ② Test (5): ' + look.steps.join('|'));
-  assert(/89 年冇票/.test(look.hook) && look.hookLang === 'zh-HK' && look.table === 7 && !look.heading, 'hook box + the 7-row table (no repeated heading line)');
+  assert(/89[ \u00a0]年冇票/.test(look.hook) && look.hookLang === 'zh-HK' && look.table === 7 && !look.heading, 'hook box + the 7-row table (no repeated heading line)');
   assert(look.start === 'Got it — start the test', 'start button text');
   assert(await pg.evaluate(() => document.activeElement === byId('memoTitle')), 'S-227: opening a group moves focus to its title');
 
@@ -173,7 +173,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   // ── a fail: 3-question group, all wrong → stays Lv0, due tomorrow (v2.2.0: every titled group has a hook box) ──
   await pg.fill('#studySearch', '陪審員');
   await pg.click('#studyContent .memo-card[data-arg="jury"]');
-  assert(/18 至 70 歲/.test(await text('#memoBody .memo-hook')) && await text('#memoSteps .memo-step:nth-child(2)') === '② Test (3)', 'jury: one-line hook box; a 3-question group tests 3');
+  assert(/18 至 70[ \u00a0]歲/.test(await text('#memoBody .memo-hook')) && await text('#memoSteps .memo-step:nth-child(2)') === '② Test (3)', 'jury: one-line hook box; a 3-question group tests 3');
   await runTest([false, false, false]);
   const fail = await pg.evaluate(() => ({ pct: document.querySelector('#memoBody .memo-pct').textContent, verdict: document.querySelector('#memoBody .memo-verdict').textContent }));
   const tomorrow = await addDays(day, 1);
