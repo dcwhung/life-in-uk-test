@@ -5,8 +5,8 @@
 // Group membership is read from the notes (data/exams.js): a note's memory note = its text from the heading word
 // (MEMORY_MARK, js/domain/similar.js) to the end; the heading names the group ("<mark>(title):" in full-width brackets and colon, data/memo.js).
 // ════════════════════════════════════════
-const MEMO_INTERVALS = [1, 3, 7, 14];          // days until the next review on reaching Lv1 .. Lv4
-const MEMO_MAX_LV = MEMO_INTERVALS.length;     // Lv4 = known
+const MEMO_INTERVALS = [1, 3, 7];             // days until the next review on reaching Lv1 .. Lv3 (v2.4.2: was 1/3/7/14)
+const MEMO_MAX_LV = MEMO_INTERVALS.length;     // Lv3 = mastered
 const MEMO_PASS_RATIO = 0.7;                   // a test at or above this moves the group up one level
 const MEMO_TEST_SIZE = 5;                      // distinct questions per test (fewer when the group has fewer)
 const MEMO_RETRY_DAYS = 1;                     // a failed test: due again tomorrow...
@@ -60,8 +60,9 @@ function memoLocal(g) {
 
 // ── progress: { [group id]: { lv: 0..MEMO_MAX_LV, due: 'YYYY-MM-DD' } } ──
 // stored data can be stale or hand-edited (like studyLoad, CUI-0003): unknown ids and bad records are dropped
+const MEMO_LEGACY_MAX_LV = 4;                  // v2.4.2: records from the 4-level schedule (Lv4) read as MEMO_MAX_LV
 function isValidMemoRecord(rec) {
-  return !!rec && typeof rec === 'object' && Number.isInteger(rec.lv) && rec.lv >= 0 && rec.lv <= MEMO_MAX_LV && isoIsValid(rec.due);
+  return !!rec && typeof rec === 'object' && Number.isInteger(rec.lv) && rec.lv >= 0 && rec.lv <= MEMO_LEGACY_MAX_LV && isoIsValid(rec.due);
 }
 function memoLoadProgress() {
   const stored = getLS(MEMO_PROGRESS_LS);
@@ -69,14 +70,14 @@ function memoLoadProgress() {
   if (!stored || typeof stored !== 'object' || Array.isArray(stored)) return progress;
   memoGroups().forEach(g => {
     const rec = Object.prototype.hasOwnProperty.call(stored, g.id) ? stored[g.id] : null;
-    if (isValidMemoRecord(rec)) progress[g.id] = { lv: rec.lv, due: rec.due };
+    if (isValidMemoRecord(rec)) progress[g.id] = { lv: Math.min(rec.lv, MEMO_MAX_LV), due: rec.due };
   });
   return progress;
 }
 function memoRecord(progress, id) { return progress[id] || null; }
 function memoPassed(correct, total) { return total > 0 && correct / total >= MEMO_PASS_RATIO; }
 // one finished test, scored over the questions answered (user, review S-232: skipped ones do not count): a pass moves
-// up a level (Lv4 stays Lv4) and waits that level's interval; a fail drops a level (W-064, so a Lv4 fail is never
+// up a level (Lv3 stays Lv3) and waits that level's interval; a fail drops a level (W-064, so a Lv3 fail is never
 // "known") and comes back tomorrow. Returns { passed, prevLv, lv, due }, or null when nothing was answered: no record
 function recordMemoResult(id, correct, answered, today) {
   if (!answered) return null;
@@ -90,7 +91,7 @@ function recordMemoResult(id, correct, answered, today) {
   return { passed, prevLv, lv, due };
 }
 
-// new = never tested; due = its day has come (overdue too); done = Lv4 waiting; learning = any other level waiting
+// new = never tested; due = its day has come (overdue too); done = Lv3 waiting; learning = any other level waiting
 function memoStatus(rec, today) {
   if (!rec) return MEMO_STATUS.new;
   if (rec.due <= today) return MEMO_STATUS.due;
