@@ -162,6 +162,9 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   await pg.evaluate(() => { setLang('zh-HK'); setLang('en'); rerenderCurrentScreen(); });
   assert(JSON.stringify((await stored()).vote) === JSON.stringify({ lv: 3, due: due7 }) && await pg.$eval('#memoBody .memo-pct', e => e.textContent) === '80%', 're-render keeps the result, records nothing more');
   assert(res.next === 'Next: 二次世界大戰 ▶', 'next group = the next due / new group in list order: ' + res.next);
+  // v2.1.0: on the phone Next sits where the test's last ↩ Back was (both pinned bottom right): wait out the double tap
+  // guard (CUI-0011) as a person's second, separate tap would
+  await pg.waitForTimeout(GUARD_WAIT_MS);
   await pg.click('#memoBody .memo-next');
   assert(await text('#memoTitle') === '✈️ 二次世界大戰' && await pg.$('#memoBody .memo-start') !== null, 'next group opens on its look view');
 

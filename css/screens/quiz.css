@@ -171,6 +171,18 @@
   .q-text { font-size: var(--fs-lg); }
 }
 
+/* ════════ v2.1.0 phone (< 1024px; mockup mockups/v2.0.0/desktop-memo.html rev 5 / rev 6; every quiz): one screen high
+   (.is-fit-phone, css/components/fit.css; js/screens/quiz.js arrangeQuizPhone). The header, notes and question card
+   stay put; the panel after the card (options, answer, Similar) takes the height left and scrolls with fades in the
+   page grey; Prev / Next at the bottom ════════ */
+@media (max-width: 1023px) and (min-height: 500px) {
+  #screenQuiz.is-fit-phone > * { flex: none; }
+  #screenQuiz.is-fit-phone > .q-card { margin-bottom: var(--space-5); }
+  #screenQuiz.is-fit-phone > .quiz-scroll { flex: 1 1 auto; min-height: 0; margin-bottom: var(--space-6); }
+  .quiz-scroll-panel > .sqm { margin-bottom: 0; }
+  .quiz-scroll-panel > .options:last-child { margin-bottom: 0; }
+}
+
 /* ════════ v2.0.0 desktop (≥ 1024px; handoff .proj-docs/plans/2026-10-12_handoff_desktop-layout.md §3 #8 / #9) ════════
    mockups/v2.0.0/desktop-quiz.html A rev 12 (Practice), desktop-exam.html C rev 3 (Exam). One screen high
    (.screen.is-fit, css/components/fit.css); js/screens/quiz.js moves the card, options, dots, answer box and Similar
@@ -201,6 +213,7 @@
   #screenQuiz.is-fit > .quiz-cols { flex: 1 1 auto; min-height: 0; }
   /* F4 (rev 8 / rev 12): no bottom Prev / Next; the card's ← → always shown, beside Translate before answering */
   #screenQuiz > .nav-row { display: none; }
+  #screenQuiz > .quiz-scroll { display: none; } /* v2.1.0: the phone's panel (empty here: the columns hold its parts) */
   #screenQuiz .quick-nav { display: inline-flex; }
 
   .quiz-cols { display: grid; gap: var(--space-10); grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }

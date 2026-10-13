@@ -201,7 +201,7 @@ function pngRows(png) {
   return { width, bpp, rows };
 }
 async function bandColours(page, y0, y1) {
-  const { width, bpp, rows } = pngRows(await page.screenshot());
+  const { width, bpp, rows } = pngRows(await page.screenshot({ type: 'png' })); // a Buffer: no file written
   const out = [];
   for (let y = y0; y <= y1; y++) for (let x = 0; x < width; x++) out.push([rows[y][x * bpp], rows[y][x * bpp + 1], rows[y][x * bpp + 2]]);
   return out;

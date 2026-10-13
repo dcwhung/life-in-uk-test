@@ -76,6 +76,7 @@ function renderQuestion() {
   forgetQuizPanelsOnNewQuestion();
   quizDeskStale = true; // S-233: the desktop parts are filled by arrangeQuiz, and only on desktop
   arrangeQuiz(deskOn()); // v2.0.0: the desktop columns first, so the counter below measures the row it ends up in
+  arrangeQuizPhone(deskOn()); // v2.1.0: the phone's scroll panel
   fitQuestionCounter(); // C3: measured once the counter's row (bookmark, arrows) is final
   desktopRefit('screenQuiz', fitQuiz);
 }
@@ -423,12 +424,13 @@ function applyQuizTab(showAnswer = !quizDeskParts().tabs.hidden) {
   topQuizPanelsOnNewQuestion(d);
 }
 function topQuizPanelsOnNewQuestion(d) {
-  [d.main, d.paneAnswer.firstElementChild, d.paneSimilar.firstElementChild].forEach(panel => {
-    const seen = quizPanelSeen.get(panel);
-    if (!panel.getClientRects().length || (seen && seen[0] === state.questions && seen[1] === state.current)) return;
-    quizPanelSeen.set(panel, [state.questions, state.current]);
-    panel.scrollTop = 0;
-  });
+  [d.main, d.paneAnswer.firstElementChild, d.paneSimilar.firstElementChild].forEach(topQuizPanelOnNewQuestion);
+}
+function topQuizPanelOnNewQuestion(panel) {
+  const seen = quizPanelSeen.get(panel);
+  if (!panel.getClientRects().length || (seen && seen[0] === state.questions && seen[1] === state.current)) return;
+  quizPanelSeen.set(panel, [state.questions, state.current]);
+  panel.scrollTop = 0;
 }
 // a tab click swaps the pane in place (no re-render: each pane keeps its scroll position)
 function setQuizTab(tab) {
@@ -462,8 +464,33 @@ function syncExamTimerCopy() {
 // ② tighter card / option padding (is-compact) → ③ only then does the column scroll
 function fitQuiz(desktop) {
   arrangeQuiz(desktop);
+  arrangeQuizPhone(desktop);
   if (!quizDesk) return; // S-233: never built on a phone, so no steps to take off
   const d = quizDesk;
   fitSteps(d.main, [[d.moved.options, 'is-tight'], 'is-compact']);
   topQuizPanelsOnNewQuestion(d); // after every render and when the screen is shown (runRefits then refreshes the fades)
+}
+
+// ── v2.1.0 phone (< 1024px; mockup mockups/v2.0.0/desktop-memo.html rev 5 / rev 6 placeQuizPhone; decision log
+// .proj-docs/plans/2026-10-13_grill_desktop-memo.md P6: every quiz — Practice, Exam, the memo test, plan tasks) ──
+// One screen high (.is-fit-phone, css/components/fit.css): the quiz header and the question card stay put; the parts
+// after the card (options, answer box, the plan pair note, the Similar panel) share one panel that scrolls on its own
+// with fades; Prev / Next stay at the bottom. The panel is built once, on the first phone render (never on a desktop,
+// like the desktop parts never on a phone), before Prev / Next, and kept; from 1024px it draws nothing (quiz.css) and
+// the desktop columns take the parts (their phone place, deskRemember, may then be inside this panel)
+const QUIZ_PHONE_PART_IDS = ['optionsContainer', 'answerBox', 'planPairNote', 'similarBox'];
+let quizPhone = null;
+function buildQuizPhone() {
+  const screen = byId('screenQuiz'), nav = screen.querySelector(':scope > .nav-row');
+  const wrap = deskEl('div', 'quiz-scroll fit-fade'), panel = deskEl('div', 'quiz-scroll-panel fit-panel');
+  wrap.append(panel);
+  nav.before(wrap);
+  screen.classList.add('is-fit-phone');
+  return { wrap, panel };
+}
+function arrangeQuizPhone(desktop) {
+  if (desktop) return;
+  if (!quizPhone) quizPhone = buildQuizPhone();
+  deskFill(quizPhone.panel, QUIZ_PHONE_PART_IDS.map(byId)); // in place: moves nothing (focus, scroll)
+  topQuizPanelOnNewQuestion(quizPhone.panel); // a new question starts at the top (runRefits then refreshes the fades)
 }
