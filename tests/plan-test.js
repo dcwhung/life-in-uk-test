@@ -572,7 +572,7 @@ function checkAttribution() {
 }
 
 function checkRounds() {
-  const qids = Array.from({ length: 30 }, (_, i) => `1.${i}`);
+  const qids = Array.from({ length: 30 }, (_, i) => `${1 + Math.floor(i / 24)}.${i % 24}`); // real keys (S-262: a stale qid is not asked)
   const task = { type: 'practice', ch: 1, qids };
   const next = (dl, skipped) => g('planNextRound')(task, g('planDayLog')(dl, TODAY), skipped);
   assert(same(next(emptyLog(), []), qids.slice(0, 24)), 'a round is at most 24 unanswered questions');
