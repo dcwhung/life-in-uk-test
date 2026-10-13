@@ -1,0 +1,153 @@
+<title>做題入口返回檢查</title>
+<style>
+/* Layout: single reading column, summary strip → entry table → problem cards → extra notes */
+:root {
+  --bg: #f0f2f7; --card: #ffffff; --fg: #1a2744; --muted: #5a6a8a; --line: #dde2f0;
+  --navy: #1a2744; --gold: #9a7a22; --gold-bg: #fdf6e3;
+  --ok: #2d6a4f; --ok-bg: #edf8f2; --bad: #922b21; --bad-bg: #fdf0ef; --warn: #b5680a; --warn-bg: #fdf3e8;
+  --f-body: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, "PingFang HK", "Noto Sans HK", "Microsoft JhengHei", sans-serif;
+  --f-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11172a; --card: #1a2238; --fg: #e6eaf5; --muted: #9aa6c4; --line: #2c3654;
+  --navy: #c9d3f0; --gold: #e8c97a; --gold-bg: #2a2717;
+  --ok: #7fd1a5; --ok-bg: #16302a; --bad: #f19288; --bad-bg: #3a1c1c; --warn: #f0b36a; --warn-bg: #352713; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #11172a; --card: #1a2238; --fg: #e6eaf5; --muted: #9aa6c4; --line: #2c3654;
+  --navy: #c9d3f0; --gold: #e8c97a; --gold-bg: #2a2717;
+  --ok: #7fd1a5; --ok-bg: #16302a; --bad: #f19288; --bad-bg: #3a1c1c; --warn: #f0b36a; --warn-bg: #352713; color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); line-height: 1.6; }
+.wrap { max-width: 1080px; margin: 0 auto; padding-inline: 16px; padding-block: 28px 48px; display: grid; gap: 28px; }
+h1 { font-size: 1.6rem; margin: 0; text-wrap: balance; color: var(--navy); }
+h2 { font-size: 1.15rem; margin: 0 0 10px; color: var(--navy); text-wrap: balance; }
+p { margin: 0; max-width: 70ch; }
+.muted { color: var(--muted); font-size: .9rem; }
+code { font-family: var(--f-mono); font-size: .85em; background: var(--gold-bg); color: var(--gold); padding: 1px 5px; border-radius: 4px; }
+.summary { display: flex; flex-wrap: wrap; gap: 10px; }
+.stat { flex: 1 1 150px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+.stat b { display: block; font-size: 1.6rem; font-variant-numeric: tabular-nums; }
+.stat.ok b { color: var(--ok); } .stat.bad b { color: var(--bad); } .stat.warn b { color: var(--warn); }
+.tbl { overflow-x: auto; background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
+table { border-collapse: collapse; width: 100%; min-width: 860px; font-size: .9rem; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: .75rem; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); background: var(--bg); }
+tr:last-child td { border-bottom: 0; }
+td.n { font-variant-numeric: tabular-nums; color: var(--muted); }
+.pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: .8rem; font-weight: 600; white-space: nowrap; }
+.pill.ok { background: var(--ok-bg); color: var(--ok); }
+.pill.bad { background: var(--bad-bg); color: var(--bad); }
+.pill.warn { background: var(--warn-bg); color: var(--warn); }
+.path { white-space: nowrap; }
+.cards { display: grid; gap: 12px; }
+.card { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--bad); border-radius: 8px; padding: 14px 16px; display: grid; gap: 6px; }
+.card.warn { border-left-color: var(--warn); }
+.card h3 { margin: 0; font-size: 1rem; }
+.card dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; font-size: .9rem; }
+.card dt { color: var(--muted); } .card dd { margin: 0; min-width: 0; }
+@media (max-width: 560px) { .card dl { grid-template-columns: 1fr; } .card dd { margin-bottom: 6px; } }
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:6px">
+    <h1>做題入口返回檢查</h1>
+    <p class="muted">Life in the UK Test PWA · <code>main</code> v2.0.0 · 用 Playwright 喺 PC (1280×800) 同 MB (390×844) 實際行過每個入口，㩒題目頁左上返回掣，記錄落咗去邊個 screen。</p>
+  </header>
+
+  <section class="summary" aria-label="總結">
+    <div class="stat"><b>13</b><span class="muted">做題入口</span></div>
+    <div class="stat ok"><b>8</b><span class="muted">返到原入口</span></div>
+    <div class="stat bad"><b>4</b><span class="muted">冇掣返原入口</span></div>
+    <div class="stat warn"><b>1</b><span class="muted">返上一層（跳過一頁）</span></div>
+    <div class="stat"><b>PC = MB</b><span class="muted">兩邊行為完全一樣</span></div>
+  </section>
+
+  <section>
+    <h2>1. 所有做題入口</h2>
+    <p class="muted" style="margin-bottom:10px">「中途返回掣」= 做緊題（未到最後一題）時 header 左上角嗰粒掣。所有 side session 只係喺<strong>最後一題</strong>先出 ↩ 返回。</p>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>#</th><th>入口路徑</th><th>examNum</th><th>中途返回掣</th><th>㩒完去邊</th><th>原入口</th><th>PC</th><th>MB</th></tr></thead>
+        <tbody>
+          <tr><td class="n">1</td><td class="path">主頁 › 練習 › 難度</td><td><code>d1</code></td><td>🏠 主頁</td><td>主頁</td><td>主頁</td><td><span class="pill ok">✅</span></td><td><span class="pill ok">✅</span></td></tr>
+          <tr><td class="n">2</td><td class="path">主頁 › 練習 › 章節</td><td><code>ch1</code></td><td>🏠 主頁</td><td>主頁</td><td>主頁</td><td><span class="pill ok">✅</span></td><td><span class="pill ok">✅</span></td></tr>
+          <tr><td class="n">3</td><td class="path">主頁 › 練習 › 試卷 (1–17 / 隨機)</td><td><code>1</code>…<code>all</code></td><td>🏠 主頁</td><td>主頁</td><td>主頁</td><td><span class="pill ok">✅</span></td><td><span class="pill ok">✅</span></td></tr>
+          <tr><td class="n">4</td><td class="path">主頁 › 考試 › 試卷</td><td><code>all</code></td><td>🏠 主頁 → 確認框</td><td>主頁</td><td>主頁</td><td><span class="pill ok">✅</span></td><td><span class="pill ok">✅</span></td></tr>
+          <tr><td class="n">5</td><td class="path">主頁 › 我的複習 › 錯題</td><td><code>wrong</code></td><td>🏠 主頁</td><td>主頁</td><td>主頁</td><td><span class="pill ok">✅</span></td><td><span class="pill ok">✅</span></td></tr>
+          <tr><td class="n">6</td><td class="path">主頁 › 我的複習 › 已標記 › 開始練習</td><td><code>flagged</code></td><td>🏠 主頁</td><td>主頁</td><td>已標記清單</td><td><span class="pill bad">❌</span></td><td><span class="pill bad">❌</span></td></tr>
+          <tr><td class="n">7</td><td class="path">溫習 › 章節／時間線／地理／人物 › ▶ 練習呢 N 題</td><td><code>f1</code></td><td>🏠 主頁</td><td>主頁</td><td>溫習（同一張卡）</td><td><span class="pill bad">❌</span></td><td><span class="pill bad">❌</span></td></tr>
+          <tr><td class="n">8</td><td class="path">溫習 › 🧠 記憶法 › 組 › ② 測試</td><td><code>memo-…</code></td><td>🏠 主頁</td><td>主頁</td><td>記憶法組頁</td><td><span class="pill bad">❌</span></td><td><span class="pill bad">❌</span></td></tr>
+          <tr><td class="n">9</td><td class="path">練習中 › 相似題目 › 練習呢 N 題</td><td><code>similar</code></td><td>🏠 主頁</td><td>主頁</td><td>原本嗰份練習</td><td><span class="pill bad">❌</span></td><td><span class="pill bad">❌</span></td></tr>
+          <tr><td class="n">10</td><td class="path">計劃 › 今日任務 › 練習題任務</td><td><code>ch…</code></td><td>← 今日任務</td><td>計劃 Day</td><td>計劃 Day</td><td><span class="pill ok">✅</span></td><td><span class="pill ok">✅</span></td></tr>
+          <tr><td class="n">11</td><td class="path">計劃 › 閱讀任務 › 事實卡 › ▶ 練習</td><td><code>f…</code></td><td>← 今日任務</td><td>計劃 Day</td><td>事實卡 (PlanRun)</td><td><span class="pill warn">🟡</span></td><td><span class="pill warn">🟡</span></td></tr>
+          <tr><td class="n">12</td><td class="path">計劃 › 模擬考任務</td><td><code>1</code>…</td><td>← 今日任務 → 確認框</td><td>計劃 Day</td><td>計劃 Day</td><td><span class="pill ok">✅</span></td><td><span class="pill ok">✅</span></td></tr>
+          <tr><td class="n">13</td><td class="path">結果頁 › 重做</td><td>同原本</td><td>跟返原入口</td><td>—</td><td>—</td><td><span class="pill ok">✅</span></td><td><span class="pill ok">✅</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="muted" style="margin-top:8px">#12 模擬考由 code 確認（<code>goHome → planLeaveMock</code>），冇 seed 到考試日去實測；其餘 12 個 PC + MB 都實測過。</p>
+  </section>
+
+  <section>
+    <h2>2. 中途離開冇掣返原入口嘅流程</h2>
+    <p class="muted" style="margin-bottom:12px">根源：題目頁 header 只有一粒 <code>data-action="goHome"</code>（<code>index.html:218</code>）。<code>goHome()</code>（<code>js/screens/home.js:169</code>）只識分「計劃 session」同「考試」，其他 side session 一律 <code>leaveToHome()</code> → <code>clearSideSession()</code>，返回點 <code>sessionReturn</code> 直接被丟棄。</p>
+    <div class="cards">
+      <article class="card">
+        <h3>❌ #9 練習中 › 相似題目 › 練習呢 N 題（最嚴重）</h3>
+        <dl>
+          <dt>中途㩒 🏠</dt><dd>去咗主頁，<strong>原本做緊嗰份練習都冇埋</strong>（<code>state</code> 已被 side session 覆蓋，<code>sessionReturn.state</code> 被清走）</dd>
+          <dt>想返去</dt><dd>原本練習嘅同一題</dd>
+          <dt>現有出路</dt><dd>只有做到最後一題先有 ↩ 返回</dd>
+          <dt>Code</dt><dd><code>js/screens/similarPanel.js:84</code>、<code>js/screens/sideSession.js:56</code></dd>
+        </dl>
+      </article>
+      <article class="card">
+        <h3>❌ #7 溫習 › 事實卡 › ▶ 練習呢 N 題</h3>
+        <dl>
+          <dt>中途㩒 🏠</dt><dd>去咗主頁；溫習頁嘅 tab／chip／捲動位置要自己重新搵</dd>
+          <dt>想返去</dt><dd>溫習頁同一張事實卡（<code>SESSION_RETURNS.study</code> 本身已識還原 scroll + 閃卡）</dd>
+          <dt>現有出路</dt><dd>只有最後一題 ↩ 返回</dd>
+          <dt>Code</dt><dd><code>js/screens/sideSession.js:89</code></dd>
+        </dl>
+      </article>
+      <article class="card">
+        <h3>❌ #8 溫習 › 🧠 記憶法 › ② 測試</h3>
+        <dl>
+          <dt>中途㩒 🏠</dt><dd>去咗主頁；測試結果唔會記錄，記憶法組頁同溫習 tab 都要重新入</dd>
+          <dt>想返去</dt><dd>記憶法組頁（① 睇）</dd>
+          <dt>現有出路</dt><dd>只有最後一題 ↩ 返回（會計分）</dd>
+          <dt>Code</dt><dd><code>js/screens/memo.js:142</code></dd>
+        </dl>
+      </article>
+      <article class="card">
+        <h3>❌ #6 主頁 › 已標記 › 開始練習</h3>
+        <dl>
+          <dt>中途㩒 🏠</dt><dd>去咗主頁，唔係已標記清單</dd>
+          <dt>想返去</dt><dd>已標記清單 (<code>screenFlagged</code>)</dd>
+          <dt>結果頁</dt><dd>都係得「🏠 主頁」同「重做」，冇「返已標記清單」</dd>
+          <dt>Code</dt><dd><code>js/screens/home.js:166</code>（普通 <code>startExam</code>，冇返回點）</dd>
+        </dl>
+      </article>
+      <article class="card warn">
+        <h3>🟡 #11 計劃 › 事實卡 › ▶ 練習</h3>
+        <dl>
+          <dt>中途㩒返回</dt><dd>去咗今日任務清單，跳過咗事實卡嗰頁</dd>
+          <dt>影響</dt><dd>有返回掣，只係返上兩層；要再㩒任務先返到張卡</dd>
+          <dt>Code</dt><dd><code>js/screens/planRun.js:203</code> <code>planBackToDay()</code></dd>
+        </dl>
+      </article>
+    </div>
+  </section>
+
+  <section>
+    <h2>3. 另外留意</h2>
+    <div class="tbl">
+      <table style="min-width:640px">
+        <thead><tr><th>項目</th><th>現況</th><th>影響</th></tr></thead>
+        <tbody>
+          <tr><td>瀏覽器／Android 返回鍵</td><td>App 冇用 <code>history.pushState</code>，全部 screen 都係同一個 URL</td><td>MB 用戶㩒實體返回鍵會直接離開 app，唔係返上一頁；所有入口都受影響</td></tr>
+          <tr><td>PC vs MB</td><td><code>deskPlace.js</code> 只搬 layout，冇加減任何返回掣</td><td>兩邊返回行為一樣，上面問題兩邊都有</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

@@ -38,6 +38,8 @@ function renderResults() {
   renderResultActions();
   renderResultPlanRow(); // a study plan mock: task done / retake as a Random Exam (js/screens/planRun.js)
   setExamLabel(byId('resultLabel'), state.examNum);
+  // v2.1.1: a Flagged practice reads "‹ Flagged"; W-072: a cached pre-v2.1.1 sideSession.js keeps the 🏠 (index.html)
+  if (typeof setEntryBack === 'function') setEntryBack(byId('screenResult').querySelector('.back-btn'));
   byId('diffTable').innerHTML = diffTableHtml();
   renderResultDots();
   renderReview();

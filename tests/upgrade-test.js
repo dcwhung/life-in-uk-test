@@ -27,7 +27,11 @@ const { startPagesServer, appFiles } = require('./pages-server');
 //  11. v1.4.2: the current shell with one v1.4.0 file (config.js: no INITIAL_LANG / DEFAULT_FONT_SIZE; i18n.js; store.js),
 //      nothing stored (legacy seed off) — still starts with no page errors; each old file keeps its own first-run default
 //  12. S-237 (v1.6.1): a v1.6.0 cached shell (pinned f55a945) + current js — every static control gets its line icon
-//  13. W-075 (v2.1.1 CUI-0039): current files with the v2.0.5 questions.js (no isValidQuestionKey) + a wrong list — Home
+//  13. W-072 (v2.1.1): the current shell with one v2.0.2 file (sideSession.js: no setEntryBack / goBack; actions.js: no
+//      goBack handler; locales/en.js: no back labels) — a Flagged practice still renders every question and the Result,
+//      the header back button still leaves the quiz, no raw key, no page errors; a plan task header reads "Back", named
+//      "Back to today's tasks" (W-077; a v2.0.2 locale: "Back", the visible word)
+//  14. W-075 (v2.1.1 CUI-0039): current files with the v2.0.5 questions.js (no isValidQuestionKey) + a wrong list — Home
 //      still renders with no page error; the lists are kept as stored (no prune without the predicate)
 // The v0.57 files come from git: V057_REF is the last v0.57 commit on main (merge of PR #29), pinned so a later
 // main does not silently turn this into a same-version test.
@@ -487,6 +491,59 @@ async function v202Locale(b) {
   await pg.close();
 }
 
+// 13. W-072 (v2.1.1): the current shell with ONE file still from v2.0.2 (V202_REF above). The back-to-entry calls are
+// guarded: an old sideSession.js keeps the 🏠 (no ReferenceError on each question / the Result); an old actions.js leaves
+// the header on goHome (no dead button); a locale without the labels keeps the 🏠
+const V202_BACK_SINGLES = ['js/screens/sideSession.js', 'js/core/actions.js', 'locales/en.js'];
+async function v202BackSingleFile(b, file) {
+  const dir = tmpDir('v202back');
+  copyCurrent(dir);
+  fs.writeFileSync(path.join(dir, file), execFileSync('git', ['-C', ROOT, 'show', `${V202_REF}:${file}`]));
+  const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
+  const errs = []; pg.on('pageerror', e => errs.push(e.message));
+  const warns = []; pg.on('console', m => { if (m.type() === 'warning' && m.text().includes('no handler')) warns.push(m.text()); });
+  await pg.goto('file://' + path.join(dir, 'index.html'));
+  await pg.evaluate(() => localStorage.clear());
+  await pg.reload();
+  await pg.waitForSelector('#examGrid .exam-btn', { state: 'attached' });
+  // a Flagged practice: the only Home-entered session with its own back label (Flagged list), mid-way
+  await pg.evaluate(() => {
+    startDifficulty(1); toggleFlag(); state.current = 1; toggleFlag(); leaveToHome(); openFlagged(); startFlaggedPractice();
+    const q = state.questions[0]; state.answers[0] = [...q.a]; revealAnswer(); nextQ();
+  });
+  const quiz = await pg.evaluate(() => ({ screen: document.querySelector('.screen.active').id, num: byId('qNum').textContent.trim(),
+    opts: document.querySelectorAll('#screenQuiz .opt').length, back: document.querySelector('#screenQuiz .back-btn').textContent.trim() }));
+  assert(quiz.screen === 'screenQuiz' && quiz.num && quiz.opts > 0 && !/\b(quiz|plan)\./.test(quiz.back) && errs.length === 0,
+    `v2.0.2 ${file} + current files: a Flagged practice renders its question, no raw back label, no page errors: ` + JSON.stringify({ ...quiz, errs }));
+  await pg.waitForTimeout(400); // past the double tap guard (SCREEN_CHANGE_CLICK_GUARD_MS)
+  await pg.click('#screenQuiz .back-btn');
+  const left = await pg.evaluate(() => document.querySelector('.screen.active').id);
+  assert(['screenHome', 'screenFlagged'].includes(left) && warns.length === 0 && errs.length === 0,
+    `v2.0.2 ${file} + current files: the quiz header back leaves the session (${left}), no dead action, no page errors: ` + JSON.stringify({ warns, errs }));
+  // the Result still draws in full (diff table / dots come after the header in renderResults)
+  await pg.evaluate(() => { startFlaggedPractice(); state.questions.forEach((q, i) => { state.answers[i] = [...q.a]; state.revealed[i] = true; }); finishExam(); });
+  const result = await pg.evaluate(() => ({ screen: document.querySelector('.screen.active').id, back: document.querySelector('#screenResult .back-btn').textContent.trim() }));
+  assert(result.screen === 'screenResult' && !/\b(quiz|plan)\./.test(result.back) && errs.length === 0,
+    `v2.0.2 ${file} + current files: the Result renders, no raw back label, no page errors: ` + JSON.stringify({ ...result, errs }));
+  await pg.waitForTimeout(400);
+  await pg.click('#screenResult .back-btn');
+  const fromResult = await pg.evaluate(() => document.querySelector('.screen.active').id);
+  assert(['screenHome', 'screenFlagged'].includes(fromResult) && warns.length === 0 && errs.length === 0,
+    `v2.0.2 ${file} + current files: the Result header back works (${fromResult}): ` + JSON.stringify({ warns, errs }));
+  // W-077 (v2.3.2): a plan practice task's "Back" is named "Back to today's tasks"; a v2.0.2 locale has no
+  // plan.run.backTodayLabel, so the name falls back to the visible word, never a raw key
+  await pg.evaluate(() => {
+    leaveToHome(); openPlanGoal(); byId('planCreateBtn').click();
+    const today = planTodayIso();
+    planOpenTask(today, planDayAt(planLoad(), today).tasks.findIndex(task => task.type === PLAN_TASK.practice));
+  });
+  const plan = await pg.$eval('#screenQuiz .back-btn', e => ({ text: e.textContent.trim(), name: e.getAttribute('aria-label') }));
+  const wantName = file === 'locales/en.js' ? 'Back' : "Back to today's tasks";
+  assert(plan.text === 'Back' && plan.name === wantName && errs.length === 0,
+    `v2.0.2 ${file} + current files: the plan task header reads "Back", named "${wantName}" (no raw key): ` + JSON.stringify({ ...plan, errs }));
+  await pg.close();
+}
+
 // S-230 (v1.6.0): a pre-memo cached index.html (v1.4.3 here; main v1.5.0 has no memo markup either) (no memo tab, screen or memo scripts) + current js / css with the memo tab
 // stored: Study opens on Chapters (memoShellReady is not even defined there), no page errors
 const V143_REF = '930ab4a'; // main at v1.4.3
@@ -678,7 +735,7 @@ async function swUpgrade(b) {
   }
 }
 
-// 13. W-075: the prune (store.js, started by main.js) calls isValidQuestionKey, which an HTTP-cached v2.0.5 questions.js lacks
+// 14. W-075: the prune (store.js, started by main.js) calls isValidQuestionKey, which an HTTP-cached v2.0.5 questions.js lacks
 const V205_REF = 'de110fa'; // main at v2.0.5
 async function v205QuestionsJs(b) {
   const dir = tmpDir('v205q');
@@ -732,6 +789,7 @@ function checkV057Ref() {
   await zhHkLocaleMissing(b);
   for (const file of V202_SINGLES) await v202SingleFile(b, file);
   await v202Locale(b);
+  for (const file of V202_BACK_SINGLES) await v202BackSingleFile(b, file);
   await v143Shell(b);
   await v143StudyJs(b);
   await v205QuestionsJs(b);

@@ -215,8 +215,9 @@ function startMemoTest() {
   if (!g) return;
   startSideSession(MEMO_PREFIX + g.id, memoTestPick(g).map(toQuestionItem), { kind: SESSION_RETURN_KIND.memo, id: g.id });
 }
-// C2 (user): in a test the quiz header's back button (data-action goHome) reads "‹ Memory" like the group screen's
-// .memo-back, and its words name it (no aria-label / title, as a plan's text back button: S-188)
+// C2 (user): in a test the quiz header's back button (data-action goBack, or goHome with an HTTP-cached pre-v2.1.1
+// actions.js; both leave through leaveMemoTest) reads "‹ Memory" like the group screen's .memo-back, and its words
+// name it (no aria-label / title)
 function setQuizBackMemo(back) {
   back.classList.remove('plan-hit', 'icon-btn');
   setIconLabel(back, t('memo.backButton'), MEMO_BACK_ICONS); // S-240: a chevron line icon, not a read-out "‹"
@@ -224,7 +225,7 @@ function setQuizBackMemo(back) {
   back.removeAttribute('aria-label');
   back.removeAttribute('title');
 }
-// C2: leave a test mid-way (goHome while isMemoSession): back to the same group's look view, recording nothing (no memo
+// C2: leave a test mid-way (goBack, or goHome, while isMemoSession): back to the same group's look view, recording nothing (no memo
 // level / due; answers already given keep their practice streaks like any side session). The return point is cleared first,
 // so a later session or Practice exam is a normal one; a second tap lands on #screenMemo (double tap guard, actions.js)
 function leaveMemoTest() {

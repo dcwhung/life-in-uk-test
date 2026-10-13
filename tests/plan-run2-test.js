@@ -90,7 +90,7 @@ const contrastOf = (pg, sel) => pg.evaluate(sel => {
 }, sel);
 const runView = pg => pg.evaluate(() => ({
   screen: document.querySelector('.screen.active').id, label: byId('planRunLabel').textContent, badge: byId('planRunBadge').textContent,
-  back: byId('planRunBack').textContent, meta: (document.querySelector('#planRunBody .plan-run-meta') || { textContent: '' }).textContent.replace(/\s+/g, ' ').trim(),
+  back: byId('planRunBack').getAttribute('aria-label'), meta: (document.querySelector('#planRunBody .plan-run-meta') || { textContent: '' }).textContent.replace(/\s+/g, ' ').trim(),
   fact: (document.querySelector('#planRunBody .fact') || { dataset: {} }).dataset.factId || null,
   sqm: !!document.querySelector('#planRunBody .sqm.show .sqm-head'),
   note: (document.querySelector('#planRunBody .plan-note') || { textContent: '' }).textContent,
@@ -123,8 +123,8 @@ async function checkRead(pg) {
   const before = await storage(pg);
   await tap(pg, taskBox(TODAY, ri));
   let v = await runView(pg);
-  assert(v.screen === 'screenPlanRun' && v.label === `Chapter ${task.ch}` && v.badge === 'Study' && v.back === "Today's tasks",
-    `reading: #screenPlanRun, "Chapter ${task.ch}" · Study, ← Today's tasks`);
+  assert(v.screen === 'screenPlanRun' && v.label === `Chapter ${task.ch}` && v.badge === 'Study' && v.back === "Back to today's tasks",
+    `reading: #screenPlanRun, "Chapter ${task.ch}" · Study, "‹ Back" named "Back to today's tasks" (W-077)`);
   assert(v.meta.endsWith(`Fact 1 of ${n}`) && v.meta.startsWith(`Read Ch ${task.ch}`), 'top line: task · Fact 1 of n: ' + v.meta);
   assert(Number(v.fact) === task.facts[0] && v.note === '', 'the first fact\'s Study card, no review note');
   const card = await pg.evaluate(() => {
@@ -158,7 +158,8 @@ async function checkRead(pg) {
     back: document.querySelector('#screenQuiz .back-btn').textContent }), fid);
   assert(s.screen === 'screenQuiz' && s.plan && s.day === TODAY && JSON.stringify(s.keys) === JSON.stringify(s.want),
     `▶ Practise: a plan session over the fact's ${s.want.length} questions, for today`);
-  assert(/^Fact Ch \d #\d+$/.test(s.label) && s.back === "Today's tasks", 'header: Fact Ch c #n · ← Today\'s tasks: ' + s.label);
+  // v2.1.1: mid-session the back button goes to this fact's card (planLeaveSession), so the header names it (chevron icon + words)
+  assert(/^Fact Ch \d #\d+$/.test(s.label) && s.back === 'Back', 'header: Fact Ch c #n · ‹ Back: ' + s.label + ' · ' + s.back);
   await playAllRight(pg);
   v = await runView(pg);
   assert(v.screen === 'screenPlanRun' && Number(v.fact) === fid && v.meta.endsWith(`Fact 1 of ${n}`), 'finished: back on the same fact');
@@ -294,7 +295,7 @@ async function fillExam(pg, right) {
 }
 const mockState = pg => pg.evaluate(() => ({ screen: document.querySelector('.screen.active').id, mode: state.mode, exam: state.examNum,
   day: state.planDay, n: state.questions.length, timer: !byId('examTimer').hidden, random: isRandomExam(state.examNum),
-  back: (b => (b.classList.contains('icon-btn') ? `icon:${b.getAttribute('aria-label')}` : b.textContent))(document.querySelector('#screenQuiz .back-btn')) }));
+  back: (b => (b.classList.contains('icon-btn') ? `icon:${b.getAttribute('aria-label')}` : b.getAttribute('aria-label')))(document.querySelector('#screenQuiz .back-btn')) }));
 
 // G10 / G25 / G11 / G15 / G32: Exam mode itself; pass = done + score; fail = retake as a Random Exam; Leave = nothing
 async function checkMock(pg) {
@@ -312,7 +313,7 @@ async function checkMock(pg) {
   let m = await mockState(pg);
   assert(m.screen === 'screenQuiz' && m.mode === 'exam' && m.exam === exam && m.n === 24 && m.timer && m.day === iso,
     `Exam mode: Exam ${exam}, 24 questions, timer, for the plan day (Home's mode was Practice)`);
-  assert(m.back === "Today's tasks", 'header: ← Today\'s tasks');
+  assert(m.back === "Back to today's tasks", 'header: "‹ Back" named "Back to today\'s tasks" (W-077)');
   // Leave = not submitted
   const before = await storage(pg);
   await tap(pg, '#screenQuiz .back-btn');

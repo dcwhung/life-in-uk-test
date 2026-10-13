@@ -105,6 +105,12 @@ LOCALES.en = {
     back: 'Back',
     finish: 'Finish',
     prevButton: 'Prev',
+    // v2.1.1: the quiz / Result header's back button mid-session, named after where it goes (words only: the chevron
+    // is a line icon, sideSession.js setEntryBack)
+    backToStudy: 'Study',
+    backToFlagged: 'Flagged',
+    backToQuestion: 'Q{n}', // W-074: short enough for a 320px large-text header; the words are the label below
+    backToQuestionLabel: 'Back to Q{n}',
     correct: '✓ Correct!',
     wrong: '✗ Wrong',
     yueQ: 'Q)',
@@ -495,8 +501,18 @@ LOCALES.en = {
     },
     // runner (PR6a): a task on the Practice screen, its Result card; Day n stays English (lang="en")
     run: {
+      // backToday / backDayHtml: no longer read since v2.3.2 (backTodayLabel / backDayLabel); kept for an HTTP-cached
+      // planRun.js up to v2.3.1 (W-072 mixed cache), which still names its back button with them. S-271: can go once
+      // no supported cache can hold a pre-v2.3.2 planRun.js (a later release that drops the old-file guards)
       backToday: "Today's tasks",
       backDayHtml: '{day} tasks',
+      // one fact's ▶ Practise, mid-session: the header reads quiz.back ("Back", short beside "Fact Ch c #n"), named this
+      // (contains the visible word; planRun.js planQuizBackName)
+      backFactLabel: 'Back to the fact',
+      // v2.3.2 (W-077): the plan header / #planRunBack "‹ Back" is named after the day it goes back to, starting with the
+      // visible word (planRun.js planRunBackName); plain text, never HTML (an aria-label)
+      backTodayLabel: "Back to today's tasks",
+      backDayLabel: 'Back to {day} tasks',
       roundOf: 'Round {n} of {rounds}',
       nextRound: 'Next round', // also the quick button's title / aria-label (QA O-3)
       retryWrong: { one: 'Redo the wrong answer ({n} left)', other: 'Redo wrong answers ({n} left)' },
