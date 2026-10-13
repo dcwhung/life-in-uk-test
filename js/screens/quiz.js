@@ -59,27 +59,30 @@ function startExam(examNum, mode = pendingMode) {
 // ── render ──
 function renderQuestion() {
   quizMainHold = holdQuizMainView(); // CUI-0034: measured before anything below changes the left column
-  const idx = state.current;
-  const q = state.questions[idx];
-  const total = state.questions.length;
-  const revealed = idx in state.revealed;
-  // exam mode never shows right / wrong, the answer or translations until the results page
-  const showAnswer = revealed && state.mode === PRACTICE_MODE;
-  // practice translation: "Translate" shows it before answering; always shown once revealed
-  const yueOn = showAnswer || (state.mode === PRACTICE_MODE && !!state.yueShown[idx]);
-  renderQuizHeader(q, idx, total);
-  renderTranslation(q, revealed, yueOn);
-  byId('optionsContainer').innerHTML = q.o.map((_, oi) => optionHtml(q, oi, { showAnswer, revealed, yueOn })).join('');
-  renderAnswerBox(q, idx, showAnswer);
-  renderSimilar(q, revealed);
-  renderExamTools(idx);
-  renderNavButtons(idx, total, revealed);
-  forgetQuizPanelsOnNewQuestion();
-  quizDeskStale = true; // S-233: the desktop parts are filled by arrangeQuiz, and only on desktop
-  arrangeQuiz(deskOn()); // v2.0.0: the desktop columns first, so the counter below measures the row it ends up in
-  fitQuestionCounter(); // C3: measured once the counter's row (bookmark, arrows) is final
-  desktopRefit('screenQuiz', fitQuiz);
-  quizMainHold = null; // used by fitQuiz above; never carried to a later resize
+  try {
+    const idx = state.current;
+    const q = state.questions[idx];
+    const total = state.questions.length;
+    const revealed = idx in state.revealed;
+    // exam mode never shows right / wrong, the answer or translations until the results page
+    const showAnswer = revealed && state.mode === PRACTICE_MODE;
+    // practice translation: "Translate" shows it before answering; always shown once revealed
+    const yueOn = showAnswer || (state.mode === PRACTICE_MODE && !!state.yueShown[idx]);
+    renderQuizHeader(q, idx, total);
+    renderTranslation(q, revealed, yueOn);
+    byId('optionsContainer').innerHTML = q.o.map((_, oi) => optionHtml(q, oi, { showAnswer, revealed, yueOn })).join('');
+    renderAnswerBox(q, idx, showAnswer);
+    renderSimilar(q, revealed);
+    renderExamTools(idx);
+    renderNavButtons(idx, total, revealed);
+    forgetQuizPanelsOnNewQuestion();
+    quizDeskStale = true; // S-233: the desktop parts are filled by arrangeQuiz, and only on desktop
+    arrangeQuiz(deskOn()); // v2.0.0: the desktop columns first, so the counter below measures the row it ends up in
+    fitQuestionCounter(); // C3: measured once the counter's row (bookmark, arrows) is final
+    desktopRefit('screenQuiz', fitQuiz);
+  } finally {
+    quizMainHold = null; // S-249: used by fitQuiz above; never carried to a later resize, even if the render throws
+  }
 }
 // W-016: a fact set's "Ch c #n" is English in every language (S-057), so it goes in a lang="en" span; v1.6.0: a memo
 // set's group title is Cantonese data (lang="zh-HK"). Built from text nodes, never innerHTML, so the locale string
