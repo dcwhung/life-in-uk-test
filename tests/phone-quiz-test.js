@@ -207,18 +207,34 @@ const modeRun = async (page, { showYue }) => {
   }
   return run;
 };
+// W-083: Practice draws its questions in a random order, and a fresh session whose first card happens to be one of
+// Exam 1's few tall ones falls back at once (a run of only 's'). The test pins the order: a seeded generator
+// (mulberry32) stands in for Math.random before each session, so every run asks the same questions in the same order
+const SESSION_SEED = 20261013;
+const seedRandom = page => page.evaluate(seed => {
+  let a = seed >>> 0;
+  Math.random = () => {
+    a = (a + 0x6D2B79F5) >>> 0;
+    let x = Math.imul(a ^ (a >>> 15), 1 | a);
+    x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x;
+    return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+  };
+}, SESSION_SEED);
 async function checkSessionLatch(b) {
   let fellBack = false;
   for (const { viewport, fontSize } of LATCH_PHONES) {
     const { page, errors, label } = await dt.openDesktop(b, { viewport, lang: 'zh-HK', fontSize, translation: true });
+    await seedRandom(page);
     await page.evaluate(n => { pendingMode = 'practice'; startExam(n); }, EXAM_ONE);
     const run = await modeRun(page, { showYue: true });
     fellBack = fellBack || run.includes('s');
     assert(!/s.*F/.test(run), `${label} W-082: within a session the layout never goes back to one screen after a fallback (${run})`);
     // a new session decides afresh (the short cards without translation fit again)
+    await seedRandom(page);
     await page.evaluate(n => { pendingMode = 'practice'; startExam(n); }, EXAM_ONE);
     const fresh = await modeRun(page, { showYue: false });
-    assert(!/s.*F/.test(fresh) && (fontSize === 'large' || fresh.startsWith('F')), `${label} W-082: a new session decides again (${fresh})`);
+    // with the order pinned (W-083) the fresh session's first card is a short one at every size: it must start one screen high
+    assert(!/s.*F/.test(fresh) && fresh.startsWith('F'), `${label} W-082: a new session decides again (${fresh})`);
     assert(errors.length === 0, `${label} latch: no page errors ` + errors.join(' | '));
     await page.close();
   }
