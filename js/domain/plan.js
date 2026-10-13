@@ -149,8 +149,8 @@ function planChunkWeighted(items, dayCount) {
 }
 
 // G13: learn days first fit all the reading / practice (overload when even all-but-one day is not enough); mock days
-// take their share of what is left (at least one), drill days the rest. A single day learns (no mock): no goal asks
-// for one since CUI-0037 (7 study days), but the split stays defined for any count
+// take their share of what is left (at least one), drill days the rest. A single day learns (no mock). No plan is
+// built with fewer than 7 study days since CUI-0037, but planFeasibility still splits a draft's 1–6 days (S-251)
 function planSplitStudyDays(n, goal, learnMins) {
   if (n <= 0) return { learn: 0, drill: 0, mock: 0, overload: learnMins > 0 };
   const lv = PLAN_LEVELS[goal.level];
@@ -163,7 +163,7 @@ function planSplitStudyDays(n, goal, learnMins) {
   return { learn, drill: rest - mock, mock, overload: fit > learn };
 }
 // all study days: the last is the light review, except when it is the only one and facts are left (learning what is
-// left comes first, G13; unreachable through a goal since CUI-0037, kept so any count splits)
+// left comes first, G13). S-251: since CUI-0037 only planFeasibility meets such a count (a draft's 1–6 study days)
 function planStudySplit(studyCount, goal, learnMins) {
   const light = studyCount > 1 || (studyCount === 1 && learnMins === 0);
   return { light, ...planSplitStudyDays(studyCount - (light ? 1 : 0), goal, learnMins) };

@@ -632,8 +632,8 @@ function checkReplan() {
 }
 
 // CUI-0037: a goal changed late must still leave 7 study days (G28); the re-plan then learns every unfinished fact once
-// (G13: longer days), keeps a mock day and ends on the light review. buildPlanDays still splits any number of days
-// (a short split stays well defined), checked directly below since no goal can ask for one any more
+// (G13: longer days), keeps a mock day and ends on the light review. No plan is built with 1–6 study days any more,
+// but planFeasibility still splits a draft's 1–6 days (S-251), so the short splits are checked directly below
 function checkReplanLastWeek() {
   const readFacts = days => days.flatMap(d => d.tasks.filter(t => t.type === 'read').flatMap(t => t.facts));
   const practised = days => days.flatMap(d => d.tasks.filter(t => t.type === 'practice').flatMap(t => t.qids));
