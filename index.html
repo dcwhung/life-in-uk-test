@@ -337,7 +337,8 @@
             <div class="chip-row plan-presets" id="planDaysChips" data-fit-row=".chip"></div>
             <label class="plan-date-pick" for="planExamDate"><span data-i18n="plan.goal.orDate"></span> <input type="date" id="planExamDate" data-input-action="planSetExamDate" data-blur-action="planCommitExamDate"></label>
           </div>
-          <p class="plan-muted" id="planDateNote" data-i18n="plan.goal.editDateNote" hidden></p>
+          <!-- W-382: kept empty for a cached pre-v2.1.0 planGoal.js, which still toggles it (G36 note retired, CUI-0038); remove after v2.2 -->
+          <p class="plan-muted" id="planDateNote" hidden></p>
         </div>
       </div>
 
@@ -390,8 +391,9 @@
       </div>
 
       <!-- v1.0.4: the phases / order cards fold (planSchedule.js planToggleFold); the whole title is the toggle -->
+      <!-- CUI-0038: the phase title and the Daily tasks legend follow the plan's phases (planSchedule.js renderPlanPhaseCount) -->
       <div class="plan-card-box plan-fold">
-        <h3><button type="button" class="plan-fold-btn" id="planPhasesToggle" data-action="planToggleFold" data-arg="phases" aria-expanded="true" aria-controls="planStrategy"><span data-i18n="plan.schedule.phasesTitle"></span><span class="plan-fold-chev" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 6l4.5 4.5L12.5 6"></path></svg></span></button></h3>
+        <h3><button type="button" class="plan-fold-btn" id="planPhasesToggle" data-action="planToggleFold" data-arg="phases" aria-expanded="true" aria-controls="planStrategy"><span id="planPhasesTitle" data-i18n="plan.schedule.phasesTitle"></span><span class="plan-fold-chev" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 6l4.5 4.5L12.5 6"></path></svg></span></button></h3>
         <div class="plan-phase-bar" id="planPhaseBar" role="list" aria-hidden="true"></div>
         <div class="plan-strats" id="planStrategy"></div>
       </div>
@@ -408,7 +410,7 @@
       <div class="plan-card-box">
         <div class="plan-row">
           <h3 id="planDayListTitle" data-i18n="plan.schedule.listTitle"></h3>
-          <span class="plan-legend" aria-hidden="true"><i class="plan-bg-learn"></i><span data-i18n="plan.phase.learn"></span><i class="plan-bg-drill"></i><span data-i18n="plan.phase.drill"></span><i class="plan-bg-mock"></i><span data-i18n="plan.phase.mock"></span></span>
+          <span class="plan-legend" id="planPhaseLegend" aria-hidden="true"><i class="plan-bg-learn"></i><span data-i18n="plan.phase.learn"></span><i class="plan-bg-drill"></i><span data-i18n="plan.phase.drill"></span><i class="plan-bg-mock"></i><span data-i18n="plan.phase.mock"></span></span>
         </div>
         <div class="plan-day-scroll" id="planDayList" tabindex="0" role="region" aria-labelledby="planDayListTitle"></div>
       </div>
