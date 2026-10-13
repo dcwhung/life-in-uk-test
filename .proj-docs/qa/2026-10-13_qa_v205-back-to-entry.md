@@ -1,11 +1,14 @@
 # QA — 2026-10-13 — v2.0.5 做題中途返回原本入口（back-to-entry）
 
+> **改號（2026-10-13，merge `main` v2.1.0 時）**：`main` 已用 W-071、S-254–S-256、CUI-0035–CUI-0039，所以本 branch 原 **W-071 / W-072 / W-073 → W-072 / W-073 / W-074**，**S-254–S-260 → S-257–S-263**（逐個 +3：S-254→S-257、S-255→S-258、S-256→S-259、S-257→S-260、S-258→S-261、S-259→S-262、S-260→S-263），ticket **CUI-0035 → CUI-0040**（`.tickets/pending/0001-0200/CUI-0040.md`）。已 push 嘅 commit message 保留舊號，對照以此為準。版本：原 v2.0.5 以 **v2.1.1** 發佈（`main` 已出 v2.1.0）；報告 / script / 截圖檔名嘅 `v203` / `v205` 照舊。下一個新號：C-007、W-075、S-264、CUI-0041。
+> **merge 後行為變更**：48307d5 嘅 ‹ › glyph（上一題 / 下一題、quick 掣、計劃 上一條 / 下一條、日曆「返回今日」）已取消，跟 `main` v1.6.1「掣用 line icon，唔用 glyph」；header 返回字只有字，前面係 `chevronLeft` line icon；記憶法中途返回改用 `main` 嘅 C2「‹ 記憶法」（`setQuizBackMemo`）。下面 ‹ › 32/32 同「‹ ① 睇」係 48307d5 當時結果。
+
 - **日期**：2026-10-13
 - **測試員**：QA agent
 - **範圍**：branch `fix/quiz/back-to-entry` @ **`48307d5`**（v2.0.5）。功能：題目頁 / 結果頁 header 返回掣中途返去 session 嘅入口（`.proj-docs/qa/quiz-entry-back-audit.html` #6–#9、#11；HANDOFF v2.0.5 行）+ review 之後 48307d5 嘅 ‹ › 箭咀（quiz「‹ Prev」/「Next ›」、quick ‹ ›、計劃知識點「‹ Prev」/「Next ›」、日曆 chip「‹ Back to today」；向前 CTA 保留 →）
 - **Review 前置**：`.proj-docs/reviews/2026-10-13_review_v203-back-to-entry.md` pass 97
 - **環境**：Linux，Node + playwright-core（`NODE_PATH=/opt/node-tools/node_modules`），Chromium headless（`/opt/pw-browsers/chromium`），repo 經 `tests/pages-server.js`（http + Pages Cache-Control）serve，`timezoneId: Europe/London`，每個組合全新 context + `localStorage` seed `lifeuk.uiLang` / `lifeuk.fontSize`。v2.0.2 對照 = `git archive c6b0806` 匯出去 scratch dir。冇真機
-- **總結**：✅ **PASS**。`run-all.sh` **67 / 67**（`fontsize-test` 第一次已 PASS，唔使重跑）。QA script **690 / 691**：真 click matrix 320 / 390 / 1024 / 1280 × en / zh-HK × 細 / 大字 = 16 個 context × 6 個 flow **559 / 560**；scenario（語言切換 + 巢狀 Similar + edge E1–E9）**54 / 54**；‹ › 箭咀 **32 / 32**；cached-file 混合 **42 / 42**；截圖 **3 / 3**。唯一 fail = 320 英文大字計劃**練習題 task** header overflow 14px，**v2.0.2 已存在而且更差**（頁面 326px 要左右 scroll），v2.0.5 改善咗 → **CUI-0035** 🟢 Low，唔阻 merge。🔴 0、🟡 0
+- **總結**：✅ **PASS**。`run-all.sh` **67 / 67**（`fontsize-test` 第一次已 PASS，唔使重跑）。QA script **690 / 691**：真 click matrix 320 / 390 / 1024 / 1280 × en / zh-HK × 細 / 大字 = 16 個 context × 6 個 flow **559 / 560**；scenario（語言切換 + 巢狀 Similar + edge E1–E9）**54 / 54**；‹ › 箭咀 **32 / 32**；cached-file 混合 **42 / 42**；截圖 **3 / 3**。唯一 fail = 320 英文大字計劃**練習題 task** header overflow 14px，**v2.0.2 已存在而且更差**（頁面 326px 要左右 scroll），v2.0.5 改善咗 → **CUI-0040** 🟢 Low，唔阻 merge。🔴 0、🟡 0
 
 ## Hard Gates
 
@@ -44,7 +47,7 @@ Script：`.proj-docs/qa/scripts/2026-10-13_qa-v205-back-to-entry.js M`（`WIDTHS
 | 每一步版面 | 每個題目 / 結果 / 返回落點 | `documentElement.scrollWidth <= innerWidth`、`.quiz-header` 冇 overflow、返回掣完全喺視窗、文字掣冇截字、header 冇 raw i18n key | 79 / 80（見下） |
 | Console | 成個 context | 冇 page error、冇 `[i18n] missing key`、冇 `no handler` | ✅ 16 / 16 |
 
-**唯一 fail（M-320-en-large.pt）**：320 英文大字計劃練習題 task 題目頁 `.quiz-header` `scrollWidth` 302 > `clientWidth` 288；「Practice」badge 右邊去到 x = 318（viewport 320），頁面**冇**左右 scroll。v2.0.2 同畫面：`← Today's tasks` 闊 8px，header 310、**頁面 326 要左右 scroll**。即係 pre-existing，v2.0.5 換「‹」改善咗但未完全解決 → **CUI-0035** 🟢 Low。zh-HK 大字 288 / 288 啱啱好；`‹ Back to the fact`、`‹ Q{n}`（兩位數）320 英文大字都 fit。
+**唯一 fail（M-320-en-large.pt）**：320 英文大字計劃練習題 task 題目頁 `.quiz-header` `scrollWidth` 302 > `clientWidth` 288；「Practice」badge 右邊去到 x = 318（viewport 320），頁面**冇**左右 scroll。v2.0.2 同畫面：`← Today's tasks` 闊 8px，header 310、**頁面 326 要左右 scroll**。即係 pre-existing，v2.0.5 換「‹」改善咗但未完全解決 → **CUI-0040** 🟢 Low。zh-HK 大字 288 / 288 啱啱好；`‹ Back to the fact`、`‹ Q{n}`（兩位數）320 英文大字都 fit。
 
 ## 3. Scenario（S，390 + 1280）
 
@@ -98,18 +101,18 @@ Current tree + **一個** v2.0.2（c6b0806）檔，http serve，390，真 click�
 
 | 優先 | Ticket | 問題 | 引入？ |
 |---|---|---|---|
-| 🟢 Low | **CUI-0035** | 320 英文大字計劃練習題 task header overflow 14px（badge 貼邊，頁面冇 scroll） | 否（v2.0.2 更差：頁面 326px） |
+| 🟢 Low | **CUI-0040** | 320 英文大字計劃練習題 task header overflow 14px（badge 貼邊，頁面冇 scroll） | 否（v2.0.2 更差：頁面 326px） |
 
 觀察（唔開 ticket）：
 
-- **O-1**（設計取捨，W-071 已接受）：只係舊 `locales/en.js` cached、其他檔新嗰陣，header 顯示 🏠 /「← Today's tasks」，但撳落去去嘅係新落點（已標記清單 / 溫習 / 知識點卡）。字同落點唔一致，但冇 raw key、冇 error，SW 更新完就消失。
+- **O-1**（設計取捨，W-072 已接受）：只係舊 `locales/en.js` cached、其他檔新嗰陣，header 顯示 🏠 /「← Today's tasks」，但撳落去去嘅係新落點（已標記清單 / 溫習 / 知識點卡）。字同落點唔一致，但冇 raw key、冇 error，SW 更新完就消失。
 - **O-2**：zh-HK UI + 舊 `zh-HK.js` 時返回字用英文 fallback「‹ Flagged」（`t()` 落 en），唔係 🏠；可接受。
 - **O-3**：已標記練習中途全部取消標記再返回，落已標記清單（空）冇 error（E3）；按 code，`#flaggedStart` 冇 client rect 又冇 list 掣時 `focusFlaggedEntry` 唔移 focus。罕見，記錄級。
 
 ## 9. 測試建議（下一步）
 
 - `back-to-entry-test` 只用 `evaluate` 捷徑同 390 / 1280；可考慮加 1024 + zh-HK 大字一條 Similar label fit，同 E1（雙擊只返一層）、E2（Retry 保留「‹ Flagged」）
-- CUI-0035 修完加 320 英文大字計劃練習 task header assertion
+- CUI-0040 修完加 320 英文大字計劃練習 task header assertion
 
 ## Handoff receipt
 
@@ -128,7 +131,7 @@ hard_gates:
   data_integrity: pass
   performance: pass (N/A)
   no_critical: pass (0)
-tickets: [CUI-0035 (Low, pre-existing, non-blocking)]
+tickets: [CUI-0040 (Low, pre-existing, non-blocking)]
 report: .proj-docs/qa/2026-10-13_qa_v205-back-to-entry.md
 context: All entries #6/#7/#8/#9/#11 + plan task + Home/exam verified by real clicks at 320/390/1024/1280 × en/zh-HK × small/large; language switch, nested Similar-in-Flagged, cached-file mix pass. Only finding is a pre-existing 320 en-large plan practice header overflow (improved vs v2.0.2).
 ```
