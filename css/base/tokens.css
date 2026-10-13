@@ -119,8 +119,8 @@
      (css/base/layout.css; the one-screen shell in css/components/fit.css subtracts it); --header-logo-size /
      --header-btn-size: app icon and ⚙; --dot-max-w: the cap on a number dot (css/components/dots.css);
      --main-pad-bottom: room under the last card.
-     --header-h (v1.4.4): screens that pin a block under the sticky header (css/screens/flagged.css .flagged-top)
-     stick at this offset */
+     --header-h (v1.4.4): screens that pin a block under the sticky header (css/screens/flagged.css .flagged-top, v1.6.1 / v2.0.4
+     css/screens/study.css .study-top; both phone only, static on desktop) stick at this offset */
   --desktop-scale: 1.2;
   --large-text-step: 2px; /* the large text block below adds this to every --fs-* step (written out there as literals) */
   --content-max-w: 780px;
@@ -131,6 +131,10 @@
   --main-pad-bottom: 100px;
   /* the Flagged screen's pinned block height, measured live (js/screens/flagged.js ResizeObserver) */
   --flagged-top-h: 0px;
+  /* v1.6.1: the Study screen's pinned block (tabs + chip rows) height, measured live (js/screens/study.js ResizeObserver) */
+  --study-top-h: 0px;
+  /* W-068: the opaque stop of a CSS mask (edge fades, e.g. the Study chip rows): masks read alpha only, so any opaque colour */
+  --mask-opaque: #000;
 
   /* switch (css/components/switch.css): the off track on a dark surface (the ⓘ popover) */
   --switch-track-inverse: rgba(255,255,255,0.25);

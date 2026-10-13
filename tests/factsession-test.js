@@ -19,8 +19,9 @@ const FACT_LABEL = { en: `Fact ${FACT_NUM_TEXT}`, 'zh-HK': `知識點 ${FACT_NUM
 // G40 (v1.0.8): each distinct question once, the first copy in exam order
 const FACT_SRC = '4.16,6.6,7.14,8.13,16.16,17.21';
 // Study is scrolled so fact #21 sits this far below the viewport top, as when its "▶ Practise" is tapped
-// (v0.63: ↩ Back brings the card into view if the restored scroll no longer shows it, R-010)
-const CARD_OFFSET_Y = 200;
+// (v0.63: ↩ Back brings the card into view if the restored scroll no longer shows it, R-010). W-067 (v1.6.1): below the
+// pinned Study tabs + chips (~215px at 390px); at 200px the card was behind the block, so ↩ Back rightly scrolls it out
+const CARD_OFFSET_Y = 300;
 const SCROLL_TOLERANCE = 2;
 const SEARCH_TERM = 'magna';
 
@@ -124,13 +125,16 @@ async function checkInSession(pg) {
     wrong: !!JSON.parse(localStorage.getItem('lifeuk.wrongList') || '{}')['4.16'],
   }));
   assert(after.streak === 0 && after.wrong, `wrong answer: practiceStreak written (0) and joins wrong answers (${JSON.stringify(after)})`);
-  assert(await text(pg, '#nextBtn') === 'Next →', 'Next → before the last question');
+  assert(await text(pg, '#nextBtn') === 'Next', 'Next before the last question');
   await pg.click('#nextBtn');
   await answer(pg, true);
   assert(await pg.evaluate(() => JSON.parse(localStorage.getItem('lifeuk.practiceStreak'))['6.6']) === 1, 'right answer: practiceStreak 6.6 = 1');
   await goLast(pg);
   await answer(pg, true);
-  assert(await text(pg, '#nextBtn') === '↩ Back' && await text(pg, '#quickNext') === '↩', 'last question: ↩ Back / ↩ (no results page)');
+  // C1 (user, iPhone): no "↩" glyph (an emoji box on iOS): a return line icon on the quick and the bottom button
+  const back = await pg.evaluate(() => ['nextBtn', 'quickNext'].map(id => { const e = byId(id), s = e.querySelector('svg.line-icon');
+    return { text: e.textContent.trim(), icon: s && s.dataset.iconName, glyph: /[\p{Extended_Pictographic}\u2190-\u21FF]/u.test(e.textContent) }; }));
+  assert(back[0].text === 'Back' && back[1].text === '' && back.every(b => b.icon === 'returnLeft' && !b.glyph), 'last question: Back / quick back, both a return line icon, no ↩ glyph (no results page): ' + JSON.stringify(back));
 }
 
 // ↩ Back: Study with the same tab, chapter chip, Hide mastered chip and scroll; session cleared
@@ -175,7 +179,7 @@ async function checkHomeAndAfter(pg) {
   assert(await pg.evaluate(() => sessionReturn === null), 'startExam clears sessionReturn');
   await goLast(pg);
   await answer(pg, true);
-  assert(await text(pg, '#nextBtn') === 'Finish ✓', 'a normal set afterwards: last question Finish ✓');
+  assert(await text(pg, '#nextBtn') === 'Finish', 'a normal set afterwards: last question Finish');
   await pg.click('#nextBtn');
   assert(await activeScreen(pg) === 'screenResult', 'a normal set afterwards ends on its results page');
 }
@@ -205,7 +209,7 @@ async function checkSourceRow(pg) {
   });
   assert(row.nodes === FACT_NODES, 'source node row: E·Q nodes in f.src order with mastery colours: ' + row.nodes);
   assert(row.clickable === 0 && row.appears === 0 && row.label === 'Appears in:', `nodes are display only; "Appears ×n" tag gone (${JSON.stringify(row)})`);
-  assert(row.btn === `▶ Practise these 6|startFactPractice|${FACT_ID}`, 'Practise button: plural label + startFactPractice action: ' + row.btn);
+  assert(row.btn === `Practise these 6|startFactPractice|${FACT_ID}`, 'Practise button: plural label + startFactPractice action: ' + row.btn);
   assert(row.describedBy === `#${FACT_CHAPTER_NUM}`, 'Practise button is described by the card\'s chapter number "#n": ' + row.describedBy);
   // S-030: the ~29px "▶ Practise" pill keeps its look but takes taps over >= 44px (invisible ::before ring);
   // scan the button's vertical centre line with elementFromPoint
@@ -218,7 +222,7 @@ async function checkSourceRow(pg) {
   });
   assert(hit.rows >= MIN_TOUCH_PX, `Practise button tap height >= ${MIN_TOUCH_PX}px (visible ${hit.visible}px, tappable ${hit.rows}px)`);
   const one = await pg.$eval(`${factCard(ONE_SOURCE_FACT)} .fact-practise`, e => e.textContent);
-  assert(one === '▶ Practise this one', 'one source question: ▶ Practise this one');
+  assert(one === 'Practise this one', 'one source question: Practise this one');
 }
 // W-012: at 390px the 2-source cards whose row fitted on one line before S-034 (form controls inherit the
 // body font, "▶ Practise these 2" ~2.8px wider) must still fit: the 2nd node must not wrap under the 1st

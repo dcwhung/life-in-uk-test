@@ -2,7 +2,7 @@
 // FLAGGED — practice flags list (My Review › Flagged): unflag one by one or practise them all
 // ════════════════════════════════════════
 function flaggedStartHtml(n) {
-  return `${bookmarkSvg('rv-flag-tile')}<div><b>${t('flagged.practise', { n })}</b><span class="fs-sub">${t('flagged.practiseSub', { max: PRACTICE_ROUND_MAX })}</span></div><span class="go">→</span>`;
+  return `${bookmarkSvg('rv-flag-tile')}<div><b>${t('flagged.practise', { n })}</b><span class="fs-sub">${t('flagged.practiseSub', { max: PRACTICE_ROUND_MAX })}</span></div><span class="go">${lineIconSvg('arrowRight')}</span>`;
 }
 // keys: one question's flagged copies (G40: one item, refs joined); unflagging it clears every copy
 function flaggedItemHtml(keys) {

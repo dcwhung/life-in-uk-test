@@ -58,26 +58,31 @@ function startExam(examNum, mode = pendingMode) {
 
 // ── render ──
 function renderQuestion() {
-  const idx = state.current;
-  const q = state.questions[idx];
-  const total = state.questions.length;
-  const revealed = idx in state.revealed;
-  // exam mode never shows right / wrong, the answer or translations until the results page
-  const showAnswer = revealed && state.mode === PRACTICE_MODE;
-  // practice translation: "Translate" shows it before answering; always shown once revealed
-  const yueOn = showAnswer || (state.mode === PRACTICE_MODE && !!state.yueShown[idx]);
-  renderQuizHeader(q, idx, total);
-  renderTranslation(q, revealed, yueOn);
-  byId('optionsContainer').innerHTML = q.o.map((_, oi) => optionHtml(q, oi, { showAnswer, revealed, yueOn })).join('');
-  renderAnswerBox(q, idx, showAnswer);
-  renderSimilar(q, revealed);
-  renderExamTools(idx);
-  renderNavButtons(idx, total, revealed);
-  forgetQuizPanelsOnNewQuestion();
-  quizDeskStale = true; // S-233: the desktop parts are filled by arrangeQuiz, and only on desktop
-  arrangeQuiz(deskOn()); // v2.0.0: the desktop columns first, so the counter below measures the row it ends up in
-  fitQuestionCounter(); // C3: measured once the counter's row (bookmark, arrows) is final
-  desktopRefit('screenQuiz', fitQuiz);
+  quizMainHold = holdQuizMainView(); // CUI-0034: measured before anything below changes the left column
+  try {
+    const idx = state.current;
+    const q = state.questions[idx];
+    const total = state.questions.length;
+    const revealed = idx in state.revealed;
+    // exam mode never shows right / wrong, the answer or translations until the results page
+    const showAnswer = revealed && state.mode === PRACTICE_MODE;
+    // practice translation: "Translate" shows it before answering; always shown once revealed
+    const yueOn = showAnswer || (state.mode === PRACTICE_MODE && !!state.yueShown[idx]);
+    renderQuizHeader(q, idx, total);
+    renderTranslation(q, revealed, yueOn);
+    byId('optionsContainer').innerHTML = q.o.map((_, oi) => optionHtml(q, oi, { showAnswer, revealed, yueOn })).join('');
+    renderAnswerBox(q, idx, showAnswer);
+    renderSimilar(q, revealed);
+    renderExamTools(idx);
+    renderNavButtons(idx, total, revealed);
+    forgetQuizPanelsOnNewQuestion();
+    quizDeskStale = true; // S-233: the desktop parts are filled by arrangeQuiz, and only on desktop
+    arrangeQuiz(deskOn()); // v2.0.0: the desktop columns first, so the counter below measures the row it ends up in
+    fitQuestionCounter(); // C3: measured once the counter's row (bookmark, arrows) is final
+    desktopRefit('screenQuiz', fitQuiz);
+  } finally {
+    quizMainHold = null; // S-249: used by fitQuiz above; never carried to a later resize, even if the render throws
+  }
 }
 // W-016: a fact set's "Ch c #n" is English in every language (S-057), so it goes in a lang="en" span; v1.6.0: a memo
 // set's group title is Cantonese data (lang="zh-HK"). Built from text nodes, never innerHTML, so the locale string
@@ -172,11 +177,10 @@ function renderAnswerTranslation(q) {
 function renderNavButtons(idx, total, revealed) {
   const next = nextAction(idx, total);
   ['prevBtn', 'quickPrev'].forEach(id => { byId(id).disabled = idx === 0; });
-  byId('nextBtn').textContent = next.label;
+  setIconLabel(byId('nextBtn'), next.label, next.labelIcons); // v1.6.1: words + line icon, never a glyph
   const quickNext = byId('quickNext');
-  quickNext.textContent = next.symbol;
-  quickNext.title = next.title;
-  quickNext.setAttribute('aria-label', next.title);
+  quickNext.innerHTML = lineIconSvg(next.icon); // C1: a line icon, never a glyph (iOS draws "↩" as an emoji)
+  setAccessibleName(quickNext, next.label);
   // quick pair: practice once revealed (Translate holds the spot before that); exam always (no Translate there)
   byId('quickNav').classList.toggle('visible', revealed || state.mode === EXAM_MODE);
 }
@@ -195,13 +199,20 @@ function renderRoundNote() {
 
 // ── answering ──
 // what "Next" does on this question: next question, finish the set, or leave the side session (similar / fact)
-// label = bottom button, symbol + title = quick button in the question header
+// label + labelIcons ({ lead, trail }: where the old glyph sat) = bottom button; icon = quick button in the question
+// header (LINE_ICON_PATHS names), named by the same label
+const QUICK_ICON = { prev: 'arrowLeft', next: 'arrowRight', finish: 'check', back: 'returnLeft' };
+const NEXT_LABEL_ICONS = { next: { trail: QUICK_ICON.next }, finish: { trail: QUICK_ICON.finish }, back: { lead: QUICK_ICON.back } };
 function nextAction(idx, total) {
-  if (idx < total - 1) return { label: t('quiz.nextButton'), symbol: '→', title: t('quiz.next'), run: nextQ };
+  if (idx < total - 1) {
+    return { label: t('quiz.next'), labelIcons: NEXT_LABEL_ICONS.next, icon: QUICK_ICON.next, run: nextQ };
+  }
   if (isPlanSession()) return planNextAction();
-  if (isSideSession()) return { label: t('quiz.backButton'), symbol: '↩', title: t('quiz.back'), run: returnFromSideSession };
-  if (state.mode === EXAM_MODE) return { label: t('exam.submit'), symbol: '✓', title: t('exam.submit'), run: submitExam };
-  return { label: t('quiz.finishButton'), symbol: '✓', title: t('quiz.finish'), run: finishExam };
+  if (isSideSession()) {
+    return { label: t('quiz.back'), labelIcons: NEXT_LABEL_ICONS.back, icon: QUICK_ICON.back, run: returnFromSideSession };
+  }
+  if (state.mode === EXAM_MODE) return { label: t('exam.submit'), icon: QUICK_ICON.finish, run: submitExam };
+  return { label: t('quiz.finish'), labelIcons: NEXT_LABEL_ICONS.finish, icon: QUICK_ICON.finish, run: finishExam };
 }
 function runNextAction() { nextAction(state.current, state.questions.length).run(); }
 
@@ -295,6 +306,28 @@ function forgetQuizPanelsOnNewQuestion() {
   if (r && r[0] === state.questions && r[1] === state.current) return;
   quizRenderedQuestion = [state.questions, state.current];
   quizPanelSeen = new WeakMap();
+}
+// CUI-0034 (v2.0.3): answering (or Translate) re-renders the same question: the options are rewritten, the card's
+// Translate gives way to ← → (a lower header row), and fitQuiz takes its steps off and on again. The left column keeps
+// its scrollTop (overflow-anchor: none in css/screens/quiz.css: the browser's own anchoring moved it again a frame
+// later, by ~10px), and the element the user was looking at (the question text, else the first option still in view) is
+// put back where it was once the fit is done; the column's ends clamp it
+let quizMainHold = null;
+function quizMainAnchors(main) {
+  return [byId('qText'), ...byId('optionsContainer').querySelectorAll('.opt')].filter(el => el && main.contains(el));
+}
+function holdQuizMainView() {
+  const r = quizRenderedQuestion, main = quizDesk && quizDesk.main;
+  if (!main || !main.getClientRects().length || !main.scrollTop) return null;
+  if (!r || r[0] !== state.questions || r[1] !== state.current) return null; // a new question starts at the top
+  const panelTop = main.getBoundingClientRect().top;
+  const anchor = quizMainAnchors(main).find(el => el.getBoundingClientRect().bottom > panelTop + FIT_SLACK_PX);
+  if (!anchor) return null;
+  const id = anchor.id, y = anchor.getBoundingClientRect().top; // ids (qText, opt0…) outlive the options' innerHTML
+  return () => {
+    const el = byId(id);
+    if (el && main.getClientRects().length) main.scrollTop += el.getBoundingClientRect().top - y;
+  };
 }
 function quizTabButton(id, pane) {
   return deskEl('button', 'quiz-tab', { type: 'button', id, role: 'tab', 'aria-controls': pane });
@@ -408,8 +441,10 @@ function renderExamSubmit(submit, idx, total) {
   submit.hidden = !last;
   if (!last) return;
   const next = nextAction(idx, total);
+  // v2.0.4 merge: nextAction() has no separate title since the v1.6.1 line icons (the quick ✓ is named by its label,
+  // icons.js setAccessibleName); the Submit's own words name it. Words only: an exam's Submit has no icon (no
+  // labelIcons), and .with-icon's display would override [hidden] on the other questions
   submit.textContent = next.label;
-  submit.title = next.title;
 }
 // W-378: roving tabindex (the chosen tab 0, the other -1) with aria-selected
 function applyQuizTab(showAnswer = !quizDeskParts().tabs.hidden) {
@@ -465,5 +500,6 @@ function fitQuiz(desktop) {
   if (!quizDesk) return; // S-233: never built on a phone, so no steps to take off
   const d = quizDesk;
   fitSteps(d.main, [[d.moved.options, 'is-tight'], 'is-compact']);
+  if (quizMainHold) { quizMainHold(); quizMainHold = null; } // CUI-0034: same question, before runRefits refreshes the fades
   topQuizPanelsOnNewQuestion(d); // after every render and when the screen is shown (runRefits then refreshes the fades)
 }
