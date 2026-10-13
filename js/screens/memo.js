@@ -144,7 +144,7 @@ function startMemoTest() {
   if (!g) return;
   startSideSession(MEMO_PREFIX + g.id, memoTestPick(g).map(toQuestionItem), { kind: SESSION_RETURN_KIND.memo, id: g.id });
 }
-// v2.0.3: "‹ ① Look" mid-test (goBack): nothing recorded, back to the group's ① look
+// v2.0.5: "‹ ① Look" mid-test (goBack): nothing recorded, back to the group's ① look
 function leaveMemoTest(ret) {
   memoView.id = ret.id;
   memoLook();

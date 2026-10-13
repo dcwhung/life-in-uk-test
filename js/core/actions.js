@@ -63,8 +63,8 @@ const ACTIONS = {
   resetPracticeProgress: () => resetPracticeProgress(),
   resetCompletedExams: () => resetCompletedExams(),
   goHome: () => goHome(),
-  // v2.0.3: the quiz / Result header's back button: back to where the session started (js/screens/sideSession.js goBack)
-  // W-071: an HTTP-cached pre-v2.0.3 sideSession.js has no goBack
+  // v2.0.5: the quiz / Result header's back button: back to where the session started (js/screens/sideSession.js goBack)
+  // W-071: an HTTP-cached pre-v2.0.5 sideSession.js has no goBack
   goBack: () => (typeof goBack === 'function' ? goBack() : goHome()),
   // quiz
   selectOption: el => selectOption(numArg(el)),

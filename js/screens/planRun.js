@@ -126,7 +126,7 @@ function planRunBackHtml(from) {
 // a fact's session is named like the Study one ("Fact Ch c #n", setExamLabel)
 // v1.2.0 (Q11): Home is an icon button; a plan's text back label keeps its words, and those words name it (S-188: an
 // aria-label would hide the <span lang="en">Day n</span> language from screen readers)
-// W-071: index.html says goHome; goBack only once this page's actions.js has it (an HTTP-cached pre-v2.0.3 actions.js
+// W-071: index.html says goHome; goBack only once this page's actions.js has it (an HTTP-cached pre-v2.0.5 actions.js
 // would leave the header a dead button mid-session). goHome still leaves a plan session for its day.
 function hasGoBackAction() { return typeof ACTIONS !== 'undefined' && typeof ACTIONS.goBack === 'function'; }
 function setQuizBackAction(back) { back.dataset.action = hasGoBackAction() ? 'goBack' : 'goHome'; }
@@ -145,7 +145,7 @@ function setQuizBackHome(back) {
   back.innerHTML = lineIconSvg('home');
   setAccessibleName(back, t('common.homeLabel'));
 }
-// v2.0.3: one fact's ▶ Practise reads "← Back to the fact" (planLeaveSession); a session from elsewhere names its entry
+// v2.0.5: one fact's ▶ Practise reads "← Back to the fact" (planLeaveSession); a session from elsewhere names its entry
 // W-071: a locale without plan.run.backFact keeps the day's label rather than the raw key
 function planQuizBackHtml(session) {
   const fact = t('plan.run.backFact');
@@ -157,7 +157,7 @@ function renderPlanQuizHeader() {
   const session = isPlanSession(), plan = session || isPlanMock();
   if (plan) setQuizBackText(back, planQuizBackHtml(session));
   else if (typeof setEntryBack === 'function') setEntryBack(back);
-  else setQuizBackHome(back); // W-071: an HTTP-cached pre-v2.0.3 sideSession.js (no setEntryBack) keeps the 🏠
+  else setQuizBackHome(back); // W-071: an HTTP-cached pre-v2.0.5 sideSession.js (no setEntryBack) keeps the 🏠
   if (!session) return;
   if (planRunPart(sessionReturn).fact !== undefined) setExamLabel(byId('quizLabel'), FACT_PREFIX + sessionReturn.fact);
   else byId('quizLabel').textContent = planRunLabel(sessionReturn);
@@ -223,7 +223,7 @@ function planBackToDay() {
   const box = ret && document.querySelector(`#planTaskList [data-arg="${ret.date}"][data-task="${ret.taskIndex}"]`);
   if (box) box.focus();
 }
-// v2.0.3 (goBack): ← mid-session. One fact's practice goes back to that fact's card (review when the task is done, as
+// v2.0.5 (goBack): ← mid-session. One fact's practice goes back to that fact's card (review when the task is done, as
 // planOpenTask shows it); a whole task, or a plan gone meanwhile, as planBackToDay
 function planLeaveSession() {
   const ret = sessionReturn;

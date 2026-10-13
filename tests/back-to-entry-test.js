@@ -1,7 +1,7 @@
 const { chromium } = require('playwright-core');
 const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.2: keep the old en + small first run
 const path = require('path');
-// v2.0.3 (fix/quiz/back-to-entry; .proj-docs/qa/quiz-entry-back-audit.html #6–#9, #11): the quiz header's back button,
+// v2.0.5 (fix/quiz/back-to-entry; .proj-docs/qa/quiz-entry-back-audit.html #6–#9, #11): the quiz header's back button,
 // tapped mid-session, goes back to where the session started instead of Home, on the phone and the desktop layout.
 //   #6 Flagged list › Practise        → "‹ Flagged" → the Flagged list (the Result header too)
 //   #7 Study fact › ▶ Practise        → "‹ Study" → Study, the same card

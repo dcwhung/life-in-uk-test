@@ -75,7 +75,7 @@ function returnFromSideSession() {
   SESSION_RETURNS[ret.kind](ret);
 }
 
-// ── v2.0.3: back mid-session (quiz / Result header; .proj-docs/qa/quiz-entry-back-audit.html #6–#9, #11) ──
+// ── v2.0.5: back mid-session (quiz / Result header; .proj-docs/qa/quiz-entry-back-audit.html #6–#9, #11) ──
 // Each session goes back to where it started; the Home entries keep the 🏠 and go Home (goHome asks first in an exam).
 // Leaving mid-way is the last "↩ Back" without its finish: a memory-note test records nothing and shows ① look.
 const SESSION_LEAVES = { ...SESSION_RETURNS, [SESSION_RETURN_KIND.memo]: ret => leaveMemoTest(ret) };
@@ -110,7 +110,7 @@ function entryBackHtml() {
   }
   return isFlaggedSession() ? entryBackText('quiz.backToFlagged') : null;
 }
-// W-071: without a goBack handler (cached pre-v2.0.3 actions.js / planRun.js) the header goes Home, so it says 🏠
+// W-071: without a goBack handler (cached pre-v2.0.5 actions.js / planRun.js) the header goes Home, so it says 🏠
 function setEntryBack(back) {
   const html = typeof hasGoBackAction === 'function' && hasGoBackAction() ? entryBackHtml() : null;
   if (html) setQuizBackText(back, html);
