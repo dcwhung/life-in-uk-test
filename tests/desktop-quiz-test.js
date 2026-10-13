@@ -13,6 +13,7 @@ const { assert } = dt;
 
 const EXAM_ONE = 1;
 const QUESTIONS_PER_EXAM = 24;
+const EXAM_COUNT = 17;
 const DOTS_PER_RAIL_ROW = 6;
 const ANSWER_TAB = { en: 'Answer', 'zh-HK': '答案' };
 const SUBMIT = { en: 'Submit', 'zh-HK': '提交' };
@@ -428,6 +429,63 @@ async function checkMainTopOnNewQuestion(b) {
   await page.close();
 }
 
+// CUI-0034 (v2.0.3): answering re-renders the same question (options, feedback, the card header's Translate → ← →) and
+// refits the left column; what the user was looking at must not move. Every question of the set whose left column
+// scrolls before answering (the set is fixed, only its order is random), scrolled to the bottom and to the middle:
+// the first element in view (the question text, else an option) stays within 2px, unless the column can no longer
+// scroll that far (then it sits at the end it hit)
+const mainView = page => page.$eval(PANE.main, main => {
+  const top = main.getBoundingClientRect().top;
+  const els = [byId('qText'), ...byId('optionsContainer').querySelectorAll('.opt')];
+  const first = els.find(el => el.getBoundingClientRect().bottom > top + 1) || els[0];
+  return { st: main.scrollTop, max: main.scrollHeight - main.clientHeight, id: first.id, y: first.getBoundingClientRect().top };
+});
+const elementTop = (page, id) => page.$eval('#' + id, el => el.getBoundingClientRect().top);
+// unanswered questions whose left column scrolls, with the question's translation shown (Translate) or not
+// measured a frame after each render, as the user sees it (1280 × 720 with Translate on overflows only mid-render)
+async function mainLongs(page, translate) {
+  const longs = [];
+  const n = await page.evaluate(() => state.questions.length);
+  for (let i = 0; i < n; i++) {
+    await page.evaluate(([k, tr]) => { state.yueShown[k] = tr; goToQuestion(k); }, [i, translate]);
+    await dt.nextFrame(page);
+    if (await page.$eval(PANE.main, el => el.scrollHeight > el.clientHeight + 1)) longs.push(i);
+  }
+  return longs;
+}
+async function checkMainKeptOnAnswer(b, viewport, lang, { translate = false } = {}) {
+  const { page, errors, label } = await dt.openDesktop(b, { viewport, lang, fontSize: 'large' });
+  // the first of Exam 1–17 with such a question
+  let longs = [], exam = 0;
+  while (!longs.length && exam < EXAM_COUNT) {
+    await startSet(page, 'practice', ++exam);
+    longs = await mainLongs(page, translate);
+  }
+  const how = translate ? ', Translate on' : '';
+  assert(longs.length > 0, `${label}${how}: Exam ${exam}: a question whose left column scrolls before answering (${longs.map(i => 'Q' + (i + 1)).join(' ')})`);
+  for (const i of longs) {
+    for (const where of ['bottom', 'middle']) {
+      await page.evaluate(n => { delete state.answers[n]; delete state.revealed[n]; goToQuestion(n); }, i);
+      if (where === 'bottom') await scrollToBottom(page, PANE.main); else await scrollToMiddle(page, PANE.main);
+      const before = await mainView(page);
+      assert(before.st > 0, `${label}: Q${i + 1} left column scrolled to the ${where} (${before.st}px)`);
+      // a DOM click: page.click would first scroll the option into view, which is not what is being measured
+      await page.evaluate(() => state.questions[state.current].a.forEach(oi => byId('opt' + oi).click()));
+      await dt.nextFrame(page);
+      assert(await page.evaluate(() => state.current in state.revealed), `${label}: Q${i + 1} answered`);
+      const st = await page.$eval(PANE.main, el => el.scrollTop), max = await page.$eval(PANE.main, el => el.scrollHeight - el.clientHeight);
+      const moved = (await elementTop(page, before.id)) - before.y;
+      const wanted = st + moved; // the scroll that would put the element back where it was
+      const clamped = (wanted > max + 1 && st >= max - 1) || (wanted < -1 && st <= 1);
+      const fade = await paneState(page, PANE.main);
+      assert((Math.abs(moved) <= 2 || clamped) && fade.up === st > 1 && fade.down === st < max - 1,
+        `${label}${how}: CUI-0034 Q${i + 1} scrolled to the ${where} (${before.st}/${before.max}px), answered: #${before.id} moved ${moved.toFixed(1)}px (scroll ${st}/${max}${clamped ? ', clamped' : ''}, fades ${fade.up}/${fade.down})`);
+    }
+  }
+  assert(errors.length === 0, 'no page error: ' + errors.join(' | '));
+  await page.close();
+}
+
 (async () => {
   const b = await dt.launch();
   await dt.forEachCase(b, async ({ page, label, errors, lang, translation }) => {
@@ -446,6 +504,9 @@ async function checkMainTopOnNewQuestion(b) {
   await checkPaneTopAfterReturn(b, dt.VIEWPORTS.small);
   await checkPaneTopAfterReturn(b, dt.VIEWPORTS.wide);
   await checkMainTopOnNewQuestion(b);
+  await checkMainKeptOnAnswer(b, dt.VIEWPORTS.tiny, 'en');
+  await checkMainKeptOnAnswer(b, dt.VIEWPORTS.tiny, 'zh-HK');
+  await checkMainKeptOnAnswer(b, dt.VIEWPORTS.short, 'en', { translate: true }); // 1280 × 720: only with Translate on
   await b.close();
   console.log('DESKTOP-QUIZ PASS');
 })().catch(e => { console.error(e.message || e); process.exit(1); });

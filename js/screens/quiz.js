@@ -58,6 +58,7 @@ function startExam(examNum, mode = pendingMode) {
 
 // ── render ──
 function renderQuestion() {
+  quizMainHold = holdQuizMainView(); // CUI-0034: measured before anything below changes the left column
   const idx = state.current;
   const q = state.questions[idx];
   const total = state.questions.length;
@@ -78,6 +79,7 @@ function renderQuestion() {
   arrangeQuiz(deskOn()); // v2.0.0: the desktop columns first, so the counter below measures the row it ends up in
   fitQuestionCounter(); // C3: measured once the counter's row (bookmark, arrows) is final
   desktopRefit('screenQuiz', fitQuiz);
+  quizMainHold = null; // used by fitQuiz above; never carried to a later resize
 }
 // W-016: a fact set's "Ch c #n" is English in every language (S-057), so it goes in a lang="en" span; v1.6.0: a memo
 // set's group title is Cantonese data (lang="zh-HK"). Built from text nodes, never innerHTML, so the locale string
@@ -296,6 +298,28 @@ function forgetQuizPanelsOnNewQuestion() {
   quizRenderedQuestion = [state.questions, state.current];
   quizPanelSeen = new WeakMap();
 }
+// CUI-0034 (v2.0.3): answering (or Translate) re-renders the same question: the options are rewritten, the card's
+// Translate gives way to ← → (a lower header row), and fitQuiz takes its steps off and on again. The left column keeps
+// its scrollTop (overflow-anchor: none in css/screens/quiz.css: the browser's own anchoring moved it again a frame
+// later, by ~10px), and the element the user was looking at (the question text, else the first option still in view) is
+// put back where it was once the fit is done; the column's ends clamp it
+let quizMainHold = null;
+function quizMainAnchors(main) {
+  return [byId('qText'), ...byId('optionsContainer').querySelectorAll('.opt')].filter(el => el && main.contains(el));
+}
+function holdQuizMainView() {
+  const r = quizRenderedQuestion, main = quizDesk && quizDesk.main;
+  if (!main || !main.getClientRects().length || !main.scrollTop) return null;
+  if (!r || r[0] !== state.questions || r[1] !== state.current) return null; // a new question starts at the top
+  const panelTop = main.getBoundingClientRect().top;
+  const anchor = quizMainAnchors(main).find(el => el.getBoundingClientRect().bottom > panelTop + FIT_SLACK_PX);
+  if (!anchor) return null;
+  const id = anchor.id, y = anchor.getBoundingClientRect().top; // ids (qText, opt0…) outlive the options' innerHTML
+  return () => {
+    const el = byId(id);
+    if (el && main.getClientRects().length) main.scrollTop += el.getBoundingClientRect().top - y;
+  };
+}
 function quizTabButton(id, pane) {
   return deskEl('button', 'quiz-tab', { type: 'button', id, role: 'tab', 'aria-controls': pane });
 }
@@ -465,5 +489,6 @@ function fitQuiz(desktop) {
   if (!quizDesk) return; // S-233: never built on a phone, so no steps to take off
   const d = quizDesk;
   fitSteps(d.main, [[d.moved.options, 'is-tight'], 'is-compact']);
+  if (quizMainHold) { quizMainHold(); quizMainHold = null; } // CUI-0034: same question, before runRefits refreshes the fades
   topQuizPanelsOnNewQuestion(d); // after every render and when the screen is shown (runRefits then refreshes the fades)
 }
