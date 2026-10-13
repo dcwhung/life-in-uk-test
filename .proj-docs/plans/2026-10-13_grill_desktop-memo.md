@@ -1,7 +1,7 @@
 # Grill：Desktop 記憶法（溫習模式 › 記憶法）layout
 
 **日期**：2026-10-13
-**狀態**：rev 1（用戶第一輪揀咗，見「第一輪決定」），等用戶確認 2 個細節
+**狀態**：rev 2（見「第二輪決定」），等用戶確認
 **Mockup**：[`mockups/v2.0.0/desktop-memo.html`](../../mockups/v2.0.0/desktop-memo.html)（第 13 份 desktop mockup）
 **Branch**：`claude/quirky-newton-wdelbs`（由 `main` v2.0.2 `c6b0806` 開）
 
@@ -43,12 +43,12 @@ v2.0.0 desktop layout 嘅 12 份 mockup 喺記憶法溫習（v1.6.0）merge 入�
 
 ## 驗證（mockup 本身）
 
-用 Playwright 開 mockup，逐個 frame 量度：4 種組合（中／EN × 一般／大字）× 9 個狀態 × 每個方案 × 1024／1280。量度結果：
+用 Playwright 開 mockup，逐個 frame 量度：4 種組合（中／EN × 一般／大字）× 9 個狀態 × 1024／1280（每一輪都量過）。量度結果：
 
 - 冇橫向 scroll；
 - 成頁唔使碌（`scrollHeight ≤ clientHeight + 1`），只有 panel 會碌；
 - panel 以外嘅掣全部喺畫面入面；
-- B 嘅左欄唔使碌。
+- 結果頁左欄唔使碌。
 
 ## 第一輪決定（用戶 2026-10-13）→ rev 1
 
@@ -61,13 +61,24 @@ Mockup 已經改做 rev 1，淨係保留定案嘅排法（3 欄、A、C 已經�
 | ② 試 | OK，沿用 Quiz #8 |
 | 結果 | **B 改**：頂行同 ① 睇一樣。**左 5/12**：成績卡（% + 結果字 + Lv1–4），再溫一次／下一組直排貼底。**右 7/12**：要再睇嘅題目；全對就顯示「全部答啱 🎉 記憶鉤再睇多次」+ 記憶鉤（Q3），冇答題就淨係顯示記憶鉤 |
 
-## 待用戶確認（rev 1）
+## 第二輪決定（用戶 2026-10-13）→ rev 2
+
+| 項目 | 定案 |
+|---|---|
+| 清單欄數 | **< 1280px 用 3 欄，≥ 1280px 用 4 欄**（badge 照舊永遠喺右上） |
+| 記憶鉤 | 「💡 記憶鉤：」標題自己一行，內容喺下一行 |
+| 單題組 | 每題加返編號（1.、2.…）+ **Ch · Exam · Q**（`common.chapterShort` + `common.questionRef`，S-057 每種語言都係英文；同一題喺幾份試卷出現用 `COPY_SEP`「 = 」連住，每個 ref nowrap，跟 `copiesRefText`） |
+| 結果 | 要再睇嘅題目加編號 + Ch · Exam · Q |
+| 題組問題 panel | 為咗一致，每題都加咗 Ch · Exam · Q（用戶冇要求，要確認） |
+
+## 待用戶確認（rev 2）
 
 | # | 問題 | Mockup 預設 |
 |---|---|---|
 | P1 | 題組問題 panel 要唔要顯示答案？（mock bar「題目答案」可以切換） | 唔顯示：答案留返去 ② 試先知 |
 | P2 | 單題組（📝 單題注解）每題本身已經有題目 + 注解，再加右欄會重複 | 一個全闊 panel 分 2 欄，冇右欄 |
-| — | 已知取捨：1024 嘅時候 4 欄卡大約 165px 闊，badge 固定喺右上之後，多數組名要拆成兩行（例如「投票／權」） | 照用戶規則做 |
+| P3 | 題組問題 panel 都加咗 Ch · Exam · Q，要唔要保留？ | 保留 |
+| P4 | 記憶鉤分行只改 desktop，定手機都一齊改？ | 只改 desktop |
 
 ## 實作備忘（揀咗之後）
 
@@ -76,4 +87,5 @@ Mockup 已經改做 rev 1，淨係保留定案嘅排法（3 欄、A、C 已經�
 - 用 `js/components/deskPlace.js` 搬 DOM（`setDesktopColumns`），< 1024px 要還原手機次序。
 - 題組問題 panel 係新 render（`memo.js`）：用 `questionGroups(g.qkeys)`，同單題組 render 方法一樣；只喺 desktop 顯示，手機唔加（要用戶確認）。
 - 清單 4 欄 grid 要更新 `tests/desktop-study-test.js`（記憶法 tab：badge 喺右上），同 `desktop-short-test`（1366 × 657、1280 × 720、1024 × 600）。
+- 結果嘅錯題而家只記 `{ q, yue }`（`finishMemoTest`），要加埋 key（`examNum` / `origIdx` / `ch`）先出到 Ch · Exam · Q。
 - Q3 新 key 要加落 `locales/en.js`、`locales/zh-HK.js`（i18n parity test）。
