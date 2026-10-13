@@ -7,6 +7,8 @@
   cursor: pointer;
   transition: color 0.15s;
 }
+/* CUI-0035 (user 2026-10-12): ⓘ is the info line icon (js/components/icons.js), the old glyph's size (1em of --fs-xl) */
+.info-btn .line-icon { display: block; width: 1em; height: 1em; stroke-width: 2; }
 /* S-193 (v1.3.0): the 16px ⓘ keeps its look; the tap area grows to 44 × 44px */
 .info-btn::before { content: ''; position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; transform: translate(-50%, -50%); }
 /* v1.2.0 (user): an open header popover's button turns white, ⓘ and ⚙ alike (css/base/layout.css .settings-btn) */

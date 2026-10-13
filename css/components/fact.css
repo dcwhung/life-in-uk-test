@@ -72,8 +72,14 @@
   font-size: var(--fs-sm); font-weight: 700; color: var(--note-label);
 }
 .fact-mem summary::-webkit-details-marker { display: none; }
-.fact-mem summary::before { content: '▸ '; }
-.fact-mem[open] summary::before { content: '▾ '; }
+/* CUI-0035 (user 2026-10-12): the ▸ / ▾ glyphs became one chevron line icon (js/components/factCard.js), turned down
+   when open; inline in the summary's line (no flex on <summary>: older Safari ignores it) */
+.fact-mem summary .line-icon {
+  width: 1em; height: 1em; stroke-width: 2.6; vertical-align: -0.15em; margin-right: var(--space-2);
+  transition: transform 0.15s;
+}
+.fact-mem[open] summary .line-icon { transform: rotate(90deg); }
+@media (prefers-reduced-motion: reduce) { .fact-mem summary .line-icon { transition: none; } }
 .fact-mem-body { padding: 0 var(--space-6) var(--space-6); font-size: var(--fs-sm); line-height: 1.6; color: var(--text-muted); }
 /* CUI-0028 (v1.3.2, user option C): below 375px the memory box's side padding shrinks, so memo ③'s 4-column table fits
    the Study card at 320 / 360px without scrolling sideways */

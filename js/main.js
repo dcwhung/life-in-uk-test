@@ -88,7 +88,8 @@ function upgradeLegacyFitRows() {
 // S-237 / v1.6.1: a pre-v1.6.1 cached index.html still has glyphs on its static controls ("←" on the quick Prev, "‹ ›" on
 // the plan arrows, "✕" on the install banner) and buttons whose data-i18n words now carry no glyph: give the icon-only
 // ones their data-icon and wrap the others' words beside a line icon slot (fillStaticIcons below fills both)
-const LEGACY_ICON_ONLY = [['#quickPrev', 'arrowLeft'], ['.install-close', 'close'], ['#planDayPrev', 'chevronLeft'],
+// CUI-0035: and the header ⓘ
+const LEGACY_ICON_ONLY = [['#quickPrev', 'arrowLeft'], ['.install-close', 'close'], ['#infoBtn', 'info'], ['#planDayPrev', 'chevronLeft'],
   ['#planDayNext', 'chevronRight'], ['#planCalPrev', 'chevronLeft'], ['#planCalNext', 'chevronRight']];
 const LEGACY_ICON_LABELS = [['#prevBtn', { lead: 'arrowLeft' }], ['.reset-btn[data-i18n]', { lead: 'reset' }],
   ['#screenMemo .memo-back', { lead: 'chevronLeft' }], ['#planBackToday', { lead: 'arrowLeft' }],

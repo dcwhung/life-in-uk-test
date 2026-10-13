@@ -31,6 +31,8 @@ const LINE_ICON_PATHS = {
   redo: ['M20 12a8 8 0 1 1-2.34-5.66L20 8.5', 'M20 4v4.5h-4.5'],
   reset: ['M4 12a8 8 0 1 0 2.34-5.66L4 8.5', 'M4 4v4.5h4.5'],
   close: ['M6.5 6.5l11 11', 'M17.5 6.5l-11 11'],
+  // CUI-0035 (user 2026-10-12: convert): the header ⓘ (a circle with an i; the dot is a round-capped zero-length line)
+  info: ['M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z', 'M12 11v5.5', 'M12 7.5h.01'],
 };
 // decorative: the button around it carries the label (aria-label / title from data-i18n-attr)
 function lineIconSvg(name) {
