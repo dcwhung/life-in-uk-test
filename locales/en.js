@@ -225,6 +225,10 @@ LOCALES.en = {
     lv: 'Lv{lv}',
     days: { one: '{n} day', other: '{n} days' },
     wrongTitle: 'Look at these again:',
+    // v2.4.0 (decision log Q3): the result with nothing wrong shows the hook again; a group without a hook shows its
+    // memory note (the single-note group: its notes)
+    hookAgain: 'All correct 🎉 The memory hook once more:',
+    noteAgain: 'All correct 🎉 The notes once more:',
     again: 'Review again',
     next: 'Next: {title}',
   },

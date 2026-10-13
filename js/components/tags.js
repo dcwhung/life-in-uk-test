@@ -24,8 +24,13 @@ function copiesNodeText(keys) { return keys.map(k => questionNodeText(questionBy
 function copiesRefText(keys) {
   return keys.map(k => `<span class="sqm-ref">${questionRefText(questionByKey(k))}</span>`).join(COPY_SEP);
 }
-// one display-only node for a question and its copies, coloured by its mastery
-function questionNodeHtml(keys) { return `<span class="sqm-node${questionNodeClass(keys[0])}">${copiesNodeText(keys)}</span>`; }
+// one display-only node for a question and its copies, coloured by its mastery. S-265: { lang } marks the node's language
+// (the memo pill row: "E2·Q15" stays English in zh-HK, S-057); an object, so `.map(questionNodeHtml)` (whose index
+// arrives as the 2nd argument) adds nothing
+function questionNodeHtml(keys, opts = {}) {
+  const lang = opts && opts.lang ? ` lang="${escapeHtml(opts.lang)}"` : '';
+  return `<span class="sqm-node${questionNodeClass(keys[0])}"${lang}>${escapeHtml(copiesNodeText(keys))}</span>`;
+}
 
 function masteryBarHtml(m) { return `<span class="mastery-bar" style="width:${m.pct}%"></span>`; }
 

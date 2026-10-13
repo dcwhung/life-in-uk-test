@@ -214,7 +214,12 @@ function ensureStudyLayout() {
   const content = byId('studyContent');
   const rail = wrapStudyEl('study-rail', studyRailEls());
   content.classList.add('fit-panel');
-  const cols = wrapStudyEl('study-cols fit-grow', [rail, wrapStudyEl('study-main fit-fade', [content])]);
+  // v2.4.0: a tab's lead (the memo tab's "due today" banner) sits above the card panel, outside its scroll
+  const lead = wrapStudyEl('study-lead', []);
+  lead.id = 'studyLead';
+  lead.hidden = true;
+  const body = wrapStudyEl('study-body', [lead, wrapStudyEl('study-main fit-fade', [content])]);
+  const cols = wrapStudyEl('study-cols fit-grow', [rail, body]);
   screen.append(cols);
   screen.classList.add('is-fit');
 }
@@ -251,9 +256,12 @@ function renderStudy() {
   STUDY_CHIP_ROWS.forEach(id => studyRevealChip(byId(id), byId(id).querySelector('.chip.active')));
   byId('studySearch').placeholder = study.tab === MEMO_TAB ? t('memo.search') : t('study.search');
   // a renderer may name its own count / empty-state words (memo: groups, not facts)
-  const { html, shown, total, countKey = 'study.count', emptyKey = 'study.empty' } = STUDY_RENDERERS[study.tab]();
+  const { html, lead = '', shown, total, countKey = 'study.count', emptyKey = 'study.empty' } = STUDY_RENDERERS[study.tab]();
   byId('studyCount').textContent = t(countKey, { shown, total, n: total });
   renderStudyProgress();
+  const leadBox = byId('studyLead');
+  leadBox.innerHTML = shown ? lead : '';
+  leadBox.hidden = !leadBox.innerHTML;
   byId('studyContent').innerHTML =
     shown ? html : `<div class="study-empty">${t(emptyKey)}</div>`;
   desktopRefit('screenStudy', placeStudyFilterChips); // registered lazily (js/components/deskPlace.js)

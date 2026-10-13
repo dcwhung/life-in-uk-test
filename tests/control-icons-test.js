@@ -204,7 +204,7 @@ async function checkMemo(pg, tag) {
     localStorage.setItem('lifeuk.memoProgress', JSON.stringify({ vote: { lv: 1, due: planTodayIso() } }));
     openStudy(); study.tab = 'memo'; renderStudy();
   });
-  await checkControls(pg, `${tag} Memo list`, [['#studyContent .memo-due-start', 'trail', ['play']]]);
+  await checkControls(pg, `${tag} Memo list`, [['#studyLead .memo-due-start', 'trail', ['play']]]);
   await pg.evaluate(() => openMemoGroup('vote'));
   await checkControls(pg, `${tag} Memo look`, [['#screenMemo .memo-back', 'lead', ['chevronLeft']], ['#memoBody .memo-start', 'trail', ['play']]]);
   await pg.evaluate(() => startMemoTest());

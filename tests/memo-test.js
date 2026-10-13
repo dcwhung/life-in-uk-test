@@ -69,7 +69,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   assert(await pg.$eval('#studyChips', e => e.hidden && !e.children.length), 'Hide mastered / Bookmarked chips do not apply on the memo tab (row hidden)');
   const subChips = await pg.$$eval('#studySubChips .chip', els => els.map(e => e.textContent.trim()));
   assert(subChips.length === 6 && subChips[0] === 'All' && subChips.slice(1).every((c, i) => c.endsWith(`Ch ${i + 1}`)), 'chapter chips: All + Ch 1–5: ' + subChips.join(' | '));
-  assert(await pg.$('#studyContent .memo-due') === null, 'no due banner with no progress');
+  assert(await pg.$('#studyLead .memo-due') === null, 'no due banner with no progress');
   const first = await pg.$eval('#studyContent .memo-card', e => ({ title: e.querySelector('.memo-name').textContent, lang: e.querySelector('.memo-name').getAttribute('lang'),
     badge: e.querySelector('.memo-badge').textContent, meta: e.querySelector('.memo-meta').textContent, bar: e.querySelector('.memo-bar i').style.width }));
   // v2.2.0: the English UI shows the English group title (titleEn), marked lang="en"
@@ -107,7 +107,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   const day = await today(), yesterday = await addDays(day, -1), later = await addDays(day, 9);
   await pg.evaluate(([k, v]) => localStorage.setItem(k, JSON.stringify(v)), [MEMO_LS, { vote: { lv: 2, due: day }, ww2: { lv: 1, due: yesterday }, parliament: { lv: 4, due: later }, writers: { lv: 1, due: later } }]);
   await pg.reload(); await openMemoTab();
-  const banner = await pg.$eval('#studyContent .memo-due', e => ({ title: e.querySelector('b').textContent, sub: e.querySelector('small').textContent, lang: e.querySelector('small').getAttribute('lang'), start: e.querySelector('button').textContent }));
+  const banner = await pg.$eval('#studyLead .memo-due', e => ({ title: e.querySelector('b').textContent, sub: e.querySelector('small').textContent, lang: e.querySelector('small').getAttribute('lang'), start: e.querySelector('button').textContent }));
   assert(banner.title === '2 groups to review today' && banner.sub === 'Right to vote · Second World War' && banner.lang === 'en' && banner.start === 'Start',
     'banner: "2 groups to review today", due titles (vote has more questions, first), Start ▶: ' + JSON.stringify(banner));
   const order = await cardIds();
@@ -127,7 +127,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   await pg.evaluate(() => window.scrollTo(0, 400));
   const listY = await pg.evaluate(() => window.scrollY);
   // a DOM click: Playwright's own click would first scroll the banner (top of the list) into view
-  await pg.$eval('#studyContent .memo-due button', e => e.click());
+  await pg.$eval('#studyLead .memo-due button', e => e.click());
   assert(await pg.$eval('#screenMemo', e => e.classList.contains('active')) && await text('#memoTitle') === '🗳️ Right to vote', 'Start opens the first due group (🗳️ Right to vote)');
   const look = await pg.evaluate(() => ({
     steps: [...document.querySelectorAll('#memoSteps .memo-step')].map(e => e.textContent + (e.classList.contains('on') ? '*' : '')),
@@ -147,7 +147,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   const res = await pg.evaluate(() => ({
     pct: document.querySelector('#memoBody .memo-pct').textContent, verdict: document.querySelector('#memoBody .memo-verdict').textContent,
     sched: [...document.querySelectorAll('#memoBody .memo-lv')].map(e => e.className.replace('memo-lv', '').trim() + ':' + e.textContent),
-    wrong: [...document.querySelectorAll('#memoBody .memo-wrong li')].map(li => [li.querySelector('[lang="en"]').textContent, li.querySelector('[lang="zh-HK"]').textContent]),
+    wrong: [...document.querySelectorAll('#memoBody .memo-wrong li')].map(li => [li.querySelector('.memo-q').textContent, li.querySelector('.memo-wrong-yue').textContent]),
     steps: [...document.querySelectorAll('#memoSteps .memo-step')].map(e => e.textContent),
     next: (document.querySelector('#memoBody .memo-next') || {}).textContent,
   }));
@@ -164,6 +164,9 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   await pg.evaluate(() => { setLang('zh-HK'); setLang('en'); rerenderCurrentScreen(); });
   assert(JSON.stringify((await stored()).vote) === JSON.stringify({ lv: 3, due: due7 }) && await pg.$eval('#memoBody .memo-pct', e => e.textContent) === '80%', 're-render keeps the result, records nothing more');
   assert(res.next === 'Next: Second World War', 'next group = the next due / new group in list order: ' + res.next);
+  // v2.4.0: on the phone Next sits where the test's last ↩ Back was (both pinned bottom right): wait out the double tap
+  // guard (CUI-0011) as a person's second, separate tap would
+  await pg.waitForTimeout(GUARD_WAIT_MS);
   await pg.click('#memoBody .memo-next');
   assert(await text('#memoTitle') === '✈️ Second World War' && await pg.$('#memoBody .memo-start') !== null, 'next group opens on its look view');
 
@@ -321,9 +324,10 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   assert(await noHScroll() && await pg.$$eval('.study-tab', els => els.every(e => e.getBoundingClientRect().right <= window.innerWidth)), `${NARROW}px zh-HK: tabs fit`);
   await pg.evaluate(() => setLang('en'));
 
-  // ── v1.6.1 (user: 「記憶法列表用每個兩行顯示」 = two cards per row): a 2-column grid at phone widths; the badge sits below
-  // the (up to 2-line) title, nothing overlaps or clips, cards in a row share a height, DOM order runs row-wise; the due
-  // banner + count line stay full width; en / zh-HK × small / large × 320 / 360 / 390 without sideways scroll ──
+  // ── v1.6.1 (user: 「記憶法列表用每個兩行顯示」 = two cards per row): a 2-column grid at phone widths; nothing overlaps or
+  // clips, cards in a row share a height, DOM order runs row-wise; the due banner + count line stay full width; en / zh-HK
+  // × small / large × 320 / 360 / 390 without sideways scroll. v2.4.0 (mockup desktop-memo.html rev 1 / rev 4, user
+  // 2026-10-13): the badge sits top right beside the title (no longer below it), so a title may take more lines ──
   await pg.evaluate(([k, v]) => localStorage.setItem(k, JSON.stringify(v)), [MEMO_LS, { vote: { lv: 1, due: day }, writers: { lv: 1, due: later }, parliament: { lv: 4, due: later } }]);
   const gridBad = [];
   for (const lang of ['en', 'zh-HK']) for (const size of ['small', 'large']) for (const width of [320, NARROW, 390]) {
@@ -331,7 +335,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
     await pg.evaluate(([l, s]) => { setFontSize(s); setLang(l); renderStudy(); }, [lang, size]);
     const g = await pg.evaluate(() => {
       const content = document.querySelector('#studyContent').getBoundingClientRect();
-      const banner = document.querySelector('#studyContent .memo-due').getBoundingClientRect();
+      const banner = document.querySelector('#studyLead .memo-due').getBoundingClientRect();
       const cards = [...document.querySelectorAll('#studyContent .memo-card')];
       const out = [];
       const rects = cards.map(c => c.getBoundingClientRect());
@@ -340,12 +344,8 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
         const n = name.getBoundingClientRect(), bd = badge.getBoundingClientRect();
         const lineH = parseFloat(getComputedStyle(name).lineHeight);
         if (n.left < r.left - 1 || n.right > r.right + 1 || bd.left < r.left - 1 || bd.right > r.right + 1) out.push(c.dataset.arg + ' outside card');
-        if (bd.top < n.bottom - 1) out.push(c.dataset.arg + ' badge not below title');
+        if (bd.top > n.top + lineH / 2 || bd.left < n.right - 1) out.push(c.dataset.arg + ' badge not top right beside the title');
         if (name.scrollWidth > name.clientWidth + 1 || badge.scrollWidth > badge.clientWidth + 1) out.push(c.dataset.arg + ' clipped');
-        // two lines at most; the one long Latin title (👩 Margaret Thatcher 戴卓爾夫人: each English word fills a line of
-        // the narrow column at ≤ 360px or large text) may take a third rather than be cut
-        const maxLines = c.dataset.arg === 'thatcher' ? 3 : 2;
-        if (n.height > lineH * maxLines + 2) out.push(c.dataset.arg + ` title > ${maxLines} lines`);
         const col = i % 2, mate = col ? rects[i - 1] : rects[i + 1];
         if (mate && (Math.abs(mate.top - r.top) > 1 || Math.abs(mate.height - r.height) > 1)) out.push(c.dataset.arg + ' row mismatch');
         if (col && r.left <= rects[i - 1].right) out.push(c.dataset.arg + ' not right column');
@@ -357,7 +357,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
     const ok = g.out.length === 0 && g.halfW && g.banner && g.docW <= g.vw;
     if (!ok) gridBad.push(`${lang} ${size} ${width}: ${JSON.stringify(g).slice(0, 300)}`);
   }
-  assert(gridBad.length === 0, 'memo list: two cards per row, badge below the title, no clip / overlap, equal row heights, full-width banner, no h-scroll (en/zh-HK × small/large × 320/360/390) ' + gridBad.join(' || '));
+  assert(gridBad.length === 0, 'memo list: two cards per row, badge top right, no clip / overlap, equal row heights, full-width banner, no h-scroll (en/zh-HK × small/large × 320/360/390) ' + gridBad.join(' || '));
   await pg.evaluate(() => { setFontSize('small'); setLang('en'); });
   await pg.setViewportSize({ width: 390, height: 844 });
 
