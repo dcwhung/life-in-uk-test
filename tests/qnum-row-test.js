@@ -23,7 +23,7 @@ const ANDROID = { width: 360, height: 640 };
 // W-071 / S-256 (user 2026-10-13 accepted 320 large text as an exception): at 320 × 568 in large text some questions
 // cannot keep the stars on the counter's line in every state, even with the tiny counter and the short "Hide" / 隱藏:
 // - English, translation on: all of them, before Translate is pressed (the "Translate" button is the widest control)
-// - 中文: a few, once answered (the quick ← →); which ones follows their stars and their number
+// - 中文: a few, once answered (the quick ← →) or throughout an exam; which ones follows their stars and their number
 //   ("14/24 題" is wider than "4/24 題")
 // knownWrap locks them in by question key (qKey "exam.origIdx"); practice order is seeded (ORDER_SEED) so each key keeps
 // its number from run to run. A wrap outside the list fails; a listed question that no longer wraps is only logged (the
@@ -32,6 +32,7 @@ const ANDROID = { width: 360, height: 640 };
 // Taken from a run of this suite at v2.0.5 with 中文 "隱藏" (W-071; "隱藏翻譯" wrapped all 24 中文 questions)
 const KNOWN_EN = 'all'; // user 2026-10-13: 320 exception accepted
 const KNOWN_ZH = ['1.0', '1.1', '1.9', '1.10', '1.20']; // Q20, Q24, Q23, Q14, Q22 in the seeded order; translation on or off
+const KNOWN_ZH_EXAM = ['1.13', '1.19', '1.21', '1.22', '1.23']; // exam order: Q14, Q20, Q22, Q23, Q24
 const CASES = [
   { viewport: dt.VIEWPORTS.tiny, lang: 'en', fontSize: 'large', translation: true },
   { viewport: dt.VIEWPORTS.phone, lang: 'en', fontSize: 'large', translation: false },
@@ -40,6 +41,12 @@ const CASES = [
   { viewport: dt.VIEWPORTS.wide, lang: 'en', fontSize: 'large', translation: true, full: true },
   { viewport: dt.VIEWPORTS.tiny, lang: 'zh-HK', fontSize: 'large', translation: true },
   { viewport: dt.VIEWPORTS.phone, lang: 'zh-HK', fontSize: 'large', translation: true },
+  // S-255: translation off in 中文, a 360 phone, and the exam (the quick ← → in the row throughout)
+  { viewport: dt.VIEWPORTS.phone, lang: 'zh-HK', fontSize: 'large', translation: false },
+  { viewport: ANDROID, lang: 'en', fontSize: 'large', translation: true },
+  { viewport: ANDROID, lang: 'zh-HK', fontSize: 'large', translation: true },
+  { viewport: dt.VIEWPORTS.phone, lang: 'en', fontSize: 'large', translation: true, mode: 'exam' },
+  { viewport: SMALLEST, lang: 'zh-HK', fontSize: 'large', translation: true, mode: 'exam', knownWrap: KNOWN_ZH_EXAM },
   // W-071 / S-256: 320 large text, the accepted exception
   { viewport: SMALLEST, lang: 'en', fontSize: 'large', translation: true, knownWrap: KNOWN_EN },
   { viewport: SMALLEST, lang: 'zh-HK', fontSize: 'large', translation: true, knownWrap: KNOWN_ZH },
