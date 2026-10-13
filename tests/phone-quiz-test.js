@@ -187,6 +187,44 @@ async function checkFallback(b) {
   await page.close();
 }
 
+// W-082 (user 2026-10-13, option A): near the threshold the card height decides per question, so the layout would flip
+// between one screen and the scrolling page from question to question (Prev / Next jumping). The choice is made once per
+// quiz session: once a render falls back, the rest of the session keeps the scrolling page; a new session decides
+// afresh. Every question of Exam 1 (Practice, translation shown), large / small text: the mode only ever goes one
+// screen → page, never back
+const LATCH_PHONES = [
+  { viewport: { width: 375, height: 667 }, fontSize: 'large' }, // iPhone SE / 8 from the home screen
+  { viewport: { width: 375, height: 667 }, fontSize: 'small' },
+  { viewport: { width: 390, height: 664 }, fontSize: 'large' },
+];
+const modeRun = async (page, { showYue }) => {
+  const total = await page.evaluate(() => state.questions.length);
+  let run = '';
+  for (let i = 0; i < total; i++) {
+    await page.evaluate(([k, y]) => { goToQuestion(k); if (y) { state.yueShown[k] = true; renderQuestion(); } }, [i, showYue]);
+    await dt.nextFrame(page);
+    run += (await fitState(page)).fit ? 'F' : 's';
+  }
+  return run;
+};
+async function checkSessionLatch(b) {
+  let fellBack = false;
+  for (const { viewport, fontSize } of LATCH_PHONES) {
+    const { page, errors, label } = await dt.openDesktop(b, { viewport, lang: 'zh-HK', fontSize, translation: true });
+    await page.evaluate(n => { pendingMode = 'practice'; startExam(n); }, EXAM_ONE);
+    const run = await modeRun(page, { showYue: true });
+    fellBack = fellBack || run.includes('s');
+    assert(!/s.*F/.test(run), `${label} W-082: within a session the layout never goes back to one screen after a fallback (${run})`);
+    // a new session decides afresh (the short cards without translation fit again)
+    await page.evaluate(n => { pendingMode = 'practice'; startExam(n); }, EXAM_ONE);
+    const fresh = await modeRun(page, { showYue: false });
+    assert(!/s.*F/.test(fresh) && (fontSize === 'large' || fresh.startsWith('F')), `${label} W-082: a new session decides again (${fresh})`);
+    assert(errors.length === 0, `${label} latch: no page errors ` + errors.join(' | '));
+    await page.close();
+  }
+  assert(fellBack, 'W-082: the matrix has a session that falls back (the latch is exercised)');
+}
+
 (async () => {
   const b = await dt.launch();
   let failed = false;
@@ -202,6 +240,7 @@ async function checkFallback(b) {
     }
     await checkShortPhones(b);
     await checkFallback(b);
+    await checkSessionLatch(b);
     await checkNewQuestionTop(b);
     await checkBreakpoint(b);
     console.log('PHONE-QUIZ PASS');
