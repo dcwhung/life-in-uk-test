@@ -1,7 +1,7 @@
 # Grill：Desktop 記憶法（溫習模式 › 記憶法）layout
 
 **日期**：2026-10-13
-**狀態**：rev 4（見「第四輪決定」），等用戶確認同決定 P5
+**狀態**：rev 5（見「第五輪決定」），等用戶確認同決定 P5、P6
 **Mockup**：[`mockups/v2.0.0/desktop-memo.html`](../../mockups/v2.0.0/desktop-memo.html)（第 13 份 desktop mockup；rev 3 起亦包手機 390px）
 **Branch**：`claude/quirky-newton-wdelbs`（由 `main` v2.0.2 `c6b0806` 開）
 
@@ -92,11 +92,22 @@ Mockup 已經改做 rev 1，淨係保留定案嘅排法（3 欄、A、C 已經�
 | 手機 ① 睇 | **掣永遠最底，中間 scroll panel 用盡高度** | `#screenMemo` 一屏高（`100dvh - header - main 上下 padding`），頂部 ‹ 記憶法 + 組名、步驟；記憶鉤 + 筆記（+ P5 題組問題）放入一個 panel 碌，上下淡出（`--bg`）；「記住咗，開始試」貼底 |
 | 手機結果 | **「再溫一次」／「下一組」永遠最底，中間 scroll panel 用盡高度** | 同上：成績 + Lv + 錯題喺 panel 碌，兩粒掣貼底 |
 
-## 待用戶確認（rev 4）
+## 第五輪決定（用戶 2026-10-13）→ rev 5
+
+| 項目 | 用戶要求 | rev 5 做法 |
+|---|---|---|
+| 手機「今日要溫」 | 碌上去嘅時候同 header 留返空間 | `top: calc(var(--header-h) + var(--space-4))`；向上偏移嘅 `--bg` box-shadow 填住 header 同 banner 之間嘅空位，碌過嘅卡片唔會喺空位露出嚟 |
+| 手機記憶鉤 | 要固定 | 記憶鉤擺喺 scroll panel 上面，唔跟筆記碌；淨係筆記（+ P5 題組問題）喺 panel 碌 |
+| 手機 ② 試 | 上一題／下一題永遠置底，中間內容碌 | Quiz 畫面一屏高：頂部 🏠 + 組名；題號點、題目、選項、答案、相似題目入一個 panel 碌；`nav-row` 貼底 |
+| 單題組 pill | 同有筆記嘅組唔 match | rev 4 喺灰色背景上將 `.tag` 改咗白底；rev 5 放返入白色卡（同題組問題、錯題一樣），pill 用返系統灰底。Desktop 張卡 760 × 1.2px 置中，「記住咗，開始試」對齊卡右邊 |
+| Mockup | （截圖 logo 爛咗） | Header logo 改為 data URI 嵌入，mockup 唔再靠 `icons/icon.svg` 相對路徑 |
+
+## 待用戶確認（rev 5）
 
 | # | 問題 |
 |---|---|
-| P5 | 手機加唔加題組問題（喺 panel 入面、筆記下面，`<details>` 預設收埋）？ |
+| P5 | 手機加唔加題組問題（喺筆記下面，`<details>` 預設收埋）？ |
+| P6 | 手機 Quiz 一屏高（掣貼底）只改記憶法 ② 試，定所有練習／考試嘅 Quiz 都一齊改？（Quiz 係共用畫面） |
 
 ## 實作備忘（揀咗之後）
 

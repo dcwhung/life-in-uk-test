@@ -123,7 +123,7 @@
 
 ## Plans
 
-- [2026-10-13_grill_desktop-memo.md](plans/2026-10-13_grill_desktop-memo.md) — Desktop 記憶法 layout grill（Q1 成個流程、Q2 清單 grid、Q3 全對顯示記憶鉤新 i18n key）；mockup `mockups/v2.0.0/desktop-memo.html` 第 13 份 **rev 4**：清單 < 1280 3 欄／≥ 1280 4 欄、「今日要溫」固定（PC + 手機）、手機卡片 2 欄；① 睇 頂行 + 左記憶鉤／筆記 + 右題組問題（唔顯示答案）；結果 B；題目用系統 pill（`#n`、`📜 Ch n`、`E·Q`）；記憶鉤分行；單題組 C 單欄；手機 ① 睇／結果一屏高、中間 panel 碌、掣貼底。待確認：P5 手機加唔加題組問題
+- [2026-10-13_grill_desktop-memo.md](plans/2026-10-13_grill_desktop-memo.md) — Desktop 記憶法 layout grill（Q1 成個流程、Q2 清單 grid、Q3 全對顯示記憶鉤新 i18n key）；mockup `mockups/v2.0.0/desktop-memo.html` 第 13 份 **rev 5**：清單 < 1280 3 欄／≥ 1280 4 欄、「今日要溫」固定（PC；手機 sticky 留空位）、手機卡片 2 欄；① 睇 頂行 + 左記憶鉤／筆記 + 右題組問題（唔顯示答案）；結果 B；題目用系統 pill（`#n`、`📜 Ch n`、`E·Q`）；記憶鉤分行；單題組 C（白卡置中）；手機 ① 睇／② 試／結果一屏高、中間 panel 碌、掣貼底、記憶鉤固定。待確認：P5 手機題組問題、P6 手機 Quiz 改動範圍
 - [2026-10-12_handoff_memo-followup-apply.md](plans/2026-10-12_handoff_memo-followup-apply.md) + [2026-10-12_memo-followup-spec.json](plans/2026-10-12_memo-followup-spec.json) — 記憶法跟進（67 題 note、#126 併入 #125 + migration）；v1.3.2 已套用（#125 d 用 5，見 HANDOFF v1.3.2）；review 過程喺 branch `claude/relaxed-hamilton-3x7vm6`
 - [2026-10-12_handoff_desktop-layout.md](plans/2026-10-12_handoff_desktop-layout.md) — v2.0.0 desktop / 平板橫版 layout 開發 handoff：12 份 mockup 定案總表、功能改動 F1–F8、自動適配規則、實作建議、測試、開放問題 O1–O3（下個 session 由 `/plan` 開始）
 - [2026-10-12_grill_desktop-layout.md](plans/2026-10-12_grill_desktop-layout.md) — v2.0.0 desktop / 平板橫版 layout grill（Q1–Q11：≥ 1024px、最闊 1280px、token ×1.2、大字 (基礎+2)×1.2、12 份 mockup 跟 user flow、全部 approve 後一個 PR）+ mockup 進度表；mockup `mockups/v2.0.0/desktop-*.html`（12 份全部定案）
