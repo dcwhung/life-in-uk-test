@@ -486,6 +486,54 @@ async function checkMainKeptOnAnswer(b, viewport, lang, { translate = false } = 
   await page.close();
 }
 
+// W-381: the anchor is the first option still in view once the question text has scrolled out of the column (1024 × 600,
+// 中文, large text, Translate on: the questions whose column scrolls past the bottom of #qText). Scrolled to just below
+// #qText, answered: that option (not #qText) stays within 2px, or sits at the end the column hit
+async function checkMainKeptOnAnswerOptionAnchor(b) {
+  const { page, errors, label } = await dt.openDesktop(b, { viewport: dt.VIEWPORTS.tiny, lang: 'zh-HK', fontSize: 'large' });
+  // #qText's bottom in the column's scroll coordinates, and how far the column scrolls
+  const qTextEnd = () => page.$eval(PANE.main, main => {
+    const q = byId('qText');
+    const bottom = q.getBoundingClientRect().bottom - main.getBoundingClientRect().top + main.scrollTop;
+    return { bottom: Math.ceil(bottom), max: main.scrollHeight - main.clientHeight };
+  });
+  let hits = [], exam = 0;
+  while (!hits.length && exam < EXAM_COUNT) {
+    await startSet(page, 'practice', ++exam);
+    for (const i of await mainLongs(page, true)) {
+      await page.evaluate(n => { state.yueShown[n] = true; goToQuestion(n); }, i);
+      await dt.nextFrame(page);
+      const end = await qTextEnd();
+      if (end.max > end.bottom + 1) hits.push(i);
+    }
+  }
+  if (!hits.length) {
+    console.log(`skip: ${label}: no question in Exam 1–${EXAM_COUNT} whose left column scrolls #qText out of view`);
+  }
+  for (const i of hits) {
+    await page.evaluate(n => { delete state.answers[n]; delete state.revealed[n]; state.yueShown[n] = true; goToQuestion(n); }, i);
+    await dt.nextFrame(page);
+    const end = await qTextEnd();
+    await page.$eval(PANE.main, (el, y) => { el.scrollTop = y; }, end.bottom + 1);
+    await dt.nextFrame(page);
+    const before = await mainView(page);
+    assert(before.id.startsWith('opt') && before.st >= end.bottom,
+      `${label}: Exam ${exam} Q${i + 1} #qText scrolled out (scroll ${before.st}, #qText ends at ${end.bottom}): first in view #${before.id}`);
+    await page.evaluate(() => state.questions[state.current].a.forEach(oi => byId('opt' + oi).click()));
+    await dt.nextFrame(page);
+    assert(await page.evaluate(() => state.current in state.revealed), `${label}: Q${i + 1} answered`);
+    const st = await page.$eval(PANE.main, el => el.scrollTop), max = await page.$eval(PANE.main, el => el.scrollHeight - el.clientHeight);
+    const moved = (await elementTop(page, before.id)) - before.y;
+    const wanted = st + moved;
+    const clamped = (wanted > max + 1 && st >= max - 1) || (wanted < -1 && st <= 1);
+    assert(Math.abs(moved) <= 2 || clamped,
+      `${label}: W-381 Exam ${exam} Q${i + 1} #qText out of view (${before.st}/${before.max}px), answered: #${before.id} moved ${moved.toFixed(1)}px (scroll ${st}/${max}${clamped ? ', clamped' : ''})`);
+  }
+  if (hits.length) console.log(`${label}: W-381 Exam ${exam}: ${hits.length} question(s) held by an option (${hits.map(i => 'Q' + (i + 1)).join(' ')})`);
+  assert(errors.length === 0, 'no page error: ' + errors.join(' | '));
+  await page.close();
+}
+
 (async () => {
   const b = await dt.launch();
   await dt.forEachCase(b, async ({ page, label, errors, lang, translation }) => {
@@ -507,6 +555,7 @@ async function checkMainKeptOnAnswer(b, viewport, lang, { translate = false } = 
   await checkMainKeptOnAnswer(b, dt.VIEWPORTS.tiny, 'en');
   await checkMainKeptOnAnswer(b, dt.VIEWPORTS.tiny, 'zh-HK');
   await checkMainKeptOnAnswer(b, dt.VIEWPORTS.short, 'en', { translate: true }); // 1280 × 720: only with Translate on
+  await checkMainKeptOnAnswerOptionAnchor(b);
   await b.close();
   console.log('DESKTOP-QUIZ PASS');
 })().catch(e => { console.error(e.message || e); process.exit(1); });
