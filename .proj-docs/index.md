@@ -123,6 +123,7 @@
 
 ## Plans
 
+- [2026-10-13_grill_desktop-memo.md](plans/2026-10-13_grill_desktop-memo.md) — Desktop 記憶法 layout grill（Q1 成個流程 3 個方案、Q2 清單 3 欄 vs 4 欄 grid、Q3 全對顯示記憶鉤新 i18n key）；mockup `mockups/v2.0.0/desktop-memo.html`（第 13 份：清單 3／4 欄、① 睇 + 結果 A 置中欄（現狀）／B 左右分欄（建議）／C 全闊；② 試沿用 Quiz #8），等用戶揀
 - [2026-10-12_handoff_memo-followup-apply.md](plans/2026-10-12_handoff_memo-followup-apply.md) + [2026-10-12_memo-followup-spec.json](plans/2026-10-12_memo-followup-spec.json) — 記憶法跟進（67 題 note、#126 併入 #125 + migration）；v1.3.2 已套用（#125 d 用 5，見 HANDOFF v1.3.2）；review 過程喺 branch `claude/relaxed-hamilton-3x7vm6`
 - [2026-10-12_handoff_desktop-layout.md](plans/2026-10-12_handoff_desktop-layout.md) — v2.0.0 desktop / 平板橫版 layout 開發 handoff：12 份 mockup 定案總表、功能改動 F1–F8、自動適配規則、實作建議、測試、開放問題 O1–O3（下個 session 由 `/plan` 開始）
 - [2026-10-12_grill_desktop-layout.md](plans/2026-10-12_grill_desktop-layout.md) — v2.0.0 desktop / 平板橫版 layout grill（Q1–Q11：≥ 1024px、最闊 1280px、token ×1.2、大字 (基礎+2)×1.2、12 份 mockup 跟 user flow、全部 approve 後一個 PR）+ mockup 進度表；mockup `mockups/v2.0.0/desktop-*.html`（12 份全部定案）
