@@ -1,7 +1,7 @@
 # Grill：Desktop 記憶法（溫習模式 › 記憶法）layout
 
 **日期**：2026-10-13
-**狀態**：rev 2（見「第二輪決定」），等用戶確認
+**狀態**：rev 3（見「第三輪決定」），等用戶揀單題組設計同決定 P5
 **Mockup**：[`mockups/v2.0.0/desktop-memo.html`](../../mockups/v2.0.0/desktop-memo.html)（第 13 份 desktop mockup）
 **Branch**：`claude/quirky-newton-wdelbs`（由 `main` v2.0.2 `c6b0806` 開）
 
@@ -43,7 +43,7 @@ v2.0.0 desktop layout 嘅 12 份 mockup 喺記憶法溫習（v1.6.0）merge 入�
 
 ## 驗證（mockup 本身）
 
-用 Playwright 開 mockup，逐個 frame 量度：4 種組合（中／EN × 一般／大字）× 9 個狀態 × 1024／1280（每一輪都量過）。量度結果：
+用 Playwright 開 mockup，逐個 frame 量度：4 種組合（中／EN × 一般／大字）× 9 個狀態 × 1024／1280（每一輪都量過；rev 3 加單題組 A／B／C 同手機 390px：手機只查冇橫向 scroll，因為手機頁面本身會碌）。量度結果：
 
 - 冇橫向 scroll；
 - 成頁唔使碌（`scrollHeight ≤ clientHeight + 1`），只有 panel 會碌；
@@ -71,14 +71,23 @@ Mockup 已經改做 rev 1，淨係保留定案嘅排法（3 欄、A、C 已經�
 | 結果 | 要再睇嘅題目加編號 + Ch · Exam · Q |
 | 題組問題 panel | 為咗一致，每題都加咗 Ch · Exam · Q（用戶冇要求，要確認） |
 
-## 待用戶確認（rev 2）
+## 第三輪決定（用戶 2026-10-13）→ rev 3
 
-| # | 問題 | Mockup 預設 |
+| # | 決定 | rev 3 做法 |
 |---|---|---|
-| P1 | 題組問題 panel 要唔要顯示答案？（mock bar「題目答案」可以切換） | 唔顯示：答案留返去 ② 試先知 |
-| P2 | 單題組（📝 單題注解）每題本身已經有題目 + 注解，再加右欄會重複 | 一個全闊 panel 分 2 欄，冇右欄 |
-| P3 | 題組問題 panel 都加咗 Ch · Exam · Q，要唔要保留？ | 保留 |
-| P4 | 記憶鉤分行只改 desktop，定手機都一齊改？ | 只改 desktop |
+| — | 題目編號同 Ch · Exam · Q 用系統 pill | 每題上面一行 pill：`.tag`「#1」+ `.tag`「📜 Ch 3」（`chapterPillHtml` 樣式；題目冇 fact `#n`，用 `common.chapterShort`）+ `.sqm-node`「E2·Q15」（`questionNodeHtml(keys)`：`similar.node`、copies 用 `COPY_SEP`「E1·Q8 = E11·Q9」、mastery 顏色 `.mastered` / `.weak`；padding 跟知識點卡「出現於」`.fact-src .sqm-node`）。用喺題組問題、結果錯題、單題組 |
+| P1 | 題組問題 panel 唔顯示答案 | 拎走答案同 mock bar 開關 |
+| P2 | 單題組要再 design（rev 2 太多字擠埋一齊） | 出 3 個方案：**A 卡片**（每題一張白卡，2 欄，pill → 題目 → 分隔線 →「💡 備註：」+ 注解）、**B 左右對照**（右邊題目清單、左邊揀中題目嘅注解；手機變每題撳開）、**C 單欄**（置中 912px，每題一個區塊，注解左邊金色線） |
+| P3 | 題組問題要 Ch · Exam · Q，格式同系統統一 | 同上 pill |
+| P4 | 記憶鉤分行手機都改 | `.memo-hook b { display: block }` 唔再限 desktop |
+| P5 | 想睇手機成個 flow 先決定 | Mock bar 加「裝置：手機」：390px frame（高度跟內容），全部 9 個狀態；① 睇並排「而家」同「加題組問題」（筆記下面、掣上面，`<details>` 預設收埋） |
+
+## 待用戶確認（rev 3）
+
+| # | 問題 |
+|---|---|
+| P2 | 單題組用 A、B 定 C？ |
+| P5 | 手機加唔加題組問題（收埋喺筆記下面）？ |
 
 ## 實作備忘（揀咗之後）
 
@@ -87,5 +96,6 @@ Mockup 已經改做 rev 1，淨係保留定案嘅排法（3 欄、A、C 已經�
 - 用 `js/components/deskPlace.js` 搬 DOM（`setDesktopColumns`），< 1024px 要還原手機次序。
 - 題組問題 panel 係新 render（`memo.js`）：用 `questionGroups(g.qkeys)`，同單題組 render 方法一樣；只喺 desktop 顯示，手機唔加（要用戶確認）。
 - 清單 4 欄 grid 要更新 `tests/desktop-study-test.js`（記憶法 tab：badge 喺右上），同 `desktop-short-test`（1366 × 657、1280 × 720、1024 × 600）。
-- 結果嘅錯題而家只記 `{ q, yue }`（`finishMemoTest`），要加埋 key（`examNum` / `origIdx` / `ch`）先出到 Ch · Exam · Q。
+- 結果嘅錯題而家只記 `{ q, yue }`（`finishMemoTest`），要加埋 key 先出到 pill（`questionNodeHtml(keys)` 要 key 清單）。
+- Pill 行用現有 helper：`chapterPillHtml` 嘅樣式（題目版冇 `#n`，可能要加一個 `questionChapterPillHtml`）、`questionNodeHtml`；冇新顏色 token。
 - Q3 新 key 要加落 `locales/en.js`、`locales/zh-HK.js`（i18n parity test）。
