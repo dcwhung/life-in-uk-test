@@ -2,6 +2,8 @@
 // MEMO SCREEN — memory-note study (v1.6.0, memo mockup v2 (deleted at release; design: .proj-docs/design-baselines/2026-10-12_memo-*.png)): Study tab 5 lists the groups
 // (js/domain/memo.js); a group opens #screenMemo: ① look (the memory hook + the memory note) → ② test (a side session on
 // the quiz screen, js/screens/sideSession.js) → result (score, new level, next review) on the same screen.
+// v2.1.0 layout (desktop + phone): Design Origin mockup: mockups/v2.0.0/desktop-memo.html (rev 6), decision log
+// .proj-docs/plans/2026-10-13_grill_desktop-memo.md
 // ════════════════════════════════════════
 const MEMO_STEP = { look: 'look', result: 'result' };
 const MEMO_STATUS_KEYS = { new: 'memo.statusNew', due: 'memo.statusDue', learning: 'memo.statusLearning', done: 'memo.statusDone' };
