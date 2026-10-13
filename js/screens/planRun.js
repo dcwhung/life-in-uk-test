@@ -137,17 +137,18 @@ function planRunBackName(from) {
   const name = plan ? t(nameKey, { day: t('plan.dayN', { n: planDayNumber(plan, from) }) }) : t(nameKey);
   return name === nameKey ? t('quiz.back') : name;
 }
-// the quiz header's back button reads "‹ Back" (named "Today's tasks") in a plan session or mock: goBack (sideSession.js) leaves a
+// the quiz header's back button reads "‹ Back" (named "Back to today's tasks") in a plan session or mock: goBack (sideSession.js) leaves a
 // session through planLeaveSession, a mock through goHome (planLeaveMock asks first); a fact's session is named like
 // the Study one ("Fact Ch c #n", setExamLabel)
-// v1.2.0 (Q11): Home is an icon button; a plan's text back label keeps its words, and those words name it (S-188: an
-// aria-label would hide the <span lang="en">Day n</span> language from screen readers; a shortened label passes
-// its full words as `name`, W-074)
+// v1.2.0 (Q11): Home is an icon button. A text back label with its full words is named by them (no aria-label); a
+// shortened one ("‹ Q24", a plan's "‹ Back") passes its full words as `name` (W-074, W-077), which start with the
+// visible words. S-188 (an aria-label hides a <span lang="en">) is the trade-off a plan's plain-text name accepts
 // W-072: index.html says goHome; goBack only once this page's actions.js has it (an HTTP-cached pre-v2.1.1 actions.js
 // would leave the header a dead button mid-session). goHome still leaves a plan session for its day.
 function hasGoBackAction() { return typeof ACTIONS !== 'undefined' && typeof ACTIONS.goBack === 'function'; }
 function setQuizBackAction(back) { back.dataset.action = hasGoBackAction() ? 'goBack' : 'goHome'; }
-// W-074: an optional accessible name for a shortened label ("Q24" → "Back to Q24"); it must contain the visible words
+// W-074: an optional accessible name for a shortened label ("Q24" → "Back to Q24", "Back" → "Back to today's tasks");
+// it must contain the visible words (W-077)
 function setQuizBackText(back, html, name) {
   setQuizBackAction(back);
   back.classList.add('plan-hit', 'with-icon');
