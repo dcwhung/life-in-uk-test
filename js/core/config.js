@@ -2,7 +2,7 @@
 // CONFIG — app-wide constants. sw.js loads this file with importScripts() to name its cache,
 // so it must stay worker-safe: plain constants only, no DOM and no question data.
 // ════════════════════════════════════════
-const APP_VERSION = '2.2.1';
+const APP_VERSION = '2.3.1';
 
 // ── modes and special set ids (state.examNum is 1..EXAM_COUNT or one of these) ──
 const PRACTICE_MODE = 'practice';
@@ -82,6 +82,10 @@ const FONT_SIZE_LS = LS_PREFIX + 'fontSize';   // v1.3.0: text size (⚙ setting
 const TRANSLATION_ON = 'on';
 const TRANSLATION_OFF = 'off';
 const TRANSLATION_LS = LS_PREFIX + 'translation';   // v1.4.0: Cantonese translation (⚙ Features): TRANSLATION_ON (default, not written) / TRANSLATION_OFF
+// v2.3.0: memory-note study mode (⚙ Features): MEMO_MODE_ON / MEMO_MODE_OFF; not written until the user picks (on)
+const MEMO_MODE_ON = 'on';
+const MEMO_MODE_OFF = 'off';
+const MEMO_ENABLED_LS = LS_PREFIX + 'memoEnabled';
 const INSTALL_DISMISSED_LS = LS_PREFIX + 'installDismissed';   // v0.60: install banner closed with ✕ (never shown again)
 // study plan: the switch (no value = on), the stored schedule, the per-day answer log; new keys, so no legacy names
 const STUDY_PLAN_ENABLED_LS = LS_PREFIX + 'studyPlanEnabled';
