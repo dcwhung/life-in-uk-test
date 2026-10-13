@@ -121,11 +121,13 @@ async function checkUnit(pg) {
 
 // ── C: screens at 390px ──
 // every .note-table-wrap under root: no horizontal scroll, inside its container's box; tables = expected count
-// broken = cells without "<br>" (single-line by design) whose text runs onto a 2nd line (W-050: no mid-word breaks)
+// broken = cells without "<br>" (single-line by design) whose text runs onto a 2nd line (W-050: no mid-word breaks).
+// v2.2.0: an English table's cells wrap between words by design (css/components/note.css), so none count
 const FIT_JS = `(root) => [...root.querySelectorAll('.note-table-wrap')].map(w => {
   const r = w.getBoundingClientRect(), p = w.parentElement.getBoundingClientRect();
   const lines = c => { const rg = document.createRange(); rg.selectNodeContents(c); return new Set([...rg.getClientRects()].filter(x => x.width > 0).map(x => Math.round(x.top))).size; };
-  const broken = [...w.querySelectorAll('th:not(.multi), td:not(.multi)')].filter(c => c.textContent.trim() && lines(c) > 1).map(c => c.textContent);
+  const english = w.querySelector('table').matches(':lang(en)');
+  const broken = english ? [] : [...w.querySelectorAll('th:not(.multi), td:not(.multi)')].filter(c => c.textContent.trim() && lines(c) > 1).map(c => c.textContent);
   return { sw: w.scrollWidth, cw: w.clientWidth, over: r.right - p.right, left: p.left - r.left, docW: document.documentElement.scrollWidth, vw: innerWidth, broken };
 })`;
 let fitWidth = 0;
@@ -133,6 +135,9 @@ const FIT_WIDTHS = [390, 360, 320]; // 390 = design width; 360 = common Android;
 // CUI-0028: a wrap 0 wide means it was measured off screen, never a fit
 const fits = list => list.length > 0 && list.every(f => f.cw > 0 && f.sw <= f.cw && f.over <= 0.5 && f.left <= 0.5 && f.docW <= f.vw && f.broken.length === 0);
 
+// v2.2.0: the English UI shows the English notes (data/notesEn.js): the fit checks run in both languages
+const UI_LANGS = ['zh-HK', 'en'];
+let uiLang = UI_LANGS[0];
 async function checkPractice(pg) {
   const mpLines = []; // memo 4A: line boxes of the 議員 remark "全英國 MP" per question
   for (const [g, keys] of Object.entries(GROUP_QUESTIONS)) {
@@ -154,10 +159,10 @@ async function checkPractice(pg) {
       if (r.missing || !r.visible || !r.rows || !fits(r.fit)) bad.push(`${key} ${JSON.stringify(r)}`);
       if (g === MP_MEMO) mpLines.push([key, r.mpLines]);
     }
-    assert(bad.length === 0, `Practice answer box, memo ${g}: ${keys.length} tables fit ${fitWidth}px, no scroll, single-line cells unbroken (bad: ${bad.slice(0, 2).join(' | ')})`);
+    assert(bad.length === 0, `${uiLang} Practice answer box, memo ${g}: ${keys.length} tables fit ${fitWidth}px, no scroll, single-line cells unbroken (bad: ${bad.slice(0, 2).join(' | ')})`);
   }
   // user request: the 議員 cell is exactly "650" / "全英國 MP", the remark never wraps at 390px (e.g. E6 Q9)
-  assert(mpLines.length === GROUP_QUESTIONS[MP_MEMO].length && mpLines.every(([, n]) => n === 1), `Practice, memo ${MP_MEMO}: "全英國 MP" remark on one line at ${fitWidth}px in all ${mpLines.length} questions: ${JSON.stringify(mpLines)}`);
+  if (uiLang === 'zh-HK') assert(mpLines.length === GROUP_QUESTIONS[MP_MEMO].length && mpLines.every(([, n]) => n === 1), `Practice, memo ${MP_MEMO}: "全英國 MP" remark on one line at ${fitWidth}px in all ${mpLines.length} questions: ${JSON.stringify(mpLines)}`);
 }
 
 async function checkResults(pg) {
@@ -177,7 +182,7 @@ async function checkResults(pg) {
       if (!fits(fit) || fit.length !== 1 || g === 'none') (bad[g] = bad[g] || []).push(`${key} ${JSON.stringify(fit)}`);
     }
   }
-  assert(seen === TOTAL_TABLE_QUESTIONS && Object.keys(bad).length === 0, `Results review: all ${seen} tables (${TABLE_MEMO_COUNT} memos) fit ${fitWidth}px, no scroll (bad: ${JSON.stringify(bad).slice(0, 300)})`);
+  assert(seen === TOTAL_TABLE_QUESTIONS && Object.keys(bad).length === 0, `${uiLang} Results review: all ${seen} tables (${TABLE_MEMO_COUNT} memos) fit ${fitWidth}px, no scroll (bad: ${JSON.stringify(bad).slice(0, 300)})`);
 }
 
 async function checkStudy(pg) {
@@ -208,6 +213,27 @@ async function checkStudy(pg) {
     assert(cards.length > 0 && bad.length === 0, `Study 💡 記憶法 (opened), memo ${g}: ${cards.length} cards, tables fit ${fitWidth}px, no scroll, single-line cells unbroken (bad: ${JSON.stringify(bad.slice(0, 2))})`);
   }
   assert(!r.undefined, `Study: every table shown belongs to one of the ${TABLE_MEMO_COUNT} memos`);
+}
+
+// v2.2.0, English UI: every opened Study 💡 memory aid table fits (the cards are matched to memos by Cantonese text in checkStudy)
+async function checkStudyEnglish(pg) {
+  const r = await pg.evaluate(fitSrc => {
+    const fit = new Function('return ' + fitSrc)();
+    const out = [];
+    openStudy();
+    for (const ch of CHAPTER_NUMBERS) {
+      studySetTab('chapters'); studySetChapter(ch);
+      for (const c of document.querySelectorAll('#studyContent .fact')) {
+        const d = c.querySelector('details.fact-mem'); if (!d || !d.querySelector('.note-table')) continue;
+        d.open = true;
+        out.push({ id: c.dataset.factId, lang: d.querySelector('.fact-mem-body').lang, fit: fit(d.querySelector('.fact-mem-body')) });
+      }
+    }
+    studySetTab('timeline');
+    return out;
+  }, FIT_JS);
+  const bad = r.filter(c => c.lang !== 'en' || !fits(c.fit));
+  assert(r.length > 0 && bad.length === 0, `en Study 💡 Memory aid (opened): ${r.length} cards, English tables fit ${fitWidth}px, no scroll, single-line cells unbroken (bad: ${JSON.stringify(bad.slice(0, 2))})`);
 }
 
 (async () => {
@@ -243,14 +269,17 @@ async function checkStudy(pg) {
     && JSON.stringify(look.first) === JSON.stringify([w.navy, '700', w.divider]) && look.last === '0px' && look.thMulti === 'normal'
     && JSON.stringify(look.sub) === JSON.stringify(['block', w.xs, '400', w.muted]) && look.wrap === 'auto',
   'Theme B + V4 look: navy header + 2px navy rule, divider rows, last row no rule, navy bold first column, nowrap except th/td.multi, muted xs remarks: ' + JSON.stringify(look));
-  for (const width of FIT_WIDTHS) {
-    fitWidth = width;
-    await pg.setViewportSize({ width, height: 844 });
-    // fresh progress, so the practice pool still holds every question
-    await pg.evaluate(() => localStorage.clear()); await pg.reload();
-    await checkPractice(pg);
-    await checkResults(pg);
-    await checkStudy(pg);
+  for (const lang of UI_LANGS) {
+    uiLang = lang;
+    for (const width of FIT_WIDTHS) {
+      fitWidth = width;
+      await pg.setViewportSize({ width, height: 844 });
+      // fresh progress, so the practice pool still holds every question
+      await pg.evaluate(l => { localStorage.clear(); localStorage.setItem('lifeuk.uiLang', JSON.stringify(l)); }, lang); await pg.reload();
+      await checkPractice(pg);
+      await checkResults(pg);
+      await (lang === 'zh-HK' ? checkStudy(pg) : checkStudyEnglish(pg));
+    }
   }
   assert(errs.length === 0, 'no page errors: ' + errs.join('; '));
   await b.close();
