@@ -8,6 +8,12 @@
 const MEMO_STEP = { look: 'look', result: 'result' };
 const MEMO_STATUS_KEYS = { new: 'memo.statusNew', due: 'memo.statusDue', learning: 'memo.statusLearning', done: 'memo.statusDone' };
 const MEMO_SEARCH_SEP = ' ';
+// v2.4.1: what each level means (mastery), by level 0..MEMO_MAX_LV; shown next to "Lv{lv}" in badges, verdicts, boxes
+const MEMO_LV_NAME_KEYS = ['memo.lvName0', 'memo.lvName1', 'memo.lvName2', 'memo.lvName3'];
+function memoLvName(lv) {
+  const nameKey = MEMO_LV_NAME_KEYS[lv];
+  return t(nameKey);
+}
 // v1.6.1: line icons where the glyphs were (Start / start the test / Next group ▶ after the words, ‹ Memory before)
 const MEMO_GO_ICONS = { trail: 'play' }, MEMO_BACK_ICONS = { lead: 'chevronLeft' };
 // the group on #screenMemo: its step, the Study list scroll to go back to, the finished test (result step)
@@ -92,7 +98,7 @@ function memoMatches(g) {
   return [g.title, g.body || '', g.hook, g.titleEn || '', english || '', g.hookEn || ''].join(MEMO_SEARCH_SEP).toLowerCase().includes(study.search);
 }
 function memoBadgeText(rec, status, today) {
-  const params = rec ? { lv: rec.lv, n: memoDaysUntil(rec, today) } : {};
+  const params = rec ? { lv: rec.lv, name: memoLvName(rec.lv), n: memoDaysUntil(rec, today) } : {};
   const badgeKey = MEMO_STATUS_KEYS[status];
   return t(badgeKey, params);
 }
@@ -343,11 +349,19 @@ function memoCopyKeys(id, q) {
 
 // ── result ──
 function memoVerdictText(r) {
-  const params = { correct: r.correct, total: r.total, pct: Math.round(MEMO_PASS_RATIO * PERCENT), lv: r.lv };
+  const params = { correct: r.correct, total: r.total, pct: Math.round(MEMO_PASS_RATIO * PERCENT), lv: r.lv, name: memoLvName(r.lv) };
   if (!r.passed) return r.lv < r.prevLv ? t('memo.resultFailDrop', params) : t('memo.resultFail', params);
   return r.lv > r.prevLv ? t('memo.resultPass', params) : t('memo.resultKeep', params);
 }
-// Lv1..Lv4 with their wait; levels below the new one are past (green). After a pass the new level is next (orange,
+// v2.4.1: when the group comes back, as a date and a wait counted from the test day (a re-render on a later day keeps
+// it); a result kept from before v2.4.1 has no due and shows no line
+function memoNextDueHtml(r) {
+  if (!r.due) return '';
+  const [, m, d] = isoParts(r.due), date = t('memo.date', { m, d });
+  const text = r.passed ? t('memo.nextDue', { n: MEMO_INTERVALS[r.lv - 1], date }) : t('memo.nextDueTomorrow', { date });
+  return `<div class="memo-next-due">${escapeHtml(text)}</div>`;
+}
+// Lv1..Lv3 with their mastery name and wait; levels below the new one are past (green). After a pass the new level is next (orange,
 // its interval); after a fail (W-065) it is due again tomorrow, so its box reads "Tomorrow" and no interval is next
 const MEMO_LV_STATE = { past: ' past', next: ' next', retry: ' retry', none: '' };
 function memoLevelState(level, r) {
@@ -359,7 +373,8 @@ function memoScheduleHtml(r) {
   return MEMO_INTERVALS.map((days, i) => {
     const level = i + 1, cls = memoLevelState(level, r);
     const wait = cls === MEMO_LV_STATE.retry ? t('memo.tomorrow') : t('memo.days', { n: days });
-    return `<div class="memo-lv${cls}"><b>${escapeHtml(t('memo.lv', { lv: level }))}</b>${escapeHtml(wait)}</div>`;
+    return `<div class="memo-lv${cls}"><b>${escapeHtml(t('memo.lv', { lv: level }))}</b>`
+      + `<span class="memo-lv-name">${escapeHtml(memoLvName(level))}</span>${escapeHtml(wait)}</div>`;
   }).join('');
 }
 // a result kept from before v2.4.0 has no keys: its questions are listed without pills
@@ -397,8 +412,8 @@ function memoReminderHtml(g, withWords) {
   return words + `<div class="memo-single">${memoSingleItemsHtml(g)}</div>`;
 }
 function memoScoreHtml(r) {
-  return `<div class="memo-score${r.passed ? '' : ' fail'}"><div class="memo-pct">${percent(r.correct, r.total)}%</div><div class="memo-verdict">${escapeHtml(memoVerdictText(r))}</div></div>`
-    + `<div class="memo-sched">${memoScheduleHtml(r)}</div>`;
+  return `<div class="memo-score${r.passed ? '' : ' fail'}"><div class="memo-pct">${percent(r.correct, r.total)}%</div><div class="memo-verdict">${escapeHtml(memoVerdictText(r))}</div>${memoNextDueHtml(r)}</div>`
+    + `<p class="memo-sched-title">${escapeHtml(t('memo.schedTitle'))}</p><div class="memo-sched">${memoScheduleHtml(r)}</div>`;
 }
 // the right column / the phone panel's lower part: the wrong questions, or the memory aid again
 const memoResultDetailHtml = (g, r) => (r.wrong.length ? memoWrongHtml(r.wrong) : memoReminderHtml(g, true));
@@ -411,7 +426,7 @@ function memoResultDeskHtml(g, r) {
   return `<div class="memo-cols memo-result-cols"><div class="memo-col"><div class="memo-score-card">${card}</div>${memoResultActionsHtml(g, !r.none)}</div>`
     + `<div class="memo-col">${memoScrollHtml(`<div class="memo-panel fit-panel">${detail}</div>`)}</div></div>`;
 }
-// phone: one panel (score, Lv1–4, the wrong questions or the memory aid again), then Again / Next
+// phone: one panel (score, Lv1–3, the wrong questions or the memory aid again), then Again / Next
 function memoResultPhoneHtml(g, r) {
   const content = r.none ? memoNoneHtml() + memoReminderHtml(g, false) : memoScoreHtml(r) + memoResultDetailHtml(g, r);
   return `<div class="memo-scroll fit-fade"><div class="memo-scroll-panel fit-panel"><div class="memo-panel">${content}</div></div></div>`

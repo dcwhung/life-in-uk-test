@@ -101,13 +101,13 @@ function checkHooks({ g }) {
 // ── progress: lifeuk.memoProgress = { [id]: { lv, due } } ──
 function checkRecord() {
   const app = loadApp(), g = app.g;
-  assert(g('MEMO_PROGRESS_LS') === MEMO_LS && same(g('MEMO_INTERVALS'), [1, 3, 7, 14]) && g('MEMO_PASS_RATIO') === 0.7
-    && g('MEMO_TEST_SIZE') === 5 && g('MEMO_MAX_LV') === 4, 'constants: key, intervals 1/3/7/14, pass 70%, test 5, max Lv4');
+  assert(g('MEMO_PROGRESS_LS') === MEMO_LS && same(g('MEMO_INTERVALS'), [1, 3, 7]) && g('MEMO_PASS_RATIO') === 0.7
+    && g('MEMO_TEST_SIZE') === 5 && g('MEMO_MAX_LV') === 3, 'constants (v2.4.1): key, intervals 1/3/7, pass 70%, test 5, max Lv3');
   assert(same(g('memoLoadProgress()'), {}) && g("memoStatus(memoRecord(memoLoadProgress(), 'vote'), '" + TODAY + "')") === 'new', 'nothing stored → new');
-  const steps = [[TODAY, '2026-10-13', 1], ['2026-10-13', '2026-10-16', 2], ['2026-10-16', '2026-10-23', 3], ['2026-10-23', '2026-11-06', 4], ['2026-11-06', '2026-11-20', 4]];
+  const steps = [[TODAY, '2026-10-13', 1], ['2026-10-13', '2026-10-16', 2], ['2026-10-16', '2026-10-23', 3], ['2026-10-23', '2026-10-30', 3]];
   steps.forEach(([day, due, lv]) => {
     const r = g(`recordMemoResult('vote', 4, 5, '${day}')`);
-    assert(r.passed && r.lv === lv && r.due === due && same(stored(app).vote, { lv, due }), `4/5 on ${day} → Lv${lv}, due ${due}${lv === 4 && day === '2026-11-06' ? ' (pass at Lv4 stays Lv4, +14)' : ''}`);
+    assert(r.passed && r.lv === lv && r.due === due && same(stored(app).vote, { lv, due }), `4/5 on ${day} → Lv${lv}, due ${due}${day === '2026-10-23' ? ' (pass at Lv3 stays Lv3, +7)' : ''}`);
   });
   const fail0 = g(`recordMemoResult('ww2', 1, 5, '${TODAY}')`);
   assert(!fail0.passed && fail0.lv === 0 && fail0.prevLv === 0 && fail0.due === '2026-10-13', 'fail at Lv0 stays Lv0, due tomorrow');
@@ -115,12 +115,12 @@ function checkRecord() {
   const fail2 = g("recordMemoResult('parliament', 2, 5, '2026-10-16')");
   assert(!fail2.passed && fail2.lv === 1 && fail2.prevLv === 2 && fail2.due === '2026-10-17', 'W-064 (user): fail at Lv2 drops to Lv1, due tomorrow');
   assert(g('memoPassed(7, 10)') && g('memoPassed(3, 4)') && !g('memoPassed(2, 3)') && !g('memoPassed(0, 0)') && g('memoPassed(5, 5)'), 'exactly 70% passes, 2/3 fails, 0/0 fails');
-  assert(stored(app).vote.lv === 4 && Object.keys(stored(app)).length === 3, 'each group keeps its own record');
-  // W-064 (user): a failed test drops one level at every level, so a Lv4 fail is never "known"
-  const fail4 = g("recordMemoResult('vote', 3, 5, '2026-11-20')");
-  assert(!fail4.passed && fail4.prevLv === 4 && fail4.lv === 3 && fail4.due === '2026-11-21' && same(stored(app).vote, { lv: 3, due: '2026-11-21' }),
-    'W-064: fail at Lv4 drops to Lv3, due tomorrow');
-  assert(g("memoStatus(memoRecord(memoLoadProgress(), 'vote'), '2026-11-20')") === 'learning', 'W-064: after a Lv4 fail the group reads learning, not done');
+  assert(stored(app).vote.lv === 3 && Object.keys(stored(app)).length === 3, 'each group keeps its own record');
+  // W-064 (user): a failed test drops one level at every level, so a Lv3 (max) fail is never "mastered"
+  const fail3 = g("recordMemoResult('vote', 3, 5, '2026-11-20')");
+  assert(!fail3.passed && fail3.prevLv === 3 && fail3.lv === 2 && fail3.due === '2026-11-21' && same(stored(app).vote, { lv: 2, due: '2026-11-21' }),
+    'W-064: fail at Lv3 drops to Lv2, due tomorrow');
+  assert(g("memoStatus(memoRecord(memoLoadProgress(), 'vote'), '2026-11-20')") === 'learning', 'W-064: after a Lv3 fail the group reads learning, not done');
   // S-232 (user): unanswered questions do not count; nothing answered → nothing recorded
   const before = app.storage.getItem(MEMO_LS);
   assert(g("recordMemoResult('vote', 0, 0, '2026-11-21')") === null && app.storage.getItem(MEMO_LS) === before, 'S-232: 0 answered → null, level and due unchanged');
@@ -136,13 +136,13 @@ function checkDateBoundaries() {
 }
 
 function checkStatusAndSort() {
-  const seed = { vote: { lv: 2, due: '2026-10-12' }, ww2: { lv: 1, due: '2026-10-20' }, parliament: { lv: 4, due: '2026-10-30' },
-    'uk-festivals': { lv: 4, due: '2026-10-11' }, writers: { lv: 0, due: '2026-10-13' } };
+  const seed = { vote: { lv: 2, due: '2026-10-12' }, ww2: { lv: 1, due: '2026-10-20' }, parliament: { lv: 3, due: '2026-10-30' },
+    'uk-festivals': { lv: 3, due: '2026-10-11' }, writers: { lv: 0, due: '2026-10-13' } };
   const { g } = loadApp({ [MEMO_LS]: JSON.stringify(seed) });
   const st = id => g(`memoStatus(memoRecord(memoLoadProgress(), '${id}'), '${TODAY}')`);
-  assert(st('vote') === 'due' && st('uk-festivals') === 'due', 'due today / overdue (Lv4 too) → due');
+  assert(st('vote') === 'due' && st('uk-festivals') === 'due', 'due today / overdue (Lv3 too) → due');
   assert(st('ww2') === 'learning' && st('writers') === 'learning' && st('parliament') === 'done' && st('tudors') === 'new',
-    'Lv1–3 not due → learning (a failed Lv0 waiting for tomorrow too); Lv4 not due → done; no record → new');
+    'Lv0–2 not due → learning (a failed Lv0 waiting for tomorrow too); Lv3 not due → done; no record → new');
   assert(g(`memoDaysUntil(memoRecord(memoLoadProgress(), 'parliament'), '${TODAY}')`) === 18, 'done: days until due');
   const sorted = g(`memoSortedGroups(memoGroups(), memoLoadProgress(), '${TODAY}').map(gr => gr.id)`);
   const pos = id => sorted.indexOf(id);
@@ -173,6 +173,16 @@ function checkCorruptedStorage() {
   assert(same(stored(app), { vote: { lv: 2, due: '2026-10-20' }, ww2: { lv: 1, due: '2026-10-13' } }), 'a bad record reads as new; writing keeps only valid records');
 }
 
+// v2.4.1: the schedule went from Lv1–4 to Lv1–3; a stored Lv4 (old 4-level schedule) reads as Lv3 with its due kept
+function checkLegacyLv4() {
+  const app = loadApp({ [MEMO_LS]: JSON.stringify({ vote: { lv: 4, due: '2026-10-30' }, ww2: { lv: 4, due: '2026-10-11' } }) });
+  const g = app.g;
+  assert(same(g('memoLoadProgress()'), { vote: { lv: 3, due: '2026-10-30' }, ww2: { lv: 3, due: '2026-10-11' } }), 'v2.4.1: stored Lv4 reads as Lv3, due kept');
+  assert(g(`memoStatus(memoRecord(memoLoadProgress(), 'vote'), '${TODAY}')`) === 'done', 'v2.4.1: a former Lv4 not due → done (mastered)');
+  const r = g(`recordMemoResult('ww2', 5, 5, '${TODAY}')`);
+  assert(r.prevLv === 3 && r.lv === 3 && r.due === '2026-10-19' && same(stored(app).ww2, { lv: 3, due: '2026-10-19' }), 'v2.4.1: a pass from a former Lv4 stays Lv3, +7, stored as Lv3');
+}
+
 function checkTestPick() {
   const { g } = loadApp();
   const jury = g("memoGroupById('jury')");
@@ -199,6 +209,7 @@ try {
   checkDateBoundaries();
   checkStatusAndSort();
   checkCorruptedStorage();
+  checkLegacyLv4();
   checkTestPick();
   console.log(`MEMO-DOMAIN PASS (${asserts} checks)`);
 } catch (e) {

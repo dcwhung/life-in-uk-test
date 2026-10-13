@@ -113,9 +113,9 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   const order = await cardIds();
   assert(order[0] === 'vote' && order[1] === 'ww2' && order[GROUP_COUNT - 1] === 'parliament' && order[GROUP_COUNT - 2] === 'writers', 'list: due first, then new, learning, done last');
   const badges = await pg.$$eval('#studyContent .memo-card', els => Object.fromEntries(els.map(e => [e.dataset.arg, [e.querySelector('.memo-badge').textContent, e.querySelector('.memo-bar i').style.width, e.className]])));
-  assert(badges.vote[0] === 'Due today' && badges.vote[1] === '50%' && /\bdue\b/.test(badges.vote[2]), 'due card: "Due today", bar Lv2 = 50%');
-  assert(badges.writers[0] === 'Learning · Lv1' && badges.writers[1] === '25%' && /\blearning\b/.test(badges.writers[2]), 'learning card: "Learning · Lv1", bar 25%');
-  assert(badges.parliament[0] === 'Known · in 9 days' && badges.parliament[1] === '100%' && /\bdone\b/.test(badges.parliament[2]), 'done card: "Known · in 9 days", full bar');
+  assert(badges.vote[0] === 'Due today' && badges.vote[1] === '67%' && /\bdue\b/.test(badges.vote[2]), 'due card: "Due today", bar Lv2 of 3 = 67%');
+  assert(badges.writers[0] === 'Started · in 9 days' && badges.writers[1] === '33%' && /\blearning\b/.test(badges.writers[2]), 'learning card (v2.4.1): "Started · in 9 days", bar 33%');
+  assert(badges.parliament[0] === 'Known · in 9 days' && badges.parliament[1] === '100%' && /\bdone\b/.test(badges.parliament[2]), 'done card (v2.4.1: a stored Lv4 reads as Lv3): "Known · in 9 days", full bar');
   const cardColour = await pg.evaluate(() => {
     const probe = name => { const i = document.createElement('i'); i.style.color = `var(${name})`; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c; };
     const left = sel => getComputedStyle(document.querySelector(sel)).borderLeftColor;
@@ -150,9 +150,13 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
     wrong: [...document.querySelectorAll('#memoBody .memo-wrong li')].map(li => [li.querySelector('.memo-q').textContent, li.querySelector('.memo-wrong-yue').textContent]),
     steps: [...document.querySelectorAll('#memoSteps .memo-step')].map(e => e.textContent),
     next: (document.querySelector('#memoBody .memo-next') || {}).textContent,
+    due: (document.querySelector('#memoBody .memo-next-due') || {}).textContent,
+    schedTitle: (document.querySelector('#memoBody .memo-sched-title') || {}).textContent,
   }));
-  assert(res.pct === '80%' && res.verdict === 'Test 4/5 (≥ 70%) → up to Lv3', 'result: 80%, "Test 4/5 (≥ 70%) → up to Lv3": ' + res.verdict);
-  assert(res.sched.join('|') === 'past:Lv11 day|past:Lv23 days|next:Lv37 days|:Lv414 days', 'schedule: Lv1–2 past, Lv3 next: ' + res.sched.join('|'));
+  assert(res.pct === '80%' && res.verdict === 'Test 4/5 (≥ 70%) → up to Lv3 Known', 'result: 80%, "Test 4/5 (≥ 70%) → up to Lv3 Known": ' + res.verdict);
+  const [, dueM, dueD] = (await addDays(day, 7)).split('-').map(Number);
+  assert(res.due === `📅 Next review in 7 days (${dueD}/${dueM})` && res.schedTitle === 'Mastery · wait before the next review', 'v2.4.1: next review line + schedule title: ' + res.due);
+  assert(res.sched.join('|') === 'past:Lv1Startedafter 1 day|past:Lv2Familiarafter 3 days|next:Lv3Knownafter 7 days', 'schedule (v2.4.1, Lv1–3 with mastery): Lv1–2 past, Lv3 next: ' + res.sched.join('|'));
   const wrongQ = await pg.evaluate(() => { const q = state.questions[2]; return [q.q, q.yue]; });
   assert(res.wrong.length === 1 && res.wrong[0][0] === wrongQ[0] && res.wrong[0][1] === wrongQ[1], 'the wrong question listed (English + Cantonese)');
   assert(res.steps.join('|') === '✓ Look|✓ Test 4/5', 'steps after the test: ✓ Look / ✓ Test 4/5');
@@ -182,24 +186,25 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   await runTest([false, false, false]);
   const fail = await pg.evaluate(() => ({ pct: document.querySelector('#memoBody .memo-pct').textContent, verdict: document.querySelector('#memoBody .memo-verdict').textContent }));
   const tomorrow = await addDays(day, 1);
-  assert(fail.pct === '0%' && fail.verdict === 'Test 0/3 · below 70%, review again tomorrow', 'fail verdict: ' + fail.verdict);
+  assert(fail.pct === '0%' && fail.verdict === 'Test 0/3 · below 70%', 'fail verdict: ' + fail.verdict);
+  assert((await text('#memoBody .memo-next-due')).startsWith('📅 Next review tomorrow ('), 'v2.4.1: fail → next review tomorrow');
   assert(JSON.stringify((await stored()).jury) === JSON.stringify({ lv: 0, due: tomorrow }), 'fail at Lv0: Lv0, due tomorrow');
-  assert(await schedule() === ':Lv11 day|:Lv23 days|:Lv37 days|:Lv414 days', 'W-065: a Lv0 fail marks no schedule box: ' + await schedule());
+  assert(await schedule() === ':Lv1Startedafter 1 day|:Lv2Familiarafter 3 days|:Lv3Knownafter 7 days', 'W-065: a Lv0 fail marks no schedule box: ' + await schedule());
   assert(await pg.evaluate(() => document.activeElement === byId('memoTitle')), 'S-227: the result moves focus to the group title');
   await pg.click('#memoBody .memo-again');
   assert(await pg.$('#memoBody .memo-start') !== null && await pg.$('#memoBody .memo-pct') === null, '"Review again" goes back to the look view');
 
-  // ── W-064 / W-065 (user: a fail drops one level): Lv4 fail → Lv3, due tomorrow; Lv3 box reads Tomorrow, nothing "next" ──
+  // ── W-064 / W-065 (user: a fail drops one level): Lv3 (max) fail → Lv2, due tomorrow; Lv2 box reads Tomorrow, nothing "next" ──
   await pg.click('#screenMemo .memo-back');
-  await setRecord('parliament', { lv: 4, due: day });
+  await setRecord('parliament', { lv: 3, due: day });
   await openFromList('國會兩院', 'parliament');
   await runTest([false, false, false, false, false]);
-  assert(await text('#memoBody .memo-verdict') === 'Test 0/5 · below 70%, down to Lv3, review again tomorrow', 'W-064: Lv4 fail verdict says it dropped to Lv3');
-  assert(JSON.stringify((await stored()).parliament) === JSON.stringify({ lv: 3, due: tomorrow }), 'W-064: Lv4 fail stored as Lv3, due tomorrow');
-  assert(await schedule() === 'past:Lv11 day|past:Lv23 days|retry:Lv3Tomorrow|:Lv414 days' && await pg.$('#memoBody .memo-lv.next') === null,
-    'W-065: fail schedule: Lv1–2 past, Lv3 "Tomorrow", no "next" interval: ' + await schedule());
+  assert(await text('#memoBody .memo-verdict') === 'Test 0/5 · below 70%, down to Lv2 Familiar', 'W-064: Lv3 fail verdict says it dropped to Lv2');
+  assert(JSON.stringify((await stored()).parliament) === JSON.stringify({ lv: 2, due: tomorrow }), 'W-064: Lv3 fail stored as Lv2, due tomorrow');
+  assert(await schedule() === 'past:Lv1Startedafter 1 day|retry:Lv2FamiliarTomorrow|:Lv3Knownafter 7 days' && await pg.$('#memoBody .memo-lv.next') === null,
+    'W-065: fail schedule: Lv1 past, Lv2 "Tomorrow", no "next" interval: ' + await schedule());
   await pg.click('#screenMemo .memo-back');
-  assert(await pg.$eval('#studyContent .memo-card[data-arg="parliament"] .memo-badge', e => e.textContent) === 'Learning · Lv3', 'W-064: the list reads "Learning · Lv3", not Known');
+  assert(await pg.$eval('#studyContent .memo-card[data-arg="parliament"] .memo-badge', e => e.textContent) === 'Familiar · in 1 day', 'W-064: the list reads "Familiar · in 1 day", not Known');
 
   // ── S-232 (user): unanswered questions do not count ──
   const voteBefore = (await stored()).vote;
@@ -211,11 +216,11 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   assert(JSON.stringify((await stored()).vote) === JSON.stringify(voteBefore), 'S-232: nothing answered → level and due unchanged');
   await pg.click('#memoBody .memo-again');
   await runTest([true, true, null, null, null]);
-  assert(await text('#memoBody .memo-pct') === '100%' && await text('#memoBody .memo-verdict') === 'Test 2/2 (≥ 70%) → up to Lv4', 'S-232: 2 answered, both right → 2/2 = 100%, up a level');
-  assert(JSON.stringify((await stored()).vote) === JSON.stringify({ lv: 4, due: await addDays(day, 14) }) && await pg.$('#memoBody .memo-wrong') === null, 'S-232: skipped questions are not listed as wrong');
+  assert(await text('#memoBody .memo-pct') === '100%' && await text('#memoBody .memo-verdict') === 'Test 2/2 (≥ 70%) → stays at Lv3 Known', 'S-232: 2 answered, both right → 2/2 = 100%, stays at the top level');
+  assert(JSON.stringify((await stored()).vote) === JSON.stringify({ lv: 3, due: await addDays(day, 7) }) && await pg.$('#memoBody .memo-wrong') === null, 'S-232: skipped questions are not listed as wrong');
   await pg.click('#memoBody .memo-again');
   await runTest([true, false, null, false, true]);
-  assert(await text('#memoBody .memo-verdict') === 'Test 2/4 · below 70%, down to Lv3, review again tomorrow' && await pg.$$eval('#memoBody .memo-wrong li', l => l.length) === 2,
+  assert(await text('#memoBody .memo-verdict') === 'Test 2/4 · below 70%, down to Lv2 Familiar' && await pg.$$eval('#memoBody .memo-wrong li', l => l.length) === 2,
     'S-232: 2 of 4 answered right = 50% → down a level; the 2 wrong ones listed');
 
   // ── S-231: a double tap on the last Back records the test once ──
@@ -303,13 +308,17 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
     start: document.querySelector('.memo-due button').textContent, count: document.querySelector('#studyCount').textContent,
     badges: [...document.querySelectorAll('.memo-card')].map(e => e.querySelector('.memo-badge').textContent) }));
   assert(zh.tab === '記憶法' && zh.banner === '今日需溫習 1 組' && zh.start === '開始' && zh.count === `${GROUP_COUNT} / ${GROUP_COUNT} 組`, 'zh-HK list: 記憶法 tab, 今日需溫習 1 組, 開始 ▶, count: ' + JSON.stringify(zh).slice(0, 160));
-  assert(zh.badges[0] === '今日到期' && zh.badges.includes('未溫習') && zh.badges[GROUP_COUNT - 1] === '已熟記 · 9 日後', 'zh-HK badges: 今日到期 / 未溫習 / 已熟記 · 9 日後');
+  assert(zh.badges[0] === '今日到期' && zh.badges.includes('未溫習') && zh.badges[GROUP_COUNT - 1] === '已掌握 · 9 日後再溫', 'zh-HK badges: 今日到期 / 未溫習 / 已掌握 · 9 日後再溫');
   await pg.click('.memo-due button');
   await runTest([true, true, true, true, true]);
-  assert(await text('#memoBody .memo-verdict') === '測驗 5/5（≥ 70%）→ 升至 Lv2' && await text('#memoBody .memo-again') === '再溫習一次', 'zh-HK result: 測驗 5/5（≥ 70%）→ 升至 Lv2 / 再溫習一次');
+  assert(await text('#memoBody .memo-verdict') === '測驗 5/5（≥ 70%）→ 升至 Lv2 熟練' && await text('#memoBody .memo-again') === '再溫習一次', 'zh-HK result: 測驗 5/5（≥ 70%）→ 升至 Lv2 熟練 / 再溫習一次');
+  const [, zhM, zhD] = (await addDays(day, 3)).split('-').map(Number);
+  assert(await text('#memoBody .memo-next-due') === `📅 3 日後（${zhM}月${zhD}日）再溫習` && await text('#memoBody .memo-sched-title') === '掌握程度 · 每級的溫習間隔',
+    'zh-HK (v2.4.1): next review line + schedule title');
+  assert(await schedule() === 'past:Lv1初記隔 1 日|next:Lv2熟練隔 3 日|:Lv3已掌握隔 7 日', 'zh-HK schedule: ' + await schedule());
   assert((await text('#memoBody .memo-next')).startsWith('下一組：'), 'zh-HK next: 下一組：…');
-  const zhFail = await pg.evaluate(() => [memoVerdictText({ passed: false, prevLv: 4, lv: 3, correct: 0, total: 5 }), memoVerdictText({ passed: false, prevLv: 0, lv: 0, correct: 1, total: 5 }), t('memo.noAnswers'), t('memo.tomorrow')]);
-  assert(zhFail.join('|') === '測驗 0/5 · 未達 70%，降至 Lv3，明日再溫習|測驗 1/5 · 未達 70%，明日再溫習|未有作答任何題目，不會記錄進度|明日', 'zh-HK fail texts: ' + zhFail.join('|'));
+  const zhFail = await pg.evaluate(() => [memoVerdictText({ passed: false, prevLv: 3, lv: 2, correct: 0, total: 5 }), memoVerdictText({ passed: false, prevLv: 0, lv: 0, correct: 1, total: 5 }), t('memo.noAnswers'), t('memo.tomorrow')]);
+  assert(zhFail.join('|') === '測驗 0/5 · 未達 70%，降至 Lv2 熟練|測驗 1/5 · 未達 70%|未有作答任何題目，不會記錄進度|明日', 'zh-HK fail texts: ' + zhFail.join('|'));
   await pg.evaluate(() => setLang('en'));
 
   // ── 360px: tabs fit, no horizontal scroll (list, look, result) ──
