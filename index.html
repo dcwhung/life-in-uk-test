@@ -334,6 +334,8 @@
             <div class="chip-row plan-presets" id="planDaysChips" data-fit-row=".chip"></div>
             <label class="plan-date-pick" for="planExamDate"><span data-i18n="plan.goal.orDate"></span> <input type="date" id="planExamDate" data-input-action="planSetExamDate" data-blur-action="planCommitExamDate"></label>
           </div>
+          <!-- W-382: kept empty for a cached pre-v2.1.0 planGoal.js, which still toggles it (G36 note retired, CUI-0037); remove after v2.2 -->
+          <p class="plan-muted" id="planDateNote" hidden></p>
         </div>
       </div>
 

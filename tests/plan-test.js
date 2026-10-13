@@ -162,8 +162,12 @@ function checkValidation() {
 // today + 7, at least 7 study days); G36's looser edit limits (tomorrow, 1 study day) are retired, so no mode is taken
 function checkEditValidation() {
   const v = (goal, mode) => g('validatePlanGoal')(goal, TODAY, mode);
-  assert(['PLAN_EDIT_MIN_DAYS_AHEAD', 'PLAN_EDIT_MIN_STUDY_DAYS', 'PLAN_GOAL_LIMITS', 'PLAN_GOAL_MODE', 'planGoalLimits'].every(n => g('typeof ' + n) === 'undefined'),
-    'CUI-0037: the G36 edit limits and the goal mode are gone');
+  assert(['PLAN_EDIT_MIN_DAYS_AHEAD', 'PLAN_EDIT_MIN_STUDY_DAYS', 'PLAN_GOAL_LIMITS'].every(n => g('typeof ' + n) === 'undefined'),
+    'CUI-0037: the G36 edit limits are gone');
+  // W-382: the names a cached pre-v2.1.0 planGoal.js / planProgress.js still uses stay one version, with one set of limits
+  const unified = { minDaysAhead: 7, minStudyDays: 7 };
+  assert(same(g('planGoalLimits')(g('PLAN_GOAL_MODE').edit), unified) && same(g('planGoalLimits')(g('PLAN_GOAL_MODE').create), unified),
+    'W-382: the PLAN_GOAL_MODE / planGoalLimits shim gives a new plan\'s limits in both modes');
   assert(same(g('planExamDateRange')(TODAY), { min: '2026-10-15', max: '2027-04-08' }) && same(g('planExamDateRange')(TODAY, 'edit'), g('planExamDateRange')(TODAY)),
     'CUI-0037: one exam date range for a new plan and a changed goal: today + 7 … + 6 months');
   assert(v(goalFor(1, 60, []), 'edit').errors.includes('examDate') && v(goalFor(6, 60, []), 'edit').errors.includes('examDate') && v(goalFor(7, 60, []), 'edit').ok,

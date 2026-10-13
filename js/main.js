@@ -85,11 +85,13 @@ function upgradeLegacyFitRows() {
     if (row && !row.dataset.fitRow) row.dataset.fitRow = textSel;
   });
 }
-// CUI-0037 (v2.1.0): a pre-v2.1.0 cached index.html still has the retired G36 date note, whose key is gone: drop it
-// (it was only ever shown by the old planGoal.js)
+// CUI-0037 (v2.1.0): a pre-v2.1.0 cached index.html still names the retired G36 date note's key: drop only the key.
+// W-382: the node stays, since a cached pre-v2.1.0 planGoal.js still toggles it (it then shows nothing)
 function removeLegacyPlanMarkup() {
   const note = byId('planDateNote');
-  if (note) note.remove();
+  if (!note) return;
+  note.removeAttribute('data-i18n');
+  note.textContent = '';
 }
 function startApp() {
   upgradeLegacyHeaderMarkup();

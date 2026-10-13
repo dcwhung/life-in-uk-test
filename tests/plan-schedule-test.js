@@ -390,7 +390,8 @@ async function checkChangeGoalSameLimits(pg) {
   const before = await pg.evaluate(() => parseStoredPlan(readStudyPlan()));
   await pg.click('#screenPlanSchedule [data-action="planEditGoal"]');
   const open = await goalForm(pg);
-  assert(open.min === '2026-10-15' && !(await pg.$('#planDateNote')), 'CUI-0037: Change goal: the date field starts at today + 7, no G36 note: ' + JSON.stringify(open));
+  const note = await pg.evaluate(() => byId('planDateNote').getClientRects().length > 0 || byId('planDateNote').textContent !== '');
+  assert(open.min === '2026-10-15' && !note, 'CUI-0037: Change goal: the date field starts at today + 7, no G36 note (W-382: an empty hidden node stays): ' + JSON.stringify(open));
   await pickExamDate(pg, '2026-10-09');
   assert((await goalForm(pg)).exam === '2026-10-29', 'CUI-0037: an exam tomorrow is not taken when changing the goal');
   await pickExamDate(pg, '2026-10-15'); // 7 days, Sunday a rest day: 6 study days

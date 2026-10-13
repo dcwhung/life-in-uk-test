@@ -71,6 +71,10 @@ function isoAddMonths(iso, n) {
 function planTodayIso(now = new Date()) {
   return `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
 }
+// W-382 (v2.1.0): a cached pre-v2.1.0 planGoal.js / planProgress.js still names these (mixed SW / HTTP cache, W-057);
+// any mode now gets a new plan's limits (CUI-0037). Nothing current reads them: remove after v2.2
+const PLAN_GOAL_MODE = { create: 'create', edit: 'edit' };
+function planGoalLimits() { return { minDaysAhead: PLAN_MIN_DAYS, minStudyDays: PLAN_MIN_STUDY_DAYS }; }
 // CUI-0037: one range for a new plan and a changed goal
 function planExamDateRange(todayIso) {
   return { min: isoAddDays(todayIso, PLAN_MIN_DAYS), max: isoAddMonths(todayIso, PLAN_MAX_MONTHS) };
