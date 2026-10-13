@@ -162,6 +162,7 @@
 
 - [CUI-0042](../.tickets/pending/0001-0200/CUI-0042.md) — 🟢 Low latent bug：計劃 practice task 存咗過時 qid（將來題庫刪題 / 重排）→ `planLearnContentDone` 讀原始 `task.qids`，Learn 階段永遠唔完成、標題數多（QA v2.1.1 F-2）；**pending**
 - [CUI-0041](../.tickets/completed/0001-0200/CUI-0041.md) — 🟡 Medium release 協調：`claude/charming-archimedes-hrh4wd` 同 `origin/fix/quiz/back-to-entry` 都係 `APP_VERSION 2.1.1`（SW cache 撞名，後 deploy 嗰條已裝用戶收唔到）；後 merge 嗰條升 2.1.2（QA v2.1.1 F-1）；**completed**（v2.1.2：back-to-entry merge `main` `7145c96` 後升 2.1.2，C-007）
+- [CUI-0040](../.tickets/completed/0001-0200/CUI-0040.md)（原 CUI-0035，見頂部撞號）— 🟢 Low 版面：320px 英文大字計劃練習 task header「‹ Today's tasks」overflow 14px（QA v2.0.5 back-to-entry）；**completed** v2.1.2：`1d7a52f`「‹ Back」短 label（name「Back to today's tasks」，W-077），en / zh-HK 大字 288 / 288，`back-to-entry-test` `checkPlanNarrow`（S-268）
 - [CUI-0039](../.tickets/completed/0001-0200/CUI-0039.md) — 🟢 Low bug：錯題 / 旗標清單有冇對應題目嘅 key 時 tile 數多咗、撳落去 TypeError（QA v2.0.5 F-1）；已修 **v2.1.1**（開發時叫 v2.0.6）：`isValidQuestionKey` + 載入時 `pruneStaleQuestionKeys`，計劃 review `qids` 過濾（S-262）
 - [CUI-0038](../.tickets/completed/0001-0200/CUI-0038.md)（原 CUI-0030 → CUI-0037 → CUI-0038，兩次改號避免撞號，見頂部）— 🔴 Critical bug：PC / Tablet 訂立目標考試日期驗證不一致 + 兩階段版面（Phase detail 卡唔全寬、legend 仍有 Drill）；v2.1.0 修復（G36 退役，更改目標同新計劃一樣最早今日 + 7、最少 7 個溫習日；desktop 卡一欄一階段；legend / 標題跟階段數）；**completed** 2026-10-13（QA re-test @ 47302c7 pass，`qa/2026-10-13_qa_v210-cui37.md`）；截圖 `qa/screenshots/CUI-0038/`
 

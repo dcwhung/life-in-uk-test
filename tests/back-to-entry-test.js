@@ -10,7 +10,8 @@ const path = require('path');
 //   #9 Practice › Similar › Practise  → "‹ Q{n}" (named "Back to Q{n}") → the original session at the same question
 //   #11 Plan reading › fact ▶ Practise → "‹ Back" (named "Back to the fact") → that fact's card (#screenPlanRun)
 // The Home entries keep the 🏠 icon and go Home; an exam asks first. Also (S-259): zh-HK labels + a language switch,
-// Similar inside a Flagged practice (back twice → the list), 320px en large text (W-074), focus after back (S-258).
+// Similar inside a Flagged practice (back twice → the list), 320px en large text (W-074), focus after back (S-258),
+// 320px en + zh-HK large text plan headers (S-268) and names that start with the visible word (W-077).
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
 const launchOpts = { args: ['--no-sandbox'] };
 if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_PATH;
@@ -243,6 +244,51 @@ async function checkSimilarNarrow(b) {
   await ctx.close();
 }
 
+// S-268 (CUI-0040, 1d7a52f): 320px, large text, en + zh-HK: a plan practice task's quiz header and the reading's
+// #screenPlanRun header fit. "‹ Back" / 「‹ 返回」 and the label ("Chapter 1") each stay on one line (no mid-word break,
+// nothing clipped), the header does not overflow, no sideways page scroll; the names start with the visible word (W-077)
+const PLAN_NARROW = { en: { back: 'Back', name: "Back to today's tasks" }, 'zh-HK': { back: '返回', name: '返回今日任務' } };
+async function checkPlanNarrow(b) {
+  for (const [lang, want] of Object.entries(PLAN_NARROW)) {
+    const ctx = await b.newContext({ viewport: { width: 320, height: 640 } });
+    const pg = await ctx.newPage();
+    const errors = [];
+    pg.on('pageerror', e => errors.push(e.message));
+    await pg.goto(APP_URL);
+    await pg.evaluate(l => { setLang(l); setFontSize('large'); openPlanGoal(); byId('planCreateBtn').click(); openPlanDay(null); }, lang);
+    const headerOf = screen => pg.evaluate(id => {
+      const scr = byId(id), header = scr.querySelector('.quiz-header'), label = scr.querySelector('.quiz-label'), back = scr.querySelector('.back-btn');
+      // rendered lines of an element's words: the distinct tops of its text runs (the leading svg icon is not counted)
+      const lines = el => {
+        const tops = new Set(), walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+        for (let n = walk.nextNode(); n; n = walk.nextNode()) {
+          if (!n.textContent.trim()) continue;
+          const r = document.createRange(); r.selectNodeContents(n);
+          for (const rect of r.getClientRects()) if (rect.width) tops.add(Math.round(rect.top));
+        }
+        return tops.size;
+      };
+      const fits = el => el.scrollWidth <= el.clientWidth;
+      return { large: document.documentElement.dataset.fontSize, page: document.documentElement.scrollWidth, vw: window.innerWidth,
+        header: fits(header), label: { text: label.textContent, fits: fits(label), lines: lines(label) },
+        back: { text: back.textContent.trim(), fits: fits(back), lines: lines(back), name: back.getAttribute('aria-label') } };
+    }, screen);
+    const ok = (r, where) => {
+      assert(r.large === 'large' && r.back.text === want.back && r.back.name === want.name, `S-268 320px ${lang} large ${where}: "‹ ${want.back}" named "${want.name}" (${JSON.stringify(r.back)})`);
+      assert(r.back.fits && r.back.lines === 1 && r.label.fits && r.label.lines === 1, `S-268 320px ${lang} large ${where}: back + "${r.label.text}" each on one line, unclipped (${JSON.stringify(r)})`);
+      assert(r.header && r.page <= r.vw, `S-268 320px ${lang} large ${where}: the header fits, no sideways scroll (${JSON.stringify(r)})`);
+    };
+    await pg.click('#planTaskList [data-action=planOpenTask]'); // the day's first task: a reading (#screenPlanRun)
+    assert(await activeScreen(pg) === 'screenPlanRun', `320px ${lang}: the reading task opens #screenPlanRun`);
+    ok(await headerOf('screenPlanRun'), 'reading #screenPlanRun');
+    await pg.evaluate(() => { const today = planTodayIso(); planOpenTask(today, planDayAt(planLoad(), today).tasks.findIndex(task => task.type === PLAN_TASK.practice)); });
+    assert(await activeScreen(pg) === 'screenQuiz', `320px ${lang}: the practice task opens the quiz`);
+    ok(await headerOf('screenQuiz'), 'practice task quiz header');
+    assert(errors.length === 0, `320px ${lang} plan: no page errors (${errors.join(' | ')})`);
+    await ctx.close();
+  }
+}
+
 (async () => {
   const b = seedLegacyDefaults(await chromium.launch(launchOpts));
   try {
@@ -260,6 +306,7 @@ async function checkSimilarNarrow(b) {
       }
     }
     await checkSimilarNarrow(b);
+    await checkPlanNarrow(b);
     console.log('PASS');
   } finally {
     await b.close();
