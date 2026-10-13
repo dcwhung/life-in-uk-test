@@ -56,34 +56,37 @@ function noteLineClass(line, mark) {
   if (NOTE_SUB_INDENT.test(line)) return ' sub';
   return mark ? ' bullet' : '';
 }
-function noteLineHtml(line) {
+function noteLineHtml(line) { return noteLangLineHtml(line, ZH_HK_LANG); }
+// v2.2.0: one note line marked with the note's language (noteHtml's lang)
+function noteLangLineHtml(line, lang) {
   const text = line.trim(), mark = text.match(NOTE_MARK);
   const cls = noteLineClass(line, mark);
   const body = mark ? `<span class="note-mark">${mark[1]} </span>${escapeHtml(text.slice(mark[0].length))}` : escapeHtml(text);
-  return `<div class="rv-note-line${cls}" lang="zh-HK">${body}</div>`;
+  return `<div class="rv-note-line${cls}" lang="${lang}">${body}</div>`;
 }
 // v1.0.7: consecutive lines starting with "|" are one table ("| a | b |", first row = header); "<br>" in a cell
 // splits its main text from small remark lines (.note-cell-sub). Other lines still go through noteLineHtml
 const NOTE_TABLE_ROW = /^\s*\|/;
 const NOTE_CELL_BREAK = '<br>';
 const NOTE_GAP_HTML = '<div class="rv-note-gap"></div>';
-function noteHtml(note) {
+// v2.2.0: lang = the note's language (localNote: Cantonese, or English in the English UI)
+function noteHtml(note, lang = ZH_HK_LANG) {
   const out = [];
   let rows = [];
-  const flushTable = () => { if (rows.length) out.push(noteTableHtml(rows)); rows = []; };
+  const flushTable = () => { if (rows.length) out.push(noteTableHtml(rows, lang)); rows = []; };
   for (const line of note.split('\n')) {
     if (NOTE_TABLE_ROW.test(line)) { rows.push(line); continue; }
     flushTable();
-    out.push(line.trim() ? noteLineHtml(line) : NOTE_GAP_HTML);
+    out.push(line.trim() ? noteLangLineHtml(line, lang) : NOTE_GAP_HTML);
   }
   flushTable();
   return out.join('');
 }
 // "| a | b |" lines -> table; lang on the table so it is marked like the .rv-note-line rows around it
-function noteTableHtml(rows) {
+function noteTableHtml(rows, lang = ZH_HK_LANG) {
   const [head, ...body] = rows.map(row => row.trim().replace(/^\||\|$/g, '').split('|').map(cell => cell.trim()));
   const rowHtml = (cells, tag) => `<tr>${cells.map(cell => noteCellHtml(cell, tag)).join('')}</tr>`;
-  return `<div class="note-table-wrap"><table class="note-table" lang="zh-HK"><thead>${rowHtml(head, 'th')}</thead>`
+  return `<div class="note-table-wrap"><table class="note-table" lang="${lang}"><thead>${rowHtml(head, 'th')}</thead>`
     + `<tbody>${body.map(cells => rowHtml(cells, 'td')).join('')}</tbody></table></div>`;
 }
 // split on "<br>" first, then escape each part, so the only markup a note can add is the remark span.
@@ -94,6 +97,11 @@ function noteCellSubHtml(remark) {
   const mark = remark.match(NOTE_CELL_BULLET);
   if (!mark) return `<span class="note-cell-sub">${escapeHtml(remark)}</span>`;
   return `<span class="note-cell-sub bullet"><span class="note-mark">• </span>${escapeHtml(remark.slice(mark[0].length))}</span>`;
+}
+// v2.2.0: a question's note in the UI language (localNote), wrapped in a <div class="cls"> marked with its language
+function localNoteHtml(note, cls) {
+  const local = localNote(note);
+  return `<div class="${cls}" lang="${local.lang}">${noteHtml(local.text, local.lang)}</div>`;
 }
 function noteCellHtml(cell, tag) {
   const [main, ...remarks] = cell.split(NOTE_CELL_BREAK);

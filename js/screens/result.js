@@ -169,9 +169,14 @@ function yourAnswerHtml(q, userAns) {
   const answer = `<span lang="en">${escapeHtml(userAns.map(ai => q.o[ai]).join(ANSWER_SEP))}</span>`;
   return escapeHtml(t('review.yourAnswer')).replace(ANSWER_SLOT, () => answer); // a function: no $-patterns in option text
 }
+// v2.2.0: the note in the UI language (localNote); the 💡 label reads with the note (S-048)
+function noteReviewHtml(note) {
+  const local = localNote(note);
+  return `<div class="rv-note" lang="${local.lang}"><div class="rv-note-label">${t('common.noteLabel')}</div>${noteHtml(local.text, local.lang)}</div>`;
+}
 function reviewItemHtml({ q, idx, userAns, isCorrect, flagged }) {
   const correctText = q.a.map(ai => q.o[ai]).join(ANSWER_SEP);
-  const note = q.note ? `<div class="rv-note" lang="zh-HK"><div class="rv-note-label">${t('common.noteLabel')}</div>${noteHtml(q.note)}</div>` : '';
+  const note = q.note ? noteReviewHtml(q.note) : '';
   return `<div class="review-item ${isCorrect ? 'rv-correct' : 'rv-wrong'}" id="rv${idx}">
       <div class="rv-q">${reviewIsPractice ? streakTagHtml(q) : ''}${idx + 1}. <span class="rv-q-text" lang="en">${escapeHtml(q.q)}</span>${flagged ? bookmarkSvg('rv-flag') : ''}</div>
       ${!isCorrect ? `<div class="rv-your">${yourAnswerHtml(q, userAns)}</div>` : ''}

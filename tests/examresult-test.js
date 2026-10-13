@@ -90,7 +90,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   const noteIdx = await pg.evaluate(() => state.questions.findIndex(q => q.note && q.note.split('\n').filter(l => /^\s*[•→]/.test(l)).length >= 2));
   const noteLines = await pg.$$eval(`#rv${noteIdx} .rv-note-line`, els => els.map(e => e.className));
   assert(noteLines.length > 2 && noteLines.some(c => c.includes('bullet')), 'note split into rows with bullet indent');
-  assert((await text(`#rv${noteIdx} .rv-note-label`)) === '💡 備註：', 'note label row');
+  assert((await text(`#rv${noteIdx} .rv-note-label`)) === '💡 Note:', 'note label row (v2.2.0: English UI, English note)');
 
   // review items breathe: question / your answer / correct answer separated, roomy line height
   const gaps = await pg.$eval('#rv2', e => {

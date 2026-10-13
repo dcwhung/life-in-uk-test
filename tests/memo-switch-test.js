@@ -1,7 +1,7 @@
 const { chromium } = require('playwright-core');
 const { seedLegacyDefaults } = require('./legacy-defaults'); // v1.4.2: keep the old en + small first run
 const path = require('path');
-// v2.2.0: memory-note study mode on / off (⚙ → Features → "🧠 Memory study mode", on by default; user-confirmed preview
+// v2.3.0: memory-note study mode on / off (⚙ → Features → "🧠 Memory study mode", on by default; user-confirmed preview
 // mockups/memo-switch.html, deleted at release):
 // - the row sits between the translation and the plan rows: switch + On / Off pill + note, like the other two
 // - off hides the Study 🧠 tab (phone and desktop rail) and the group screen; the stored progress stays
@@ -171,7 +171,7 @@ async function checkCancelMidTest(pg) {
   await pg.click('#confirmCancel');
 }
 
-// W-383 (W-057): a cached pre-v2.2.0 actions.js (no handler) or locale (no row words) hides the row
+// W-383 (W-057): a cached pre-v2.3.0 actions.js (no handler) or locale (no row words) hides the row
 async function checkMixedCache(pg) {
   await fresh(pg);
   const hidden = await pg.evaluate(() => {

@@ -121,7 +121,7 @@ function startApp() {
   // v1.3.0: before anything renders at the default size; W-057: an HTTP-cached pre-v1.3.0 store.js has no text size
   if (typeof applyFontSize === 'function') applyFontSize();
   if (typeof applyTranslation === 'function') applyTranslation(); // v1.4.0, same W-057 guard
-  if (typeof applyMemoMode === 'function') applyMemoMode(); // v2.2.0, same W-057 guard
+  if (typeof applyMemoMode === 'function') applyMemoMode(); // v2.3.0, same W-057 guard
   // v2.1.1 CUI-0039: stale question keys out of the stored lists before anything counts or opens them (W-057 guard)
   if (typeof pruneStaleQuestionKeys === 'function') pruneStaleQuestionKeys();
   byId('appVersion').textContent = 'v' + APP_VERSION;
@@ -132,7 +132,7 @@ function startApp() {
   loadHomePrefs();
   renderPlanSettings();
   if (typeof renderTranslationSetting === 'function') renderTranslationSetting(); // v1.4.0 (W-057: a pre-v1.4.0 planHome.js)
-  if (typeof renderMemoSetting === 'function') renderMemoSetting(); // v2.2.0 (W-057: a pre-v2.2.0 memo.js)
+  if (typeof renderMemoSetting === 'function') renderMemoSetting(); // v2.3.0 (W-057: a pre-v2.3.0 memo.js)
   planWatchDay(); // G6: the plan's "today" follows local midnight
   buildExamGrid();
   renderModeSelection();
