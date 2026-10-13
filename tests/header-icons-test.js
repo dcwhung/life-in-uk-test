@@ -20,7 +20,9 @@ const LANGS = ['en', 'zh-HK'];
 const HOME_LABEL = { en: 'Home', 'zh-HK': '主頁' };
 const GOAL = { examDate: '2026-10-22', dailyMins: 120, restDays: [0], level: 'none' };
 const NOW = new Date('2026-10-11T09:00:00');
-const HOME_BUTTONS = '.back-btn[data-action="goHome"]'; // Result's "Another Exam" buttons also go Home: not header buttons
+// Result's "Another Exam" buttons also go Home: not header buttons. v2.0.3: the quiz / Result header is goBack (🏠 while the
+// session came from Home; js/screens/sideSession.js setEntryBack)
+const HOME_BUTTONS = '.back-btn:is([data-action="goHome"], [data-action="goBack"])';
 
 const fresh = async (pg, lang) => {
   await pg.goto(APP_URL);

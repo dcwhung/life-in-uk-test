@@ -158,7 +158,8 @@ async function checkRead(pg) {
     back: document.querySelector('#screenQuiz .back-btn').textContent }), fid);
   assert(s.screen === 'screenQuiz' && s.plan && s.day === TODAY && JSON.stringify(s.keys) === JSON.stringify(s.want),
     `▶ Practise: a plan session over the fact's ${s.want.length} questions, for today`);
-  assert(/^Fact Ch \d #\d+$/.test(s.label) && s.back === "← Today's tasks", 'header: Fact Ch c #n · ← Today\'s tasks: ' + s.label);
+  // v2.0.3: mid-session ← goes back to this fact's card (planLeaveSession), so the header names it
+  assert(/^Fact Ch \d #\d+$/.test(s.label) && s.back === '← Back to the fact', 'header: Fact Ch c #n · ← Back to the fact: ' + s.label + ' · ' + s.back);
   await playAllRight(pg);
   v = await runView(pg);
   assert(v.screen === 'screenPlanRun' && Number(v.fact) === fid && v.meta.endsWith(`Fact 1 of ${n}`), 'finished: back on the same fact');
