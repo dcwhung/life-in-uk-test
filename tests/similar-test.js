@@ -94,7 +94,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   // CUI-0007: the button label is a plural — one similar question reads "this one", not "these 1"
   assert(await pg.evaluate(() => t('similar.practise', { n: 1 })) === 'Practise this one', 'practise plural one: Practise this one');
   assert(await pg.evaluate(() => t('similar.practise', { n: 3 })) === 'Practise these 3', 'practise plural other: Practise these 3');
-  // v2.3.0 (mockup desktop-memo.html rev 5, every quiz on a phone): the similar section scrolls in the panel after the
+  // v2.4.0 (mockup desktop-memo.html rev 5, every quiz on a phone): the similar section scrolls in the panel after the
   // question card; Prev / Next stay at the bottom, under it
   assert(await pg.evaluate(() => {
     const nav = document.querySelector('#screenQuiz .nav-row'), box = document.getElementById('similarBox');

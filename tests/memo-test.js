@@ -164,7 +164,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   await pg.evaluate(() => { setLang('zh-HK'); setLang('en'); rerenderCurrentScreen(); });
   assert(JSON.stringify((await stored()).vote) === JSON.stringify({ lv: 3, due: due7 }) && await pg.$eval('#memoBody .memo-pct', e => e.textContent) === '80%', 're-render keeps the result, records nothing more');
   assert(res.next === 'Next: Second World War', 'next group = the next due / new group in list order: ' + res.next);
-  // v2.3.0: on the phone Next sits where the test's last ↩ Back was (both pinned bottom right): wait out the double tap
+  // v2.4.0: on the phone Next sits where the test's last ↩ Back was (both pinned bottom right): wait out the double tap
   // guard (CUI-0011) as a person's second, separate tap would
   await pg.waitForTimeout(GUARD_WAIT_MS);
   await pg.click('#memoBody .memo-next');
@@ -325,7 +325,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
 
   // ── v1.6.1 (user: 「記憶法列表用每個兩行顯示」 = two cards per row): a 2-column grid at phone widths; nothing overlaps or
   // clips, cards in a row share a height, DOM order runs row-wise; the due banner + count line stay full width; en / zh-HK
-  // × small / large × 320 / 360 / 390 without sideways scroll. v2.3.0 (mockup desktop-memo.html rev 1 / rev 4, user
+  // × small / large × 320 / 360 / 390 without sideways scroll. v2.4.0 (mockup desktop-memo.html rev 1 / rev 4, user
   // 2026-10-13): the badge sits top right beside the title (no longer below it), so a title may take more lines ──
   await pg.evaluate(([k, v]) => localStorage.setItem(k, JSON.stringify(v)), [MEMO_LS, { vote: { lv: 1, due: day }, writers: { lv: 1, due: later }, parliament: { lv: 4, due: later } }]);
   const gridBad = [];

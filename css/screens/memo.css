@@ -45,7 +45,7 @@
 .memo-bar { display: block; flex-shrink: 0; height: 6px; background: var(--bg); border-radius: var(--radius-pill); margin-top: auto; overflow: hidden; }
 .memo-bar i { display: block; height: 100%; background: var(--memo-done); border-radius: var(--radius-pill); }
 
-/* v2.3.0 (mockup desktop-memo.html rev 1 / rev 2 / rev 4; supersedes v1.6.1's badge under the title): the status
+/* v2.4.0 (mockup desktop-memo.html rev 1 / rev 2 / rev 4; supersedes v1.6.1's badge under the title): the status
    badge always sits top right — a long title wraps in its own cell (anywhere), never pushing the badge down; the bar
    stays at the card's foot, so a row's cards (equally high) line their bars up. Phone 2 columns (v1.6.1), desktop 3 /
    4 (below) */
@@ -87,14 +87,14 @@
   background: var(--gold-bg); border: 1.5px solid var(--gold-border); border-radius: var(--radius-md);
   padding: var(--space-5) var(--space-6); font-size: var(--fs-base); line-height: 1.55; margin-bottom: var(--space-7);
 }
-/* v2.3.0 (rev 3 P4): "💡 Memory hook:" on its own line, the hook under it (phone and desktop) */
+/* v2.4.0 (rev 3 P4): "💡 Memory hook:" on its own line, the hook under it (phone and desktop) */
 .memo-hook b { display: block; color: var(--note-label); margin-bottom: var(--space-2); }
 .memo-hook span { white-space: pre-line; }
 .memo-panel {
   background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow-sm);
   padding: var(--space-6); margin-bottom: var(--space-7); font-size: var(--fs-base); line-height: 1.55;
 }
-/* v2.3.0 the single-note group, design C (rev 4 / rev 5): one white card; each question = pill row → bold navy question →
+/* v2.4.0 the single-note group, design C (rev 4 / rev 5): one white card; each question = pill row → bold navy question →
    "💡 備註：" + its note with a gold rule (like the hook); a big gap between questions */
 .memo-single-item + .memo-single-item { margin-top: var(--space-10); }
 .memo-single-q { font-weight: 800; color: var(--navy); }
@@ -102,7 +102,7 @@
 .memo-note-label { color: var(--note-label); font-weight: 700; margin-bottom: var(--space-2); }
 .nav-btn.memo-start { display: flex; width: 100%; } /* flex: its words and ▶ icon stay one centred line (.with-icon) */
 
-/* v2.3.0 the group's questions (rev 1 / P1: no answers): a panel on the desktop's right, folded under the note on a
+/* v2.4.0 the group's questions (rev 1 / P1: no answers): a panel on the desktop's right, folded under the note on a
    phone (P5: <details>, closed; its summary is the title) */
 .memo-questions-title { font-weight: 800; color: var(--navy); margin: 0 0 var(--space-5); }
 details.memo-questions > summary { cursor: pointer; list-style-position: inside; margin: 0; }
@@ -127,7 +127,7 @@ details.memo-questions[open] > summary { margin-bottom: var(--space-5); }
 .memo-lv.retry { border-color: var(--memo-due); border-style: dashed; color: var(--memo-due-text); background: var(--flag-bg); }
 .memo-none { margin: 0; text-align: center; color: var(--text-muted); padding: var(--space-6) 0; }
 .memo-wrong-title { font-weight: 800; color: var(--red); margin: 0 0 var(--space-3); }
-/* v2.3.0 question lists (the group's questions, the wrong questions; mockup desktop-memo.html rev 3 .mx-qlist): each
+/* v2.4.0 question lists (the group's questions, the wrong questions; mockup desktop-memo.html rev 3 .mx-qlist): each
    question = its pill row, the English question, its translation; a rule between questions */
 .memo-qlist { list-style: none; margin: 0; padding: 0; }
 .memo-qlist li + li { border-top: 1px solid var(--border); margin-top: var(--space-5); padding-top: var(--space-5); }
@@ -137,7 +137,7 @@ details.memo-questions[open] > summary { margin-bottom: var(--space-5); }
    .fact-src .sqm-node) */
 .memo-pills { --memo-pill-gap: 5px; display: flex; flex-wrap: wrap; gap: var(--memo-pill-gap); align-items: center; margin-bottom: var(--space-3); }
 .memo-pills .sqm-node { padding: 3px var(--space-4); }
-/* v2.3.0 nothing wrong: "All correct 🎉 …" above the memory aid shown again (js/screens/memo.js memoReminderHtml) */
+/* v2.4.0 nothing wrong: "All correct 🎉 …" above the memory aid shown again (js/screens/memo.js memoReminderHtml) */
 .memo-again-text { font-weight: 800; color: var(--green); margin: 0 0 var(--space-5); }
 .memo-panel .memo-hook:last-child { margin-bottom: 0; }
 .memo-panel .memo-none + * { margin-top: var(--space-6); }
@@ -146,7 +146,7 @@ details.memo-questions[open] > summary { margin-bottom: var(--space-5); }
 .nav-btn.memo-next { background: var(--gold); color: var(--navy); }
 .nav-btn.memo-next:hover { background: var(--gold-light); }
 
-/* ── v2.3.0 phone one screen high (mockup desktop-memo.html rev 4 / rev 5; .is-fit-phone, css/components/fit.css):
+/* ── v2.4.0 phone one screen high (mockup desktop-memo.html rev 4 / rev 5; .is-fit-phone, css/components/fit.css):
    header + steps on top; look: the hook stays put, the panel (note + folded questions, or the single card) takes the
    height left and scrolls with fades in the page grey, "start the test" at the bottom; result: score, Lv1–4 and the
    wrong questions in the panel, Again / Next at the bottom ── */
@@ -159,7 +159,7 @@ details.memo-questions[open] > summary { margin-bottom: var(--space-5); }
   .memo-scroll-panel > :last-child { margin-bottom: 0; }
 }
 
-/* ── desktop (≥ 1024px). v2.3.0 Design Origin: mockup: mockups/v2.0.0/desktop-memo.html (rev 6) (decision log
+/* ── desktop (≥ 1024px). v2.4.0 Design Origin: mockup: mockups/v2.0.0/desktop-memo.html (rev 6) (decision log
    .proj-docs/plans/2026-10-13_grill_desktop-memo.md; v2.0.0 was the Plan Run centred column). One screen high (.is-fit,
    css/components/fit.css): the top row (‹ Memory + title | ① Look / ② Test, both halves), then the body's columns take
    the height left; each panel (.memo-scroll = .fit-fade around a .fit-panel card) scrolls on its own, fading in the
@@ -210,7 +210,7 @@ details.memo-questions[open] > summary { margin-bottom: var(--space-5); }
   .memo-result-cols .memo-actions { margin-top: auto; flex-direction: column; }
   .memo-result-cols .memo-actions .nav-btn { flex: none; }
 
-  /* the list (v2.0.4 merge: v1.6.1's two cards a row become three; v2.3.0 rev 2: four from 1280px, below), the
+  /* the list (v2.0.4 merge: v1.6.1's two cards a row become three; v2.4.0 rev 2: four from 1280px, below), the
      desktop card padding; the banner above the card panel */
   .memo-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-5); }
   .memo-grid > .memo-card { padding: var(--space-6) var(--space-7); }

@@ -1,7 +1,7 @@
 # Grill：Desktop 記憶法（溫習模式 › 記憶法）layout
 
 **日期**：2026-10-13
-**狀態**：rev 6 定案（見「第六輪決定」），已實作為 **v2.3.0**（branch `claude/quirky-newton-wdelbs`；開發時叫 v2.1.0，merge `main` v2.1.1 後叫 v2.2.0，`main` 自己出咗 v2.2.0 之後 merge 改做 v2.3.0）；merge 時嘅用戶決定見「Merge `main` v1.6.1 嘅決定」
+**狀態**：rev 6 定案（見「第六輪決定」），已實作為 **v2.4.0**（branch `claude/quirky-newton-wdelbs`；開發時叫 v2.1.0，merge `main` v2.1.1 後叫 v2.2.0，`main` 出咗 v2.2.0 之後叫 v2.3.0，`main` 再出 v2.3.0／v2.3.1 之後 merge 改做 v2.4.0）；merge 時嘅用戶決定見「Merge `main` v1.6.1 嘅決定」
 **Mockup**：[`mockups/v2.0.0/desktop-memo.html`](../../mockups/v2.0.0/desktop-memo.html)（第 13 份 desktop mockup；rev 3 起亦包手機 390px）
 **Branch**：`claude/quirky-newton-wdelbs`（由 `main` v2.0.2 `c6b0806` 開）
 
@@ -131,5 +131,5 @@ Mockup 已經改做 rev 1，淨係保留定案嘅排法（3 欄、A、C 已經�
 
 - rev 6 蓋過 v1.6.1：badge 永遠右上；desktop < 1280 3 欄、≥ 1280 4 欄；「今日要溫」banner 固定（desktop 喺卡片 panel 上面，手機 sticky）。
 - 手機 banner 黐住 `main` 嘅 sticky `.study-top`（tab + chip 行）正下面（`top: calc(var(--header-h) + var(--study-top-h))`、`box-shadow: var(--shadow)`），接受佢喺 390 × 844 佔大約 35% 畫面，同 320px 大字卡片擠（badge 太窄時喺自己格換行）。
-- Review v2.2.0（今次發佈改號做 v2.3.0）C-007 之後：手機一屏高（記憶法、Quiz）喺 panel 細過 `--fit-phone-min-panel`（大約兩粒選項）時退返成頁碌。
+- Review v2.2.0（今次發佈改號做 v2.4.0）C-007 之後：手機一屏高（記憶法、Quiz）喺 panel 細過 `--fit-phone-min-panel`（大約兩粒選項）時退返成頁碌。
 - Re-review W-082（用戶 2026-10-13 揀**方案 A**）：門檻附近嘅手機（375 × 667、390 × 664 大字 + 翻譯）Quiz 會逐題喺一屏高同成頁碌之間切換。改做**每個 Quiz session 決定一次**：一題退咗路，成個 session 都保持成頁碌；新 session 重新決定；用戶改畫面尺寸、字型大小、翻譯或者語言就由頭再決定。記憶法唔變（每個 view 一次 render）。

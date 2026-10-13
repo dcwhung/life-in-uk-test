@@ -179,7 +179,7 @@
   .q-text { font-size: var(--fs-lg); }
 }
 
-/* ════════ v2.3.0 phone (< 1024px; mockup mockups/v2.0.0/desktop-memo.html rev 5 / rev 6; every quiz): one screen high
+/* ════════ v2.4.0 phone (< 1024px; mockup mockups/v2.0.0/desktop-memo.html rev 5 / rev 6; every quiz): one screen high
    (.is-fit-phone, css/components/fit.css; js/screens/quiz.js arrangeQuizPhone). The header, notes and question card
    stay put; the panel after the card (options, answer, Similar) takes the height left and scrolls with fades in the
    page grey; Prev / Next at the bottom ════════ */
@@ -221,7 +221,7 @@
   #screenQuiz.is-fit > .quiz-cols { flex: 1 1 auto; min-height: 0; }
   /* F4 (rev 8 / rev 12): no bottom Prev / Next; the card's ← → always shown, beside Translate before answering */
   #screenQuiz > .nav-row { display: none; }
-  /* v2.3.0: the phone's panel (.quiz-scroll) stays a box here: the refit empties it into the columns (or keeps exam's
+  /* v2.4.0: the phone's panel (.quiz-scroll) stays a box here: the refit empties it into the columns (or keeps exam's
      hidden answer / Similar), so it is 0px high. Never display: none — the focused option inside it would lose focus
      (S-228) in the frame between the resize and the refit. Its fades (absolute, 36px × scale) would still stick out
      under the screen and scroll the page: none here */

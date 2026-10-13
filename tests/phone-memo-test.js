@@ -1,4 +1,4 @@
-// v2.3.0 memory-note screens on a phone (390 × 844; mockup mockups/v2.0.0/desktop-memo.html rev 6, decision log
+// v2.4.0 memory-note screens on a phone (390 × 844; mockup mockups/v2.0.0/desktop-memo.html rev 6, decision log
 // .proj-docs/plans/2026-10-13_grill_desktop-memo.md):
 // - pill row per question (shared with the desktop): ".tag #n" · ".tag <icon> Ch c" (lang en) · ".sqm-node" E·Q (copies
 //   joined " = ", mastery colours); in the group's questions, the result's wrong questions and the single-note group
@@ -145,7 +145,7 @@ async function checkPhoneList(b) {
     await page.evaluate(y => window.scrollTo(0, y), PHONE_SCROLL);
     await dt.nextFrame(page);
     const after = await dt.memoListLayout(page);
-    // v2.3.0 merge: Study's tabs + chip rows are pinned under the header (v1.6.1 .study-top); the banner sticks right
+    // v2.4.0 merge: Study's tabs + chip rows are pinned under the header (v1.6.1 .study-top); the banner sticks right
     // under that block, whose --bg bottom margin is the gap
     const gap = await page.evaluate(() => ({ scrollY: window.scrollY, block: document.querySelector('#screenStudy .study-top').getBoundingClientRect().bottom }));
     assert(gap.scrollY > 0 && Math.abs(after.due.top - gap.block) <= 1 && gap.block > after.header.bottom,
@@ -290,6 +290,37 @@ async function checkMemoFallback(b) {
   await page.close();
 }
 
+// v2.4.0 merge (main v2.3.0: ⚙ memory-note study mode on / off): off hides every rev 6 list piece with the memo tab —
+// no tab, no due banner (#studyLead), no memo grid — on the phone (the sticky banner too, after scrolling) and on the
+// desktop rail; on again brings them back (banner above the cards, 2 / 3 / 4 columns)
+async function checkMemoModeOff(b) {
+  for (const viewport of [dt.VIEWPORTS.phone, dt.VIEWPORTS.small, dt.VIEWPORTS.wide]) {
+    const { page, errors, label } = await dt.openDesktop(b, { viewport });
+    await page.evaluate(k => {
+      const today = planTodayIso();
+      localStorage.setItem(k, JSON.stringify({ vote: { lv: 1, due: today }, ww2: { lv: 2, due: today } }));
+      openStudy(); studySetTab('memo');
+    }, MEMO_LS);
+    const shown = sel => page.evaluate(q => [...document.querySelectorAll(q)].some(e => e.getClientRects().length > 0), sel);
+    assert(await shown('#studyLead .memo-due') && await shown('#studyContent .memo-grid'), `${label} mode on: the due banner and the card grid`);
+    await page.evaluate(() => setMemoMode(false));
+    await page.evaluate(() => window.scrollTo(0, document.scrollingElement.scrollHeight));
+    await dt.nextFrame(page);
+    const off = await page.evaluate(() => ({ tab: study.tab, lead: byId('studyLead').hidden, leadHtml: byId('studyLead').innerHTML,
+      memoTab: document.querySelector('.study-tab[data-tab="memo"]').getClientRects().length }));
+    assert(off.tab !== 'memo' && off.lead && off.leadHtml === '' && off.memoTab === 0 && !(await shown('.memo-due')) && !(await shown('.memo-grid')),
+      `${label} mode off: no memo tab, no due banner, no memo grid (${JSON.stringify(off)})`);
+    assert((await dt.noHorizontalScroll(page)).ok, `${label} mode off: no sideways scroll`);
+    await page.evaluate(() => { setMemoMode(true); studySetTab('memo'); });
+    await dt.nextFrame(page);
+    const L = await dt.memoListLayout(page);
+    const cols = viewport.width < dt.DESKTOP_MIN_WIDTH ? 2 : viewport.width >= 1280 ? 4 : 3;
+    assert(await shown('#studyLead .memo-due') && L.columns === cols, `${label} mode on again: the banner and ${cols} card columns (${L.columns})`);
+    assert(errors.length === 0, `${label} memo mode: no page errors ` + errors.join(' | '));
+    await page.close();
+  }
+}
+
 (async () => {
   const b = await dt.launch();
   let failed = false;
@@ -301,6 +332,7 @@ async function checkMemoFallback(b) {
     await checkPhoneOneScreen(b);
     await checkMemoShortPhones(b);
     await checkMemoFallback(b);
+    await checkMemoModeOff(b);
     console.log('PHONE-MEMO PASS');
   } catch (e) {
     failed = true;

@@ -52,6 +52,13 @@ LOCALES.en = {
     // v1.4.1: toast after the switch (like plan.toastOn / plan.toastOff)
     translationToastOn: 'Cantonese translation turned on',
     translationToastOff: 'Cantonese translation turned off',
+    // v2.3.0: the memory-note study mode switch (same On / Off pill words as the plan row)
+    memoFeature: '🧠 Memory study mode',
+    memoOnNote: 'The Memory tab shows on the Study screen',
+    memoOffNote: 'The Memory tab is hidden; your progress is kept',
+    memoSwitchLabel: 'Memory study mode',
+    memoToastOn: 'Memory study mode turned on',
+    memoToastOff: 'Memory study mode turned off',
   },
 
   home: {
@@ -212,7 +219,7 @@ LOCALES.en = {
     lv: 'Lv{lv}',
     days: { one: '{n} day', other: '{n} days' },
     wrongTitle: 'Look at these again:',
-    // v2.3.0 (decision log Q3): the result with nothing wrong shows the hook again; a group without a hook shows its
+    // v2.4.0 (decision log Q3): the result with nothing wrong shows the hook again; a group without a hook shows its
     // memory note (the single-note group: its notes)
     hookAgain: 'All correct 🎉 The memory hook once more:',
     noteAgain: 'All correct 🎉 The notes once more:',
@@ -241,6 +248,11 @@ LOCALES.en = {
     planOffMessage: "All study plan features will be hidden, and you'll leave the study plan screens. Your plan and progress will be kept, so you can carry on where you left off when you turn it back on.",
     planOffOk: 'Confirm',
     planOffCancel: 'Cancel',
+    // v2.3.0: memory-note study mode off from the group screen or a group's test
+    memoOffTitle: 'Turn off memory study mode?',
+    memoOffMessage: "This test won't be recorded. Your memory progress will be kept, so you can carry on when you turn it back on.",
+    memoOffOk: 'Confirm',
+    memoOffCancel: 'Cancel',
     // "↺ Reset plan" on the schedule: deletes the plan and its log only
     planResetTitle: 'Reset the study plan?',
     planResetMessage: "This plan and its daily progress will be deleted and can't be restored, but you can create a new one afterwards.\nYour study and practice records (mastery, wrong answers, flags) are not affected.",

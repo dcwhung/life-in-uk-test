@@ -2,7 +2,7 @@
 // MEMO SCREEN — memory-note study (v1.6.0, memo mockup v2 (deleted at release; design: .proj-docs/design-baselines/2026-10-12_memo-*.png)): Study tab 5 lists the groups
 // (js/domain/memo.js); a group opens #screenMemo: ① look (the memory hook + the memory note) → ② test (a side session on
 // the quiz screen, js/screens/sideSession.js) → result (score, new level, next review) on the same screen.
-// v2.3.0 layout (desktop + phone): Design Origin mockup: mockups/v2.0.0/desktop-memo.html (rev 6), decision log
+// v2.4.0 layout (desktop + phone): Design Origin mockup: mockups/v2.0.0/desktop-memo.html (rev 6), decision log
 // .proj-docs/plans/2026-10-13_grill_desktop-memo.md
 // ════════════════════════════════════════
 const MEMO_STEP = { look: 'look', result: 'result' };
@@ -15,6 +15,66 @@ const memoView = { id: null, step: MEMO_STEP.look, listScrollY: 0, result: null 
 
 // a cached older index.html (SW cutover) has neither the tab nor the screen: the memo tab stays out of reach there
 function memoShellReady() { return !!byId('screenMemo') && !!document.querySelector('.study-tab[data-tab="memo"]'); }
+// W-383 (W-057): a pre-v2.3.0 study.js has neither the mode check (the mode reads as on) nor the default tab
+const MEMO_FALLBACK_TAB = 'chapters';
+const memoModeReady = () => typeof isMemoModeReady !== 'function' || isMemoModeReady();
+const memoFallbackTab = () => (typeof STUDY_DEFAULT_TAB === 'undefined' ? MEMO_FALLBACK_TAB : STUDY_DEFAULT_TAB);
+
+// ── v2.3.0: ⚙ "🧠 Memory study mode" (user-confirmed preview mockups/memo-switch.html, deleted at release) ──
+// the row: a switch + On / Off pill + note like the translation row; built once, then updated in place (W-032).
+// W-057: a pre-v2.3.0 store.js (no switch), actions.js (no handler, S-203), locale (no row words), cached index.html
+// (no tab) or a pre-v1.4.0 planHome.js (no shared pill, renderFeaturePill) hides the row
+function renderMemoSetting() {
+  const row = byId('settingsMemoRow');
+  if (!row) return;
+  const labelKey = 'app.memoSwitchLabel';
+  row.hidden = typeof isMemoModeOn !== 'function' || typeof ACTIONS.toggleMemoMode !== 'function'
+    || typeof renderFeaturePill !== 'function' || !memoShellReady() || t(labelKey) === labelKey;
+  if (row.hidden) return;
+  const on = isMemoModeOn();
+  const noteKey = on ? 'app.memoOnNote' : 'app.memoOffNote';
+  byId('settingsMemoStatus').textContent = t(noteKey);
+  renderFeaturePill(byId('settingsMemoPill'), on);
+  const sw = byId('memoFeatureSwitch');
+  if (sw) {
+    setSwitchOn(sw, on);
+    sw.setAttribute('aria-label', t(labelKey));
+    return;
+  }
+  byId('settingsMemoSwitch').innerHTML = switchHtml({ id: 'memoFeatureSwitch', on, action: 'toggleMemoMode',
+    labelKey, describedBy: 'settingsMemoStatus' });
+}
+// the group screen, or a group's test on the quiz screen
+function isOnMemoScreen() { return byId('screenMemo').classList.contains('active') || isMemoSession(); }
+// on needs no confirm; off asks first only from the group screen / a group's test (it ends unrecorded, like the plan's
+// G15); cancelling leaves the popover open (nothing was chosen)
+function toggleMemoMode() {
+  if (!isMemoModeOn() || !isOnMemoScreen()) { setSettingsOpen(false); setMemoMode(!isMemoModeOn()); return; }
+  showConfirm({ title: t('modal.memoOffTitle'), message: t('modal.memoOffMessage'), okLabel: t('modal.memoOffOk'),
+    cancelLabel: t('modal.memoOffCancel'), onOk: () => { setSettingsOpen(false); setMemoMode(false); }, focusCancel: true, danger: true });
+}
+function setMemoMode(on) {
+  const leaving = !on && isOnMemoScreen();
+  setMemoModeOn(on);
+  renderMemoSetting();
+  const onStudy = byId('screenStudy').classList.contains('active');
+  // W-384: off on the memo list = a tab change (saved, the new list from its start); elsewhere only the stored tab moves
+  if (!on && study.tab === MEMO_TAB && onStudy) studySetTab(memoFallbackTab());
+  else if (!on && study.tab === MEMO_TAB) { study.tab = memoFallbackTab(); studySavePrefs(); }
+  else if (onStudy) renderStudy();
+  if (leaving) leaveMemoToStudy();
+  if (typeof runRefits === 'function') runRefits(); // v2.0.0 desktop: the rail's tabs changed
+  const toastKey = on ? 'app.memoToastOn' : 'app.memoToastOff';
+  showToast(t(toastKey));
+}
+// a group's test ends unrecorded (the same clean-up as leaveMemoTest); the group screen goes; Study opens at its top
+// (W-384: on desktop the cards scroll in their panel, setStudyScroll)
+function leaveMemoToStudy() {
+  if (isMemoSession()) { clearSideSession(); stopExamTimer(); }
+  showScreen('screenStudy');
+  renderStudy();
+  if (typeof setStudyScroll === 'function') setStudyScroll(0); else window.scrollTo(0, 0);
+}
 
 // ── Study tab 5: the group list ──
 function memoChapterChipsHtml() {
@@ -65,7 +125,7 @@ function renderStudyMemo() {
   // count = shown / the chapter's groups (like the chapters tab); the search narrows inside the chapter
   const pool = memoSortedGroups(memoGroups(), progress, today).filter(memoInChapter);
   const shown = pool.filter(memoMatches);
-  // v1.6.1 (user): the cards sit in .memo-grid (DOM order = row by row, so Tab runs row-wise). v2.3.0 (mockup
+  // v1.6.1 (user): the cards sit in .memo-grid (DOM order = row by row, so Tab runs row-wise). v2.4.0 (mockup
   // desktop-memo.html rev 4): the due banner is the list's lead, above the cards (js/screens/study.js #studyLead):
   // desktop, outside the card panel's scroll; phone, it sticks under the pinned tabs (css/screens/memo.css)
   const lead = memoDueBannerHtml(memoDueGroups(progress, today));
@@ -76,7 +136,7 @@ function renderStudyMemo() {
 // ── #screenMemo ──
 // from the Study list (remember its scroll) or from a result's "Next" (keep the list's scroll)
 function openMemoGroup(id) {
-  if (!memoShellReady() || !memoGroupById(id)) return;
+  if (!memoShellReady() || !memoModeReady() || !memoGroupById(id)) return;
   // v2.0.0 desktop: the Study cards scroll in their panel, not the page (js/screens/study.js studyScrollTop)
   if (byId('screenStudy').classList.contains('active')) memoView.listScrollY = typeof studyScrollTop === 'function' ? studyScrollTop() : window.scrollY;
   Object.assign(memoView, { id, step: MEMO_STEP.look, result: null });
@@ -98,7 +158,7 @@ function memoLook() {
   Object.assign(memoView, { step: MEMO_STEP.look, result: null });
   showMemo();
 }
-// v2.3.0: the body is drawn for the layout it shows in (desktop columns or the phone's one column); a resize across
+// v2.4.0: the body is drawn for the layout it shows in (desktop columns or the phone's one column); a resize across
 // 1024px draws it again (fitMemo). An open questions fold stays open when the same view is drawn again
 let memoDrawn = { desktop: null, view: null };
 function renderMemo() {
@@ -149,10 +209,10 @@ function memoStepsHtml(g) {
   return `<div class="memo-step ${done ? 'ok' : 'on'}">${escapeHtml(look)}</div><div class="memo-step${done ? ' ok' : ''}">${escapeHtml(test)}</div>`;
 }
 
-// one screen high (desktop and, v2.3.0, phone; css/screens/memo.css): long content scrolls in its panel (.fit-panel)
+// one screen high (desktop and, v2.4.0, phone; css/screens/memo.css): long content scrolls in its panel (.fit-panel)
 // with fades (.fit-fade, js/components/fit.js), so the buttons under it stay on the screen
 function memoScrollHtml(panel) { return `<div class="memo-scroll fit-fade">${panel}</div>`; }
-// one screen high from 1024px (css/components/fit.css .screen.is-fit) and, v2.3.0, on a phone too (.is-fit-phone:
+// one screen high from 1024px (css/components/fit.css .screen.is-fit) and, v2.4.0, on a phone too (.is-fit-phone:
 // the hook and buttons stay put, the panel between them scrolls); a cached older index.html has no #screenMemo
 function memoMarkFit() {
   const screen = byId('screenMemo');
@@ -160,7 +220,7 @@ function memoMarkFit() {
 }
 memoMarkFit();
 
-// ── a question's pill row (v2.3.0, mockup desktop-memo.html rev 3 pillsHtml): ".tag #n" · ".tag <icon> Ch c" ·
+// ── a question's pill row (v2.4.0, mockup desktop-memo.html rev 3 pillsHtml): ".tag #n" · ".tag <icon> Ch c" ·
 // the question's node (js/components/tags.js: copies joined COPY_SEP, mastery colours), the app's own pills. Used by
 // the group's questions, the result's wrong questions and the single-note group. S-057: English in every language ──
 const MEMO_ITEM_MARK = '#';
@@ -180,7 +240,7 @@ function memoQuestionListHtml(items, extraCls = '') {
   return `<ul class="memo-qlist${extraCls}">${items.map((it, i) => memoQuestionItemHtml(it, i + 1)).join('')}</ul>`;
 }
 
-// ── ① look (v2.3.0, Design Origin: mockup: mockups/v2.0.0/desktop-memo.html rev 6) ──
+// ── ① look (v2.4.0, Design Origin: mockup: mockups/v2.0.0/desktop-memo.html rev 6) ──
 // desktop: the top row, then left 7/12 = the hook (fixed) + the memory note panel, right 5/12 = the group's questions
 // panel, both as high as the screen allows (scrolling, fading); "start the test" under the right column. The single-note
 // group: one white card, centred (Plan Run's 760 × scale), its button under the card's right edge.
@@ -273,7 +333,7 @@ function finishMemoTest(ret) {
   showMemo();
 }
 
-// v2.3.0: a wrong question's copies in its group (for its pill row: "E1·Q8 = E11·Q9"); the asked copy at least
+// v2.4.0: a wrong question's copies in its group (for its pill row: "E1·Q8 = E11·Q9"); the asked copy at least
 function memoCopyKeys(id, q) {
   const g = memoGroupById(id), k = qKey(q);
   const copies = g ? questionGroups(g.qkeys).find(keys => keys.includes(k)) : null;
@@ -301,7 +361,7 @@ function memoScheduleHtml(r) {
     return `<div class="memo-lv${cls}"><b>${escapeHtml(t('memo.lv', { lv: level }))}</b>${escapeHtml(wait)}</div>`;
   }).join('');
 }
-// a result kept from before v2.3.0 has no keys: its questions are listed without pills
+// a result kept from before v2.4.0 has no keys: its questions are listed without pills
 function memoWrongHtml(wrong) {
   if (!wrong.length) return '';
   return `<p class="memo-wrong-title">${escapeHtml(t('memo.wrongTitle'))}</p>${memoQuestionListHtml(wrong, ' memo-wrong')}`;
@@ -325,7 +385,7 @@ function memoResultActionsHtml(g, withNext) {
     memoLabelHtml(t('memo.next', { title: local.title }), local.title, local.lang), MEMO_GO_ICONS) : '';
   return `<div class="memo-actions"><button class="nav-btn secondary memo-again" type="button" data-action="memoLook">${escapeHtml(t('memo.again'))}</button>${nextBtn}</div>`;
 }
-// v2.3.0 (decision log Q3): with nothing wrong (or nothing answered) the result shows the memory aid once more: the
+// v2.4.0 (decision log Q3): with nothing wrong (or nothing answered) the result shows the memory aid once more: the
 // hook; a group without one shows its memory note, the single-note group its questions' notes. All correct says so
 // first (memo.hookAgain / memo.noteAgain); nothing answered shows the aid alone
 function memoReminderHtml(g, withWords) {

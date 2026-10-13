@@ -77,10 +77,12 @@ function renderQuestion() {
     renderNavButtons(idx, total, revealed);
     forgetQuizPanelsOnNewQuestion();
     quizDeskStale = true; // S-233: the desktop parts are filled by arrangeQuiz, and only on desktop
-    arrangeQuiz(deskOn()); // v2.0.0: the desktop columns first, so the counter below measures the row it ends up in
-    arrangeQuizPhone(deskOn()); // v2.3.0: the phone's scroll panel
-    fitQuestionCounter(); // C3: measured once the counter's row (bookmark, arrows) is final
-    desktopRefit('screenQuiz', fitQuiz);
+    arrangeQuiz(deskOn()); // v2.0.0: the desktop columns first, so the counter measures the row it ends up in
+    arrangeQuizPhone(deskOn()); // v2.4.0: the phone's scroll panel filled; fitQuiz decides one screen vs page after the counter
+    // C3: the counter is fitted by fitQuiz (v2.1.2 review S-262: once per render, not here as well); a cached shell
+    // without fit.js (W-057) never runs fitQuiz, so it is fitted here
+    if (typeof runRefits === 'function') desktopRefit('screenQuiz', fitQuiz);
+    else fitQuestionCounter();
   } finally {
     quizMainHold = null; // S-249: used by fitQuiz above; never carried to a later resize, even if the render throws
   }
@@ -155,16 +157,6 @@ function questionRowFitsEveryState(qNum) {
     quick.className = saved.quickClass;
   }
 }
-// a rotation / resize changes the room the counter has. S-257: a drag fires many resize events a frame; each fit
-// measures every row state (forced layouts), so they are merged into one fit on the next frame
-let questionCounterFitFrame = 0;
-window.addEventListener('resize', () => {
-  if (questionCounterFitFrame) return;
-  questionCounterFitFrame = requestAnimationFrame(() => {
-    questionCounterFitFrame = 0;
-    if (byId('screenQuiz').classList.contains('active')) fitQuestionCounter();
-  });
-});
 function renderQuizHeader(q, idx, total) {
   const label = byId('quizLabel');
   if (state.examNum === ALL_EXAM && !isRandomExam(state.examNum)) label.textContent = t('quiz.allShuffled');
@@ -559,9 +551,19 @@ function syncExamTimerCopy() {
 }
 // mockup fitOptions(): options always 2 × 2 (css), one height while it fits; ① rows by content (is-tight) →
 // ② tighter card / option padding (is-compact) → ③ only then does the column scroll
+// v2.1.2 review S-262: fitQuiz runs at every width (onRefit), on render and on resize (fit.js, once per frame), so it
+// also fits the question counter: after arrangeQuiz (the counter measures the row it ends up in) and before fitSteps
+// (the column is measured with the counter it will show; a resize across a counter tier changes the card's height)
 function fitQuiz(desktop) {
   arrangeQuiz(desktop);
+  fitQuestionCounter();
+  // v2.4.0 (merge with v2.3.1's counter fit here): the phone's one-screen choice is measured after the counter, which can
+  // change the card's height (a choice measured before it could latch a fallback for the whole session, W-082)
   arrangeQuizPhone(desktop);
+  if (!desktop && quizPhone) {
+    fitQuizPhone();
+    topQuizPanelOnNewQuestion(quizPhone.panel); // a new question starts at the top (runRefits then refreshes the fades)
+  }
   if (!quizDesk) return; // S-233: never built on a phone, so no steps to take off
   const d = quizDesk;
   fitSteps(d.main, [[d.moved.options, 'is-tight'], 'is-compact']);
@@ -569,7 +571,7 @@ function fitQuiz(desktop) {
   topQuizPanelsOnNewQuestion(d); // after every render and when the screen is shown (runRefits then refreshes the fades)
 }
 
-// ── v2.3.0 phone (< 1024px; mockup mockups/v2.0.0/desktop-memo.html rev 5 / rev 6 placeQuizPhone; decision log
+// ── v2.4.0 phone (< 1024px; mockup mockups/v2.0.0/desktop-memo.html rev 5 / rev 6 placeQuizPhone; decision log
 // .proj-docs/plans/2026-10-13_grill_desktop-memo.md P6: every quiz — Practice, Exam, the memo test, plan tasks) ──
 // One screen high (.is-fit-phone, css/components/fit.css): the quiz header and the question card stay put; the parts
 // after the card (options, answer box, the plan pair note, the Similar panel) share one panel that scrolls on its own
@@ -589,12 +591,10 @@ function buildQuizPhone() {
 function arrangeQuizPhone(desktop) {
   if (desktop) return;
   if (!quizPhone) quizPhone = buildQuizPhone();
-  deskFill(quizPhone.panel, QUIZ_PHONE_PART_IDS.map(byId)); // in place: moves nothing (focus, scroll)
-  fitQuizPhone();
-  topQuizPanelOnNewQuestion(quizPhone.panel); // a new question starts at the top (runRefits then refreshes the fades)
+  deskFill(quizPhone.panel, QUIZ_PHONE_PART_IDS.map(byId)); // in place: moves nothing (focus, scroll); fitQuiz then fits
 }
 // C-007: one screen high only while the panel keeps room for the options (a tall card on a short phone: the page
-// scrolls instead, as before v2.3.0). W-082 (user 2026-10-13, option A): decided once per quiz session, so the layout
+// scrolls instead, as before v2.4.0). W-082 (user 2026-10-13, option A): decided once per quiz session, so the layout
 // (and Prev / Next with it) does not flip from question to question: once a render falls back, the session keeps the
 // scrolling page. The session is its question list (state.questions: a new set, round or side session has its own;
 // ↩ Back to a session finds its decision again). A new screen width (rotation, a resized window), text size,

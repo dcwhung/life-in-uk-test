@@ -170,7 +170,7 @@ const measurePx = (page, value, property = 'padding-left') => page.evaluate(([v,
   return px;
 }, [value, property]);
 
-// v2.3.0: the colours a screenshot shows in a band of rows (what is painted, box-shadows included, which hit testing
+// v2.4.0: the colours a screenshot shows in a band of rows (what is painted, box-shadows included, which hit testing
 // cannot tell): a minimal PNG reader for Chromium's 8-bit RGB / RGBA, non-interlaced screenshots.
 // Returns [[r, g, b], …] for every pixel of rows y0..y1 (CSS px at deviceScaleFactor 1)
 const zlib = require('zlib');
@@ -207,7 +207,7 @@ async function bandColours(page, y0, y1) {
   return out;
 }
 
-// v2.3.0 Study memo list (mockup desktop-memo.html rev 6): columns of cards (distinct lefts), each card's status badge in
+// v2.4.0 Study memo list (mockup desktop-memo.html rev 6): columns of cards (distinct lefts), each card's status badge in
 // its top-right corner (beside the first line of the title, never pushed under it), its bar at the card's foot, the
 // cards of a row equally high; where the due banner is and whether it is inside the card panel
 const MEMO_LIST_SLACK_PX = 1.5;
