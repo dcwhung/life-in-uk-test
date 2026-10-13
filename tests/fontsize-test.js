@@ -10,7 +10,9 @@ const path = require('path');
 // - Q3 / M2: large text keeps the layout: L4b (plan task card: "Start ›" under the text), L5 (study order count column
 //   128px), v1.3.1 goal form rows fit their texts (replaces W-056 / C7), 320–400px en + zh-HK never scroll sideways on 13 screens (S-195)
 // - C3: the quiz counter reads "Question 1 of 24" unless that wraps, then "Question 1/24" ("第 1/24 題"); where even the
-//   short form wraps (320px large, the wide "Translate" button in the row) it stays short on two lines (user)
+//   short form wraps (320px large, the wide "Translate" button in the row) it stays short on two lines (user).
+//   v2.0.5 (方案 Y): "wraps" is the counter or its stars, in any state of the question (Translate / "Hide
+//   translation" before answering, ← → after), so a question keeps one form throughout (qnum-row-test)
 // - S-193: ⓘ has a 44px tap area
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
 const launchOpts = { args: ['--no-sandbox'] };
@@ -128,8 +130,9 @@ const counter = pg => pg.evaluate(() => {
   return { text: s.textContent, lines: new Set([...r.getClientRects()].map(x => Math.round(x.top))).size };
 });
 async function checkCounter(pg) {
-  const cases = [['en', 320, 'large', 'Question 1/24'], ['en', 390, 'large', 'Question 1 of 24'], ['en', 320, 'small', 'Question 1 of 24'],
-    ['zh-HK', 320, 'large', '第 1 題（共 24 題）']];
+  // v2.0.5 (方案 Y): 390 large and 中文 320 large keep the short form after answering too (Translate needed it before)
+  const cases = [['en', 320, 'large', 'Question 1/24'], ['en', 390, 'large', 'Question 1/24'], ['en', 430, 'small', 'Question 1 of 24'],
+    ['zh-HK', 320, 'large', '第 1/24 題'], ['zh-HK', 390, 'small', '第 1 題（共 24 題）']];
   for (const [lang, w, size, want] of cases) {
     await pg.setViewportSize({ width: w, height: 760 });
     await fresh(pg, lang);
@@ -148,7 +151,7 @@ async function checkCounter(pg) {
   const unanswered = await counter(pg);
   assert(unanswered.text === 'Question 1/24', 'C3 en 320px large, not answered: the short form (two lines accepted): ' + JSON.stringify(unanswered));
   // the size switch and a resize re-measure it
-  await pg.setViewportSize({ width: 390, height: 760 });
+  await pg.setViewportSize({ width: 430, height: 760 });
   await fresh(pg);
   await pg.evaluate(() => { answerFirstSingle(); });
   await chooseSize(pg, 'large');
@@ -156,7 +159,9 @@ async function checkCounter(pg) {
   await pg.waitForTimeout(100);
   assert((await counter(pg)).text === 'Question 1/24', 'C3: a resize to 320px re-measures → short');
   await chooseSize(pg, 'small');
-  assert((await counter(pg)).text === 'Question 1 of 24', 'C3: back to small text re-measures → long');
+  await pg.setViewportSize({ width: 430, height: 760 });
+  await pg.waitForTimeout(100);
+  assert((await counter(pg)).text === 'Question 1 of 24', 'C3: back to small text at 430px re-measures → long');
 }
 
 // L4b: in large text the plan task card puts "Start ›" under the text; L5: the order count column is 128px and fits

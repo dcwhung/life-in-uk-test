@@ -101,12 +101,45 @@ function setExamLabel(el, examNum) {
   el.replaceChildren(label.slice(0, at), partEl, label.slice(at + part.text.length));
 }
 // C3 (v1.3.0, user): "Question 1 of 24" unless it wraps (large text at 320px), then quiz.questionOfShort ("Question 1/24");
-// where even that wraps (the wide Translate button in the row) it stays short on two lines (user)
+// where even that wraps (the wide Translate button in the row) it stays short on two lines (user).
+// v2.0.5 (proposal "question-row option Y", user 2026-10-13): the counter and its stars share the row with Translate (before
+// answering) and the quick ← → (after answering; always on desktop, F4). Measured against every state the question
+// goes through, not only the one on screen: if any of them would push the stars or the counter onto a second line,
+// every state uses the short form, so the row (and the question text below it) never changes height on answering
 function fitQuestionCounter() {
   const counter = document.querySelector('#qNum > span[data-full]');
   if (!counter) return;
   counter.textContent = counter.dataset.full;
-  if (textLineCount(counter) > 1) counter.textContent = counter.dataset.short;
+  if (!questionRowFitsEveryState(byId('qNum'))) counter.textContent = counter.dataset.short;
+}
+// the row's controls in each state: practice shows Translate (either label) until answered, then the quick pair;
+// an exam has the quick pair throughout (renderTranslation, renderNavButtons). Desktop css shows the pair regardless
+function questionRowStates() {
+  const answered = { yue: false, quick: true };
+  if (state.mode !== PRACTICE_MODE) return [answered];
+  return [
+    { yue: true, label: t('quiz.translate'), quick: false },
+    { yue: true, label: t('quiz.hideTranslation'), quick: false },
+    answered,
+  ];
+}
+// true when the counter and stars stay on one line in every state; the controls are put back as they were before the
+// next paint (translation off keeps Translate hidden: its !important rule beats .visible)
+function questionRowFitsEveryState(qNum) {
+  const yue = byId('yueToggle'), quick = byId('quickNav');
+  const saved = { yueClass: yue.className, yueLabel: yue.textContent, quickClass: quick.className };
+  try {
+    return questionRowStates().every(row => {
+      yue.classList.toggle('visible', row.yue);
+      if (row.label) yue.textContent = row.label;
+      quick.classList.toggle('visible', row.quick);
+      return textLineCount(qNum) === 1;
+    });
+  } finally {
+    yue.className = saved.yueClass;
+    yue.textContent = saved.yueLabel;
+    quick.className = saved.quickClass;
+  }
 }
 // a rotation / resize changes the room the counter has
 window.addEventListener('resize', () => { if (byId('screenQuiz').classList.contains('active')) fitQuestionCounter(); });
