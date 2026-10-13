@@ -521,15 +521,31 @@ function buildQuizPhone() {
   const wrap = deskEl('div', 'quiz-scroll fit-fade'), panel = deskEl('div', 'quiz-scroll-panel fit-panel');
   wrap.append(panel);
   nav.before(wrap);
-  screen.classList.add('is-fit-phone');
+  screen.classList.add(QUIZ_PHONE_FIT_CLASS);
   return { wrap, panel };
 }
 function arrangeQuizPhone(desktop) {
   if (desktop) return;
   if (!quizPhone) quizPhone = buildQuizPhone();
   deskFill(quizPhone.panel, QUIZ_PHONE_PART_IDS.map(byId)); // in place: moves nothing (focus, scroll)
-  // C-007: one screen high only while the panel keeps room for the options (a tall card on a short phone: the page
-  // scrolls instead, as before v2.2.0); W-057: a cached shell may load js/components/fit.js late
-  if (typeof fitPhoneScreen === 'function') fitPhoneScreen(byId('screenQuiz'), quizPhone.panel);
+  fitQuizPhone();
   topQuizPanelOnNewQuestion(quizPhone.panel); // a new question starts at the top (runRefits then refreshes the fades)
+}
+// C-007: one screen high only while the panel keeps room for the options (a tall card on a short phone: the page
+// scrolls instead, as before v2.2.0). W-082 (user 2026-10-13, option A): decided once per quiz session, so the layout
+// (and Prev / Next with it) does not flip from question to question: once a render falls back, the session keeps the
+// scrolling page. The session is its question list (state.questions: a new set, round or side session has its own;
+// ↩ Back to a session finds its decision again). A new screen size, text size, translation setting or language is a
+// new start: the latch is kept with that context and decided afresh when it differs
+const QUIZ_PHONE_FIT_CLASS = 'is-fit-phone';
+const quizPhoneFallbacks = new WeakMap(); // state.questions → the layout context it fell back in
+function quizPhoneContext() {
+  const root = document.documentElement;
+  return [innerWidth, innerHeight, root.lang, root.dataset.fontSize || '', root.dataset.translation || ''].join('|');
+}
+function fitQuizPhone() {
+  if (typeof fitPhoneScreen !== 'function') return; // W-057: a cached shell may load js/components/fit.js late
+  const screen = byId('screenQuiz'), context = quizPhoneContext();
+  if (quizPhoneFallbacks.get(state.questions) === context) { screen.classList.remove(QUIZ_PHONE_FIT_CLASS); return; }
+  if (!fitPhoneScreen(screen, quizPhone.panel)) quizPhoneFallbacks.set(state.questions, context);
 }
