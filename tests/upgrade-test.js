@@ -430,6 +430,61 @@ async function v140SingleFile(b, file) {
   await pg.close();
 }
 
+// W-382 (v2.1.0, CUI-0038): the current shell with ONE file still from v2.0.2 (pinned c6b0806, the v2.0.2 merge): an
+// HTTP-cached planGoal.js (toggles #planDateNote, names PLAN_GOAL_MODE / planGoalLimits) or planProgress.js
+// (replanFrom names PLAN_GOAL_MODE) still opens the goal form in both modes and updates the plan, no page errors
+const V202_REF = 'c6b0806';
+const V202_SINGLES = ['js/screens/planGoal.js', 'js/domain/planProgress.js'];
+async function v202SingleFile(b, file) {
+  const dir = tmpDir('v202one');
+  copyCurrent(dir);
+  fs.writeFileSync(path.join(dir, file), execFileSync('git', ['-C', ROOT, 'show', `${V202_REF}:${file}`]));
+  const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
+  const errs = []; pg.on('pageerror', e => errs.push(e.message));
+  await pg.goto('file://' + path.join(dir, 'index.html'));
+  await seed(pg, {});
+  await pg.waitForSelector('#examGrid .exam-btn', { state: 'attached' });
+  await pg.evaluate(() => { openPlanGoal(); });
+  const create = await pg.evaluate(() => ({ screen: document.querySelector('.screen.active').id, min: byId('planExamDate').min }));
+  await pg.evaluate(() => {
+    const today = planTodayIso(), start = isoAddDays(today, -3);
+    writeStudyPlan(buildPlan({ examDate: isoAddDays(start, 21), dailyMins: 120, restDays: [], level: 'none' }, start));
+    openPlanSchedule();
+  });
+  await pg.click('#screenPlanSchedule [data-action="planEditGoal"]');
+  const edit = await pg.evaluate(() => ({ screen: document.querySelector('.screen.active').id, note: byId('planDateNote') ? byId('planDateNote').textContent : null }));
+  await pg.click('#planDaysChips .chip >> nth=1'); // 3 weeks from today
+  await pg.click('#planCreateBtn');
+  const after = await pg.evaluate(() => ({ screen: document.querySelector('.screen.active').id, exam: planLoad().goal.examDate, want: isoAddDays(planTodayIso(), 21) }));
+  assert(create.screen === 'screenPlanGoal' && edit.screen === 'screenPlanGoal' && !/plan\./.test(edit.note || '') && after.screen === 'screenPlanSchedule'
+    && after.exam === after.want && errs.length === 0,
+    `W-382 v2.0.2 ${file} + current files: the goal form opens (new plan / change goal), Update re-plans, no raw key, no page errors: ` + JSON.stringify({ create, edit, after, errs }));
+  await pg.close();
+}
+
+// S-254 (v2.1.0, CUI-0038): the current files with a cached v2.0.2 locales/en.js (no plan.schedule.phasesTitleOne / Two):
+// a 2-phase plan's schedule keeps the static title instead of the raw key, no missing-key warning from it
+async function v202Locale(b) {
+  const dir = tmpDir('v202locale');
+  copyCurrent(dir);
+  fs.writeFileSync(path.join(dir, 'locales/en.js'), execFileSync('git', ['-C', ROOT, 'show', `${V202_REF}:locales/en.js`]));
+  const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
+  const errs = []; pg.on('pageerror', e => errs.push(e.message));
+  const warns = []; pg.on('console', m => { if (m.type() === 'warning' && m.text().includes('phasesTitle')) warns.push(m.text()); });
+  await pg.goto('file://' + path.join(dir, 'index.html'));
+  await seed(pg, {});
+  await pg.waitForSelector('#examGrid .exam-btn', { state: 'attached' });
+  const r = await pg.evaluate(() => {
+    setLang('en');
+    writeStudyPlan(buildPlan({ examDate: isoAddDays(planTodayIso(), 7), dailyMins: 30, restDays: [], level: 'none' }, planTodayIso()));
+    openPlanSchedule();
+    return { bar: byId('planPhaseBar').children.length, title: byId('planPhasesTitle').textContent };
+  });
+  assert(r.bar === 2 && r.title === 'Three phases' && warns.length === 0 && errs.length === 0,
+    'S-254 v2.0.2 locales/en.js + current files: a 2-phase plan keeps the static title, no raw key: ' + JSON.stringify({ ...r, warns, errs }));
+  await pg.close();
+}
+
 // S-230 (v1.6.0): a pre-memo cached index.html (v1.4.3 here; main v1.5.0 has no memo markup either) (no memo tab, screen or memo scripts) + current js / css with the memo tab
 // stored: Study opens on Chapters (memoShellReady is not even defined there), no page errors
 const V143_REF = '930ab4a'; // main at v1.4.3
@@ -652,6 +707,8 @@ function checkV057Ref() {
   for (const file of Object.keys(V140_SINGLES)) await v140SingleFile(b, file);
   await oldShellZhHk(b);
   await zhHkLocaleMissing(b);
+  for (const file of V202_SINGLES) await v202SingleFile(b, file);
+  await v202Locale(b);
   await v143Shell(b);
   await v143StudyJs(b);
   console.log('UPGRADE PASS');

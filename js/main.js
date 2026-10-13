@@ -85,6 +85,14 @@ function upgradeLegacyFitRows() {
     if (row && !row.dataset.fitRow) row.dataset.fitRow = textSel;
   });
 }
+// CUI-0038 (v2.1.0): a pre-v2.1.0 cached index.html still names the retired G36 date note's key: drop only the key.
+// W-382: the node stays, since a cached pre-v2.1.0 planGoal.js still toggles it (it then shows nothing)
+function removeLegacyPlanMarkup() {
+  const note = byId('planDateNote');
+  if (!note) return;
+  note.removeAttribute('data-i18n');
+  note.textContent = '';
+}
 // S-237 / v1.6.1: a pre-v1.6.1 cached index.html still has glyphs on its static controls ("←" on the quick Prev, "‹ ›" on
 // the plan arrows, "✕" on the install banner) and buttons whose data-i18n words now carry no glyph: give the icon-only
 // ones their data-icon and wrap the others' words beside a line icon slot (fillStaticIcons below fills both)
@@ -107,6 +115,7 @@ function upgradeLegacyIconMarkup() {
 }
 function startApp() {
   upgradeLegacyHeaderMarkup();
+  removeLegacyPlanMarkup();
   upgradeLegacyFitRows();
   upgradeLegacyIconMarkup();
   // v1.3.0: before anything renders at the default size; W-057: an HTTP-cached pre-v1.3.0 store.js has no text size

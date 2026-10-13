@@ -588,7 +588,9 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
 
 /* ── Plan Schedule (mockup desktop-plan-schedule.html B rev 5; js/screens/planSchedule.js planScheduleRefit) ── */
 @media (min-width: 1024px) {
-  #screenPlanSchedule .plan-strats { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: stretch; }
+  /* CUI-0038 B1: one equal column per shown phase (2 without drill, 3 with), so the cards span the full width under the
+     phase bar's flex: 1 pieces; repeat(3, …) left an empty third column for a 2-phase plan */
+  #screenPlanSchedule .plan-strats { grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); align-items: stretch; }
   /* study order in one row, 1 › 2 › 3 › 4; the steps share 3 rows (name / reason / bar) so names start on one line and
      bars sit on one bottom line; a quarter is too narrow for bar + count column: the count goes under the bar */
   #screenPlanSchedule .plan-order { grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: var(--space-12); grid-template-rows: auto auto auto; row-gap: var(--space-2); }
