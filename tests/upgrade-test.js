@@ -268,7 +268,7 @@ async function v112Shell(b) {
 // ("←" on the quick Prev, "‹ ›" on the plan arrows, "✕" on the install banner) and data-i18n words on the button itself;
 // main.js upgradeLegacyIconMarkup() gives each its line icon, the words stay (no glyph left, no [i18n] warning)
 const V160_SHELL_REF = 'f55a945';
-// v2.0.2: main's v2.0.1 shell (5cecb72, the desktop release) is the one most devices have cached: same static controls
+// v2.0.3: main's v2.0.1 shell (5cecb72, the desktop release) is the one most devices have cached: same static controls
 const V201_SHELL_REF = '5cecb72';
 const CONTROL_GLYPHS = '[←→↩✓▶🔁↺✕‹›ⓘ]'; // CUI-0035: + the header ⓘ
 const V160_EXPECTED = { '#quickPrev': ['', 'arrowLeft'], '#prevBtn': ['Prev', 'arrowLeft'], '.install-close': ['', 'close'],
@@ -294,7 +294,7 @@ async function v160Shell(b, ref = V160_SHELL_REF, name = 'v1.6.0') {
   assert(JSON.stringify(r) === JSON.stringify(V160_EXPECTED),
     `${name} shell: every static control gets its line icon, words without a glyph (S-237: no "←" beside the quick Next icon): ` + JSON.stringify(r));
   assert(!glyphs.length, `${name} shell: no button text holds a control glyph: ` + JSON.stringify(glyphs));
-  // v2.0.2 merge: an old shell has no .study-top: desktop Study still moves its tabs / chips into the rail one by one
+  // v2.0.3 merge: an old shell has no .study-top: desktop Study still moves its tabs / chips into the rail one by one
   await pg.setViewportSize({ width: 1280, height: 800 });
   const desk = await pg.evaluate(() => {
     openStudy();

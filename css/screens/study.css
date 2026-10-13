@@ -154,7 +154,7 @@ html:has(#screenStudy.active .study-top :focus-visible) { scroll-padding-top: va
   #screenStudy .study-rail #studyChips .chip { width: 100%; }
   /* rev 4 (user): wrap by text width as on the phone, then the chips of each row grow to fill it */
   #screenStudy .study-rail #studySubChips .chip { flex: 1 1 auto; }
-  /* v2.0.2 merge (v1.6.1 pinned block): the rail itself is the controls' own scroller beside the card panel, so nothing
+  /* v2.0.3 merge (v1.6.1 pinned block): the rail itself is the controls' own scroller beside the card panel, so nothing
      needs pinning. The block dissolves into the rail (display: contents: no sticky, no --bg, no negative margins; its
      tabs and chip rows are the rail's flex rows as in v2.0.0) and the page's scroll-padding goes back to auto, as
      Flagged's v1.4.4 block on desktop (css/screens/flagged.css). The phone's one-line sideways chip rows (W-068) wrap
@@ -168,7 +168,7 @@ html:has(#screenStudy.active .study-top :focus-visible) { scroll-padding-top: va
   #screenStudy .study-top .chip-row::after { content: none; }
   #screenStudy .study-top .chip { flex-shrink: 1; white-space: normal; }
   html:has(#screenStudy.active), html:has(#screenStudy.active .study-top :focus-visible) { scroll-padding-top: auto; }
-  /* CUI-0034: ↩ Back from a fact session (flashStudyFact, block: start) puts the card's top below the panel's top fade */
+  /* CUI-0036: ↩ Back from a fact session (flashStudyFact, block: start) puts the card's top below the panel's top fade */
   #screenStudy .study-main .fact { scroll-margin-top: var(--fit-fade-h); }
   #screenStudy .study-main { display: flex; --fit-fade-h: calc(40px * var(--desktop-scale)); } /* mockup .right fades */
 

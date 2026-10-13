@@ -234,7 +234,7 @@ async function checkSubmitLabel(b) {
   await startSet(page, 'exam', EXAM_ONE);
   const r = await page.evaluate(() => {
     const real = nextAction;
-    // v2.0.2 merge: since v1.6.1 nextAction() names the quick ✓ by its label (no separate title)
+    // v2.0.3 merge: since v1.6.1 nextAction() names the quick ✓ by its label (no separate title)
     window.nextAction = (idx, total) => (idx === total - 1 ? { ...real(idx, total), label: 'Hand in' } : real(idx, total));
     goToQuestion(state.questions.length - 1);
     const submit = document.querySelector('.exam-submit');
@@ -363,6 +363,45 @@ async function checkPaneTopOnNewQuestion(b, viewport) {
   await page.close();
 }
 
+// CUI-0033 (v2.0.2, option A): any new question starts every pane at the top, even when the pane stayed hidden on the
+// question in between. Q1 answered, pane scrolled → an unanswered question (the pane hidden there) → back: the pane is
+// at 0, the same as via an answered question (QA E1)
+async function checkPaneTopAfterReturn(b, viewport) {
+  const { page, errors, label } = await dt.openDesktop(b, { viewport, lang: 'zh-HK', fontSize: 'large' });
+  await startSet(page, 'practice', EXAM_ONE);
+  const probe = await probeOverflow(page);
+  for (const pane of ['answer', 'similar']) {
+    const from = probe.findIndex(p => p[pane]);
+    assert(from >= 0, `${label}: a question whose ${pane} pane scrolls`);
+    const via = (from + 2) % probe.length;
+    const sel = PANE[pane];
+    for (const answeredVia of [false, true]) {
+      await page.evaluate(([i, v]) => {
+        [i, v].forEach(n => { delete state.answers[n]; delete state.revealed[n]; });
+        goToQuestion(i);
+      }, [from, via]);
+      await answerCurrent(page);
+      if (pane === 'similar') await page.click('#quizTabSimilar');
+      await scrollToBottom(page, sel);
+      const before = await paneState(page, sel);
+      assert(before.top > 0 && before.up, `${label}: Q${from + 1} ${pane} pane scrolled down (${before.top}px, can-up)`);
+      await goTo(page, from, via, 'dot');
+      if (answeredVia) await answerCurrent(page);
+      // the right column shows (answered) or hides (unanswered) on the question in between
+      assert(await visible(page, '.quiz-tabs') === answeredVia && await visible(page, PANE.answer) === answeredVia,
+        `${label}: Q${via + 1} ${answeredVia ? 'answered, the panes shown' : 'unanswered, the panes hidden'}`);
+      await goTo(page, via, from, 'dot');
+      if (pane === 'similar') await page.click('#quizTabSimilar');
+      await dt.nextFrame(page);
+      const after = await paneState(page, sel);
+      assert(after.top === 0 && !after.up && after.down === after.over,
+        `${label}: CUI-0033 Q${from + 1} → Q${via + 1} (${answeredVia ? 'answered' : 'unanswered'}) → Q${from + 1}: the ${pane} pane starts at the top: ${JSON.stringify(after)}`);
+    }
+  }
+  assert(errors.length === 0, 'no page error: ' + errors.join(' | '));
+  await page.close();
+}
+
 // the left column scrolls only after fit step ③ (1024 × 600, 中文, large text): a new question starts it at the top
 async function checkMainTopOnNewQuestion(b) {
   const { page, errors, label } = await dt.openDesktop(b, { viewport: dt.VIEWPORTS.tiny, lang: 'zh-HK', fontSize: 'large' });
@@ -371,8 +410,9 @@ async function checkMainTopOnNewQuestion(b) {
   const longs = probe.map((p, i) => p.main && i).filter(i => i !== false);
   assert(longs.length > 0, `${label}: a question whose left column scrolls (${longs.map(i => 'Q' + (i + 1)).join(' ')})`);
   for (const how of ['quick', 'dot']) {
-    const from = how === 'quick' ? longs.find(i => i + 1 < probe.length) : longs[0];
-    if (from === undefined) { console.log(`skip: ${label}: the only long question is the last one (no →)`); continue; }
+    // S-245: → only proves the reset when the next question is long too (a short one starts at 0 anyway)
+    const from = how === 'quick' ? longs.find(i => longs.includes(i + 1)) : longs[0];
+    if (from === undefined) { console.log(`skip: ${label}: no two long questions in a row (→)`); continue; }
     // the dot goes to another long question when there is one, else to any other question
     const to = how === 'quick' ? from + 1 : (longs.find(i => i !== from) ?? (from + 2) % probe.length);
     await page.evaluate(n => goToQuestion(n), from);
@@ -404,6 +444,8 @@ async function checkMainTopOnNewQuestion(b) {
   await checkSubmitLabel(b);
   await checkPaneTopOnNewQuestion(b, dt.VIEWPORTS.wide);
   await checkPaneTopOnNewQuestion(b, dt.VIEWPORTS.small);
+  await checkPaneTopAfterReturn(b, dt.VIEWPORTS.small);
+  await checkPaneTopAfterReturn(b, dt.VIEWPORTS.wide);
   await checkMainTopOnNewQuestion(b);
   await b.close();
   console.log('DESKTOP-QUIZ PASS');

@@ -97,7 +97,7 @@ function studySetSearch(v) { study.search = v.trim().toLowerCase(); renderNewStu
 function studyToggle(key) { study[key] = !study[key]; studyRefilter(); }
 // v1.6.1: tapped while the list is scrolled under the pinned block, the new list would open mid-way (or past its end):
 // scroll back so it starts right under the block. At rest (or unpinned, short screens) the list already starts below
-// it: no-op. A cached older index.html (before v1.6.1) has no block: nothing to do. Desktop (v2.0.2 merge): the block
+// it: no-op. A cached older index.html (before v1.6.1) has no block: nothing to do. Desktop (v2.0.3 merge): the block
 // is not pinned (display: contents in the rail) and the page does not scroll, only the card panel
 function studyShowListStart() {
   const top = document.querySelector('#screenStudy .study-top');
@@ -190,7 +190,7 @@ function studySubChipsHtml() {
 // One screen high: a left rail (20%: search, tabs, sub chips, count, then the filter chips at its foot) beside the
 // card panel, which scrolls on its own with fades (js/components/fit.js). index.html keeps the flat phone markup, so
 // the wrappers are added here once; below 1024px they are display: contents and the phone layout is unchanged.
-// v2.0.2 merge: the v1.6.1 pinned block (.study-top: tabs + chip rows) moves into the rail as one piece and is
+// v2.0.3 merge: the v1.6.1 pinned block (.study-top: tabs + chip rows) moves into the rail as one piece and is
 // display: contents there (css/screens/study.css), so the rail still lays out search, tabs, chips, count. An older cached
 // index.html (before v1.6.1) has no block: its tabs and chip rows go into the rail one by one, as in v2.0.0
 const STUDY_RAIL_IDS = ['studySearch', 'studyTabs', 'studyChips', 'studySubChips', 'studyCount'];
@@ -258,7 +258,7 @@ function renderStudy() {
 
 // Q8: after ↩ Back from a fact session its card flashes gold; R-010: when the restored scroll no longer shows it
 // (the list changed while practising) bring it into view. Gone (e.g. Hide mastered): nothing to do.
-// CUI-0034 (user 2026-10-12: align the card top): when the card's top is hidden (behind the pinned block on a phone,
+// CUI-0036 (user 2026-10-12: align the card top): when the card's top is hidden (behind the pinned block on a phone,
 // above the card panel's edge on desktop) it lands right under the block / below the panel's top fade ('start': phone
 // scroll-padding-top = header + block, css/screens/study.css; desktop scroll-margin-top = the fade), so its year / title
 // show even when the card is taller than the room and its ▶ goes off-screen. 'nearest' left a tall card's top hidden

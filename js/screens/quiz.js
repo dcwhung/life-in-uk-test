@@ -73,6 +73,7 @@ function renderQuestion() {
   renderSimilar(q, revealed);
   renderExamTools(idx);
   renderNavButtons(idx, total, revealed);
+  forgetQuizPanelsOnNewQuestion();
   quizDeskStale = true; // S-233: the desktop parts are filled by arrangeQuiz, and only on desktop
   arrangeQuiz(deskOn()); // v2.0.0: the desktop columns first, so the counter below measures the row it ends up in
   fitQuestionCounter(); // C3: measured once the counter's row (bookmark, arrows) is final
@@ -291,7 +292,16 @@ let quizTabQuestion = null; // the question the open tab belongs to: a new quest
 // v2.0.1: the scroll panels are kept from question to question, so each remembers the question it last showed
 // ([set, index]: the same question in a new set counts as new) and starts at the top the first time it is shown
 // for another one; a hidden panel ignores scrollTop, so this waits until it is shown (a tab swap keeps the scroll)
-const quizPanelSeen = new WeakMap();
+let quizPanelSeen = new WeakMap();
+// CUI-0033 (v2.0.2): a panel hidden on the question in between never saw it, so going back would keep its old scroll;
+// every render of a different question forgets what all the panels saw, and each starts at the top once shown
+let quizRenderedQuestion = null;
+function forgetQuizPanelsOnNewQuestion() {
+  const r = quizRenderedQuestion;
+  if (r && r[0] === state.questions && r[1] === state.current) return;
+  quizRenderedQuestion = [state.questions, state.current];
+  quizPanelSeen = new WeakMap();
+}
 function quizTabButton(id, pane) {
   return deskEl('button', 'quiz-tab', { type: 'button', id, role: 'tab', 'aria-controls': pane });
 }
@@ -404,7 +414,7 @@ function renderExamSubmit(submit, idx, total) {
   submit.hidden = !last;
   if (!last) return;
   const next = nextAction(idx, total);
-  // v2.0.2 merge: nextAction() has no separate title since the v1.6.1 line icons (the quick ✓ is named by its label,
+  // v2.0.3 merge: nextAction() has no separate title since the v1.6.1 line icons (the quick ✓ is named by its label,
   // icons.js setAccessibleName); the Submit's own words name it. Words only: an exam's Submit has no icon (no
   // labelIcons), and .with-icon's display would override [hidden] on the other questions
   submit.textContent = next.label;

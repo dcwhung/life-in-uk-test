@@ -9,7 +9,7 @@ const path = require('path');
 // block, so Playwright's auto-scroll can't move it out first); W-068 (user decision) the chip rows stay on ONE line and scroll sideways, so
 // the pinned block fits small phones (header + block ≤ 40% of 320×568 … 390×844, en / zh-HK large text); S-239 the
 // Hide mastered / Bookmarked toggles and the memo chapter chips go through studyRefilter; short landscape screens stay static.
-// v2.0.2 merge (main v2.0.0 desktop, ≥ 1024px): Study is one screen high with a rail beside a card panel that scrolls on
+// v2.0.3 merge (main v2.0.0 desktop, ≥ 1024px): Study is one screen high with a rail beside a card panel that scrolls on
 // its own, so the block is not pinned there: it sits in the rail as display: contents, the chip rows wrap again, the page
 // keeps scroll-padding auto, a new list starts the panel at its top; back below 1024px the block pins again.
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
@@ -206,7 +206,7 @@ async function factReturnChecks(pg) {
     `W-067: ↩ Back from fact practice: card top below the pinned block ${JSON.stringify(r)}`);
 }
 
-// CUI-0034 (QA v1.6.1 F-1; user 2026-10-12: align the card top): on small phones with large text a People card can be
+// CUI-0036 (QA v1.6.1 F-1; user 2026-10-12: align the card top): on small phones with large text a People card can be
 // taller than the room under the pinned block. Its "▶ Practise" sits at the bottom, so the card top is behind the block
 // when it is tapped; after ↩ Back the card's top (year / title) must sit right under the block, even if its bottom (▶)
 // then goes off-screen. The real path: DOM click (no Playwright auto-scroll), skip to the last question, ↩ Back.
@@ -222,7 +222,7 @@ async function factReturnTo(pg, id) {
 }
 async function tallCardReturnChecks(browser) {
   for (const vp of TALL_VIEWPORTS) for (const lang of LANGS) {
-    const label = `CUI-0034 ${vp.width}x${vp.height} ${lang} large`;
+    const label = `CUI-0036 ${vp.width}x${vp.height} ${lang} large`;
     const pg = await browser.newPage({ viewport: vp });
     await pg.goto(APP_URL);
     await pg.evaluate(l => { localStorage.setItem('lifeuk.uiLang', JSON.stringify(l)); localStorage.setItem('lifeuk.fontSize', JSON.stringify('large')); }, lang);
@@ -254,7 +254,7 @@ async function tallCardReturnChecks(browser) {
     await pg.close();
   }
 }
-// CUI-0034 on desktop (≥ 1024px): the cards scroll in their panel; after ↩ Back the card's top sits below the panel's
+// CUI-0036 on desktop (≥ 1024px): the cards scroll in their panel; after ↩ Back the card's top sits below the panel's
 // top fade (the title clear of it), whether the card was above the panel's top or further down
 const DESKTOP_RETURN_VP = { width: 1280, height: 800 };
 async function desktopFactReturnChecks(browser) {
@@ -282,7 +282,7 @@ async function desktopFactReturnChecks(browser) {
     return { screen: document.querySelector('.screen.active').id, gap: Math.round(c.top - panel.getBoundingClientRect().top), fade: Math.round(fade), page: window.scrollY };
   }, id);
   assert(r.screen === 'screenStudy' && r.page === 0 && r.fade > 0 && Math.abs(r.gap - r.fade) <= TOLERANCE_PX + 1,
-    `CUI-0034 desktop 1280x800: ↩ Back puts the card's top just below the panel's top fade ${JSON.stringify(r)}`);
+    `CUI-0036 desktop 1280x800: ↩ Back puts the card's top just below the panel's top fade ${JSON.stringify(r)}`);
   await pg.close();
 }
 
@@ -446,7 +446,7 @@ async function widthChecks(browser) {
   }
 }
 
-// v2.0.2 merge: the v1.6.1 block in main's v2.0.0 desktop Study (rail + card panel), then back to a phone width
+// v2.0.3 merge: the v1.6.1 block in main's v2.0.0 desktop Study (rail + card panel), then back to a phone width
 const DESKTOP_VIEWPORTS = [{ width: 1024, height: 768 }, { width: 1280, height: 800 }];
 const DESKTOP_CASES = [['en', 'large'], ['zh-HK', 'small']];
 const MEMO_DESKTOP_COLS = 3;

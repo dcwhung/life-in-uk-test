@@ -650,7 +650,7 @@ button.plan-cell:focus-visible { outline: 2.5px solid var(--gold); outline-offse
     border-radius: var(--radius-circle); background: var(--card); color: var(--navy); box-shadow: var(--shadow-sm);
     font: inherit; font-size: var(--fs-4xl); font-weight: 800; line-height: 1; cursor: pointer;
   }
-  /* v2.0.2 merge: the ‹ › are chevron line icons (planSchedule.js), about the old glyph's size */
+  /* v2.0.3 merge: the ‹ › are chevron line icons (planSchedule.js), about the old glyph's size */
   .plan-hs-btn .line-icon { width: 0.75em; height: 0.75em; stroke-width: 2.6; }
   .plan-hs-btn:hover { background: var(--navy); color: var(--text-inverse); }
   .plan-hs-btn.l { left: calc(-1 * var(--space-4)); }
