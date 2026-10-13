@@ -126,7 +126,7 @@ Mockup 嘅做法：每個 frame 用 `.app { --k: 1.2; --lg: 0px; --fs-x: calc((N
 
 - Repo 慣例：`claude/*` branch → PR 入 `main`（merge commit），冇 `develop`。開發用 session 指定嘅 branch。
 - PR description 一定要有：`Design Origin: mockup: mockups/v2.0.0/desktop-*.html`（Design-Source Binding Rule）。
-- 實作完、用戶確認之後，跟以前慣例喺之後嘅 PR 刪走 mockup（溫習計劃 mockup 喺 PR8 刪，G18），並喺 `HANDOFF.md` 記錄。
+- ~~實作完、用戶確認之後，跟以前慣例喺之後嘅 PR 刪走 mockup（溫習計劃 mockup 喺 PR8 刪，G18）~~ **用戶 2026-10-13 決定保留 `mockups/v2.0.0/`**（唔刪，作為 desktop 設計參考），已喺 `HANDOFF.md` file 結構記錄。
 - Merge 之後更新 `HANDOFF.md`（版本記錄、file 結構、desktop 規則）。
 
 ---
@@ -137,7 +137,7 @@ Mockup 嘅做法：每個 frame 用 `.app { --k: 1.2; --lg: 0px; --fs-x: calc((N
 |---|---|---|
 | O1 | 版本號用 v2.0.0 定 v1.5.0？ | Mockup 用 v2.0.0 命名，但 `HANDOFF.md` SemVer 規則講明 major 只用喺大改／唔兼容（例如 localStorage 要遷移）。呢次冇 data 改動，照規則應該係 minor |
 | O2 | 一個 PR 太大，可唔可以分做幾個 commit 階段 review？ | Q8 定咗一個 PR。建議 PR 入面按「token／header → 各畫面 → 浮層 → test」分 commit |
-| O3 | Mockup 幾時刪？ | 建議同 PR 一齊刪，或者 merge 後下一個 PR 刪 |
+| O3 | Mockup 幾時刪？ | 建議同 PR 一齊刪，或者 merge 後下一個 PR 刪。**已決定（2026-10-13）：保留，唔刪** |
 
 ---
 
