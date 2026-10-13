@@ -28,7 +28,7 @@ const Mock = (() => {
       pages: [
         { kicker: '溫習', title: '想先了解背景？由知識卡讀起', body: '每個人的溫習方式都不同。想先打好基礎，就用章節、時間線、地理、人物及記憶法五種模式閱讀知識卡；難度星級及書籤助你抓緊重點。',
           chips: ['了解背景', '五種模式', '難度星級', '書籤'] },
-        { kicker: '練習 · 模擬考試', title: '想操題？想操卷？', body: '想操題，就直接練習，每題即時看答案，答錯的自動加入錯題重溫；想操卷，就做模擬考試或隨機試卷，仿照真實考試計時作答。',
+        { kicker: '練習 · 模擬考試', title: '想操題？想操卷？', body: '想操題，就直接練習，每題即時看答案，更可一次看清所有相似題目；答錯的自動加入錯題重溫。想操卷，就做模擬考試或隨機試卷，仿照真實考試計時作答。',
           chips: ['操題', '錯題重溫', '操卷', '隨機試卷'] },
         { kicker: '溫習計劃 · 廣東話翻譯', title: '定好策略，一次合格', body: '輸入考試日期及程度，為你製定溫習策略，好好安排時間；配合廣東話翻譯，輕鬆掌握及記住要點，務求一次考過。',
           chips: ['溫習策略', '廣東話翻譯', '一次合格'] },
@@ -61,7 +61,7 @@ const Mock = (() => {
       pages: [
         { kicker: 'Study', title: 'Want the background first? Start with the facts', body: 'Everyone studies differently. To build a solid base, read the fact cards in five modes: Chapters, Timeline, Geo, People and Memory. Difficulty stars and bookmarks keep you on the key points.',
           chips: ['Background', '5 study modes', 'Difficulty stars', 'Bookmarks'] },
-        { kicker: 'Practice · Mock exam', title: 'Drill questions? Sit full papers?', body: 'To drill questions, practise with instant answers; anything you get wrong goes to wrong answer review. To sit full papers, take a mock exam or a random exam, timed like the real test.',
+        { kicker: 'Practice · Mock exam', title: 'Drill questions? Sit full papers?', body: 'To drill questions, practise with instant answers and see every similar question in one view; anything you get wrong goes to wrong answer review. To sit full papers, take a mock exam or a random exam, timed like the real test.',
           chips: ['Drill questions', 'Wrong answer review', 'Full papers', 'Random exam'] },
         { kicker: 'Study plan · Cantonese translation', title: 'Plan it, pass first time', body: 'Enter your test date and level to get a study strategy and use your time well. With Cantonese translation, the key points are easy to learn and remember, so you can pass first time.',
           chips: ['Study strategy', 'Cantonese translation', 'Pass first time'] },
