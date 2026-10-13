@@ -38,6 +38,7 @@ function renderResults() {
   renderResultActions();
   renderResultPlanRow(); // a study plan mock: task done / retake as a Random Exam (js/screens/planRun.js)
   setExamLabel(byId('resultLabel'), state.examNum);
+  setEntryBack(byId('screenResult').querySelector('.back-btn')); // v2.0.3: a Flagged practice reads "‹ Flagged"
   byId('diffTable').innerHTML = diffTableHtml();
   renderResultDots();
   renderReview();

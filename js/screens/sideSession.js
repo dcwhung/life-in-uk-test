@@ -75,6 +75,42 @@ function returnFromSideSession() {
   SESSION_RETURNS[ret.kind](ret);
 }
 
+// ── v2.0.3: back mid-session (quiz / Result header; .proj-docs/qa/quiz-entry-back-audit.html #6–#9, #11) ──
+// Each session goes back to where it started; the Home entries keep the 🏠 and go Home (goHome asks first in an exam).
+// Leaving mid-way is the last "↩ Back" without its finish: a memory-note test records nothing and shows ① look.
+const SESSION_LEAVES = { ...SESSION_RETURNS, [SESSION_RETURN_KIND.memo]: ret => leaveMemoTest(ret) };
+function leaveSideSession() {
+  const ret = sessionReturn;
+  sessionReturn = null;
+  SESSION_LEAVES[ret.kind](ret);
+}
+// Flagged list › Practise is an ordinary session (Retry keeps it), so its set id names the list it came from
+function isFlaggedSession() { return !isSideSession() && state.examNum === FLAGGED_EXAM; }
+function goBack() {
+  if (isPlanSession()) { planLeaveSession(); return; }
+  if (isSideSession()) { leaveSideSession(); return; }
+  if (isFlaggedSession()) { openFlagged(); window.scrollTo(0, 0); return; }
+  goHome();
+}
+// the header's words while away from Home (escaped html); null = the 🏠 icon. A plan session has its own (planRun.js)
+const SESSION_BACK_LABELS = {
+  [SESSION_RETURN_KIND.quiz]: ret => t('quiz.backToQuestion', { n: ret.state.current + 1 }),
+  [SESSION_RETURN_KIND.study]: () => t('quiz.backToStudy'),
+  [SESSION_RETURN_KIND.memo]: () => t('quiz.backToMemo'),
+};
+function entryBackHtml() {
+  if (isSideSession()) {
+    const label = SESSION_BACK_LABELS[sessionReturn.kind];
+    return label ? escapeHtml(label(sessionReturn)) : null;
+  }
+  return isFlaggedSession() ? escapeHtml(t('quiz.backToFlagged')) : null;
+}
+function setEntryBack(back) {
+  const html = entryBackHtml();
+  if (html) setQuizBackText(back, html);
+  else setQuizBackHome(back);
+}
+
 function isStudyReturn(ret) { return ret !== null && ret.kind === SESSION_RETURN_KIND.study; }
 // CUI-0010: a second call while already on the way back to Study (double tap / key repeat on the fact card's
 // "▶ Practise") keeps the saved Study scroll — window.scrollY belongs to the quiz screen by then

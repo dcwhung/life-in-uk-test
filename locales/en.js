@@ -97,6 +97,11 @@ LOCALES.en = {
     prevButton: '← Prev',
     nextButton: 'Next →',
     backButton: '↩ Back',
+    // v2.0.3: the quiz / Result header's back button mid-session, named after where it goes
+    backToStudy: '‹ Study',
+    backToFlagged: '‹ Flagged',
+    backToMemo: '‹ ① Look',
+    backToQuestion: '‹ Back to Q{n}',
     finishButton: 'Finish ✓',
     correct: '✓ Correct!',
     wrong: '✗ Wrong',
@@ -482,6 +487,7 @@ LOCALES.en = {
     run: {
       backToday: "← Today's tasks",
       backDayHtml: '← {day} tasks',
+      backFact: '← Back to the fact',
       roundOf: 'Round {n} of {rounds}',
       nextRound: 'Next round →',
       nextRoundTitle: 'Next round', // QA O-3: the quick button's title / aria-label, no symbol

@@ -144,6 +144,11 @@ function startMemoTest() {
   if (!g) return;
   startSideSession(MEMO_PREFIX + g.id, memoTestPick(g).map(toQuestionItem), { kind: SESSION_RETURN_KIND.memo, id: g.id });
 }
+// v2.0.3: "‹ ① Look" mid-test (goBack): nothing recorded, back to the group's ① look
+function leaveMemoTest(ret) {
+  memoView.id = ret.id;
+  memoLook();
+}
 // Recorded once per finished test: returnFromSideSession clears the return point before calling here, and a second tap
 // on ↩ Back lands on this screen (double tap guard). Scored over the answered (revealed) questions only (user, S-232);
 // nothing answered → nothing recorded, the result says so

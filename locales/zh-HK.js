@@ -90,6 +90,11 @@ LOCALES['zh-HK'] = {
     prevButton: '← 上一題',
     nextButton: '下一題 →',
     backButton: '↩ 返回',
+    // v2.0.3: the quiz / Result header's back button mid-session, named after where it goes
+    backToStudy: '‹ 溫習',
+    backToFlagged: '‹ 已標記',
+    backToMemo: '‹ ① 睇',
+    backToQuestion: '‹ 返回第 {n} 題',
     finishButton: '完成 ✓',
     correct: '✓ 正確！',
     wrong: '✗ 錯誤',
@@ -450,6 +455,7 @@ LOCALES['zh-HK'] = {
     run: {
       backToday: '← 今日任務',
       backDayHtml: '← {day} 任務',
+      backFact: '← 返回知識點',
       roundOf: '第 {n} 輪（共 {rounds} 輪）',
       nextRound: '下一輪 →',
       nextRoundTitle: '下一輪',

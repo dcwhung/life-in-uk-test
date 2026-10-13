@@ -63,6 +63,8 @@ const ACTIONS = {
   resetPracticeProgress: () => resetPracticeProgress(),
   resetCompletedExams: () => resetCompletedExams(),
   goHome: () => goHome(),
+  // v2.0.3: the quiz / Result header's back button: back to where the session started (js/screens/sideSession.js goBack)
+  goBack: () => goBack(),
   // quiz
   selectOption: el => selectOption(numArg(el)),
   toggleQuestionYue: () => toggleQuestionYue(),

@@ -139,11 +139,16 @@ function setQuizBackHome(back) {
   back.innerHTML = lineIconSvg('home');
   setAccessibleName(back, t('common.homeLabel'));
 }
+// v2.0.3: one fact's ▶ Practise reads "← Back to the fact" (planLeaveSession); a session from elsewhere names its entry
+function planQuizBackHtml(session) {
+  if (session && planRunPart(sessionReturn).fact !== undefined) return escapeHtml(t('plan.run.backFact'));
+  return planRunBackHtml((session ? sessionReturn : planMockRun).from);
+}
 function renderPlanQuizHeader() {
   const back = byId('screenQuiz').querySelector('.back-btn');
   const session = isPlanSession(), plan = session || isPlanMock();
-  if (plan) setQuizBackText(back, planRunBackHtml((session ? sessionReturn : planMockRun).from));
-  else setQuizBackHome(back);
+  if (plan) setQuizBackText(back, planQuizBackHtml(session));
+  else setEntryBack(back);
   if (!session) return;
   if (planRunPart(sessionReturn).fact !== undefined) setExamLabel(byId('quizLabel'), FACT_PREFIX + sessionReturn.fact);
   else byId('quizLabel').textContent = planRunLabel(sessionReturn);
@@ -208,6 +213,14 @@ function planBackToDay() {
   openPlanDay(ret ? ret.from : null);
   const box = ret && document.querySelector(`#planTaskList [data-arg="${ret.date}"][data-task="${ret.taskIndex}"]`);
   if (box) box.focus();
+}
+// v2.0.3 (goBack): ← mid-session. One fact's practice goes back to that fact's card (review when the task is done, as
+// planOpenTask shows it); a whole task, or a plan gone meanwhile, as planBackToDay
+function planLeaveSession() {
+  const ret = sessionReturn;
+  const ctx = planVisible() && planRunPart(ret).fact !== undefined ? planRunContext(ret.date, ret.taskIndex) : null;
+  if (!ctx) { planBackToDay(); return; }
+  planShowFacts({ date: ret.date, taskIndex: ret.taskIndex, from: ret.from }, ret.pos, planTaskProgress(ctx.task, ctx.dayLog).complete);
 }
 // switching the feature off (G15) from the Practice screen leaves a plan session too, and a timed plan mock unsubmitted
 function isOnPlanSession() { return (isPlanSession() || isPlanMock()) && byId('screenQuiz').classList.contains('active'); }
