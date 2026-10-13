@@ -8,7 +8,8 @@ const path = require('path');
 //   #8 Memory note › ② Test           → "‹ ① Look" → the group's ① look, nothing recorded
 //   #9 Practice › Similar › Practise  → "‹ Q{n}" (named "Back to Q{n}") → the original session at the same question
 //   #11 Plan reading › fact ▶ Practise → "‹ Back to the fact" → that fact's card (#screenPlanRun)
-// The Home entries keep the 🏠 icon and go Home.
+// The Home entries keep the 🏠 icon and go Home; an exam asks first. Also (S-256): zh-HK labels + a language switch,
+// Similar inside a Flagged practice (back twice → the list), 320px en large text (W-073), focus after back (S-255).
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
 const launchOpts = { args: ['--no-sandbox'] };
 if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_PATH;
@@ -70,6 +71,14 @@ async function checkStudyFact(pg) {
   await tapBack(pg, 'screenQuiz');
   const after = await pg.evaluate(() => ({ screen: document.querySelector('.screen.active').id, tab: study.tab, side: isSideSession() }));
   assert(after.screen === 'screenStudy' && after.tab === 'chapters' && !after.side, `#7 back goes to Study on its tab (${JSON.stringify(after)})`);
+  // the same fact card flashes and is in view (flashStudyFact, as ↩ Back)
+  const card = await pg.evaluate(id => {
+    const el = document.querySelector(`#studyContent .fact[data-fact-id="${id}"]`);
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    return { flash: el.classList.contains('flash'), inView: r.bottom > 0 && r.top < window.innerHeight };
+  }, FACT_ID);
+  assert(card && card.flash && card.inView, `#7 back flashes the same fact card in view (${JSON.stringify(card)})`);
 }
 
 async function checkMemo(pg) {
@@ -136,6 +145,67 @@ async function checkPlanFact(pg) {
   assert(await activeScreen(pg) === 'screenPlanDay', 'a plan practice task goes back to the day');
 }
 
+// S-256: zh-HK labels, and a language switch redraws the label in place (rerenderCurrentScreen)
+async function checkZhHk(pg) {
+  await pg.evaluate(() => setLang('zh-HK'));
+  await pg.evaluate(() => { startDifficulty(1); toggleFlag(); state.current = 1; toggleFlag(); leaveToHome(); openFlagged(); startFlaggedPractice(); });
+  assert((await backOf(pg, 'screenQuiz')).text === '‹ 已標記', 'zh-HK #6 quiz header reads "‹ 已標記"');
+  await pg.evaluate(() => setLang('en'));
+  assert((await backOf(pg, 'screenQuiz')).text === '‹ Flagged', 'zh-HK → en: the Flagged label redraws as "‹ Flagged"');
+  await pg.evaluate(() => setLang('zh-HK'));
+  await pg.evaluate(id => { openStudy(); studySetTab('chapters'); studySetChapter(3); startFactPractice(id); }, FACT_ID);
+  assert((await backOf(pg, 'screenQuiz')).text === '‹ 溫習', 'zh-HK #7 quiz header reads "‹ 溫習"');
+  await pg.evaluate(() => { leaveToHome(); openStudy(); studySetTab('memo'); document.querySelector('[data-action=openMemoGroup]').click(); startMemoTest(); });
+  assert((await backOf(pg, 'screenQuiz')).text === '‹ ① 睇', 'zh-HK #8 quiz header reads "‹ ① 睇"');
+  await pg.evaluate(() => leaveToHome());
+  const start = await startSimilarFrom(pg, false);
+  await pg.evaluate(() => startSimilarPractice());
+  const zh = await backOf(pg, 'screenQuiz');
+  assert(zh.text === `‹ 第 ${start + 1} 題` && zh.name === `返回第 ${start + 1} 題` && zh.title === zh.name, `zh-HK #9 reads "‹ 第 ${start + 1} 題", named "返回第 ${start + 1} 題" (${JSON.stringify(zh)})`);
+  await pg.evaluate(() => setLang('en'));
+  const en = await backOf(pg, 'screenQuiz');
+  assert(en.text === `‹ Q${start + 1}` && en.name === `Back to Q${start + 1}`, `zh-HK → en: the Similar label and its name redraw (${JSON.stringify(en)})`);
+  await pg.evaluate(() => setLang('zh-HK'));
+  await pg.evaluate(() => { leaveToHome(); openPlanGoal(); byId('planCreateBtn').click(); openPlanDay(null); document.querySelector('#planTaskList [data-action=planOpenTask]').click(); });
+  await pg.click('#planRunBody [data-action=planPractiseFact]');
+  assert((await backOf(pg, 'screenQuiz')).text === '‹ 返回知識點', 'zh-HK #11 quiz header reads "‹ 返回知識點"');
+}
+
+// S-256: Similar inside a Flagged practice: back → the Flagged session at the same question ("‹ Flagged"), back → the list
+async function checkSimilarInFlagged(pg) {
+  const start = await pg.evaluate(() => {
+    startDifficulty(1);
+    const withSimilar = state.questions.map((_, i) => i).filter(i => similarKeys(state.questions[i]).length).slice(0, 2);
+    withSimilar.forEach(i => { state.current = i; toggleFlag(); });
+    leaveToHome(); openFlagged(); startFlaggedPractice();
+    const q = state.questions[0];
+    state.answers[0] = [...q.a];
+    revealAnswer();
+    window.__origQuestions = state.questions;
+    return state.current;
+  });
+  await pg.evaluate(() => startSimilarPractice());
+  assert((await backOf(pg, 'screenQuiz')).text === `‹ Q${start + 1}`, 'Similar in Flagged reads "‹ Q1"');
+  await tapBack(pg, 'screenQuiz');
+  const back1 = await pg.evaluate(() => ({ screen: document.querySelector('.screen.active').id, same: state.questions === window.__origQuestions, cur: state.current }));
+  assert(back1.screen === 'screenQuiz' && back1.same && back1.cur === start, `back once → the Flagged session at Q${start + 1} (${JSON.stringify(back1)})`);
+  assert((await backOf(pg, 'screenQuiz')).text === '‹ Flagged', 'the Flagged session reads "‹ Flagged" again');
+  await pg.waitForTimeout(400); // a later, deliberate tap (past SCREEN_CHANGE_CLICK_GUARD_MS: a quick second tap is eaten)
+  await tapBack(pg, 'screenQuiz');
+  assert(await activeScreen(pg) === 'screenFlagged', 'back twice → the Flagged list');
+}
+
+// S-256: a timed exam keeps the 🏠, and back asks first (goHome's confirm), still on the quiz
+async function checkExam(pg) {
+  await pg.evaluate(() => { pendingMode = EXAM_MODE; startExam(1); });
+  const back = await backOf(pg, 'screenQuiz');
+  assert(back.icon && back.name === 'Home', `exam: the header is the 🏠 (${JSON.stringify(back)})`);
+  await tapBack(pg, 'screenQuiz');
+  const r = await pg.evaluate(() => ({ modal: byId('confirmModal').classList.contains('show'), screen: document.querySelector('.screen.active').id }));
+  assert(r.modal && r.screen === 'screenQuiz', `exam: back opens the leave confirm, still on the quiz (${JSON.stringify(r)})`);
+  await pg.keyboard.press('Escape');
+}
+
 // W-073: 320px, English, large text, a two-digit question: the Similar header fits (no sideways page scroll)
 async function checkSimilarNarrow(b) {
   const ctx = await b.newContext({ viewport: { width: 320, height: 640 } });
@@ -159,7 +229,7 @@ async function checkSimilarNarrow(b) {
   const b = seedLegacyDefaults(await chromium.launch(launchOpts));
   try {
     for (const [name, viewport] of Object.entries(VIEWPORTS)) {
-      for (const check of [checkHomeEntry, checkFlagged, checkStudyFact, checkMemo, checkSimilar, checkPlanFact]) {
+      for (const check of [checkHomeEntry, checkFlagged, checkStudyFact, checkMemo, checkSimilar, checkPlanFact, checkZhHk, checkSimilarInFlagged, checkExam]) {
         const ctx = await b.newContext({ viewport });
         const pg = await ctx.newPage();
         const errors = [];
