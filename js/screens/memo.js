@@ -122,14 +122,15 @@ function memoMarkFit() {
 memoMarkFit();
 
 // ── ① look ──
-// CUI-0044: the approved hook data keeps plain spaces ("1928 年", "N. Ireland"), which are line-break points in the narrow hook
-// box. At render time those token spaces become U+00A0 (and a range "1853–56 年" gets U+2060 after the dash) so a year never
-// sits at a line end with its 年 on the next line. Search still reads the raw data (memoMatches), so typed plain spaces match.
-const MEMO_NBSP = ' ', MEMO_WORD_JOINER = '⁠';
-const MEMO_UNIT = '(?:年|歲|月|國|個|位|世紀|日|星期|萬|時)'; // "年" also covers 年代
+// CUI-0044: the approved hook data keeps plain spaces (a year and its unit, "N. Ireland", "AD 43"), which are line-break points
+// in the narrow hook box. At render time those token spaces become U+00A0 (and a range end, "1853–56" + unit, gets U+2060 after
+// the dash) so a year never sits at a line end with its unit on the next line. Search still reads the raw data (memoMatches),
+// so typed plain spaces match. The units are \u escapes: no CJK in js/ (i18n-test).
+const MEMO_NBSP = '\u00a0', MEMO_WORD_JOINER = '\u2060';
+const MEMO_UNIT = '(?:\u5e74|\u6b72|\u6708|\u570b|\u500b|\u4f4d|\u4e16\u7d00|\u65e5|\u661f\u671f|\u842c|\u6642)'; // year (also the decade suffix) / age / month / country / count / person / century / day / week / 10,000 / hour
 const MEMO_NO_BREAK_RULES = [
-  [new RegExp(`(\\d)–(?=\\d+ ${MEMO_UNIT})`, 'g'), `$1–${MEMO_WORD_JOINER}`], // range end stays with its start: 1853–56 年
-  [new RegExp(`(\\d) (?=${MEMO_UNIT})`, 'g'), `$1${MEMO_NBSP}`],               // 1928 年, 70 歲, 650 個
+  [new RegExp(`(\\d)–(?=\\d+ ${MEMO_UNIT})`, 'g'), `$1–${MEMO_WORD_JOINER}`], // a range end stays with its start: 1853–56 + unit
+  [new RegExp(`(\\d) (?=${MEMO_UNIT})`, 'g'), `$1${MEMO_NBSP}`],               // a number + its unit: 1928 + year, 70 + age
   [/\bN\. (?=Ireland)/g, `N.${MEMO_NBSP}`],                                      // N. Ireland
   [/\bAD (?=\d)/g, `AD${MEMO_NBSP}`],                                            // AD 43
   [/(\d) (?=BC\b)/g, `$1${MEMO_NBSP}`],                                          // 55 BC

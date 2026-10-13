@@ -391,29 +391,29 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   // binds 「1928 年」「1853–56 年」「N. Ireland」「AD 43」「55 BC」「70 歲」… with U+00A0 (and U+2060 after a range dash).
   // The shown text, with those normalised back, still equals the data; search still takes a typed plain space ──
   const glueIn = ['1928 年', '1840 年代', '1853–56 年', 'N. Ireland', 'AD 43', '55 BC', '18 至 70 歲', '650 個 MP', 'Scotland 129、Wales 60'];
-  const glueWant = ['1928 年', '1840 年代', '1853–⁠56 年', 'N. Ireland', 'AD 43', '55 BC', '18 至 70 歲', '650 個 MP', 'Scotland 129、Wales 60'];
+  const glueWant = ['1928\u00a0年', '1840\u00a0年代', '1853–\u206056\u00a0年', 'N.\u00a0Ireland', 'AD\u00a043', '55\u00a0BC', '18 至 70\u00a0歲', '650\u00a0個 MP', 'Scotland 129、Wales 60'];
   const glue = await pg.evaluate(list => list.map(s => memoHookNoBreak(s)), glueIn);
   assert(glue.join('|') === glueWant.join('|'), 'memoHookNoBreak: year / decade / range / N. Ireland / AD / BC / 歲 / 個 glued, other spaces kept: ' + JSON.stringify(glue));
   const hookHtml = await pg.evaluate(() => memoHookHtml({ hook: '<b> & 1928 年' }));
-  assert(hookHtml.includes('&lt;b&gt; &amp; 1928 年') && !hookHtml.includes('nbsp;'), 'memoHookHtml: escaped once, NBSP as a character (no &nbsp; / &amp;nbsp;)');
+  assert(hookHtml.includes('&lt;b&gt; &amp; 1928\u00a0年') && !hookHtml.includes('nbsp;'), 'memoHookHtml: escaped once, NBSP as a character (no &nbsp; / &amp;nbsp;)');
   const splitBad = [];
   for (const width of [320, 390, 1280]) for (const lang of ['en', 'zh-HK']) for (const size of ['small', 'large']) {
     await pg.setViewportSize({ width, height: width > 1000 ? 800 : 568 });
     await pg.evaluate(([l, s]) => { setFontSize(s); setLang(l); }, [lang, size]);
     splitBad.push(...await pg.evaluate(tag => {
       const out = [];
-      const re = /N\.[  ]Ireland|AD[  ]\d+|\d+[  ]BC|\d+(?:–⁠?\d+)?[  ](?:年|歲|月|國|個|位|世紀|日|星期|萬|時)/g;
+      const re = /N\.[ \u00a0]Ireland|AD[ \u00a0]\d+|\d+[ \u00a0]BC|\d+(?:–\u2060?\d+)?[ \u00a0](?:年|歲|月|國|個|位|世紀|日|星期|萬|時)/g;
       MEMO_GROUPS.filter(g => g.hook).forEach(g => {
         openMemoGroup(g.id);
         const span = document.querySelector('#memoBody .memo-hook span');
         const tn = span.firstChild;
-        const shown = span.textContent.replace(/ /g, ' ').replace(/⁠/g, '');
+        const shown = span.textContent.replace(/\u00a0/g, ' ').replace(/\u2060/g, '');
         if (span.childNodes.length !== 1 || shown !== g.hook) out.push(`${tag} ${g.id}: hook text differs from the data`);
         const top = i => { const r = document.createRange(); r.setStart(tn, i); r.setEnd(tn, i + 1); const rs = [...r.getClientRects()].filter(x => x.width > 0); return rs.length ? Math.round(rs[0].top) : null; };
         let m;
         while ((m = re.exec(tn.textContent))) {
           const a = top(m.index), z = top(m.index + m[0].length - 1);
-          if (a !== null && z !== null && a !== z) out.push(`${tag} ${g.id}: 「${m[0].replace(/ /g, ' ').replace(/⁠/g, '')}」 split`);
+          if (a !== null && z !== null && a !== z) out.push(`${tag} ${g.id}: 「${m[0].replace(/\u00a0/g, ' ').replace(/\u2060/g, '')}」 split`);
         }
       });
       return out;
