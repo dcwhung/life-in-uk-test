@@ -267,7 +267,7 @@ async function checkDays(pg) {
 }
 
 // G9 / W-030: the snapshot is asked; a right answer clears every copy; wrong ones come back; empty = done
-// S-262 (review v2.0.6): a review task materialized before v2.0.6 may hold a stale wrong-list key ('99.99', no question):
+// S-262 (review v2.0.6): a review task materialized before v2.1.1 may hold a stale wrong-list key ('99.99', no question):
 // it is not counted or asked; the round runs the real one and the task completes
 async function checkStaleReviewQid(pg, errs) {
   await fresh(pg);

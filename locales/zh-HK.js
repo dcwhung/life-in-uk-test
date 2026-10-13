@@ -369,7 +369,6 @@ LOCALES['zh-HK'] = {
       editStep: '更改目標',
       update: '更新進度表',
       dateMoved: '已踏入新的一日，考試日期已調整為最早可選的日子，請確認後再按一次。',
-      editDateNote: '更改目標時，考試日期最早可選為明日。',
       editMinStudyDays: '考試前最少需要 {n} 個溫習日，未能更新進度表。請減少休息日或延後考試日期。',
     },
     schedule: {
@@ -378,6 +377,8 @@ LOCALES['zh-HK'] = {
       editGoal: '更改目標',
       title: '你的進度表',
       summary: '{start} 開始 · {exam} 考試 · 每日最多 {mins} · {level}',
+      phasesTitleOne: '一個階段',
+      phasesTitleTwo: '兩個階段',
       phasesTitle: '三個階段',
       phaseDaysN: '{n} 日',
       dayRange: 'Day {from}–{to}',

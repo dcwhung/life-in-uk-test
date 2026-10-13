@@ -600,13 +600,15 @@ async function checkMidnightCta(pg) {
   await seedPlan(pg, { log: false });
   await pg.evaluate(() => openPlanSchedule());
   await pg.click('#screenPlanSchedule [data-action="planEditGoal"]');
-  await pg.fill('#planExamDate', '2026-10-02'); // tomorrow (G36)
+  // CUI-0038: a changed goal has a new plan's limits: today + 7 with no rest day has the 7 study days it needs
+  await pg.click('#planRestChips .chip >> nth=0');
+  await pg.fill('#planExamDate', '2026-10-08');
   await pg.$eval('#planExamDate', e => e.blur());
   await pg.clock.setFixedTime(at('2026-10-02', '00:05:00'));
   await pg.click('#planCreateBtn');
   const r = await pg.evaluate(() => ({ screen: document.querySelector('.screen.active').id, date: byId('planExamDate').value,
     hint: byId('planGoalHint').hidden ? '' : byId('planGoalHint').textContent, disabled: byId('planCreateBtn').disabled }));
-  assert(r.screen === 'screenPlanGoal' && r.date === '2026-10-03' && !r.disabled, 'S-115: past midnight the form re-renders with the new earliest date: ' + JSON.stringify(r));
+  assert(r.screen === 'screenPlanGoal' && r.date === '2026-10-09' && !r.disabled, 'S-115: past midnight the form re-renders with the new earliest date: ' + JSON.stringify(r));
   assert(r.hint.includes('check'), 'S-115: a notice says so: ' + r.hint);
   await pg.click('#planCreateBtn');
   assert(await activeScreen(pg) === 'screenPlanSchedule', 'S-115: the second press updates the plan');

@@ -13,7 +13,7 @@ function saveStreaks() { setLS(STREAK_LS, streaks); }
 // legacy migration in getLS), after questions.js defines isValidQuestionKey. Only a { key: value } object that lost a
 // key is written back, so a clean load writes nothing; any other stored value is left as is and reads as empty.
 function pruneStaleQuestionKeys() {
-  // W-075: an HTTP-cached pre-v2.0.6 questions.js has no isValidQuestionKey — keep the lists as stored (v2.0.5 behaviour)
+  // W-075: an HTTP-cached pre-v2.1.1 questions.js has no isValidQuestionKey — keep the lists as stored (v2.0.5 behaviour)
   if (typeof isValidQuestionKey !== 'function') return;
   const prune = (key, record) => {
     if (!record || typeof record !== 'object' || Array.isArray(record)) return {};

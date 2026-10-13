@@ -60,8 +60,8 @@ function planIsMaterialized(task) {
   if (task.type === PLAN_TASK.read || task.type === PLAN_TASK.wrongFacts) return Array.isArray(task.facts);
   return Array.isArray(task.qids);
 }
-// S-262 (v2.0.6): a review task filled before v2.0.6 may hold a stale wrong-list key (no question; questionByKey would
-// throw): it is never asked or counted. An HTTP-cached pre-v2.0.6 questions.js has no isValidQuestionKey (W-075): kept
+// S-262 (v2.1.1): a review task filled before v2.1.1 may hold a stale wrong-list key (no question; questionByKey would
+// throw): it is never asked or counted. An HTTP-cached pre-v2.1.1 questions.js has no isValidQuestionKey (W-075): kept
 const planKnownQid = k => typeof isValidQuestionKey !== 'function' || isValidQuestionKey(k);
 function planTaskQids(task) {
   if (Array.isArray(task.qids)) return task.qids.filter(planKnownQid);
@@ -473,11 +473,11 @@ function planFrozenDays(plan, todayIso) {
   return [...kept, ...gap];
 }
 function replanFrom(plan, goal, todayIso, log) {
-  // G36: a changed goal has the looser limits (exam from tomorrow, 1 study day)
-  if (!validatePlanGoal(goal, todayIso, PLAN_GOAL_MODE.edit).ok) return null;
+  // CUI-0038: a changed goal has a new plan's limits (G28: today + 7, 7 study days; G36 retired)
+  if (!validatePlanGoal(goal, todayIso).ok) return null;
   const history = [...(plan.goalHistory || []), { at: todayIso, goal: plan.goal }];
   // clock moved before Day 1: nothing is frozen, the plan restarts today
-  if (todayIso < plan.start) return { ...buildPlan(goal, todayIso, PLAN_GOAL_MODE.edit), createdAt: plan.createdAt, goalHistory: history };
+  if (todayIso < plan.start) return { ...buildPlan(goal, todayIso), createdAt: plan.createdAt, goalHistory: history };
   const own = planCopyGoal(goal);
   const built = planKeepTodayContents(planDayAt(plan, todayIso), buildPlanDays(todayIso, own, planFactsLeft(log)));
   const fresh = planPinToday(built, planTodayDoneTasks(todayIso, log));
