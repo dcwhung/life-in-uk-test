@@ -15,7 +15,8 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
 const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('ok:', m); };
 
 // CUI-0035 (user 2026-10-12: convert): the header ⓘ and the fact card memory note's ▸ / ▾ too
-const GLYPHS = '←→↩✓▶🔁↺✕‹›ⓘ▸▾';
+// CUI-0037 (user 2026-10-13: convert): the Home "Wrong answers" review tile's ✗
+const GLYPHS = '←→↩✓▶🔁↺✕‹›ⓘ▸▾✗';
 const STATUS_PARTS = '.plan-pill, .plan-task-ic, .plan-day-ic, .plan-task-st, .memo-badge';
 const WIDTHS = [320, 360, 390];
 const LANGS = ['en', 'zh-HK'];
@@ -104,6 +105,46 @@ async function checkHome(pg, tag) {
     ['#planHomeCard .plan-cta-go, .plan-cta .plan-cta-go', 'trail', ['arrowRight']],
   ]);
   await pg.evaluate(() => byId('installBanner').classList.remove('visible'));
+  await checkReviewTiles(pg, tag);
+}
+
+// CUI-0037: Practice → "My review" with wrong answers AND flags seeded, so both tiles show (with none the section stays
+// hidden: the v1.6.1 walk never saw the wrong tile's ✗). Each tile's mark is an SVG, no glyph text: the wrong tile a
+// line icon (cross, aria-hidden) in the red token, at the flagged bookmark's size, centred in its box
+const REVIEW_TILE_WRONG = ['1.0', '1.1', '2.3'];
+const REVIEW_TILE_FLAGS = ['3.0'];
+async function checkReviewTiles(pg, tag) {
+  await pg.evaluate(({ wrong, flags }) => {
+    wrongList = Object.fromEntries(wrong.map(k => [k, true]));
+    practiceFlags = Object.fromEntries(flags.map(k => [k, true]));
+    goHome(); pendingMode = 'practice'; renderModeSelection();
+  }, { wrong: REVIEW_TILE_WRONG, flags: REVIEW_TILE_FLAGS });
+  const tiles = await pg.evaluate(() => ['#tileWrong', '#tileFlagged'].map(sel => {
+    const tile = document.querySelector(sel), box = tile.querySelector('.t-icon'), svg = box.querySelector('svg');
+    const br = box.getBoundingClientRect(), sr = svg && svg.getBoundingClientRect();
+    const red = getComputedStyle(document.documentElement).getPropertyValue('--red-light').trim();
+    const probe = document.createElement('i');
+    probe.style.color = red;
+    document.body.appendChild(probe);
+    const redRgb = getComputedStyle(probe).color;
+    probe.remove();
+    return {
+      sel, shown: byId('myReview').classList.contains('show') && tile.getClientRects().length > 0 && !tile.disabled,
+      text: box.textContent.trim(), line: svg && svg.matches('svg.line-icon') ? svg.dataset.iconName : null,
+      hidden: !!svg && svg.getAttribute('aria-hidden') === 'true', px: sr ? Math.round(sr.height) : 0,
+      centred: !!sr && Math.abs((sr.top + sr.bottom) / 2 - (br.top + br.bottom) / 2) <= 1 && Math.abs((sr.left + sr.right) / 2 - (br.left + br.right) / 2) <= 1,
+      stroke: svg ? getComputedStyle(svg).stroke : '', red: redRgb,
+      fits: tile.getBoundingClientRect().right <= innerWidth + 0.5,
+    };
+  }));
+  const [wrong, flag] = tiles;
+  assert(tiles.every(x => x.shown && x.text === '' && x.px > 0 && x.centred && x.fits),
+    `${tag} My review: both tiles shown, their marks are SVG (no glyph text), centred: ` + JSON.stringify(tiles));
+  assert(wrong.line === 'cross' && wrong.hidden && wrong.stroke === wrong.red && wrong.px === flag.px,
+    `${tag} My review: wrong tile mark = line icon cross, red token, bookmark size: ` + JSON.stringify(wrong));
+  // the glyph scan over every button (both tiles included) and no sideways scroll with the tiles shown
+  await checkControls(pg, `${tag} My review`, []);
+  await pg.evaluate(() => { wrongList = {}; practiceFlags = {}; renderMyReview(); });
 }
 
 async function checkQuiz(pg, tag) {
