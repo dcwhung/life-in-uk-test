@@ -150,14 +150,18 @@ async function checkPhoneList(b) {
     const gap = await page.evaluate(() => ({ scrollY: window.scrollY, block: document.querySelector('#screenStudy .study-top').getBoundingClientRect().bottom }));
     assert(gap.scrollY > 0 && Math.abs(after.due.top - gap.block) <= 1 && gap.block > after.header.bottom,
       `${label} list: page scrolled ${gap.scrollY}px, the banner sticks under the pinned tabs (${after.due.top.toFixed(1)} / ${gap.block.toFixed(1)})`);
-    // the gap paints the same with the cards hidden: only the page grey (and the header's own shadow) shows there
-    const [y0, y1] = [Math.ceil(after.header.bottom), Math.floor(after.due.top) - 1];
-    const band = await dt.bandColours(page, y0, y1);
-    await page.evaluate(() => { byId('studyContent').style.visibility = 'hidden'; });
-    const bare = await dt.bandColours(page, y0, y1);
-    await page.evaluate(() => { byId('studyContent').style.visibility = ''; });
-    const off = band.filter((px, i) => px.some((c, k) => Math.abs(c - bare[i][k]) > BG_SLACK));
-    assert(band.length > 0 && off.length === 0, `${label} list: no card shows in the gap under the header (${off.length} / ${band.length} pixels differ)`);
+    // W-077: the band between the pinned block and the banner (if any) paints the same with the cards hidden. Not from the
+    // header: the pinned tabs themselves can repaint (hover, focus) between the two shots. No band: the banner sits on
+    // the block's --bg foot (the assert above), so no card can show between them
+    const [y0, y1] = [Math.ceil(gap.block), Math.floor(after.due.top) - 1];
+    if (y1 >= y0) {
+      const band = await dt.bandColours(page, y0, y1);
+      await page.evaluate(() => { byId('studyContent').style.visibility = 'hidden'; });
+      const bare = await dt.bandColours(page, y0, y1);
+      await page.evaluate(() => { byId('studyContent').style.visibility = ''; });
+      const off = band.filter((px, i) => px.some((c, k) => Math.abs(c - bare[i][k]) > BG_SLACK));
+      assert(off.length === 0, `${label} list: no card shows between the pinned block and the banner (${off.length} / ${band.length} pixels differ)`);
+    }
     assert(errors.length === 0, `${label} list: no page errors ` + errors.join(' | '));
     await page.close();
   }
