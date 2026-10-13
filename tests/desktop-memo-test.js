@@ -206,7 +206,13 @@ async function checkCases(b) {
     await openGroup(page, ids.single);
     await dt.nextFrame(page);
     await checkSingle(page, label);
-    const { hooked, plain } = await page.evaluate(() => ({ hooked: memoGroups().find(g => g.hook && g.body).id, plain: memoGroups().find(g => !g.hook && g.body).id }));
+    // v2.4.1: every titled group has a hook (Cantonese + English); the no-hook branch (memo.noteAgain + the memory note)
+    // stays covered by a group whose hooks are blanked in this page only (memoGroups() caches the group objects)
+    const { hooked, plain } = await page.evaluate(() => {
+      const withHook = memoGroups().filter(g => g.hook && g.body), blank = withHook[1];
+      blank.hook = ''; blank.hookEn = '';
+      return { hooked: withHook[0].id, plain: blank.id };
+    });
     for (const [id, kind] of [[ids.longest, 'fail'], [hooked, 'all'], [plain, 'all'], [ids.single, 'all'], [hooked, 'none'], [plain, 'none']]) {
       await openOutcome(page, id, kind);
       await dt.nextFrame(page);

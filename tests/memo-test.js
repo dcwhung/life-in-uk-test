@@ -137,7 +137,9 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
     noteLang: (document.querySelector('#memoBody .memo-note') || {}).lang,
   }));
   assert(look.steps.join('|') === '① Look*|② Test (5)', 'steps ① Look (on) / ② Test (5): ' + look.steps.join('|'));
-  assert(/89 no votes/.test(look.hook) && look.hookLang === 'en' && look.table === 7 && !look.heading && look.noteLang === 'en', 'hook box + the 7-row table (no repeated heading line), English in the English UI (v2.2.0)');
+  // v2.4.1: the English UI shows the user-approved English hook (hookEn, glued like the Cantonese one: CUI-0044)
+  assert((look.hook || '').includes('"1689 no votes, 1832 middle class') && look.hookLang === 'en' && look.table === 7 && !look.heading && look.noteLang === 'en',
+    'hook box (English hookEn, lang en) + the 7-row table in English (no repeated heading line): ' + look.hook);
   assert(look.start === 'Got it — start the test', 'start button text');
   assert(await pg.evaluate(() => document.activeElement === byId('memoTitle')), 'S-227: opening a group moves focus to its title');
 
@@ -175,10 +177,10 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   assert(await pg.$eval('#screenStudy', e => e.classList.contains('active')) && await pg.$eval('.study-tab[data-tab="memo"]', e => e.classList.contains('active')), '‹ back: Study, memo tab');
   assert(Math.abs(await pg.evaluate(() => window.scrollY) - listY) <= 1, `list scroll restored (${listY})`);
 
-  // ── a fail: 3-question group, all wrong → stays Lv0, due tomorrow; no hook box ──
+  // ── a fail: 3-question group, all wrong → stays Lv0, due tomorrow (v2.4.1: every titled group has a hook box, English here) ──
   await pg.fill('#studySearch', '陪審員');
   await pg.click('#studyContent .memo-card[data-arg="jury"]');
-  assert(await pg.$('#memoBody .memo-hook') === null && await text('#memoSteps .memo-step:nth-child(2)') === '② Test (3)', 'no hook → no hook box; a 3-question group tests 3');
+  assert(/18 to 70/.test(await text('#memoBody .memo-hook')) && await text('#memoSteps .memo-step:nth-child(2)') === '② Test (3)', 'jury: one-line English hook box; a 3-question group tests 3');
   await runTest([false, false, false]);
   const fail = await pg.evaluate(() => ({ pct: document.querySelector('#memoBody .memo-pct').textContent, verdict: document.querySelector('#memoBody .memo-verdict').textContent }));
   const tomorrow = await addDays(day, 1);
@@ -287,6 +289,8 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   await pg.click('#studyContent .memo-card[data-arg="single"]');
   const singles = await pg.$$eval('#memoBody .memo-single-item', els => els.map(e => [e.querySelector('.memo-single-q').getAttribute('lang'), e.querySelector('.memo-single-note').getAttribute('lang'), e.querySelector('.memo-single-note').textContent.length]));
   assert(singles.length === 8 && singles.every(([q, note, n]) => q === 'en' && note === 'en' && n > 0), 'single-note group: 8 questions (lang en) with their English notes (lang en, v2.2.0)');
+  // W-078: the only group with hook '' — no empty "Memory hook:" box
+  assert(await pg.$('#memoBody .memo-hook') === null, 'single-note group: no hook → no hook box');
 
   // ── zh-HK strings ──
   await pg.evaluate(() => setLang('zh-HK'));
@@ -392,6 +396,79 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   assert(badgeBad.length === 0 && await noHScroll(), 'S-238 / S-241: 320px large text: mode badge on one line beside the memo back button and inside the header in every group test (en / zh-HK) ' + badgeBad.slice(0, 5).join('; '));
   await pg.evaluate(() => { setFontSize('small'); setLang('en'); memoBack(); });
   await pg.setViewportSize({ width: 390, height: 844 });
+
+  // ── CUI-0044: hook tokens never break across lines. The approved hook data (data/memo.js) keeps plain spaces; the look view
+  // binds 「1928 年」「1853–56 年」「N. Ireland」「AD 43」「55 BC」「70 歲」… with U+00A0 (and U+2060 after a range dash), the
+  // English hook (v2.4.1) too: N. Ireland, AD 43, 55 BC, 1945–51.
+  // The shown text, with those normalised back, still equals the data; search still takes a typed plain space ──
+  const glueIn = ['1928 年', '1840 年代', '1853–56 年', 'N. Ireland', 'AD 43', '55 BC', '18 至 70 歲', '650 個 MP', 'Scotland 129、Wales 60', '1945–51 welfare'];
+  const glueWant = ['1928\u00a0年', '1840\u00a0年代', '1853–\u206056\u00a0年', 'N.\u00a0Ireland', 'AD\u00a043', '55\u00a0BC', '18 至 70\u00a0歲', '650\u00a0個 MP', 'Scotland 129、Wales 60', '1945–\u206051 welfare'];
+  const glue = await pg.evaluate(list => list.map(s => memoHookNoBreak(s)), glueIn);
+  assert(glue.join('|') === glueWant.join('|'), 'memoHookNoBreak: year / decade / range (with or without a unit) / N. Ireland / AD / BC / 歲 / 個 glued, other spaces kept: ' + JSON.stringify(glue));
+  const hookHtml = await pg.evaluate(() => memoHookHtml({ hook: '<b> & 1928 年' }));
+  assert(hookHtml.includes('&lt;b&gt; &amp; 1928\u00a0年') && !hookHtml.includes('nbsp;'), 'memoHookHtml: escaped once, NBSP as a character (no &nbsp; / &amp;nbsp;)');
+  // review_v220-hooks S-272: a check that measures nothing would pass, so each config must measure every token it finds
+  // (both ends laid out) and at least a floor of them: the 61 Cantonese hooks hold 107 such tokens, the 61 English ones
+  // (v2.4.1, the same rules on the local hook) 23 (N. Ireland 10, year ranges 8, AD 4, BC 1)
+  const CUI44_MIN_TOKENS = { 'zh-HK': 100, en: 20 };
+  const splitBad = [], measuredBy = {};
+  for (const width of [320, 390, 1280]) for (const lang of ['en', 'zh-HK']) for (const size of ['small', 'large']) {
+    const tag = `${width}/${lang}/${size}`;
+    await pg.setViewportSize({ width, height: width > 1000 ? 800 : 568 });
+    await pg.evaluate(([l, s]) => { setFontSize(s); setLang(l); }, [lang, size]);
+    const res = await pg.evaluate(tag => {
+      const out = [];
+      let found = 0, measured = 0;
+      const re = getLang() === 'en'
+        ? /N\.[ \u00a0]Ireland|AD[ \u00a0]\d+|\d+[ \u00a0]BC|\d+–\u2060?\d+/g
+        : /N\.[ \u00a0]Ireland|AD[ \u00a0]\d+|\d+[ \u00a0]BC|\d+(?:–\u2060?\d+)?[ \u00a0](?:年|歲|月|國|個|位|世紀|日|星期|萬|時)/g;
+      MEMO_GROUPS.filter(g => g.hook).forEach(g => {
+        openMemoGroup(g.id);
+        const hook = memoLocal(g).hook; // the UI language's hook: hookEn in English (v2.4.1, every titled group has one)
+        const span = document.querySelector('#memoBody .memo-hook span');
+        if (!span) { out.push(`${tag} ${g.id}: no hook box`); return; }
+        const tn = span.firstChild;
+        const shown = span.textContent.replace(/\u00a0/g, ' ').replace(/\u2060/g, '');
+        if (span.childNodes.length !== 1 || shown !== hook || span.lang !== getLang()) out.push(`${tag} ${g.id}: hook text / lang differs from the data`);
+        const top = i => { const r = document.createRange(); r.setStart(tn, i); r.setEnd(tn, i + 1); const rs = [...r.getClientRects()].filter(x => x.width > 0); return rs.length ? Math.round(rs[0].top) : null; };
+        let m;
+        while ((m = re.exec(tn.textContent))) {
+          found++;
+          const a = top(m.index), z = top(m.index + m[0].length - 1);
+          if (a === null || z === null) continue;
+          measured++;
+          if (a !== z) out.push(`${tag} ${g.id}: 「${m[0].replace(/\u00a0/g, ' ').replace(/\u2060/g, '')}」 split`);
+        }
+      });
+      return { out, found, measured };
+    }, tag);
+    splitBad.push(...res.out);
+    measuredBy[tag] = res.measured;
+    if (res.measured < CUI44_MIN_TOKENS[lang] || res.measured !== res.found) splitBad.push(`${tag}: measured ${res.measured} / ${res.found} tokens (need all, ≥ ${CUI44_MIN_TOKENS[lang]})`);
+  }
+  assert(splitBad.length === 0, 'CUI-0044: no hook token split across two lines, shown hook text = the local hook (320 / 390 / 1280 × en / zh-HK × small / large, every token measured: '
+    + JSON.stringify(measuredBy) + ') ' + splitBad.slice(0, 8).join('; ') + (splitBad.length > 8 ? ` … (${splitBad.length})` : ''));
+  await pg.evaluate(() => { setFontSize('small'); setLang('en'); memoBack(); });
+  await pg.setViewportSize({ width: 390, height: 844 });
+  for (const [query, id] of [['1928 年', 'vote'], ['N. Ireland', 'nation-symbols'], ['AD 43', 'early-britain'], ['45 年 Attlee', 'post-war']]) {
+    await pg.fill('#studySearch', query);
+    assert((await cardIds()).includes(id), `CUI-0044: search 「${query}」 typed with a plain space finds ${id}`);
+  }
+  // review_v220-hooks S-271: text copied from the hook box carries U+00A0 / U+2060; pasted into the search it still finds
+  // the group (the query and the haystack both read U+00A0 as a space and drop U+2060); the Study fact search too
+  for (const [shown, id] of [['1853–\u206056\u00a0年', 'c19-people'], ['1928\u00a0年', 'vote'], ['N.\u00a0Ireland', 'nation-symbols'], ['AD\u00a043', 'early-britain'], ['1945–\u206051 welfare', 'post-war']]) {
+    await pg.fill('#studySearch', shown);
+    assert((await cardIds()).includes(id), `S-271: pasted hook text ${JSON.stringify(shown)} finds ${id}`);
+  }
+  const pasted = await pg.evaluate(() => {
+    const plain = searchText('Ab\u00a0c\u2060d');
+    studySetSearch('1928\u00a0women'); // normalises the query into study.search, which factMatches reads
+    const fact = factMatches({ en: 'In 1928 women voted at 21', yue: '' });
+    studySetSearch('');
+    return { plain, fact };
+  });
+  assert(pasted.plain === 'ab cd' && pasted.fact, 'S-271: searchText reads U+00A0 as a space, drops U+2060, lower-cases; the fact search matches a pasted NBSP: ' + JSON.stringify(pasted));
+  await pg.fill('#studySearch', '');
 
   // stored prefs / progress junk never breaks the tab
   await pg.evaluate(([k]) => { localStorage.setItem(k, '{bad'); localStorage.setItem('lifeuk.studyPrefs', JSON.stringify({ tab: 'memo', memoChapter: 'x' })); }, [MEMO_LS]);
