@@ -168,6 +168,8 @@ html:has(#screenStudy.active .study-top :focus-visible) { scroll-padding-top: va
   #screenStudy .study-top .chip-row::after { content: none; }
   #screenStudy .study-top .chip { flex-shrink: 1; white-space: normal; }
   html:has(#screenStudy.active), html:has(#screenStudy.active .study-top :focus-visible) { scroll-padding-top: auto; }
+  /* CUI-0034: ↩ Back from a fact session (flashStudyFact, block: start) puts the card's top below the panel's top fade */
+  #screenStudy .study-main .fact { scroll-margin-top: var(--fit-fade-h); }
   #screenStudy .study-main { display: flex; --fit-fade-h: calc(40px * var(--desktop-scale)); } /* mockup .right fades */
 
   /* hard-coded sizes ×1.2 (.proj-docs/plans/2026-10-12_desktop-px-inventory.md, Lane C); the :first-child margins

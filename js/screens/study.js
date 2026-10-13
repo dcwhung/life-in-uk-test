@@ -258,11 +258,23 @@ function renderStudy() {
 
 // Q8: after ↩ Back from a fact session its card flashes gold; R-010: when the restored scroll no longer shows it
 // (the list changed while practising) bring it into view. Gone (e.g. Hide mastered): nothing to do.
+// CUI-0034 (user 2026-10-12: align the card top): when the card's top is hidden (behind the pinned block on a phone,
+// above the card panel's edge on desktop) it lands right under the block / below the panel's top fade ('start': phone
+// scroll-padding-top = header + block, css/screens/study.css; desktop scroll-margin-top = the fade), so its year / title
+// show even when the card is taller than the room and its ▶ goes off-screen. 'nearest' left a tall card's top hidden
+// (both edges out of view: no scroll). A card whose top already shows keeps the restored scroll ('nearest', as before)
+function studyCardTopHidden(el) {
+  const top = el.getBoundingClientRect().top;
+  if (studyPanelScrolls()) {
+    return top < studyPanel().getBoundingClientRect().top - 1; // above the panel's edge (inside the fade still reads)
+  }
+  return top < (parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0) - 1;
+}
 function flashStudyFact(id) {
   const el = document.querySelector(`#studyContent .fact[data-fact-id="${id}"]`);
   if (!el) return;
   studySyncTopHeight(); // W-067: Study was hidden a moment ago, so --study-top-h may still read 0
-  el.scrollIntoView({ block: 'nearest' });
+  el.scrollIntoView({ block: studyCardTopHidden(el) ? 'start' : 'nearest' });
   el.classList.add('flash');
   setTimeout(() => el.classList.remove('flash'), FACT_HIGHLIGHT_MS);
 }
