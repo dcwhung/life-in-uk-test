@@ -170,7 +170,72 @@ const measurePx = (page, value, property = 'padding-left') => page.evaluate(([v,
   return px;
 }, [value, property]);
 
+// v2.4.0: the colours a screenshot shows in a band of rows (what is painted, box-shadows included, which hit testing
+// cannot tell): a minimal PNG reader for Chromium's 8-bit RGB / RGBA, non-interlaced screenshots.
+// Returns [[r, g, b], …] for every pixel of rows y0..y1 (CSS px at deviceScaleFactor 1)
+const zlib = require('zlib');
+const PNG_SIGNATURE_BYTES = 8;
+const PNG_CHANNELS = { 2: 3, 6: 4 }; // colour type → bytes per pixel (RGB, RGBA)
+function pngRows(png) {
+  let at = PNG_SIGNATURE_BYTES, width = 0, height = 0, bpp = 0;
+  const idat = [];
+  while (at < png.length) {
+    const len = png.readUInt32BE(at), type = png.toString('ascii', at + 4, at + 8), data = png.subarray(at + 8, at + 8 + len);
+    if (type === 'IHDR') { width = data.readUInt32BE(0); height = data.readUInt32BE(4); bpp = PNG_CHANNELS[data[9]]; }
+    if (type === 'IDAT') idat.push(data);
+    at += len + 12;
+  }
+  const raw = zlib.inflateSync(Buffer.concat(idat)), stride = width * bpp, rows = [];
+  let prev = Buffer.alloc(stride);
+  for (let y = 0; y < height; y++) {
+    const filter = raw[y * (stride + 1)], line = Buffer.from(raw.subarray(y * (stride + 1) + 1, (y + 1) * (stride + 1)));
+    for (let i = 0; i < stride; i++) {
+      const a = i >= bpp ? line[i - bpp] : 0, b = prev[i], c = i >= bpp ? prev[i - bpp] : 0;
+      const p = a + b - c, pa = Math.abs(p - a), pb = Math.abs(p - b), pc = Math.abs(p - c);
+      const pred = [0, a, b, (a + b) >> 1, pa <= pb && pa <= pc ? a : pb <= pc ? b : c][filter];
+      line[i] = (line[i] + pred) & 0xff;
+    }
+    rows.push(line);
+    prev = line;
+  }
+  return { width, bpp, rows };
+}
+async function bandColours(page, y0, y1) {
+  const { width, bpp, rows } = pngRows(await page.screenshot({ type: 'png' })); // a Buffer: no file written
+  const out = [];
+  for (let y = y0; y <= y1; y++) for (let x = 0; x < width; x++) out.push([rows[y][x * bpp], rows[y][x * bpp + 1], rows[y][x * bpp + 2]]);
+  return out;
+}
+
+// v2.4.0 Study memo list (mockup desktop-memo.html rev 6): columns of cards (distinct lefts), each card's status badge in
+// its top-right corner (beside the first line of the title, never pushed under it), its bar at the card's foot, the
+// cards of a row equally high; where the due banner is and whether it is inside the card panel
+const MEMO_LIST_SLACK_PX = 1.5;
+const memoListLayout = page => page.evaluate(slack => {
+  const box = el => el.getBoundingClientRect();
+  const cards = [...document.querySelectorAll('#studyContent .memo-card')];
+  const lefts = [...new Set(cards.map(c => Math.round(box(c).left)))];
+  const rows = {};
+  const bad = [];
+  cards.forEach(c => {
+    const r = box(c), cs = getComputedStyle(c), name = c.querySelector('.memo-name'), badge = c.querySelector('.memo-badge'), bar = c.querySelector('.memo-bar');
+    const b = box(badge), n = box(name), lineH = parseFloat(getComputedStyle(name).lineHeight) || n.height;
+    (rows[Math.round(r.top)] = rows[Math.round(r.top)] || []).push(r.height);
+    const right = r.right - parseFloat(cs.paddingRight) - parseFloat(cs.borderRightWidth);
+    const foot = r.bottom - parseFloat(cs.paddingBottom) - parseFloat(cs.borderBottomWidth);
+    if (Math.abs(b.right - right) > slack) bad.push(`${c.dataset.arg}: badge right ${b.right.toFixed(1)} / ${right.toFixed(1)}`);
+    if (b.top > n.top + lineH / 2 || b.top < r.top) bad.push(`${c.dataset.arg}: badge top ${b.top.toFixed(1)} vs title ${n.top.toFixed(1)}`);
+    if (b.left < n.right - slack) bad.push(`${c.dataset.arg}: badge over the title`);
+    if (Math.abs(box(bar).bottom - foot) > slack) bad.push(`${c.dataset.arg}: bar ${box(bar).bottom.toFixed(1)} / foot ${foot.toFixed(1)}`);
+  });
+  const unequal = Object.values(rows).filter(hs => Math.max(...hs) - Math.min(...hs) > slack).length;
+  const due = document.querySelector('#screenStudy .memo-due'), content = byId('studyContent');
+  return { cards: cards.length, columns: lefts.length, bad, unequal, due: due && box(due), dueInPanel: !!due && content.contains(due),
+    panel: box(content), header: box(document.querySelector('header')) };
+}, MEMO_LIST_SLACK_PX);
+
 module.exports = {
+  bandColours, memoListLayout,
   APP_URL, DESKTOP_MIN_WIDTH, VIEWPORTS, DESKTOP_VIEWPORTS, SHORT_VIEWPORTS, LANGS, FONT_SIZES, TRANSLATIONS, FIT_SLACK_PX,
   assert, launch, openDesktop, applySettings, setViewport, nextFrame, forEachCase, settingsLabel,
   noHorizontalScroll, pageNotScrolling, fitsWithoutScroll, panelOnlyScroll, inViewport, measurePx, controlsReachable,

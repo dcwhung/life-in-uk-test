@@ -235,7 +235,7 @@ async function checkQuizPractice(pg, ctx) {
     ['#ansEn', EN], ['#ansYue .ans-yue-row > span', ZH_HK], ['#ansNote .ans-note-text', ZH_HK, true],
     ['#similarBox .sqm-q', EN], ['#similarBox .sqm-qy', ZH_HK], ['#similarBox .sqm-fact-en', EN], ['#similarBox .sqm-fact-yue', ZH_HK],
     ['#ansNote > strong', ZH_HK], // S-048: the 💡 label reads with the note
-  ], [['#ansNote > strong', ZH_HK], ['#ansNote .ans-note-text', ZH_HK]]);
+  ], [['#ansNote > strong', EN], ['#ansNote .ans-note-text', EN]]); // v2.2.0: the English UI shows the English note
 }
 
 // S-048: an answer with no Cantonese option text (True / False / years) falls back to English, marked lang="en"
@@ -335,7 +335,7 @@ async function checkResult(pg, ctx) {
   await switchCheckBoth(pg, ctx, 'result (filter Wrong)', '#resultLabel2', [
     ['#reviewList .rv-q-text', EN], ['#reviewList .rv-correct-ans', EN], ['#reviewList .rv-yue', ZH_HK], ['#reviewList .rv-note-line', ZH_HK, true],
     ['#reviewList .rv-your > span', EN], // S-047: the chosen option, not the 你的答案： label
-  ], [['#reviewList .rv-note-label', ZH_HK]]);
+  ], [['#reviewList .rv-note-label', EN], ['#reviewList .rv-note-line', EN]]); // v2.2.0: English note in the English UI
   // S-047: the label and 未作答 stay in the page language (no lang="en" around them)
   const yourLines = await pg.evaluate(() => [...document.querySelectorAll('#reviewList .rv-your')].map(e => ({ n: e.querySelectorAll('[lang]').length, label: e.firstChild.nodeType === Node.TEXT_NODE })));
   assert(yourLines.filter(l => l.n === 1).length === 1 && yourLines.every(l => l.n <= 1 && l.label), 'S-047: one answered wrong line with a lang="en" answer, labels unmarked: ' + JSON.stringify(yourLines));
@@ -438,7 +438,9 @@ async function checkPlanRun(pg, ctx) {
     return k;
   });
   await switchOn(sp, ctx, 'plan runner', '#screenQuiz .back-btn');
-  assert(await textOf(sp, '#screenQuiz .back-btn') === 'Day 3 任務' && await textOf(sp, '#ansLabel') === '✗ 錯誤 · 🔥 0/3', 'plan runner zh-HK: Day 3 任務 (← is a line icon), answer box re-rendered');
+  // v2.1.1 (user): the button reads 「返回」 and is named after the day; v2.1.2 W-077: the name starts with 「返回」
+  const zhBack = await sp.$eval('#screenQuiz .back-btn', e => [e.textContent.trim(), e.getAttribute('aria-label')]);
+  assert(zhBack[0] === '返回' && zhBack[1] === '返回 Day 3 任務' && await textOf(sp, '#ansLabel') === '✗ 錯誤 · 🔥 0/3', 'plan runner zh-HK: 「‹ 返回」 named 返回 Day 3 任務, answer box re-rendered: ' + zhBack.join(' | '));
   await switchOn(sp, ctx, 'plan runner', '#screenQuiz .back-btn');
   await sp.evaluate(k => planShowTaskDone('2026-09-30', k, '2026-09-30'), i);
   await switchOn(sp, ctx, 'plan Result card', '#planRunBody .result-label');

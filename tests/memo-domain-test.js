@@ -90,10 +90,19 @@ const PINNED_HOOKS = {
   'post-war': '「45 年 Attlee 贏 Churchill、45–51 年福利國家、48 年 NHS + Windrush」\n→ 1948 年雙響：Bevan 推動 NHS（用嗰陣免費）、Empire Windrush 載第一批 Caribbean 移民。',
   'great-fire': "「1666 年 Charles II 時期大火燒 St Paul's → Pepys 寫日記 → Wren 重新設計」",
   'king-parliament': '「28 年 Petition of Right、42 年內戰、49 年斬王、60 年 Restoration（復辟）、88 年 Glorious（光榮）」\n→ 1649 年 Charles I 被處決，Cromwell 做護國公；1688 年 William of Orange 做國王，開始君主立憲。',
-  // review_v220 follow-ups (user): W-077 Northern Ireland reads 「N. Ireland」; a space after 「年」 before a Latin word
+  // review_v220-hooks follow-ups (user): W-077 Northern Ireland reads 「N. Ireland」; a space after 「年」 before a Latin word
   'magna-carta': '「1215 年 King John 簽：冇人凌駕法律，國王都唔例外」\n→ 限制國王權力，奠定法治（rule of law）基礎。',
   'devolved': '「Scotland 129、N. Ireland 90、Wales 60、UK 650」\n→ England 冇自己嘅地方議會，由 Westminster 英國國會直接負責。',
   'nation-symbols': '「England Rose、Scotland Thistle、Wales Daffodil、N. Ireland Shamrock」\n「England London、Scotland Edinburgh、Wales Cardiff、N. Ireland Belfast」\n→ Gaelic 係 Scotland 同 Ireland 部分地區講。',
+};
+// v2.4.1: English hooks (hookEn) for all 61 titled groups, user-reviewed 2026-10-13 (translated from the approved hooks
+// above; they replace main v2.2.0's 15, which came from the old hooks). Pinned verbatim (a sample); 'single' has none.
+const PINNED_HOOKS_EN = {
+  'vote': "\"1689 no votes, 1832 middle class, 1918 men 21 women 30, 1928 same age 21, 1969 down to 18\"\n→ In 1918 women had to be 30; ten years later, in 1928, they voted at 21 like men.",
+  'early-britain': "\"Caesar failed to invade in 55 BC; Claudius succeeded in AD 43\"\n→ AD 60 Boudicca revolts, AD 122 Hadrian builds the Wall, AD 410 the Romans leave → Jutes, Angles, Saxons move in → then the Vikings arrive in longships.",
+  'nation-symbols': "\"England Rose, Scotland Thistle, Wales Daffodil, N. Ireland Shamrock\"\n\"England London, Scotland Edinburgh, Wales Cardiff, N. Ireland Belfast\"\n→ Gaelic is spoken in parts of Scotland and Ireland.",
+  'post-war': "\"1945 Attlee beats Churchill, 1945–51 welfare state, 1948 NHS + Windrush\"\n→ Two big events in 1948: Bevan launched the NHS (free at the point of use) and the Empire Windrush brought the first Caribbean migrants.",
+  'great-fire': "\"1666, under Charles II, the Great Fire burns St Paul's → Pepys writes his diary → Wren redesigns it\"",
 };
 const THREE_LINE_HOOKS = ['nation-symbols']; // user-approved: two 「」 lines (flowers, capitals) + one → line
 // year rule: a four-digit year (1000–2099) is followed by 「年」, or starts a range whose end is (1853–56 年, 1337–1453 年).
@@ -113,6 +122,11 @@ function checkHooks({ g }) {
   assert(same(order.map(gr => gr.id), groups.map(gr => gr.id)), 'MEMO_GROUPS is listed most distinct questions first (ties: more copies)');
   assert(groups.length === TITLED_GROUPS && groups.every(gr => gr.hook.trim().length > 0), `all ${TITLED_GROUPS} titled groups have a hook`);
   assert(g("memoGroupById('single').hook") === '', "the single-note group has no hook ('')");
+  for (const [id, hookEn] of Object.entries(PINNED_HOOKS_EN)) assert(g(`memoGroupById('${id}').hookEn`) === hookEn, `${id} hookEn: user-approved English wording, verbatim`);
+  const badEn = groups.filter(gr => typeof gr.hookEn !== 'string' || !gr.hookEn.trim() || gr.hookEn.split('\n').length !== gr.hook.split('\n').length
+    || gr.hookEn.split('\n').some(l => !l.trim()) || /[\u3400-\u9fff\uff08\uff09]/.test(gr.hookEn));
+  assert(badEn.length === 0, `every titled group has an English hook: non-empty, as many lines as its hook, no Chinese (bad: ${badEn.map(gr => gr.id).join()})`);
+  assert(g("memoGroupById('single').hookEn") === '', "the single-note group has no English hook ('')");
   const badLines = groups.filter(gr => gr.hook.split('\n').length > (THREE_LINE_HOOKS.includes(gr.id) ? 3 : 2) || gr.hook.split('\n').some(l => !l.trim()));
   assert(badLines.length === 0, `a hook is one or two non-empty lines (${THREE_LINE_HOOKS.join()}: three) (bad: ${badLines.map(gr => gr.id).join()})`);
   const bareYears = groups.filter(gr => BARE_YEAR.test(gr.hook));

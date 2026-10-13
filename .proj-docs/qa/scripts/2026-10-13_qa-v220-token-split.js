@@ -1,4 +1,4 @@
-// QA v2.2.0 CUI-0043: measure which hook tokens (N. Ireland / NN 年 / NN BC / AD NN / d/m) are broken across two lines
+// QA v2.2.0 CUI-0044 (QA-time number CUI-0043; renamed, review_v220-hooks S-274): measure which hook tokens (N. Ireland / NN 年 / NN BC / AD NN / d/m) are broken across two lines
 // in the 睇 view's hook box (Range rects per character). 320 / 390 / 1280 × en / zh-HK × small / large. Prints JSON.
 //   NODE_PATH=/opt/node-tools/node_modules CHROMIUM_PATH=/opt/pw-browsers/chromium node 2026-10-13_qa-v220-token-split.js
 const { chromium } = require('playwright-core');

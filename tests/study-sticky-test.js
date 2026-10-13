@@ -157,7 +157,8 @@ async function timelineChecks(pg) {
   assert(res.pos === 'static' && res.inBlock, 'timeline era bar scrolls under the pinned block (not sticky, not on top)');
 }
 
-// memo: the "due today" banner is part of the list, so it scrolls away under the block
+// memo: v2.4.0 (mockup desktop-memo.html rev 4 / rev 5, user 2026-10-13: 「今日要溫」固定唔郁, superseding v1.6.1's banner
+// as a list row) the "due today" banner stays on screen: it sticks right under the pinned block
 async function memoChecks(pg) {
   await pg.evaluate(id => {
     localStorage.setItem('lifeuk.memoProgress', JSON.stringify({ [id]: { lv: 1, due: planTodayIso() } }));
@@ -165,10 +166,10 @@ async function memoChecks(pg) {
   await openTab(pg, 'memo');
   await toBottom(pg);
   const b = await pg.evaluate(() => {
-    const r = document.querySelector('#studyContent .memo-due').getBoundingClientRect();
-    return { bannerBottom: r.bottom, header: document.querySelector('header').getBoundingClientRect().bottom };
+    const r = document.querySelector('#studyLead .memo-due').getBoundingClientRect();
+    return { bannerTop: r.top, block: document.querySelector('#screenStudy .study-top').getBoundingClientRect().bottom, scrolled: window.scrollY };
   });
-  assert(b.bannerBottom < b.header, 'memo due banner scrolls away with the list');
+  assert(b.scrolled > 0 && Math.abs(b.bannerTop - b.block) <= TOLERANCE_PX, 'memo due banner stays pinned right under the block: ' + JSON.stringify(b));
   await pg.evaluate(() => localStorage.removeItem('lifeuk.memoProgress'));
 }
 
@@ -449,7 +450,7 @@ async function widthChecks(browser) {
 // v2.0.4 merge: the v1.6.1 block in main's v2.0.0 desktop Study (rail + card panel), then back to a phone width
 const DESKTOP_VIEWPORTS = [{ width: 1024, height: 768 }, { width: 1280, height: 800 }];
 const DESKTOP_CASES = [['en', 'large'], ['zh-HK', 'small']];
-const MEMO_DESKTOP_COLS = 3;
+const MEMO_DESKTOP_COLS = { narrow: 3, wide: 4, wideFrom: 1280 }; // v2.4.0 (mockup desktop-memo.html rev 2): 4 from 1280px
 async function desktopChecks(browser) {
   for (const vp of DESKTOP_VIEWPORTS) for (const [lang, size] of DESKTOP_CASES) {
     const label = `desktop ${vp.width}x${vp.height} ${lang} ${size}`;
@@ -493,10 +494,11 @@ async function desktopChecks(browser) {
       const grid = document.querySelector('#studyContent .memo-grid');
       const cards = [...grid.querySelectorAll('.memo-card')];
       const g = grid.getBoundingClientRect();
-      const tops = new Set(cards.slice(0, 6).map(c => Math.round(c.getBoundingClientRect().top)));
+      const tops = new Set(cards.slice(0, 2 * getComputedStyle(grid).gridTemplateColumns.split(' ').length).map(c => Math.round(c.getBoundingClientRect().top)));
       return { cols: getComputedStyle(grid).gridTemplateColumns.split(' ').length, rows: tops.size, out: cards.filter(c => c.getBoundingClientRect().right > g.right + 1).length };
     });
-    assert(m.cols === MEMO_DESKTOP_COLS && m.rows === 2 && m.out === 0, `${label}: memo list three cards a row ${JSON.stringify(m)}`);
+    const wantCols = vp.width >= MEMO_DESKTOP_COLS.wideFrom ? MEMO_DESKTOP_COLS.wide : MEMO_DESKTOP_COLS.narrow;
+    assert(m.cols === wantCols && m.rows === 2 && m.out === 0, `${label}: memo list ${wantCols} cards a row ${JSON.stringify(m)}`);
     // back below 1024px: the filter chips go back into the block and it pins again
     if (vp.width === DESKTOP_VIEWPORTS[1].width && lang === 'en') {
       await pg.setViewportSize(PHONE);

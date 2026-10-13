@@ -84,10 +84,11 @@ function factSourceRowHtml(f, practise, doneTag) {
 }
 
 // v0.71 (B3): the source questions' memory method, closed until tapped (user picked option B); notes are Cantonese
+// (v2.2.0: English in the English UI, factMemory)
 function factMemoryHtml(f) {
-  const text = factMemoryText(f);
+  const mem = factMemory(f);
   // CUI-0035: the expander's chevron is a line icon (turned down when open, css/components/fact.css), not a ▸ / ▾ glyph
-  return text ? `<details class="fact-mem"><summary>${lineIconSvg('chevronRight')}<span>${t('study.memoryAid')}</span></summary><div class="fact-mem-body" lang="zh-HK">${noteHtml(text)}</div></details>` : '';
+  return mem && mem.text ? `<details class="fact-mem"><summary>${lineIconSvg('chevronRight')}<span>${t('study.memoryAid')}</span></summary><div class="fact-mem-body" lang="${mem.lang}">${noteHtml(mem.text, mem.lang)}</div></details>` : '';
 }
 
 // marks: { bookmarks, mastered (ticked by hand), derived (factMastery) } booleans for this fact;

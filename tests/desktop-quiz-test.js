@@ -153,7 +153,9 @@ async function checkPhone(b) {
   await dt.setViewport(page, dt.VIEWPORTS.phone);
   await page.evaluate(() => goToQuestion(0));
   assert(await quizOrder(page) === before, '1024 → 390: every element back in its v1.4 place');
-  assert(await page.evaluate(() => getComputedStyle(byId('screenQuiz')).display) === 'block', '390px: the screen is a plain block again');
+  // v2.4.0: the phone's own one-screen layout (tests/phone-quiz-test.js) again, not the desktop's columns
+  assert(await page.evaluate(() => getComputedStyle(byId('screenQuiz')).display === 'flex' && byId('screenQuiz').classList.contains('is-fit-phone')
+    && document.querySelector('#screenQuiz .quiz-scroll').getClientRects().length > 0), '390px: the phone layout again (one screen high, its scroll panel)');
   await startSet(page, 'exam', EXAM_ONE);
   assert(await visible(page, '#examTimer') && !(await visible(page, '.exam-big-timer')) && await page.evaluate(() => !!byId('navDots').closest('.q-card')), '390px exam: header timer, dots in the card');
   await dt.setViewport(page, dt.VIEWPORTS.belowDesktop);

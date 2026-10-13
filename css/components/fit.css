@@ -9,8 +9,17 @@
    - .fit-fade            wraps one .fit-panel: top / bottom fades while content is out of view (js sets can-up /
                           can-down on it, mockup afterRender()). Per panel: --fit-fade-color (the surface under the
                           panel: --bg by default, --card inside a card), --fit-fade-h, --fit-panel-gutter (scrollbar room)
+   v2.4.0 phone (< 1024px; mockup mockups/v2.0.0/desktop-memo.html rev 4–6): a screen opts in with .is-fit-phone (memo,
+   quiz): one screen high under the header, its .fit-panel / .fit-fade work as on the desktop (fades in --bg, no
+   scrollbar gutter: phone scrollbars float). Only on a screen at least --fit-phone-min-h high (the literal 500px in the
+   media query below): a landscape phone keeps its scrolling page, as the fixed parts would leave no room
    ════════════════════════════════════════ */
 :root {
+  --fit-phone-pad-bottom: var(--space-8); /* main's bottom room under a one-screen phone screen */
+  --fit-phone-fade-h: 36px; /* mockup .mx-mwrap fades */
+  /* C-007: below this the panel is too short to use (about two option rows at the current text size): the screen falls
+     back to the scrolling page (js/components/fit.js fitPhoneScreen) */
+  --fit-phone-min-panel: calc(10 * var(--fs-xl));
   --fit-screen-gap: var(--space-10); /* above and below an is-fit screen (main's own top padding) */
   --fit-fade-h: calc(36px * var(--desktop-scale)); /* mockup .vwrap fade (desktop-quiz.html) */
   --fit-fade-color: var(--bg);
@@ -41,4 +50,29 @@
 }
 @media (min-width: 1024px) and (prefers-reduced-motion: reduce) {
   .fit-fade::before, .fit-fade::after { transition: none; }
+}
+
+/* v2.4.0 phone one-screen screens (.is-fit-phone; js/screens/memo.js, js/screens/quiz.js). Min height 500px =
+   --fit-phone-min-h (media queries cannot read custom properties) */
+@media (max-width: 1023px) and (min-height: 500px) {
+  main:has(> .screen.is-fit-phone.active) { padding-bottom: var(--fit-phone-pad-bottom); }
+  .screen.is-fit-phone.active {
+    display: flex; flex-direction: column;
+    height: calc(100vh - var(--header-h) - var(--fit-screen-gap) - var(--fit-phone-pad-bottom)); /* browsers without dvh */
+    height: calc(100dvh - var(--header-h) - var(--fit-screen-gap) - var(--fit-phone-pad-bottom));
+    --fit-fade-h: var(--fit-phone-fade-h); --fit-panel-gutter: 0px;
+  }
+  .screen.is-fit-phone .fit-panel { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-right: var(--fit-panel-gutter); }
+  .screen.is-fit-phone .fit-fade { position: relative; display: flex; flex-direction: column; min-height: 0; }
+  .screen.is-fit-phone .fit-fade > .fit-panel { flex: 1 1 auto; }
+  .screen.is-fit-phone .fit-fade::before, .screen.is-fit-phone .fit-fade::after {
+    content: ''; position: absolute; left: 0; right: var(--fit-panel-gutter); height: var(--fit-fade-h);
+    z-index: 2; pointer-events: none; opacity: 0; transition: opacity var(--fit-fade-duration);
+  }
+  .screen.is-fit-phone .fit-fade::before { top: 0; background: linear-gradient(var(--fit-fade-color), transparent); }
+  .screen.is-fit-phone .fit-fade::after { bottom: 0; background: linear-gradient(transparent, var(--fit-fade-color)); }
+  .screen.is-fit-phone .fit-fade.can-up::before, .screen.is-fit-phone .fit-fade.can-down::after { opacity: 1; }
+}
+@media (max-width: 1023px) and (min-height: 500px) and (prefers-reduced-motion: reduce) {
+  .screen.is-fit-phone .fit-fade::before, .screen.is-fit-phone .fit-fade::after { transition: none; }
 }

@@ -15,6 +15,9 @@ const PLAN_RUN_ICON = { next: 'arrowRight', finish: 'check', redo: 'arrowRight' 
 // v1.6.1: the bottom button's icon, where its glyph was (→ / ✓ after the words, 🔁 before them)
 const PLAN_RUN_LABEL_ICONS = { next: { trail: 'arrowRight' }, finish: { trail: 'check' }, redo: { lead: 'redo' } };
 const PLAN_NEXT_ICONS = PLAN_RUN_LABEL_ICONS.next, PLAN_BACK_ICONS = { lead: 'arrowLeft' }; // → after / ← before the words
+// v2.1.1 (S-260): every header back button with words leads with the same chevron as memo's "‹ Memory" (memo.js
+// MEMO_BACK_ICONS): the plan day / fact labels here, the side session / Flagged ones (sideSession.js setEntryBack)
+const HEADER_BACK_ICONS = { lead: 'chevronLeft' };
 const PLAN_RUN_VIEW = { done: 'done', facts: 'facts' };
 const PLAN_RUN_BADGE_KEYS = { [PLAN_TASK.read]: 'home.modeStudy', [PLAN_TASK.mock]: 'common.exam' }; // others: Practice
 let planRunView = null; // #screenPlanRun: { kind, date, taskIndex, from } (+ facts: pos, review)
@@ -119,35 +122,65 @@ function planRunLabel({ type, ch, exam }) {
   if (type === PLAN_TASK.mock) return t('common.examN', { n: exam });
   return t('common.chapterN', { n: ch });
 }
-function planRunBackHtml(from) {
-  const plan = from && from !== planTodayIso() ? planLoad() : null;
-  const label = plan ? t('plan.run.backDayHtml', { day: `<span lang="en">${t('plan.dayN', { n: planDayNumber(plan, from) })}</span>` })
-    : escapeHtml(t('plan.run.backToday'));
-  return iconLabelHtml(label, PLAN_BACK_ICONS); // v1.6.1: the ← glyph is a line icon
+// v2.1.1 (user 2026-10-13): the button reads "‹ Back" so the label beside it ("Chapter 1") stays whole at 320px; its
+// accessible name says which day it goes back to (planRunBackName)
+function planRunBackHtml() {
+  return iconLabelHtml(escapeHtml(t('quiz.back')), HEADER_BACK_ICONS); // v1.6.1: the glyph is a line icon (S-260: chevron)
 }
-// the quiz header's 🏠 reads "← Today's tasks" in a plan session or mock (goHome goes back to the day there);
-// a fact's session is named like the Study one ("Fact Ch c #n", setExamLabel)
-// v1.2.0 (Q11): Home is an icon button; a plan's text back label keeps its words, and those words name it (S-188: an
-// aria-label would hide the <span lang="en">Day n</span> language from screen readers)
-function setQuizBackText(back, html) {
+// W-077 (WCAG 2.5.3 Label in Name): the name starts with the visible word ("Back to today's tasks" / "Back to Day 3 tasks"),
+// so "click Back" works by voice. Plain-text …Label keys (S-267: an aria-label is never HTML; an aria-label carries no
+// lang span either, so "Day n" is read in the page language, S-188 trade-off). W-072: a stale locale without them is
+// named by the visible word itself, never a raw key
+function planRunBackName(from) {
+  const plan = from && from !== planTodayIso() ? planLoad() : null;
+  const nameKey = plan ? 'plan.run.backDayLabel' : 'plan.run.backTodayLabel';
+  const name = plan ? t(nameKey, { day: t('plan.dayN', { n: planDayNumber(plan, from) }) }) : t(nameKey);
+  return name === nameKey ? t('quiz.back') : name;
+}
+// the quiz header's back button reads "‹ Back" (named "Back to today's tasks") in a plan session or mock: goBack (sideSession.js) leaves a
+// session through planLeaveSession, a mock through goHome (planLeaveMock asks first); a fact's session is named like
+// the Study one ("Fact Ch c #n", setExamLabel)
+// v1.2.0 (Q11): Home is an icon button. A text back label with its full words is named by them (no aria-label); a
+// shortened one ("‹ Q24", a plan's "‹ Back") passes its full words as `name` (W-074, W-077), which start with the
+// visible words. S-188 (an aria-label hides a <span lang="en">) is the trade-off a plan's plain-text name accepts
+// W-072: index.html says goHome; goBack only once this page's actions.js has it (an HTTP-cached pre-v2.1.1 actions.js
+// would leave the header a dead button mid-session). goHome still leaves a plan session for its day.
+function hasGoBackAction() { return typeof ACTIONS !== 'undefined' && typeof ACTIONS.goBack === 'function'; }
+function setQuizBackAction(back) { back.dataset.action = hasGoBackAction() ? 'goBack' : 'goHome'; }
+// W-074: an optional accessible name for a shortened label ("Q24" → "Back to Q24", "Back" → "Back to today's tasks");
+// it must contain the visible words (W-077)
+function setQuizBackText(back, html, name) {
+  setQuizBackAction(back);
   back.classList.add('plan-hit', 'with-icon');
   back.classList.remove('icon-btn', 'memo-back');
   back.innerHTML = html;
+  if (name) { setAccessibleName(back, name); return; }
   back.removeAttribute('aria-label');
   back.removeAttribute('title');
 }
 function setQuizBackHome(back) {
+  setQuizBackAction(back);
   back.classList.remove('plan-hit', 'memo-back', 'with-icon');
   back.classList.add('icon-btn');
   back.innerHTML = lineIconSvg('home');
   setAccessibleName(back, t('common.homeLabel'));
 }
+// v2.1.1: one fact's ▶ Practise reads "‹ Back" too (planRunBackHtml; planLeaveSession; user 2026-10-13: the words
+// beside "Fact Ch c #n" stay short). S-265: the same words as a whole task, so only the name differs:
+// the accessible name: the fact's full words (a stale locale without them: the day's), else the day it goes back to
+function planQuizBackName(session) {
+  const name = t('plan.run.backFactLabel');
+  if (session && planRunPart(sessionReturn).fact !== undefined && name !== 'plan.run.backFactLabel') return name;
+  return planRunBackName((session ? sessionReturn : planMockRun).from);
+}
 function renderPlanQuizHeader() {
   const back = byId('screenQuiz').querySelector('.back-btn');
   const session = isPlanSession(), plan = session || isPlanMock();
-  if (plan) setQuizBackText(back, planRunBackHtml((session ? sessionReturn : planMockRun).from));
-  else if (isMemoSession()) setQuizBackMemo(back); // C2: "‹ Memory" back to the group (js/screens/memo.js)
-  else setQuizBackHome(back);
+  if (plan) setQuizBackText(back, planRunBackHtml(), planQuizBackName(session));
+  // C2: "‹ Memory" back to the group (memo.js). W-072: a cached pre-v2.0.4 sideSession.js has no isMemoSession (as goHome)
+  else if (typeof isMemoSession === 'function' && isMemoSession()) { setQuizBackAction(back); setQuizBackMemo(back); }
+  else if (typeof setEntryBack === 'function') setEntryBack(back);
+  else setQuizBackHome(back); // W-072: an HTTP-cached pre-v2.1.1 sideSession.js (no setEntryBack) keeps the 🏠
   if (!session) return;
   if (planRunPart(sessionReturn).fact !== undefined) setExamLabel(byId('quizLabel'), FACT_PREFIX + sessionReturn.fact);
   else byId('quizLabel').textContent = planRunLabel(sessionReturn);
@@ -200,8 +233,8 @@ function planReviewNextAction(ret) {
   }
   return planAction(t('quiz.finish'), 'finish', () => planBackToDay());
 }
-// ← (quiz header in a plan session, Result card header, "Back to the task list"): the day screen it came from,
-// focus on the task's box when it is listed there
+// ‹ (Result card header, "Back to the task list", a whole task's quiz header via goBack → planLeaveSession): the day
+// screen it came from, focus on the task's box when it is listed there
 function planBackToDay() {
   const ret = isPlanSession() ? sessionReturn : planRunView || planMockRun;
   clearSideSession();
@@ -211,6 +244,20 @@ function planBackToDay() {
   openPlanDay(ret ? ret.from : null);
   const box = ret && document.querySelector(`#planTaskList [data-arg="${ret.date}"][data-task="${ret.taskIndex}"]`);
   if (box) box.focus();
+}
+// v2.1.1 (goBack): ‹ mid-session. One fact's practice goes back to that fact's card (review when the task is done, as
+// planOpenTask shows it); a whole task, or a plan gone meanwhile, as planBackToDay
+function planLeaveSession() {
+  const ret = sessionReturn;
+  const ctx = planVisible() && planRunPart(ret).fact !== undefined ? planRunContext(ret.date, ret.taskIndex) : null;
+  if (!ctx) { planBackToDay(); return; }
+  planShowFacts({ date: ret.date, taskIndex: ret.taskIndex, from: ret.from }, ret.pos, planTaskProgress(ctx.task, ctx.dayLog).complete);
+  // S-258: focus back on the card's ▶ Practise that opened the quiz (gone in review: the nav-row's main button), as
+  // planShowTaskDone focuses its result line
+  const body = byId('planRunBody');
+  const target = body.querySelector('[data-action="planPractiseFact"]:not([disabled])')
+    || body.querySelector('.plan-run-nav .nav-btn:not([disabled]):last-child');
+  if (target) target.focus({ preventScroll: true });
 }
 // switching the feature off (G15) from the Practice screen leaves a plan session too, and a timed plan mock unsubmitted
 function isOnPlanSession() { return (isPlanSession() || isPlanMock()) && byId('screenQuiz').classList.contains('active'); }
@@ -245,7 +292,8 @@ function renderPlanRun() {
   if (!ctx) { planBackToDay(); return; }
   const focusKey = planRunFocusKey();
   byId('planRunBack').classList.add('with-icon');
-  byId('planRunBack').innerHTML = planRunBackHtml(view.from);
+  byId('planRunBack').innerHTML = planRunBackHtml();
+  setAccessibleName(byId('planRunBack'), planRunBackName(view.from));
   byId('planRunLabel').textContent = planRunLabel(ctx.task);
   const badgeKey = PLAN_RUN_BADGE_KEYS[ctx.task.type] || 'common.practice';
   byId('planRunBadge').textContent = t(badgeKey);
