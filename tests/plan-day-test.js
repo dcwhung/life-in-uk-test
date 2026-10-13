@@ -257,7 +257,7 @@ async function checkAheadDays(pg) {
   assert(ahead[ahead.length - 1][0] === 'Decided on the day from your wrong answers', 'G23: clear wrong answers ahead: decided on the day');
   // QA O-1: the exam day ahead is a non-today view too, so it offers "back to today"
   await openDay(pg, '2026-10-29');
-  assert(await visible(pg, '#planDayExam') && await visible(pg, '#planBackToday'), 'O-1: exam day ahead: "← Back to today" shows');
+  assert(await visible(pg, '#planDayExam') && await visible(pg, '#planBackToday'), 'O-1: exam day ahead: "‹ Back to today" shows');
   assert(await hitOk(pg, '#planBackToday'), `O-1: "back to today" on the exam day: ${HIT_MIN_PX}px`);
   await pg.click('#planBackToday');
   assert(await text(pg, '#planDayTitle') === "Today's tasks" && await visible(pg, '#planDayHead') && !(await visible(pg, '#planBackToday')), 'O-1: back to today from the exam day');
@@ -270,7 +270,7 @@ async function checkRestDayLook(pg) {
   const rest = await restLook(pg);
   assert(!rest.ring && rest.emoji === '😴' && rest.emojiShown && rest.emojiHidden, 'v1.0.4 (user): rest day: no ring, a large 😴 (aria-hidden) in its place: ' + JSON.stringify(rest));
   assert(rest.count === 'Rest day: no tasks' && rest.countSrOnly, 'v1.0.4: "Rest day: no tasks" is not shown but stays for screen readers: ' + JSON.stringify(rest));
-  assert(rest.pill === 'Rest day' && await visible(pg, '#planBackToday') && await hitOk(pg, '#planBackToday'), 'v1.0.4: rest day keeps the "Rest day" pill and "← Back to today"');
+  assert(rest.pill === 'Rest day' && await visible(pg, '#planBackToday') && await hitOk(pg, '#planBackToday'), 'v1.0.4: rest day keeps the "Rest day" pill and "‹ Back to today"');
   assert(rest.emojiPx >= REST_EMOJI_MIN_PX, `v1.0.4: the 😴 is large (≥ ${REST_EMOJI_MIN_PX}px): ${rest.emojiPx}`);
   assert(await pg.$$eval('#planTaskList .plan-task', els => els.length) === 0, 'rest day: no task boxes');
   await pg.click('#planDayNext');
@@ -643,7 +643,7 @@ async function checkOldShell(pg) {
 }
 
 // v1.0.4 (user): on a rest day the 😴 sits close above the "Rest day" pill (its box hugs the glyph, a small gap), and
-// "← Back to today" gets more room below the pill (the --space-8 token)
+// "‹ Back to today" gets more room below the pill (the --space-8 token)
 const REST_EMOJI_GAP_MAX_PX = 16;
 const REST_BACK_GAP_TOKEN = '--space-8';
 const restGaps = pg => pg.evaluate(token => {

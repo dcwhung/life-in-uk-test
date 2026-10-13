@@ -12,7 +12,7 @@ const path = require('path');
 // - G26: the Similar panel shows, without "Practise these N"
 // - Result card (#screenPlanRun, .result-card classes): today's %, summary, "Review this task" / "Start next →";
 //   all done 🎉; G17 review mode: correct answers + "✗ You got this wrong", nothing written to storage
-// - ← in the runner goes back to the day; double tap guard; 44px; contrast; 360 / 375 / 400 × en / zh-HK
+// - ‹ in the runner goes back to the day; double tap guard; 44px; contrast; 360 / 375 / 400 × en / zh-HK
 // The entry is open since v1.1.0 (STUDY_PLAN_READY, PR8), so the app opens normally.
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
 const launchOpts = { args: ['--no-sandbox'] };
@@ -128,7 +128,7 @@ async function checkRounds(pg) {
   const ch = p.days[0].tasks[i].ch;
   assert(head.screen === 'screenQuiz' && head.label === `Chapter ${ch}` && head.badge === 'Practice' && head.timer,
     `the Practice screen itself: "Chapter ${ch}" · Practice, no timer`);
-  assert(head.back === "‹ Today's tasks" && head.n === 24 && head.dots === 24 && head.planDay === TODAY, 'round 1: 24 questions, 24 dots, ← Today\'s tasks, counts for today');
+  assert(head.back === "‹ Today's tasks" && head.n === 24 && head.dots === 24 && head.planDay === TODAY, 'round 1: 24 questions, 24 dots, ‹ Today\'s tasks, counts for today');
   assert((await cur(pg)).note === 'Round 1 of 2', 'round note: Round 1 of 2');
   const first = await cur(pg);
   const wrongKey = first.key;
@@ -187,7 +187,7 @@ async function checkResultCard(pg, { i, qids }) {
     'S-121: the Result card takes focus on its result line (screen readers read it)');
   const desc = await pg.evaluate(() => (document.activeElement.getAttribute('aria-describedby') || '').split(' ').map(id => byId(id) && byId(id).textContent));
   assert(desc[0] === `${r.want}%` && desc[1] === r.sub, 'S-121: the result line is described by the % and the summary: ' + desc);
-  assert(r.back === "‹ Today's tasks" && !r.side, 'header ← Today\'s tasks; the side session has ended');
+  assert(r.back === "‹ Today's tasks" && !r.side, 'header ‹ Today\'s tasks; the side session has ended');
   for (const s of ['#planRunBack', '#planRunBody [data-action="planReviewTask"]', '#planRunBody [data-action="planOpenTask"]']) assert(await hitOk(pg, s), `${s}: ${HIT_MIN_PX}px`);
   const low = (await contrastOf(pg, '#screenPlanRun .result-label, #screenPlanRun .result-sub, #screenPlanRun .plan-note, #screenPlanRun .plan-muted, #screenPlanRun .section-title, #screenPlanRun b'))
     .filter(c => c.ratio < MIN_CONTRAST || !c.opaque);
@@ -202,7 +202,7 @@ async function checkResultCard(pg, { i, qids }) {
   await tap(pg, taskBox(TODAY, i));
   assert(await pg.evaluate(() => isPlanReviewMode() && state.current === 0), 'a finished task box opens review mode');
   await tap(pg, '#screenQuiz .back-btn');
-  assert(await activeScreen(pg) === 'screenPlanDay' && await pg.evaluate(() => !isSideSession()), '← Today\'s tasks goes back to the day');
+  assert(await activeScreen(pg) === 'screenPlanDay' && await pg.evaluate(() => !isSideSession()), '‹ Today\'s tasks goes back to the day');
   assert(await pg.evaluate(() => document.activeElement && document.activeElement.matches('button[data-action="planOpenTask"]')), 'focus goes back to the task box');
 }
 async function checkReviewMode(pg, qids, before) {
@@ -254,7 +254,7 @@ async function checkDays(pg) {
   await answer(pg, true);
   assert((await dayLog(pg, d2)).ok[k2] === 1, 'G5: a past day\'s answer counts for that day (catch-up)');
   await tap(pg, '#screenQuiz .back-btn');
-  assert(await text(pg, '#planDayTitle') === 'Day 2 tasks', '← goes back to Day 2');
+  assert(await text(pg, '#planDayTitle') === 'Day 2 tasks', '‹ goes back to Day 2');
   // G23: a day ahead: practice opens (early), clear wrong answers waits for its day
   await openDay(pg, d5);
   const i5 = taskIndexOf(p, d5, t => t.type === 'practice'), r5 = taskIndexOf(p, d5, t => t.type === 'review');
@@ -372,7 +372,7 @@ async function checkResume(pg) {
 }
 
 // QA O-2: a task opened before midnight and finished after it: the Result card is about the task's day (its %,
-// "that day's progress", its list), and ← goes back to that day
+// "that day's progress", its list), and ‹ goes back to that day
 async function checkMidnight(pg) {
   await fresh(pg, at(TODAY, '23:58:00'));
   await seed(pg);
@@ -386,9 +386,9 @@ async function checkMidnight(pg) {
     label: document.querySelector('#planRunBody .result-label').textContent, back: byId('planRunBack').textContent,
     want: planDayCompletion(planLoad().days[0], planDayLog(planLoadLogView(), '2026-10-01')).pct }));
   assert(r.score === `${r.want}%` && r.want > 0 && r.label === "Task done · that day's progress", `QA O-2: after midnight the card shows the task's day: ${r.score} · ${r.label}`);
-  assert(r.back === '‹ Day 1 tasks', 'QA O-2: ← names that day: ' + r.back);
+  assert(r.back === '‹ Day 1 tasks', 'QA O-2: ‹ names that day: ' + r.back);
   await tap(pg, '#planRunBack');
-  assert(await text(pg, '#planDayTitle') === 'Day 1 tasks', 'QA O-2: ← goes back to that day');
+  assert(await text(pg, '#planDayTitle') === 'Day 1 tasks', 'QA O-2: ‹ goes back to that day');
 }
 
 // G38: any plan runner (here: practise) clears a right answer's question from the wrong list, every copy, cleared +1;
@@ -527,7 +527,7 @@ async function checkLayout(b) {
       await tap(pg, '#nextBtn');
       const quiz = await pg.evaluate(() => ({ sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth, next: byId('nextBtn').textContent }));
       assert(quiz.sw <= quiz.cw, `${lang} ${w}px: runner, no horizontal scroll (${quiz.next})`);
-      assert(await hitOk(pg, '#screenQuiz .back-btn'), `${lang} ${w}px: runner ← ${HIT_MIN_PX}px`);
+      assert(await hitOk(pg, '#screenQuiz .back-btn'), `${lang} ${w}px: runner ‹ ${HIT_MIN_PX}px`);
       await tap(pg, '#nextBtn');
       await answer(pg, true);
       await tap(pg, '#nextBtn');

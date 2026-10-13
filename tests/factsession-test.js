@@ -124,7 +124,7 @@ async function checkInSession(pg) {
     wrong: !!JSON.parse(localStorage.getItem('lifeuk.wrongList') || '{}')['4.16'],
   }));
   assert(after.streak === 0 && after.wrong, `wrong answer: practiceStreak written (0) and joins wrong answers (${JSON.stringify(after)})`);
-  assert(await text(pg, '#nextBtn') === 'Next →', 'Next → before the last question');
+  assert(await text(pg, '#nextBtn') === 'Next ›', 'Next › before the last question');
   await pg.click('#nextBtn');
   await answer(pg, true);
   assert(await pg.evaluate(() => JSON.parse(localStorage.getItem('lifeuk.practiceStreak'))['6.6']) === 1, 'right answer: practiceStreak 6.6 = 1');

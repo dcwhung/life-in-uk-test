@@ -11,7 +11,7 @@
 // ════════════════════════════════════════
 const PLAN_RUN_TYPES = [PLAN_TASK.practice, PLAN_TASK.drill, PLAN_TASK.review];
 const PLAN_FACT_TYPES = [PLAN_TASK.read, PLAN_TASK.wrongFacts];
-const PLAN_RUN_SYMBOL = { next: '→', finish: '✓' };
+const PLAN_RUN_SYMBOL = { next: '›', finish: '✓' };
 const PLAN_RUN_VIEW = { done: 'done', facts: 'facts' };
 const PLAN_RUN_BADGE_KEYS = { [PLAN_TASK.read]: 'home.modeStudy', [PLAN_TASK.mock]: 'common.exam' }; // others: Practice
 let planRunView = null; // #screenPlanRun: { kind, date, taskIndex, from } (+ facts: pos, review)
@@ -227,7 +227,7 @@ function planBackToDay() {
   const box = ret && document.querySelector(`#planTaskList [data-arg="${ret.date}"][data-task="${ret.taskIndex}"]`);
   if (box) box.focus();
 }
-// v2.0.5 (goBack): ← mid-session. One fact's practice goes back to that fact's card (review when the task is done, as
+// v2.0.5 (goBack): ‹ mid-session. One fact's practice goes back to that fact's card (review when the task is done, as
 // planOpenTask shows it); a whole task, or a plan gone meanwhile, as planBackToDay
 function planLeaveSession() {
   const ret = sessionReturn;

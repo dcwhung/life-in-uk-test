@@ -135,7 +135,7 @@ async function checkRead(pg) {
   });
   assert(card.star && card.src && card.en && card.practise === 'planPractiseFact', 'factCardHtml: bookmark / mastered, source nodes, ▶ Practise for the plan');
   assert(card.meter === `${Math.round(100 / n)}%`, 'position bar sized from JS: ' + card.meter);
-  assert(v.nav[0].disabled && v.nav[0].text === '← Prev' && v.nav[1].text === 'Next →', 'nav-row: ← Prev (disabled on the first) / Next →');
+  assert(v.nav[0].disabled && v.nav[0].text === '‹ Prev' && v.nav[1].text === 'Next ›', 'nav-row: ‹ Prev (disabled on the first) / Next ›');
   for (const s of ['#planRunBack', '#planRunBody .plan-run-nav [data-arg="1"]', '#planRunBody .fact-practise']) assert(await hitOk(pg, s), `${s}: ${HIT_MIN_PX}px`);
   await tap(pg, '#planRunBody .plan-run-nav [data-arg="1"]');
   v = await runView(pg);
@@ -185,8 +185,8 @@ async function checkRead(pg) {
   assert((await runView(pg)).meta.endsWith(`Fact 2 of ${n}`), 'reopened: resumes at the first fact not yet practised right');
   await pg.evaluate(() => setLang('zh-HK'));
   v = await runView(pg);
-  assert(v.meta.includes(`第 2 條（共 ${n} 條）`) && Number(v.fact) === task.facts[1] && v.badge === '溫習' && v.nav[0].text === '← 上一條' && v.nav[1].text === '下一條 →',
-    'zh-HK: same fact, 第 2 條（共 n 條）, 溫習, ← 上一條 / 下一條 →: ' + v.meta);
+  assert(v.meta.includes(`第 2 條（共 ${n} 條）`) && Number(v.fact) === task.facts[1] && v.badge === '溫習' && v.nav[0].text === '‹ 上一條' && v.nav[1].text === '下一條 ›',
+    'zh-HK: same fact, 第 2 條（共 n 條）, 溫習, ‹ 上一條 / 下一條 ›: ' + v.meta);
   await pg.evaluate(() => setLang('en'));
 }
 

@@ -197,7 +197,7 @@ function renderRoundNote() {
 // what "Next" does on this question: next question, finish the set, or leave the side session (similar / fact)
 // label = bottom button, symbol + title = quick button in the question header
 function nextAction(idx, total) {
-  if (idx < total - 1) return { label: t('quiz.nextButton'), symbol: '→', title: t('quiz.next'), run: nextQ };
+  if (idx < total - 1) return { label: t('quiz.nextButton'), symbol: '›', title: t('quiz.next'), run: nextQ };
   if (isPlanSession()) return planNextAction();
   if (isSideSession()) return { label: t('quiz.backButton'), symbol: '↩', title: t('quiz.back'), run: returnFromSideSession };
   if (state.mode === EXAM_MODE) return { label: t('exam.submit'), symbol: '✓', title: t('exam.submit'), run: submitExam };

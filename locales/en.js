@@ -94,8 +94,8 @@ LOCALES.en = {
     next: 'Next',
     back: 'Back',
     finish: 'Finish',
-    prevButton: '← Prev',
-    nextButton: 'Next →',
+    prevButton: '‹ Prev',
+    nextButton: 'Next ›',
     backButton: '↩ Back',
     // v2.0.3: the quiz / Result header's back button mid-session, named after where it goes
     backToStudy: '‹ Study',
@@ -328,7 +328,7 @@ LOCALES.en = {
       dayTasksHtml: '{day} tasks',
       prev: 'Previous day',
       next: 'Next day',
-      backToday: '← Back to today',
+      backToday: '‹ Back to today',
       ringToday: 'Done today',
       ringDay: 'Done that day',
       noPct: '–',
@@ -523,8 +523,8 @@ LOCALES.en = {
       mockRetake: 'Retake: {exam}',
       mockNotCounted: 'Submitted after midnight: this attempt does not count for that day.',
       youGotWrong: 'You got this wrong', // CUI-0025: after the wrong answer's ref in its fact's panel
-      prevFact: '← Prev',
-      nextFact: 'Next →',
+      prevFact: '‹ Prev',
+      nextFact: 'Next ›',
     },
     status: { rest: 'Rest', today: 'Today {n}%', done: '✓ Done', pct: '{n}%', todayDone: 'Done today' },
     feas: {

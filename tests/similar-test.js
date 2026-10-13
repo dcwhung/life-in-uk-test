@@ -142,7 +142,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(!(await vis('#similarBox')), 'no nested similar section inside the temporary session');
   assert(await pg.evaluate(() => state.questions.length === 2), 'wrong answer is not re-queued (each question once)');
   assert(await pg.evaluate(() => JSON.parse(localStorage.getItem('lifeuk.practiceStreak'))['9.14'] === 0), 'streak still recorded in the temporary session');
-  assert((await text('#nextBtn')) === 'Next →', 'next button before the last question');
+  assert((await text('#nextBtn')) === 'Next ›', 'next button before the last question');
   await pg.click('#nextBtn');
   await answer(true);
   // plain "Back": a question number read like Q1 of the similar session

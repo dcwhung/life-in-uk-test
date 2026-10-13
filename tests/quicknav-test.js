@@ -28,8 +28,8 @@ const VIEWPORT_H = 844;
   await answer();
   assert(await vis('#quickNav') && !(await vis('#yueToggle')), 'after answering: quick nav in the Translate spot');
   assert(await pg.$eval('#quickNav', e => e.closest('.q-num') !== null), 'quick nav sits in the question header row');
-  assert((await text('#quickPrev')) === '←' && await pg.$eval('#quickPrev', e => e.disabled), 'symbol-only Prev, disabled on the first question');
-  assert((await text('#quickNext')) === '→', 'symbol-only Next');
+  assert((await text('#quickPrev')) === '‹' && await pg.$eval('#quickPrev', e => e.disabled), 'symbol-only Prev, disabled on the first question');
+  assert((await text('#quickNext')) === '›', 'symbol-only Next');
   assert(await pg.$eval('#quickPrev', e => e.title === 'Previous') && await pg.$eval('#quickNext', e => e.title === 'Next'), 'quick buttons keep a text label as title');
   await pg.click('#quickNext');
   assert(await pg.evaluate(() => state.current === 1), 'quick Next moves to the next question');
@@ -47,7 +47,7 @@ const VIEWPORT_H = 844;
 
   // exam: quick nav always shown (no Translate there), also on unanswered questions; no Next on the last question
   await pg.evaluate(() => { pendingMode = 'exam'; startExam(1); });
-  assert(await vis('#quickNav') && (await text('#quickNext')) === '→', 'exam: shown before picking');
+  assert(await vis('#quickNav') && (await text('#quickNext')) === '›', 'exam: shown before picking');
   await answer();
   await pg.click('#quickNext');
   assert(await pg.evaluate(() => state.current === 1 && state.answers[0].length > 0), 'exam: quick Next keeps the pick');
