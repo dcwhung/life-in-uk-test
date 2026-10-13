@@ -92,29 +92,31 @@ function goBack() {
   if (isFlaggedSession()) { openFlagged(); window.scrollTo(0, 0); return; }
   goHome();
 }
-// the header's words while away from Home (escaped html); null = the 🏠 icon. A plan session has its own (planRun.js)
-// W-071: a stale locale without the key (t returns the key) keeps the 🏠 rather than a raw key
-function entryBackText(key, params) {
-  const text = t(key, params);
-  return text === key ? null : escapeHtml(text);
-}
+// the header's words while away from Home; null = the 🏠 icon. A plan session has its own (planRun.js)
+// { textKey, params, nameKey }: the visible words, and (W-073) the full words as the accessible name when they are shortened
 const SESSION_BACK_LABELS = {
-  [SESSION_RETURN_KIND.quiz]: ret => entryBackText('quiz.backToQuestion', { n: ret.state.current + 1 }),
-  [SESSION_RETURN_KIND.study]: () => entryBackText('quiz.backToStudy'),
-  [SESSION_RETURN_KIND.memo]: () => entryBackText('quiz.backToMemo'),
+  [SESSION_RETURN_KIND.quiz]: ret => ({ textKey: 'quiz.backToQuestion', nameKey: 'quiz.backToQuestionLabel', params: { n: ret.state.current + 1 } }),
+  [SESSION_RETURN_KIND.study]: () => ({ textKey: 'quiz.backToStudy' }),
+  [SESSION_RETURN_KIND.memo]: () => ({ textKey: 'quiz.backToMemo' }),
 };
-function entryBackHtml() {
+function entryBackLabel() {
   if (isSideSession()) {
     const label = SESSION_BACK_LABELS[sessionReturn.kind];
     return label ? label(sessionReturn) : null;
   }
-  return isFlaggedSession() ? entryBackText('quiz.backToFlagged') : null;
+  return isFlaggedSession() ? { textKey: 'quiz.backToFlagged' } : null;
+}
+// W-071: a stale locale without the key (t returns the key) gets null rather than a raw key
+function entryBackText(textKey, params) {
+  const text = t(textKey, params);
+  return text === textKey ? null : text;
 }
 // W-071: without a goBack handler (cached pre-v2.0.5 actions.js / planRun.js) the header goes Home, so it says 🏠
 function setEntryBack(back) {
-  const html = typeof hasGoBackAction === 'function' && hasGoBackAction() ? entryBackHtml() : null;
-  if (html) setQuizBackText(back, html);
-  else setQuizBackHome(back);
+  const label = typeof hasGoBackAction === 'function' && hasGoBackAction() ? entryBackLabel() : null;
+  const text = label && entryBackText(label.textKey, label.params);
+  if (!text) { setQuizBackHome(back); return; }
+  setQuizBackText(back, escapeHtml(text), label.nameKey && entryBackText(label.nameKey, label.params));
 }
 
 function isStudyReturn(ret) { return ret !== null && ret.kind === SESSION_RETURN_KIND.study; }

@@ -123,8 +123,8 @@ async function checkRead(pg) {
   const before = await storage(pg);
   await tap(pg, taskBox(TODAY, ri));
   let v = await runView(pg);
-  assert(v.screen === 'screenPlanRun' && v.label === `Chapter ${task.ch}` && v.badge === 'Study' && v.back === "← Today's tasks",
-    `reading: #screenPlanRun, "Chapter ${task.ch}" · Study, ← Today's tasks`);
+  assert(v.screen === 'screenPlanRun' && v.label === `Chapter ${task.ch}` && v.badge === 'Study' && v.back === "‹ Today's tasks",
+    `reading: #screenPlanRun, "Chapter ${task.ch}" · Study, ‹ Today's tasks`);
   assert(v.meta.endsWith(`Fact 1 of ${n}`) && v.meta.startsWith(`Read Ch ${task.ch}`), 'top line: task · Fact 1 of n: ' + v.meta);
   assert(Number(v.fact) === task.facts[0] && v.note === '', 'the first fact\'s Study card, no review note');
   const card = await pg.evaluate(() => {
@@ -159,7 +159,7 @@ async function checkRead(pg) {
   assert(s.screen === 'screenQuiz' && s.plan && s.day === TODAY && JSON.stringify(s.keys) === JSON.stringify(s.want),
     `▶ Practise: a plan session over the fact's ${s.want.length} questions, for today`);
   // v2.0.5: mid-session ← goes back to this fact's card (planLeaveSession), so the header names it
-  assert(/^Fact Ch \d #\d+$/.test(s.label) && s.back === '← Back to the fact', 'header: Fact Ch c #n · ← Back to the fact: ' + s.label + ' · ' + s.back);
+  assert(/^Fact Ch \d #\d+$/.test(s.label) && s.back === '‹ Back to the fact', 'header: Fact Ch c #n · ‹ Back to the fact: ' + s.label + ' · ' + s.back);
   await playAllRight(pg);
   v = await runView(pg);
   assert(v.screen === 'screenPlanRun' && Number(v.fact) === fid && v.meta.endsWith(`Fact 1 of ${n}`), 'finished: back on the same fact');
@@ -313,7 +313,7 @@ async function checkMock(pg) {
   let m = await mockState(pg);
   assert(m.screen === 'screenQuiz' && m.mode === 'exam' && m.exam === exam && m.n === 24 && m.timer && m.day === iso,
     `Exam mode: Exam ${exam}, 24 questions, timer, for the plan day (Home's mode was Practice)`);
-  assert(m.back === "← Today's tasks", 'header: ← Today\'s tasks');
+  assert(m.back === "‹ Today's tasks", 'header: ← Today\'s tasks');
   // Leave = not submitted
   const before = await storage(pg);
   await tap(pg, '#screenQuiz .back-btn');

@@ -122,7 +122,7 @@ function planRunBackHtml(from) {
   if (!plan) return escapeHtml(t('plan.run.backToday'));
   return t('plan.run.backDayHtml', { day: `<span lang="en">${t('plan.dayN', { n: planDayNumber(plan, from) })}</span>` });
 }
-// the quiz header's 🏠 reads "← Today's tasks" in a plan session or mock (goHome goes back to the day there);
+// the quiz header's 🏠 reads "‹ Today's tasks" in a plan session or mock (goHome goes back to the day there);
 // a fact's session is named like the Study one ("Fact Ch c #n", setExamLabel)
 // v1.2.0 (Q11): Home is an icon button; a plan's text back label keeps its words, and those words name it (S-188: an
 // aria-label would hide the <span lang="en">Day n</span> language from screen readers)
@@ -130,11 +130,13 @@ function planRunBackHtml(from) {
 // would leave the header a dead button mid-session). goHome still leaves a plan session for its day.
 function hasGoBackAction() { return typeof ACTIONS !== 'undefined' && typeof ACTIONS.goBack === 'function'; }
 function setQuizBackAction(back) { back.dataset.action = hasGoBackAction() ? 'goBack' : 'goHome'; }
-function setQuizBackText(back, html) {
+// W-073: an optional accessible name for a shortened label ("‹ Q24" → "Back to Q24"); it must contain the visible words
+function setQuizBackText(back, html, name) {
   setQuizBackAction(back);
   back.classList.add('plan-hit');
   back.classList.remove('icon-btn');
   back.innerHTML = html;
+  if (name) { setAccessibleName(back, name); return; }
   back.removeAttribute('aria-label');
   back.removeAttribute('title');
 }
@@ -145,7 +147,7 @@ function setQuizBackHome(back) {
   back.innerHTML = lineIconSvg('home');
   setAccessibleName(back, t('common.homeLabel'));
 }
-// v2.0.5: one fact's ▶ Practise reads "← Back to the fact" (planLeaveSession); a session from elsewhere names its entry
+// v2.0.5: one fact's ▶ Practise reads "‹ Back to the fact" (planLeaveSession); a session from elsewhere names its entry
 // W-071: a locale without plan.run.backFact keeps the day's label rather than the raw key
 function planQuizBackHtml(session) {
   const fact = t('plan.run.backFact');

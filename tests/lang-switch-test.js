@@ -438,7 +438,7 @@ async function checkPlanRun(pg, ctx) {
     return k;
   });
   await switchOn(sp, ctx, 'plan runner', '#screenQuiz .back-btn');
-  assert(await textOf(sp, '#screenQuiz .back-btn') === '← Day 3 任務' && await textOf(sp, '#ansLabel') === '✗ 錯誤 · 🔥 0/3', 'plan runner zh-HK: ← Day 3 任務, answer box re-rendered');
+  assert(await textOf(sp, '#screenQuiz .back-btn') === '‹ Day 3 任務' && await textOf(sp, '#ansLabel') === '✗ 錯誤 · 🔥 0/3', 'plan runner zh-HK: ‹ Day 3 任務, answer box re-rendered');
   await switchOn(sp, ctx, 'plan runner', '#screenQuiz .back-btn');
   await sp.evaluate(k => planShowTaskDone('2026-09-30', k, '2026-09-30'), i);
   await switchOn(sp, ctx, 'plan Result card', '#planRunBody .result-label');

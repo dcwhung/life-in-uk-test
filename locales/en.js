@@ -101,7 +101,8 @@ LOCALES.en = {
     backToStudy: '‹ Study',
     backToFlagged: '‹ Flagged',
     backToMemo: '‹ ① Look',
-    backToQuestion: '‹ Back to Q{n}',
+    backToQuestion: '‹ Q{n}', // W-073: short enough for a 320px large-text header; the words are the label below
+    backToQuestionLabel: 'Back to Q{n}',
     finishButton: 'Finish ✓',
     correct: '✓ Correct!',
     wrong: '✗ Wrong',
@@ -485,9 +486,9 @@ LOCALES.en = {
     },
     // runner (PR6a): a task on the Practice screen, its Result card; Day n stays English (lang="en")
     run: {
-      backToday: "← Today's tasks",
-      backDayHtml: '← {day} tasks',
-      backFact: '← Back to the fact',
+      backToday: "‹ Today's tasks",
+      backDayHtml: '‹ {day} tasks',
+      backFact: '‹ Back to the fact',
       roundOf: 'Round {n} of {rounds}',
       nextRound: 'Next round →',
       nextRoundTitle: 'Next round', // QA O-3: the quick button's title / aria-label, no symbol
