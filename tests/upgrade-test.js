@@ -27,6 +27,8 @@ const { startPagesServer, appFiles } = require('./pages-server');
 //  11. v1.4.2: the current shell with one v1.4.0 file (config.js: no INITIAL_LANG / DEFAULT_FONT_SIZE; i18n.js; store.js),
 //      nothing stored (legacy seed off) — still starts with no page errors; each old file keeps its own first-run default
 //  12. S-237 (v1.6.1): a v1.6.0 cached shell (pinned f55a945) + current js — every static control gets its line icon
+//  13. W-075 (v2.0.6 CUI-0039): current files with the v2.0.5 questions.js (no isValidQuestionKey) + a wrong list — Home
+//      still renders with no page error; the lists are kept as stored (no prune without the predicate)
 // The v0.57 files come from git: V057_REF is the last v0.57 commit on main (merge of PR #29), pinned so a later
 // main does not silently turn this into a same-version test.
 const ROOT = path.resolve(__dirname, '..');
@@ -621,6 +623,27 @@ async function swUpgrade(b) {
   }
 }
 
+// 13. W-075: the prune (store.js, started by main.js) calls isValidQuestionKey, which an HTTP-cached v2.0.5 questions.js lacks
+const V205_REF = 'de110fa'; // main at v2.0.5
+async function v205QuestionsJs(b) {
+  const dir = tmpDir('v205q');
+  copyCurrent(dir);
+  const file = 'js/domain/questions.js';
+  fs.writeFileSync(path.join(dir, file), execFileSync('git', ['-C', ROOT, 'show', `${V205_REF}:${file}`]));
+  const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
+  const errs = []; pg.on('pageerror', e => errs.push(e.message));
+  await pg.goto('file://' + path.join(dir, 'index.html'));
+  const wrong = '{"1.2":true,"99.99":true}';
+  await seed(pg, { [P + 'homePrefs']: '{"mode":"practice","view":"difficulty"}', [P + 'wrongList']: wrong, [P + 'practiceFlags']: '{"1.3":true}' });
+  await pg.waitForSelector('#screenHome.active', { timeout: 5000 }).catch(() => {});
+  const r = await pg.evaluate(() => ({ home: byId('screenHome').classList.contains('active'), grid: document.querySelectorAll('#examGrid .exam-btn').length,
+    flagged: byId('tileFlagged').textContent.replace(/\s+/g, ' ').trim() })).catch(e => ({ err: e.message }));
+  assert(r.home && r.grid > 0 && /1/.test(r.flagged) && errs.length === 0,
+    `v2.0.5 ${file} + current files, a wrong list stored: Home renders, no page errors: ` + JSON.stringify({ ...r, errs }));
+  assert(await pg.evaluate(k => localStorage.getItem(k), P + 'wrongList') === wrong, 'v2.0.5 questions.js: the wrong list is kept as stored (no prune)');
+  await pg.close();
+}
+
 // a shallow clone may not have the pinned v0.57 commit: say how to fix it instead of failing inside git archive
 function checkV057Ref() {
   try {
@@ -654,6 +677,7 @@ function checkV057Ref() {
   await zhHkLocaleMissing(b);
   await v143Shell(b);
   await v143StudyJs(b);
+  await v205QuestionsJs(b);
   console.log('UPGRADE PASS');
   await b.close();
   cleanUp();
