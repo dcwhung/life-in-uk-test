@@ -205,6 +205,8 @@ LOCALES['zh-HK'] = {
     lv: 'Lv{lv}',
     days: '{n} 日',
     wrongTitle: '要再睇嘅：',
+    hookAgain: '全部答啱 🎉 記憶鈎再睇多次：',
+    noteAgain: '全部答啱 🎉 筆記再睇多次：',
     again: '再溫一次',
     next: '下一組：{title} ▶',
   },

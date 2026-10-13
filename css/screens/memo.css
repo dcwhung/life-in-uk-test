@@ -110,6 +110,10 @@ details.memo-questions[open] > summary { margin-bottom: var(--space-5); }
    .fact-src .sqm-node) */
 .memo-pills { --memo-pill-gap: 5px; display: flex; flex-wrap: wrap; gap: var(--memo-pill-gap); align-items: center; margin-bottom: var(--space-3); }
 .memo-pills .sqm-node { padding: 3px var(--space-4); }
+/* v2.1.0 nothing wrong: "All correct 🎉 …" above the memory aid shown again (js/screens/memo.js memoReminderHtml) */
+.memo-again-text { font-weight: 800; color: var(--green); margin: 0 0 var(--space-5); }
+.memo-panel .memo-hook:last-child { margin-bottom: 0; }
+.memo-panel .memo-none + * { margin-top: var(--space-6); }
 .memo-actions { display: flex; gap: var(--space-4); }
 .memo-actions .nav-btn { flex: 1 1 0; min-width: 0; padding-left: var(--space-5); padding-right: var(--space-5); }
 .nav-btn.memo-next { background: var(--gold); color: var(--navy); }
@@ -156,9 +160,15 @@ details.memo-questions[open] > summary { margin-bottom: var(--space-5); }
   .memo-foot.is-single > .memo-start { width: calc(100% * 5 / 12); }
   .memo-single-note { --memo-rule-w: calc(4px * var(--desktop-scale)); }
 
-  /* result: the v2.0.0 centred column (at most 760px × --desktop-scale) */
-  #screenMemo.is-fit[data-memo-step="result"] > * { width: 100%; max-width: calc(760px * var(--desktop-scale)); margin-inline: auto; }
-  #memoBody > .memo-scroll { flex: 0 1 auto; min-height: 0; margin-bottom: var(--space-7); }
+  /* result (B): left 5/12 the score card with Again / Next stacked at the column's foot (the column scrolls itself only
+     when even that does not fit: a short window with large text); right 7/12 the wrong questions or the memory aid */
+  .memo-result-cols { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
+  .memo-result-cols > .memo-col:first-child { overflow-y: auto; overscroll-behavior: contain; }
+  .memo-score-card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow-sm); padding: var(--space-6); margin-bottom: var(--space-8); }
+  .memo-score-card .memo-score { padding-top: var(--space-2); }
+  .memo-score-card .memo-sched { margin-bottom: 0; }
+  .memo-result-cols .memo-actions { margin-top: auto; flex-direction: column; }
+  .memo-result-cols .memo-actions .nav-btn { flex: none; }
 
   .memo-card { border-left-width: calc(4px * var(--desktop-scale)); }
   .memo-bar { height: calc(6px * var(--desktop-scale)); }

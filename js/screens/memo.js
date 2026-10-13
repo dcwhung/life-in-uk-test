@@ -99,7 +99,7 @@ function renderMemo() {
   byId('memoTitle').textContent = g.icon + ' ' + g.title;
   byId('memoSteps').innerHTML = memoStepsHtml(g);
   byId('screenMemo').dataset.memoStep = memoView.step;
-  byId('memoBody').innerHTML = memoView.step === MEMO_STEP.result ? memoResultHtml(g, memoView.result) : memoLookHtml(g, desktop);
+  byId('memoBody').innerHTML = memoView.step === MEMO_STEP.result ? memoResultHtml(g, memoView.result, desktop) : memoLookHtml(g, desktop);
   if (keepOpen) byId('memoBody').querySelector('details.memo-questions').open = true;
   memoDrawn = { desktop, view };
   if (typeof refreshFades === 'function') refreshFades(byId('memoBody')); // the panels' fades
@@ -272,10 +272,34 @@ function memoResultActionsHtml(g, withNext) {
   const nextBtn = next ? `<button class="nav-btn memo-next" type="button" data-action="openMemoGroup" data-arg="${escapeHtml(next.id)}">${memoLabelHtml(t('memo.next', { title: next.title }), next.title)}</button>` : '';
   return `<div class="memo-actions"><button class="nav-btn secondary memo-again" type="button" data-action="memoLook">${escapeHtml(t('memo.again'))}</button>${nextBtn}</div>`;
 }
-function memoResultHtml(g, r) {
-  if (r.none) return `<div class="memo-panel"><p class="memo-none">${escapeHtml(t('memo.noAnswers'))}</p></div>${memoResultActionsHtml(g, false)}`;
-  return memoScrollHtml(`<div class="memo-panel fit-panel">
-      <div class="memo-score${r.passed ? '' : ' fail'}"><div class="memo-pct">${percent(r.correct, r.total)}%</div><div class="memo-verdict">${escapeHtml(memoVerdictText(r))}</div></div>
-      <div class="memo-sched">${memoScheduleHtml(r)}</div>${memoWrongHtml(r.wrong)}
-    </div>`) + memoResultActionsHtml(g, true);
+// v2.1.0 (decision log Q3): with nothing wrong (or nothing answered) the result shows the memory aid once more: the
+// hook; a group without one shows its memory note, the single-note group its questions' notes. All correct says so
+// first (memo.hookAgain / memo.noteAgain); nothing answered shows the aid alone
+function memoReminderHtml(g, withWords) {
+  const againKey = g.hook ? 'memo.hookAgain' : 'memo.noteAgain';
+  const words = withWords ? `<p class="memo-again-text">${escapeHtml(t(againKey))}</p>` : '';
+  if (g.hook) return words + memoHookHtml(g);
+  if (g.body) return words + `<div class="memo-note" lang="zh-HK">${memoNoteBodyHtml(g)}</div>`;
+  return words + `<div class="memo-single">${memoSingleItemsHtml(g)}</div>`;
+}
+function memoScoreHtml(r) {
+  return `<div class="memo-score${r.passed ? '' : ' fail'}"><div class="memo-pct">${percent(r.correct, r.total)}%</div><div class="memo-verdict">${escapeHtml(memoVerdictText(r))}</div></div>`
+    + `<div class="memo-sched">${memoScheduleHtml(r)}</div>`;
+}
+// the right column / the phone panel's lower part: the wrong questions, or the memory aid again
+const memoResultDetailHtml = (g, r) => (r.wrong.length ? memoWrongHtml(r.wrong) : memoReminderHtml(g, true));
+const memoNoneHtml = () => `<p class="memo-none">${escapeHtml(t('memo.noAnswers'))}</p>`;
+function memoResultHtml(g, r, desktop) { return desktop ? memoResultDeskHtml(g, r) : memoResultPhoneHtml(g, r); }
+// desktop (B): left 5/12 = the score card, Again / Next stacked at the column's foot; right 7/12 = a panel that scrolls
+function memoResultDeskHtml(g, r) {
+  const card = r.none ? memoNoneHtml() : memoScoreHtml(r);
+  const detail = r.none ? memoReminderHtml(g, false) : memoResultDetailHtml(g, r);
+  return `<div class="memo-cols memo-result-cols"><div class="memo-col"><div class="memo-score-card">${card}</div>${memoResultActionsHtml(g, !r.none)}</div>`
+    + `<div class="memo-col">${memoScrollHtml(`<div class="memo-panel fit-panel">${detail}</div>`)}</div></div>`;
+}
+// phone: one panel (score, Lv1–4, the wrong questions or the memory aid again), then Again / Next
+function memoResultPhoneHtml(g, r) {
+  const content = r.none ? memoNoneHtml() + memoReminderHtml(g, false) : memoScoreHtml(r) + memoResultDetailHtml(g, r);
+  return `<div class="memo-scroll fit-fade"><div class="memo-scroll-panel fit-panel"><div class="memo-panel">${content}</div></div></div>`
+    + memoResultActionsHtml(g, !r.none);
 }

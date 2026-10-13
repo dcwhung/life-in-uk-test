@@ -26,13 +26,6 @@ const groupIds = page => page.evaluate(() => {
   return { longest: withBody[0].id, shortest: withBody[withBody.length - 1].id, single: MEMO_SINGLE_ID };
 });
 const openGroup = (page, id) => page.evaluate(gid => { openStudy(); studySetTab('memo'); openMemoGroup(gid); }, id);
-// a failed test with WRONG_N wrong questions: the tallest result step
-const openResult = (page, id) => page.evaluate(([gid, n]) => {
-  const wrong = allQuestions().slice(0, n).map(it => ({ q: it.q.q, yue: it.q.yue || '', keys: [qKey(it)] }));
-  Object.assign(memoView, { id: gid, step: 'result', result: { passed: false, lv: 1, prevLv: 2, correct: 0, total: n, wrong } });
-  showMemo();
-}, [id, WRONG_N]);
-
 const scale = page => page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--desktop-scale')));
 
 // the common checks of a one-screen memo view
@@ -140,29 +133,64 @@ async function checkSingle(page, label) {
   assert(fadeOk(p), `${label} ${what}: the card scrolls on its own, fading`);
 }
 
-// result (v2.0.0 centred column; v2.1.0 B in a later step)
-const column = page => page.evaluate(() => {
-  const box = el => el.getBoundingClientRect();
-  const screen = byId('screenMemo'), main = document.querySelector('main');
-  const parts = ['.memo-top', '#memoBody'].map(s => box(screen.querySelector(s)));
-  const mainBox = box(main), pad = parseFloat(getComputedStyle(main).paddingLeft);
-  const inner = { left: mainBox.left + pad, right: mainBox.right - pad };
-  const panel = screen.querySelector('.memo-scroll > .memo-panel');
-  const acts = screen.querySelector('#memoBody > .memo-actions');
+// result (B): the top row; left 5/12 = the score card (% + verdict + Lv1–4) with Again / Next stacked at the column's
+// foot; right 7/12 = the wrong questions (pill rows) in a panel that scrolls. All correct: the right panel says so and
+// shows the hook again (or, without a hook, the memory note / the single group's notes); nothing answered: the left
+// keeps its message, the right shows the hook (or note) alone
+const RESULT_SHARE = 5 / 12;
+const openOutcome = (page, id, kind) => page.evaluate(([gid, k, n]) => {
+  const wrong = allQuestions().slice(0, n).map(it => ({ q: it.q.q, yue: it.q.yue || '', keys: [qKey(it)] }));
+  const result = k === 'none' ? { none: true }
+    : k === 'all' ? { passed: true, lv: 2, prevLv: 1, correct: n, total: n, wrong: [] }
+      : { passed: false, lv: 1, prevLv: 2, correct: 0, total: n, wrong };
+  Object.assign(memoView, { id: gid, step: 'result', result });
+  showMemo();
+}, [id, kind, WRONG_N]);
+const resultLayout = page => page.evaluate(() => {
+  const box = el => el && el.getBoundingClientRect();
+  const cols = document.querySelector('#memoBody .memo-result-cols'), colEls = cols ? [...cols.children] : [];
+  const left = colEls[0], right = colEls[1];
+  const again = document.querySelector('#memoBody .memo-again'), next = document.querySelector('#memoBody .memo-next');
+  const acts = document.querySelector('#memoBody .memo-actions');
+  const panel = right && right.querySelector('.fit-panel');
   return {
-    widths: parts.map(p => p.width), centred: parts.every(p => Math.abs((p.left - inner.left) - (inner.right - p.right)) <= 1),
-    panelScrolls: !!panel && panel.scrollHeight > panel.clientHeight + 1, panelOverflow: panel ? getComputedStyle(panel).overflowY : null,
-    fadeDown: !!panel && panel.parentElement.classList.contains('can-down'),
-    actsBottom: acts ? box(acts).bottom : null, viewH: innerHeight, isFit: screen.classList.contains('is-fit'),
+    cols: colEls.map(c => box(c).width), leftBottom: left && box(left).bottom,
+    card: !!left && !!left.querySelector('.memo-score-card'), pct: !!left && !!left.querySelector('.memo-score-card .memo-pct'),
+    sched: !!left && !!left.querySelector('.memo-score-card .memo-sched'), none: !!left && !!left.querySelector('.memo-none'),
+    actsInLeft: !!acts && !!left && left.contains(acts), actsBottom: acts && box(acts).bottom,
+    stacked: !!again && (!next || box(again).bottom <= box(next).top + 1), viewH: innerHeight,
+    wrongTitle: !!panel && !!panel.querySelector('.memo-wrong-title'), wrongPills: panel ? panel.querySelectorAll('.memo-wrong li > .memo-pills').length : 0,
+    again: panel && (panel.querySelector('.memo-again-text') || {}).textContent,
+    hook: !!panel && !!panel.querySelector('.memo-hook'), note: !!panel && !!panel.querySelector('.memo-note'),
+    single: !!panel && !!panel.querySelector('.memo-single-item'),
   };
 });
-async function checkResult(page, label, what) {
+async function checkResult(page, label, id, kind) {
+  const what = `result ${kind} (${id})`;
   await checkCommon(page, label, what);
-  const c = await column(page);
-  const max = COLUMN_MAX * await scale(page);
-  assert(c.isFit && c.widths.every(w => w <= max + PX) && c.centred, `${label} ${what}: centred column ≤ ${max}px (${c.widths.map(Math.round).join(' / ')})`);
-  assert(c.actsBottom !== null && c.actsBottom <= c.viewH, `${label} ${what}: the buttons on screen (${Math.round(c.actsBottom)} ≤ ${c.viewH})`);
-  if (c.panelScrolls) assert(['auto', 'scroll'].includes(c.panelOverflow) && c.fadeDown, `${label} ${what}: the long panel scrolls on its own, fading at the bottom`);
+  const top = await topRow(page);
+  assert(top.ok, `${label} ${what}: top row (${top.detail})`);
+  const r = await resultLayout(page);
+  const share = r.cols.length === 2 ? r.cols[0] / (r.cols[0] + r.cols[1]) : 0;
+  assert(Math.abs(share - RESULT_SHARE) <= SHARE_SLACK, `${label} ${what}: left column 5/12 (${share.toFixed(3)})`);
+  assert(r.actsInLeft && Math.abs(r.actsBottom - r.leftBottom) <= PX && r.actsBottom <= r.viewH && r.stacked,
+    `${label} ${what}: Again / Next stacked at the left column's foot, on screen`);
+  const g = await page.evaluate(gid => { const x = memoGroupById(gid); return { hook: !!x.hook, body: !!x.body }; }, id);
+  const keyFor = g.hook ? 'memo.hookAgain' : 'memo.noteAgain';
+  const words = await page.evaluate(k => t(k), keyFor);
+  const reminder = g.hook ? r.hook : g.body ? r.note : r.single;
+  if (kind === 'none') {
+    assert(r.none && !r.pct && !r.again && reminder, `${label} ${what}: the "no answers" message left, the reminder alone right`);
+  } else {
+    assert(r.card && r.pct && r.sched, `${label} ${what}: the score card (% + verdict + Lv1–4) on the left`);
+    if (kind === 'fail') {
+      assert(r.wrongTitle && r.wrongPills === WRONG_N, `${label} ${what}: the wrong questions with their pills on the right (${r.wrongPills})`);
+      const p = await panelInfo(page, '#memoBody .memo-result-cols > .memo-col:last-child .fit-panel');
+      assert(fadeOk(p), `${label} ${what}: the wrong list scrolls on its own, fading`);
+    } else {
+      assert(r.again === words && reminder && !r.wrongTitle, `${label} ${what}: "${r.again}" + the ${g.hook ? 'hook' : g.body ? 'memory note' : 'notes'} again on the right`);
+    }
+  }
 }
 
 async function checkCases(b) {
@@ -178,9 +206,12 @@ async function checkCases(b) {
     await openGroup(page, ids.single);
     await dt.nextFrame(page);
     await checkSingle(page, label);
-    await openResult(page, ids.longest);
-    await dt.nextFrame(page);
-    await checkResult(page, label, `result (${WRONG_N} wrong)`);
+    const { hooked, plain } = await page.evaluate(() => ({ hooked: memoGroups().find(g => g.hook && g.body).id, plain: memoGroups().find(g => !g.hook && g.body).id }));
+    for (const [id, kind] of [[ids.longest, 'fail'], [hooked, 'all'], [plain, 'all'], [ids.single, 'all'], [hooked, 'none'], [plain, 'none']]) {
+      await openOutcome(page, id, kind);
+      await dt.nextFrame(page);
+      await checkResult(page, label, id, kind);
+    }
     assert(errors.length === 0, `${label}: no page errors ` + errors.join(' | '));
   });
   assert(longScrolled, 'the longest memory note overflows its panel somewhere in the matrix (the scroll case is covered)');

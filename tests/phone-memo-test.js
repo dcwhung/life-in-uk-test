@@ -106,12 +106,32 @@ async function checkPhoneLook(b) {
   await page.close();
 }
 
+// result on the phone: nothing wrong → the all-correct words + the hook (or the memory note) in the panel
+async function checkPhoneResult(b) {
+  const { page, errors } = await dt.openDesktop(b, { viewport: dt.VIEWPORTS.phone, lang: 'zh-HK' });
+  for (const pick of ['hook', 'plain']) {
+    const id = await page.evaluate(k => memoGroups().find(g => g.body && (k === 'hook' ? g.hook : !g.hook)).id, pick);
+    await page.evaluate(gid => {
+      Object.assign(memoView, { id: gid, step: 'result', result: { passed: true, lv: 2, prevLv: 1, correct: 5, total: 5, wrong: [] } });
+      showMemo();
+    }, id);
+    const r = await page.evaluate(() => ({ text: (document.querySelector('#memoBody .memo-again-text') || {}).textContent,
+      hook: !!document.querySelector('#memoBody .memo-hook'), note: !!document.querySelector('#memoBody .memo-note'),
+      pct: !!document.querySelector('#memoBody .memo-pct') }));
+    const words = pick === 'hook' ? '全部答啱 🎉 記憶鈎再睇多次：' : await page.evaluate(() => t('memo.noteAgain'));
+    assert(r.pct && r.text === words && (pick === 'hook' ? r.hook : r.note), `phone result all correct (${id}): "${r.text}" + the ${pick === 'hook' ? 'hook' : 'memory note'}`);
+  }
+  assert(errors.length === 0, 'phone result: no page errors ' + errors.join(' | '));
+  await page.close();
+}
+
 (async () => {
   const b = await dt.launch();
   let failed = false;
   try {
     await checkPillRows(b);
     await checkPhoneLook(b);
+    await checkPhoneResult(b);
     console.log('PHONE-MEMO PASS');
   } catch (e) {
     failed = true;
