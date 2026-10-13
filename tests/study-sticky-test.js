@@ -9,7 +9,7 @@ const path = require('path');
 // block, so Playwright's auto-scroll can't move it out first); W-068 (user decision) the chip rows stay on ONE line and scroll sideways, so
 // the pinned block fits small phones (header + block ≤ 40% of 320×568 … 390×844, en / zh-HK large text); S-239 the
 // Hide mastered / Bookmarked toggles and the memo chapter chips go through studyRefilter; short landscape screens stay static.
-// v2.0.3 merge (main v2.0.0 desktop, ≥ 1024px): Study is one screen high with a rail beside a card panel that scrolls on
+// v2.0.4 merge (main v2.0.0 desktop, ≥ 1024px): Study is one screen high with a rail beside a card panel that scrolls on
 // its own, so the block is not pinned there: it sits in the rail as display: contents, the chip rows wrap again, the page
 // keeps scroll-padding auto, a new list starts the panel at its top; back below 1024px the block pins again.
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
@@ -446,7 +446,7 @@ async function widthChecks(browser) {
   }
 }
 
-// v2.0.3 merge: the v1.6.1 block in main's v2.0.0 desktop Study (rail + card panel), then back to a phone width
+// v2.0.4 merge: the v1.6.1 block in main's v2.0.0 desktop Study (rail + card panel), then back to a phone width
 const DESKTOP_VIEWPORTS = [{ width: 1024, height: 768 }, { width: 1280, height: 800 }];
 const DESKTOP_CASES = [['en', 'large'], ['zh-HK', 'small']];
 const MEMO_DESKTOP_COLS = 3;

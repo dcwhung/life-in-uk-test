@@ -173,7 +173,7 @@ function planActiveHtml(plan, log, todayIso, pct, desktop = false) {
   if (desktop) {
     // F7 keeps the mockup's wording (desktop-home-plan.html): "✓ Done for today, see you tomorrow" (its ring shows the
     // %, not ✓) and "Continue today's tasks →"; the phone's compact card says "See you tomorrow" / "Continue →" (v1.5.1)
-    // v2.0.3: the → is a line icon as on the phone (v1.6.1 control icons), not a glyph in the label
+    // v2.0.4: the → is a line icon as on the phone (v1.6.1 control icons), not a glyph in the label
     const goKey = next.kind === PLAN_NEXT.done ? go.labelKey : 'plan.home.continueToday';
     return `<p class="plan-home-next">${planNextHtml(plan, log, next, true)}</p>` + planCountdownHtml(plan, todayIso)
       + planHomeDeskRingHtml(pct) + planHomeActsHtml(planHomeBtn(go.action, t(goKey), true, go.icons), schedule);

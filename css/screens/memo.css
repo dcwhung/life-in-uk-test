@@ -118,7 +118,7 @@
   .memo-scroll::before { border-radius: var(--radius) var(--radius) 0 0; }
   .memo-scroll::after { border-radius: 0 0 var(--radius) var(--radius); }
 
-  /* v2.0.3 merge: the v1.6.1 two-card rows become three in the desktop card panel (80% of up to 1280px: ~250–320px a card,
+  /* v2.0.4 merge: the v1.6.1 two-card rows become three in the desktop card panel (80% of up to 1280px: ~250–320px a card,
      the same or wider than a phone's two) */
   .memo-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .memo-card { border-left-width: calc(4px * var(--desktop-scale)); }

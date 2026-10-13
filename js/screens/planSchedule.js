@@ -356,7 +356,7 @@ function planReset() {
 // (F3). "View today's tasks" sits in the Daily tasks card, bottom right. Below 1024px: the phone's list and order ──
 const PLAN_SCROLL_PAGE_SHARE = 0.85; // ‹ › scroll about a screenful of columns
 const PLAN_HSCROLL_CLASS = 'plan-hscroll';
-// v2.0.3 merge: chevron line icons, not ‹ › glyphs (v1.6.1 control icon rule, js/components/icons.js)
+// v2.0.4 merge: chevron line icons, not ‹ › glyphs (v1.6.1 control icon rule, js/components/icons.js)
 const PLAN_SCROLL_BTNS = [[-1, 'l', 'chevronLeft'], [1, 'r', 'chevronRight']];
 function planScrollCuesWrap() {
   const list = byId('planDayList');

@@ -24,7 +24,7 @@ const TODAY = '2026-10-01';
 const START = '2026-09-28'; // Day 4 = TODAY (plan-run-test): reading + practice tasks, Days 1–3 carried over
 const GOAL = { examDate: '2026-10-29', dailyMins: 120, restDays: [0], level: 'none' };
 const CENTRE_TOL_PX = 2.5;
-// v2.0.3 merge (main v2.0.0 desktop, ≥ 1024px): the same walk in the desktop layout, plus its own controls (the F7 plan
+// v2.0.4 merge (main v2.0.0 desktop, ≥ 1024px): the same walk in the desktop layout, plus its own controls (the F7 plan
 // card's Continue, the Plan Schedule ‹ › column scrollers, the exam rail's Submit)
 const DESKTOP_CASES = [[{ width: 1280, height: 800 }, 'en', 'small'], [{ width: 1024, height: 768 }, 'zh-HK', 'large']];
 

@@ -71,7 +71,7 @@
   .dots-meta.practice i { margin-right: calc(3px * var(--desktop-scale)); }
   .dots-meta i { width: calc(9px * var(--desktop-scale)); height: calc(9px * var(--desktop-scale)); }
   .rdots-wrap { margin-top: calc(18px * var(--desktop-scale)); }
-  /* v2.0.3 merge: since v1.6.1 the legend is two .lg-row lines; the 5px gap between counts is the rows' --legend-gap */
+  /* v2.0.4 merge: since v1.6.1 the legend is two .lg-row lines; the 5px gap between counts is the rows' --legend-gap */
   .rmeta { --legend-gap: calc(5px * var(--desktop-scale)); }
   .rmeta i { width: calc(8px * var(--desktop-scale)); height: calc(8px * var(--desktop-scale)); margin-right: calc(3px * var(--desktop-scale)); }
 }
