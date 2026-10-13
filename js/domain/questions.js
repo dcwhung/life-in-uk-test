@@ -25,6 +25,14 @@ function questionByKey(k) {
   const [examNum, origIdx] = k.split('.').map(Number);
   return { q: EXAMS[examNum][origIdx], examNum, origIdx };
 }
+// CUI-0039: a stored key names a question only when it is exactly qKey of one (a removed exam / index, a hand-edited
+// or malformed key is not). questionByKey trusts its key, so stored lists are pruned with this on load (store.js)
+function isValidQuestionKey(k) {
+  if (typeof k !== 'string') return false;
+  const [examNum, origIdx] = k.split('.').map(Number);
+  const exam = Object.prototype.hasOwnProperty.call(EXAMS, examNum) ? EXAMS[examNum] : null;
+  return !!exam && Number.isInteger(origIdx) && origIdx >= 0 && origIdx < exam.length && qKey({ examNum, origIdx }) === k;
+}
 
 // ── copies: the same English question text in several exams is one question (plan G4, G40) ──
 // Single source for the plan's canonical keys, the merged source nodes and the streak sync (js/domain/mastery.js).

@@ -268,6 +268,28 @@ async function checkDays(pg) {
 }
 
 // G9 / W-030: the snapshot is asked; a right answer clears every copy; wrong ones come back; empty = done
+// S-262 (review v2.0.6): a review task materialized before v2.1.1 may hold a stale wrong-list key ('99.99', no question):
+// it is not counted or asked; the round runs the real one and the task completes
+async function checkStaleReviewQid(pg, errs) {
+  await fresh(pg);
+  await seed(pg, { wrong: ['1.0'] });
+  await openDay(pg);
+  const ri = taskIndexOf(await plan(pg), TODAY, t => t.type === 'review');
+  await pg.evaluate(ri => { const p = readStudyPlan(); p.days.find(d => d.date === '2026-10-01').tasks[ri].qids = ['99.99', '1.0']; writeStudyPlan(p); }, ri);
+  await openDay(pg);
+  const before = errs.length;
+  const prog = await pg.evaluate(ri => { const day = planLoad().days.find(d => d.date === '2026-10-01'); return planTaskProgress(day.tasks[ri], planDayLog(planLoadLog(), day.date)); }, ri);
+  assert(prog.total === 1 && !prog.complete, 'S-262: a stale review qid is not counted (1 to do): ' + JSON.stringify(prog));
+  await tap(pg, taskBox(TODAY, ri));
+  assert(errs.length === before && await activeScreen(pg) === 'screenQuiz', 'S-262: the review task opens with no page error: ' + errs.slice(before).join(' | '));
+  const c = await cur(pg);
+  assert(c.n === 1 && c.key === '1.0', 'S-262: the round asks only the real question: ' + JSON.stringify(c));
+  await answer(pg, true);
+  await tap(pg, '#nextBtn');
+  const done = await pg.evaluate(ri => { const day = planLoad().days.find(d => d.date === '2026-10-01'); return planTaskProgress(day.tasks[ri], planDayLog(planLoadLog(), day.date)).complete; }, ri);
+  assert(done && await activeScreen(pg) === 'screenPlanRun' && errs.length === before, 'S-262: answered right → the review task is complete, no page error');
+}
+
 async function checkClearWrong(pg) {
   await fresh(pg);
   await seed(pg, { wrong: [DUP_COPY_KEY, DUP_CANON_KEY, '1.0'] });
@@ -550,6 +572,7 @@ async function main() {
   await checkResultCard(pg, run);
   await checkDays(pg);
   await checkClearWrong(pg);
+  await checkStaleReviewQid(pg, errs);
   await checkContinueAndAllDone(pg);
   await checkResume(pg);
   await checkMidnight(pg);
