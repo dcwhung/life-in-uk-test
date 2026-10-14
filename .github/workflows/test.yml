@@ -1,0 +1,49 @@
+# CI (AU-002), part 1 of 2; details, local repro and branch protection steps: .proj-docs/ci.md
+#   node-tests  every branch push + every PR: the suites that need no browser (picked by tests/tools/node-only-suites.js)
+# The browser suites (tests/run-all.sh) are the `playwright-tests` job in playwright.yml (PRs into main only).
+# Deploys are not gated by this: GitHub Pages and Vercel still deploy on push to main.
+name: tests
+
+on:
+  push:
+    branches: ['**'] # branches only: a tag push does not run CI
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  node-tests:
+    # Pinned, not ubuntu-latest, to match playwright.yml (ubuntu-latest moves to Ubuntu 26 from 2026-10-19, which
+    # playwright-core 1.56.1 does not support). Revisit both runners when bumping playwright-core.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Run node-only suites
+        run: |
+          suites=$(node tests/tools/node-only-suites.js)
+          if [ -z "$suites" ]; then echo "no node-only suites found"; exit 1; fi
+          fail=0
+          for t in $suites; do
+            if out=$(node "tests/$t.js" 2>&1); then rc=0; else rc=$?; fi
+            last=$(printf '%s\n' "$out" | tail -1)
+            printf '%-22s %s\n' "$t" "$last"
+            if [ "$rc" -ne 0 ] || [[ "$last" != *PASS* ]]; then
+              fail=1
+              printf '%s\n' "$out" | tail -30
+            fi
+          done
+          exit $fail

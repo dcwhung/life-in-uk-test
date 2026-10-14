@@ -1,0 +1,114 @@
+# CI (AU-002), part 2 of 2; details, local repro and branch protection steps: .proj-docs/ci.md
+#   playwright-tests  PRs into main only (opened / new push / reopened): the full tests/run-all.sh in headless Chromium
+# Its own workflow (not an `if:` in test.yml) so pushes never create a skipped `playwright-tests` check.
+# The job name is what branch protection requires: keep it `playwright-tests`.
+# The node-only suites are the `node-tests` job in test.yml.
+name: playwright
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '22'
+  PLAYWRIGHT_CORE_VERSION: '1.56.1'
+
+jobs:
+  playwright-tests:
+    # Pinned, not ubuntu-latest: ubuntu-latest moves to Ubuntu 26 from 2026-10-19 and playwright-core 1.56.1 only
+    # supports Ubuntu up to 24.04 (lib/server/utils/hostPlatform.js). Revisit the runner when bumping playwright-core.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # tests/upgrade-test.js runs `git archive` on a pinned v0.57 commit
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      # The repo has no package.json: install playwright-core outside the checkout and point NODE_PATH at it
+      - name: Install playwright-core
+        run: |
+          npm install --no-save --no-audit --no-fund --prefix "$RUNNER_TEMP/pw" "playwright-core@$PLAYWRIGHT_CORE_VERSION"
+          echo "NODE_PATH=$RUNNER_TEMP/pw/node_modules" >> "$GITHUB_ENV"
+
+      # Browser binaries are cached per OS + playwright-core version (a new version = a new key = a fresh download)
+      # Scope: main has no playwright run, so a PR only reuses caches saved by its own earlier runs (the first run of
+      # every new PR downloads Chromium); actions/cache saves only when the job succeeds
+      - name: Cache Playwright browsers
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-ms-playwright-${{ env.PLAYWRIGHT_CORE_VERSION }}
+
+      # OS packages are not in the cache, so this runs every time (apt via sudo). It also installs fonts-wqy-zenhei
+      # (playwright-core's "tools" deps), so CI does have a CJK font, but not the Noto CJK used locally;
+      # "Run all Playwright suites" sets LANG_SWITCH_NO_CJK_FONT=1 to skip lang-switch-test M4
+      - name: Install Chromium OS dependencies
+        run: |
+          "$RUNNER_TEMP/pw/node_modules/.bin/playwright-core" install-deps chromium
+
+      # The layout suites (320px line wraps, chip heights, desktop fits) are tuned with Inter as the default sans-serif,
+      # as on the dev machines; the runner's default (DejaVu Sans) is wider and turns 9 suites red. Same font + same
+      # fontconfig rule as locally (tests/tools/56-prefer-inter.conf, a copy of /etc/fonts/conf.d/56-prefer-inter.conf)
+      - name: Use Inter as the default sans-serif (as on the dev machines)
+        run: |
+          sudo apt-get install -y --no-install-recommends fonts-inter
+          sudo cp tests/tools/56-prefer-inter.conf /etc/fonts/conf.d/56-prefer-inter.conf
+          fc-cache -f
+          fc-match sans-serif
+          fc-match sans-serif | grep -q Inter
+
+      # Downloads only on a cache miss: with the browser already in ~/.cache/ms-playwright it is a no-op.
+      # --no-shell: every suite launches the full build via CHROMIUM_PATH, so the headless shell is never used
+      - name: Install Chromium (same playwright-core version)
+        run: |
+          "$RUNNER_TEMP/pw/node_modules/.bin/playwright-core" install --no-shell chromium
+
+      # Same setup as local runs: CHROMIUM_PATH = the full Chromium build playwright-core just installed
+      - name: Locate Chromium
+        run: |
+          chromium_path=$(node -e "process.stdout.write(require('playwright-core').chromium.executablePath())")
+          test -x "$chromium_path"
+          echo "CHROMIUM_PATH=$chromium_path" >> "$GITHUB_ENV"
+          echo "CHROMIUM_PATH=$chromium_path"
+
+      - name: Run all Playwright suites
+        env:
+          # Force lang-switch-test's no-CJK-font branch: M4 (zh-HK line wrap at 320px) is tuned to Noto CJK, and the
+          # WenQuanYi font that install-deps brings measures differently (user decision 2026-10-14). Verify M4 locally.
+          LANG_SWITCH_NO_CJK_FONT: '1'
+        run: bash tests/run-all.sh # tests/pages-server.js needs python3 (preinstalled on ubuntu-24.04)
+
+      # Suites rewrite the committed tests/*.png on every run; upload only the changed ones plus new untracked
+      # screenshots (the useful diffs)
+      - name: List changed screenshots
+        id: shots
+        if: failure()
+        run: |
+          changed=$(git ls-files -m -o --exclude-standard -- 'tests/*.png')
+          printf '%s\n' "${changed:-no changed screenshots}"
+          [ -n "$changed" ] || exit 0 # no output -> the upload step is skipped
+          {
+            echo 'paths<<EOF_SHOTS'
+            printf '%s\n' "$changed"
+            echo 'EOF_SHOTS'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Upload changed screenshots
+        if: failure() && steps.shots.outputs.paths != ''
+        uses: actions/upload-artifact@v5
+        with:
+          name: playwright-screenshots
+          path: ${{ steps.shots.outputs.paths }}
+          if-no-files-found: ignore
+          retention-days: 7
