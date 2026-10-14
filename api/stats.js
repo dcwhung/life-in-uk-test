@@ -12,6 +12,7 @@
 // Returns { launch, days: [{ date, open, standalone, dau, install }] (newest first, UTC), totals: {...} }.
 // ════════════════════════════════════════
 const crypto = require('crypto');
+const net = require('net');
 const { EVENTS, counterKey, recentUtcDates, utcIsoDate } = require('./_lib/events');
 const { redisPipeline } = require('./_lib/redis');
 
@@ -41,17 +42,19 @@ const ISO_HOUR_LENGTH = 13; // '2026-10-14T23'
 const utcHour = nowMs => new Date(nowMs).toISOString().slice(0, ISO_HOUR_LENGTH);
 const secondsToNextHour = nowMs => Math.ceil((MS_PER_HOUR - (nowMs % MS_PER_HOUR)) / MS_PER_SECOND);
 
-// IPv4 as is; IPv6 → its /64 (first 4 groups, lowercase, no leading zeros); IPv4-mapped IPv6 → the IPv4 address
+// IPv4 as is; IPv6 → its /64 (first 4 groups, lowercase, no leading zeros); IPv4-mapped IPv6 → the IPv4 address.
+// S-289: anything else (a port, brackets, junk) is returned as is, so it gets a bucket of its own
 function normalizeIp(ip) {
   const mapped = IPV4_MAPPED.exec(ip);
-  if (mapped) return mapped[1];
-  if (!ip.includes(':')) return ip;
-  const [head, tail = ''] = ip.split('%')[0].split('::');
+  if (mapped && net.isIPv4(mapped[1])) return mapped[1];
+  const bare = ip.split('%')[0]; // drop a zone id (fe80::1%eth0)
+  if (!net.isIPv6(bare)) return ip;
+  const [head, tail = ''] = bare.split('::');
   const groups = s => (s ? s.split(':') : []);
   const left = groups(head);
   const right = groups(tail);
-  const missing = Math.max(0, IPV6_GROUPS - left.length - right.length); // never negative, even for a malformed address
-  const zeros = ip.includes('::') ? Array(missing).fill('0') : [];
+  const missing = Math.max(0, IPV6_GROUPS - left.length - right.length); // an IPv4 tail counts as 1 group: /64 unaffected
+  const zeros = bare.includes('::') ? Array(missing).fill('0') : [];
   const full = [...left, ...zeros, ...right];
   return full.slice(0, IPV6_PREFIX_GROUPS).map(g => (Number.parseInt(g, HEX) || 0).toString(HEX)).join(':');
 }

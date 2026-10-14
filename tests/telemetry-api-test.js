@@ -250,7 +250,13 @@ function checkNormalizeIp() {
   for (const [raw, expected] of [
     ['203.0.113.7', '203.0.113.7'], ['2001:db8:1:2:aaaa::1', '2001:db8:1:2'], ['2001:DB8:0001:0002:bbbb::9', '2001:db8:1:2'],
     ['2001:db8::1', '2001:db8:0:0'], ['::1', '0:0:0:0'], ['::ffff:1.2.3.4', '1.2.3.4'], ['::FFFF:1.2.3.4', '1.2.3.4'],
-    ['fe80::1%eth0', 'fe80:0:0:0'], ['2001:db8:a:b:c:d:e:f', '2001:db8:a:b'], ['1:2:3:4:5:6:7:8::9', '1:2:3:4'],
+    ['fe80::1%eth0', 'fe80:0:0:0'], ['2001:db8:a:b:c:d:e:f', '2001:db8:a:b'], ['::', '0:0:0:0'],
+    // S-289: anything that is not a valid IPv4 / IPv6 address keeps its own bucket, as is
+    ['1:2:3:4:5:6:7:8::9', '1:2:3:4:5:6:7:8::9'], ['1.2.3.4:5678', '1.2.3.4:5678'], ['[2001:db8::1]', '[2001:db8::1]'],
+    ['[2001:db8::1]:443', '[2001:db8::1]:443'], ['zzzz::1', 'zzzz::1'], [':::::', ':::::'],
+    ['::ffff:999.1.1.1', '::ffff:999.1.1.1'],
+    // the hex form of IPv4-mapped is a valid IPv6 address: bucketed by its /64 (Vercel sends the dotted form)
+    ['::ffff:0102:0304', '0:0:0:0'],
   ]) assert(stats.normalizeIp(raw) === expected, `normalizeIp(${raw}) → ${expected}`);
 }
 
