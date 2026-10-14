@@ -72,6 +72,8 @@ const sameSecret = (given, expected) => crypto.timingSafeEqual(digest(given), di
 
 // HMAC keyed by the password hash: the stored id cannot be turned back into an IP without the password, and the hour in
 // the input makes ids of different hours unlinkable. Only called once the password is known to be set.
+// W-391 (owner's decision, 2026-10-14): the key comes from the password, so anyone who can read Redis can test password
+// guesses offline against a known IP: STATS_PASSWORD must be ≥ 20 random characters and never reused elsewhere.
 const clientId = (ip, hour) => crypto.createHmac('sha256', digest(process.env.STATS_PASSWORD))
   .update(normalizeIp(ip) + '|' + hour).digest('hex').slice(0, CLIENT_ID_LENGTH);
 
