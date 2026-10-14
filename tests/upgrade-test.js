@@ -638,7 +638,8 @@ async function oppositeMix(b) {
   await pg.goto('file://' + path.join(dir, 'index.html'));
   await noSeed(pg); // S-219: every key counts
   await seed(pg, LEGACY);
-  assert((await text(pg, '#examGrid .exam-btn.all .exam-mastery')).startsWith('3/480'), 'opposite mix: v0.57 keys read (3/480)');
+  // v0.57 files (its own data: 408 questions), only utils.js is current: the count stays 408 after the v2.7.0 exams
+  assert((await text(pg, '#examGrid .exam-btn.all .exam-mastery')).startsWith('3/408'), 'opposite mix: v0.57 keys read (3/408)');
   assert(JSON.stringify(await rawDump(pg)) === JSON.stringify(Object.fromEntries(Object.entries(LEGACY).sort())), 'opposite mix: storage untouched');
   assert(errs.length === 0, 'opposite mix: no page errors: ' + errs.join(' | '));
   await pg.close();
@@ -716,7 +717,15 @@ async function swUpgrade(b) {
     const extra = Object.keys(ls).filter(k => !(k in FOREIGN) && !(k.startsWith(P) && k.slice(P.length) in LEGACY));
     assert(JSON.stringify(extra) === JSON.stringify([MARKER]), 'only new key is the marker: ' + extra);
     const ui = await captureUI(pg);
-    const diffs = Object.keys(ui57).filter(k => JSON.stringify(ui57[k]) !== JSON.stringify(ui[k]));
+    // v2.7.0 added exams 18–20: totals and % grow and new exams appear, but the user's progress (the mastered count
+    // before "/") must not change, and every exam v0.57 did not have starts at 0
+    const mastered = list => list.map(s => s.split('/')[0]);
+    const newExams = ui.examMastery.slice(ui57.examMastery.length);
+    assert(newExams.length > 0 && newExams.every(s => s.startsWith('0/')), `exams added since v0.57 start at 0 (${newExams.length})`);
+    const sameProgress = { examMastery: ui.examMastery.slice(0, ui57.examMastery.length), chapterMastery: ui.chapterMastery };
+    const comparable = snap => ({ ...snap, examMastery: mastered(snap.examMastery), chapterMastery: mastered(snap.chapterMastery) });
+    const uiBefore = comparable(ui57), uiAfter = comparable({ ...ui, ...sameProgress });
+    const diffs = Object.keys(uiBefore).filter(k => JSON.stringify(uiBefore[k]) !== JSON.stringify(uiAfter[k]));
     assert(diffs.length === 0, 'UI identical before / after the upgrade' + (diffs.length ? ': ' + diffs.join(', ') : ''));
     await pg.reload();
     assert(JSON.stringify(await rawDump(pg)) === JSON.stringify(ls), 'another reload: storage unchanged');
