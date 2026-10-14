@@ -15,17 +15,16 @@ const INTRO_SAMPLE_Q = 'What limited the power of the English King in 1215?'; //
 const INTRO_FACT_DIFFICULTY = 2;
 const INTRO_FACT_ID = { ch: 1, n: 12 };   // the sample fact card's "Ch 1 #12"
 const INTRO_SAMPLE_PLAN_DAYS = 21;
-const INTRO_JITTER_PCT = 4;     // scattered pieces: slot ± this, then a tilt of MIN–MAX deg either way (cards tilt less)
 const INTRO_TILT_MIN = 2;
 const INTRO_TILT_MAX = 8;
 const INTRO_CARD_TILT_MAX = 5;
 const INTRO_POP_STAGGER_S = 0.07;
-// slots in % of the illustration: the main card in the middle, pills along the top and bottom edges
-const INTRO_SLOTS = {
-  study: { card: [50, 52], pills: [[17, 8], [52, 7], [84, 9], [16, 91], [52, 92], [84, 91]] },
-  practice: { card: [40, 46], extra: [66, 88], pills: [[22, 7], [78, 7], [18, 93]] },
-  plan: { card: [44, 33], extra: [62, 90], pills: [[16, 92]] },
-};
+// v2.5.2: pieces are laid out in rows by their measured size (fitIntroScenes → layoutIntroScene): a row of pills above
+// the main card, a row below (pills, or the card's companion that overlaps its bottom edge); so they never pile up
+const INTRO_ROW_GAP_PX = 10;      // between pieces in a row
+const INTRO_ROW_SPACE_PX = 14;    // between a row and the main card
+const INTRO_TILT_ROOM_PX = 10;     // extra edge room for the tilt, so the edge fit does not push bottom pieces up onto the card
+const INTRO_JITTER_PX = 5;        // each piece moves up to this much off its spot
 const INTRO_STUDY_TABS = [['study.tabChapters', '📚'], ['study.tabTimeline', '⏳'], ['study.tabGeo', '🗺️'], ['study.tabPeople', '👤'], ['study.tabMemo', '🧠']];
 const INTRO_WEEK = [1, 2, 3, 4, 5, 6, 0];                 // Mon → Sun (data.weekdays is Sunday-based)
 const INTRO_HEAT = ['h4', 'h3', 'h4', 'h2', 'today', '', '']; // a sample week of the plan heat colours
@@ -47,26 +46,28 @@ function introSample() {
 }
 
 // one absolutely placed piece of an illustration; slot = [x%, y%]
-function introPiece(html, [x, y], { front = false, maxTilt = INTRO_TILT_MAX, order = 0 } = {}) {
-  const jx = (x + introRand(-INTRO_JITTER_PCT, INTRO_JITTER_PCT)).toFixed(1);
-  const jy = (y + introRand(-INTRO_JITTER_PCT, INTRO_JITTER_PCT)).toFixed(1);
-  const vars = `--x:${jx}%;--y:${jy}%;--r:${introTilt(maxTilt).toFixed(1)}deg;--d:${(order * INTRO_POP_STAGGER_S).toFixed(2)}s`;
-  return `<div class="intro-piece${front ? ' front' : ''}" style="${vars}">${html}</div>`;
+// row: main / top / bottom (layoutIntroScene places it)
+function introPiece(html, { row, maxTilt = INTRO_TILT_MAX, order = 0 }) {
+  const vars = `--r:${introTilt(maxTilt).toFixed(1)}deg;--d:${(order * INTRO_POP_STAGGER_S).toFixed(2)}s`;
+  const cls = row === 'main' ? '' : ' front';
+  return `<div class="intro-piece${cls}" data-row="${row}" style="${vars}">${html}</div>`;
 }
+const introMain = html => introPiece(html, { row: 'main', maxTilt: INTRO_CARD_TILT_MAX });
 const introPill = (icon, label, cls = '') => `<span class="intro-pill ${cls}"><i aria-hidden="true">${icon}</i>${escapeHtml(label)}</span>`;
 const introBookmark = () => `<span class="intro-bm">${bookmarkSvg('', { decorative: true })}</span>`;
 
 // P1: five study-mode pills around a tilted fact card (stars, bookmark, memory level Lv1–Lv3)
 function introStudyArt() {
-  const slots = introShuffle(INTRO_SLOTS.study.pills);
+  const topCount = Math.random() < 0.5 ? 2 : 3; // the five modes split 2 + 3 or 3 + 2 around the card
   const card = `<div class="intro-ui intro-fact">
       <div class="intro-row"><span class="intro-tag" lang="en">${escapeHtml(t('study.chapterFactId', INTRO_FACT_ID))}</span>${starsHtml(INTRO_FACT_DIFFICULTY)}<span class="intro-sp"></span>${introBookmark()}</div>
       <div class="intro-fact-q">${escapeHtml(t('intro.study.factQ'))}</div>
       <div class="intro-fact-a">${escapeHtml(t('intro.study.factA'))}</div>
       <div class="intro-muted">🧠 ${escapeHtml(t('intro.study.memoLv'))}</div>
       <div class="intro-lv"><i class="on"></i><i class="on"></i><i></i></div></div>`;
-  const pills = INTRO_STUDY_TABS.map(([labelKey, icon], i) => introPiece(introPill(icon, t(labelKey)), slots[i], { front: true, order: i + 1 }));
-  return introPiece(card, INTRO_SLOTS.study.card, { maxTilt: INTRO_CARD_TILT_MAX }) + pills.join('');
+  const pills = introShuffle(INTRO_STUDY_TABS).map(([labelKey, icon], i) =>
+    introPiece(introPill(icon, t(labelKey)), { row: i < topCount ? 'top' : 'bottom', order: i + 1 }));
+  return introMain(card) + pills.join('');
 }
 // the sample question as a tilted card: stars, flag, A–D with the first wrong option marked wrong
 function introQuestionCard(item) {
@@ -92,12 +93,13 @@ function introSimilarCard(item) {
 }
 // P2: question card + similar card + three pills: practice, mock exam, the 45-minute timer
 function introPracticeArt(item) {
-  const slots = introShuffle(INTRO_SLOTS.practice.pills);
-  const pills = [introPill('📝', t('home.modePractice')), introPill('🎯', t('home.modeExam')), introPill('⏱', `${EXAM_MINUTES}:00`, 'timer')]
-    .map((h, i) => introPiece(h, slots[i], { front: true, order: i + 2 }));
-  return introPiece(introQuestionCard(item), INTRO_SLOTS.practice.card, { maxTilt: INTRO_CARD_TILT_MAX })
-    + introPiece(introSimilarCard(item), INTRO_SLOTS.practice.extra, { front: true, maxTilt: INTRO_CARD_TILT_MAX, order: 1 })
-    + pills.join('');
+  const top = introShuffle([introPill('📝', t('home.modePractice')), introPill('🎯', t('home.modeExam'))])
+    .map((h, i) => introPiece(h, { row: 'top', order: i + 2 }));
+  const bottom = introShuffle([
+    introPiece(introPill('⏱', `${EXAM_MINUTES}:00`, 'timer'), { row: 'bottom', order: 4 }),
+    introPiece(introSimilarCard(item), { row: 'bottom', maxTilt: INTRO_CARD_TILT_MAX, order: 1 }),
+  ]);
+  return introMain(introQuestionCard(item)) + top.join('') + bottom.join('');
 }
 // a sample plan card: countdown, strategy, one week of heat, today's tasks, the day ring
 function introPlanCard() {
@@ -113,9 +115,11 @@ function introPlanCard() {
 // P3: plan card + a Cantonese translation card (the sample question and its yue line) + a streak pill
 function introPlanArt(item) {
   const yue = `<div class="intro-ui intro-yue"><span class="intro-yue-badge" aria-hidden="true">${INTRO_YUE_MARK}</span><p><span lang="en">${escapeHtml(item.q.q)}</span><span class="intro-yue-line" lang="zh-HK">${escapeHtml(item.q.yue)}</span></p></div>`;
-  return introPiece(introPlanCard(), INTRO_SLOTS.plan.card, { maxTilt: INTRO_CARD_TILT_MAX })
-    + introPiece(yue, INTRO_SLOTS.plan.extra, { front: true, maxTilt: INTRO_CARD_TILT_MAX, order: 1 })
-    + introPiece(introPill('🔥', t('intro.plan.streak')), introShuffle(INTRO_SLOTS.plan.pills)[0], { front: true, order: 2 });
+  const bottom = introShuffle([
+    introPiece(yue, { row: 'bottom', maxTilt: INTRO_CARD_TILT_MAX, order: 1 }),
+    introPiece(introPill('🔥', t('intro.plan.streak')), { row: 'bottom', order: 2 }),
+  ]);
+  return introMain(introPlanCard()) + bottom.join('');
 }
 
 // the last card's settings: interface language + the Cantonese translation switch (the same settings as ⚙)
@@ -204,8 +208,8 @@ function renderIntro() {
   const root = byId(INTRO_OVERLAY_ID);
   root.setAttribute('aria-label', t('intro.dialog'));
   root.innerHTML = introHtml();
+  syncIntro(); // first: it hides the footer buttons that are not in use, which sets the cards' final height
   fitIntroLayout(root);
-  syncIntro();
 }
 // the illustrations scale to fit their half (phone) / column (desktop); then one text size that fits all three cards
 function fitIntroLayout(root) {
@@ -213,10 +217,45 @@ function fitIntroLayout(root) {
   fitIntroPieces(root);
   fitIntroText(root);
 }
+// the scene scales into the art box less the edge room on every side, so the edge fit (fitIntroPieces) rarely has to
+// push a piece in (pushing at a small scale piled the pieces onto the card)
+const introJitter = () => introRand(-INTRO_JITTER_PX, INTRO_JITTER_PX);
+// a row's pieces side by side, centred on the scene; returns the row's width
+function layoutIntroRow(pieces, y, sceneW) {
+  const total = pieces.reduce((n, p) => n + p.offsetWidth, 0) + INTRO_ROW_GAP_PX * Math.max(0, pieces.length - 1);
+  let x = (sceneW - total) / 2;
+  pieces.forEach(p => {
+    p.style.setProperty('--x', `${(x + p.offsetWidth / 2 + introJitter()).toFixed(1)}px`);
+    p.style.setProperty('--y', `${(y + introJitter()).toFixed(1)}px`);
+    x += p.offsetWidth + INTRO_ROW_GAP_PX;
+  });
+}
+const introRowWidth = ps => ps.reduce((n, p) => n + p.offsetWidth, 0) + INTRO_ROW_GAP_PX * Math.max(0, ps.length - 1);
+const introRowHeight = ps => Math.max(0, ...ps.map(p => p.offsetHeight));
+// top row, main card, bottom row; the scene takes their size
+function layoutIntroScene(scene) {
+  const main = scene.querySelector('[data-row="main"]');
+  const top = [...scene.querySelectorAll('[data-row="top"]')];
+  const bottom = [...scene.querySelectorAll('[data-row="bottom"]')];
+  const topH = introRowHeight(top), botH = introRowHeight(bottom);
+  const w = Math.max(main.offsetWidth, introRowWidth(top), introRowWidth(bottom));
+  const cardTop = topH ? topH + INTRO_ROW_SPACE_PX : 0;
+  const cardBottom = cardTop + main.offsetHeight;
+  const botTop = cardBottom + INTRO_ROW_SPACE_PX; // v2.5.2: nothing covers the card (the user saw option D hidden)
+  main.style.setProperty('--x', `${w / 2}px`);
+  main.style.setProperty('--y', `${cardTop + main.offsetHeight / 2}px`);
+  layoutIntroRow(top, topH / 2, w);
+  layoutIntroRow(bottom, botTop + botH / 2, w);
+  scene.style.width = `${w}px`;
+  scene.style.height = `${botH ? botTop + botH : cardBottom}px`;
+}
 function fitIntroScenes(root) {
+  const pad = parseFloat(getComputedStyle(root).getPropertyValue('--intro-edge-pad')) || 0;
   root.querySelectorAll('.intro-art').forEach(art => {
     const scene = art.querySelector('.intro-scene');
-    const k = Math.min(art.clientWidth / scene.offsetWidth, art.clientHeight / scene.offsetHeight, INTRO_SCENE_K_MAX);
+    layoutIntroScene(scene);
+    const room = 2 * (pad + INTRO_TILT_ROOM_PX);
+    const k = Math.min((art.clientWidth - room) / scene.offsetWidth, (art.clientHeight - room) / scene.offsetHeight, INTRO_SCENE_K_MAX);
     scene.style.setProperty('--scene-k', k.toFixed(3));
   });
 }

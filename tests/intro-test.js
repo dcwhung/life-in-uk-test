@@ -18,6 +18,8 @@ const OPEN_TIMEOUT_MS = 8000;
 const EDGE_PAD_PX = 20;   // --intro-edge-pad
 const EDGE_TOL_PX = 1;
 const SWIPE_PX = 120;
+const ART_SHARE = 0.55;
+const MAX_OVERLAP_PCT = 25; // v2.5.2: two illustration pieces may share at most this much of the smaller one (tilted corners)   // the illustration's share of a phone card (css/screens/intro.css)
 const FAILSAFE_WAIT_MS = 12000;  // --splash-failsafe 10s + slack
 const PRE_SPLASH_REF = '73822f9'; // main v2.4.2 merged in: its js/main.js never calls the splash (C-008 mixed cache)
 const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('ok:', m); };
@@ -73,7 +75,9 @@ async function checkFirstRun(b, base) {
   assert(s && s.step === '1 / 3' && s.front === '0' && !s.nextHidden && s.ctasHidden && !s.skipGone, 'first run: the intro opens on card 1 of 3 with Next + Skip: ' + JSON.stringify(s));
   assert(await piecesInside(pg), 'card 1: every illustration piece stays ≥ 20px inside its box');
   const fit = await cardsFit(pg);
-  assert(fit.every(c => c.half && c.textFits), 'phone: every illustration ≤ half the card and every card text fits: ' + JSON.stringify(fit));
+  assert(fit.every(c => c.half && c.textFits), 'phone: every illustration ≤ 55% of the card and every card text fits: ' + JSON.stringify(fit));
+  const over = await worstOverlap(pg);
+  assert(over <= MAX_OVERLAP_PCT, `phone: illustration pieces do not pile up (worst overlap ${over}% ≤ ${MAX_OVERLAP_PCT}%)`);
   assert(await pg.evaluate(() => document.documentElement.classList.contains('intro-open') && getComputedStyle(document.body).overflow === 'hidden'), 'the page under the intro does not scroll');
   await pg.click('#introOverlay .intro-next');
   s = await introState(pg);
@@ -153,12 +157,20 @@ async function checkPlanWayIn(b, base) {
   assert(await pg.$eval('#screenPlanGoal', el => el.classList.contains('active')), 'Make a study plan opens the plan goal form');
   await ctx.close();
 }
+// v2.5.2: the worst overlap between two pieces of one illustration, as % of the smaller piece (rows: they barely touch)
+const worstOverlap = pg => pg.evaluate(() => Math.max(...[...document.querySelectorAll('#introOverlay .intro-card')].map(card => {
+  const boxes = [...card.querySelectorAll('.intro-piece')].map(el => el.getBoundingClientRect());
+  return Math.max(0, ...boxes.flatMap((a, i) => boxes.slice(i + 1).map(b => {
+    const w = Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left)), h = Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+    return Math.round(100 * w * h / Math.min(a.width * a.height, b.width * b.height));
+  })));
+})));
 // every card: the illustration is at most half the card (phone), its pieces stay inside, the text fits without scrolling
-const cardsFit = pg => pg.evaluate(() => [...document.querySelectorAll('#introOverlay .intro-card')].map(card => {
+const cardsFit = pg => pg.evaluate(share => [...document.querySelectorAll('#introOverlay .intro-card')].map(card => {
   const art = card.querySelector('.intro-art').getBoundingClientRect(), all = card.getBoundingClientRect();
   const text = card.querySelector('.intro-text');
-  return { half: art.height <= all.height / 2 + 1, textFits: text.scrollHeight <= text.clientHeight + 1 };
-}));
+  return { half: art.height <= all.height * share + 1, textFits: text.scrollHeight <= text.clientHeight + 1 };
+}), ART_SHARE);
 async function checkRingAndDesktop(b, base) {
   const { pg, ctx, errs } = await userPage(b, DESKTOP, RING_RANDOM);
   await pg.goto(base);
@@ -172,6 +184,8 @@ async function checkRingAndDesktop(b, base) {
   const cols = await pg.$eval('#introOverlay .intro-card[data-pos="0"]', el => getComputedStyle(el).gridTemplateColumns.split(' ').length);
   assert(cols === 2, 'desktop intro: illustration left, text right');
   assert(await piecesInside(pg), 'desktop card 1: pieces stay ≥ 20px inside');
+  const over = await worstOverlap(pg);
+  assert(over <= MAX_OVERLAP_PCT, `desktop: illustration pieces do not pile up (worst overlap ${over}% ≤ ${MAX_OVERLAP_PCT}%)`);
   const fit = await cardsFit(pg);
   assert(fit.every(c => c.textFits), 'desktop: every card text fits without scrolling: ' + JSON.stringify(fit));
   const sizes = await pg.$$eval('#introOverlay .intro-title', els => [...new Set(els.map(e => getComputedStyle(e).fontSize))]);
