@@ -1,8 +1,10 @@
 // ════════════════════════════════════════
 // GET /api/stats?days=all — the owner's read of the usage counters (stats.html, v2.9.0).
-// Auth: HTTP Basic with STATS_USERNAME / STATS_PASSWORD (Vercel env vars; either unset = always 401). No
-// WWW-Authenticate header, so a browser never pops its own login dialog: stats.html has its own sign-in form.
-// Wrong logins are counted per UTC hour with no IP stored; at AUTH_FAIL_LIMIT everyone gets 429 until the hour turns.
+// Auth: HTTP Basic with STATS_USERNAME / STATS_PASSWORD (Vercel env vars; either unset = always 401). The 401 names a
+// non-Basic scheme (S-284), so a browser never pops its own login dialog: stats.html has its own sign-in form.
+// Login attempts are counted per UTC hour with no IP stored (W-384): each attempt reserves a slot with INCR before the
+// password is checked (atomic, so a parallel burst gets no extra checks) and a good login gives its slot back. Past
+// AUTH_FAIL_LIMIT everyone gets 429 until the hour turns: anyone can lock the owner out for an hour (accepted trade-off).
 // days: 'all' = launch day → today; a number = that many days back (1..MAX_DAYS; default DEFAULT_DAYS).
 // Returns { launch, days: [{ date, open, standalone, dau, install }] (newest first, UTC), totals: {...} }.
 // ════════════════════════════════════════
@@ -20,12 +22,14 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const BASIC = 'Basic ';
 const AUTH_FAIL_LIMIT = 10;
 const AUTH_FAIL_PREFIX = 'lifeuk:authfail:';
-const MS_PER_HOUR = 60 * 60 * 1000;
+const MS_PER_SECOND = 1000;
 const SECONDS_PER_HOUR = 60 * 60;
+const MS_PER_HOUR = SECONDS_PER_HOUR * MS_PER_SECOND;
+const AUTH_SCHEME_HEADER = 'StatsBasic realm="usage stats"';
 const ISO_HOUR_LENGTH = 13; // '2026-10-14T23'
 
 const failKey = nowMs => AUTH_FAIL_PREFIX + new Date(nowMs).toISOString().slice(0, ISO_HOUR_LENGTH);
-const secondsToNextHour = nowMs => Math.ceil((MS_PER_HOUR - (nowMs % MS_PER_HOUR)) / 1000);
+const secondsToNextHour = nowMs => Math.ceil((MS_PER_HOUR - (nowMs % MS_PER_HOUR)) / MS_PER_SECOND);
 
 // same-length digests, so the compare takes the same time whatever was typed
 const digest = s => crypto.createHash('sha256').update(String(s), 'utf8').digest();
@@ -73,21 +77,22 @@ function buildReport(dates, values) {
   return { launch: LAUNCH_DATE, days, totals };
 }
 
+const unauthorized = res => res.setHeader('WWW-Authenticate', AUTH_SCHEME_HEADER).status(401).end();
+
 async function stats(req, res) {
   if (req.method !== 'GET') return res.setHeader('Allow', 'GET').status(405).end();
   const now = Date.now();
   const key = failKey(now);
+  // only a real attempt counts: a request with no credentials (a crawler, a first load) cannot lock the owner out
+  const creds = readBasic(req.headers.authorization);
+  if (!creds) return unauthorized(res);
   try {
-    const [failures] = await redisPipeline([['GET', key]]);
-    if (Number(failures) >= AUTH_FAIL_LIMIT) {
+    const [attempts] = await redisPipeline([['INCR', key], ['EXPIRE', key, SECONDS_PER_HOUR]]);
+    if (attempts > AUTH_FAIL_LIMIT) {
       return res.setHeader('Retry-After', String(secondsToNextHour(now))).status(429).end();
     }
-    const creds = readBasic(req.headers.authorization);
-    if (!isAuthorized(creds)) {
-      // only a real attempt counts: a request with no credentials (a crawler, a first load) cannot lock the owner out
-      if (creds) await redisPipeline([['INCR', key], ['EXPIRE', key, SECONDS_PER_HOUR]]);
-      return res.status(401).end();
-    }
+    if (!isAuthorized(creds)) return unauthorized(res);
+    await redisPipeline([['DECR', key]]); // a good login is not a failure
     const dates = recentUtcDates(parseDays(req.query.days, now), now);
     const keys = dates.flatMap(date => EVENTS.map(e => counterKey(e, date)));
     const [values] = await redisPipeline([['MGET', ...keys]]);

@@ -15,7 +15,8 @@ const STATS_STRINGS = {
     dauSubDaily: '每部機每個 UTC 日計一次', dauSubMonthly: '嗰個月每日活躍裝置嘅平均數（唔係當月獨立裝置數）',
     openDaily: '每日開 app 次數', openMonthly: '每月開 app 次數', openSub: '兩段疊埋嘅高度 = 總開啟次數',
     browserOpens: 'Browser', appOpens: '已安裝 app', total: '總數', toDate: '（至今）',
-    monthLong: '{y}年{m}月', monthShort: '{yy}年{m}月',
+    monthLong: '{y}年{m}月', monthShort: '{yy}年{m}月', fromDay: '（由 {d} 日起）',
+    errData: '收到嘅數據唔啱，請稍後再試',
     tableDaily: '每日明細', tableMonthly: '每月明細', tableSub: '最新排最上，喺框內捲動睇舊數據',
     colDay: '日期', colMonth: '月份', colOpen: '總開啟', colBrowser: 'Browser', colApp: '已安裝 app',
     colDauDaily: '活躍裝置', colDauMonthly: '平均每日活躍裝置', colInstall: '新安裝',
@@ -35,7 +36,8 @@ const STATS_STRINGS = {
     dauSubDaily: 'Each device counts once per UTC day', dauSubMonthly: 'Average of the daily counts in that month (not unique devices per month)',
     openDaily: 'Daily app opens', openMonthly: 'Monthly app opens', openSub: 'The two stacked parts add up to all opens',
     browserOpens: 'Browser', appOpens: 'Installed app', total: 'Total', toDate: ' (to date)',
-    monthLong: '{mon} {y}', monthShort: '{mon} {yy}',
+    monthLong: '{mon} {y}', monthShort: '{mon} {yy}', fromDay: ' (from day {d})',
+    errData: 'The server sent unexpected data. Try again later.',
     tableDaily: 'Daily breakdown', tableMonthly: 'Monthly breakdown', tableSub: 'Newest first; scroll inside the panel for older rows',
     colDay: 'Date', colMonth: 'Month', colOpen: 'All opens', colBrowser: 'Browser', colApp: 'Installed app',
     colDauDaily: 'Active devices', colDauMonthly: 'Avg daily active', colInstall: 'Installs',
@@ -45,3 +47,5 @@ const STATS_STRINGS = {
     errNetwork: 'Can’t reach the server. Check your connection and try again.', errServer: 'Server error ({s}). Try again later.',
   },
 };
+// month names for the en formats ({mon}); zh-HK formats use the month number
+const STATS_EN_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

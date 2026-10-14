@@ -11,14 +11,18 @@ const STATS_TICKS = 4;
 const STATS_TICK_STEPS = [1, 2, 5, 10];
 const STATS_PERCENT = 100;
 const YEAR_MONTH_LENGTH = 7; // '2026-10'
+const FIRST_OF_MONTH = '-01';
+const BASIC_SCHEME = 'Basic ';
 
 const isMonthlyRange = range => STATS_MONTHLY_RANGES.includes(range);
 
-// the chosen span (newest first) and the same span just before it, for the "vs previous" deltas
+// the chosen span (newest first) and the same span just before it, for the "vs previous" deltas. W-385: a shorter
+// earlier span (the first 2n days after launch) is no comparison, so prev stays empty until it is complete
 function periodRows(rows, range) {
   if (range === STATS_ALL_RANGE) return { rows, prev: [] };
   const n = Number(range);
-  return { rows: rows.slice(0, n), prev: rows.slice(n, n * 2) };
+  const prev = rows.slice(n, n * 2);
+  return { rows: rows.slice(0, n), prev: prev.length === n ? prev : [] };
 }
 
 const sumOf = (rows, key) => rows.reduce((n, r) => n + r[key], 0);
@@ -29,7 +33,8 @@ const changePct = (cur, prev) => (prev ? Math.round(((cur - prev) / prev) * STAT
 const changePoints = (cur, prev) => Math.round((cur - prev) * STATS_PERCENT);
 
 // one row per calendar month, newest first; dau becomes the month's average daily count (no unique devices per month:
-// no device id is stored)
+// no device id is stored). S-279: the oldest month, cut by launch or by the 1-year range, keeps its first date in
+// `from` (null when it starts on the 1st); the running month is labelled by the page
 function toMonths(rows) {
   const byMonth = new Map();
   for (const r of rows) {
@@ -37,9 +42,11 @@ function toMonths(rows) {
     if (!byMonth.has(ym)) byMonth.set(ym, []);
     byMonth.get(ym).push(r);
   }
+  const oldest = [...byMonth.keys()].pop();
   return [...byMonth].map(([ym, days]) => ({
     key: ym, open: sumOf(days, 'open'), standalone: sumOf(days, 'standalone'),
     dau: Math.round(avgDau(days)), install: sumOf(days, 'install'), days: days.length,
+    from: ym === oldest && !days[days.length - 1].date.endsWith(FIRST_OF_MONTH) ? days[days.length - 1].date : null,
   }));
 }
 const toDays = rows => rows.map(r => ({ key: r.date, ...r }));
@@ -56,5 +63,5 @@ function niceScale(maxValue) {
 // HTTP Basic over the UTF-8 bytes (btoa alone only takes Latin-1)
 function basicAuthHeader(user, password) {
   const bytes = new TextEncoder().encode(`${user}:${password}`);
-  return 'Basic ' + btoa(String.fromCharCode(...bytes));
+  return BASIC_SCHEME + btoa(String.fromCharCode(...bytes));
 }

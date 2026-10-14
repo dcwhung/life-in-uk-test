@@ -29,6 +29,9 @@ function checkPeriods() {
     '7: the last 7 days + the 7 before them');
   const ninety = call('periodRows', ROWS, '90');
   assert(ninety.rows.length === COUNT && ninety.prev.length === 0, '90 with 75 days of data: all 75, no previous period');
+  // W-385: a previous period shorter than the range is no comparison (10 days of data, 7-day range → 3 earlier days)
+  const short = call('periodRows', ROWS.slice(0, 10), '7');
+  assert(short.rows.length === 7 && short.prev.length === 0, 'previous period only 3 of 7 days → no previous period');
   const all = call('periodRows', ROWS, 'all');
   assert(all.rows.length === COUNT && all.prev.length === 0, 'all: every day, no previous period');
   assert(call('isMonthlyRange', '365') && call('isMonthlyRange', 'all') && !call('isMonthlyRange', '90'), '1 year / all read per month; 90 per day');
@@ -42,6 +45,10 @@ function checkMonths() {
     'August: 31 days summed (open 496, standalone 31, install 11)');
   assert(aug.dau === Math.round((16 * 2 + 15 * 3) / 31), 'August dau = rounded average of the daily counts');
   assert(months[0].days === 14, 'October so far: 14 days');
+  // S-279: a month that starts after the 1st (launch month, the 1-year cut) carries its first date
+  const cut = call('toMonths', ROWS.slice(0, 50));
+  assert(cut[cut.length - 1].from === '2026-08-26' && months[2].from === null && months[0].from === null,
+    'partial first month carries from; full or running months do not');
   const days = call('toDays', ROWS.slice(0, 2));
   assert(days[0].key === '2026-10-14' && days[0].open === ROWS[0].open, 'toDays keeps each day, key = date');
 }

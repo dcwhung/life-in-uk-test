@@ -80,6 +80,8 @@ async function checkDashboard(page, state) {
   assert((await page.$$('#rows tr')).length === MONTHS && (await text(page, '#tableTitle')) === '每月明細', `all: ${MONTHS} monthly rows`);
   assert(!(await visible(page, '.tiles')), 'all: tiles hidden (the strip has the same numbers)');
   assert((await text(page, '#rows tr:first-child td:first-child')).endsWith('（至今）'), 'the running month is marked 至今');
+  const firstMonth = await text(page, '#rows tr:last-child td:first-child');
+  assert(LAUNCH.endsWith('-01') || firstMonth.includes(`由 ${Number(LAUNCH.slice(8))} 日起`), `the launch month is marked 由 n 日起 (${firstMonth})`);
   await page.click('.chip[data-range="7"]');
   assert((await text(page, '#dOpen')).includes('對比之前 7 日') && await visible(page, '.tiles'), '7 days: tiles back, vs previous 7 days');
 }
@@ -111,6 +113,28 @@ async function checkStaleSession(page, state) {
   state.mode = 'ok';
 }
 
+// W-386: signed in, then a reload meets 429 / 502 / no network: the sign-in view says why
+async function checkReloadErrors(browser, base) {
+  const page = await browser.newPage({ viewport: { width: 1100, height: 900 } });
+  const state = { mode: 'ok', calls: [] };
+  await mockApi(page, state);
+  await page.goto(base + 'stats.html');
+  await signIn(page, PASSWORD);
+  await page.waitForSelector('#dash:not([hidden])');
+  for (const [mode, expected] of [['429', '30 分鐘'], ['down', '502'], ['abort', '連唔到']]) {
+    state.mode = mode;
+    await page.reload();
+    await page.waitForSelector('#signin:not([hidden])');
+    await page.waitForFunction(t => document.getElementById('signinError').textContent.includes(t), expected);
+    assert(true, `reload with a session + ${mode} → sign-in view shows "${expected}"`);
+  }
+  state.mode = 'ok';
+  await page.reload();
+  await page.waitForSelector('#dash:not([hidden])');
+  assert(true, 'the kept session loads again once the API is back');
+  await page.close();
+}
+
 async function checkPhone(browser, base) {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
   const state = { mode: 'ok', calls: [] };
@@ -128,7 +152,13 @@ function checkStatic() {
   const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
   assert(!sw.includes('stats') && !fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8').includes('stats.html'),
     'stats.html is not in the SW shell and not linked from the app');
-  assert(fs.readFileSync(path.join(ROOT, 'stats.html'), 'utf8').includes('<meta name="robots" content="noindex, nofollow">'), 'stats.html is noindex');
+  const html = fs.readFileSync(path.join(ROOT, 'stats.html'), 'utf8');
+  assert(html.includes('<meta name="robots" content="noindex, nofollow">'), 'stats.html is noindex');
+  // S-280: the page runs under a CSP (meta here, so this suite runs under it too) and Vercel adds frame-ancestors
+  assert(/<meta http-equiv="Content-Security-Policy" content="default-src 'self'[^"]*script-src 'self'/.test(html), 'stats.html carries a self-only CSP');
+  const vercel = JSON.parse(fs.readFileSync(path.join(ROOT, 'vercel.json'), 'utf8'));
+  const rule = vercel.headers.find(h => h.source === '/stats.html');
+  assert(rule && rule.headers.some(h => h.key === 'Content-Security-Policy' && h.value.includes("frame-ancestors 'none'")), "vercel.json: /stats.html gets frame-ancestors 'none'");
 }
 
 (async () => {
@@ -146,6 +176,7 @@ function checkStatic() {
     await checkLanguageAndSession(page);
     await checkStaleSession(page, state);
     assert(errs.length === 0, 'no page errors: ' + errs.join(' | '));
+    await checkReloadErrors(browser, base);
     await checkPhone(browser, base);
     console.log(`STATS PAGE PASS (${asserts} asserts)`);
   } finally {

@@ -9,12 +9,16 @@ const STATS_AUTH_SS = 'lifeuk.statsAuth';
 const STATS_LANG_LS = 'lifeuk.statsLang';
 const STATS_RANGE_LS = 'lifeuk.statsRange';
 const STATS_DEFAULT_LANG = 'zh-HK';
-const EN_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const HTTP_UNAUTHORIZED = 401;
 const HTTP_TOO_MANY = 429;
 const SECONDS_PER_MINUTE = 60;
 const COMPACT_FROM = 10000;
 const COMPACT_WHOLE_FROM = 100000;
+const THOUSAND = 1000;
+// ISO date slices: 'YYYY-MM-DD'
+const YEAR = [0, 4], YY = [2, 4], MONTH = [5, 7], DAY = [8, 10];
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+const part = (iso, [from, to]) => iso.slice(from, to);
 const RESIZE_DEBOUNCE_MS = 150;
 
 const statsState = { lang: STATS_DEFAULT_LANG, range: STATS_DEFAULT_RANGE, data: null };
@@ -24,16 +28,20 @@ const readStore = (store, key) => { try { return store.getItem(key); } catch { r
 const writeStore = (store, key, value) => { try { value === null ? store.removeItem(key) : store.setItem(key, value); } catch {} };
 
 // ── formatting ──
-const fmt = n => (n >= COMPACT_FROM ? (n / 1000).toFixed(n >= COMPACT_WHOLE_FROM ? 0 : 1) + 'K' : Math.round(n).toLocaleString('en-GB'));
+const fmt = n => (n >= COMPACT_FROM ? (n / THOUSAND).toFixed(n >= COMPACT_WHOLE_FROM ? 0 : 1) + 'K' : Math.round(n).toLocaleString('en-GB'));
 const pct = n => Math.round(n * STATS_PERCENT) + '%';
-const monthParams = ym => ({ y: ym.slice(0, 4), yy: ym.slice(2, 4), m: Number(ym.slice(5)), mon: EN_MONTHS[Number(ym.slice(5)) - 1] });
+const monthParams = ym => ({ y: part(ym, YEAR), yy: part(ym, YY), m: Number(part(ym, MONTH)), mon: STATS_EN_MONTHS[Number(part(ym, MONTH)) - 1] });
 const monthName = ym => tr('monthLong', monthParams(ym));
 const monthShort = ym => tr('monthShort', monthParams(ym));
 const isMonthKey = key => key.length === YEAR_MONTH_LENGTH;
 const currentMonth = () => new Date().toISOString().slice(0, YEAR_MONTH_LENGTH);
-const keyShort = key => (isMonthKey(key) ? monthShort(key) : `${Number(key.slice(8))}/${Number(key.slice(5, 7))}`);
-// the running month is labelled "to date", or its shorter bar reads as a drop
-const keyLong = key => (isMonthKey(key) ? monthName(key) + (key === currentMonth() ? tr('toDate') : '') : key);
+const keyShort = key => (isMonthKey(key) ? monthShort(key) : `${Number(part(key, DAY))}/${Number(part(key, MONTH))}`);
+// a part month says so, or its shorter bar reads as a drop: the running month "to date", the oldest one "from day n"
+function keyLong(point) {
+  if (!isMonthKey(point.key)) return point.key;
+  if (point.key === currentMonth()) return monthName(point.key) + tr('toDate');
+  return monthName(point.key) + (point.from ? tr('fromDay', { d: Number(part(point.from, DAY)) }) : '');
+}
 
 // ── text ──
 function applyLang() {
@@ -87,6 +95,7 @@ const PAD = { l: 40, r: 40, t: 12, b: 28 };
 const BAR_MAX = 24, BAR_MIN = 2, BAR_GAP = 2, BAR_RADIUS = 4;
 const X_LABEL_SPACING = 64, X_LABEL_MIN = 3;
 const TIP_EDGE = 80, TIP_TOP = 28, HOVER_OPACITY = 0.08;
+const Y_LABEL_GAP = 8, X_LABEL_BASELINE = 8, TEXT_MIDLINE = 4, END_LABEL_GAP = 6;
 function svgEl(tag, attrs, parent) {
   const e = document.createElementNS(SVG_NS, tag);
   for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
@@ -96,7 +105,7 @@ function svgEl(tag, attrs, parent) {
 function drawAxes(svg, scale, y, W) {
   for (let v = 0; v <= scale.max; v += scale.step) {
     svgEl('line', { x1: PAD.l, x2: W - PAD.r, y1: y(v), y2: y(v), stroke: 'var(--grid)', 'stroke-width': 1 }, svg);
-    svgEl('text', { x: PAD.l - 8, y: y(v) + 4, 'text-anchor': 'end' }, svg).textContent = fmt(v);
+    svgEl('text', { x: PAD.l - Y_LABEL_GAP, y: y(v) + TEXT_MIDLINE, 'text-anchor': 'end' }, svg).textContent = fmt(v);
   }
 }
 function frame(host, maxValue, points) {
@@ -111,7 +120,7 @@ function frame(host, maxValue, points) {
   const x = i => PAD.l + band * i + band / 2;
   const every = Math.ceil(n / Math.max(X_LABEL_MIN, Math.floor(plotW / X_LABEL_SPACING)));
   points.forEach((p, i) => {
-    if ((n - 1 - i) % every === 0) svgEl('text', { x: x(i), y: CHART_H - 8, 'text-anchor': 'middle' }, svg).textContent = keyShort(p.key);
+    if ((n - 1 - i) % every === 0) svgEl('text', { x: x(i), y: CHART_H - X_LABEL_BASELINE, 'text-anchor': 'middle' }, svg).textContent = keyShort(p.key);
   });
   return { svg, y, x, band, W, barW: Math.min(BAR_MAX, Math.max(BAR_MIN, band - BAR_GAP)) };
 }
@@ -125,7 +134,7 @@ function column(svg, cx, w, top, bottom, fill, roundTop) {
 }
 function endLabel(f, points, value) {
   const i = points.length - 1;
-  svgEl('text', { x: f.x(i) + f.barW / 2 + 6, y: f.y(value(points[i])) + 4, class: 'end-label' }, f.svg).textContent = fmt(value(points[i]));
+  svgEl('text', { x: f.x(i) + f.barW / 2 + END_LABEL_GAP, y: f.y(value(points[i])) + TEXT_MIDLINE, class: 'end-label' }, f.svg).textContent = fmt(value(points[i]));
 }
 function attachHover(host, f, points, lines) {
   const tip = document.createElement('div');
@@ -135,7 +144,7 @@ function attachHover(host, f, points, lines) {
     const hit = svgEl('rect', { x: f.x(i) - f.band / 2, y: PAD.t, width: f.band, height: CHART_H - PAD.t - PAD.b, fill: 'transparent' }, f.svg);
     hit.addEventListener('pointerenter', () => {
       hl.setAttribute('x', f.x(i) - f.band / 2); hl.setAttribute('width', f.band); hl.setAttribute('opacity', HOVER_OPACITY);
-      tip.innerHTML = `<b>${keyLong(p.key)}</b><br>` + lines.map(l =>
+      tip.innerHTML = `<b>${keyLong(p)}</b><br>` + lines.map(l =>
         `${l.color ? `<i style="background:${l.color}"></i>` : ''}${l.label} ${fmt(l.value(p))}`).join('<br>');
       tip.style.left = Math.min(Math.max(f.x(i), TIP_EDGE), f.W - TIP_EDGE) + 'px';
       tip.style.top = TIP_TOP + 'px';
@@ -172,7 +181,7 @@ function renderOpens(points) {
 function renderTable(points) {
   byId('rows').innerHTML = points.map(p => {
     const cells = [p.open, p.open - p.standalone, p.standalone, p.dau, p.install];
-    return `<tr><td>${keyLong(p.key)}</td>${cells.map(v => `<td class="${v ? '' : 'zero'}">${fmt(v)}</td>`).join('')}</tr>`;
+    return `<tr><td>${keyLong(p)}</td>${cells.map(v => `<td class="${v ? '' : 'zero'}">${fmt(v)}</td>`).join('')}</tr>`;
   }).join('');
   byId('tablePanel').scrollTop = 0;
 }
@@ -194,6 +203,7 @@ function render() {
   const monthly = isMonthlyRange(statsState.range);
   const points = monthly ? toMonths(period.rows) : toDays(period.rows); // newest first
   renderStrip(data.days, data.launch);
+  if (!points.length) return; // loadWith never hands over an empty list; nothing to chart if it ever did
   renderTiles(period);
   renderHeadings(monthly);
   const chrono = points.slice().reverse(); // charts read oldest → newest
@@ -224,9 +234,11 @@ const fetchStats = auth => fetch(STATS_ENDPOINT, { headers: { Authorization: aut
 async function loadWith(auth) {
   const res = await fetchStats(auth);
   if (!res || !res.ok) return { error: errorText(res), status: res && res.status };
-  const data = await res.json();
-  data.days = data.days.filter(d => d.date >= data.launch); // nothing before launch is real
-  return { data };
+  const data = await res.json().catch(() => null);
+  if (!data || !ISO_DATE.test(data.launch) || !Array.isArray(data.days)) return { error: tr('errData') };
+  // only well-formed days from launch on (S-281: the dates reach innerHTML)
+  data.days = data.days.filter(d => d && ISO_DATE.test(d.date) && d.date >= data.launch);
+  return data.days.length ? { data } : { error: tr('errData') };
 }
 function signOut() {
   writeStore(sessionStorage, STATS_AUTH_SS, null);
@@ -235,13 +247,23 @@ function signOut() {
   byId('signinError').textContent = '';
   showView('signin');
 }
+// W-386: with a dashboard on screen the message sits above it; with none (a reload) the sign-in view says why
+function showLoadError(error) {
+  if (statsState.data) {
+    byId('loadError').textContent = error;
+    byId('loadError').hidden = false;
+    return;
+  }
+  byId('signinError').textContent = error;
+  showView('signin');
+}
 async function refresh() {
   const auth = readStore(sessionStorage, STATS_AUTH_SS);
   if (!auth) return showView('signin');
   if (!statsState.data) showView('loading');
   const { data, error, status } = await loadWith(auth);
   if (status === HTTP_UNAUTHORIZED) { signOut(); byId('signinError').textContent = error; return; } // password changed in Vercel
-  if (error) { byId('loadError').textContent = error; byId('loadError').hidden = false; if (!statsState.data) showView('signin'); return; }
+  if (error) return showLoadError(error);
   byId('loadError').hidden = true;
   statsState.data = data;
   showView('dash');

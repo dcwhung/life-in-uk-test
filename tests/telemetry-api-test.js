@@ -19,6 +19,7 @@ function fakeRedis({ fail = false } = {}) {
   const counts = new Map();
   const calls = [];
   global.fetch = async (url, init) => {
+    await new Promise(r => setImmediate(r)); // a real round trip: parallel requests interleave between commands
     const commands = JSON.parse(init.body);
     calls.push({ url, auth: init.headers.Authorization, commands, signal: init.signal });
     if (fail) return { ok: false, status: 500, json: async () => ({ error: 'down' }) };
@@ -27,6 +28,7 @@ function fakeRedis({ fail = false } = {}) {
       if (cmd === 'MGET') return { result: args.map(k => (counts.has(k) ? String(counts.get(k)) : null)) };
       if (cmd === 'GET') return { result: counts.has(args[0]) ? String(counts.get(args[0])) : null };
       if (cmd === 'EXPIRE') return { result: 1 };
+      if (cmd === 'DECR') { counts.set(args[0], (counts.get(args[0]) || 0) - 1); return { result: counts.get(args[0]) }; }
       return { error: 'unknown command' };
     });
     return { ok: true, status: 200, json: async () => result };
@@ -167,7 +169,7 @@ async function checkStats() {
   assert(same(res.body.days, [{ date: TODAY, open: 5, standalone: 2, dau: 3, install: 0 }]), 'days=all on launch day: one day');
   assert(same(res.body.totals, { open: 5, standalone: 2, dau: 3, install: 0 }), 'totals over the range');
   assert(lastCall(redis).commands.length === 1 && lastCall(redis).commands[0][0] === 'MGET', 'one MGET for the whole range');
-  assert(!redis.counts.has(FAIL_KEY), 'a good login counts no failure');
+  assert(!(redis.counts.get(FAIL_KEY) > 0), 'a good login leaves no failure counted (its reserved attempt is given back)');
 }
 
 // days=all reaches back to the launch day and no further; keys never leave the event set
@@ -205,7 +207,8 @@ async function checkStatsAuth() {
     fakeRedis();
     const res = fakeRes();
     await stats(statsReq(headers), res);
-    assert(res.statusCode === 401 && !('www-authenticate' in res.headers), `${label} → 401, no browser login dialog`);
+    const scheme = res.headers['www-authenticate'] || '';
+    assert(res.statusCode === 401 && scheme && !/^(basic|digest)\b/i.test(scheme), `${label} → 401 with a non-Basic WWW-Authenticate (no browser dialog)`);
   }
   // a password that itself holds a colon: only the first colon splits user and password
   process.env.STATS_PASSWORD = 'a:b';
@@ -242,6 +245,19 @@ async function checkStatsLockout() {
   assert(!noHeader.counts.has(FAIL_KEY), 'a request with no credentials is not counted as a failure');
 }
 
+// W-384: a parallel burst of wrong logins must not get more than AUTH_FAIL_LIMIT password checks
+async function checkStatsLockoutBurst() {
+  fakeRedis();
+  const BURST = 25;
+  const results = await Promise.all(Array.from({ length: BURST }, (_, i) => {
+    const res = fakeRes();
+    return stats(statsReq(basic(USER, 'burst' + i)), res).then(() => res.statusCode);
+  }));
+  const checked = results.filter(code => code === 401).length;
+  assert(checked <= stats.AUTH_FAIL_LIMIT && results.every(code => code === 401 || code === 429),
+    `parallel burst of ${BURST}: ${checked} password checks (≤ ${stats.AUTH_FAIL_LIMIT}), the rest 429`);
+}
+
 async function checkStatsRedisDown() {
   fakeRedis({ fail: true });
   const res = fakeRes();
@@ -264,6 +280,7 @@ async function checkStatsRedisDown() {
   await checkStatsDays();
   await checkStatsAuth();
   await checkStatsLockout();
+  await checkStatsLockoutBurst();
   await checkStatsRedisDown();
   Date.now = realNow;
   console.log(`PASS (${asserts} asserts)`);
