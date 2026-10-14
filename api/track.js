@@ -3,7 +3,7 @@
 // Body: { "events": ["open", "standalone", "dau", "install"] } (sendBeacon sends it as text/plain).
 // Counts each known event once per UTC day in Redis. Stores no IP, id or other personal data.
 // ════════════════════════════════════════
-const { EVENTS, counterKey, utcIsoDate } = require('./_lib/events');
+const { EVENTS, counterKey, cappedKey, utcIsoDate } = require('./_lib/events');
 const { redisConfig, redisPipeline } = require('./_lib/redis');
 
 // user decision 2026-10-14 (option c): only the Vercel production site counts. = 'https://' + TELEMETRY_HOST in
@@ -14,7 +14,10 @@ const ALLOWED_ORIGIN = 'https://life-uk.vercel.app';
 // Sized to the Upstash free plan (500k commands / month): ~3 commands a request × 4000 × 30 days ≈ 360k
 const DAILY_REQUEST_BUDGET = 4000;
 const BUDGET_EVENT = 'budget';
-// AU-031: the budget key is only read by this file on its own day; 2 days leaves a margin past the UTC turn
+// SEC-01: lifeuk:capped:<day> keeps "this day hit the budget" for the dashboard after the budget key expires
+const CAPPED_VALUE = '1';
+// AU-031: the budget key is only read by this file on its own day (the dashboard reads the capped mark instead);
+// 2 days leaves a margin past the UTC turn
 const SECONDS_PER_DAY = 24 * 60 * 60;
 const BUDGET_TTL_DAYS = 2;
 const BUDGET_TTL_SECONDS = BUDGET_TTL_DAYS * SECONDS_PER_DAY;
@@ -64,6 +67,8 @@ async function track(req, res) {
     const [used] = await redisPipeline([['INCR', counterKey(BUDGET_EVENT, today)]]);
     if (used > DAILY_REQUEST_BUDGET) {
       budgetSpentOn = today;
+      // SEC-01: INCR is atomic, so exactly one request sees the crossing value and marks the day for the dashboard
+      if (used === DAILY_REQUEST_BUDGET + 1) await redisPipeline([['SET', cappedKey(today), CAPPED_VALUE]]);
       return res.status(204).end();
     }
     await redisPipeline(eventCommands(events, today, used));

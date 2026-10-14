@@ -155,6 +155,8 @@ td.zero { color: var(--text-muted); }
 
   <main id="dash" hidden>
     <p class="load-error" id="loadError" role="alert" hidden></p>
+    <!-- SEC-01: range holds days that hit the daily request budget; same note style, not an alert -->
+    <p class="load-error" id="cappedNote" hidden></p>
 
     <section class="strip" aria-labelledby="stripTitle">
       <h2 id="stripTitle"></h2>

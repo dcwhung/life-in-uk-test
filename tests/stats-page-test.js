@@ -19,10 +19,12 @@ const DAYS = 75;
 const TODAY_MS = Date.parse(new Date().toISOString().slice(0, 10));
 const iso = ms => new Date(ms).toISOString().slice(0, 10);
 const LAUNCH = iso(TODAY_MS - (DAYS - 1) * DAY_MS);
+const CAPPED_AGO = [10, 40];
 const FIXTURE = {
   launch: LAUNCH,
   days: [
-    ...Array.from({ length: DAYS }, (_, i) => ({ date: iso(TODAY_MS - i * DAY_MS), open: 10 + i, standalone: 3, dau: 5, install: i % 5 === 0 ? 1 : 0 })),
+    // SEC-01: days 10 and 40 back hit the request budget (none in the last 7 days, 1 in 30, 2 in 90)
+    ...Array.from({ length: DAYS }, (_, i) => ({ date: iso(TODAY_MS - i * DAY_MS), open: 10 + i, standalone: 3, dau: 5, install: i % 5 === 0 ? 1 : 0, capped: CAPPED_AGO.includes(i) })),
     { date: iso(TODAY_MS - DAYS * DAY_MS), open: 999, standalone: 0, dau: 0, install: 0 }, // before launch: must be dropped
   ],
 };
@@ -89,6 +91,20 @@ async function checkDashboard(page, state) {
   assert(LAUNCH.endsWith('-01') || firstMonth.includes(`由 ${Number(LAUNCH.slice(8))} 日起`), `the launch month is marked 由 n 日起 (${firstMonth})`);
   await page.click('.chip[data-range="7"]');
   assert((await text(page, '#dOpen')).includes('對比之前 7 日') && await visible(page, '.tiles'), '7 days: tiles back, vs previous 7 days');
+}
+
+// SEC-01: a range holding days that hit the daily request budget says so, in the existing note style (.load-error)
+async function checkCappedNote(page) {
+  await page.click('.chip[data-range="30"]');
+  assert(await visible(page, '#cappedNote') && (await text(page, '#cappedNote')).includes('1 日'), '30 days: 1 capped day → note shown');
+  assert(await page.$eval('#cappedNote', e => e.className === 'load-error' && !e.hasAttribute('role')), 'note reuses .load-error, not an alert');
+  await page.click('.chip[data-range="90"]');
+  assert((await text(page, '#cappedNote')).includes('2 日'), '90 days: 2 capped days');
+  await page.click('#langBtn');
+  assert((await text(page, '#cappedNote')).includes('daily request limit was reached on 2 days'), 'EN note text');
+  await page.click('#langBtn');
+  await page.click('.chip[data-range="7"]');
+  assert(!(await visible(page, '#cappedNote')), '7 days: no capped day → no note');
 }
 
 async function checkLanguageAndSession(page) {
@@ -182,6 +198,7 @@ function checkStatic() {
     await page.goto(base + 'stats.html');
     await checkSignInErrors(page, state);
     await checkDashboard(page, state);
+    await checkCappedNote(page);
     await checkLanguageAndSession(page);
     await checkStaleSession(page, state);
     assert(errs.length === 0, 'no page errors: ' + errs.join(' | '));

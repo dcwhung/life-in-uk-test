@@ -28,6 +28,7 @@ function fakeRedis({ fail = false } = {}) {
       if (cmd === 'MGET') return { result: args.map(k => (counts.has(k) ? String(counts.get(k)) : null)) };
       if (cmd === 'GET') return { result: counts.has(args[0]) ? String(counts.get(args[0])) : null };
       if (cmd === 'EXPIRE') return { result: 1 };
+      if (cmd === 'SET') { counts.set(args[0], Number(args[1])); return { result: 'OK' }; }
       if (cmd === 'DECR') { counts.set(args[0], (counts.get(args[0]) || 0) - 1); return { result: counts.get(args[0]) }; }
       return { error: 'unknown command' };
     });
@@ -121,7 +122,10 @@ async function checkTrackBudget() {
   await track(req({ body: { events: ['open', 'dau'] } }), res);
   assert(res.statusCode === 204, 'over budget → still 204');
   assert(!redis.counts.has(`lifeuk:open:${TODAY}`) && !redis.counts.has(`lifeuk:dau:${TODAY}`), 'over budget → no event counted');
-  assert(redis.calls.length === 1 && same(redis.calls[0].commands, [['INCR', `lifeuk:budget:${TODAY}`]]), 'over budget → only the budget INCR');
+  assert(same(redis.calls[0].commands, [['INCR', `lifeuk:budget:${TODAY}`]]), 'over budget → the budget INCR, no event INCR');
+  // SEC-01: the request that crosses the budget marks the day capped (no TTL), so the dashboard can say so later
+  assert(redis.calls.length === 2 && same(redis.calls[1].commands, [['SET', `lifeuk:capped:${TODAY}`, '1']]),
+    'the request that crosses the budget sets lifeuk:capped:<day> (once)');
 }
 
 // SEC-02: once a warm instance has seen the day's budget run out it stops calling Redis for that UTC day, so a
@@ -142,6 +146,15 @@ async function checkTrackBudgetShortCircuit() {
   Date.now = () => NOW;
   assert(fresh.statusCode === 204 && redis.counts.get('lifeuk:budget:2026-10-15') === 1 && redis.counts.get('lifeuk:open:2026-10-15') === 1,
     'next UTC day: the budget is INCRed again and the event counted');
+  // a cold instance meeting a budget already past the crossing point: one INCR, no second capped SET
+  const later = Date.UTC(2026, 9, 16, 0, 1);
+  Date.now = () => later;
+  redis.counts.set('lifeuk:budget:2026-10-16', track.DAILY_REQUEST_BUDGET + 5);
+  const callsBefore = redis.calls.length;
+  await track(req({ body: { events: ['open'] } }), fakeRes());
+  Date.now = () => NOW;
+  assert(redis.calls.length === callsBefore + 1 && !redis.counts.has('lifeuk:capped:2026-10-16'),
+    'past the crossing point: only the budget INCR, the capped mark is written by the crossing request alone');
 }
 
 async function checkTrackRedisDown() {
@@ -180,6 +193,7 @@ const basic = (u, p) => ({ authorization: 'Basic ' + Buffer.from(`${u}:${p}`, 'u
 const AUTH = basic(USER, PASSWORD);
 const statsReq = (headers = AUTH, query = { days: 'all' }) => req({ method: 'GET', headers, query });
 const FAIL_KEY = 'lifeuk:authfail:2026-10-14T23';
+const KEYS_PER_DAY = 5; // 4 event counters + the SEC-01 capped mark
 const lastCall = redis => redis.calls[redis.calls.length - 1];
 
 async function checkStats() {
@@ -191,10 +205,16 @@ async function checkStats() {
   await stats(statsReq(), res);
   assert(res.statusCode === 200 && res.headers['cache-control'] === 'no-store', 'right username + password → 200, no-store');
   assert(res.body.launch === stats.LAUNCH_DATE && stats.LAUNCH_DATE === '2026-10-14', 'launch date in the response (2026-10-14)');
-  assert(same(res.body.days, [{ date: TODAY, open: 5, standalone: 2, dau: 3, install: 0 }]), 'days=all on launch day: one day');
+  assert(same(res.body.days, [{ date: TODAY, open: 5, standalone: 2, dau: 3, install: 0, capped: false }]), 'days=all on launch day: one day, not capped');
   assert(same(res.body.totals, { open: 5, standalone: 2, dau: 3, install: 0 }), 'totals over the range');
   assert(lastCall(redis).commands.length === 1 && lastCall(redis).commands[0][0] === 'MGET', 'one MGET for the whole range');
+  assert(lastCall(redis).commands[0].includes(`lifeuk:capped:${TODAY}`), 'SEC-01: the MGET reads the capped mark too');
   assert(!(redis.counts.get(FAIL_KEY) > 0), 'a good login leaves no failure counted (its reserved attempt is given back)');
+  redis.counts.set(`lifeuk:capped:${TODAY}`, 1);
+  const capped = fakeRes();
+  await stats(statsReq(), capped);
+  assert(capped.body.days[0].capped === true && same(capped.body.totals, res.body.totals),
+    'SEC-01: a day with lifeuk:capped:<day> → capped: true (totals unchanged)');
 }
 
 // days=all reaches back to the launch day and no further; keys never leave the event set
@@ -210,7 +230,7 @@ async function checkStatsAllDays() {
   const mget = lastCall(redis).commands[0];
   assert(res.body.days.length === 366 && res.body.days[0].date === '2027-10-14' && res.body.days[365].date === '2026-10-14',
     'days=all a year on: 366 days, newest first, oldest = launch day');
-  assert(mget.length - 1 === 366 * 4 && !mget.includes('lifeuk:open:2026-10-13'), 'MGET covers launch → today only');
+  assert(mget.length - 1 === 366 * KEYS_PER_DAY && !mget.includes('lifeuk:open:2026-10-13'), 'MGET covers launch → today only');
   assert(res.body.totals.open === 4, 'pre-launch keys never counted');
 }
 
@@ -219,7 +239,7 @@ async function checkStatsDays() {
     const redis = fakeRedis();
     await stats(statsReq(AUTH, days === undefined ? {} : { days }), fakeRes());
     const keys = lastCall(redis).commands[0].length - 1;
-    assert(keys === expected * 4, `days=${days} → ${expected} days (${keys} keys)`);
+    assert(keys === expected * KEYS_PER_DAY, `days=${days} → ${expected} days (${keys} keys)`);
   }
 }
 

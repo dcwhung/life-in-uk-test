@@ -82,7 +82,14 @@ function checkBasic() {
   assert(header.startsWith('Basic ') && decoded === 'admin:pässwörd:1', 'Basic header round-trips UTF-8 and colons');
 }
 
+// SEC-01: days whose request budget ran out (capped: true from /api/stats); a missing field (older API) is not capped
+function checkCapped() {
+  const rows = [{ capped: true }, { capped: false }, {}, { capped: true }, { capped: 'yes' }];
+  assert(call('cappedDays', rows) === 2 && call('cappedDays', []) === 0, 'cappedDays counts capped: true rows only');
+}
+
 checkPeriods();
+checkCapped();
 checkMonths();
 checkSums();
 checkScale();

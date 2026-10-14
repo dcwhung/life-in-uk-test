@@ -1,6 +1,6 @@
 // ════════════════════════════════════════
 // STATS MODEL — v2.9.0 owner dashboard (stats.html): pure functions over the /api/stats rows, no DOM and no clock.
-// Rows are daily { date, open, standalone, dau, install }, newest first, launch day onward (api/stats.js).
+// Rows are daily { date, open, standalone, dau, install, capped }, newest first, launch day onward (api/stats.js).
 // 7 / 30 / 90 days read per day; 1 year / all time read per month (user decision 2026-10-14).
 // ════════════════════════════════════════
 const STATS_RANGES = ['7', '30', '90', '365', 'all'];
@@ -26,6 +26,8 @@ function periodRows(rows, range) {
 }
 
 const sumOf = (rows, key) => rows.reduce((n, r) => n + r[key], 0);
+// SEC-01: days whose request budget ran out (api/track.js), so some beacons went uncounted; no field = not capped
+const cappedDays = rows => rows.filter(r => r.capped === true).length;
 const avgDau = rows => (rows.length ? sumOf(rows, 'dau') / rows.length : 0);
 const appShare = rows => (sumOf(rows, 'open') ? sumOf(rows, 'standalone') / sumOf(rows, 'open') : 0);
 // whole-percent change; null when there is nothing to compare with

@@ -10,9 +10,12 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 // one counter per event per UTC day: lifeuk:open:2026-10-14
 const counterKey = (event, isoDate) => `${KEY_PREFIX}${event}:${isoDate}`;
+// SEC-01: set (no TTL) by api/track.js on the day the request budget ran out; read by api/stats.js
+const CAPPED_MARK = 'capped';
+const cappedKey = isoDate => counterKey(CAPPED_MARK, isoDate);
 const utcIsoDate = ms => new Date(ms).toISOString().slice(0, ISO_DATE_LENGTH);
 // today first, then each earlier day: count dates in all
 const recentUtcDates = (count, nowMs = Date.now()) =>
   Array.from({ length: count }, (_, i) => utcIsoDate(nowMs - i * MS_PER_DAY));
 
-module.exports = { EVENTS, counterKey, utcIsoDate, recentUtcDates };
+module.exports = { EVENTS, counterKey, cappedKey, utcIsoDate, recentUtcDates };
