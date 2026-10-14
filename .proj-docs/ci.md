@@ -13,7 +13,7 @@ Workflow 兩個檔：`.github/workflows/test.yml`（名 `tests`，job `node-test
 
 - Actions 全部用 v5（`checkout`、`setup-node`、`upload-artifact`、`cache`；tag 2026-10-14 用 `git ls-remote` 核實過，S-294）。
 - Node 22（`actions/setup-node@v5`）；`playwright-core@1.56.1`（同本機 `/opt/node-tools` 一樣），用 `npm install --no-save --prefix "$RUNNER_TEMP/pw"` 裝喺 checkout 以外（repo 冇 `package.json`），`NODE_PATH` 指去嗰度。
-- Chromium 用同一版 `playwright-core` 裝，分兩步（S-296）：`install-deps chromium`（apt OS 依賴，**每次**都跑，因為唔喺 cache 入面）+ `install chromium`（下載 browser；`~/.cache/ms-playwright` 用 `actions/cache` cache 住，key = `runner.os` + `PLAYWRIGHT_CORE_VERSION`，cache hit 時佢見到已裝就乜都唔做）。效果同舊嘅 `install --with-deps chromium` 一樣；`CHROMIUM_PATH` 設做 `chromium.executablePath()`（完整 Chromium build，同本機 `/opt/pw-browsers/chromium` 一樣，唔用 headless shell）。
+- Chromium 用同一版 `playwright-core` 裝，分兩步（S-296）：`install-deps chromium`（apt OS 依賴，**每次**都跑，因為唔喺 cache 入面）+ `install --no-shell chromium`（下載 browser，唔要 headless shell（S-310）；`~/.cache/ms-playwright` 用 `actions/cache` cache 住，key = `runner.os` + `PLAYWRIGHT_CORE_VERSION`，cache hit 時佢見到已裝就乜都唔做）。效果同舊嘅 `install --with-deps chromium` 一樣；`CHROMIUM_PATH` 設做 `chromium.executablePath()`（完整 Chromium build，同本機 `/opt/pw-browsers/chromium` 一樣，所有 suite 都用呢個，所以 headless shell 唔使下載）。
 - **Cache scope（W-395）**：GitHub 只俾 workflow run 讀同一個 ref（PR 嘅 merge ref）或者 base branch（`main`）存落嘅 cache。`main` 冇 playwright run（`playwright.yml` 只喺 `pull_request` 觸發），所以冇 cache 俾新 PR 讀：PR run 存嘅 cache 只可以喺**同一個 PR** 之後嘅 run 重用，每個新 PR 第一次 run 一定會重新下載 Chromium（約 1–2 分鐘）。另外 `actions/cache` 預設只喺 job **成功**先存（post step），第一次 run 紅咗就唔會存，下次 run 照樣下載。用戶 2026-10-14 決定只記錄，唔改 workflow。
 - **CJK 字體 / M4**：`install-deps`（即係 `--with-deps`）會帶 WenQuanYi（`fonts-wqy-zenhei`，playwright-core 嘅 `tools` 依賴，一定裝），但 CI 用 `LANG_SWITCH_NO_CJK_FONT=1`（`Run all Playwright suites` step 嘅 `env`）強制 `lang-switch-test` skip M4 中文換行 check：字體同本機 Noto 唔同，量出嚟嘅換行唔可信（用戶 2026-10-14 決定，W-393）。CI log 最後一行會係 `LANG-SWITCH PASS (M4 skipped: no CJK font)`；要驗 M4 就喺有 `fonts-noto-cjk` 嘅本機跑。
 - `fetch-depth: 0`：`tests/upgrade-test.js` 要 `git archive` 一個 pinned 嘅 v0.57 commit，shallow clone 冇。
@@ -32,7 +32,7 @@ for t in $(node tests/tools/node-only-suites.js); do node "tests/$t.js" | tail -
 
 # playwright-tests（同 CI 一樣嘅裝法；本機已有 /opt/node-tools、/opt/pw-browsers 就直接用 HANDOFF.md「測試」段嘅指令）
 npm install --no-save --prefix /tmp/pw playwright-core@1.56.1
-/tmp/pw/node_modules/.bin/playwright-core install chromium
+/tmp/pw/node_modules/.bin/playwright-core install --no-shell chromium
 export NODE_PATH=/tmp/pw/node_modules
 export CHROMIUM_PATH=$(node -e "process.stdout.write(require('playwright-core').chromium.executablePath())")
 bash tests/run-all.sh

@@ -57,10 +57,11 @@ jobs:
         run: |
           "$RUNNER_TEMP/pw/node_modules/.bin/playwright-core" install-deps chromium
 
-      # Downloads only on a cache miss: with the browser already in ~/.cache/ms-playwright it is a no-op
+      # Downloads only on a cache miss: with the browser already in ~/.cache/ms-playwright it is a no-op.
+      # --no-shell: every suite launches the full build via CHROMIUM_PATH, so the headless shell is never used
       - name: Install Chromium (same playwright-core version)
         run: |
-          "$RUNNER_TEMP/pw/node_modules/.bin/playwright-core" install chromium
+          "$RUNNER_TEMP/pw/node_modules/.bin/playwright-core" install --no-shell chromium
 
       # Same setup as local runs: CHROMIUM_PATH = the full Chromium build playwright-core just installed
       - name: Locate Chromium
