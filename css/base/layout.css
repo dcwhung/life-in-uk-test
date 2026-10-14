@@ -75,7 +75,10 @@ header {
 /* the 32px button keeps its look; the tap area grows to 44px (WCAG 2.5.5) */
 .settings-btn::before { content: ''; position: absolute; inset: -6px; }
 /* v1.2.0 (user, replaces S-189): open / hover turn white, the same as ⓘ (css/components/popover.css .info-btn) */
-.settings-btn:hover, .settings-btn.open { color: var(--text-inverse); }
+.settings-btn.open { color: var(--text-inverse); }
+/* v2.6.4 (user: share / ⚙ stayed white after closing on iPhone): touch screens keep :hover on the last tapped button,
+   so hover only turns it white where a pointer really hovers */
+@media (hover: hover) { .settings-btn:hover { color: var(--text-inverse); } }
 .settings-btn:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 2px; border-radius: var(--radius-circle); }
 
 /* ── MAIN ── */
