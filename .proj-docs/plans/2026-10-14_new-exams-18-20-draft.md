@@ -1,6 +1,6 @@
 # 模擬試題 Exam 18–20 審稿（Draft）
 
-- 日期：2026-10-14 ｜ 版本：第 3 輪（第 2 輪換 25 題、第 3 輪再換 10 題）｜ 狀態：**待用戶審閱**，確認後先 integrate 入 `data/exams.js`
+- 日期：2026-10-14 ｜ 版本：第 4 輪（第 2 輪換 25 題、第 3 輪換 10 題、第 4 輪換 4 題）｜ 狀態：**待用戶審閱**，確認後先 integrate 入 `data/exams.js`
 - 數據源：`2026-10-14_new-exams-18-20-draft.json`（本文件由佢生成，改題請改 JSON）
 - 範圍：只用現有 235 個 STUDY fact（每題連一個 fact id，難度 = 該 fact 嘅 d），記憶法沿用該 fact 現有嘅 memo group
 
@@ -42,8 +42,8 @@
 | 2 | 2 | 4 | Which part of the United Kingdom is NOT part of Great Britain? | ▫️ A. Wales（威爾斯）<br>▫️ B. Scotland（蘇格蘭）<br>✅ C. Northern Ireland（北愛爾蘭）<br>▫️ D. England（英格蘭） | 英國邊個部分唔屬於大不列顛（Great Britain）？ | UK 同 Great Britain | #3 |
 | 3 | 3 | 1 | Which group of campaigners, led by Emmeline Pankhurst, fought for women's right to vote? | ▫️ A. The Chartists（憲章運動）<br>✅ B. The Suffragettes（婦女參政運動）<br>▫️ C. The Luddites（盧德派）<br>▫️ D. The Puritans（清教徒） | 由 Emmeline Pankhurst 帶領、爭取女性投票權嘅係邊個運動？ | 投票權 | #64 |
 | 4 | 3 | 3 | What was England called when it became a republic after Charles I was executed? | ✅ A. The Commonwealth（共和政體（Commonwealth））<br>▫️ B. The Restoration（王政復辟）<br>▫️ C. The Protectorate of Wales（威爾斯護國政體）<br>▫️ D. The United Kingdom（聯合王國） | 查理一世被處決之後，英格蘭成為共和國，當時叫做咩？ | 國王 vs 國會 | #37 |
-| 5 | 3 | 3 | After the Norman Conquest, which language did the nobility in England speak? | ▫️ A. Latin（拉丁文）<br>✅ B. Norman French（諾曼法文）<br>▫️ C. Anglo-Saxon（盎格魯撒克遜語）<br>▫️ D. Gaelic（蓋爾語） | 諾曼征服之後，英格蘭嘅貴族講咩語言？ | 諾曼征服 | #17 |
-| 6 | 3 | 3 | Francis Crick worked with which scientist to discover the structure of DNA? | ▫️ A. Alexander Fleming（亞歷山大·弗萊明）<br>✅ B. James Watson（詹姆斯·華生）<br>▫️ C. Isaac Newton（艾薩克·牛頓）<br>▫️ D. Tim Berners-Lee（添·柏納斯-李） | Francis Crick 同邊位科學家一齊發現 DNA 嘅結構？ | 發明家 | #84 |
+| 5 | 3 | 3 | In 1940, British and Allied troops were evacuated from which town in France? | ▫️ A. Calais（加萊）<br>✅ B. Dunkirk（敦刻爾克）<br>▫️ C. Bordeaux（波爾多）<br>▫️ D. Normandy（諾曼第） | 1940年，英軍同盟軍喺法國邊個城鎮撤退？ | 二次世界大戰 | #75 |
+| 6 | 3 | 3 | Which agreement helped to bring peace to Northern Ireland in 1998? | ▫️ A. The Act of Union（《聯合法案》）<br>▫️ B. The Treaty of Versailles（《凡爾賽條約》）<br>✅ C. The Good Friday Agreement（《耶穌受難日協議》）<br>▫️ D. The Magna Carta（《大憲章》） | 1998年邊份協議幫北愛爾蘭帶嚟和平？ | 20 世紀後期 | #96 |
 | 7 | 3 | 3 | Which queen imprisoned Mary, Queen of Scots for 20 years? | ▫️ A. Mary I（瑪麗一世）<br>✅ B. Elizabeth I（伊利沙伯一世）<br>▫️ C. Queen Anne（安妮女王）<br>▫️ D. Queen Victoria（維多利亞女王） | 邊位女王囚禁咗蘇格蘭女王瑪麗 20 年？ | 都鐸王朝 | #31 |
 | 8 | 3 | 2 | Who did the Duke of Wellington defeat at the Battle of Waterloo in 1815? | ✅ A. Napoleon（拿破崙）<br>▫️ B. Louis XIV（路易十四）<br>▫️ C. Philip II of Spain（西班牙腓力二世）<br>▫️ D. Bonnie Prince Charlie（英俊王子查理） | 1815年滑鐵盧戰役，威靈頓公爵打敗咗邊個？ | 打敗西班牙同法國 | #57 |
 | 9 | 3 | 3 | Which TWO countries declared war on Germany in 1939 after it invaded Poland? | ✅ A. Britain（英國）<br>✅ B. France（法國）<br>▫️ C. The USA（美國）<br>▫️ D. Japan（日本） | 1939年德國入侵波蘭之後，邊兩個國家向德國宣戰？ | 二次世界大戰 | #73 |
@@ -69,7 +69,7 @@
 |---|---|---|---|---|---|---|---|
 | 1 | 1 | 2 | Which fundamental principle of British life means that everyone, including the government, must obey the law? | ▫️ A. Individual liberty（個人自由）<br>✅ B. The rule of law（法治）<br>▫️ C. Democracy（民主）<br>▫️ D. Tolerance（寬容） | 英國生活邊項基本原則係指所有人（包括政府）都要遵守法律？ | 基本原則 | #2 |
 | 2 | 2 | 5 | The Isle of Man is part of the United Kingdom. True or False? | ▫️ A. True<br>✅ B. False | 曼島（Isle of Man）係英國嘅一部分。對定錯？ | Crown dependency | #4 |
-| 3 | 3 | 4 | At which battle in 1746 was Bonnie Prince Charlie defeated? | ▫️ A. The Battle of Bannockburn（班諾克本戰役）<br>✅ B. The Battle of Culloden（卡洛登戰役）<br>▫️ C. The Battle of Waterloo（滑鐵盧戰役）<br>▫️ D. The Battle of Hastings（哈斯丁斯戰役） | 1746年英俊王子查理喺邊場戰役戰敗？ | 18 世紀 | #47 |
+| 3 | 3 | 4 | Under the Petition of Right 1628, the King could not raise taxes without: | ✅ A. The consent of Parliament（國會同意）<br>▫️ B. The approval of the Pope（教宗批准）<br>▫️ C. A public referendum（全民公投）<br>▫️ D. The agreement of the Church of England（英格蘭教會同意） | 根據1628年《權利請願書》，國王冇乜嘢就唔可以加稅？ | 國王 vs 國會 | #35 |
 | 4 | 3 | 3 | Which TWO parliaments were united by the Act of Union 1707? | ✅ A. England（英格蘭）<br>✅ B. Scotland（蘇格蘭）<br>▫️ C. Ireland（愛爾蘭）<br>▫️ D. Wales（威爾斯） | 《1707年聯合法案》合併咗邊兩個國會？ | 聯合王國點樣形成 | #45 |
 | 5 | 3 | 1 | Which king signed the Magna Carta in 1215? | ▫️ A. King Harold（哈羅德王）<br>▫️ B. King Henry VIII（亨利八世）<br>✅ C. King John（約翰王）<br>▫️ D. King Alfred the Great（阿爾弗烈德大帝） | 1215年邊位國王簽署咗大憲章（Magna Carta）？ | Magna Carta 大憲章 | #21 |
 | 6 | 3 | 3 | Who won the Wars of the Roses and became the first Tudor king? | ✅ A. Henry VII（亨利七世）<br>▫️ B. Richard III（理查三世）<br>▫️ C. Henry VIII（亨利八世）<br>▫️ D. Edward IV（愛德華四世） | 邊個打贏咗玫瑰戰爭，成為第一位都鐸王朝國王？ | 都鐸王朝 | #26 |
@@ -106,7 +106,7 @@
 | 8 | 3 | 5 | What did the Bill of Rights of 1689 do? | ▫️ A. Gave all adult men the right to vote（俾所有成年男性投票權）<br>▫️ B. Gave women the right to vote（俾女性投票權）<br>✅ C. Limited the power of the King and confirmed the rights of Parliament（限制國王權力、確認國會權利）<br>▫️ D. Abolished the monarchy（廢除君主制） | 1689年《權利法案》做咗乜嘢？ | 投票權 | #44 |
 | 9 | 3 | 3 | During the Blitz, which city was bombed especially heavily? | ▫️ A. Edinburgh（愛丁堡）<br>✅ B. London（倫敦）<br>▫️ C. Dublin（都柏林）<br>▫️ D. Paris（巴黎） | 德軍閃電空襲（Blitz）期間，邊個城市被炸得特別嚴重？ | 二次世界大戰 | #77 |
 | 10 | 3 | 3 | Where did the Windrush Generation come to the UK from? | ▫️ A. India（印度）<br>✅ B. The Caribbean（加勒比海地區）<br>▫️ C. Australia（澳洲）<br>▫️ D. Hong Kong（香港） | Windrush 一代係由邊度嚟英國？ | 戰後重建 | #82 |
-| 11 | 3 | 2 | Which side did Oliver Cromwell lead in the English Civil War? | ▫️ A. The Royalists（保皇派）<br>✅ B. The Parliamentarians（國會派）<br>▫️ C. The Jacobites（詹姆士黨）<br>▫️ D. The Chartists（憲章派） | 英國內戰期間，克倫威爾帶領邊一方？ | 國王 vs 國會 | #38 |
+| 11 | 3 | 2 | The Bayeux Tapestry tells the story of which event? | ✅ A. The Norman Conquest of England（諾曼征服英格蘭）<br>▫️ B. The defeat of the Spanish Armada（擊敗西班牙無敵艦隊）<br>▫️ C. The Wars of the Roses（玫瑰戰爭）<br>▫️ D. The Battle of Bannockburn（班諾克本戰役） | 貝葉掛毯（Bayeux Tapestry）講述邊件歷史事件？ | 諾曼征服 | #18 |
 | 12 | 4 | 1 | Where is the Cenotaph? | ✅ A. Whitehall, London（倫敦白廳）<br>▫️ B. Edinburgh Castle（愛丁堡城堡）<br>▫️ C. Cardiff Bay（卡迪夫灣）<br>▫️ D. Trafalgar Square（特拉法加廣場） | 和平紀念碑（Cenotaph）喺邊度？ | 英國節日 | #116 |
 | 13 | 4 | 2 | Where are the Crown Jewels kept? | ▫️ A. Buckingham Palace（白金漢宮）<br>✅ B. The Tower of London（倫敦塔）<br>▫️ C. Westminster Abbey（西敏寺）<br>▫️ D. Edinburgh Castle（愛丁堡城堡） | 皇冠珠寶（Crown Jewels）存放喺邊度？ | 倫敦地標 | #133 |
 | 14 | 4 | 2 | The Ashes is a series played in which sport? | ▫️ A. Rugby（欖球）<br>▫️ B. Tennis（網球）<br>✅ C. Cricket（板球）<br>▫️ D. Golf（高爾夫球） | The Ashes 係邊種運動嘅系列賽？ | 運動賽事 | #142 |
@@ -137,6 +137,14 @@
 | 18 | 5, 6, 7 | 全部換新 fact（Ch3 ★3） |
 | 19 | 3, 8, 22 | 全部換新 fact |
 | 20 | 2, 8, 11, 13 | #2 Ch2 由 ★5 改 ★4（#3），#8 Ch3 由 ★4 改 ★5（#44 Bill of Rights）抵銷，全卷難度數量不變 |
+
+## 第 4 輪修改紀錄
+
+| Exam | 換走題號 | 新 fact |
+|---|---|---|
+| 18 | 5, 6 | #75 Dunkirk、#96 Good Friday Agreement |
+| 19 | 3 | #35 Petition of Right |
+| 20 | 11 | #18 Bayeux Tapestry |
 
 > Exam 18：Ch4 ★4 fact 只剩 #158（已畀 Exam 19），所以 #15 改用 Ch4 ★3、#23 改用 Ch5 ★4（原 ★3），全卷難度總數不變。
 
