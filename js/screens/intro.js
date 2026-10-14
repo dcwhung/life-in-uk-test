@@ -8,6 +8,9 @@
 const INTRO_OVERLAY_ID = 'introOverlay';
 const INTRO_PAGE_COUNT = 3;     // study, practice + exam, plan + Cantonese
 const INTRO_SWIPE_PX = 40;      // a horizontal drag at least this long turns the page
+const INTRO_SCENE_K_MAX = 1.4;  // an illustration grows to at most this × its design size
+const INTRO_TEXT_K_MIN = 0.7;   // the card text shrinks to fit, but not below this × its size
+const INTRO_TEXT_K_STEP = 0.05;
 const INTRO_SAMPLE_Q = 'What limited the power of the English King in 1215?'; // a real question (the fact card's Magna Carta): the practice card, its 5 similar ones, the yue line
 const INTRO_FACT_DIFFICULTY = 2;
 const INTRO_FACT_ID = { ch: 1, n: 12 };   // the sample fact card's "Ch 1 #12"
@@ -29,6 +32,7 @@ const INTRO_HEAT = ['h4', 'h3', 'h4', 'h2', 'today', '', '']; // a sample week o
 const INTRO_SIMILAR_MAX = 4;
 const INTRO_YUE_MARK = '\u7CB5'; // the Cantonese badge character (escaped: no CJK in js/, tests/i18n-test.js)
 let introPage = 0;
+let introReplay = false;      // opened from ⓘ: the last card offers Back instead of the two ways in
 let introReturnFocus = null; // W-088: where focus goes back to when the intro closes (ⓘ after a replay)
 
 // W-057: a cached pre-v2.5.0 config.js has no INTRO_SEEN_LS: no first-run intro then (ⓘ replay still works)
@@ -150,22 +154,30 @@ function introHtml() {
     <div class="intro-stack">${cards.join('')}</div>
     <div class="intro-foot"><div class="intro-dots">${dots}</div>
       <button type="button" class="intro-btn intro-next" data-action="introNext">${escapeHtml(t('intro.next'))} →</button>
-      <div class="intro-ctas"><button type="button" class="intro-btn alt" data-action="introClose" data-arg="start">${escapeHtml(t('intro.start'))}</button>
-        <button type="button" class="intro-btn" data-action="introClose" data-arg="plan">🗓️ ${escapeHtml(t('intro.makePlan'))}</button></div></div>`;
+      <div class="intro-ctas">${introCtasHtml()}</div></div>`;
+}
+// first run: Start now / Make a study plan; a replay from ⓘ just goes back
+function introCtasHtml() {
+  if (introReplay) return `<button type="button" class="intro-btn" data-action="introClose" data-arg="back">${escapeHtml(t('intro.back'))}</button>`;
+  return `<button type="button" class="intro-btn alt" data-action="introClose" data-arg="start">${escapeHtml(t('intro.start'))}</button>
+        <button type="button" class="intro-btn" data-action="introClose" data-arg="plan">🗓️ ${escapeHtml(t('intro.makePlan'))}</button>`;
 }
 
-// keep every scattered piece at least --intro-edge-pad inside its illustration; measured once per render, before
-// the stack transforms apply (the desktop scene's scale is read off the scene box)
+// keep every scattered piece at least --intro-edge-pad inside its illustration. Offsets are cleared and measured again
+// (render, resize); a passed card (flown off, rotated) keeps the offsets it had. Scales come off the boxes themselves.
 function fitIntroPieces(root) {
   const pad = parseFloat(getComputedStyle(root).getPropertyValue('--intro-edge-pad')) || 0;
-  root.querySelectorAll('.intro-art').forEach(art => {
+  root.querySelectorAll('.intro-card:not([data-pos="out"]) .intro-art').forEach(art => {
+    const pieces = [...art.querySelectorAll('.intro-piece')];
+    pieces.forEach(el => { el.style.setProperty('--dx', '0px'); el.style.setProperty('--dy', '0px'); });
     const scene = art.querySelector('.intro-scene');
     const box = art.getBoundingClientRect();
     const scale = scene.getBoundingClientRect().width / scene.offsetWidth || 1;
-    art.querySelectorAll('.intro-piece').forEach(el => {
+    const edge = pad * (box.width / art.offsetWidth || 1);
+    pieces.forEach(el => {
       const r = el.getBoundingClientRect();
-      const dx = Math.max(0, box.left + pad - r.left) - Math.max(0, r.right - (box.right - pad));
-      const dy = Math.max(0, box.top + pad - r.top) - Math.max(0, r.bottom - (box.bottom - pad));
+      const dx = Math.max(0, box.left + edge - r.left) - Math.max(0, r.right - (box.right - edge));
+      const dy = Math.max(0, box.top + edge - r.top) - Math.max(0, r.bottom - (box.bottom - edge));
       el.style.setProperty('--dx', `${dx / scale}px`);
       el.style.setProperty('--dy', `${dy / scale}px`);
     });
@@ -192,8 +204,29 @@ function renderIntro() {
   const root = byId(INTRO_OVERLAY_ID);
   root.setAttribute('aria-label', t('intro.dialog'));
   root.innerHTML = introHtml();
-  fitIntroPieces(root);
+  fitIntroLayout(root);
   syncIntro();
+}
+// the illustrations scale to fit their half (phone) / column (desktop); then one text size that fits all three cards
+function fitIntroLayout(root) {
+  fitIntroScenes(root);
+  fitIntroPieces(root);
+  fitIntroText(root);
+}
+function fitIntroScenes(root) {
+  root.querySelectorAll('.intro-art').forEach(art => {
+    const scene = art.querySelector('.intro-scene');
+    const k = Math.min(art.clientWidth / scene.offsetWidth, art.clientHeight / scene.offsetHeight, INTRO_SCENE_K_MAX);
+    scene.style.setProperty('--scene-k', k.toFixed(3));
+  });
+}
+// shrink the shared text factor step by step until every card's text fits without scrolling (same size on every card)
+function fitIntroText(root) {
+  const texts = [...root.querySelectorAll('.intro-text')];
+  for (let k = 1; k >= INTRO_TEXT_K_MIN; k -= INTRO_TEXT_K_STEP) {
+    root.style.setProperty('--intro-fs-k', k.toFixed(2));
+    if (texts.every(el => el.scrollHeight <= el.clientHeight + 1)) return;
+  }
 }
 function introGo(n) {
   introPage = Math.max(0, Math.min(INTRO_PAGE_COUNT - 1, n));
@@ -212,9 +245,10 @@ function bindIntroSwipe(root) {
     if (Math.abs(dx) >= INTRO_SWIPE_PX) introGo(introPage + (dx < 0 ? 1 : -1));
   });
 }
-function openIntro() {
+function openIntro({ replay = false } = {}) {
   if (isIntroOpen()) return;
   introPage = 0;
+  introReplay = replay;
   const root = document.createElement('div');
   root.id = INTRO_OVERLAY_ID;
   root.className = 'intro';
@@ -223,6 +257,7 @@ function openIntro() {
   root.tabIndex = -1;
   introReturnFocus = document.activeElement;
   document.body.appendChild(root);
+  document.documentElement.classList.add('intro-open'); // the page under it does not scroll
   setIntroBackgroundInert(true);
   renderIntro();
   bindIntroSwipe(root);
@@ -235,6 +270,7 @@ function closeIntro(choice) {
   if (!root) return;
   if (hasIntroSeenKey()) setLS(INTRO_SEEN_LS, true);
   root.remove();
+  document.documentElement.classList.remove('intro-open');
   setIntroBackgroundInert(false);
   if (choice !== 'plan' || !planEntryReady()) {
     restoreIntroFocus();
@@ -274,6 +310,10 @@ function toggleIntroTranslation(el) {
   setSwitchOn(el, on);
   if (typeof renderTranslationSetting === 'function') renderTranslationSetting(); // the ⚙ switch shows the same setting
 }
+// a rotation / window resize re-fits the open intro (pieces, scenes and text are measured)
+window.addEventListener('resize', () => {
+  if (isIntroOpen()) fitIntroLayout(byId(INTRO_OVERLAY_ID));
+});
 document.addEventListener('keydown', e => {
   if (!isIntroOpen() || isConfirmOpen()) return;
   if (e.key === 'ArrowRight') introGo(introPage + 1);
