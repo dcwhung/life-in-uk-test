@@ -36,6 +36,8 @@ const LINE_ICON_PATHS = {
   // CUI-0037 (user 2026-10-13: convert): the Home "Wrong answers" review tile's mark (was a red ✗ glyph). A cross, not
   // `close`: it marks wrong answers, it does not dismiss; same extent as close, drawn heavier by its tile (css/screens/home.css)
   cross: ['M6.5 6.5l11 11', 'M17.5 6.5l-11 11'],
+  // v2.6.0: the header share button (a box with an up arrow, as the iOS share sheet's own mark)
+  share: ['M12 3.5v11', 'M7.5 8 12 3.5 16.5 8', 'M8.5 10.5H7a2 2 0 0 0-2 2V19a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6.5a2 2 0 0 0-2-2h-1.5'],
 };
 // decorative: the button around it carries the label (aria-label / title from data-i18n-attr)
 function lineIconSvg(name) {

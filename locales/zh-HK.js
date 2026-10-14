@@ -8,7 +8,7 @@
 LOCALES['zh-HK'] = {
   app: {
     title: 'Life in the UK Test · 應試練習',
-    description: 'Life in the UK Test — Exam 1–{n} Practice App',
+    description: '400+ practice questions · Cantonese translations · Works offline｜400+ 條模擬試題 · 廣東話翻譯 · 離線可用', // v2.6.0: the link preview line, one for both languages (index.html meta)
     shortName: 'Life in UK',
     installName: 'Life in the UK Test',
     installShortName: 'Life in UK',
@@ -29,6 +29,10 @@ LOCALES['zh-HK'] = {
     installButton: '安裝',
     installDismiss: '關閉',
     settings: '設定',
+    share: '分享',
+    shareText: '400+ 條模擬試題 · 廣東話翻譯 · 離線可用',
+    shareCopied: '已複製連結',
+    shareFailed: '請複製呢個連結：{url}',
     language: '語言',
     fontSize: '字型大小',
     fontSmall: '細字',

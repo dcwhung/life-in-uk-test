@@ -53,6 +53,8 @@ const ACTIONS = {
   },
   // v2.3.0: memory-note study mode on / off (js/screens/memo.js)
   toggleMemoMode: () => { if (!isConfirmOpen()) toggleMemoMode(); },
+  // v2.6.0: the system share sheet, else copy the link (js/components/share.js; W-057: a cached file mix without it)
+  shareApp: () => { if (typeof shareApp === 'function') shareApp(); },
   install: () => promptInstall(),
   dismissInstall: () => dismissInstallBanner(),
   openStudy: () => openStudy(),

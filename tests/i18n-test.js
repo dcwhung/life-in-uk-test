@@ -18,7 +18,9 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
 const CJK = /[　-〿㐀-鿿豈-﫿＀-￯]/;
 // en keeps the Cantonese section labels in Chinese (user decision, see HANDOFF.md › i18n); the ⚙ language options
 // name themselves in their own language (v1.2.0), so in en 中文 stays Chinese
-const CJK_WHITELIST = ['common.yueTitle', 'app.langZh']; // v2.2.0: noteLabel / study.memoryAid are English in en (the notes are, data/notesEn.js)
+const CJK_WHITELIST = ['common.yueTitle', 'app.langZh', 'app.description']; // v2.2.0: noteLabel / study.memoryAid are English in en (the notes are, data/notesEn.js)
+// v2.6.0: app.description is the link preview line, one bilingual line for both languages; index.html carries it in two metas
+const CJK_LINE_OK = /^<meta (name="description"|property="og:description") content="/;
 // zh-HK copies these from en: meta description and the manifest stay English (plan R-001); <title> follows the language (v1.0.5)
 const SAME_AS_EN_KEYS = ['app.description', 'app.shortName', 'app.installName', 'app.installShortName'];
 const ZH_HK = 'zh-HK';
@@ -119,7 +121,7 @@ function staticChecks() {
   assert(markupValues.length === 0, 'en values outside …Html keys have no tags or entities' + (markupValues.length ? ': ' + markupValues.map(([k]) => k).join(', ') : ''));
   assert(CJK_WHITELIST.every(k => CJK.test((enLeaves.find(([key]) => key === k) || [])[1] || '')), 'whitelisted CJK labels are in en: ' + CJK_WHITELIST.join(', '));
   const sources = [path.join(ROOT, 'index.html'), path.join(ROOT, 'sw.js'), ...jsFiles(path.join(ROOT, 'js'))];
-  const cjkLines = sources.flatMap(f => read(f).split('\n').map((l, i) => (CJK.test(l) ? `${rel(f)}:${i + 1}` : null)).filter(Boolean));
+  const cjkLines = sources.flatMap(f => read(f).split('\n').map((l, i) => (CJK.test(l) && !CJK_LINE_OK.test(l) ? `${rel(f)}:${i + 1}` : null)).filter(Boolean));
   assert(cjkLines.length === 0, 'no CJK left in js/ or index.html (data/ and locales/ excluded)' + (cjkLines.length ? ': ' + cjkLines.join(', ') : ''));
   return en;
 }

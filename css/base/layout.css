@@ -51,6 +51,13 @@ header {
 .logo-sub { color: var(--gold); font-size: var(--fs-xs); font-weight: 500; margin-top: 1px; }
 .app-version { color: var(--text-inverse-faint); font-weight: 600; margin-left: var(--space-2); }
 
+/* v2.6.0 (mockup share-settings.html A): share + ⚙ as one group on the right, 4px apart. Their 44px ::before tap
+   areas would overlap, so on the inner side each reaches only half the gap: the gap splits between them (40px each
+   way across, 44px on the outer side and up / down) */
+.header-actions { display: flex; align-items: center; gap: var(--space-2); flex-shrink: 0; }
+.header-actions .share-btn::before { right: calc(var(--space-2) / -2); }
+.header-actions .share-btn + .settings-btn::before { left: calc(var(--space-2) / -2); }
+
 /* settings button (v1.2.0, replaces the v0.65 language pill): a borderless gold ⚙ (js/components/icons.js) that opens
    the settings popover (css/components/popover.css); mockup font-size-switch.html C1 */
 .settings-btn {
