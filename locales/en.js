@@ -26,7 +26,7 @@ LOCALES.en = {
     // v2.5.0: the ⓘ row that replays the first-run intro
     introReplay: 'Replay intro',
     introReplaySub: 'A 3-page tour of studying, practice and the study plan',
-    introReplayPlay: 'Play ›',
+    introReplayPlay: 'Play',
     installTitle: 'Install for offline use',
     installText: 'Add to home screen to study without internet',
     installButton: 'Install',

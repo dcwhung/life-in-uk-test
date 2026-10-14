@@ -12,7 +12,8 @@
 /* S-193 (v1.3.0): the 16px ⓘ keeps its look; the tap area grows to 44 × 44px */
 .info-btn::before { content: ''; position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; transform: translate(-50%, -50%); }
 /* v1.2.0 (user): an open header popover's button turns white, ⓘ and ⚙ alike (css/base/layout.css .settings-btn) */
-.info-btn:hover, .info-btn.open { color: var(--text-inverse); }
+.info-btn.open { color: var(--text-inverse); }
+@media (hover: hover) { .info-btn:hover { color: var(--text-inverse); } } /* v2.6.4: no sticky hover on touch (layout.css .settings-btn) */
 .info-pop {
   display: none;
   /* v1.0.5 (user): the full width less a 16px gutter; wide screens line up with the 780px main column. 50% is of the
@@ -27,6 +28,11 @@
   color: var(--text-inverse);
   border: 1px solid var(--gold-border);
   border-radius: var(--radius);
+  /* v2.6.2: a top corner's curve stops where the arrow's base starts (js/components/popover.js capArrowCorners) */
+  --info-pop-room-l: var(--radius);
+  --info-pop-room-r: var(--radius);
+  border-top-left-radius: min(var(--radius), var(--info-pop-room-l));
+  border-top-right-radius: min(var(--radius), var(--info-pop-room-r));
   padding: 18px var(--space-10);
   box-shadow: var(--shadow-pop);
   z-index: 200;
@@ -94,6 +100,10 @@
   background: none; border: 0; border-top: 1px solid var(--gold-border); color: var(--text-inverse); text-align: left; cursor: pointer;
 }
 .info-replay-play { width: 36px; height: 36px; flex: none; display: grid; place-items: center; border-radius: var(--radius-circle); background: var(--gold); color: var(--navy); font-size: var(--fs-sm); }
+/* v2.6.3: the ▶ in the disc and the › after Play are line icons (were glyphs) */
+.info-replay-play .line-icon { width: 1.15em; height: 1.15em; margin-left: var(--space-1); } /* the triangle sits optically centred */
+.info-replay-go.with-icon { gap: var(--space-1); }
+.info-replay-go .line-icon { width: 1em; height: 1em; }
 .info-replay-txt { flex: 1; min-width: 0; display: grid; gap: 1px; }
 .info-replay-txt b { display: flex; align-items: center; gap: var(--space-3); font-size: var(--fs-md); }
 .info-replay-txt small { font-size: var(--fs-sm); color: var(--text-inverse-muted); }
