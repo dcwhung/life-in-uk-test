@@ -24,6 +24,8 @@
 
   /* ── NEW: header actions group (share + ⚙). .share-btn reuses the .settings-btn look ── */
   .header-actions { display: flex; align-items: center; gap: var(--space-4); flex-shrink: 0; }
+  .header-actions.g4 { gap: var(--space-2); }
+  .header-actions.g0 { gap: 0; }
 
   /* ── fallback toast + WhatsApp card ── */
   .toast-demo { display: inline-block; background: var(--navy); color: var(--text-inverse); border-radius: var(--radius-pill); padding: 8px 16px; font-size: 14px; box-shadow: var(--shadow); }
@@ -78,7 +80,7 @@
   // new icon: iOS-style share (box + up arrow)
   const SHARE = ['M12 3.5v11', 'M7.5 8 12 3.5 16.5 8', 'M8.5 10.5H7a2 2 0 0 0-2 2V19a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6.5a2 2 0 0 0-2-2h-1.5'];
   const svg = (paths) => `<svg class="line-icon" viewBox="0 0 24 24" aria-hidden="true">${paths.map((d) => `<path d="${d}"/>`).join('')}</svg>`;
-  const header = (w, label) => `
+  const header = (w, label, g = '') => `
     <h3>${label}</h3>
     <div class="frame ${w}"><header><div class="header-inner">
       <div class="logo">
@@ -88,12 +90,12 @@
           <div class="logo-sub"><span>Exam Practice</span> <span class="app-version">v2.6.0</span></div>
         </div>
       </div>
-      <div class="header-actions">
+      <div class="header-actions ${g}">
         <button class="settings-btn share-btn" type="button" aria-label="分享" title="分享">${svg(SHARE)}</button>
         <button class="settings-btn" type="button" aria-label="設定" title="設定">${svg(GEAR)}</button>
       </div>
     </div></header></div><br>`;
-  document.getElementById('headers').innerHTML = header('w375', 'iPhone 375px') + header('w320', '細機 320px');
+  document.getElementById('headers').innerHTML = header('w375', '而家：間距 8px') + header('w375', '建議 A：間距 4px', 'g4') + header('w375', '建議 B：間距 0（貼住）', 'g0') + header('w320', '細機 320px · 間距 0', 'g0');
 </script>
 </body>
 </html>
