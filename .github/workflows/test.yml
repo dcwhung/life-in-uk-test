@@ -1,11 +1,12 @@
-# CI (AU-002). Two jobs; details, local repro and branch protection steps: .proj-docs/ci.md
-#   node-tests       every push + every PR: the suites that need no browser (picked by tests/tools/node-only-suites.js)
-#   playwright-tests PRs into main only: the full tests/run-all.sh in headless Chromium
+# CI (AU-002), part 1 of 2; details, local repro and branch protection steps: .proj-docs/ci.md
+#   node-tests  every branch push + every PR: the suites that need no browser (picked by tests/tools/node-only-suites.js)
+# The browser suites (tests/run-all.sh) are the `playwright-tests` job in playwright.yml (PRs into main only).
 # Deploys are not gated by this: GitHub Pages and Vercel still deploy on push to main.
 name: tests
 
 on:
   push:
+    branches: ['**'] # branches only: a tag push does not run CI
   pull_request:
 
 permissions:
@@ -17,12 +18,11 @@ concurrency:
 
 env:
   NODE_VERSION: '22'
-  PLAYWRIGHT_CORE_VERSION: '1.56.1'
 
 jobs:
   node-tests:
-    # Pinned, not ubuntu-latest: ubuntu-latest moves to Ubuntu 26 from 2026-10-19 and playwright-core 1.56.1 only
-    # supports Ubuntu up to 24.04 (lib/server/utils/hostPlatform.js). Revisit the runner when bumping playwright-core.
+    # Pinned, not ubuntu-latest, to match playwright.yml (ubuntu-latest moves to Ubuntu 26 from 2026-10-19, which
+    # playwright-core 1.56.1 does not support). Revisit both runners when bumping playwright-core.
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -47,53 +47,3 @@ jobs:
             fi
           done
           exit $fail
-
-  playwright-tests:
-    if: github.event_name == 'pull_request' && github.base_ref == 'main'
-    # Same pin as node-tests (Ubuntu 26 is not supported by playwright-core 1.56.1); bump together with playwright-core.
-    runs-on: ubuntu-24.04
-    timeout-minutes: 45
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # tests/upgrade-test.js runs `git archive` on a pinned v0.57 commit
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      # The repo has no package.json: install playwright-core outside the checkout and point NODE_PATH at it
-      - name: Install playwright-core
-        run: |
-          npm install --no-save --no-audit --no-fund --prefix "$RUNNER_TEMP/pw" "playwright-core@$PLAYWRIGHT_CORE_VERSION"
-          echo "NODE_PATH=$RUNNER_TEMP/pw/node_modules" >> "$GITHUB_ENV"
-
-      # --with-deps also installs fonts-wqy-zenhei (playwright-core's "tools" deps), so CI does have a CJK font, but not
-      # the Noto CJK used locally; "Run all Playwright suites" sets LANG_SWITCH_NO_CJK_FONT=1 to skip lang-switch-test M4
-      - name: Install Chromium (same playwright-core version)
-        run: |
-          "$RUNNER_TEMP/pw/node_modules/.bin/playwright-core" install --with-deps chromium
-
-      # Same setup as local runs: CHROMIUM_PATH = the full Chromium build playwright-core just installed
-      - name: Locate Chromium
-        run: |
-          chromium_path=$(node -e "process.stdout.write(require('playwright-core').chromium.executablePath())")
-          test -x "$chromium_path"
-          echo "CHROMIUM_PATH=$chromium_path" >> "$GITHUB_ENV"
-          echo "CHROMIUM_PATH=$chromium_path"
-
-      - name: Run all Playwright suites
-        env:
-          # Force lang-switch-test's no-CJK-font branch: M4 (zh-HK line wrap at 320px) is tuned to Noto CJK, and the
-          # WenQuanYi font that --with-deps brings measures differently (user decision 2026-10-14). Verify M4 locally.
-          LANG_SWITCH_NO_CJK_FONT: '1'
-        run: bash tests/run-all.sh # tests/pages-server.js needs python3 (preinstalled on ubuntu-24.04)
-
-      - name: Upload screenshots on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-screenshots
-          path: tests/shot-*.png
-          if-no-files-found: ignore
-          retention-days: 7

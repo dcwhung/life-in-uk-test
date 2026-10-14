@@ -1,6 +1,6 @@
 # CI（GitHub Actions，AU-002）
 
-Workflow：`.github/workflows/test.yml`（名 `tests`）。目的係每次改動自動跑測試，唔再靠人記住喺本機跑 `tests/run-all.sh`。
+Workflow 兩個檔：`.github/workflows/test.yml`（名 `tests`，job `node-tests`）同 `.github/workflows/playwright.yml`（名 `playwright`，job `playwright-tests`）。目的係每次改動自動跑測試，唔再靠人記住喺本機跑 `tests/run-all.sh`。
 
 > 放喺 `.proj-docs/` 而唔係新開 `docs/`：repo 嘅內部文件全部喺 `.proj-docs/`，而且 `.vercelignore` 已經排除佢；新開 `docs/` 會被 GitHub Pages（root `/`）同 Vercel 當成網站內容公開。
 
@@ -8,8 +8,8 @@ Workflow：`.github/workflows/test.yml`（名 `tests`）。目的係每次改動
 
 | Job | 幾時跑 | 跑咩 | 大約時間 |
 |-----|--------|------|----------|
-| `node-tests` | 每個 branch 嘅 `push`，同所有 `pull_request` | `node tests/tools/node-only-suites.js` 揀出嚟、唔使 browser 嘅 suite（而家 9 個：content-guard、memo-domain、note-text、notes-en、plan-countdown、plan、stats-model、telemetry-api、telemetry），每個要 exit 0 而且最後一行有 `PASS` | 1–2 分鐘 |
-| `playwright-tests` | 只限 target 係 `main` 嘅 `pull_request`（開 PR、PR 有新 push） | `bash tests/run-all.sh`（全套 Playwright suite，headless Chromium） | 未實測，timeout 45 分鐘 |
+| `node-tests`（`test.yml`） | 每個 branch 嘅 `push`（`branches: ['**']`，push tag 唔跑），同所有 `pull_request` | `node tests/tools/node-only-suites.js` 揀出嚟、唔使 browser 嘅 suite（而家 9 個：content-guard、memo-domain、note-text、notes-en、plan-countdown、plan、stats-model、telemetry-api、telemetry），每個要 exit 0 而且最後一行有 `PASS` | 1–2 分鐘 |
+| `playwright-tests`（`playwright.yml`） | 只限 target 係 `main` 嘅 `pull_request`（開 PR、PR 有新 push、reopen）；用 `on: pull_request: branches: [main]`，唔係 `if:` | `bash tests/run-all.sh`（全套 Playwright suite，headless Chromium） | 未實測，timeout 45 分鐘 |
 
 - Node 22（`actions/setup-node@v4`）；`playwright-core@1.56.1`（同本機 `/opt/node-tools` 一樣），用 `npm install --no-save --prefix "$RUNNER_TEMP/pw"` 裝喺 checkout 以外（repo 冇 `package.json`），`NODE_PATH` 指去嗰度。
 - Chromium 用同一版 `playwright-core install --with-deps chromium` 裝；`CHROMIUM_PATH` 設做 `chromium.executablePath()`（完整 Chromium build，同本機 `/opt/pw-browsers/chromium` 一樣，唔用 headless shell）。
@@ -18,7 +18,7 @@ Workflow：`.github/workflows/test.yml`（名 `tests`）。目的係每次改動
 - Runner 鎖 `ubuntu-24.04`（兩個 job），唔用 `ubuntu-latest`：`ubuntu-latest` 2026-10-19 起轉 Ubuntu 26，`playwright-core@1.56.1` 只支援到 Ubuntu 24.04（`lib/server/utils/hostPlatform.js`，26 會當 unsupported platform）。升 `playwright-core` 嘅時候先一齊考慮升 runner（W-392）。
 - `tests/pages-server.js` 用 `python3`，`ubuntu-24.04` 本身有。
 - 失敗時 upload `tests/shot-*.png` 做 artifact（`playwright-screenshots`，留 7 日）。
-- `concurrency`：同一個 ref 有新 run 就取消舊 run；`permissions: contents: read`。
+- 兩個 workflow 各自有 `concurrency`（同一個 workflow + ref 有新 run 就取消舊 run）同 `permissions: contents: read`。
 - PR 入 `main` 時 node-only suite 會跑兩次（`node-tests` 一次，`run-all.sh` 入面再一次），係刻意嘅：`run-all.sh` 照舊係「全套」。
 - `tests/run-all.sh` 嘅 suite 清單仍然係寫死（AU-009，另外處理）；新 suite 要自己加入去，`node-tests` 就唔使（自動揀）。
 
@@ -48,8 +48,8 @@ workflow 至少跑過一次（例如呢條 branch 開 PR）之後，check 名先
 1. Repo → **Settings** → **Branches** → **Add branch protection rule**（或 **Add classic branch protection rule**；新介面叫 Rulesets，效果一樣）。
 2. Branch name pattern：`main`。
 3. 勾 **Require a pull request before merging**（要唔要 approval 自己決定；一個人用可以設 0 個 approval）。
-4. 勾 **Require status checks to pass before merging**，搜尋加入 `node-tests` 同 `playwright-tests`。建議同時勾 **Require branches to be up to date before merging**。
+4. 勾 **Require status checks to pass before merging**，搜尋加入 `node-tests` 同 `playwright-tests`（job 名，唔好改，改咗 branch protection 會等一個永遠唔出現嘅 check）。建議同時勾 **Require branches to be up to date before merging**。
 5. （可選）勾 **Do not allow bypassing the above settings**，否則 admin 仍然可以直接 push `main`。
 6. **Save changes**。
 
-注意：開咗之後 `main` 唔可以再直接 push（hotfix 都要開 PR）；`playwright-tests` 喺非 PR 事件係 skipped，GitHub 當 skipped 為通過，唔會卡住。
+注意：開咗之後 `main` 唔可以再直接 push（hotfix 都要開 PR）。`playwright-tests` 喺獨立 workflow，只有 PR 入 `main` 先觸發：普通 branch push 只會有 `node-tests` 一個 check，唔會再出現 skipped 嘅 `playwright-tests`（W-394）。
