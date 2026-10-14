@@ -1,6 +1,6 @@
 # 模擬試題 Exam 18–20 審稿（Draft）
 
-- 日期：2026-10-14 ｜ 版本：第 2 輪（已換走用戶剔除嘅 25 題）｜ 狀態：**待用戶審閱**，確認後先 integrate 入 `data/exams.js`
+- 日期：2026-10-14 ｜ 版本：第 3 輪（第 2 輪換 25 題、第 3 輪再換 10 題）｜ 狀態：**待用戶審閱**，確認後先 integrate 入 `data/exams.js`
 - 數據源：`2026-10-14_new-exams-18-20-draft.json`（本文件由佢生成，改題請改 JSON）
 - 範圍：只用現有 235 個 STUDY fact（每題連一個 fact id，難度 = 該 fact 嘅 d），記憶法沿用該 fact 現有嘅 memo group
 
@@ -30,7 +30,7 @@
 | 題目 ch / d 同所連 fact 一致 | ✅ |
 | 同現有 408 題題幹重複 | ✅ 0 條 |
 | 三份卷之間題幹重複 | ✅ 0 條 |
-| fact 覆蓋 | 72 題用 70 個 fact：#1 喺 Exam 18、20 各一條（Ch1 只得 2 個 fact）；#4 喺 Exam 19、20 各一條（Ch2 ★5 只得 #4 / #5，#5 題被剔除） |
+| fact 覆蓋 | 72 題用 70 個 fact：#1 喺 Exam 18、20 各一條（Ch1 只得 2 個 fact）；#3 喺 Exam 18、20 各一條（Ch2 ★5 嘅 #4 / #5 兩條題都被剔，Exam 20 Ch2 改用 ★4 嘅 #3） |
 | 記憶法 group 同 fact 現有題目一致 | ✅（1 條冇 group，見下面「需要你決定」） |
 
 
@@ -42,9 +42,9 @@
 | 2 | 2 | 4 | Which part of the United Kingdom is NOT part of Great Britain? | ▫️ A. Wales（威爾斯）<br>▫️ B. Scotland（蘇格蘭）<br>✅ C. Northern Ireland（北愛爾蘭）<br>▫️ D. England（英格蘭） | 英國邊個部分唔屬於大不列顛（Great Britain）？ | UK 同 Great Britain | #3 |
 | 3 | 3 | 1 | Which group of campaigners, led by Emmeline Pankhurst, fought for women's right to vote? | ▫️ A. The Chartists（憲章運動）<br>✅ B. The Suffragettes（婦女參政運動）<br>▫️ C. The Luddites（盧德派）<br>▫️ D. The Puritans（清教徒） | 由 Emmeline Pankhurst 帶領、爭取女性投票權嘅係邊個運動？ | 投票權 | #64 |
 | 4 | 3 | 3 | What was England called when it became a republic after Charles I was executed? | ✅ A. The Commonwealth（共和政體（Commonwealth））<br>▫️ B. The Restoration（王政復辟）<br>▫️ C. The Protectorate of Wales（威爾斯護國政體）<br>▫️ D. The United Kingdom（聯合王國） | 查理一世被處決之後，英格蘭成為共和國，當時叫做咩？ | 國王 vs 國會 | #37 |
-| 5 | 3 | 3 | Hadrian's Wall was built across which part of Britain? | ▫️ A. Southern England（英格蘭南部）<br>✅ B. Northern England（英格蘭北部）<br>▫️ C. Central Wales（威爾斯中部）<br>▫️ D. The Scottish Highlands（蘇格蘭高地） | 哈德良長城係橫跨不列顛邊個部分起嘅？ | 早期英國 | #12 |
-| 6 | 3 | 3 | The assassination of which person helped to trigger the First World War? | ✅ A. Archduke Franz Ferdinand（斐迪南大公）<br>▫️ B. Napoleon Bonaparte（拿破崙）<br>▫️ C. Kaiser Wilhelm II（德皇威廉二世）<br>▫️ D. Tsar Nicholas II（沙皇尼古拉二世） | 邊個人被刺殺，觸發咗第一次世界大戰？ | 一次世界大戰 | #65 |
-| 7 | 3 | 3 | What do VE Day and VJ Day mark? | ▫️ A. The start and end of the First World War（一戰嘅開始同結束）<br>✅ B. The end of the Second World War in Europe and against Japan（二戰喺歐洲同對日本嘅結束）<br>▫️ C. The founding of the UN and NATO（聯合國同北約成立）<br>▫️ D. The coronation of the Monarch（君主加冕） | VE Day 同 VJ Day 紀念咩？ | 二次世界大戰 | #78 |
+| 5 | 3 | 3 | After the Norman Conquest, which language did the nobility in England speak? | ▫️ A. Latin（拉丁文）<br>✅ B. Norman French（諾曼法文）<br>▫️ C. Anglo-Saxon（盎格魯撒克遜語）<br>▫️ D. Gaelic（蓋爾語） | 諾曼征服之後，英格蘭嘅貴族講咩語言？ | 諾曼征服 | #17 |
+| 6 | 3 | 3 | Francis Crick worked with which scientist to discover the structure of DNA? | ▫️ A. Alexander Fleming（亞歷山大·弗萊明）<br>✅ B. James Watson（詹姆斯·華生）<br>▫️ C. Isaac Newton（艾薩克·牛頓）<br>▫️ D. Tim Berners-Lee（添·柏納斯-李） | Francis Crick 同邊位科學家一齊發現 DNA 嘅結構？ | 發明家 | #84 |
+| 7 | 3 | 3 | Which queen imprisoned Mary, Queen of Scots for 20 years? | ▫️ A. Mary I（瑪麗一世）<br>✅ B. Elizabeth I（伊利沙伯一世）<br>▫️ C. Queen Anne（安妮女王）<br>▫️ D. Queen Victoria（維多利亞女王） | 邊位女王囚禁咗蘇格蘭女王瑪麗 20 年？ | 都鐸王朝 | #31 |
 | 8 | 3 | 2 | Who did the Duke of Wellington defeat at the Battle of Waterloo in 1815? | ✅ A. Napoleon（拿破崙）<br>▫️ B. Louis XIV（路易十四）<br>▫️ C. Philip II of Spain（西班牙腓力二世）<br>▫️ D. Bonnie Prince Charlie（英俊王子查理） | 1815年滑鐵盧戰役，威靈頓公爵打敗咗邊個？ | 打敗西班牙同法國 | #57 |
 | 9 | 3 | 3 | Which TWO countries declared war on Germany in 1939 after it invaded Poland? | ✅ A. Britain（英國）<br>✅ B. France（法國）<br>▫️ C. The USA（美國）<br>▫️ D. Japan（日本） | 1939年德國入侵波蘭之後，邊兩個國家向德國宣戰？ | 二次世界大戰 | #73 |
 | 10 | 3 | 1 | For UK residents, NHS healthcare is: | ▫️ A. Free only for children（只係兒童免費）<br>▫️ B. Paid for by private insurance（由私人保險支付）<br>✅ C. Free at the point of use（使用時免費）<br>▫️ D. Only available to British citizens（只限英國公民使用） | 對英國居民嚟講，NHS 醫療服務係： | 戰後重建 | #80 |
@@ -69,12 +69,12 @@
 |---|---|---|---|---|---|---|---|
 | 1 | 1 | 2 | Which fundamental principle of British life means that everyone, including the government, must obey the law? | ▫️ A. Individual liberty（個人自由）<br>✅ B. The rule of law（法治）<br>▫️ C. Democracy（民主）<br>▫️ D. Tolerance（寬容） | 英國生活邊項基本原則係指所有人（包括政府）都要遵守法律？ | 基本原則 | #2 |
 | 2 | 2 | 5 | The Isle of Man is part of the United Kingdom. True or False? | ▫️ A. True<br>✅ B. False | 曼島（Isle of Man）係英國嘅一部分。對定錯？ | Crown dependency | #4 |
-| 3 | 3 | 4 | In the Glorious Revolution of 1688, James II was replaced by whom? | ▫️ A. Oliver Cromwell（克倫威爾）<br>▫️ B. Charles II（查理二世）<br>✅ C. William of Orange（奧蘭治親王威廉）<br>▫️ D. George I（喬治一世） | 1688年光榮革命，詹姆士二世被邊個取代？ | 國王 vs 國會 | #43 |
+| 3 | 3 | 4 | At which battle in 1746 was Bonnie Prince Charlie defeated? | ▫️ A. The Battle of Bannockburn（班諾克本戰役）<br>✅ B. The Battle of Culloden（卡洛登戰役）<br>▫️ C. The Battle of Waterloo（滑鐵盧戰役）<br>▫️ D. The Battle of Hastings（哈斯丁斯戰役） | 1746年英俊王子查理喺邊場戰役戰敗？ | 18 世紀 | #47 |
 | 4 | 3 | 3 | Which TWO parliaments were united by the Act of Union 1707? | ✅ A. England（英格蘭）<br>✅ B. Scotland（蘇格蘭）<br>▫️ C. Ireland（愛爾蘭）<br>▫️ D. Wales（威爾斯） | 《1707年聯合法案》合併咗邊兩個國會？ | 聯合王國點樣形成 | #45 |
 | 5 | 3 | 1 | Which king signed the Magna Carta in 1215? | ▫️ A. King Harold（哈羅德王）<br>▫️ B. King Henry VIII（亨利八世）<br>✅ C. King John（約翰王）<br>▫️ D. King Alfred the Great（阿爾弗烈德大帝） | 1215年邊位國王簽署咗大憲章（Magna Carta）？ | Magna Carta 大憲章 | #21 |
 | 6 | 3 | 3 | Who won the Wars of the Roses and became the first Tudor king? | ✅ A. Henry VII（亨利七世）<br>▫️ B. Richard III（理查三世）<br>▫️ C. Henry VIII（亨利八世）<br>▫️ D. Edward IV（愛德華四世） | 邊個打贏咗玫瑰戰爭，成為第一位都鐸王朝國王？ | 都鐸王朝 | #26 |
 | 7 | 3 | 3 | Which king was executed after the English Civil War? | ▫️ A. James I（詹姆士一世）<br>✅ B. Charles I（查理一世）<br>▫️ C. Charles II（查理二世）<br>▫️ D. James II（詹姆士二世） | 英國內戰之後，邊位國王被處決？ | 國王 vs 國會 | #36 |
-| 8 | 3 | 3 | The Battle of Britain in 1940 was fought mainly: | ▫️ A. At sea（喺海上）<br>✅ B. In the air（喺空中）<br>▫️ C. In the trenches of France（喺法國嘅戰壕）<br>▫️ D. In North Africa（喺北非） | 1940年嘅不列顛戰役主要喺邊度打？ | 二次世界大戰 | #76 |
+| 8 | 3 | 3 | The UK joined the European Community in 1973. In which year did it leave the European Union? | ▫️ A. 1999<br>▫️ B. 2008<br>▫️ C. 2016<br>✅ D. 2020 | 英國1973年加入歐洲共同體，咁佢喺邊年離開歐盟？ | 20 世紀後期 | #91 |
 | 9 | 3 | 3 | The fall of the Berlin Wall in 1989 marked the end of: | ▫️ A. The Second World War（第二次世界大戰）<br>✅ B. The Cold War（冷戰）<br>▫️ C. The Boer War（布爾戰爭）<br>▫️ D. The Hundred Years War（百年戰爭） | 1989年柏林圍牆倒下，標誌住乜嘢結束？ | 20 世紀後期 | #94 |
 | 10 | 3 | 1 | Winston Churchill was Prime Minister during which war? | ▫️ A. The First World War（第一次世界大戰）<br>✅ B. The Second World War（第二次世界大戰）<br>▫️ C. The Boer War（布爾戰爭）<br>▫️ D. The Crimean War（克里米亞戰爭） | 邱吉爾喺邊場戰爭期間做首相？ | 二次世界大戰 | #74 |
 | 11 | 3 | 1 | The Norman Conquest of England began with which battle? | ▫️ A. The Battle of Bannockburn（班諾克本戰役）<br>✅ B. The Battle of Hastings（哈斯丁斯戰役）<br>▫️ C. The Battle of Bosworth（博斯沃思戰役）<br>▫️ D. The Battle of Culloden（卡洛登戰役） | 諾曼征服英格蘭由邊場戰役開始？ | 中世紀戰役 | #16 |
@@ -88,7 +88,7 @@
 | 19 | 5 | 2 | Who is legal aid intended to help? | ✅ A. People who cannot afford to pay for legal advice（負擔唔起法律意見費用嘅人）<br>▫️ B. Only people accused of serious crimes（只係被控嚴重罪行嘅人）<br>▫️ C. Police officers in court（喺法庭嘅警察）<br>▫️ D. Only British citizens over 65（只係65歲以上嘅英國公民） | 法律援助係用嚟幫邊啲人？ | 法律服務 | #214 |
 | 20 | 5 | 4 | Which TWO bodies are elected using a form of proportional representation? | ✅ A. The Northern Ireland Assembly（北愛爾蘭議會）<br>✅ B. The Scottish Parliament（蘇格蘭議會）<br>▫️ C. The House of Commons（下議院）<br>▫️ D. The House of Lords（上議院） | 以下邊兩個機構用比例代表制選出？ | 選舉制度 | #192 |
 | 21 | 5 | 3 | Civil servants must be: | ▫️ A. Members of the governing party（執政黨黨員）<br>✅ B. Politically neutral（政治中立）<br>▫️ C. Elected by the public（由公眾選出）<br>▫️ D. Appointed by the Monarch personally（由君主親自委任） | 公務員必須： | 部長同公職 | #188 |
-| 22 | 5 | 3 | Which of the following people can vote in a UK general election? | ▫️ A. A 17-year-old British citizen（17歲英國公民）<br>✅ B. A 20-year-old Irish citizen on the electoral register（已登記做選民嘅20歲愛爾蘭公民）<br>▫️ C. A 30-year-old French citizen living in the UK（住喺英國嘅30歲法國公民）<br>▫️ D. A 25-year-old British citizen not on the electoral register（未登記做選民嘅25歲英國公民） | 以下邊個人可以喺英國大選投票？ | 投票 | #194 |
+| 22 | 5 | 3 | If you have a complaint about a government department or public service that has not been resolved, who can investigate it? | ✅ A. The Ombudsman（申訴專員）<br>▫️ B. The Speaker（議長）<br>▫️ C. The Electoral Commission（選舉委員會）<br>▫️ D. The Chancellor of the Exchequer（財政大臣） | 如果你投訴政府部門或者公共服務冇解決，邊個可以調查？ | 部長同公職 | #189 |
 | 23 | 5 | 3 | When was NATO founded? | ▫️ A. 1919<br>▫️ B. 1945<br>✅ C. 1949<br>▫️ D. 1973 | 北大西洋公約組織（NATO）喺邊年成立？ | 國際組織 | #236 |
 | 24 | 5 | 4 | When was the National Minimum Wage introduced? | ▫️ A. 1948<br>▫️ B. 1979<br>✅ C. 1998<br>▫️ D. 2010 | 全國最低工資喺邊年推出？ | 🆕 • 1998 → 推出 National Minimum Wage（全國最低工資）<br>• 重點 → 僱主每個鐘最少要俾嘅工資，按年齡分級 | #220 |
 
@@ -97,18 +97,18 @@
 | # | Ch | ★ | 題目 | 選項（✅ = 答案） | 廣東話 | 記憶法 | Fact |
 |---|---|---|---|---|---|---|---|
 | 1 | 1 | 1 | Which of the following is NOT a responsibility of a British citizen or permanent resident? | ▫️ A. To obey the law（遵守法律）<br>▫️ B. To pay taxes（交稅）<br>✅ C. To join the armed forces（參軍）<br>▫️ D. To look after yourself and your family（照顧自己同家人） | 以下邊項唔係英國公民或者永久居民嘅責任？ | 公民責任 | #1 |
-| 2 | 2 | 5 | Which of the following best describes Jersey? | ▫️ A. Part of England（英格蘭嘅一部分）<br>✅ B. A Crown dependency with its own government（有自己政府嘅皇家屬地）<br>▫️ C. A British overseas territory（英國海外領土）<br>▫️ D. An independent member of the EU（獨立嘅歐盟成員國） | 以下邊個描述最符合澤西島（Jersey）？ | Crown dependency | #4 |
+| 2 | 2 | 4 | The United Kingdom is made up of England, Scotland, Wales and which other part? | ▫️ A. The Republic of Ireland（愛爾蘭共和國）<br>▫️ B. The Isle of Man（曼島）<br>✅ C. Northern Ireland（北愛爾蘭）<br>▫️ D. The Channel Islands（海峽群島） | 英國由英格蘭、蘇格蘭、威爾斯同邊個部分組成？ | UK 同 Great Britain | #3 |
 | 3 | 3 | 3 | During the Industrial Revolution, Britain changed from: | ▫️ A. An industrial economy to an agricultural one（工業經濟變成農業經濟）<br>✅ B. An agricultural economy to an industrial one（農業經濟變成工業經濟）<br>▫️ C. A republic to a monarchy（共和國變成君主國）<br>▫️ D. A Catholic country to a Protestant one（天主教國家變成新教國家） | 工業革命期間，英國由乜嘢變成乜嘢？ | 18 世紀 | #51 |
 | 4 | 3 | 3 | Which TWO did the Welfare State provide after the Second World War? | ✅ A. Healthcare（醫療）<br>✅ B. Social security（社會保障）<br>▫️ C. A free car for every family（每個家庭一架免費車）<br>▫️ D. Free private schools（免費私立學校） | 二戰後嘅福利國家提供咗邊兩樣嘢？ | 戰後重建 | #81 |
 | 5 | 3 | 4 | The Hundred Years War was fought between England and which country? | ▫️ A. Scotland（蘇格蘭）<br>▫️ B. Spain（西班牙）<br>✅ C. France（法國）<br>▫️ D. Holland（荷蘭） | 百年戰爭係英格蘭同邊個國家之間嘅戰爭？ | 中世紀 | #23 |
 | 6 | 3 | 1 | Which of the following plays was written by William Shakespeare? | ✅ A. Hamlet（《哈姆雷特》）<br>▫️ B. The Canterbury Tales（《坎特伯雷故事集》）<br>▫️ C. Pride and Prejudice（《傲慢與偏見》）<br>▫️ D. A Christmas Carol（《聖誕頌歌》） | 以下邊部劇係莎士比亞寫嘅？ | 作家 | #32 |
 | 7 | 3 | 3 | Which famous building was destroyed in the Great Fire of London? | ▫️ A. Westminster Abbey（西敏寺）<br>▫️ B. The Tower of London（倫敦塔）<br>✅ C. St Paul's Cathedral（聖保羅大教堂）<br>▫️ D. Buckingham Palace（白金漢宮） | 倫敦大火燒毀咗邊座著名建築？ | 倫敦大火 | #40 |
-| 8 | 3 | 4 | As well as opening Britain's first curry house, Sake Dean Mahomet introduced what to Britain? | ▫️ A. Tea drinking（飲茶）<br>✅ B. Shampooing（洗頭按摩（shampooing））<br>▫️ C. Cricket（板球）<br>▫️ D. Fish and chips（炸魚薯條） | Sake Dean Mahomet 除咗開英國第一間咖喱屋，仲將乜嘢引入英國？ | 19 世紀人物 | #56 |
+| 8 | 3 | 5 | What did the Bill of Rights of 1689 do? | ▫️ A. Gave all adult men the right to vote（俾所有成年男性投票權）<br>▫️ B. Gave women the right to vote（俾女性投票權）<br>✅ C. Limited the power of the King and confirmed the rights of Parliament（限制國王權力、確認國會權利）<br>▫️ D. Abolished the monarchy（廢除君主制） | 1689年《權利法案》做咗乜嘢？ | 投票權 | #44 |
 | 9 | 3 | 3 | During the Blitz, which city was bombed especially heavily? | ▫️ A. Edinburgh（愛丁堡）<br>✅ B. London（倫敦）<br>▫️ C. Dublin（都柏林）<br>▫️ D. Paris（巴黎） | 德軍閃電空襲（Blitz）期間，邊個城市被炸得特別嚴重？ | 二次世界大戰 | #77 |
 | 10 | 3 | 3 | Where did the Windrush Generation come to the UK from? | ▫️ A. India（印度）<br>✅ B. The Caribbean（加勒比海地區）<br>▫️ C. Australia（澳洲）<br>▫️ D. Hong Kong（香港） | Windrush 一代係由邊度嚟英國？ | 戰後重建 | #82 |
-| 11 | 3 | 2 | How many wives did Henry VIII have? | ▫️ A. Two（兩個）<br>▫️ B. Four（四個）<br>✅ C. Six（六個）<br>▫️ D. Eight（八個） | 亨利八世有幾多個老婆？ | 都鐸王朝 | #27 |
+| 11 | 3 | 2 | Which side did Oliver Cromwell lead in the English Civil War? | ▫️ A. The Royalists（保皇派）<br>✅ B. The Parliamentarians（國會派）<br>▫️ C. The Jacobites（詹姆士黨）<br>▫️ D. The Chartists（憲章派） | 英國內戰期間，克倫威爾帶領邊一方？ | 國王 vs 國會 | #38 |
 | 12 | 4 | 1 | Where is the Cenotaph? | ✅ A. Whitehall, London（倫敦白廳）<br>▫️ B. Edinburgh Castle（愛丁堡城堡）<br>▫️ C. Cardiff Bay（卡迪夫灣）<br>▫️ D. Trafalgar Square（特拉法加廣場） | 和平紀念碑（Cenotaph）喺邊度？ | 英國節日 | #116 |
-| 13 | 4 | 2 | How was the Giant's Causeway formed? | ▫️ A. It was built by the Romans（由羅馬人起）<br>✅ B. By volcanic lava about 50 million years ago（大約5,000萬年前由火山熔岩形成）<br>▫️ C. By a glacier in the last Ice Age（上個冰河時期由冰川形成）<br>▫️ D. It was carved by Stone Age farmers（由石器時代農民鑿出嚟） | 巨人堤道（Giant's Causeway）係點樣形成？ | 古蹟同景點 | #135 |
+| 13 | 4 | 2 | Where are the Crown Jewels kept? | ▫️ A. Buckingham Palace（白金漢宮）<br>✅ B. The Tower of London（倫敦塔）<br>▫️ C. Westminster Abbey（西敏寺）<br>▫️ D. Edinburgh Castle（愛丁堡城堡） | 皇冠珠寶（Crown Jewels）存放喺邊度？ | 倫敦地標 | #133 |
 | 14 | 4 | 2 | The Ashes is a series played in which sport? | ▫️ A. Rugby（欖球）<br>▫️ B. Tennis（網球）<br>✅ C. Cricket（板球）<br>▫️ D. Golf（高爾夫球） | The Ashes 係邊種運動嘅系列賽？ | 運動賽事 | #142 |
 | 15 | 4 | 2 | Which novel was written by Mary Shelley? | ✅ A. Frankenstein（《科學怪人》）<br>▫️ B. Jane Eyre（《簡愛》）<br>▫️ C. Great Expectations（《孤星血淚》）<br>▫️ D. The Jungle Book（《森林王子》） | 以下邊本小說係 Mary Shelley 寫嘅？ | 作家 | #162 |
 | 16 | 4 | 3 | In which county is the Glastonbury music festival held? | ▫️ A. Cornwall（康和郡）<br>✅ B. Somerset（森麻實郡）<br>▫️ C. Kent（肯特郡）<br>▫️ D. Yorkshire（約克郡） | Glastonbury 音樂節喺邊個郡舉行？ | 表演同節慶 | #147 |
@@ -128,6 +128,15 @@
 | 18 | 3, 4, 5, 6, 7, 15, 23, 24 | 全部換新 fact；避開純年份、「famous as a」、反轉現有題目嘅問法 |
 | 19 | 3, 4, 8, 9, 11, 13, 17, 18, 21, 22 | 同上；#4 改為雙答案題（1707 合併邊兩個國會） |
 | 20 | 2, 3, 4, 8, 9, 11, 13 | 同上；#4 改為雙答案題（福利國家），補返 Vikings 題被剔走後嘅雙答案題 |
+
+
+## 第 3 輪修改紀錄
+
+| Exam | 換走題號 | 備註 |
+|---|---|---|
+| 18 | 5, 6, 7 | 全部換新 fact（Ch3 ★3） |
+| 19 | 3, 8, 22 | 全部換新 fact |
+| 20 | 2, 8, 11, 13 | #2 Ch2 由 ★5 改 ★4（#3），#8 Ch3 由 ★4 改 ★5（#44 Bill of Rights）抵銷，全卷難度數量不變 |
 
 > Exam 18：Ch4 ★4 fact 只剩 #158（已畀 Exam 19），所以 #15 改用 Ch4 ★3、#23 改用 Ch5 ★4（原 ★3），全卷難度總數不變。
 
