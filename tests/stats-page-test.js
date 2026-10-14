@@ -97,7 +97,11 @@ async function checkDashboard(page, state) {
 async function checkCappedNote(page) {
   await page.click('.chip[data-range="30"]');
   assert(await visible(page, '#cappedNote') && (await text(page, '#cappedNote')).includes('1 日'), '30 days: 1 capped day → note shown');
-  assert(await page.$eval('#cappedNote', e => e.className === 'load-error' && e.getAttribute('role') === 'status'), 'S-302: note reuses .load-error, announced politely (role=status, not alert)');
+  // S-302 + live region: role=status sits on an always-present wrapper (no class), so the note's text is announced
+  // when it appears; a live region that is itself hidden then shown may not be announced
+  assert(await page.$eval('#cappedLive', e => e.getAttribute('role') === 'status' && e.className === '' && !e.hidden &&
+    !!e.querySelector(':scope > .load-error#cappedNote')), 'S-302: #cappedLive[role=status] (no class, never hidden) wraps .load-error#cappedNote');
+  assert(await page.$eval('#cappedNote', e => e.className === 'load-error' && !e.hasAttribute('role')), 'S-302: the note itself reuses .load-error and has no role');
   await page.click('.chip[data-range="90"]');
   assert((await text(page, '#cappedNote')).includes('2 日'), '90 days: 2 capped days');
   await page.click('#langBtn');
