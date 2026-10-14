@@ -80,6 +80,7 @@ async function track(req, res) {
   try {
     const [used] = await redisPipeline([['INCR', counterKey(BUDGET_EVENT, today)]]);
     if (used > DAILY_REQUEST_BUDGET) {
+      // set before the SET: a failed SET is not retried here today (no quota burn on Redis errors); accepted 2026-10-14
       budgetSpentOn = today;
       await redisPipeline(cappedCommands(today));
       return res.status(204).end();

@@ -795,6 +795,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 - 只計 Vercel 用戶（選項 c）；GitHub Pages 照用但唔計
 - 唔存 IP / 裝置 id：`dau` 係「每部機每個 browser 每個 UTC 日」，清 data / 換 browser 會重複計；每月只可以顯示「每日平均活躍裝置」，計唔到當月獨立裝置
 - 登入鎖定係全局（冇 IP）：有人亂試，owner 都會鎖到下個鐘（S-287，接受）
+- 剩餘風險（用戶 2026-10-14 接受，維持現狀）：越線 request 嘅 capped `SET` 失敗之後，同一個 warm instance 當日唔會重試（`budgetSpentOn` 喺 `SET` 之前設，避免 Redis 出錯時每個 request 都燒配額），要靠其他 instance / cold start 補寫；極少數情況嗰日 dashboard 冇封頂提示
 - 日期一律 UTC（英國夏令時晚上 11 點後當第二日）
 
 **改呢部分要注意：**
