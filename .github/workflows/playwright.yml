@@ -41,11 +41,24 @@ jobs:
           npm install --no-save --no-audit --no-fund --prefix "$RUNNER_TEMP/pw" "playwright-core@$PLAYWRIGHT_CORE_VERSION"
           echo "NODE_PATH=$RUNNER_TEMP/pw/node_modules" >> "$GITHUB_ENV"
 
-      # --with-deps also installs fonts-wqy-zenhei (playwright-core's "tools" deps), so CI does have a CJK font, but not
-      # the Noto CJK used locally; "Run all Playwright suites" sets LANG_SWITCH_NO_CJK_FONT=1 to skip lang-switch-test M4
+      # Browser binaries are cached per OS + playwright-core version (a new version = a new key = a fresh download)
+      - name: Cache Playwright browsers
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-ms-playwright-${{ env.PLAYWRIGHT_CORE_VERSION }}
+
+      # OS packages are not in the cache, so this runs every time (apt via sudo). It also installs fonts-wqy-zenhei
+      # (playwright-core's "tools" deps), so CI does have a CJK font, but not the Noto CJK used locally;
+      # "Run all Playwright suites" sets LANG_SWITCH_NO_CJK_FONT=1 to skip lang-switch-test M4
+      - name: Install Chromium OS dependencies
+        run: |
+          "$RUNNER_TEMP/pw/node_modules/.bin/playwright-core" install-deps chromium
+
+      # Downloads only on a cache miss: with the browser already in ~/.cache/ms-playwright it is a no-op
       - name: Install Chromium (same playwright-core version)
         run: |
-          "$RUNNER_TEMP/pw/node_modules/.bin/playwright-core" install --with-deps chromium
+          "$RUNNER_TEMP/pw/node_modules/.bin/playwright-core" install chromium
 
       # Same setup as local runs: CHROMIUM_PATH = the full Chromium build playwright-core just installed
       - name: Locate Chromium
