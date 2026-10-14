@@ -185,9 +185,13 @@ async function checkTrackBudgetPastCrossing() {
   const track = freshTrack();
   const redis = fakeRedis();
   redis.counts.set(`lifeuk:budget:${TODAY}`, track.DAILY_REQUEST_BUDGET + 5);
-  await track(req({ body: { events: ['open'] } }), fakeRes());
+  // S-307: another instance already marked the day, so SET NX replies { result: null }; that is not an error
+  redis.counts.set(`lifeuk:capped:${TODAY}`, 1);
+  const res = fakeRes();
+  await track(req({ body: { events: ['open'] } }), res);
   assert(redis.calls.length === 2 && same(redis.calls[1].commands[0], ['SET', `lifeuk:capped:${TODAY}`, '1', 'NX']) &&
     redis.counts.get(`lifeuk:capped:${TODAY}`) === 1, 'past the crossing point: the budget INCR + SET capped NX');
+  assert(res.statusCode === 204, 'S-307: SET NX on an existing capped mark (result null) still answers 204');
   assert(same(redis.calls[1].commands[1], ['EXPIRE', `lifeuk:budget:${TODAY}`, track.BUDGET_TTL_SECONDS]),
     'S-300: past the crossing point the budget key gets its TTL again too');
 }
