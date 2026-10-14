@@ -1,0 +1,92 @@
+/* ── SPLASH (v2.5.0; js/components/splash.js; mockup mockups/v2.2.0/intro-b-cards.html): every launch, above everything.
+   Phone: one column, one memo. Desktop: the brand on the left, three memos down the right ── */
+.splash {
+  position: fixed; inset: 0; z-index: var(--splash-z);
+  display: grid; place-content: center; justify-items: center; gap: var(--space-12);
+  padding: var(--space-12) var(--space-8);
+  background: var(--bg); color: var(--text); text-align: center;
+  transition: opacity 0.3s ease; /* = SPLASH_FADE_MS */
+}
+.splash.splash-out { opacity: 0; pointer-events: none; }
+.splash-brand { display: grid; justify-items: center; gap: var(--space-6); }
+.splash-stage { position: relative; width: var(--splash-stage); height: var(--splash-stage); display: grid; place-items: center; }
+.splash-logo { position: relative; z-index: 2; width: var(--splash-logo); height: var(--splash-logo); border-radius: var(--splash-logo-radius); box-shadow: var(--shadow); }
+.splash-name { font-size: var(--fs-5xl); font-weight: 800; }
+.splash-sub { font-size: var(--fs-md); color: var(--text-muted); }
+.splash-dots { display: flex; gap: var(--space-3); margin-top: var(--space-2); }
+.splash-dots i { width: 10px; height: 10px; border-radius: var(--radius-circle); background: var(--gold); animation: splashBounce 1s ease-in-out infinite; }
+.splash-dots i:nth-child(2) { background: var(--navy-light); animation-delay: 0.15s; }
+.splash-dots i:nth-child(3) { background: var(--green-light); animation-delay: 0.3s; }
+@keyframes splashBounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-8px); } }
+.splash-status { font-size: var(--fs-sm); color: var(--text-muted); min-height: 1.5em; }
+.splash-memos { display: grid; justify-items: center; gap: 36px; }
+.splash-memo {
+  position: relative; width: var(--splash-memo-w); max-width: 100%;
+  background: var(--gold-bg); border-radius: var(--radius-xs); box-shadow: var(--shadow);
+  padding: var(--space-10) var(--space-8) var(--space-8); text-align: left;
+  font-size: var(--fs-md); line-height: 1.6; transform: rotate(-2deg);
+}
+.splash-memo::before { content: ''; position: absolute; top: -10px; left: 50%; width: 80px; height: 22px; transform: translateX(-50%) rotate(3deg); background: var(--splash-tape); }
+.splash-memo b { display: block; font-size: var(--fs-sm); color: var(--orange); margin-bottom: var(--space-2); }
+.splash-memo:nth-child(n + 2) { display: none; } /* phone: one memo */
+
+/* card fan: four tinted cards behind the logo fan out, then fade one by one (plan → study → practice → exam) and stay gone */
+.splash-fan { position: absolute; left: 50%; top: 50%; width: var(--splash-logo); height: var(--splash-logo); transform: translate(-50%, -50%); }
+.splash-card {
+  position: absolute; left: 4%; right: 4%; bottom: 0; height: 150%;
+  border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow);
+  display: flex; justify-content: center; padding-top: var(--space-4); font-size: var(--fs-5xl);
+  transform-origin: 50% 100%;
+  animation: splashFan 3.6s var(--splash-ease) 1 forwards, var(--fade) 3.6s ease 1 forwards;
+}
+.splash-card:nth-child(1) { --fa: -38deg; --fade: splashFade1; background: var(--yue-bg); }
+.splash-card:nth-child(2) { --fa: -13deg; --fade: splashFade2; background: var(--success-bg); }
+.splash-card:nth-child(3) { --fa: 13deg; --fade: splashFade3; background: var(--selected-bg); }
+.splash-card:nth-child(4) { --fa: 38deg; --fade: splashFade4; background: var(--gold-bg); }
+@keyframes splashFan { 0%, 10% { transform: rotate(0deg); } 30%, 100% { transform: rotate(var(--fa)) translateY(-8px); } }
+@keyframes splashFade1 { 0%, 40% { opacity: 1; } 50%, 100% { opacity: 0; } }
+@keyframes splashFade2 { 0%, 52% { opacity: 1; } 62%, 100% { opacity: 0; } }
+@keyframes splashFade3 { 0%, 64% { opacity: 1; } 74%, 100% { opacity: 0; } }
+@keyframes splashFade4 { 0%, 76% { opacity: 1; } 86%, 100% { opacity: 0; } }
+
+/* progress ring: a gold → green arc draws one lap from 12 o'clock; each icon lights up as the arc reaches it */
+.splash-ring { --ring-len: 628.3; /* default: splash.js sets 2πr */ position: absolute; inset: 0; width: 100%; height: 100%; }
+.splash-ring stop:first-child { stop-color: var(--gold); }
+.splash-ring stop:last-child { stop-color: var(--green-light); }
+.splash-ring-track { fill: none; stroke: var(--border); stroke-width: 6; }
+.splash-ring-arc {
+  fill: none; stroke: url(#splashRingGrad); stroke-width: 6; stroke-linecap: round;
+  stroke-dasharray: var(--ring-len); stroke-dashoffset: var(--ring-len); animation: splashArc 4s linear forwards; /* = SPLASH_ANIM_MS.ring */
+}
+@keyframes splashArc { to { stroke-dashoffset: 0; } }
+/* .at0..3 = 12 / 3 / 6 / 9 o'clock on the ring (radius 100 of 230 ≈ 43.5% from the centre) */
+.splash-ring-ic {
+  --delay: 0ms; /* default: splash.js sets when the arc reaches it */
+  position: absolute; width: 34px; height: 34px; margin: -17px;
+  border-radius: var(--radius-circle); background: var(--bg); display: grid; place-items: center;
+  font-size: var(--fs-4xl); filter: grayscale(1); opacity: 0.35;
+  animation: splashLit 0.45s var(--splash-ease) forwards; animation-delay: var(--delay);
+}
+.splash-ring-ic.at0 { left: 50%; top: 6.5%; } .splash-ring-ic.at1 { left: 93.5%; top: 50%; }
+.splash-ring-ic.at2 { left: 50%; top: 93.5%; } .splash-ring-ic.at3 { left: 6.5%; top: 50%; }
+@keyframes splashLit { 50% { transform: scale(1.3); } 100% { transform: scale(1); filter: none; opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .splash-dots i, .splash-card, .splash-ring-arc, .splash-ring-ic { animation: none; }
+  .splash-ring-arc { stroke-dashoffset: 0; }
+  .splash-ring-ic { filter: none; opacity: 1; }
+  .splash { transition: none; }
+}
+
+/* ── desktop (≥ 1024px): brand left (centred in its column), three memos stacked on the right ── */
+@media (min-width: 1024px) {
+  .splash { grid-template-columns: auto auto; align-items: center; column-gap: 96px; }
+  .splash-stage { --splash-stage: 280px; --splash-logo: 112px; }
+  .splash-name { font-size: var(--fs-display-sm); }
+  .splash-memos { justify-items: start; }
+  .splash-memo { width: 320px; }
+  .splash-memo:nth-child(n + 2) { display: block; }
+  .splash-memo:nth-child(1) { transform: rotate(-3deg); }
+  .splash-memo:nth-child(2) { transform: rotate(2.5deg) translateX(36px); }
+  .splash-memo:nth-child(3) { transform: rotate(-1.5deg) translateX(8px); }
+}

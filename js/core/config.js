@@ -2,7 +2,7 @@
 // CONFIG — app-wide constants. sw.js loads this file with importScripts() to name its cache,
 // so it must stay worker-safe: plain constants only, no DOM and no question data.
 // ════════════════════════════════════════
-const APP_VERSION = '2.4.2';
+const APP_VERSION = '2.5.0';
 
 // ── modes and special set ids (state.examNum is 1..EXAM_COUNT or one of these) ──
 const PRACTICE_MODE = 'practice';
@@ -47,6 +47,13 @@ const LIST_SEP = ' · ';    // between parts of one line ("✓ Correct! · 🔥 
 const ANSWER_SEP = ' | ';  // between the options of a multi-answer question
 const COPY_SEP = ' = ';    // G40: between the copies of one question text ("E7·Q16 = E13·Q1")
 const TOAST_MS = 2400; // how long a toast stays on screen (js/components/toast.js)
+// v2.5.0 loading splash (js/components/splash.js; mockup mockups/v2.2.0/intro-b-cards.html): every launch draws one logo
+// animation, card fan : progress ring = 3 : 1, and the app opens only when it has finished (user decision 2026-10-13)
+const SPLASH_WEIGHTS = [['fan', 3], ['ring', 1]];
+const SPLASH_ANIM_MS = { fan: 3100, ring: 4000 }; // = the css: the fan's last card gone (3.6s × 86%), the ring's one lap
+const SPLASH_HOLD_MS = 300;  // a beat on the finished animation before it fades
+const SPLASH_FADE_MS = 300;  // = .splash-out transition (css/components/splash.css)
+const SPLASH_MEMO_COUNT = 3;    // tips drawn per launch: the phone shows one memo, desktop three
 
 // ── study plan (js/domain/plan.js, planProgress.js) ──
 // G19: the entry points (ⓘ switch, home card) show only while this is true (opened in v1.1.0, PR8); answer hooks
@@ -87,6 +94,7 @@ const MEMO_MODE_ON = 'on';
 const MEMO_MODE_OFF = 'off';
 const MEMO_ENABLED_LS = LS_PREFIX + 'memoEnabled';
 const INSTALL_DISMISSED_LS = LS_PREFIX + 'installDismissed';   // v0.60: install banner closed with ✕ (never shown again)
+const INTRO_SEEN_LS = LS_PREFIX + 'introSeen';   // v2.5.0: the first-run intro was finished or skipped (ⓘ replays it)
 // study plan: the switch (no value = on), the stored schedule, the per-day answer log; new keys, so no legacy names
 const STUDY_PLAN_ENABLED_LS = LS_PREFIX + 'studyPlanEnabled';
 const STUDY_PLAN_LS = LS_PREFIX + 'studyPlan';

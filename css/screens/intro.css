@@ -1,0 +1,141 @@
+/* ── INTRO (v2.5.0; js/screens/intro.js; mockup mockups/v2.2.0/intro-b-cards.html rev 9): first-run overlay above Home.
+   A stack of three cards; each card = an illustration of scattered, tilted app parts + its text; dots above the button ── */
+.intro {
+  position: fixed; inset: 0; z-index: var(--intro-z);
+  display: grid; grid-template-rows: auto 1fr auto; gap: var(--space-6);
+  padding: var(--space-6) var(--space-8) calc(var(--space-12) + env(safe-area-inset-bottom, 0px));
+  background: var(--bg); color: var(--text); outline: none;
+  --intro-k: 1; /* illustration size factor: desktop = --desktop-scale, so the pieces grow with the ×1.2 type */
+}
+.intro-top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-6); }
+.intro-step { font-size: var(--fs-sm); font-weight: 800; color: var(--text-muted); letter-spacing: 0.08em; }
+.intro-skip { min-height: 44px; padding: 0 var(--space-4); background: none; border: 0; color: var(--text-muted); font-weight: 700; font-size: var(--fs-md); cursor: pointer; }
+.intro-skip.gone { visibility: hidden; }
+
+/* the stack: the front card, two peeking below it, passed cards fly off to the left */
+.intro-stack { position: relative; margin-bottom: 30px; touch-action: pan-y; }
+.intro-card {
+  position: absolute; inset: 0; display: grid; grid-template-rows: auto 1fr; overflow: hidden;
+  background: var(--card); border-radius: var(--intro-card-radius); box-shadow: var(--shadow);
+  transition: transform 0.42s var(--splash-ease), opacity 0.42s var(--splash-ease);
+}
+.intro-card[data-pos="1"] { transform: translateY(18px) scale(0.94); opacity: 0.75; }
+.intro-card[data-pos="2"] { transform: translateY(34px) scale(0.88); opacity: 0.45; }
+.intro-card[data-pos="out"] { transform: translateX(-120%) rotate(-12deg); opacity: 0; pointer-events: none; }
+.intro-art { height: 300px; display: grid; place-items: center; position: relative; overflow: hidden; }
+.intro-card.p1 .intro-art { background: var(--intro-tint-1); --ink: var(--intro-ink-1); }
+.intro-card.p2 .intro-art { background: var(--intro-tint-2); --ink: var(--intro-ink-2); height: 404px; }
+.intro-card.p3 .intro-art { background: var(--intro-tint-3); --ink: var(--intro-ink-3); height: 320px; }
+.intro-text { padding: var(--space-6) var(--space-10) var(--space-8); display: grid; align-content: start; gap: var(--space-4); overflow: auto; }
+.intro-kicker { justify-self: start; font-size: var(--fs-sm); font-weight: 800; padding: var(--space-1) var(--space-5); border-radius: var(--radius-pill); color: var(--card); background: var(--ink, var(--navy)); }
+.p1 .intro-kicker { background: var(--intro-ink-1); } .p2 .intro-kicker { background: var(--intro-ink-2); } .p3 .intro-kicker { background: var(--intro-ink-3); }
+.intro-title { font-size: var(--fs-5xl); font-weight: 800; line-height: 1.3; text-wrap: balance; }
+.intro-body { font-size: var(--fs-md); line-height: 1.65; color: var(--text-muted); }
+.intro-chips { list-style: none; display: flex; flex-wrap: wrap; gap: var(--space-3); padding: 0; }
+.intro-chips li { font-size: var(--fs-sm); font-weight: 700; padding: var(--space-2) var(--space-5); border-radius: var(--radius-pill); background: var(--bg); }
+
+/* footer: dots, then Next (cards 1–2) or the two ways in (card 3) */
+.intro-foot { display: grid; gap: var(--space-8); }
+.intro-dots { display: flex; justify-content: center; gap: var(--space-4); }
+.intro-dots button { width: 9px; height: 9px; padding: 0; border: 0; border-radius: var(--radius-pill); background: var(--border); cursor: pointer; transition: width 0.42s var(--splash-ease), background 0.2s; }
+.intro-dots button[aria-current="true"] { width: 26px; background: var(--navy); }
+.intro-btn { min-height: 52px; border: 0; border-radius: var(--radius); background: var(--navy); color: var(--text-inverse); font-weight: 800; font-size: var(--fs-lg); cursor: pointer; }
+.intro-btn.alt { min-height: 48px; background: var(--card); color: var(--text); border: 1.5px solid var(--border); font-size: var(--fs-md); }
+.intro-ctas { display: grid; gap: var(--space-4); }
+.intro-ctas[hidden], .intro-next[hidden] { display: none; }
+
+/* last card: language + Cantonese translation (the ⚙ settings, light) */
+.intro-set { display: grid; gap: var(--space-2); }
+.intro-set-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-5); min-height: 44px; font-size: var(--fs-md); }
+.intro-set-row small { display: block; font-size: var(--fs-xs); color: var(--text-muted); }
+.intro-seg { display: inline-flex; flex-shrink: 0; background: var(--bg); border-radius: var(--radius-pill); padding: var(--space-1); }
+.intro-seg button { min-width: 56px; min-height: 34px; border: 0; border-radius: var(--radius-pill); background: none; font-weight: 700; color: var(--text-muted); cursor: pointer; }
+.intro-seg button[aria-pressed="true"] { background: var(--card); color: var(--navy); box-shadow: var(--shadow-sm); }
+
+/* ── the illustration: pieces placed by slot (--x / --y) + jitter, tilted (--r), pushed in from the edge (--dx / --dy) ── */
+.intro-scene { position: relative; width: calc(var(--intro-scene-w) * var(--intro-k)); height: calc(100% - var(--space-8)); font-size: var(--fs-sm); }
+.intro-piece {
+  --x: 50%; --y: 50%; --dx: 0px; --dy: 0px; --r: 0deg; --d: 0s; /* defaults: intro.js sets them per piece (introPiece / fitIntroPieces) */
+  position: absolute; left: var(--x); top: var(--y);
+  transform: translate(calc(-50% + var(--dx, 0px)), calc(-50% + var(--dy, 0px))) rotate(var(--r));
+  animation: introIn 0.5s var(--splash-ease) both; animation-delay: var(--d, 0s);
+}
+.intro-piece.front { z-index: 2; }
+@keyframes introIn { from { opacity: 0; } } /* opacity only: the edge fit measures the final box */
+.intro-ui { display: grid; gap: var(--space-3); background: var(--card); border-radius: var(--radius-md); box-shadow: var(--shadow); padding: var(--space-5) var(--space-6); }
+.intro-pill { display: inline-flex; align-items: center; gap: var(--space-3); white-space: nowrap; background: var(--card); border-radius: var(--radius-md); box-shadow: var(--shadow); padding: var(--space-3) var(--space-6); font-weight: 800; font-size: var(--fs-sm); }
+.intro-pill i { font-style: normal; font-size: var(--fs-xl); }
+.intro-pill.timer { background: var(--navy); color: var(--text-inverse); font-variant-numeric: tabular-nums; }
+.intro-row, .intro-q-head { display: flex; align-items: center; gap: var(--space-4); }
+.intro-q-head { white-space: nowrap; font-weight: 800; font-size: var(--fs-xs); color: var(--text-muted); }
+.intro-sp { flex: 1; }
+.intro-tag { white-space: nowrap; font-size: var(--fs-2xs); font-weight: 800; padding: 1px var(--space-3); border-radius: var(--radius-pill); background: var(--bg); color: var(--text-muted); }
+.intro-muted { font-size: var(--fs-2xs); color: var(--text-muted); }
+.intro-bm { width: 30px; height: 30px; flex: none; display: grid; place-items: center; border-radius: var(--radius-sm); border: 1.5px solid var(--orange); background: var(--flag-bg); color: var(--orange); }
+.intro-bm svg { width: 16px; height: 16px; }
+.intro-bm path { fill: currentColor; }
+/* P1 fact card */
+.intro-fact { width: calc(228px * var(--intro-k)); }
+.intro-fact-q { font-size: var(--fs-md); font-weight: 800; line-height: 1.4; }
+.intro-fact-a { color: var(--green); font-weight: 700; }
+.intro-lv { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; }
+.intro-lv i { height: 6px; border-radius: var(--radius-pill); background: var(--border); }
+.intro-lv i.on { background: var(--ink); }
+/* P2 question (A–D) + similar questions */
+.intro-q { width: calc(214px * var(--intro-k)); gap: var(--space-2); padding: var(--space-4) var(--space-6); }
+.intro-q-text { font-size: var(--fs-base); font-weight: 800; line-height: 1.35; }
+.intro-opt { display: flex; align-items: center; gap: var(--space-4); border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 3px var(--space-4); font-size: var(--fs-sm); font-weight: 600; }
+.intro-opt-letter { min-width: 20px; height: 20px; display: grid; place-items: center; border-radius: var(--radius-circle); background: var(--bg); border: 1.5px solid var(--border); font-size: var(--fs-2xs); font-weight: 800; }
+.intro-opt.correct { border-color: var(--green-light); background: var(--success-bg); color: var(--green); }
+.intro-opt.correct .intro-opt-letter { background: var(--green); border-color: var(--green); color: var(--card); }
+.intro-opt.wrong { border-color: var(--red-light); background: var(--danger-bg); color: var(--red); }
+.intro-opt.wrong .intro-opt-letter { background: var(--red-light); border-color: var(--red-light); color: var(--card); }
+.intro-sim { width: calc(200px * var(--intro-k)); gap: var(--space-2); padding: var(--space-4) var(--space-5); }
+.intro-sim-h { font-weight: 800; font-size: var(--fs-sm); }
+.intro-sim-h small { display: block; font-size: var(--fs-2xs); color: var(--text-muted); font-weight: 600; }
+.intro-sim-nodes { display: flex; flex-wrap: wrap; gap: 3px; }
+.intro-sim-nodes span { font-size: var(--fs-2xs); font-weight: 800; padding: 1px var(--space-3); border-radius: var(--radius-pill); background: var(--selected-bg); color: var(--navy-light); font-variant-numeric: tabular-nums; }
+.intro-sim-nodes span.cur { background: var(--gold); color: var(--navy); }
+/* P3 plan card + translation card */
+.intro-plan { width: calc(236px * var(--intro-k)); }
+.intro-plan-top { display: grid; grid-template-columns: 1fr auto; gap: var(--space-4); align-items: start; }
+.intro-countdown b { font-size: var(--fs-5xl); line-height: 1; color: var(--ink); }
+.intro-countdown .intro-muted:first-child { display: block; }
+.intro-ring { width: 54px; height: 54px; display: grid; place-items: center; border-radius: var(--radius-circle); background: conic-gradient(var(--green-light) 0 65%, var(--plan-heat-0) 0); }
+.intro-ring b { width: 40px; height: 40px; display: grid; place-items: center; border-radius: var(--radius-circle); background: var(--card); font-size: var(--fs-xs); }
+.intro-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.intro-week span { display: grid; justify-items: center; gap: var(--space-1); font-size: var(--fs-3xs); color: var(--text-muted); }
+.intro-week i { width: 100%; height: 12px; border-radius: 3px; background: var(--plan-heat-0); }
+.intro-week .h2 i { background: var(--plan-heat-2); } .intro-week .h3 i { background: var(--plan-heat-3); } .intro-week .h4 i { background: var(--plan-heat-4); }
+.intro-week .today { color: var(--ink); font-weight: 800; }
+.intro-week .today i { outline: 2px solid var(--ink); outline-offset: 1px; }
+.intro-task { display: flex; align-items: center; gap: var(--space-3); font-size: var(--fs-xs); }
+.intro-task i { width: 14px; height: 14px; flex: none; display: grid; place-items: center; border-radius: var(--radius-circle); border: 1.5px solid var(--border); font-style: normal; font-size: var(--fs-3xs); color: var(--card); }
+.intro-task.done i { background: var(--green-light); border-color: var(--green-light); }
+.intro-task.done span { color: var(--text-muted); text-decoration: line-through; }
+.intro-yue { width: calc(196px * var(--intro-k)); display: flex; align-items: flex-start; gap: var(--space-4); }
+.intro-yue-badge { width: 26px; height: 26px; flex: none; display: grid; place-items: center; border-radius: var(--radius-circle); background: var(--ink); color: var(--card); font-weight: 800; font-size: var(--fs-sm); }
+.intro-yue p { font-size: var(--fs-xs); line-height: 1.45; }
+.intro-yue-line { display: block; color: var(--purple); }
+.p3 .intro-title { font-size: var(--fs-5xl); }
+
+@media (prefers-reduced-motion: reduce) { .intro-piece { animation: none; } .intro-card, .intro-dots button { transition: none; } }
+
+/* ── desktop (≥ 1024px): a 980px stack, each card illustration left / text right; dots left, buttons right ── */
+@media (min-width: 1024px) {
+  .intro { width: 980px; margin: 0 auto; padding: 32px 0 40px; background: none; }
+  .intro::before { content: ''; position: fixed; inset: 0; z-index: -1; background: var(--bg); }
+  .intro-card { grid-template-rows: none; grid-template-columns: 1fr 1fr; }
+  .intro-art, .intro-card.p2 .intro-art, .intro-card.p3 .intro-art { height: auto; }
+  .intro { --intro-k: var(--desktop-scale); }
+  .intro-scene { height: calc(100% - var(--space-12)); }
+  .intro-text { padding: 40px; align-content: center; }
+  .intro-title { font-size: var(--fs-display-sm); }
+  .p3 .intro-title { font-size: var(--fs-7xl); }
+  .intro-body { font-size: var(--fs-lg); }
+  .intro-foot { grid-template-columns: 1fr auto; align-items: center; }
+  .intro-dots { justify-content: flex-start; }
+  .intro-next { padding: 0 48px; }
+  .intro-ctas { grid-auto-flow: column; justify-content: end; }
+  .intro-ctas .intro-btn { padding: 0 32px; }
+}

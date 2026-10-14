@@ -10,7 +10,9 @@
 const UPDATE_RELOAD_SCREEN = 'screenHome';
 let swReloadPending = false;
 let swHadController = false; // set at registration, then true after any takeover
-const isUpdateReloadSafe = () => byId(UPDATE_RELOAD_SCREEN).classList.contains('active');
+// v2.5.0: not while the splash or the first-run intro is up (both sit over an active Home)
+const isUpdateReloadSafe = () => byId(UPDATE_RELOAD_SCREEN).classList.contains('active') && !byId('splash')
+  && !(typeof isIntroOpen === 'function' && isIntroOpen());
 function reloadForUpdate() {
   if (!swReloadPending || !isUpdateReloadSafe()) return;
   swReloadPending = false;

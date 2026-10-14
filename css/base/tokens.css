@@ -210,6 +210,23 @@
   --shadow-header: 0 2px 16px rgba(0,0,0,0.25);
   --shadow-pop: 0 12px 32px rgba(0,0,0,0.35);
   --overlay: rgba(26,39,68,0.55);
+
+  /* v2.5.0 loading splash + first-run intro (css/components/splash.css, css/screens/intro.css; mockup
+     mockups/v2.2.0/intro-b-cards.html): logo stage, memo tape, intro card tilt / edge room, the four intro tints */
+  --splash-stage: 230px;
+  --splash-logo: 92px;
+  --splash-logo-radius: 22px;   /* the app icon keeps its rounded square */
+  --splash-memo-w: 300px;
+  --splash-tape: rgba(201,168,76,0.45);
+  --splash-ease: cubic-bezier(.22,.8,.3,1);
+  --splash-z: 500;              /* above the toast (400), the modal (300) and the popovers (200) */
+  --intro-z: 250;               /* above the header popovers, below the confirm modal */
+  --intro-card-radius: 24px;
+  --intro-scene-w: 330px;
+  --intro-edge-pad: 20px;       /* every scattered piece stays this far inside its illustration */
+  --intro-tint-1: var(--success-bg); --intro-ink-1: var(--green);
+  --intro-tint-2: var(--selected-bg); --intro-ink-2: var(--navy-light);
+  --intro-tint-3: var(--yue-bg); --intro-ink-3: var(--purple);
 }
 
 /* v1.3.0: large text (⚙ settings, lifeuk.fontSize; js/core/store.js applyFontSize): every step + 2px (font size plan Q1 / Q2) */

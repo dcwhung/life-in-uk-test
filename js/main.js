@@ -34,6 +34,9 @@ const LATE_BOOT_SCRIPTS = [
   { src: 'js/components/fit.js', ready: () => typeof runRefits === 'function' },
   // v2.0.0: the screens move parts into desktop columns and register their fits through it (W-377)
   { src: 'js/components/deskPlace.js', ready: () => typeof deskKeepFocus === 'function' },
+  // v2.5.0: the loading splash and the first-run intro (an older shell has no #splash: startSplash returns)
+  { src: 'js/components/splash.js', ready: () => typeof startSplash === 'function' },
+  { src: 'js/screens/intro.js', ready: () => typeof openIntro === 'function' },
 ];
 // shown when the scripts still fail after one reload; t() is not available then, so it cannot be a locale key
 const I18N_BOOT_FALLBACK_MSG = 'The app could not finish loading. Please check your connection and reload the page.';
@@ -113,7 +116,13 @@ function upgradeLegacyIconMarkup() {
     el.innerHTML = `${slot(icons.lead)}<span class="icon-label" data-i18n="${key}"></span>${slot(icons.trail)}`;
   }));
 }
+// v2.5.0: the splash fades once boot and its logo animation are done; the first-run intro opens underneath as it does
+function finishBoot() {
+  if (typeof finishSplash !== 'function') return; // W-057: a cached pre-v2.5.0 file mix
+  finishSplash(() => { if (typeof maybeOpenIntro === 'function') maybeOpenIntro(); });
+}
 function startApp() {
+  if (typeof startSplash === 'function') startSplash();
   upgradeLegacyHeaderMarkup();
   removeLegacyPlanMarkup();
   upgradeLegacyFitRows();
@@ -137,6 +146,7 @@ function startApp() {
   buildExamGrid();
   renderModeSelection();
   registerSW();
+  finishBoot();
 }
 
 // A failed fetch during an update is usually transient: retry once with a full reload (the flag stops a loop),
@@ -154,6 +164,8 @@ function onI18nBootFailure(err) {
   console.warn('[i18n] start-up failed:', err);
   if (!hasRetriedI18nBoot()) { location.reload(); return; }
   byId('examGrid').textContent = I18N_BOOT_FALLBACK_MSG;
+  const splash = byId('splash'); // v2.5.0: the message must not stay under the splash (splash.js may be the file that failed)
+  if (splash) splash.remove();
 }
 function clearI18nBootRetry() {
   try { sessionStorage.removeItem(I18N_RELOAD_SS); } catch {}
@@ -162,7 +174,8 @@ function clearI18nBootRetry() {
 // Same cutover for styles: v0.63 moved the .fact* / .sqm-fact* rules out of study.css / quiz.css into fact.css,
 // which an older cached index.html never links — add the <link> so Study and the Similar Core Fact keep their look
 // v2.0.0: fit.css holds the desktop one-screen shell and panel fades
-const LATE_BOOT_STYLES = ['css/components/fact.css', 'css/components/switch.css', 'css/components/toast.css', 'css/screens/plan.css', 'css/components/fit.css'];
+const LATE_BOOT_STYLES = ['css/components/fact.css', 'css/components/switch.css', 'css/components/toast.css', 'css/screens/plan.css', 'css/components/fit.css',
+  'css/screens/intro.css']; // v2.5.0: the intro overlay (an older shell has no splash markup, so no splash.css)
 function addMissingBootStyles() {
   LATE_BOOT_STYLES.filter(href => !document.querySelector(`link[rel="stylesheet"][href="${href}"]`)).forEach(href => {
     const el = document.createElement('link');

@@ -25,6 +25,7 @@
 <link rel="stylesheet" href="css/components/switch.css">
 <link rel="stylesheet" href="css/components/toast.css">
 <link rel="stylesheet" href="css/components/fit.css">
+<link rel="stylesheet" href="css/components/splash.css">
 <link rel="stylesheet" href="css/screens/home.css">
 <link rel="stylesheet" href="css/screens/quiz.css">
 <link rel="stylesheet" href="css/screens/results.css">
@@ -32,8 +33,22 @@
 <link rel="stylesheet" href="css/screens/study.css">
 <link rel="stylesheet" href="css/screens/plan.css">
 <link rel="stylesheet" href="css/screens/memo.css">
+<link rel="stylesheet" href="css/screens/intro.css">
 </head>
 <body>
+
+<!-- v2.5.0: loading splash, static so it shows before any script runs; js/components/splash.js draws the logo animation and
+     removes it when boot and the animation are done (css/components/splash.css; mockup mockups/v2.2.0/intro-b-cards.html) -->
+<div class="splash" id="splash">
+  <div class="splash-brand">
+    <div class="splash-stage" id="splashStage"><img class="splash-logo" src="icons/icon.svg" alt="" width="92" height="92"></div>
+    <div class="splash-name" data-i18n="app.name">Life in the UK Test</div>
+    <div class="splash-sub" data-i18n="app.sub"></div>
+    <div class="splash-dots" role="progressbar" data-i18n-attr="aria-label:splash.loading"><i></i><i></i><i></i></div>
+    <div class="splash-status" id="splashStatus" aria-live="polite"></div>
+  </div>
+  <div class="splash-memos" id="splashMemos"></div>
+</div>
 
 <header>
   <div class="header-inner">
@@ -55,6 +70,12 @@
       <div class="hero-badge" id="infoQuestionCount" role="img"></div>
       <div class="hero-badge" data-i18n="app.infoOffline"></div>
     </div>
+    <!-- v2.5.0: replays the first-run intro (js/screens/intro.js) -->
+    <button type="button" class="info-replay" data-action="replayIntro">
+      <span class="info-replay-play" aria-hidden="true">▶</span>
+      <span class="info-replay-txt"><b><span data-i18n="app.introReplay"></span> <em class="info-replay-new">NEW</em></b><small data-i18n="app.introReplaySub"></small></span>
+      <span class="info-replay-go" data-i18n="app.introReplayPlay"></span>
+    </button>
   </div>
   <!-- v1.2.0: settings popover (js/components/popover.js; ⚙ opens it, a choice closes it): language, text size (v1.3.0), Cantonese translation (v1.4.0) +
        the study plan switch (moved from ⓘ). The plan row keeps its v1.0 ids (js/screens/planHome.js renderPlanSettings) -->
@@ -546,6 +567,7 @@
 <script src="js/components/toast.js"></script>
 <script src="js/components/fit.js"></script>
 <script src="js/components/deskPlace.js"></script>
+<script src="js/components/splash.js"></script>
 <script src="js/screens/home.js"></script>
 <script src="js/screens/quiz.js"></script>
 <script src="js/screens/examTools.js"></script>
@@ -560,6 +582,7 @@
 <script src="js/screens/planDay.js"></script>
 <script src="js/screens/planRun.js"></script>
 <script src="js/screens/memo.js"></script>
+<script src="js/screens/intro.js"></script>
 <script src="js/core/actions.js"></script>
 <script src="js/pwa/pwa.js"></script>
 <script src="js/main.js"></script>
