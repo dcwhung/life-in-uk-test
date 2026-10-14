@@ -36,14 +36,21 @@ function loadApp({ host = PROD_HOST, standalone = false, iosStandalone = false, 
   if (beacon) navigator.sendBeacon = (url, body) => { beacons.push({ url, body: JSON.parse(body) }); return true; };
   const window = { matchMedia: q => ({ matches: standalone && q === '(display-mode: standalone)' }) };
   const storage = memoryStorage();
-  const ctx = vm.createContext({ localStorage: storage, console, navigator, window, location: { hostname: host } });
+  // v2.10.0: just enough DOM for the Vercel Web Analytics loader; scripts records every appended <script>
+  const scripts = [];
+  const document = {
+    createElement: tag => ({ tag }),
+    head: { appendChild: el => scripts.push(el) },
+    querySelector: sel => scripts.find(s => sel === `script[src="${s.src}"]`) || null,
+  };
+  const ctx = vm.createContext({ localStorage: storage, console, navigator, window, document, location: { hostname: host } });
   for (const f of APP_FILES) {
     let src = fs.readFileSync(path.join(ROOT, f), 'utf8');
     // a pre-v2.8.0 config.js (mixed SW / HTTP cache, W-057): none of the usage-counter constants exist
-    if (oldConfig && f === 'js/core/config.js') src = src.replace(/^const (TELEMETRY_\w+|STANDALONE_QUERY) = .*$/gm, '');
+    if (oldConfig && f === 'js/core/config.js') src = src.replace(/^const (TELEMETRY_\w+|STANDALONE_QUERY|VERCEL_ANALYTICS_SRC) = .*$/gm, '');
     vm.runInContext(src, ctx, { filename: f });
   }
-  return { beacons, storage, g: code => vm.runInContext(code, ctx), ctx };
+  return { beacons, storage, scripts, window, g: code => vm.runInContext(code, ctx), ctx };
 }
 const eventsOf = app => app.beacons.map(b => b.body.events);
 
@@ -122,6 +129,26 @@ function checkOldConfig() {
   assert(app.beacons.length === 0, 'old config: reportLaunch / reportInstall do nothing and do not throw');
 }
 
+// v2.10.0 Vercel Web Analytics: loaded from JS on the production host only (the script exists only on Vercel, and a
+// static <script> tag would have to join the SW shell, which fails to install on GitHub Pages)
+function checkVercelAnalytics() {
+  const app = loadApp();
+  app.g('loadVercelAnalytics()');
+  app.g('loadVercelAnalytics()');
+  assert(app.scripts.length === 1 && app.scripts[0].tag === 'script' && app.scripts[0].src === '/_vercel/insights/script.js'
+    && app.scripts[0].defer === true, 'prod host: one deferred /_vercel/insights/script.js, not added twice');
+  app.window.va('event', { name: 'x' });
+  assert(typeof app.window.va === 'function' && app.window.vaq.length === 1, 'window.va queues calls until the script loads');
+  for (const host of ['dcwhung.github.io', 'localhost', 'life-uk-git-feature-x.vercel.app']) {
+    const other = loadApp({ host });
+    other.g('loadVercelAnalytics()');
+    assert(other.scripts.length === 0 && other.window.va === undefined, `${host}: analytics not loaded`);
+  }
+  const old = loadApp({ oldConfig: true });
+  old.g('loadVercelAnalytics()');
+  assert(old.scripts.length === 0, 'old cached config.js: analytics not loaded, no throw');
+}
+
 // the server whitelist (api/_lib/events.js) and the client events are the same set
 function checkEventParity() {
   const { g } = loadApp();
@@ -140,6 +167,8 @@ function checkWiring() {
   assert(/function onAppInstalled\(\) \{[\s\S]*?reportInstall\(\)[\s\S]*?\n\}/.test(read('js/pwa/pwa.js')), 'onAppInstalled calls reportInstall()');
   assert(read('index.html').includes('<script src="js/core/telemetry.js"></script>'), 'index.html loads telemetry.js');
   assert(read('sw.js').includes("'js/core/telemetry.js'"), 'sw.js SHELL caches telemetry.js');
+  assert(/loadVercelAnalytics\(\)/.test(read('js/main.js')), 'main.js calls loadVercelAnalytics()');
+  assert(!read('index.html').includes('_vercel') && !read('sw.js').includes('_vercel'), 'no static analytics tag in index.html, nothing in the SW shell');
 }
 
 checkLaunchEvents();
@@ -150,6 +179,7 @@ checkOffline();
 checkInstall();
 checkBeaconThrows();
 checkOldConfig();
+checkVercelAnalytics();
 checkEventParity();
 checkWiring();
 console.log(`PASS (${asserts} asserts)`);

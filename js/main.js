@@ -147,6 +147,7 @@ function startApp() {
   renderModeSelection();
   registerSW();
   if (typeof reportLaunch === 'function') reportLaunch(); // v2.8.0 usage counter (W-057: a pre-v2.8.0 shell has no telemetry.js)
+  if (typeof loadVercelAnalytics === 'function') loadVercelAnalytics(); // v2.10.0 Vercel Web Analytics (same W-057 guard)
 }
 // C-008: the splash fades even when startApp throws part-way (the page is then what it was before v2.5.0)
 function bootApp() {
