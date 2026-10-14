@@ -35,6 +35,7 @@ const IPV6_GROUPS = 8;
 const IPV6_PREFIX_GROUPS = 4; // a /64: one subscriber's network
 const IPV4_MAPPED = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/i;
 const HEX = 16;
+const IPV4_TAIL_GROUPS = 2; // a dotted IPv4 tail (::ffff:1.2.3.4) fills 32 bits = 2 groups
 const MS_PER_SECOND = 1000;
 const SECONDS_PER_HOUR = 60 * 60;
 const MS_PER_HOUR = SECONDS_PER_HOUR * MS_PER_SECOND;
@@ -55,7 +56,8 @@ function normalizeIp(ip) {
   const groups = s => (s ? s.split(':') : []);
   const left = groups(head);
   const right = groups(tail);
-  const missing = Math.max(0, IPV6_GROUPS - left.length - right.length); // an IPv4 tail counts as 1 group: /64 unaffected
+  const width = gs => gs.reduce((n, g) => n + (g.includes('.') ? IPV4_TAIL_GROUPS : 1), 0);
+  const missing = Math.max(0, IPV6_GROUPS - width(left) - width(right)); // groups the '::' stands for
   const zeros = bare.includes('::') ? Array(missing).fill('0') : [];
   const full = [...left, ...zeros, ...right];
   return full.slice(0, IPV6_PREFIX_GROUPS).map(g => (Number.parseInt(g, HEX) || 0).toString(HEX)).join(':');
