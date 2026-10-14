@@ -1,7 +1,7 @@
 {
   "name": "Life in the UK Test",
   "short_name": "Life in UK",
-  "description": "400+ practice questions · Cantonese translations · Works offline｜400+ 條模擬試題 · 廣東話翻譯 · 離線可用",
+  "description": "480+ practice questions · Cantonese translations · Works offline｜480+ 條模擬試題 · 廣東話翻譯 · 離線可用",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

@@ -20,7 +20,7 @@ const MARKER = 'lifeuk.factIdsMerged';
 const GOAL = { examDate: '2026-12-20', dailyMins: 60, restDays: [0], level: 'some' };
 const PLAN_TODAY = '2026-10-12';
 const STUDY_COUNT = 235;
-const MERGED_SRC = ['11.2', '5.1', '3.22', '9.2', '4.4'];
+const MERGED_SRC = ['11.2', '5.1', '3.22', '9.2', '4.4', '18.16']; // v2.7.0: + Exam 18 Q17
 
 // a fresh page whose storage holds `seed` (raw strings) before the app's first read
 async function loadWith(b, seed) {

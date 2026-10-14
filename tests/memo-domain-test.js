@@ -14,9 +14,9 @@ const APP_FILES = [
 const MEMO_LS = 'lifeuk.memoProgress';
 const MARK = '記憶法';
 // data facts (checked against data/exams.js on 2026-10-12)
-const QUESTION_COUNT = 408;
+const QUESTION_COUNT = 480;
 const TITLED_GROUPS = 61;
-const NO_MEMO_QUESTIONS = 8;
+const NO_MEMO_QUESTIONS = 9; // v2.7.0: + Exam 19 Q24 (National Minimum Wage, single note)
 const TODAY = '2026-10-12';
 
 let asserts = 0;
@@ -71,12 +71,12 @@ function checkGroups({ g }) {
   const keys = groups.flatMap(gr => gr.qkeys);
   assert(keys.length === QUESTION_COUNT && new Set(keys).size === QUESTION_COUNT, 'every question belongs to exactly one group');
   const vote = g("memoGroupById('vote')");
-  assert(vote.title === '投票權' && vote.icon === '🗳️' && vote.count === 15 && vote.ch === 3 && vote.body.startsWith('記憶法（投票權）：\n| 年份'),
-    'vote: 投票權, 15 questions, Ch 3, body from the heading on');
+  assert(vote.title === '投票權' && vote.icon === '🗳️' && vote.count === 17 && vote.ch === 3 && vote.body.startsWith('記憶法（投票權）：\n| 年份'),
+    'vote: 投票權, 17 questions (v2.7.0: + 18.2 / 20.7), Ch 3, body from the heading on');
   const fest = groups.find(gr => gr.title === '英國節日');
-  assert(fest && fest.count === 16 && fest.qkeys.length === 17 && fest.ch === 4, '英國節日: 17 copies = 16 distinct questions (deduped like questionGroups), most in Ch 4');
+  assert(fest && fest.count === 17 && fest.qkeys.length === 18 && fest.ch === 4, '英國節日: 18 copies = 17 distinct questions (v2.7.0: + 20.11) (deduped like questionGroups), most in Ch 4');
   const single = g("memoGroupById('single')");
-  assert(single.body === null && single.qkeys.length === NO_MEMO_QUESTIONS && single.count === NO_MEMO_QUESTIONS, 'single: no body, the 8 questions without a memory note');
+  assert(single.body === null && single.qkeys.length === NO_MEMO_QUESTIONS && single.count === NO_MEMO_QUESTIONS, 'single: no body, the 9 questions without a memory note');
   assert(g("memoGroupById('nope')") === undefined, 'unknown id → undefined');
   assert(g("memoMainChapter(['1.0', '3.6'])") === 1 && g("memoMainChapter(['3.6', '1.0'])") === 1, 'chapter tie → lowest chapter');
   assert(g("memoMainChapter(['1.0', '3.6', '1.2', '3.7'])") === 5, 'main chapter = the one with most questions');

@@ -14,10 +14,10 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
 const HIT_MIN_PX = 44;
 const GAP_PX = 4;
 const LABEL = { en: 'Share', 'zh-HK': '分享' };
-const TEXT = { en: '400+ practice questions · Cantonese translations · Works offline', 'zh-HK': '400+ 條模擬試題 · 廣東話翻譯 · 離線可用' };
+const TEXT = { en: '480+ practice questions · Cantonese translations · Works offline', 'zh-HK': '480+ 條模擬試題 · 廣東話翻譯 · 離線可用' };
 const TITLE = { en: 'Life in the UK Test · Exam Practice', 'zh-HK': 'Life in the UK Test · 應試練習' };
 const COPIED = { en: 'Link copied', 'zh-HK': '已複製連結' };
-const PREVIEW = '400+ practice questions · Cantonese translations · Works offline｜400+ 條模擬試題 · 廣東話翻譯 · 離線可用';
+const PREVIEW = '480+ practice questions · Cantonese translations · Works offline｜480+ 條模擬試題 · 廣東話翻譯 · 離線可用';
 
 // stub navigator.share / clipboard before the app runs; mode: 'ok' | 'abort' | 'deny' | 'none'; clip: true | false
 const stub = (pg, mode, clip = true) => pg.addInitScript(({ mode, clip }) => {

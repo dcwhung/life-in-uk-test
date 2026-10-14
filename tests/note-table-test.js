@@ -18,7 +18,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
 // prefixes = lines kept above the heading. ④ 4A "全英國 MP": WORD JOINER (U+2060) between the CJK chars +
 // NO-BREAK SPACE before MP keep that remark on one line
 const SPEC = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'fixtures', 'memo-notes.json'), 'utf8'));
-const MEMO_COUNT = 62, MEMO_QUESTIONS = 385, TABLE_MEMO_COUNT = 53, TOTAL_TABLE_QUESTIONS = 356, PREFIX_COUNT = 20; // v1.1.3: + S168 地區議會; v1.3.2: 4A 10, ③ 13, 10A 8, ⑥ 17
+const MEMO_COUNT = 62, MEMO_QUESTIONS = 454, TABLE_MEMO_COUNT = 53, TOTAL_TABLE_QUESTIONS = 421, PREFIX_COUNT = 20; // v1.1.3: + S168 地區議會; v1.3.2: 4A 10, ③ 13, 10A 8, ⑥ 17; v2.7.0: + Exam 18–20 (69 in this spec, 65 with tables)
 const MP_MEMO = '4A';
 const isTableLine = l => l.trim().startsWith('|');
 const tableRowsOf = text => text.split('\n').filter(isTableLine).map(l => l.trim().replace(/^\||\|$/g, '').split('|').map(c => c.trim()));
@@ -167,7 +167,8 @@ async function checkPractice(pg) {
 
 async function checkResults(pg) {
   const bad = {}; let seen = 0;
-  for (let e = 1; e <= 17; e++) {
+  const examCount = await pg.evaluate(() => EXAM_COUNT);
+  for (let e = 1; e <= examCount; e++) {
     await pg.evaluate(e => { pendingMode = 'exam'; startExam(e); state.questions.forEach((q, i) => { state.answers[i] = [...q.a]; }); finishExam(); }, e);
     const r = await pg.evaluate(fitSrc => {
       const fit = new Function('return ' + fitSrc)();

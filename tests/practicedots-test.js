@@ -61,7 +61,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
 
   // smaller sets: one dot per question
   await pg.evaluate(() => { pendingMode = 'practice'; startExam('ch1'); });
-  assert((await pg.$$('#navDots .dot')).length === 9, 'Ch1: 9 dots');
+  assert((await pg.$$('#navDots .dot')).length === 12, 'Ch1: 12 dots');
   // review round has dots too
   await pg.evaluate(() => { wrongList = { '3.0': true, '3.1': true, '3.2': true }; setLS('lifeuk.wrongList', wrongList); pendingMode = 'practice'; startExam('wrong'); });
   assert(await vis('#navDots') && (await pg.$$('#navDots .dot')).length === 3, 'Wrong answers review: 3 dots');
