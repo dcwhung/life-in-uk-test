@@ -58,11 +58,18 @@ function setEnv() {
 const realNow = Date.now;
 Date.now = () => NOW;
 setEnv();
-const track = require(path.join(ROOT, 'api/track.js'));
+const TRACK_PATH = path.join(ROOT, 'api/track.js');
+// S-301: a fresh api/track.js per check = a cold Vercel instance, so no check depends on another's module state
+// (SEC-02 budgetSpentOn) or on running order. api/_lib/* holds no state, so it stays cached
+function freshTrack() {
+  delete require.cache[require.resolve(TRACK_PATH)];
+  return require(TRACK_PATH);
+}
 const stats = require(path.join(ROOT, 'api/stats.js'));
 
 // ── track ──
 async function checkTrackCounts() {
+  const track = freshTrack();
   const redis = fakeRedis();
   const res = fakeRes();
   // sendBeacon posts text/plain, so Vercel hands the body over as a string
@@ -84,6 +91,7 @@ async function checkTrackCounts() {
 }
 
 async function checkTrackFilters() {
+  const track = freshTrack();
   const redis = fakeRedis();
   const res = fakeRes();
   await track(req({ body: JSON.stringify({ events: ['open', 'open', 'hack', 42, 'dau'] }) }), res);
@@ -102,6 +110,7 @@ async function checkTrackFilters() {
 }
 
 async function checkTrackGuards() {
+  const track = freshTrack();
   const redis = fakeRedis();
   const get = fakeRes();
   await track(req({ method: 'GET' }), get);
@@ -116,6 +125,7 @@ async function checkTrackGuards() {
 
 // W-088: past the daily request budget a beacon still gets 204 but counts nothing (caps a flood's Redis use)
 async function checkTrackBudget() {
+  const track = freshTrack();
   const redis = fakeRedis();
   redis.counts.set(`lifeuk:budget:${TODAY}`, track.DAILY_REQUEST_BUDGET);
   const res = fakeRes();
@@ -129,12 +139,15 @@ async function checkTrackBudget() {
 }
 
 // SEC-02: once a warm instance has seen the day's budget run out it stops calling Redis for that UTC day, so a
-// sustained flood no longer costs one INCR per request; the next UTC day counts again. Runs after the other track
-// checks: the instance remembers the capped day for the rest of this process
+// sustained flood no longer costs one INCR per request; the next UTC day counts again
 async function checkTrackBudgetShortCircuit() {
+  const track = freshTrack();
   const redis = fakeRedis();
   redis.counts.set(`lifeuk:budget:${TODAY}`, track.DAILY_REQUEST_BUDGET);
   await track(req({ body: { events: ['open'] } }), fakeRes());
+  // S-301: the first call really finds the cap in Redis (a fresh module has not seen it yet)
+  assert(redis.calls.length > 0 && redis.counts.get(`lifeuk:budget:${TODAY}`) === track.DAILY_REQUEST_BUDGET + 1,
+    'a fresh instance learns from Redis that the budget is used up');
   const before = redis.calls.length;
   const again = fakeRes();
   await track(req({ body: { events: ['open'] } }), again);
@@ -146,18 +159,20 @@ async function checkTrackBudgetShortCircuit() {
   Date.now = () => NOW;
   assert(fresh.statusCode === 204 && redis.counts.get('lifeuk:budget:2026-10-15') === 1 && redis.counts.get('lifeuk:open:2026-10-15') === 1,
     'next UTC day: the budget is INCRed again and the event counted');
-  // a cold instance meeting a budget already past the crossing point: one INCR, no second capped SET
-  const later = Date.UTC(2026, 9, 16, 0, 1);
-  Date.now = () => later;
-  redis.counts.set('lifeuk:budget:2026-10-16', track.DAILY_REQUEST_BUDGET + 5);
-  const callsBefore = redis.calls.length;
+}
+
+// a cold instance meeting a budget already past the crossing point
+async function checkTrackBudgetPastCrossing() {
+  const track = freshTrack();
+  const redis = fakeRedis();
+  redis.counts.set(`lifeuk:budget:${TODAY}`, track.DAILY_REQUEST_BUDGET + 5);
   await track(req({ body: { events: ['open'] } }), fakeRes());
-  Date.now = () => NOW;
-  assert(redis.calls.length === callsBefore + 1 && !redis.counts.has('lifeuk:capped:2026-10-16'),
+  assert(redis.calls.length === 1 && !redis.counts.has(`lifeuk:capped:${TODAY}`),
     'past the crossing point: only the budget INCR, the capped mark is written by the crossing request alone');
 }
 
 async function checkTrackRedisDown() {
+  const track = freshTrack();
   fakeRedis({ fail: true });
   const res = fakeRes();
   const warn = console.error;
@@ -168,6 +183,7 @@ async function checkTrackRedisDown() {
 }
 
 async function checkKvEnvFallback() {
+  const track = freshTrack();
   const redis = fakeRedis();
   delete process.env.UPSTASH_REDIS_REST_URL;
   delete process.env.UPSTASH_REDIS_REST_TOKEN;
@@ -319,8 +335,9 @@ async function checkStatsRedisDown() {
   await checkTrackGuards();
   await checkTrackRedisDown();
   await checkKvEnvFallback();
-  await checkTrackBudget(); // last among the track checks: from here this instance knows TODAY's budget is used up
+  await checkTrackBudget();
   await checkTrackBudgetShortCircuit();
+  await checkTrackBudgetPastCrossing();
   await checkStats();
   await checkStatsAllDays();
   await checkStatsDays();
