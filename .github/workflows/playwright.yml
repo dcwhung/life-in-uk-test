@@ -71,7 +71,7 @@ jobs:
       - name: Run all Playwright suites
         env:
           # Force lang-switch-test's no-CJK-font branch: M4 (zh-HK line wrap at 320px) is tuned to Noto CJK, and the
-          # WenQuanYi font that --with-deps brings measures differently (user decision 2026-10-14). Verify M4 locally.
+          # WenQuanYi font that install-deps brings measures differently (user decision 2026-10-14). Verify M4 locally.
           LANG_SWITCH_NO_CJK_FONT: '1'
         run: bash tests/run-all.sh # tests/pages-server.js needs python3 (preinstalled on ubuntu-24.04)
 
