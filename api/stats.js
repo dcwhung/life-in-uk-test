@@ -3,11 +3,12 @@
 // Auth: HTTP Basic with STATS_USERNAME / STATS_PASSWORD (Vercel env vars; either unset = always 401). The 401 names a
 // non-Basic scheme (S-284), so a browser never pops its own login dialog: stats.html has its own sign-in form.
 // Login lockout (SEC-03, .proj-docs/audits/2026-10-14_13-40_audit_full-codebase-v2.md; W-384): each attempt reserves a
-// slot in two buckets per UTC hour, first one per client, then one global, with INCR before the password is checked
-// (atomic, so a parallel burst gets no extra checks). Past AUTH_FAIL_LIMIT_PER_CLIENT that client gets 429 and never
-// reaches the global bucket (W-389); past AUTH_FAIL_LIMIT_GLOBAL (a distributed brute force) everyone does, until the
-// hour turns. A good login or a global 429 gives both slots back. The client id is an HMAC of the IP (/64 for IPv6) keyed by the password, so no IP is stored in Redis
-// or logged; every key expires after 1 hour.
+// slot in two buckets per UTC hour, first one per client, then one global, with INCR before the password is checked.
+// Each INCR is atomic (the Upstash /pipeline is not a transaction), so a parallel burst gets no extra checks. Past
+// AUTH_FAIL_LIMIT_PER_CLIENT that client gets 429 and never reaches the global bucket (W-389); past
+// AUTH_FAIL_LIMIT_GLOBAL (a distributed brute force) everyone does, until the hour turns. A good login or a global 429
+// gives both slots back. The client id is an HMAC of the IP (/64 for IPv6) keyed by the password, so no IP is stored
+// in Redis or logged; every key expires after 1 hour.
 // days: 'all' = launch day → today; a number = that many days back (1..MAX_DAYS; default DEFAULT_DAYS).
 // Returns { launch, days: [{ date, open, standalone, dau, install }] (newest first, UTC), totals: {...} }.
 // ════════════════════════════════════════
@@ -59,7 +60,8 @@ function normalizeIp(ip) {
   return full.slice(0, IPV6_PREFIX_GROUPS).map(g => (Number.parseInt(g, HEX) || 0).toString(HEX)).join(':');
 }
 
-// Vercel overwrites x-real-ip and x-forwarded-for with the real client address, so a client cannot pick its bucket
+// per Vercel docs, Vercel overwrites x-real-ip and x-forwarded-for with the real client address, so a client cannot pick
+// its bucket. A proxy put in front of Vercel (e.g. Cloudflare) would make every client share the proxy's IP (S-291)
 function clientIp(headers) {
   const first = v => String(Array.isArray(v) ? v[0] : v).split(',')[0].trim();
   for (const name of ['x-real-ip', 'x-forwarded-for']) {
