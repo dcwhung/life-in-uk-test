@@ -68,6 +68,13 @@ function checkScale() {
   }
 }
 
+// compact numbers: K from 10,000 (one decimal below 100K), M from 1,000,000 (QA S-1: was 1235K)
+function checkCompact() {
+  for (const [n, out] of [[999, '999'], [9999, '9,999'], [12345, '12.3K'], [123456, '123K'], [1234567, '1.2M'], [12345678, '12.3M'], [123456789, '123M']]) {
+    assert(call('compactNumber', n) === out, `compactNumber(${n}) → ${call('compactNumber', n)}`);
+  }
+}
+
 // HTTP Basic: base64 of the UTF-8 bytes, so a non-ASCII password still reaches the server intact
 function checkBasic() {
   const header = call('basicAuthHeader', 'admin', 'pässwörd:1');
@@ -80,4 +87,5 @@ checkMonths();
 checkSums();
 checkScale();
 checkBasic();
+checkCompact();
 console.log(`PASS (${asserts} asserts)`);

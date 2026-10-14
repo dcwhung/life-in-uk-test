@@ -60,6 +60,17 @@ function niceScale(maxValue) {
   return { step, max: Math.ceil(top / step) * step };
 }
 
+// compact counts for tiles and axes: 9,999 · 12.3K · 123K · 1.2M · 12.3M · 123M (QA S-1: was 1235K)
+const COMPACT_STEPS = [{ from: 1e6, unit: 1e6, suffix: 'M' }, { from: 1e4, unit: 1e3, suffix: 'K' }];
+const COMPACT_WHOLE_FROM = 100; // 123K, not 123.4K
+const ONE_DECIMAL = 10;
+function compactNumber(n) {
+  const step = COMPACT_STEPS.find(s => n >= s.from);
+  if (!step) return Math.round(n).toLocaleString('en-GB');
+  const v = n / step.unit;
+  return String(v >= COMPACT_WHOLE_FROM ? Math.round(v) : Math.round(v * ONE_DECIMAL) / ONE_DECIMAL) + step.suffix;
+}
+
 // HTTP Basic over the UTF-8 bytes (btoa alone only takes Latin-1)
 function basicAuthHeader(user, password) {
   const bytes = new TextEncoder().encode(`${user}:${password}`);

@@ -12,9 +12,6 @@ const STATS_DEFAULT_LANG = 'zh-HK';
 const HTTP_UNAUTHORIZED = 401;
 const HTTP_TOO_MANY = 429;
 const SECONDS_PER_MINUTE = 60;
-const COMPACT_FROM = 10000;
-const COMPACT_WHOLE_FROM = 100000;
-const THOUSAND = 1000;
 // ISO date slices: 'YYYY-MM-DD'
 const YEAR = [0, 4], YY = [2, 4], MONTH = [5, 7], DAY = [8, 10];
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -28,7 +25,7 @@ const readStore = (store, key) => { try { return store.getItem(key); } catch { r
 const writeStore = (store, key, value) => { try { value === null ? store.removeItem(key) : store.setItem(key, value); } catch {} };
 
 // ── formatting ──
-const fmt = n => (n >= COMPACT_FROM ? (n / THOUSAND).toFixed(n >= COMPACT_WHOLE_FROM ? 0 : 1) + 'K' : Math.round(n).toLocaleString('en-GB'));
+const fmt = compactNumber;
 const pct = n => Math.round(n * STATS_PERCENT) + '%';
 const monthParams = ym => ({ y: part(ym, YEAR), yy: part(ym, YY), m: Number(part(ym, MONTH)), mon: STATS_EN_MONTHS[Number(part(ym, MONTH)) - 1] });
 const monthName = ym => tr('monthLong', monthParams(ym));
@@ -272,7 +269,10 @@ async function refresh() {
 async function onSignIn(e) {
   e.preventDefault();
   const btn = byId('signInBtn');
-  const auth = basicAuthHeader(byId('userInput').value.trim(), byId('pwdInput').value);
+  const user = byId('userInput').value.trim();
+  // QA S-2: spaces only would spend one of the hour's attempts on a certain 401
+  if (!user) { byId('signinError').textContent = tr('errUser'); return; }
+  const auth = basicAuthHeader(user, byId('pwdInput').value);
   btn.disabled = true; btn.textContent = tr('signingIn');
   const { data, error } = await loadWith(auth);
   btn.disabled = false; btn.textContent = tr('signIn');

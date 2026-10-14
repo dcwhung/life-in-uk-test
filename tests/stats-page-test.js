@@ -51,6 +51,11 @@ async function signIn(page, password) {
 async function checkSignInErrors(page, state) {
   assert(await visible(page, '#signin') && !(await visible(page, '#rangeChips')), 'no session: sign-in form, no range chips');
   assert(state.calls.length === 0, 'no session: /api/stats not called');
+  // QA S-2: a username of only spaces is not sent (it would spend one of the hour's attempts)
+  await page.fill('#userInput', '   ');
+  await page.fill('#pwdInput', PASSWORD);
+  await page.click('#signInBtn');
+  assert(state.calls.length === 0 && (await text(page, '#signinError')) === '請輸入帳號', 'blank username: not sent, asks for the username');
   await signIn(page, 'wrong');
   await page.waitForFunction(() => document.getElementById('signinError').textContent);
   assert((await text(page, '#signinError')) === '帳號或密碼唔啱，請再試一次', 'wrong password → 帳號或密碼唔啱');
