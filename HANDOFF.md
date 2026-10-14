@@ -780,7 +780,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 - Storage → Marketplace → **Upstash for Redis**（Free，`lhr1`，**Eviction off**，Monthly Commands 500k）connect 落 project，注入 `KV_REST_API_URL` / `KV_REST_API_TOKEN`（`REDIS_URL`、`KV_URL`、`KV_REST_API_READ_ONLY_TOKEN` 冇用）
 - Environment Variables：`STATS_USERNAME`、`STATS_PASSWORD`（Secret，Production）；`STATS_TOKEN`（v2.8.0）已冇用，可以刪；改 env 之後要 redeploy 先生效
 - Analytics tab → Enable（v2.10.0）；dashboard 嘅 npm / `inject()` / Vercel Agent 步驟**唔使跟**（冇 bundler；Vercel Agent 會開 PR 加 npm package，撞 `sw-test`）
-- **Firewall → `/api/track` per-IP rate limit（SEC-01 / SEC-02，未做，要 owner 手動設）**：建議每個 IP 每 60 秒 10 個 request，超過 deny / 429；步驟見 `.proj-docs/deploys/2026-10-14_vercel-firewall-track.md`（UI 字眼未核實，以 dashboard 為準；`vercel.json` 設唔設到未確定）
+- **Firewall → `/api/track` per-IP rate limit（SEC-01 / SEC-02，未做，要 owner 手動設）**：建議每個 IP 每 60 秒 10 個 request（單靠呢條，一個 IP 約 6.7 小時仍然灌得滿 4000），另外加每個 IP 每小時 ≤ 100（一日最多 2400 < 4000；1 小時 window 有冇未核實，冇就改每 60 秒 2 個），超過 deny / 429；步驟見 `.proj-docs/deploys/2026-10-14_vercel-firewall-track.md`（UI 字眼未核實，以 dashboard 為準；`vercel.json` 設唔設到未確定）
 
 **Redis keys（全部 `lifeuk:` prefix，冇 TTL 除咗 authfail 同 budget）：**
 
