@@ -10,11 +10,11 @@
 // gives both slots back. The client id is an HMAC of the IP (/64 for IPv6) keyed by the password, so no IP is stored
 // in Redis or logged; every key expires after 1 hour.
 // days: 'all' = launch day → today; a number = that many days back (1..MAX_DAYS; default DEFAULT_DAYS).
-// Returns { launch, days: [{ date, open, standalone, dau, install }] (newest first, UTC), totals: {...} }.
+// Returns { launch, days: [{ date, open, standalone, dau, install, capped }] (newest first, UTC), totals: {...} }.
 // ════════════════════════════════════════
 const crypto = require('crypto');
 const net = require('net');
-const { EVENTS, counterKey, recentUtcDates, utcIsoDate } = require('./_lib/events');
+const { EVENTS, counterKey, cappedKey, recentUtcDates, utcIsoDate } = require('./_lib/events');
 const { redisPipeline } = require('./_lib/redis');
 
 // the day the counter went live (v2.8.0, PR #142): no key before it holds data
@@ -117,15 +117,20 @@ function parseDays(raw, nowMs) {
 
 const zeroCounts = () => Object.fromEntries(EVENTS.map(e => [e, 0]));
 
-// MGET values come back day by day, EVENTS order within a day
+// SEC-01: each day reads its EVENTS counters, then its capped mark (api/track.js sets it when the request budget ran out)
+const dayKeys = date => [...EVENTS.map(e => counterKey(e, date)), cappedKey(date)];
+const KEYS_PER_DAY = EVENTS.length + 1;
+
+// MGET values come back day by day in dayKeys order; capped = that day's numbers may be low (beacons went uncounted)
 function buildReport(dates, values) {
   const totals = zeroCounts();
   const days = dates.map((date, d) => {
     const row = { date, ...zeroCounts() };
     EVENTS.forEach((e, i) => {
-      row[e] = Number(values[d * EVENTS.length + i]) || 0;
+      row[e] = Number(values[d * KEYS_PER_DAY + i]) || 0;
       totals[e] += row[e];
     });
+    row.capped = values[d * KEYS_PER_DAY + EVENTS.length] != null;
     return row;
   });
   return { launch: LAUNCH_DATE, days, totals };
@@ -167,7 +172,7 @@ async function stats(req, res) {
     if (!isAuthorized(creds)) return unauthorized(res);
     await giveBack(buckets); // a good login is not a failure
     const dates = recentUtcDates(parseDays(req.query.days, now), now);
-    const keys = dates.flatMap(date => EVENTS.map(e => counterKey(e, date)));
+    const keys = dates.flatMap(dayKeys);
     const [values] = await redisPipeline([['MGET', ...keys]]);
     return res.setHeader('Cache-Control', 'no-store').status(200).json(buildReport(dates, values));
   } catch (e) {

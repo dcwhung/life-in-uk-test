@@ -24,6 +24,8 @@ const STATS_STRINGS = {
     signIn: '登入', signingIn: '登入緊…', loading: '載入緊…',
     errWrong: '帳號或密碼唔啱，請再試一次', errLocked: '錯太多次，請 {m} 分鐘後再試',
     errNetwork: '連唔到伺服器，請檢查網絡再試', errServer: '伺服器出錯（{s}），請稍後再試',
+    cappedOne: '呢段時間有 {n} 日去到每日上限，嗰日嘅數字可能偏低',
+    cappedMany: '呢段時間有 {n} 日去到每日上限，嗰幾日嘅數字可能偏低',
   },
   en: {
     title: 'Life in UK · Usage', subtitle: 'life-uk.vercel.app · dates in UTC', range: 'Time range',
@@ -45,6 +47,8 @@ const STATS_STRINGS = {
     signIn: 'Sign in', signingIn: 'Signing in…', loading: 'Loading…',
     errWrong: 'Wrong username or password. Try again.', errLocked: 'Too many wrong attempts. Try again in {m} min.',
     errNetwork: 'Can’t reach the server. Check your connection and try again.', errServer: 'Server error ({s}). Try again later.',
+    cappedOne: 'The daily request limit was reached on {n} day in this range, so that day may be undercounted.',
+    cappedMany: 'The daily request limit was reached on {n} days in this range, so those days may be undercounted.',
   },
 };
 // month names for the en formats ({mon}); zh-HK formats use the month number

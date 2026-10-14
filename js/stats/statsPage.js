@@ -63,6 +63,13 @@ function renderStrip(rows, launch) {
   byId('lDays').textContent = fmt(rows.length);
 }
 
+// ── SEC-01: days in the range that hit the daily request budget (their numbers may be low) ──
+function renderCappedNote(rows) {
+  const n = cappedDays(rows);
+  byId('cappedNote').hidden = n === 0;
+  if (n) byId('cappedNote').textContent = tr(n === 1 ? 'cappedOne' : 'cappedMany', { n });
+}
+
 // ── period tiles ──
 function deltaHtml(diff, unit) {
   if (diff === null) return tr('noPrev');
@@ -200,6 +207,7 @@ function render() {
   const monthly = isMonthlyRange(statsState.range);
   const points = monthly ? toMonths(period.rows) : toDays(period.rows); // newest first
   renderStrip(data.days, data.launch);
+  renderCappedNote(period.rows);
   if (!points.length) return; // loadWith never hands over an empty list; nothing to chart if it ever did
   renderTiles(period);
   renderHeadings(monthly);
