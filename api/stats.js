@@ -28,6 +28,7 @@ const BASIC = 'Basic ';
 const AUTH_FAIL_LIMIT_PER_CLIENT = 5;
 const AUTH_FAIL_LIMIT_GLOBAL = 100;
 const AUTH_FAIL_PREFIX = 'lifeuk:authfail:';
+const IP_HEADERS = ['x-real-ip', 'x-forwarded-for']; // in order of trust
 const UNKNOWN_IP = 'unknown'; // every request without an IP header shares this one bucket
 const CLIENT_ID_LENGTH = 16; // hex chars of the HMAC kept in the key
 const IPV6_GROUPS = 8;
@@ -64,9 +65,11 @@ function normalizeIp(ip) {
 // its bucket. A proxy put in front of Vercel (e.g. Cloudflare) would make every client share the proxy's IP (S-291)
 function clientIp(headers) {
   const first = v => String(Array.isArray(v) ? v[0] : v).split(',')[0].trim();
-  for (const name of ['x-real-ip', 'x-forwarded-for']) {
+  for (const name of IP_HEADERS) {
     const value = headers[name];
-    if ((typeof value === 'string' || Array.isArray(value)) && first(value)) return first(value);
+    if (typeof value !== 'string' && !Array.isArray(value)) continue;
+    const ip = first(value);
+    if (ip) return ip;
   }
   return UNKNOWN_IP;
 }
