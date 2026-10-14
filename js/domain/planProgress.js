@@ -95,7 +95,7 @@ function planMaterializeWrongFacts(task, ctx) {
   });
   return { ...task, facts, anchor };
 }
-// a mock takes the first Exam 1–17 neither completed nor already in the plan, else goes round again
+// a mock takes the first Exam 1–20 neither completed nor already in the plan, else goes round again
 function planMaterializeMock(task, ctx, taken) {
   const completed = ctx.completedExams || {};
   const free = EXAM_NUMBERS.find(n => !completed[n] && !taken.includes(n));
@@ -506,7 +506,7 @@ function recordPlanAnswer(key, correct, ctxIso = null, now = new Date()) {
   if (iso) writePlanLog(planApplyAnswer(log, iso, qid, correct));
   return iso;
 }
-// result = { examNum, correct, total, isRealTest } — isRealTest: Exam 1–17 or Random Exam in Exam mode (screen decides)
+// result = { examNum, correct, total, isRealTest } — isRealTest: Exam 1–20 or Random Exam in Exam mode (screen decides)
 function recordPlanMock(result, ctxIso = null, now = new Date()) {
   const plan = result && result.isRealTest ? planLoad() : null;
   const log = plan && planLoadLog();

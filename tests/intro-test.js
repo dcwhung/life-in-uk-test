@@ -112,10 +112,16 @@ async function swipe(pg, dx) {
 // language + Cantonese translation on the last card apply at once
 async function checkLastCardSettings(pg) {
   const zhTitle = (await introState(pg)).title;
+  // v2.7.0 (user): the translation row title has no 🌐 icon (the settings popover keeps it)
+  const rowTitles = () => pg.$$eval('#introOverlay .intro-set-row b', els => els.map(e => e.textContent));
+  const zhRows = await rowTitles();
+  assert(zhRows.includes('廣東話翻譯') && zhRows.every(t => !t.includes('🌐')), 'zh-HK: translation row reads 廣東話翻譯, no icon: ' + JSON.stringify(zhRows));
   await pg.click('#introOverlay [data-action="introLang"][data-arg="en"]');
   const s = await introState(pg);
   assert(s.front === '2' && s.title !== zhTitle && /pass first time/i.test(s.title), 'EN switches the intro language in place: ' + s.title);
   assert(await pg.evaluate(() => document.documentElement.lang === 'en' && localStorage.getItem('lifeuk.uiLang') === '"en"'), 'the app language is now English');
+  const enRows = await rowTitles();
+  assert(enRows.includes('Translation') && enRows.every(t => !t.includes('🌐')), 'en: translation row reads Translation, no icon: ' + JSON.stringify(enRows));
   await pg.click('#introYueSwitch');
   const off = await pg.evaluate(() => ({ aria: byId('introYueSwitch').getAttribute('aria-checked'), html: document.documentElement.dataset.translation }));
   assert(off.aria === 'false' && off.html === 'off', 'the switch turns Cantonese translation off: ' + JSON.stringify(off));

@@ -10,14 +10,14 @@ const launchOpts = { args: ['--no-sandbox'] };
 if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_PATH;
 const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('ok:', m); };
 
-const FACT_ID = 21; // Magna Carta, chapter 3, 8 source questions = 6 distinct (8.13 / 12.23 / 15.6 share one text, G40)
+const FACT_ID = 21; // Magna Carta, chapter 3, 9 source questions = 7 distinct (v2.7.0: + 19.4) (8.13 / 12.23 / 15.6 share one text, G40)
 const FACT_CHAPTER = 3;
 const FACT_CHAPTER_NUM = 15; // its number within chapter 3 (ids 7–97), shown on the Chapters card as "#15"
 // W-016: the session header uses the card's chapter number; "Ch 3 #15" stays English (lang="en") in zh-HK too
 const FACT_NUM_TEXT = `Ch ${FACT_CHAPTER} #${FACT_CHAPTER_NUM}`;
 const FACT_LABEL = { en: `Fact ${FACT_NUM_TEXT}`, 'zh-HK': `知識點 ${FACT_NUM_TEXT}` };
 // G40 (v1.0.8): each distinct question once, the first copy in exam order
-const FACT_SRC = '4.16,6.6,7.14,8.13,16.16,17.21';
+const FACT_SRC = '4.16,6.6,7.14,8.13,16.16,17.21,19.4';
 // Study is scrolled so fact #21 sits this far below the viewport top, as when its "▶ Practise" is tapped
 // (v0.63: ↩ Back brings the card into view if the restored scroll no longer shows it, R-010). W-067 (v1.6.1): below the
 // pinned Study tabs + chips (~215px at 390px); at 200px the card was behind the block, so ↩ Back rightly scrolls it out
@@ -115,7 +115,7 @@ async function checkInSession(pg) {
   assert(await text(pg, '#quizLabel') === FACT_LABEL['zh-HK'], `zh-HK header: ${FACT_LABEL['zh-HK']} (${await text(pg, '#quizLabel')})`);
   await checkHeaderNumberLang(pg, 'zh-HK');
   await pg.evaluate(() => setLang('en'));
-  assert((await pg.$eval('#qNum > span', e => e.dataset.full)) === 'Question 1 of 6', 'Question 1 of 6 (8 sources, 6 distinct: G40)');
+  assert((await pg.$eval('#qNum > span', e => e.dataset.full)) === 'Question 1 of 7', 'Question 1 of 7 (9 sources, 7 distinct: G40)');
   await pg.evaluate(() => { state.reviewTotal = 50; renderQuestion(); renderRoundNote(); });
   assert(!(await shown(pg, '#roundRow')), 'no round note inside a side session (even with a review total)');
   await answer(pg, false);
@@ -187,7 +187,7 @@ async function checkHomeAndAfter(pg) {
 // v0.63 (P3 T-206 / T-207): the fact card's source node row (display only) + "▶ Practise" button start the
 // session for real; ↩ Back flashes the card gold for FACT_HIGHLIGHT_MS (Q8)
 // G40: the three copies of one question text are one node
-const FACT_NODES = 'E4·Q17:sqm-node mastered,E6·Q7:sqm-node weak,E7·Q15:sqm-node,E8·Q14 = E12·Q24 = E15·Q7:sqm-node,E16·Q17:sqm-node,E17·Q22:sqm-node';
+const FACT_NODES = 'E4·Q17:sqm-node mastered,E6·Q7:sqm-node weak,E7·Q15:sqm-node,E8·Q14 = E12·Q24 = E15·Q7:sqm-node,E16·Q17:sqm-node,E17·Q22:sqm-node,E19·Q5:sqm-node';
 const ONE_SOURCE_FACT = 10;
 const MIN_TOUCH_PX = 44; // project touch-target standard (O2, CUI-0009)
 const factCard = id => `#studyContent .fact[data-fact-id="${id}"]`;
@@ -209,7 +209,7 @@ async function checkSourceRow(pg) {
   });
   assert(row.nodes === FACT_NODES, 'source node row: E·Q nodes in f.src order with mastery colours: ' + row.nodes);
   assert(row.clickable === 0 && row.appears === 0 && row.label === 'Appears in:', `nodes are display only; "Appears ×n" tag gone (${JSON.stringify(row)})`);
-  assert(row.btn === `Practise these 6|startFactPractice|${FACT_ID}`, 'Practise button: plural label + startFactPractice action: ' + row.btn);
+  assert(row.btn === `Practise these 7|startFactPractice|${FACT_ID}`, 'Practise button: plural label + startFactPractice action: ' + row.btn);
   assert(row.describedBy === `#${FACT_CHAPTER_NUM}`, 'Practise button is described by the card\'s chapter number "#n": ' + row.describedBy);
   // S-030: the ~29px "▶ Practise" pill keeps its look but takes taps over >= 44px (invisible ::before ring);
   // scan the button's vertical centre line with elementFromPoint
@@ -226,8 +226,8 @@ async function checkSourceRow(pg) {
 }
 // W-012: at 390px the 2-source cards whose row fitted on one line before S-034 (form controls inherit the
 // body font, "▶ Practise these 2" ~2.8px wider) must still fit: the 2nd node must not wrap under the 1st
-// 67 / 128 / 231: both sources are one question text, so one merged node "E·Q = E·Q" (G40), still one line
-const TWO_SOURCE_ONE_LINE_FACTS = [25, 30, 62, 67, 74, 76, 78, 128, 155, 159, 181, 225, 231];
+// 67 / 128: both sources are one question text, so one merged node "E·Q = E·Q" (G40), still one line
+const TWO_SOURCE_ONE_LINE_FACTS = [25, 30, 62, 67, 76, 78, 128, 155, 159, 181]; // v2.7.0: 74 / 225 / 231 now have 3 sources (Exam 18–20)
 const LINE_TOLERANCE_PX = 1;
 // v0.70: on every Study tab, in both languages, once the "Appears in:" nodes need a second line the Practise
 // button leaves their line and takes a full-width line of its own under them (it never sits beside wrapped nodes)

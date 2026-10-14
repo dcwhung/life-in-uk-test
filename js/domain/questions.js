@@ -13,6 +13,9 @@ function allQuestions() {
   return out;
 }
 const TOTAL_QUESTIONS = allQuestions().length;
+// v2.7.0 (user): the ⓘ intro and badge show a rounded-down count with "+" (480 → "480+"), not the exact total
+const QUESTION_COUNT_STEP = 10;
+const QUESTION_COUNT_LABEL = `${Math.floor(TOTAL_QUESTIONS / QUESTION_COUNT_STEP) * QUESTION_COUNT_STEP}+`;
 // difficulty levels present in the data (labels: locales data.difficulty)
 const DIFF_LEVELS = [...new Set(allQuestions().map(({ q }) => q.d))].sort((a, b) => a - b);
 const MAX_DIFFICULTY = Math.max(...DIFF_LEVELS); // stars shown out of this many
@@ -107,7 +110,7 @@ function factSetParams(examNum) {
   const fact = STUDY.find(f => f.id === id);
   return { ch: fact.ch, n: chapterFactNumber(id) };
 }
-// Exam 1–17 (Exam mode or Practice > By Exam) — the only sets shaped like the real test
+// Exam 1–20 (Exam mode or Practice > By Exam) — the only sets shaped like the real test
 function isNumberedExam(examNum) { return typeof examNum === 'number'; }
 // exam mode › All Exams = Random Exam: RANDOM_EXAM_SIZE questions drawn from all, at most one per study fact
 function isRandomExam(examNum) { return examNum === ALL_EXAM && state.mode === EXAM_MODE; }

@@ -4,7 +4,7 @@
 // One document-level click, input, focusout and keydown (Escape; Tab inside the confirm modal) listener each.
 // ════════════════════════════════════════
 const numArg = el => Number(el.dataset.arg);
-// Exam 1–17 are numbers; 'all' and the other set ids stay strings (isNumberedExam checks the type)
+// Exam 1–20 are numbers; 'all' and the other set ids stay strings (isNumberedExam checks the type)
 const examArg = el => (/^\d+$/.test(el.dataset.arg) ? Number(el.dataset.arg) : el.dataset.arg);
 
 // v1.4.1: a toast like the study plan switch (planHome.js setPlanFeature). W-057: guard against a cached file mix without toast.js;

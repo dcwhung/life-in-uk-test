@@ -35,7 +35,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   assert(await vis('#similarBox'), 'similar section shown after a correct answer');
   assert((await text('#similarBox .sqm-title b')) === 'Similar Questions', 'English section title');
   assert((await text('#similarBox .sqm-title span')) === 'Same fact, asked differently', 'subtitle has no mastery count');
-  assert((await text('#similarBox .sqm-count')) === '+2', 'count badge +2');
+  assert((await text('#similarBox .sqm-count')) === '+3', 'count badge +3 (v2.7.0: + 18.23)');
   // 2026-10-07: the Core Fact shows the per-chapter "Ch n #k" (counted here from STUDY), not the global "#203"
   const coreNum = await pg.evaluate(() => {
     const f = STUDY.find(x => x.id === 203);
@@ -78,11 +78,11 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   });
   assert(core.fn && core.same && core.extras === 0, 'Core Fact = factCardHtml(f, { variant: core }), no buttons / source row: ' + JSON.stringify(core));
   const nodes = await pg.$$eval('#similarBox .sqm-node', els => els.map(e => e.textContent + ':' + e.className));
-  assert(JSON.stringify(nodes) === JSON.stringify(['E12·Q6:sqm-node current', 'E9·Q15:sqm-node mastered', 'E12·Q19:sqm-node weak']), 'appears-in chips (E9·Q15, 1-based) with state: ' + nodes);
+  assert(JSON.stringify(nodes) === JSON.stringify(['E12·Q6:sqm-node current', 'E9·Q15:sqm-node mastered', 'E12·Q19:sqm-node weak', 'E18·Q24:sqm-node']), 'appears-in chips (E9·Q15, 1-based) with state: ' + nodes);
   const ids = await pg.$$eval('#similarBox .sqm-id', els => els.map(e => e.textContent));
-  assert(JSON.stringify(ids) === JSON.stringify(['Exam 9 · Q15', 'Exam 12 · Q19']), 'every similar question listed: ' + ids);
+  assert(JSON.stringify(ids) === JSON.stringify(['Exam 9 · Q15', 'Exam 12 · Q19', 'Exam 18 · Q24']), 'every similar question listed: ' + ids);
   const streaks = await pg.$$eval('#similarBox .sqm-streak', els => els.map(e => e.textContent));
-  assert(JSON.stringify(streaks) === JSON.stringify(['🏆 Mastered', '🔥 1/3']), 'per-question streak: ' + streaks);
+  assert(JSON.stringify(streaks) === JSON.stringify(['🏆 Mastered', '🔥 1/3', '🔥 0/3']), 'per-question streak: ' + streaks);
   assert((await text('#similarBox .sqm-q')) === 'What do local councils do?', 'question text shown');
   // the translation is read from the data (Track 2 rewrites yue wording), not hard-coded
   const qYue = await pg.evaluate(() => EXAMS[9][14].yue);
@@ -90,7 +90,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   const boxText = await text('#similarBox');
   assert(!boxText.includes('Provide local services') && !boxText.includes('represent their local community'), 'no answers shown');
   assert((await pg.$$('#similarBox .sqm-angle')).length === 0, 'no question-angle tags');
-  assert((await text('#similarBox .sqm-cta button')) === 'Practise these 2', 'practise button (v1.6.1: the ▶ is a line icon, control-icons-test)');
+  assert((await text('#similarBox .sqm-cta button')) === 'Practise these 3', 'practise button (v1.6.1: the ▶ is a line icon, control-icons-test)');
   // CUI-0007: the button label is a plural — one similar question reads "this one", not "these 1"
   assert(await pg.evaluate(() => t('similar.practise', { n: 1 })) === 'Practise this one', 'practise plural one: Practise this one');
   assert(await pg.evaluate(() => t('similar.practise', { n: 3 })) === 'Practise these 3', 'practise plural other: Practise these 3');
@@ -137,15 +137,17 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await answer(true);
   const before = await pg.evaluate(() => ({ len: state.questions.length, cur: state.current, examNum: state.examNum }));
   await pg.click('#similarBox .sqm-cta button');
-  assert(await pg.evaluate(() => state.questions.map(qKey).join(',') === '9.14,12.18'), 'temporary session holds only the similar questions');
+  assert(await pg.evaluate(() => state.questions.map(qKey).join(',') === '9.14,12.18,18.23'), 'temporary session holds only the similar questions');
   assert((await text('#quizLabel')) === 'Similar Questions', 'session label');
-  assert((await pg.$eval('#qNum > span', e => e.dataset.full)) === 'Question 1 of 2', 'progress counts the similar questions');
+  assert((await pg.$eval('#qNum > span', e => e.dataset.full)) === 'Question 1 of 3', 'progress counts the similar questions');
   await answer(false);
   assert(!(await vis('#similarBox')), 'no nested similar section inside the temporary session');
-  assert(await pg.evaluate(() => state.questions.length === 2), 'wrong answer is not re-queued (each question once)');
+  assert(await pg.evaluate(() => state.questions.length === 3), 'wrong answer is not re-queued (each question once)');
   assert(await pg.evaluate(() => JSON.parse(localStorage.getItem('lifeuk.practiceStreak'))['9.14'] === 0), 'streak still recorded in the temporary session');
   assert((await text('#nextBtn')) === 'Next', 'next button before the last question');
   await pg.click('#nextBtn');
+  await answer(true);
+  await pg.click('#nextBtn'); // v2.7.0: 3 similar questions (+ 18.23)
   await answer(true);
   // plain "Back": a question number read like Q1 of the similar session
   assert((await text('#nextBtn')).trim() === 'Back' && await pg.$eval('#nextBtn svg.line-icon', e => e.dataset.iconName === 'returnLeft'), 'last question offers the way back (return line icon, C1)');

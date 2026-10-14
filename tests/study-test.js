@@ -71,7 +71,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
 
   // home: chapter grid
   const counts = await pg.$$eval('#chapterGrid .ch-count', els => els.map(e => parseInt(e.textContent.split('/')[1])));
-  assert(counts.length === 5 && counts.reduce((a, b) => a + b, 0) === 408, 'chapter grid 5 buttons, counts sum 408: ' + counts.join('/'));
+  assert(counts.length === 5 && counts.reduce((a, b) => a + b, 0) === 480, 'chapter grid 5 buttons, counts sum 480: ' + counts.join('/'));
   await pg.screenshot({ path: path.join(__dirname, 'shot-home.png'), fullPage: true });
 
   // chapter practice
@@ -80,7 +80,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.click('#chapterGrid .chapter-btn:nth-child(3)');
   assert(await pg.$eval('#quizLabel', e => e.textContent) === 'Chapter 3', 'chapter practice label');
   assert(await pg.$eval('#modeBadge', e => e.textContent) === 'Practice', 'chapter practice is practice mode');
-  assert(await pg.evaluate(() => chapterQuestions(3).length === 167 && state.questions.length === 24 && state.questions.every(q => q.ch === 3)), 'chapter 3 has 167 questions; round of 24, all ch3');
+  assert(await pg.evaluate(() => chapterQuestions(3).length === 194 && state.questions.length === 24 && state.questions.every(q => q.ch === 3)), 'chapter 3 has 194 questions; round of 24, all ch3');
   assert((await pg.$eval('#nextBtn', e => e.textContent)) !== 'Submit', 'no Submit in chapter practice');
   // finish quickly: answer nothing, jump to last, finish -> no completedExams saved
   await pg.evaluate(() => { state.current = state.questions.length - 1; renderQuestion(); finishExam(); });

@@ -18,12 +18,12 @@ const IS_CHILD = !!process.env.PLAN_TEST_CHILD;
 
 // headline numbers (SK-020: checked against the data on 2026-10-08, arch §0)
 const FACT_COUNT = 235; // v1.3.2: #126 merged into #125
-const QUESTION_COUNT = 408;
-const CANON_COUNT = 389;
-const CANON_PER_CHAPTER = { 1: 9, 2: 11, 3: 161, 4: 106, 5: 102 };
+const QUESTION_COUNT = 480;
+const CANON_COUNT = 461; // v2.7.0: + Exam 18–20 (72 new distinct questions)
+const CANON_PER_CHAPTER = { 1: 12, 2: 14, 3: 188, 4: 124, 5: 123 };
 const FACTS_PER_CHAPTER = { 1: 2, 2: 4, 3: 91, 4: 67, 5: 71 }; // v1.3.2: Ch4 #126 merged into #125
-const MAX_SRC_PER_FACT = 8; // fact #21 (arch §0)
-const MAX_QIDS_PER_FACT = 6; // fact #21's 8 sources are 6 distinct English questions
+const MAX_SRC_PER_FACT = 9; // fact #21 (arch §0; v2.7.0: + 19.4)
+const MAX_QIDS_PER_FACT = 7; // fact #21's 9 sources are 7 distinct English questions (fact #1: 7 of 7, v2.7.0)
 const STUDY_ORDER = [1, 2, 5, 4, 3]; // handoff §2.3
 const TODAY = '2026-10-08'; // a Thursday
 const STORAGE_BUDGET_BYTES = 300000; // arch §B.5
@@ -186,7 +186,7 @@ function checkFeasibility() {
   const need = Math.round(FACT_COUNT * 1.5 + CANON_COUNT * 0.75 + CANON_COUNT * 0.4 * 0.75 + 5 * 60);
   assert(f(60).needMins === need, `need minutes (none) = ${need}`);
   assert(f(60).studyDays === 18 && f(60).restCount === 3 && f(60).availMins === 18 * 60, '21 days with Sundays off = 18 study days');
-  assert(f(120).status === 'ok' && f(60).status === 'tight' && f(30).status === 'short', 'three feasibility states');
+  assert(f(120).status === 'ok' && f(65).status === 'tight' && f(30).status === 'short', 'three feasibility states (v2.7.0: 461 Qs need ~1137 min, so 60 min × 18 days is now short; 65 is tight)');
   assert(f(60).diffMins === 18 * 60 - need, 'diffMins = available - needed');
   const nf = l => g('planNeedMinutes')(l);
   assert(nf('none') > nf('some') && nf('some') > nf('exam'), 'need minutes shrink with the level');
@@ -352,8 +352,8 @@ function checkMastered() {
   assert(roundOf(emptyLog(), half).every(k => !half.has(k)) && roundOf(emptyLog(), half).length === practice.qids.length - 4, 'G37: the runner asks only questions not mastered');
   const askable = g('planAskableQids')(practice, g('planDayLog')(view(emptyLog(), half), TODAY));
   assert(askable.length === practice.qids.length - 4 && askable.every(k => !half.has(k)), 'W-038: planAskableQids leaves the mastered questions out');
-  const drill = { type: 'drill', ch: 1, quota: 9, qids: practice.qids };
-  assert(prog(drill, emptyLog(), all).done === 0 && g('planNextRound')(drill, g('planDayLog')(view(emptyLog(), all), TODAY), []).length === 9, 'G37: drill is not affected (G5: right again)');
+  const drill = { type: 'drill', ch: 1, quota: 12, qids: practice.qids };
+  assert(prog(drill, emptyLog(), all).done === 0 && g('planNextRound')(drill, g('planDayLog')(view(emptyLog(), all), TODAY), []).length === 12, 'G37: drill is not affected (G5: right again)');
   const review = { type: 'review', qids: practice.qids.slice(0, 2) };
   assert(prog(review, emptyLog(), all).done === 0, 'G37: clear wrong answers is not affected');
   const wf = { type: 'wrongFacts', facts: read.facts, anchor: {} };

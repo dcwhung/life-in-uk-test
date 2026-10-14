@@ -69,13 +69,13 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
     const q = e.querySelector('.rv-q').cloneNode(true); q.querySelectorAll('.rv-streak').forEach(t => t.remove());
     return q.textContent.split('.')[0] + (e.classList.contains('rv-wrong') ? 'x' : '');
   }));
-  assert(JSON.stringify(await chips()) === JSON.stringify(['All 9*', 'Wrong 2', 'Flagged 0']), 'practice filter chips, All by default');
+  assert(JSON.stringify(await chips()) === JSON.stringify(['All 12*', 'Wrong 2', 'Flagged 0']), 'practice filter chips, All by default');
   await pg.click('#reviewOrder .chip:nth-child(2)');
   assert(JSON.stringify(await items()) === JSON.stringify(['3x', '6x']), 'Wrong filter: only the wrong ones, original numbers kept');
   // S-102: the chips are redrawn on a filter change; keyboard focus stays on the chip just chosen
   const focusedArg = () => pg.evaluate(() => document.activeElement && document.activeElement.dataset.arg);
   await pg.focus('#reviewOrder .chip:nth-child(1)'); await pg.keyboard.press('Enter');
-  assert((await focusedArg()) === 'all' && (await items()).length === 9, 'S-102: Enter on All keeps focus on All');
+  assert((await focusedArg()) === 'all' && (await items()).length === 12, 'S-102: Enter on All keeps focus on All');
   await pg.keyboard.press('Tab'); await pg.keyboard.press('Enter');
   assert((await focusedArg()) === 'wrong' && JSON.stringify(await items()) === JSON.stringify(['3x', '6x']), 'S-102: Tab + Enter on Wrong filters and keeps focus on Wrong');
   assert(errs.length === 0, 'no page errors: ' + errs.join(';'));

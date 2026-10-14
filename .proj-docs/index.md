@@ -186,6 +186,7 @@
 
 ## Plans
 
+- [2026-10-14_new-exams-18-20-draft.md](plans/2026-10-14_new-exams-18-20-draft.md) — Exam 18–20 模擬試題審稿（72 題，數據源同名 .json）
 - [2026-10-13_plan_loading-intro.md](plans/2026-10-13_plan_loading-intro.md) — Loading 畫面 + 首次介紹實作計劃（v2.5.0）：決定表、檔案清單、相關 suite 測試結果
 - [2026-10-13_grill_loading-intro.md](plans/2026-10-13_grill_loading-intro.md) — Loading page + 首次 3 頁介紹 grill（Q1–Q8）+ 三個 mockup 方案 `mockups/v2.2.0/intro-*.html`（A 官方典雅 / B 輕鬆卡片 / C 互動示範），等用戶揀
 - [2026-10-13_grill_desktop-memo.md](plans/2026-10-13_grill_desktop-memo.md) — Desktop 記憶法 layout grill（Q1 成個流程、Q2 清單 grid、Q3 全對顯示記憶鉤新 i18n key）；mockup `mockups/v2.0.0/desktop-memo.html` 第 13 份 **rev 6**：清單 < 1280 3 欄／≥ 1280 4 欄、「今日要溫」固定（PC；手機 sticky 留空位）、手機卡片 2 欄；① 睇 頂行 + 左記憶鉤／筆記 + 右題組問題（唔顯示答案；手機收埋喺筆記下面）；結果 B；題目用系統 pill（`#n`、`📜 Ch n`、`E·Q`）；記憶鉤分行；單題組 C（白卡置中）；手機 ① 睇／② 試／結果一屏高、掣貼底、記憶鉤同題目卡固定；手機一屏高 Quiz 用喺所有 Quiz（P6）。**rev 6 定案，已實作為 v2.4.0**（review 時叫 v2.2.0、QA 時叫 v2.3.0）；merge `main` v1.6.1 時用戶 2026-10-13 決定 rev 6 蓋過 v1.6.1（badge 右上、3／4 欄、banner 固定），手機 banner 黐住 sticky `.study-top` 下面（接受約 35% 畫面、320px 大字卡片擠）；C-007 後一屏高 panel 唔夠位就退返成頁碌

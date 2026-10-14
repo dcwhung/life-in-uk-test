@@ -13,15 +13,15 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.evaluate(() => localStorage.clear()); await pg.reload();
 
   // data
-  const dist = await pg.evaluate(() => { const d = {}; for (let i = 1; i <= 17; i++) EXAMS[i].forEach(q => d[q.d] = (d[q.d] || 0) + 1); return d; });
-  assert(Object.values(dist).reduce((a, b) => a + b, 0) === 408 && Object.keys(dist).join('') === '12345', 'all 408 have d in 1..5: ' + JSON.stringify(dist));
+  const dist = await pg.evaluate(() => { const d = {}; for (let i = 1; i <= EXAM_COUNT; i++) EXAMS[i].forEach(q => d[q.d] = (d[q.d] || 0) + 1); return d; });
+  assert(Object.values(dist).reduce((a, b) => a + b, 0) === 480 && Object.keys(dist).join('') === '12345', 'all 480 have d in 1..5: ' + JSON.stringify(dist));
   assert(await pg.evaluate(() => STUDY.every(f => f.d >= 1 && f.d <= 5)), 'all facts have d');
   assert(await pg.evaluate(() => STUDY.every(f => f.src.every(s => { const [e, i] = s.split('.'); return EXAMS[e][+i].d <= f.d; }))), 'fact d = max of its questions');
   assert(await pg.evaluate(() => EXAMS[1][6].d === 5), 'Bill of Rights T/F trap = 5 stars');
 
   // home grid
   const counts = await pg.$$eval('#diffGrid .ch-count', els => els.map(e => parseInt(e.textContent.split('/')[1])));
-  assert(counts.length === 5 && counts.reduce((a, b) => a + b, 0) === 408, 'difficulty grid counts (Easy to Expert only): ' + counts.join('/'));
+  assert(counts.length === 5 && counts.reduce((a, b) => a + b, 0) === 480, 'difficulty grid counts (Easy to Expert only): ' + counts.join('/'));
   const names = await pg.$$eval('#diffGrid .ch-name', els => els.map(e => e.textContent));
   assert(JSON.stringify(names) === JSON.stringify(['Easy', 'Basic', 'Medium', 'Hard', 'Expert']), 'English-only difficulty labels, no Hard & Expert row: ' + names);
   await pg.screenshot({ path: path.join(__dirname, 'shot-diff-home.png'), fullPage: true });

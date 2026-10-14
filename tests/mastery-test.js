@@ -18,11 +18,11 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.evaluate(() => localStorage.clear()); await pg.reload();
 
   // mastery labels on all three practice views
-  assert((await pg.$eval('#diffGrid .diff-btn:first-child .ch-count', e => e.textContent)) === '0/84 · 0%', 'difficulty button shows mastered/total');
+  assert((await pg.$eval('#diffGrid .diff-btn:first-child .ch-count', e => e.textContent)) === '0/93 · 0%', 'difficulty button shows mastered/total');
   await pg.click('#ptabChapter');
-  assert((await pg.$eval('#chapterGrid .chapter-btn:first-child .ch-count', e => e.textContent)) === '0/9 · 0%', 'chapter button shows mastery');
+  assert((await pg.$eval('#chapterGrid .chapter-btn:first-child .ch-count', e => e.textContent)) === '0/12 · 0%', 'chapter button shows mastery');
   await pg.click('#ptabExam');
-  assert((await pg.$eval('#examGrid .exam-btn.all .exam-mastery', e => e.textContent)) === '0/408 · 0%', 'All Exams shows mastery in practice');
+  assert((await pg.$eval('#examGrid .exam-btn.all .exam-mastery', e => e.textContent)) === '0/480 · 0%', 'All Exams shows mastery in practice');
   // mastery bar stays inside the rounded exam boxes (clipped), along the bottom edge
   await pg.evaluate(() => { streaks = { '1.0': 3, '1.1': 3, '1.2': 3 }; setLS(STREAK_LS, streaks); buildExamGrid(); });
   const barFit = await pg.$$eval('#examGrid .exam-btn', btns => btns.map(btn => {
@@ -31,13 +31,13 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
     const b = btn.getBoundingClientRect(), r = bar.getBoundingClientRect();
     return cs.overflow === 'hidden' && r.left >= b.left && Math.abs(r.bottom - (b.bottom - bw)) < 1;
   }));
-  assert(barFit.length === 18 && barFit.every(Boolean), 'exam box clips its mastery bar, which sits on the bottom edge');
+  assert(barFit.length === 21 && barFit.every(Boolean), 'exam box clips its mastery bar, which sits on the bottom edge');
   await pg.evaluate(() => { streaks = {}; setLS(STREAK_LS, streaks); buildExamGrid(); });
   assert(await vis('#practiceReset') && !(await vis('#examReset')), 'practice reset row shown, exam reset hidden');
   assert((await pg.$eval('#practiceHint', e => e.textContent)).includes('3 times in a row'), 'hint text reads from MASTERY_STREAK');
 
   // streak: the session length stays fixed (no in-session re-queue); unmastered questions
-  // come back in the next session, so Ch1 (9 Q) all correct = mastered after 3 sessions
+  // come back in the next session, so Ch1 (12 Q) all correct = mastered after 3 sessions
   const answerAt = (i, correct) => pg.evaluate(({ i, correct }) => {
     state.current = i; const q = state.questions[i];
     state.answers[i] = correct ? [...q.a] : [q.o.findIndex((_, k) => !q.a.includes(k))];
@@ -46,43 +46,43 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.evaluate(() => { pendingMode = 'practice'; startExam('ch1'); });
   await answerAt(0, true);
   assert((await pg.$eval('#ansLabel', e => e.textContent)).includes('🔥 1/3'), 'streak indicator 1/3 after one correct');
-  assert(await pg.evaluate(() => state.questions.length === 9), 'session length unchanged after a correct (unmastered) answer');
+  assert(await pg.evaluate(() => state.questions.length === 12), 'session length unchanged after a correct (unmastered) answer');
   const answerRest = (from) => pg.evaluate((from) => {
     for (let i = from; i < state.questions.length; i++) {
       state.current = i; state.answers[i] = [...state.questions[i].a]; revealAnswer();
     }
   }, from);
   await answerRest(1);
-  assert(await pg.evaluate(() => state.questions.length === 9), 'one session = 9 answers, no repeats');
-  assert(await pg.evaluate(() => new Set(state.questions.map(qKey)).size === 9), 'each question once per session');
+  assert(await pg.evaluate(() => state.questions.length === 12), 'one session = 12 answers, no repeats');
+  assert(await pg.evaluate(() => new Set(state.questions.map(qKey)).size === 12), 'each question once per session');
   assert(await pg.evaluate(() => Object.values(JSON.parse(localStorage.getItem('lifeuk.practiceStreak'))).every(v => v === 1)), 'all Ch1 streaks at 1 after one session');
-  // sessions 2 and 3: unmastered questions come back, all 9 each time
+  // sessions 2 and 3: unmastered questions come back, all 12 each time
   for (const n of [2, 3]) {
-    assert(await pg.evaluate(() => { startExam('ch1'); return state.questions.length === 9; }), `session ${n}: unmastered questions come back`);
+    assert(await pg.evaluate(() => { startExam('ch1'); return state.questions.length === 12; }), `session ${n}: unmastered questions come back`);
     await answerRest(0);
   }
   assert(await pg.evaluate(() => Object.values(JSON.parse(localStorage.getItem('lifeuk.practiceStreak'))).every(v => v === 3)), 'all Ch1 streaks at 3 after three sessions');
   assert((await pg.$eval('#ansLabel', e => e.textContent)).includes('🏆 Mastered'), 'mastered label at 3/3');
   await pg.evaluate(() => goHome());
   await pg.click('#ptabChapter');
-  assert((await pg.$eval('#chapterGrid .chapter-btn:first-child .ch-count', e => e.textContent)) === '9/9 · 100%', 'Ch1 shows 9/9 · 100%');
+  assert((await pg.$eval('#chapterGrid .chapter-btn:first-child .ch-count', e => e.textContent)) === '12/12 · 100%', 'Ch1 shows 12/12 · 100%');
   assert(await pg.$eval('#chapterGrid .chapter-btn:first-child', e => e.classList.contains('complete')), 'complete styling');
   await pg.screenshot({ path: path.join(__dirname, 'shot-mastery-home.png') });
   // whole set mastered -> all asked again
-  assert(await pg.evaluate(() => { startExam('ch1'); return state.questions.length === 9; }), 'fully mastered set: all 9 asked again');
+  assert(await pg.evaluate(() => { startExam('ch1'); return state.questions.length === 12; }), 'fully mastered set: all 12 asked again');
   // one wrong resets that question to 0 and it comes back alone
   await pg.evaluate(() => { state.current = 0; const q = state.questions[0]; state.answers[0] = [q.o.findIndex((_, k) => !q.a.includes(k))]; revealAnswer(); });
   assert((await pg.$eval('#ansLabel', e => e.textContent)).includes('🔥 0/3'), 'wrong answer resets streak to 0');
-  assert(await pg.evaluate(() => state.questions.length === 9), 'wrong answer is not re-queued in the same session');
+  assert(await pg.evaluate(() => state.questions.length === 12), 'wrong answer is not re-queued in the same session');
   const only = await pg.evaluate(() => { const k = qKey(state.questions[0]); startExam('ch1'); return state.questions.length === 1 && qKey(state.questions[0]) === k; });
   assert(only, 'only the reset question is asked next time (others mastered)');
   await pg.evaluate(() => goHome());
   await pg.click('#ptabChapter');
-  assert((await pg.$eval('#chapterGrid .chapter-btn:first-child .ch-count', e => e.textContent)) === '8/9 · 89%', 'Ch1 now 8/9');
+  assert((await pg.$eval('#chapterGrid .chapter-btn:first-child .ch-count', e => e.textContent)) === '11/12 · 92%', 'Ch1 now 11/12');
   // difficulty / exam views reflect the same streaks
   await pg.click('#ptabDifficulty');
   const diffTotal = await pg.$$eval('#diffGrid .diff-btn:nth-child(-n+5) .ch-count', els => els.reduce((a, e) => a + parseInt(e.textContent), 0));
-  assert(diffTotal === 8, 'difficulty view sums to 8 mastered');
+  assert(diffTotal === 11, 'difficulty view sums to 11 mastered');
   // exam mode does not touch streaks, hides mastery text, shows exam reset
   await pg.click('#modeExam');
   assert(!(await vis('#practiceReset')) && await vis('#examReset'), 'exam reset row shown in exam mode');
@@ -113,7 +113,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.click('#confirmCancel');
   assert(await pg.evaluate(() => localStorage.getItem('lifeuk.wrongList') === '{"1.0":true}'), 'Keep leaves the progress');
   await pg.click('#practiceReset .reset-btn'); await pg.click('#confirmOk');
-  assert((await pg.$eval('#diffGrid .diff-btn:first-child .ch-count', e => e.textContent)) === '0/84 · 0%' && await pg.evaluate(() => localStorage.getItem('lifeuk.practiceStreak') === '{}'), 'reset progress clears streaks');
+  assert((await pg.$eval('#diffGrid .diff-btn:first-child .ch-count', e => e.textContent)) === '0/93 · 0%' && await pg.evaluate(() => localStorage.getItem('lifeuk.practiceStreak') === '{}'), 'reset progress clears streaks');
   assert(await pg.evaluate(() => localStorage.getItem('lifeuk.wrongList') === '{}' && localStorage.getItem('lifeuk.practiceFlags') === '{}' && !Object.keys(wrongList).length && !Object.keys(practiceFlags).length), 'reset progress clears the wrong list and flags');
   assert(!(await pg.$eval('#myReview', e => e.offsetParent !== null)), 'My Review hidden after reset');
   assert(dialogs.length === 0, 'no browser alert / confirm boxes: ' + dialogs.join(';'));

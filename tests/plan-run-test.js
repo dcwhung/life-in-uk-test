@@ -362,26 +362,30 @@ async function checkResume(pg) {
   await seed(pg, { start: START });
   await openDay(pg);
   const p = await plan(pg);
-  const i = taskIndexOf(p, TODAY, t => t.type === 'practice' && t.qids.length === 51);
-  assert(i >= 0, 'today has a 51-question practice task');
+  // v2.7.0: the practice task is 62 Qs with 480 Qs (was 51); answer (size − 41) first so 41 stay: Round 2 of 3 (24), Round 3 of 3 (17)
+  const LEFT_AFTER_FIRST_VISIT = 41, PRACTICE_ROUND = 24; // PRACTICE_ROUND_MAX in js/core/config.js
+  const i = taskIndexOf(p, TODAY, t => t.type === 'practice' && t.qids.length > LEFT_AFTER_FIRST_VISIT && t.qids.length <= LEFT_AFTER_FIRST_VISIT + PRACTICE_ROUND);
+  assert(i >= 0, 'today has a 42–65-question practice task: ' + p.days.find(d => d.date === TODAY).tasks.map(t => t.type + ':' + (t.qids || t.facts || []).length));
+  const size = p.days.find(d => d.date === TODAY).tasks[i].qids.length, firstAnswered = size - LEFT_AFTER_FIRST_VISIT;
   await tap(pg, taskBox(TODAY, i));
-  for (let k = 0; k < 10; k++) { await answer(pg, true); await tap(pg, '#nextBtn'); }
+  for (let k = 0; k < firstAnswered; k++) { await answer(pg, true); await tap(pg, '#nextBtn'); }
   await tap(pg, '#screenQuiz .back-btn');
   await tap(pg, taskBox(TODAY, i));
   const r2 = await cur(pg);
-  assert(r2.note === 'Round 2 of 3' && r2.n === 24, `CUI-0024: 51 Qs, 10 answered, opened again: Round 2 of 3 (24): ${r2.note} (${r2.n})`);
+  assert(r2.note === 'Round 2 of 3' && r2.n === 24, `CUI-0024: ${size} Qs, ${firstAnswered} answered, opened again: Round 2 of 3 (24): ${r2.note} (${r2.n})`);
   await playRound(pg);
   const r3 = await cur(pg);
   assert(r3.note === 'Round 3 of 3' && r3.n === 17, `CUI-0024: then Round 3 of 3 (17): ${r3.note} (${r3.n})`);
   await playRound(pg);
   assert(await activeScreen(pg) === 'screenPlanRun', 'CUI-0024: …then the Result card');
-  // 39 Qs: 23 right + 1 skipped → Round 2 of 2 (16); left and opened again: still Round 2 of 2
+  // a 2-round task (25–47 Qs; 39 with 408 Qs): 23 right + 1 skipped → Round 2 of 2 (size − 23); left and opened again: still Round 2 of 2
   await fresh(pg);
   await seed(pg);
   await openDay(pg);
   const p2 = await plan(pg);
-  const j = taskIndexOf(p2, TODAY, t => t.type === 'practice' && t.qids.length === 39);
-  assert(j >= 0, 'today has a 39-question practice task');
+  const j = taskIndexOf(p2, TODAY, t => t.type === 'practice' && t.qids.length > PRACTICE_ROUND && t.qids.length < 2 * PRACTICE_ROUND);
+  assert(j >= 0, 'today has a 2-round practice task: ' + p2.days.find(d => d.date === TODAY).tasks.map(t => t.type + ':' + (t.qids || t.facts || []).length));
+  const size2 = p2.days.find(d => d.date === TODAY).tasks[j].qids.length, left2 = size2 - (PRACTICE_ROUND - 1);
   await tap(pg, taskBox(TODAY, j));
   const skip = await pg.evaluate(() => qKey(state.questions[23]));
   await playRound(pg, { skipKeys: [skip] });
@@ -389,8 +393,8 @@ async function checkResume(pg) {
   await tap(pg, '#screenQuiz .back-btn');
   await tap(pg, taskBox(TODAY, j));
   const b = await cur(pg);
-  assert(a.note === 'Round 2 of 2' && a.n === 16 && b.note === 'Round 2 of 2' && b.n === 16,
-    `CUI-0024: 39 Qs, 23 right + 1 skipped: Round 2 of 2 (16) before and after leaving: ${a.note} (${a.n}) / ${b.note} (${b.n})`);
+  assert(a.note === 'Round 2 of 2' && a.n === left2 && b.note === 'Round 2 of 2' && b.n === left2,
+    `CUI-0024: ${size2} Qs, 23 right + 1 skipped: Round 2 of 2 (${left2}) before and after leaving: ${a.note} (${a.n}) / ${b.note} (${b.n})`);
   await pg.evaluate(() => leaveToHome());
 }
 
@@ -518,12 +522,14 @@ async function checkMastered(pg) {
   await tap(pg, taskBox(TODAY, p2));
   assert(await pg.evaluate(half => state.questions.every(q => !half.includes(qKey(q))) && state.questions.length === planLoad().days[0].tasks.find(x => x.type === 'practice' && x.ch === 2).qids.length - 5, half),
     'G37: the runner asks only the questions not mastered');
-  // W-038: rounds count only the questions asked: a 39-question task with 20 mastered is one round, no "Round 1 of 2"
+  // W-038: rounds count only the questions asked: a 2-round task with enough mastered to leave ≤ 24 is one round, no "Round 1 of 2"
   await pg.evaluate(() => leaveToHome());
   const big = await pg.evaluate(() => {
     const tasks = planLoad().days[0].tasks, i = tasks.findIndex(x => x.type === 'practice' && x.qids.length > 24);
-    tasks[i].qids.slice(0, 20).forEach(k => { streaks[k] = MASTERY_STREAK; });
-    return { n: tasks[i].qids.length - 20, i };
+    // v2.7.0: at least 20 mastered, and enough that ≤ one round (24) is left (the task is 45 Qs with 480 Qs)
+    const m = Math.max(20, tasks[i].qids.length - PRACTICE_ROUND_MAX);
+    tasks[i].qids.slice(0, m).forEach(k => { streaks[k] = MASTERY_STREAK; });
+    return { n: tasks[i].qids.length - m, i };
   });
   await openDay(pg);
   await tap(pg, taskBox(TODAY, big.i));

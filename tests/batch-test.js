@@ -28,7 +28,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   }
   // small sets are not padded
   await start('practice', 'ch1');
-  assert(await pg.evaluate(() => state.questions.length === 9), 'ch1 (9 Q): all 9 asked');
+  assert(await pg.evaluate(() => state.questions.length === 12), 'ch1 (12 Q): all 12 asked');
   // exam mode is never capped
   // exam mode All Exams = Random Exam: 24 questions, no two from the same study fact
   await start('exam', 'all');

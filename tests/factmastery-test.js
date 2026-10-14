@@ -10,11 +10,11 @@ const launchOpts = { args: ['--no-sandbox'] };
 if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_PATH;
 const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('ok:', m); };
 
-const DERIVED_FACT = 3;   // chapter 2, sources 4.6 / 6.5 / 17.8 — all mastered below
-const PARTIAL_FACT = 21;  // chapter 3, 8 sources — one mastered below
+const DERIVED_FACT = 3;   // chapter 2, sources 4.6 / 6.5 / 17.8 / 18.1 / 20.1 — all mastered below (v2.7.0: + 18.1 / 20.1)
+const PARTIAL_FACT = 21;  // chapter 3, 9 sources — one mastered below
 const MANUAL_FACT = 4;    // chapter 2, ticked by hand
 const CHAPTER = 2;
-const STREAKS = { '4.6': 3, '6.5': 3, '17.8': 3, '4.16': 3 };
+const STREAKS = { '4.6': 3, '6.5': 3, '17.8': 3, '18.1': 3, '20.1': 3, '4.16': 3 };
 const STUDY_TOTAL = 235; // v1.3.2: #126 merged into #125
 
 const card = id => `#studyContent .fact[data-fact-id="${id}"]`;
@@ -24,8 +24,8 @@ async function checkDomain(pg) {
     const pick = id => { const r = factMastery(STUDY.find(f => f.id === id)); return { mastered: r.mastered, total: r.total, derived: r.derived }; };
     return { d: pick(d), p: pick(p) };
   }, [DERIVED_FACT, PARTIAL_FACT]);
-  assert(JSON.stringify(m.d) === '{"mastered":3,"total":3,"derived":true}', 'factMastery: every source 🏆 → derived (' + JSON.stringify(m.d) + ')');
-  assert(JSON.stringify(m.p) === '{"mastered":1,"total":8,"derived":false}', 'factMastery: 1 / 8 sources → not derived (' + JSON.stringify(m.p) + ')');
+  assert(JSON.stringify(m.d) === '{"mastered":5,"total":5,"derived":true}', 'factMastery: every source 🏆 → derived (' + JSON.stringify(m.d) + ')');
+  assert(JSON.stringify(m.p) === '{"mastered":1,"total":9,"derived":false}', 'factMastery: 1 / 9 sources → not derived (' + JSON.stringify(m.p) + ')');
   // W-011: zero sources is 0 / 0, not "every source mastered" — a fact with no source questions is never derived
   const empty = await pg.evaluate(() => factMastery({ src: [] }));
   assert(empty.derived === false && empty.total === 0, 'factMastery: no sources → not derived (' + JSON.stringify(empty) + ')');

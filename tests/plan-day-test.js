@@ -144,7 +144,7 @@ async function checkHeader(pg) {
   assert(await activeScreen(pg) === 'screenHome', 'schedule ← Home');
 }
 
-// today (Day 4): read Ch 4 (some facts done by practising), practise Ch 4 (20 / 51 right, 2 wrong, 1 of them
+// today (Day 4): read Ch 4 (some facts done by practising), practise Ch 4 (20 / 62 right, 2 wrong, 1 of them
 // right afterwards), clear wrong answers (empty wrong list → done), carry-over from Day 3
 async function checkToday(pg) {
   await fresh(pg);
@@ -173,7 +173,7 @@ async function checkToday(pg) {
   assert(r.tasks.length === 3 + carry.length && carry.length > 0, 'own tasks, then carry-over tasks');
   assert(read.ttl.startsWith('Read Ch 4 Modern society facts #') && !read.cls.includes('todo') && !read.cls.includes('done'), 'read: in progress (solid): ' + read.cls);
   assert(/^Read \d+ \/ 36 facts · continue from #\d+$/.test(read.st), 'read: k / n read · continue from #n: ' + read.st);
-  assert(/^✓ \d+ \/ 51 right · ✗ 11 wrong: only right answers count$/.test(practice.st) && practice.tag === '1 wrong: only right answers count', 'practice: right / total · ✗ k + tag: ' + practice.st + ' | ' + practice.tag);
+  assert(/^✓ \d+ \/ 62 right · ✗ 11 wrong: only right answers count$/.test(practice.st) && practice.tag === '1 wrong: only right answers count', 'practice: right / total · ✗ k + tag: ' + practice.st + ' | ' + practice.tag);
   assert(practice.go === 'Continue' && read.go === 'Continue', 'in progress: "Continue ›"');
   assert(review.cls.includes('done') && review.st === '✓ No wrong answers' && review.go === 'Review', 'clear wrong answers: done, "No wrong answers": ' + review.st);
   assert(review.bar === '100%' && /^\d+%$/.test(practice.bar), 'mini bars sized from JS');
@@ -253,7 +253,7 @@ async function checkAheadDays(pg) {
   assert(drill.every(d => d[1] === 'Decided on the day from your wrong answers' && d[2] === '' && d[0].includes('todo')), 'G23: drill / wrong facts ahead: decided on the day, cannot start early: ' + JSON.stringify(drill));
   await openDay(pg, '2026-10-02');
   const ahead = await pg.$$eval('#planTaskList .plan-task', els => els.map(e => [e.querySelector('.plan-task-st').textContent, (e.querySelector('.plan-task-go') || { textContent: '' }).textContent]));
-  assert(ahead[0][0] === '7 facts · Study' && ahead[0][1] === 'Start' && /^9 questions · Practice$/.test(ahead[1][0]), 'G23: read + practise ahead can start early: ' + JSON.stringify(ahead));
+  assert(ahead[0][0] === '7 facts · Study' && ahead[0][1] === 'Start' && /^12 questions · Practice$/.test(ahead[1][0]), 'G23: read + practise ahead can start early: ' + JSON.stringify(ahead));
   assert(ahead[ahead.length - 1][0] === 'Decided on the day from your wrong answers', 'G23: clear wrong answers ahead: decided on the day');
   // QA O-1: the exam day ahead is a non-today view too, so it offers "back to today"
   await openDay(pg, '2026-10-29');
@@ -487,7 +487,7 @@ async function checkKpis(pg) {
     rows: [...document.querySelectorAll('#planKpiRows .plan-pr')].map(e => [e.querySelector('.plan-pr-k').textContent, e.querySelector('.plan-pr-v').textContent, e.querySelector('.plan-meter-fill').getAttribute('class'), e.querySelector('.plan-meter-fill').style.width]) }));
   assert(r.plan === `${r.k.planPct}%` && r.sub === 'Day 4 / 31' && r.avg === `${r.k.avgPct}%` && r.left === '28 days', 'stats: plan %, Day n / N, average, days left');
   assert(r.rows.length === 3 && r.rows[0][0] === 'Facts read' && r.rows[0][1].startsWith(`${r.k.factsDone} / 235`), 'bar 1: facts read: ' + JSON.stringify(r.rows[0]));
-  assert(r.rows[1][1].startsWith(`${r.k.qidsDone} / 389`) && r.rows[2][0] === 'Mocks ≥ 21/24', 'bars 2 + 3: questions practised, safe mocks');
+  assert(r.rows[1][1].startsWith(`${r.k.qidsDone} / 461`) && r.rows[2][0] === 'Mocks ≥ 21/24', 'bars 2 + 3: questions practised, safe mocks');
   assert(r.rows.every(row => /\bh[0-4]\b/.test(row[2]) && /%$/.test(row[3])), 'bars: G27 band + width from JS');
 }
 

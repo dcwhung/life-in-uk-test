@@ -5,6 +5,7 @@ const path = require('path');
 // - 320 / 390px, en + zh-HK: the header stays on one row, nothing past the screen edge
 // - navigator.share present → called with the title, the localized text and the app folder URL (no ?query / #hash)
 // - the sheet cancelled (AbortError) → no toast; navigator.share missing or refused → link copied + toast; no clipboard → toast with the link
+// - v2.6.4: on a touch phone (hover: none) share / ⚙ / ⓘ go back to their resting colour after a tap closes them (no sticky :hover)
 // - link preview: description + og:title / og:description / og:image (absolute) in index.html
 const APP_URL = process.env.APP_URL || 'file://' + path.resolve(__dirname, '..', 'index.html');
 const launchOpts = { args: ['--no-sandbox'] };
@@ -14,10 +15,10 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
 const HIT_MIN_PX = 44;
 const GAP_PX = 4;
 const LABEL = { en: 'Share', 'zh-HK': '分享' };
-const TEXT = { en: '400+ practice questions · Cantonese translations · Works offline', 'zh-HK': '400+ 條模擬試題 · 廣東話翻譯 · 離線可用' };
+const TEXT = { en: '480+ practice questions · Cantonese translations · Works offline', 'zh-HK': '480+ 條模擬試題 · 廣東話翻譯 · 離線可用' };
 const TITLE = { en: 'Life in the UK Test · Exam Practice', 'zh-HK': 'Life in the UK Test · 應試練習' };
 const COPIED = { en: 'Link copied', 'zh-HK': '已複製連結' };
-const PREVIEW = '400+ practice questions · Cantonese translations · Works offline｜400+ 條模擬試題 · 廣東話翻譯 · 離線可用';
+const PREVIEW = '480+ practice questions · Cantonese translations · Works offline｜480+ 條模擬試題 · 廣東話翻譯 · 離線可用';
 
 // stub navigator.share / clipboard before the app runs; mode: 'ok' | 'abort' | 'deny' | 'none'; clip: true | false
 const stub = (pg, mode, clip = true) => pg.addInitScript(({ mode, clip }) => {
@@ -110,6 +111,20 @@ const hitOk = (pg, sel) => pg.evaluate(({ s, min }) => {
   await pg.waitForFunction(() => { const e = byId('appToast'); return e && !e.hidden; });
   const msg = await toast(pg);
   assert(msg.startsWith('Copy this link: ') && msg.endsWith('/'), 'no clipboard: the toast shows the link to copy');
+
+  // v2.6.4: touch phone, tap ⚙ open + closed, tap ⓘ open + closed, tap share: each back to its resting colour
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+  const tp = await ctx.newPage();
+  await stub(tp, 'ok');
+  await tp.goto(APP_URL);
+  const colours = () => tp.evaluate(() => ['shareBtn', 'settingsBtn', 'infoBtn'].map(id => getComputedStyle(byId(id)).color));
+  const rest = await colours();
+  assert(await tp.evaluate(() => matchMedia('(hover: none)').matches), 'touch context reports (hover: none)');
+  for (const id of ['#settingsBtn', '#settingsBtn', '#infoBtn', '#infoBtn', '#shareBtn']) await tp.tap(id);
+  await tp.waitForFunction(() => window.__shared);
+  await tp.waitForTimeout(500); // colour transitions settle
+  assert(JSON.stringify(await colours()) === JSON.stringify(rest), `touch: share / ⚙ / ⓘ back to their resting colours after tapping (${JSON.stringify(rest)})`);
+  await ctx.close();
 
   // link preview meta
   const raw = require('fs').readFileSync(path.resolve(__dirname, '..', 'index.html'), 'utf8'); // what a link crawler reads (no JS)
