@@ -11,7 +11,8 @@ Workflow 兩個檔：`.github/workflows/test.yml`（名 `tests`，job `node-test
 | `node-tests`（`test.yml`） | 每個 branch 嘅 `push`（`branches: ['**']`，push tag 唔跑），同所有 `pull_request` | `node tests/tools/node-only-suites.js` 揀出嚟、唔使 browser 嘅 suite（而家 9 個：content-guard、memo-domain、note-text、notes-en、plan-countdown、plan、stats-model、telemetry-api、telemetry），每個要 exit 0 而且最後一行有 `PASS` | 1–2 分鐘 |
 | `playwright-tests`（`playwright.yml`） | 只限 target 係 `main` 嘅 `pull_request`（開 PR、PR 有新 push、reopen）；用 `on: pull_request: branches: [main]`，唔係 `if:` | `bash tests/run-all.sh`（全套 Playwright suite，headless Chromium） | 未實測，timeout 45 分鐘 |
 
-- Node 22（`actions/setup-node@v4`）；`playwright-core@1.56.1`（同本機 `/opt/node-tools` 一樣），用 `npm install --no-save --prefix "$RUNNER_TEMP/pw"` 裝喺 checkout 以外（repo 冇 `package.json`），`NODE_PATH` 指去嗰度。
+- Actions 全部用 v5（`checkout`、`setup-node`、`upload-artifact`、`cache`；tag 2026-10-14 用 `git ls-remote` 核實過，S-294）。
+- Node 22（`actions/setup-node@v5`）；`playwright-core@1.56.1`（同本機 `/opt/node-tools` 一樣），用 `npm install --no-save --prefix "$RUNNER_TEMP/pw"` 裝喺 checkout 以外（repo 冇 `package.json`），`NODE_PATH` 指去嗰度。
 - Chromium 用同一版 `playwright-core install --with-deps chromium` 裝；`CHROMIUM_PATH` 設做 `chromium.executablePath()`（完整 Chromium build，同本機 `/opt/pw-browsers/chromium` 一樣，唔用 headless shell）。
 - **CJK 字體 / M4**：`--with-deps` 會帶 WenQuanYi（`fonts-wqy-zenhei`，playwright-core 嘅 `tools` 依賴，`install-deps` 一定裝），但 CI 用 `LANG_SWITCH_NO_CJK_FONT=1`（`Run all Playwright suites` step 嘅 `env`）強制 `lang-switch-test` skip M4 中文換行 check：字體同本機 Noto 唔同，量出嚟嘅換行唔可信（用戶 2026-10-14 決定，W-393）。CI log 最後一行會係 `LANG-SWITCH PASS (M4 skipped: no CJK font)`；要驗 M4 就喺有 `fonts-noto-cjk` 嘅本機跑。
 - `fetch-depth: 0`：`tests/upgrade-test.js` 要 `git archive` 一個 pinned 嘅 v0.57 commit，shallow clone 冇。
