@@ -84,6 +84,7 @@ const SHELL = [
   'js/screens/memo.js',
   'js/screens/intro.js',
   'js/core/actions.js',
+  'js/core/telemetry.js',
   'js/pwa/pwa.js',
   'js/main.js',
 ];
