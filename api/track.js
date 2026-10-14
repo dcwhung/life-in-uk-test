@@ -14,6 +14,11 @@ const ALLOWED_ORIGIN = 'https://life-uk.vercel.app';
 // Sized to the Upstash free plan (500k commands / month): ~3 commands a request × 4000 × 30 days ≈ 360k
 const DAILY_REQUEST_BUDGET = 4000;
 const BUDGET_EVENT = 'budget';
+// AU-031: the budget key is only read by this file on its own day; 2 days leaves a margin past the UTC turn
+const SECONDS_PER_DAY = 24 * 60 * 60;
+const BUDGET_TTL_DAYS = 2;
+const BUDGET_TTL_SECONDS = BUDGET_TTL_DAYS * SECONDS_PER_DAY;
+const FIRST_REQUEST = 1;
 // a launch sends at most every event once; a much longer list is not our client
 const MAX_EVENTS = 10;
 
@@ -31,6 +36,15 @@ function parseEvents(body) {
   if (!data || !Array.isArray(data.events) || data.events.length > MAX_EVENTS) return null;
   const known = [...new Set(data.events)].filter(e => EVENTS.includes(e));
   return known.length ? known : null;
+}
+
+// AU-031: the day's first request (used = 1) also sets the budget key's TTL, inside the event pipeline: one command a
+// day and no extra round trip. An EXPIRE beside every budget INCR would add ~1 command a request (~4 × 4000 × 30 ≈
+// 480k of the 500k / month)
+function eventCommands(events, today, used) {
+  const commands = events.map(e => ['INCR', counterKey(e, today)]);
+  if (used === FIRST_REQUEST) commands.push(['EXPIRE', counterKey(BUDGET_EVENT, today), BUDGET_TTL_SECONDS]);
+  return commands;
 }
 
 async function track(req, res) {
@@ -52,7 +66,7 @@ async function track(req, res) {
       budgetSpentOn = today;
       return res.status(204).end();
     }
-    await redisPipeline(events.map(e => ['INCR', counterKey(e, today)]));
+    await redisPipeline(eventCommands(events, today, used));
   } catch (e) {
     console.error('track:', e.message);
     return res.status(502).end();
@@ -63,3 +77,4 @@ async function track(req, res) {
 module.exports = track;
 module.exports.ALLOWED_ORIGIN = ALLOWED_ORIGIN;
 module.exports.DAILY_REQUEST_BUDGET = DAILY_REQUEST_BUDGET;
+module.exports.BUDGET_TTL_SECONDS = BUDGET_TTL_SECONDS;

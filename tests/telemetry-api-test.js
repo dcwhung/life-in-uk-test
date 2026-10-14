@@ -70,19 +70,24 @@ async function checkTrackCounts() {
   assert(redis.calls.length === 2 && redis.calls.every(c => c.url === `${REDIS_URL}/pipeline` && c.auth === `Bearer ${REDIS_TOKEN}`),
     'two pipeline calls with the Redis token');
   assert(same(redis.calls[0].commands, [['INCR', `lifeuk:budget:${TODAY}`]]), 'first the daily request budget');
+  // AU-031: the day's first request also sets the budget key's TTL (in the event pipeline: no extra round trip)
   assert(same(redis.calls[1].commands, [
     ['INCR', `lifeuk:open:${TODAY}`], ['INCR', `lifeuk:standalone:${TODAY}`], ['INCR', `lifeuk:dau:${TODAY}`],
-  ]), 'then one INCR per event, keyed by UTC day');
+    ['EXPIRE', `lifeuk:budget:${TODAY}`, track.BUDGET_TTL_SECONDS],
+  ]), 'then one INCR per event, keyed by UTC day, + EXPIRE on the budget key (first request of the day)');
+  assert(track.BUDGET_TTL_SECONDS === 2 * 24 * 60 * 60, 'AU-031: the budget key lives 2 days');
   assert(redis.calls[0].signal instanceof AbortSignal, 'S-100: the Redis fetch has a timeout signal');
   await track(req({ body: { events: ['install'] } }), fakeRes());
   assert(redis.counts.get(`lifeuk:install:${TODAY}`) === 1, 'object body (application/json) works too');
+  assert(same(redis.calls[3].commands, [['INCR', `lifeuk:install:${TODAY}`]]), 'later requests that day: no EXPIRE again');
 }
 
 async function checkTrackFilters() {
   const redis = fakeRedis();
   const res = fakeRes();
   await track(req({ body: JSON.stringify({ events: ['open', 'open', 'hack', 42, 'dau'] }) }), res);
-  assert(res.statusCode === 204 && same(redis.calls[1].commands.map(c => c[1]), [`lifeuk:open:${TODAY}`, `lifeuk:dau:${TODAY}`]),
+  const counted = redis.calls[1].commands.filter(c => c[0] === 'INCR').map(c => c[1]);
+  assert(res.statusCode === 204 && same(counted, [`lifeuk:open:${TODAY}`, `lifeuk:dau:${TODAY}`]),
     'unknown and repeated events dropped');
   for (const [label, body] of [
     ['no known event', { events: ['hack'] }], ['events not an array', { events: 'open' }],
