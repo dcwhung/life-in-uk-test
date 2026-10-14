@@ -10,8 +10,9 @@ const { redisConfig, redisPipeline } = require('./_lib/redis');
 // js/core/config.js (tests/telemetry-test.js checks). A filter against other sites' pages, not auth: curl can send it
 const ALLOWED_ORIGIN = 'https://life-uk.vercel.app';
 // W-088: requests counted per UTC day; past it a beacon gets 204 but counts nothing, so a flood costs one INCR per
-// request instead of one per event and cannot inflate the numbers beyond it (rate limiting = Vercel Firewall rule)
-const DAILY_REQUEST_BUDGET = 20000;
+// request instead of one per event and cannot inflate the numbers beyond it (rate limiting = Vercel Firewall rule).
+// Sized to the Upstash free plan (500k commands / month): ~3 commands a request × 4000 × 30 days ≈ 360k
+const DAILY_REQUEST_BUDGET = 4000;
 const BUDGET_EVENT = 'budget';
 // a launch sends at most every event once; a much longer list is not our client
 const MAX_EVENTS = 10;
