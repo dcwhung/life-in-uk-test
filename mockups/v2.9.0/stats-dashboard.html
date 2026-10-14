@@ -1,7 +1,8 @@
 <title>Life in UK Usage</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
-/* Layout: navy app bar → range filter → 4 summary tiles → two full-width charts → daily table; one column on phones.
+/* Layout: navy app bar (range chips) → "since launch" strip → 4 period tiles → two full-width charts → scroll-panel table;
+   one column on phones. 7 / 30 / 90 days read per day; 1 year / all time read per month.
    Tokens follow the app's own (css/base/tokens.css): navy bar, #f0f2f7 page, white cards; chart hues validated
    with the dataviz palette validator (light on #fff, dark on #1a2744). */
 :root {
@@ -14,56 +15,69 @@
   --bar: #1a2744;
   --bar-text: #ffffff;
   --bar-muted: rgba(255,255,255,0.6);
+  --bar-line: rgba(255,255,255,0.25);
   --chip-bg: rgba(255,255,255,0.1);
   --chip-on-bg: #ffffff;
   --chip-on-text: #1a2744;
-  --series-1: #3d5bc4;   /* all opens / dau */
+  --series-1: #3d5bc4;   /* browser opens / active devices */
   --series-2: #b8892a;   /* installed-app opens */
-  --area-1: rgba(61,91,196,0.10);
   --up: #2d6a4f;
   --down: #922b21;
   --note-bg: #fdf6e3;
   --note-text: #8a6d1f;
+  --strip-bg: #e6ebf8;
   --focus: #3d5bc4;
   --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, 'PingFang HK', 'Noto Sans HK', 'Microsoft JhengHei', sans-serif;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #111a2e; --card: #1a2744; --text: #e8ecf6; --text-muted: #9aa8c7; --border: #2e3d63; --grid: #26355a;
   --bar: #0c1424; --chip-on-bg: #e8ecf6; --chip-on-text: #1a2744;
-  --series-1: #6a88ea; --series-2: #b5862a; --area-1: rgba(106,136,234,0.12);
-  --up: #52b788; --down: #e88a80; --note-bg: #2a2a1e; --note-text: #e8c97a; --focus: #6a88ea; color-scheme: dark;
+  --series-1: #6a88ea; --series-2: #b5862a;
+  --up: #52b788; --down: #e88a80; --note-bg: #2a2a1e; --note-text: #e8c97a; --strip-bg: #21305a; --focus: #6a88ea;
+  color-scheme: dark;
 } }
 :root[data-theme="dark"] {
   --bg: #111a2e; --card: #1a2744; --text: #e8ecf6; --text-muted: #9aa8c7; --border: #2e3d63; --grid: #26355a;
   --bar: #0c1424; --chip-on-bg: #e8ecf6; --chip-on-text: #1a2744;
-  --series-1: #6a88ea; --series-2: #b5862a; --area-1: rgba(106,136,234,0.12);
-  --up: #52b788; --down: #e88a80; --note-bg: #2a2a1e; --note-text: #e8c97a; --focus: #6a88ea; color-scheme: dark;
+  --series-1: #6a88ea; --series-2: #b5862a;
+  --up: #52b788; --down: #e88a80; --note-bg: #2a2a1e; --note-text: #e8c97a; --strip-bg: #21305a; --focus: #6a88ea;
+  color-scheme: dark;
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 15px; line-height: 1.5; }
 .wrap { max-width: 1040px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 button { font: inherit; cursor: pointer; }
-button:focus-visible, input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+button:focus-visible, input:focus-visible, .table-wrap:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
 /* app bar */
 .appbar { background: var(--bar); color: var(--bar-text); }
-.appbar .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; padding-block: 14px; }
+.appbar .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding-block: 14px; }
 .brand { display: flex; flex-direction: column; min-width: 0; margin-right: auto; }
 .brand b { font-size: 17px; letter-spacing: 0.01em; }
 .brand span { color: var(--bar-muted); font-size: 12.5px; }
-.chips { display: flex; gap: 6px; }
-.chip { border: 0; background: var(--chip-bg); color: var(--bar-text); border-radius: 999px; padding: 6px 13px; font-size: 13.5px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { border: 0; background: var(--chip-bg); color: var(--bar-text); border-radius: 999px; padding: 6px 12px; font-size: 13.5px; }
 .chip[aria-pressed="true"] { background: var(--chip-on-bg); color: var(--chip-on-text); font-weight: 600; }
-.ghost { border: 1px solid rgba(255,255,255,0.25); background: transparent; color: var(--bar-text); border-radius: 8px; padding: 6px 12px; font-size: 13.5px; }
+.tools { display: flex; gap: 8px; }
+.ghost { border: 1px solid var(--bar-line); background: transparent; color: var(--bar-text); border-radius: 8px; padding: 6px 12px; font-size: 13.5px; }
+.lang { min-width: 48px; }
 
 main { display: grid; gap: 16px; padding-block: 18px 40px; }
 .note { background: var(--note-bg); color: var(--note-text); border-radius: 10px; padding: 10px 14px; font-size: 13.5px; display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
 .note button { border: 1px solid currentColor; background: transparent; color: inherit; border-radius: 999px; padding: 3px 11px; font-size: 12.5px; }
 
-/* summary tiles */
+/* since-launch strip: running totals that ignore the range chips */
+.strip { background: var(--strip-bg); border-radius: 12px; padding: 12px 16px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 28px; }
+.strip h2 { font-size: 13px; font-weight: 600; color: var(--text-muted); margin: 0; letter-spacing: 0.02em; flex-basis: 100%; }
+.strip div { display: flex; align-items: baseline; gap: 8px; }
+.strip dt { font-size: 13px; color: var(--text-muted); }
+.strip dd { margin: 0; font-size: 19px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.strip dl { display: contents; }
+
+/* period tiles */
 .tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
-.tile { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; display: grid; gap: 2px; }
+.tile { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; display: grid; gap: 2px; align-content: start; }
 .tile .label { color: var(--text-muted); font-size: 13px; }
 .tile .value { font-size: 28px; font-weight: 650; font-variant-numeric: tabular-nums; line-height: 1.2; }
 .tile .delta { font-size: 12.5px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
@@ -76,20 +90,18 @@ main { display: grid; gap: 16px; padding-block: 18px 40px; }
 .card h2 { font-size: 15.5px; margin: 0; text-wrap: balance; }
 .card .sub { color: var(--text-muted); font-size: 12.5px; margin: 2px 0 0; }
 .legend { display: flex; gap: 14px; font-size: 13px; color: var(--text-muted); }
-.legend i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
-.chart { position: relative; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; vertical-align: -1px; margin-right: 6px; }
+.chart { position: relative; min-height: 220px; }
 .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
-.chart { min-height: 220px; }
 .chart text { fill: var(--text-muted); font-size: 11px; font-family: var(--font); }
 .chart .end-label { fill: var(--text); font-weight: 600; }
-.tip { position: absolute; pointer-events: none; background: var(--text); color: var(--card); border-radius: 8px; padding: 7px 10px; font-size: 12.5px; line-height: 1.45; white-space: nowrap; transform: translate(-50%, calc(-100% - 10px)); font-variant-numeric: tabular-nums; }
-.tip i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+.tip { position: absolute; pointer-events: none; background: var(--text); color: var(--card); border-radius: 8px; padding: 7px 10px; font-size: 12.5px; line-height: 1.5; white-space: nowrap; transform: translate(-50%, calc(-100% - 10px)); font-variant-numeric: tabular-nums; z-index: 2; }
+.tip i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; }
 
-/* table */
-/* daily table: its own scroll panel; the header row stays put while the rows scroll */
+/* table: its own scroll panel; the header row stays put while the rows scroll */
 .table-wrap { overflow: auto; max-height: 360px; border: 1px solid var(--grid); border-radius: 8px; overscroll-behavior: contain; }
-thead th { position: sticky; top: 0; background: var(--card); z-index: 1; box-shadow: inset 0 -1px 0 var(--grid); }
 table { width: 100%; border-collapse: collapse; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+thead th { position: sticky; top: 0; background: var(--card); z-index: 1; box-shadow: inset 0 -1px 0 var(--grid); }
 th, td { padding: 8px 10px; text-align: right; border-bottom: 1px solid var(--grid); white-space: nowrap; }
 th:first-child, td:first-child { text-align: left; }
 th { color: var(--text-muted); font-weight: 600; font-size: 12.5px; }
@@ -100,12 +112,12 @@ td.zero { color: var(--text-muted); }
 .signin { max-width: 420px; margin: 40px auto; background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 22px; display: grid; gap: 12px; }
 .signin h2 { margin: 0; font-size: 18px; }
 .signin p { margin: 0; color: var(--text-muted); font-size: 14px; }
+.field { display: grid; gap: 6px; }
 .signin label { font-size: 13px; font-weight: 600; }
 .signin input { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font: inherit; }
 .primary { border: 0; background: var(--bar); color: var(--bar-text); border-radius: 8px; padding: 10px 14px; font-weight: 600; }
+.secondary { border: 1px solid var(--border); background: transparent; color: var(--text); border-radius: 8px; padding: 9px 14px; }
 .error { color: var(--down); font-size: 13px; }
-.field { display: grid; gap: 6px; }
-.lang { min-width: 52px; }
 
 @media (max-width: 760px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } .tile .value { font-size: 24px; } }
 </style>
@@ -114,13 +126,17 @@ td.zero { color: var(--text-muted); }
   <div class="wrap">
     <div class="brand"><b data-i18n="title"></b><span data-i18n="subtitle"></span></div>
     <div class="chips" role="group" data-i18n-aria="range" id="rangeChips">
-      <button class="chip" data-days="7" aria-pressed="false"></button>
-      <button class="chip" data-days="30" aria-pressed="true"></button>
-      <button class="chip" data-days="90" aria-pressed="false"></button>
+      <button class="chip" type="button" data-range="7" aria-pressed="false"></button>
+      <button class="chip" type="button" data-range="30" aria-pressed="true"></button>
+      <button class="chip" type="button" data-range="90" aria-pressed="false"></button>
+      <button class="chip" type="button" data-range="365" aria-pressed="false"></button>
+      <button class="chip" type="button" data-range="all" aria-pressed="false"></button>
     </div>
-    <button class="ghost lang" id="langBtn" type="button"></button>
-    <button class="ghost" id="refreshBtn" type="button" data-i18n="refresh"></button>
-    <button class="ghost" id="signOutBtn" type="button" data-i18n="signOut"></button>
+    <div class="tools">
+      <button class="ghost lang" id="langBtn" type="button"></button>
+      <button class="ghost" id="refreshBtn" type="button" data-i18n="refresh"></button>
+      <button class="ghost" id="signOutBtn" type="button" data-i18n="signOut"></button>
+    </div>
   </div>
 </header>
 
@@ -131,6 +147,16 @@ td.zero { color: var(--text-muted); }
       <button type="button" id="showSignIn" data-i18n="previewSignIn"></button>
     </div>
 
+    <section class="strip" aria-labelledby="stripTitle">
+      <h2 id="stripTitle"></h2>
+      <dl>
+        <div><dt data-i18n="lifeOpens"></dt><dd id="lOpen"></dd></div>
+        <div><dt data-i18n="lifeInstalls"></dt><dd id="lInstall"></dd></div>
+        <div><dt data-i18n="lifeShare"></dt><dd id="lShare"></dd></div>
+        <div><dt data-i18n="lifeDays"></dt><dd id="lDays"></dd></div>
+      </dl>
+    </section>
+
     <section class="tiles" data-i18n-aria="summary">
       <div class="tile"><span class="label" data-i18n="tileOpen"></span><span class="value" id="tOpen">–</span><span class="delta" id="dOpen"></span></div>
       <div class="tile"><span class="label" data-i18n="tileDau"></span><span class="value" id="tDau">–</span><span class="delta" id="dDau"></span></div>
@@ -139,25 +165,23 @@ td.zero { color: var(--text-muted); }
     </section>
 
     <section class="card">
-      <div class="card-head">
-        <div><h2 data-i18n="dauTitle"></h2><p class="sub" data-i18n="dauSub"></p></div>
-      </div>
+      <div class="card-head"><div><h2 id="dauTitle"></h2><p class="sub" id="dauSub"></p></div></div>
       <div class="chart" id="dauChart"></div>
     </section>
 
     <section class="card">
       <div class="card-head">
-        <div><h2 data-i18n="openTitle"></h2><p class="sub" data-i18n="openSub"></p></div>
-        <div class="legend"><span><i style="background: var(--series-1)"></i><span data-i18n="allOpens"></span></span><span><i style="background: var(--series-2)"></i><span data-i18n="appOpens"></span></span></div>
+        <div><h2 id="openTitle"></h2><p class="sub" data-i18n="openSub"></p></div>
+        <div class="legend"><span><i style="background: var(--series-1)"></i><span data-i18n="browserOpens"></span></span><span><i style="background: var(--series-2)"></i><span data-i18n="appOpens"></span></span></div>
       </div>
       <div class="chart" id="openChart"></div>
     </section>
 
     <section class="card">
-      <div class="card-head"><div><h2 data-i18n="tableTitle"></h2><p class="sub" data-i18n="tableSub"></p></div></div>
-      <div class="table-wrap" tabindex="0" data-i18n-aria="tableTitle">
+      <div class="card-head"><div><h2 id="tableTitle"></h2><p class="sub" data-i18n="tableSub"></p></div></div>
+      <div class="table-wrap" tabindex="0" id="tablePanel">
         <table>
-          <thead><tr><th data-i18n="colDate"></th><th data-i18n="colOpen"></th><th data-i18n="colApp"></th><th data-i18n="colDau"></th><th data-i18n="colInstall"></th></tr></thead>
+          <thead><tr><th id="colPeriod"></th><th data-i18n="colOpen"></th><th data-i18n="colBrowser"></th><th data-i18n="colApp"></th><th id="colDau"></th><th data-i18n="colInstall"></th></tr></thead>
           <tbody id="rows"></tbody>
         </table>
       </div>
@@ -175,9 +199,9 @@ td.zero { color: var(--text-muted); }
       <label for="pwdInput" data-i18n="password"></label>
       <input id="pwdInput" type="password" autocomplete="current-password">
     </div>
-    <span class="error" id="signinError" data-i18n="signInError"></span>
+    <span class="error" data-i18n="signInError"></span>
     <button class="primary" type="submit" data-i18n="signIn"></button>
-    <button class="ghost" type="button" id="backToDash" style="color: var(--text); border-color: var(--border)" data-i18n="backToDemo"></button>
+    <button class="secondary" type="button" id="backToDash" data-i18n="backToDemo"></button>
   </form>
 </div>
 
@@ -185,202 +209,288 @@ td.zero { color: var(--text-muted); }
 // ── strings: 繁中 (廣東話書面語) / English; the header button switches, the choice is remembered on this device ──
 const STRINGS = {
   'zh-HK': {
-    title: 'Life in UK · 使用統計', subtitle: 'life-uk.vercel.app · 日期以 UTC 計', range: '時間範圍', days: '{n} 日',
-    langBtn: 'EN', refresh: '重新整理', signOut: '登出', mockNote: '示範數據，唔係真實數字', previewSignIn: '預覽登入畫面',
+    title: 'Life in UK · 使用統計', subtitle: 'life-uk.vercel.app · 日期以 UTC 計', range: '時間範圍',
+    days: '{n} 日', year: '1 年', all: '全部',
+    langBtn: 'EN', refresh: '重新整理', signOut: '登出', previewSignIn: '預覽登入畫面',
+    mockNote: '示範數據，唔係真實數字（假設 {d} 上線）',
+    since: '上線至今 · 由 {d} 起', lifeOpens: '累計開啟', lifeInstalls: '累計安裝', lifeShare: '用已安裝 app 開', lifeDays: '上線日數',
     summary: '摘要', tileOpen: '開 app 次數', tileDau: '平均每日活躍裝置', tileInstall: '新安裝', tileShare: '用已安裝 app 開',
-    vsPrev: '對比前 {n} 日', points: ' 個百分點', noPrev: '前一段時間冇數據',
-    dauTitle: '每日活躍裝置', dauSub: '每部機每個 UTC 日計一次',
-    openTitle: '每日開 app 次數', openSub: '已安裝 app 開啟係全部開啟入面嘅一部分', allOpens: '全部開啟', appOpens: '已安裝 app',
-    tableTitle: '每日明細', tableSub: '最新日子排最上，喺框內捲動睇舊數據',
-    colDate: '日期', colOpen: '開啟', colApp: '已安裝 app', colDau: '活躍裝置', colInstall: '新安裝',
+    vsPrev: '對比之前 {p}', vsPrevDays: '{n} 日', vsPrevYear: '1 年', points: ' 個百分點', noPrev: '之前冇數據', allTime: '上線至今全部',
+    dauDaily: '每日活躍裝置', dauMonthly: '每月：平均每日活躍裝置',
+    dauSubDaily: '每部機每個 UTC 日計一次', dauSubMonthly: '嗰個月每日活躍裝置嘅平均數（唔係當月獨立裝置數）',
+    openDaily: '每日開 app 次數', openMonthly: '每月開 app 次數', openSub: '兩段疊埋嘅高度 = 總開啟次數',
+    browserOpens: 'Browser', appOpens: '已安裝 app', total: '總數', toDate: '（至今）',
+    tableDaily: '每日明細', tableMonthly: '每月明細', tableSub: '最新排最上，喺框內捲動睇舊數據',
+    colDay: '日期', colMonth: '月份', colOpen: '總開啟', colBrowser: 'Browser', colApp: '已安裝 app',
+    colDauDaily: '活躍裝置', colDauMonthly: '平均每日活躍裝置', colInstall: '新安裝',
     signInTitle: '登入使用統計', signInHint: '用 Vercel 入面設定嘅帳號同密碼登入。', username: '帳號', password: '密碼',
     signInError: '帳號或密碼唔啱，請再試一次', signIn: '登入', backToDemo: '返回示範 dashboard',
   },
   en: {
-    title: 'Life in UK · Usage', subtitle: 'life-uk.vercel.app · dates in UTC', range: 'Time range', days: '{n} days',
-    langBtn: '中', refresh: 'Refresh', signOut: 'Sign out', mockNote: 'sample data, not real numbers', previewSignIn: 'Preview sign-in',
+    title: 'Life in UK · Usage', subtitle: 'life-uk.vercel.app · dates in UTC', range: 'Time range',
+    days: '{n} days', year: '1 year', all: 'All time',
+    langBtn: '中', refresh: 'Refresh', signOut: 'Sign out', previewSignIn: 'Preview sign-in',
+    mockNote: 'sample data, not real numbers (launch assumed on {d})',
+    since: 'Since launch · from {d}', lifeOpens: 'Total opens', lifeInstalls: 'Total installs', lifeShare: 'Opened as installed app', lifeDays: 'Days live',
     summary: 'Summary', tileOpen: 'App opens', tileDau: 'Avg daily active devices', tileInstall: 'New installs', tileShare: 'Opened as installed app',
-    vsPrev: 'vs previous {n} days', points: ' pts', noPrev: 'No data for the previous period',
-    dauTitle: 'Daily active devices', dauSub: 'Each device counts once per UTC day',
-    openTitle: 'Daily app opens', openSub: 'Installed-app opens are part of all opens', allOpens: 'All opens', appOpens: 'Installed app',
-    tableTitle: 'Daily breakdown', tableSub: 'Newest first; scroll inside the panel for older days',
-    colDate: 'Date', colOpen: 'Opens', colApp: 'Installed app', colDau: 'Active devices', colInstall: 'Installs',
+    vsPrev: 'vs previous {p}', vsPrevDays: '{n} days', vsPrevYear: 'year', points: ' pts', noPrev: 'No earlier data', allTime: 'Everything since launch',
+    dauDaily: 'Daily active devices', dauMonthly: 'Monthly: average daily active devices',
+    dauSubDaily: 'Each device counts once per UTC day', dauSubMonthly: 'Average of the daily counts in that month (not unique devices per month)',
+    openDaily: 'Daily app opens', openMonthly: 'Monthly app opens', openSub: 'The two stacked parts add up to all opens',
+    browserOpens: 'Browser', appOpens: 'Installed app', total: 'Total', toDate: ' (to date)',
+    tableDaily: 'Daily breakdown', tableMonthly: 'Monthly breakdown', tableSub: 'Newest first; scroll inside the panel for older rows',
+    colDay: 'Date', colMonth: 'Month', colOpen: 'All opens', colBrowser: 'Browser', colApp: 'Installed app',
+    colDauDaily: 'Active devices', colDauMonthly: 'Avg daily active', colInstall: 'Installs',
     signInTitle: 'Sign in to usage stats', signInHint: 'Use the username and password set in Vercel.', username: 'Username', password: 'Password',
     signInError: 'Wrong username or password. Try again.', signIn: 'Sign in', backToDemo: 'Back to the sample dashboard',
   },
 };
 const LANG_LS = 'statsLang';
+const RANGE_LS = 'statsRange';
+const RANGES = ['7', '30', '90', '365', 'all'];
+const MONTHLY_RANGES = ['365', 'all']; // user decision: 1 year / all time read per month
+const EN_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 let lang = 'zh-HK';
+const state = { range: '30' };
 const tr = (key, params = {}) => STRINGS[lang][key].replace(/\{(\w+)\}/g, (_, k) => params[k]);
-function applyLang() {
-  document.documentElement.lang = lang;
-  document.querySelectorAll('[data-i18n]').forEach(e => { e.textContent = tr(e.dataset.i18n); });
-  document.querySelectorAll('[data-i18n-aria]').forEach(e => e.setAttribute('aria-label', tr(e.dataset.i18nAria)));
-  document.querySelectorAll('.chip').forEach(c => { c.textContent = tr('days', { n: c.dataset.days }); });
-  document.getElementById('langBtn').textContent = tr('langBtn');
-  document.getElementById('langBtn').setAttribute('aria-label', lang === 'en' ? '切換至中文' : 'Switch to English');
-}
 
-// ── sample data (deterministic; the real page reads GET /api/stats?days=N) ──
-const END = Date.UTC(2026, 9, 14);
+// ── sample data (deterministic). The real page reads GET /api/stats?days=N (daily rows, newest first) ──
 const DAY_MS = 86400000;
-const MAX_DAYS = 90;
+const END = Date.UTC(2026, 9, 14);
+const SAMPLE_LAUNCH = Date.UTC(2025, 3, 1); // mockup only: ~18 months of history to show the monthly view
+const isoOf = ms => new Date(ms).toISOString().slice(0, 10);
 function sampleDays() {
   const rows = [];
-  for (let i = MAX_DAYS * 2 - 1; i >= 0; i--) {
-    const t = MAX_DAYS * 2 - i;
-    const date = new Date(END - i * DAY_MS).toISOString().slice(0, 10);
-    const weekday = new Date(END - i * DAY_MS).getUTCDay();
-    const wave = 1 + 0.25 * Math.sin(t * 0.9) + (weekday === 0 || weekday === 6 ? 0.2 : 0);
-    const dau = Math.round((14 + t * 0.32) * wave);
+  for (let ms = SAMPLE_LAUNCH, t = 0; ms <= END; ms += DAY_MS, t++) {
+    const weekday = new Date(ms).getUTCDay();
+    const wave = 1 + 0.22 * Math.sin(t * 0.9) + (weekday === 0 || weekday === 6 ? 0.2 : 0) + 0.15 * Math.sin(t / 58);
+    const dau = Math.round((6 + t * 0.12) * wave);
     const open = Math.round(dau * (1.9 + 0.3 * Math.sin(t * 1.7)));
-    const standalone = Math.round(open * (0.22 + t * 0.0012));
-    const install = Math.max(0, Math.round(1 + t * 0.012 + 1.2 * Math.sin(t * 2.3)));
-    rows.push({ date, open, standalone, dau, install });
+    const standalone = Math.round(open * Math.min(0.55, 0.12 + t * 0.0007));
+    const install = Math.max(0, Math.round(0.6 + t * 0.005 + 1.1 * Math.sin(t * 2.3)));
+    rows.push({ date: isoOf(ms), open, standalone, dau, install });
   }
   return rows.reverse(); // newest first, as /api/stats returns
 }
 const ALL = sampleDays();
+const LAUNCH_ISO = ALL[ALL.length - 1].date;
 
+// ── helpers ──
 const sum = (rows, k) => rows.reduce((n, r) => n + r[k], 0);
-const fmt = n => n >= 10000 ? (n / 1000).toFixed(1) + 'K' : n.toLocaleString('en-GB');
+const fmt = n => n >= 10000 ? (n / 1000).toFixed(n >= 100000 ? 0 : 1) + 'K' : Math.round(n).toLocaleString('en-GB');
 const pct = n => Math.round(n * 100) + '%';
-const shortDate = iso => `${Number(iso.slice(8))}/${Number(iso.slice(5, 7))}`;
+const share = rows => (sum(rows, 'open') ? sum(rows, 'standalone') / sum(rows, 'open') : 0);
+const avgDau = rows => (rows.length ? sum(rows, 'dau') / rows.length : 0);
+const isMonthly = () => MONTHLY_RANGES.includes(state.range);
+const dayLabel = iso => `${Number(iso.slice(8))}/${Number(iso.slice(5, 7))}`;
+const monthLabel = ym => lang === 'en'
+  ? `${EN_MONTHS[Number(ym.slice(5)) - 1]} ${ym.slice(2, 4)}`
+  : `${ym.slice(2, 4)}年${Number(ym.slice(5))}月`;
+const monthLabelLong = ym => lang === 'en'
+  ? `${EN_MONTHS[Number(ym.slice(5)) - 1]} ${ym.slice(0, 4)}` : `${ym.slice(0, 4)}年${Number(ym.slice(5))}月`;
+
+// days in the chosen range (newest first) and the same span just before it (for the deltas)
+function periodRows() {
+  if (state.range === 'all') return { rows: ALL, prev: [] };
+  const n = Number(state.range);
+  return { rows: ALL.slice(0, n), prev: ALL.slice(n, n * 2) };
+}
+// daily rows → one row per calendar month (newest first); dau becomes the month's average daily count
+function toMonths(rows) {
+  const byMonth = new Map();
+  for (const r of rows) {
+    const ym = r.date.slice(0, 7);
+    if (!byMonth.has(ym)) byMonth.set(ym, []);
+    byMonth.get(ym).push(r);
+  }
+  return [...byMonth].map(([ym, days]) => ({
+    key: ym, open: sum(days, 'open'), standalone: sum(days, 'standalone'),
+    dau: Math.round(avgDau(days)), install: sum(days, 'install'), days: days.length,
+  }));
+}
+const toDays = rows => rows.map(r => ({ key: r.date, ...r }));
+const keyLabel = key => (key.length === 7 ? monthLabel(key) : dayLabel(key));
+// the newest month is still running: say so, or its shorter bar reads as a drop
+const CURRENT_MONTH = isoOf(END).slice(0, 7);
+const keyLabelLong = key => (key.length === 7 ? monthLabelLong(key) + (key === CURRENT_MONTH ? tr('toDate') : '') : key);
+
+// ── text ──
+function applyLang() {
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-i18n]').forEach(e => { e.textContent = tr(e.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-aria]').forEach(e => e.setAttribute('aria-label', tr(e.dataset.i18nAria)));
+  document.querySelectorAll('.chip').forEach(c => {
+    const r = c.dataset.range;
+    c.textContent = r === 'all' ? tr('all') : r === '365' ? tr('year') : tr('days', { n: r });
+  });
+  document.querySelector('[data-i18n="mockNote"]').textContent = tr('mockNote', { d: LAUNCH_ISO });
+  const btn = document.getElementById('langBtn');
+  btn.textContent = tr('langBtn');
+  btn.setAttribute('aria-label', lang === 'en' ? '切換至中文' : 'Switch to English');
+}
+
+// ── since launch (ignores the range) ──
+function renderStrip() {
+  document.getElementById('stripTitle').textContent = tr('since', { d: LAUNCH_ISO });
+  document.getElementById('lOpen').textContent = fmt(sum(ALL, 'open'));
+  document.getElementById('lInstall').textContent = fmt(sum(ALL, 'install'));
+  document.getElementById('lShare').textContent = pct(share(ALL));
+  document.getElementById('lDays').textContent = fmt(ALL.length);
+}
+
+// ── period tiles ──
+function deltaHtml(cur, prev, prevRows, asPoints) {
+  if (state.range === 'all') return tr('allTime');
+  if (!prevRows.length || !prev) return tr('noPrev');
+  const diff = asPoints ? Math.round((cur - prev) * 100) : Math.round((cur - prev) / prev * 100);
+  const cls = diff > 0 ? 'up' : diff < 0 ? 'down' : '';
+  const sign = diff > 0 ? '+' : '';
+  const span = state.range === '365' ? tr('vsPrevYear') : tr('vsPrevDays', { n: state.range });
+  return `<span class="${cls}">${sign}${diff}${asPoints ? tr('points') : '%'}</span> ${tr('vsPrev', { p: span })}`;
+}
+function renderTiles({ rows, prev }) {
+  const set = (id, v) => { document.getElementById(id).textContent = v; };
+  const html = (id, v) => { document.getElementById(id).innerHTML = v; };
+  set('tOpen', fmt(sum(rows, 'open')));
+  html('dOpen', deltaHtml(sum(rows, 'open'), sum(prev, 'open'), prev));
+  set('tDau', fmt(avgDau(rows)));
+  html('dDau', deltaHtml(avgDau(rows), avgDau(prev), prev));
+  set('tInstall', fmt(sum(rows, 'install')));
+  html('dInstall', deltaHtml(sum(rows, 'install'), sum(prev, 'install'), prev));
+  set('tShare', pct(share(rows)));
+  html('dShare', deltaHtml(share(rows), share(prev), prev, true));
+}
+
+// ── charts: drawn at the card's pixel width; one scale per chart; ticks at clean values ──
 const NS = 'http://www.w3.org/2000/svg';
+const H = 220, PAD = { l: 40, r: 40, t: 12, b: 28 };
+const BAR_MAX = 24, BAR_GAP = 2, BAR_RADIUS = 4, TICKS = 4;
 function el(tag, attrs, parent) {
   const e = document.createElementNS(NS, tag);
   for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
   if (parent) parent.appendChild(e);
   return e;
 }
-// clean ticks: step = 1 / 2 / 5 × 10^k so every tick label is a round number the axis really reaches
-const TICKS = 4;
 function niceScale(v) {
   const raw = Math.max(v, 1) / TICKS;
   const mag = Math.pow(10, Math.floor(Math.log10(raw)));
   const step = [1, 2, 5, 10].map(m => m * mag).find(m => m >= raw);
   return { step, max: Math.ceil(v / step) * step };
 }
-
-function deltaHtml(cur, prev, asPoints) {
-  if (!prev) return tr('noPrev');
-  const diff = asPoints ? Math.round((cur - prev) * 100) : Math.round((cur - prev) / prev * 100);
-  const cls = diff > 0 ? 'up' : diff < 0 ? 'down' : '';
-  const sign = diff > 0 ? '+' : '';
-  return `<span class="${cls}">${sign}${diff}${asPoints ? tr('points') : '%'}</span> ${tr('vsPrev', { n: current.days })}`;
-}
-
-// ── summary tiles ──
-function renderTiles(rows, prev) {
-  const share = r => sum(r, 'open') ? sum(r, 'standalone') / sum(r, 'open') : 0;
-  const avgDau = r => sum(r, 'dau') / r.length;
-  document.getElementById('tOpen').textContent = fmt(sum(rows, 'open'));
-  document.getElementById('dOpen').innerHTML = deltaHtml(sum(rows, 'open'), sum(prev, 'open'));
-  document.getElementById('tDau').textContent = fmt(Math.round(avgDau(rows)));
-  document.getElementById('dDau').innerHTML = deltaHtml(avgDau(rows), avgDau(prev));
-  document.getElementById('tInstall').textContent = fmt(sum(rows, 'install'));
-  document.getElementById('dInstall').innerHTML = deltaHtml(sum(rows, 'install'), sum(prev, 'install'));
-  document.getElementById('tShare').textContent = pct(share(rows));
-  document.getElementById('dShare').innerHTML = deltaHtml(share(rows), share(prev), true);
-}
-
-// ── charts: one scale per chart, ticks at clean values, hover tooltip ──
-// drawn at the card's real pixel width so text stays 11px on phones
-let W = 960;
-const H = 220, PAD = { l: 36, r: 40, t: 12, b: 28 };
-function frame(host, scale, rows) {
+function frame(host, maxValue, points) {
   host.innerHTML = '';
-  W = Math.max(280, Math.round(host.clientWidth));
-  const maxV = scale.max;
+  const W = Math.max(280, Math.round(host.clientWidth));
   const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img' }, host);
+  const scale = niceScale(maxValue);
   const plotW = W - PAD.l - PAD.r, plotH = H - PAD.t - PAD.b;
-  const y = v => PAD.t + plotH - (v / maxV) * plotH;
-  for (let v = 0; v <= maxV; v += scale.step) {
+  const y = v => PAD.t + plotH - (v / scale.max) * plotH;
+  for (let v = 0; v <= scale.max; v += scale.step) {
     el('line', { x1: PAD.l, x2: W - PAD.r, y1: y(v), y2: y(v), stroke: 'var(--grid)', 'stroke-width': 1 }, svg);
     el('text', { x: PAD.l - 8, y: y(v) + 4, 'text-anchor': 'end' }, svg).textContent = fmt(v);
   }
-  const n = rows.length;
-  const band = plotW / n;
+  const n = points.length, band = plotW / n;
   const x = i => PAD.l + band * i + band / 2;
-  const every = Math.ceil(n / Math.max(3, Math.floor(plotW / 70)));
-  rows.forEach((r, i) => {
-    if ((n - 1 - i) % every === 0) el('text', { x: x(i), y: H - 8, 'text-anchor': 'middle' }, svg).textContent = shortDate(r.date);
+  const every = Math.ceil(n / Math.max(3, Math.floor(plotW / 64)));
+  points.forEach((p, i) => {
+    if ((n - 1 - i) % every === 0) el('text', { x: x(i), y: H - 8, 'text-anchor': 'middle' }, svg).textContent = keyLabel(p.key);
   });
-  return { svg, y, x, band, plotH };
+  return { svg, y, x, band, W, barW: Math.min(BAR_MAX, Math.max(2, band - BAR_GAP)) };
 }
-function attachHover(host, svg, rows, x, band, lines) {
+// a column segment: 4px rounded top only when it is the bar's data end, square everywhere else
+function column(svg, cx, w, top, bottom, fill, roundTop) {
+  const h = bottom - top;
+  if (h <= 0) return;
+  const r = roundTop ? Math.min(BAR_RADIUS, w / 2, h) : 0;
+  const l = cx - w / 2, rt = cx + w / 2;
+  el('path', { d: `M${l},${bottom} V${top + r} Q${l},${top} ${l + r},${top} H${rt - r} Q${rt},${top} ${rt},${top + r} V${bottom} Z`, fill }, svg);
+}
+function attachHover(host, f, points, lines) {
   const tip = document.createElement('div');
   tip.className = 'tip'; tip.hidden = true; host.appendChild(tip);
-  const guide = el('line', { y1: PAD.t, y2: H - PAD.b, stroke: 'var(--text-muted)', 'stroke-width': 1, opacity: 0 }, svg);
-  rows.forEach((r, i) => {
-    const hit = el('rect', { x: x(i) - band / 2, y: PAD.t, width: band, height: H - PAD.t - PAD.b, fill: 'transparent' }, svg);
+  const hl = el('rect', { y: PAD.t, height: H - PAD.t - PAD.b, fill: 'var(--text-muted)', opacity: 0 }, f.svg);
+  points.forEach((p, i) => {
+    const hit = el('rect', { x: f.x(i) - f.band / 2, y: PAD.t, width: f.band, height: H - PAD.t - PAD.b, fill: 'transparent' }, f.svg);
     hit.addEventListener('pointerenter', () => {
-      guide.setAttribute('x1', x(i)); guide.setAttribute('x2', x(i)); guide.setAttribute('opacity', 0.35);
-      tip.innerHTML = `<b>${r.date}</b><br>` + lines.map(l => `<i style="background:${l.color}"></i>${l.label} ${fmt(r[l.key])}`).join('<br>');
-      const box = host.getBoundingClientRect();
-      tip.style.left = Math.min(Math.max(x(i), 70), box.width - 70) + 'px';
-      tip.style.top = '24px';
+      hl.setAttribute('x', f.x(i) - f.band / 2); hl.setAttribute('width', f.band); hl.setAttribute('opacity', 0.08);
+      tip.innerHTML = `<b>${keyLabelLong(p.key)}</b><br>` + lines.map(l =>
+        `${l.color ? `<i style="background:${l.color}"></i>` : ''}${l.label} ${fmt(l.value(p))}`).join('<br>');
+      tip.style.left = Math.min(Math.max(f.x(i), 80), f.W - 80) + 'px';
+      tip.style.top = '28px';
       tip.hidden = false;
     });
-    hit.addEventListener('pointerleave', () => { tip.hidden = true; guide.setAttribute('opacity', 0); });
+    hit.addEventListener('pointerleave', () => { tip.hidden = true; hl.setAttribute('opacity', 0); });
   });
 }
 
-function renderDau(rows) {
+function renderDau(points) {
   const host = document.getElementById('dauChart');
-  const { svg, y, x, band } = frame(host, niceScale(Math.max(...rows.map(r => r.dau))), rows);
-  const w = Math.min(24, Math.max(2, band - 2)); // 2px surface gap between bars
-  const base = y(0);
-  rows.forEach((r, i) => {
-    const top = y(r.dau), h = base - top, rad = Math.min(4, w / 2, h);
-    // 4px rounded data end, square at the baseline
-    el('path', { d: `M${x(i) - w / 2},${base} V${top + rad} Q${x(i) - w / 2},${top} ${x(i) - w / 2 + rad},${top} H${x(i) + w / 2 - rad} Q${x(i) + w / 2},${top} ${x(i) + w / 2},${top + rad} V${base} Z`, fill: 'var(--series-1)' }, svg);
-  });
-  const last = rows[rows.length - 1];
-  el('text', { x: x(rows.length - 1) + w / 2 + 6, y: y(last.dau) + 4, class: 'end-label' }, svg).textContent = fmt(last.dau);
-  attachHover(host, svg, rows, x, band, [{ key: 'dau', label: tr('colDau'), color: 'var(--series-1)' }]);
+  const f = frame(host, Math.max(...points.map(p => p.dau)), points);
+  points.forEach((p, i) => column(f.svg, f.x(i), f.barW, f.y(p.dau), f.y(0), 'var(--series-1)', true));
+  const last = points[points.length - 1];
+  el('text', { x: f.x(points.length - 1) + f.barW / 2 + 6, y: f.y(last.dau) + 4, class: 'end-label' }, f.svg).textContent = fmt(last.dau);
+  attachHover(host, f, points, [{ label: isMonthly() ? tr('colDauMonthly') : tr('colDauDaily'), color: 'var(--series-1)', value: p => p.dau }]);
 }
 
-function renderOpens(rows) {
+// stacked: browser (bottom) + installed app (top), 2px surface gap between the two parts
+function renderOpens(points) {
   const host = document.getElementById('openChart');
-  const { svg, y, x, band } = frame(host, niceScale(Math.max(...rows.map(r => r.open))), rows);
-  const series = [
-    { key: 'open', label: tr('allOpens'), color: 'var(--series-1)', area: true },
-    { key: 'standalone', label: tr('appOpens'), color: 'var(--series-2)' },
-  ];
-  for (const s of series) {
-    const pts = rows.map((r, i) => `${x(i)},${y(r[s.key])}`);
-    if (s.area) el('path', { d: `M${x(0)},${y(0)} L${pts.join(' L')} L${x(rows.length - 1)},${y(0)} Z`, fill: 'var(--area-1)' }, svg);
-    el('polyline', { points: pts.join(' '), fill: 'none', stroke: s.color, 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, svg);
-    const last = rows[rows.length - 1];
-    el('circle', { cx: x(rows.length - 1), cy: y(last[s.key]), r: 4, fill: s.color, stroke: 'var(--card)', 'stroke-width': 2 }, svg);
-    el('text', { x: x(rows.length - 1) + 10, y: y(last[s.key]) + 4, class: 'end-label' }, svg).textContent = fmt(last[s.key]);
-  }
-  attachHover(host, svg, rows, x, band, series);
+  const f = frame(host, Math.max(...points.map(p => p.open)), points);
+  points.forEach((p, i) => {
+    const browser = p.open - p.standalone;
+    const split = f.y(browser);
+    column(f.svg, f.x(i), f.barW, split, f.y(0), 'var(--series-1)', p.standalone === 0);
+    column(f.svg, f.x(i), f.barW, f.y(p.open), split - BAR_GAP, 'var(--series-2)', true);
+  });
+  const last = points[points.length - 1];
+  el('text', { x: f.x(points.length - 1) + f.barW / 2 + 6, y: f.y(last.open) + 4, class: 'end-label' }, f.svg).textContent = fmt(last.open);
+  attachHover(host, f, points, [
+    { label: tr('appOpens'), color: 'var(--series-2)', value: p => p.standalone },
+    { label: tr('browserOpens'), color: 'var(--series-1)', value: p => p.open - p.standalone },
+    { label: tr('total'), value: p => p.open },
+  ]);
 }
 
-function renderTable(rows) {
-  document.getElementById('rows').innerHTML = rows.map(r =>
-    `<tr><td>${r.date}</td>${['open', 'standalone', 'dau', 'install'].map(k => `<td class="${r[k] ? '' : 'zero'}">${fmt(r[k])}</td>`).join('')}</tr>`).join('');
+function renderTable(points) {
+  document.getElementById('rows').innerHTML = points.map(p => {
+    const cells = [p.open, p.open - p.standalone, p.standalone, p.dau, p.install];
+    return `<tr><td>${keyLabelLong(p.key)}</td>${cells.map(v => `<td class="${v ? '' : 'zero'}">${fmt(v)}</td>`).join('')}</tr>`;
+  }).join('');
+  document.getElementById('tablePanel').scrollTop = 0;
 }
 
-const current = { days: 30 };
+function renderHeadings() {
+  const m = isMonthly();
+  document.getElementById('dauTitle').textContent = tr(m ? 'dauMonthly' : 'dauDaily');
+  document.getElementById('dauSub').textContent = tr(m ? 'dauSubMonthly' : 'dauSubDaily');
+  document.getElementById('openTitle').textContent = tr(m ? 'openMonthly' : 'openDaily');
+  document.getElementById('tableTitle').textContent = tr(m ? 'tableMonthly' : 'tableDaily');
+  document.getElementById('colPeriod').textContent = tr(m ? 'colMonth' : 'colDay');
+  document.getElementById('colDau').textContent = tr(m ? 'colDauMonthly' : 'colDauDaily');
+  document.getElementById('tablePanel').setAttribute('aria-label', tr(m ? 'tableMonthly' : 'tableDaily'));
+}
+
 function render() {
-  const rows = ALL.slice(0, current.days);
-  const prev = ALL.slice(current.days, current.days * 2);
-  renderTiles(rows, prev);
-  const chrono = rows.slice().reverse(); // charts read oldest → newest
+  const period = periodRows();
+  const points = isMonthly() ? toMonths(period.rows) : toDays(period.rows); // newest first
+  renderStrip();
+  // all time: the since-launch strip already says it; four tiles would repeat the same numbers
+  document.querySelector('.tiles').hidden = state.range === 'all';
+  renderTiles(period);
+  renderHeadings();
+  const chrono = points.slice().reverse(); // charts read oldest → newest
   renderDau(chrono);
   renderOpens(chrono);
-  renderTable(rows);
+  renderTable(points);
 }
 
+// ── controls ──
+const pressRange = range => document.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.range === range)));
 document.getElementById('rangeChips').addEventListener('click', e => {
   const btn = e.target.closest('.chip');
   if (!btn) return;
-  current.days = Number(btn.dataset.days);
-  document.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', String(c === btn)));
-  try { localStorage.setItem('statsRange', String(current.days)); } catch {}
+  state.range = btn.dataset.range;
+  pressRange(state.range);
+  try { localStorage.setItem(RANGE_LS, state.range); } catch {}
   render();
 });
 document.getElementById('refreshBtn').addEventListener('click', render);
@@ -399,13 +509,12 @@ let resizeTimer;
 window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(render, 150); });
 
 try {
-  const saved = Number(localStorage.getItem('statsRange'));
-  if ([7, 30, 90].includes(saved)) {
-    current.days = saved;
-    document.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', String(Number(c.dataset.days) === saved)));
-  }
+  const savedRange = localStorage.getItem(RANGE_LS);
+  if (RANGES.includes(savedRange)) state.range = savedRange;
+  const savedLang = localStorage.getItem(LANG_LS);
+  if (STRINGS[savedLang]) lang = savedLang;
 } catch {}
-try { const savedLang = localStorage.getItem(LANG_LS); if (STRINGS[savedLang]) lang = savedLang; } catch {}
+pressRange(state.range);
 applyLang();
 render();
 </script>
