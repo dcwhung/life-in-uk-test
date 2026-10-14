@@ -158,7 +158,11 @@ function checkStatic() {
   assert(/<meta http-equiv="Content-Security-Policy" content="default-src 'self'[^"]*script-src 'self'/.test(html), 'stats.html carries a self-only CSP');
   const vercel = JSON.parse(fs.readFileSync(path.join(ROOT, 'vercel.json'), 'utf8'));
   const rule = vercel.headers.find(h => h.source === '/stats.html');
-  assert(rule && rule.headers.some(h => h.key === 'Content-Security-Policy' && h.value.includes("frame-ancestors 'none'")), "vercel.json: /stats.html gets frame-ancestors 'none'");
+  const headerCsp = rule && (rule.headers.find(h => h.key === 'Content-Security-Policy') || {}).value;
+  assert(headerCsp && headerCsp.includes("frame-ancestors 'none'"), "vercel.json: /stats.html gets frame-ancestors 'none'");
+  // S-288: one policy in two places; the browser enforces both, so a drift breaks the page quietly
+  const metaCsp = html.match(/<meta http-equiv="Content-Security-Policy" content="([^"]+)">/)[1];
+  assert(headerCsp.replace(/; frame-ancestors 'none'/, '') === metaCsp, 'meta CSP = vercel.json CSP minus frame-ancestors');
 }
 
 (async () => {
