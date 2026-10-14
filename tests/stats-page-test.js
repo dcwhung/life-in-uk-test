@@ -57,7 +57,12 @@ async function checkSignInErrors(page, state) {
   await page.click('#signInBtn');
   assert(state.calls.length === 0 && (await text(page, '#signinError')) === '請輸入帳號', 'blank username: not sent, asks for the username');
   await signIn(page, 'wrong');
-  await page.waitForFunction(() => document.getElementById('signinError').textContent);
+  // wait for the 401 reply to replace the blank-username message: the error already holds text, so waiting for any
+  // text returned at once and raced the reply (red in CI, green on a fast machine)
+  await page.waitForFunction(() => {
+    const t = document.getElementById('signinError').textContent;
+    return t && t !== '請輸入帳號';
+  });
   assert((await text(page, '#signinError')) === '帳號或密碼唔啱，請再試一次', 'wrong password → 帳號或密碼唔啱');
   state.mode = '429';
   await signIn(page, PASSWORD);

@@ -1,0 +1,58 @@
+# CI（GitHub Actions，AU-002）
+
+Workflow 兩個檔：`.github/workflows/test.yml`（名 `tests`，job `node-tests`）同 `.github/workflows/playwright.yml`（名 `playwright`，job `playwright-tests`）。目的係每次改動自動跑測試，唔再靠人記住喺本機跑 `tests/run-all.sh`。
+
+> 放喺 `.proj-docs/` 而唔係新開 `docs/`：repo 嘅內部文件全部喺 `.proj-docs/`，而且 `.vercelignore` 已經排除佢；新開 `docs/` 會被 GitHub Pages（root `/`）同 Vercel 當成網站內容公開。
+
+## 兩個 job
+
+| Job | 幾時跑 | 跑咩 | 大約時間 |
+|-----|--------|------|----------|
+| `node-tests`（`test.yml`） | 每個 branch 嘅 `push`（`branches: ['**']`，push tag 唔跑），同所有 `pull_request` | `node tests/tools/node-only-suites.js` 揀出嚟、唔使 browser 嘅 suite（而家 9 個：content-guard、memo-domain、note-text、notes-en、plan-countdown、plan、stats-model、telemetry-api、telemetry），每個要 exit 0 而且最後一行有 `PASS` | 1–2 分鐘 |
+| `playwright-tests`（`playwright.yml`） | 只限 target 係 `main` 嘅 `pull_request`（開 PR、PR 有新 push、reopen）；用 `on: pull_request: branches: [main]`，唔係 `if:` | `bash tests/run-all.sh`（全套 Playwright suite，headless Chromium） | 未實測，timeout 45 分鐘 |
+
+- Actions 全部用 v5（`checkout`、`setup-node`、`upload-artifact`、`cache`；tag 2026-10-14 用 `git ls-remote` 核實過，S-294）。
+- Node 22（`actions/setup-node@v5`）；`playwright-core@1.56.1`（同本機 `/opt/node-tools` 一樣），用 `npm install --no-save --prefix "$RUNNER_TEMP/pw"` 裝喺 checkout 以外（repo 冇 `package.json`），`NODE_PATH` 指去嗰度。
+- Chromium 用同一版 `playwright-core` 裝，分兩步（S-296）：`install-deps chromium`（apt OS 依賴，**每次**都跑，因為唔喺 cache 入面）+ `install --no-shell chromium`（下載 browser，唔要 headless shell（S-310）；`~/.cache/ms-playwright` 用 `actions/cache` cache 住，key = `runner.os` + `PLAYWRIGHT_CORE_VERSION`，cache hit 時佢見到已裝就乜都唔做）。效果同舊嘅 `install --with-deps chromium` 一樣（除咗唔再下載 headless shell）；`CHROMIUM_PATH` 設做 `chromium.executablePath()`（完整 Chromium build，同本機 `/opt/pw-browsers/chromium` 一樣，所有 suite 都用呢個，所以 headless shell 唔使下載）。
+- **Cache scope（W-395）**：GitHub 只俾 workflow run 讀同一個 ref（PR 嘅 merge ref）或者 base branch（`main`）存落嘅 cache。`main` 冇 playwright run（`playwright.yml` 只喺 `pull_request` 觸發），所以冇 cache 俾新 PR 讀：PR run 存嘅 cache 只可以喺**同一個 PR** 之後嘅 run 重用，每個新 PR 第一次 run 一定會重新下載 Chromium（約 1–2 分鐘）。另外 `actions/cache` 預設只喺 job **成功**先存（post step），第一次 run 紅咗就唔會存，下次 run 照樣下載。用戶 2026-10-14 決定只記錄，唔改 workflow。
+- **CJK 字體 / M4**：`install-deps chromium`（同 `--with-deps` 裝嘅 OS 依賴一樣）會帶 WenQuanYi（`fonts-wqy-zenhei`，playwright-core 嘅 `tools` 依賴，一定裝），但 CI 用 `LANG_SWITCH_NO_CJK_FONT=1`（`Run all Playwright suites` step 嘅 `env`）強制 `lang-switch-test` skip M4 中文換行 check：字體同本機 Noto 唔同，量出嚟嘅換行唔可信（用戶 2026-10-14 決定，W-393）。CI log 最後一行會係 `LANG-SWITCH PASS (M4 skipped: no CJK font)`；要驗 M4 就喺有 `fonts-noto-cjk` 嘅本機跑。
+- **Inter 做預設 sans-serif**：layout suite（320px 斷行、chip 高度、desktop fit）係喺 Inter 環境調嘅；runner 預設 DejaVu Sans 較闊，第一次 PR run（#148）因此紅咗 9 個 suite。CI 裝 `fonts-inter` 加 `tests/tools/56-prefer-inter.conf`（同本機 `/etc/fonts/conf.d/` 一樣），step 會 check `fc-match sans-serif` 係 Inter。
+- `fetch-depth: 0`：`tests/upgrade-test.js` 要 `git archive` 一個 pinned 嘅 v0.57 commit，shallow clone 冇。
+- Runner 鎖 `ubuntu-24.04`（兩個 job），唔用 `ubuntu-latest`：`ubuntu-latest` 2026-10-19 起轉 Ubuntu 26，`playwright-core@1.56.1` 只支援到 Ubuntu 24.04（`lib/server/utils/hostPlatform.js`，26 會當 unsupported platform）。升 `playwright-core` 嘅時候先一齊考慮升 runner（W-392）。
+- `tests/pages-server.js` 用 `python3`，`ubuntu-24.04` 本身有。
+- 失敗時只 upload **改咗**同**新出（未追蹤）**嘅截圖做 artifact（`git ls-files -m -o --exclude-standard -- 'tests/*.png'`，S-311；兩樣都冇就 skip upload step；`playwright-screenshots`，留 7 日，S-298）。測試每次都重寫 repo 入面嘅 `tests/*.png`；本機同一環境下，畫面冇變嘅截圖通常同 commit 版 byte 一樣，所以「改咗」大致等於「畫面有變」。但 CI 嘅字體（WenQuanYi / 冇 Noto CJK）同 Chromium 環境同本機唔同，baseline png 喺 CI 可能**全部**都有 byte 差異，咁 artifact 就會包晒所有截圖，要自己對比先知邊張真係有變。
+- 兩個 workflow 各自有 `concurrency`（同一個 workflow + ref 有新 run 就取消舊 run）同 `permissions: contents: read`。
+- PR 入 `main` 時 node-only suite 會跑兩次（`node-tests` 一次，`run-all.sh` 入面再一次），係刻意嘅：`run-all.sh` 照舊係「全套」。
+- `tests/run-all.sh` 嘅 suite 清單仍然係寫死（AU-009，另外處理）；新 suite 要自己加入去，`node-tests` 就唔使（自動揀）。
+
+## 本機重現
+
+```bash
+# node-tests
+for t in $(node tests/tools/node-only-suites.js); do node "tests/$t.js" | tail -1; done
+
+# playwright-tests（同 CI 一樣嘅裝法；本機已有 /opt/node-tools、/opt/pw-browsers 就直接用 HANDOFF.md「測試」段嘅指令）
+npm install --no-save --prefix /tmp/pw playwright-core@1.56.1
+/tmp/pw/node_modules/.bin/playwright-core install --no-shell chromium
+export NODE_PATH=/tmp/pw/node_modules
+export CHROMIUM_PATH=$(node -e "process.stdout.write(require('playwright-core').chromium.executablePath())")
+bash tests/run-all.sh
+git ls-files -m 'tests/*.png' | xargs -r git checkout --   # 還原測試重寫嘅截圖
+```
+
+## 部署唔受 CI gate
+
+GitHub Pages 同 Vercel 仍然係 **push / merge 入 `main`** 就自動 deploy，佢哋唔會等 CI。CI 紅咗都唔會阻止部署，除非開咗下面嘅 branch protection（強制行 PR + checks 綠先 merge）——咁先至做到「測試唔過就入唔到 `main`，亦即唔會 deploy」。
+
+## 用戶要喺 GitHub 手動做（branch protection）
+
+workflow 至少跑過一次（例如呢條 branch 開 PR）之後，check 名先會喺下拉清單出現：
+
+1. Repo → **Settings** → **Branches** → **Add branch protection rule**（或 **Add classic branch protection rule**；新介面叫 Rulesets，效果一樣）。
+2. Branch name pattern：`main`。
+3. 勾 **Require a pull request before merging**（要唔要 approval 自己決定；一個人用可以設 0 個 approval）。
+4. 勾 **Require status checks to pass before merging**，搜尋加入 `node-tests` 同 `playwright-tests`（job 名，唔好改，改咗 branch protection 會等一個永遠唔出現嘅 check）。建議同時勾 **Require branches to be up to date before merging**。
+5. （可選）勾 **Do not allow bypassing the above settings**，否則 admin 仍然可以直接 push `main`。
+6. **Save changes**。
+
+注意：開咗之後 `main` 唔可以再直接 push（hotfix 都要開 PR）。`playwright-tests` 喺獨立 workflow，只有 PR 入 `main` 先觸發：普通 branch push 只會有 `node-tests` 一個 check，唔會再出現 skipped 嘅 `playwright-tests`（W-394）。
