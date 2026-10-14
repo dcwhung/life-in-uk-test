@@ -12,7 +12,8 @@
 /* S-193 (v1.3.0): the 16px ⓘ keeps its look; the tap area grows to 44 × 44px */
 .info-btn::before { content: ''; position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; transform: translate(-50%, -50%); }
 /* v1.2.0 (user): an open header popover's button turns white, ⓘ and ⚙ alike (css/base/layout.css .settings-btn) */
-.info-btn:hover, .info-btn.open { color: var(--text-inverse); }
+.info-btn.open { color: var(--text-inverse); }
+@media (hover: hover) { .info-btn:hover { color: var(--text-inverse); } } /* v2.6.4: no sticky hover on touch (layout.css .settings-btn) */
 .info-pop {
   display: none;
   /* v1.0.5 (user): the full width less a 16px gutter; wide screens line up with the 780px main column. 50% is of the
