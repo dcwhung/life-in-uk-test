@@ -507,7 +507,7 @@ NODE_PATH=/opt/node-tools/node_modules CHROMIUM_PATH=/opt/pw-browsers/chromium .
 APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 live
 ```
 
-**CI（AU-002）：** 兩個 workflow：`.github/workflows/test.yml` 嘅 `node-tests`（每次 branch push / PR，跑 `tests/tools/node-only-suites.js` 揀出嚟、唔使 browser 嘅 suite）同 `.github/workflows/playwright.yml` 嘅 `playwright-tests`（只限 PR 入 `main`，跑全套 `run-all.sh`）。Pages / Vercel 部署仍然係 push `main` 觸發，CI 唔會 gate，除非喺 GitHub 開 branch protection；步驟同本機重現見 `.proj-docs/ci.md`。`--with-deps` 會帶 WenQuanYi，但 CI 用 `LANG_SWITCH_NO_CJK_FONT=1` 強制 skip `lang-switch-test` M4（字體同本機 Noto 唔同，用戶決定）。
+**CI（AU-002）：** 兩個 workflow：`.github/workflows/test.yml` 嘅 `node-tests`（每次 branch push / PR，跑 `tests/tools/node-only-suites.js` 揀出嚟、唔使 browser 嘅 suite）同 `.github/workflows/playwright.yml` 嘅 `playwright-tests`（只限 PR 入 `main`，跑全套 `run-all.sh`）。Pages / Vercel 部署仍然係 push `main` 觸發，CI 唔會 gate，除非喺 GitHub 開 branch protection；步驟同本機重現見 `.proj-docs/ci.md`。`install-deps chromium` 會帶 WenQuanYi，但 CI 用 `LANG_SWITCH_NO_CJK_FONT=1` 強制 skip `lang-switch-test` M4（字體同本機 Noto 唔同，用戶決定）。
 
 **畫面回歸檢查（唔喺 run-all.sh）：** `node tests/tools/visual-diff.js <git-ref>` 會 `git archive` 嗰個 ref 去 temp dir，喺 38 個畫面狀態 × 390 / 900px 比較兩邊每個 element 嘅 computed style、位置同文字；refactor（唔應該改外觀）嘅時候用，詳情睇 `tests/tools/README.md`。
 
