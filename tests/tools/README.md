@@ -10,3 +10,4 @@ Manual helpers. They are not part of `tests/run-all.sh`.
   `node tests/tools/check-batch-replay.js`
 - `node-only-suites.js`: prints the suites (`tests/test.js`, `tests/*-test.js`) that need no browser, one name per line: a suite counts as node-only when neither it nor any file it reaches through a relative `require` mentions `playwright-core` (so `desktop-*-test.js` are out, via `desktop-helpers.js`). CI's `node-tests` job runs exactly this list (AU-002, `.proj-docs/ci.md`):
   `node tests/tools/node-only-suites.js`
+- `56-prefer-inter.conf` — fontconfig rule that makes Inter the default sans-serif (copy of the dev machines' `/etc/fonts/conf.d/56-prefer-inter.conf`). The layout suites are tuned to it; CI (`.github/workflows/playwright.yml`) installs `fonts-inter` and this rule. To match locally: `apt-get install fonts-inter`, copy it to `/etc/fonts/conf.d/`, `fc-cache -f`.

@@ -57,6 +57,17 @@ jobs:
         run: |
           "$RUNNER_TEMP/pw/node_modules/.bin/playwright-core" install-deps chromium
 
+      # The layout suites (320px line wraps, chip heights, desktop fits) are tuned with Inter as the default sans-serif,
+      # as on the dev machines; the runner's default (DejaVu Sans) is wider and turns 9 suites red. Same font + same
+      # fontconfig rule as locally (tests/tools/56-prefer-inter.conf, a copy of /etc/fonts/conf.d/56-prefer-inter.conf)
+      - name: Use Inter as the default sans-serif (as on the dev machines)
+        run: |
+          sudo apt-get install -y --no-install-recommends fonts-inter
+          sudo cp tests/tools/56-prefer-inter.conf /etc/fonts/conf.d/56-prefer-inter.conf
+          fc-cache -f
+          fc-match sans-serif
+          fc-match sans-serif | grep -q Inter
+
       # Downloads only on a cache miss: with the browser already in ~/.cache/ms-playwright it is a no-op.
       # --no-shell: every suite launches the full build via CHROMIUM_PATH, so the headless shell is never used
       - name: Install Chromium (same playwright-core version)
