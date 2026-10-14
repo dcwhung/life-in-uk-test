@@ -19,7 +19,7 @@ html.intro-open, html.intro-open body { overflow: hidden; }
 /* the stack: the front card, two peeking below it, passed cards fly off to the left */
 .intro-stack { position: relative; margin-bottom: 30px; touch-action: pan-y; user-select: none; } /* S-282: a mouse drag swipes, not selects */
 .intro-card {
-  position: absolute; inset: 0; display: grid; grid-template-rows: 50% minmax(0, 1fr); overflow: hidden; /* the illustration takes at most half */
+  position: absolute; inset: 0; display: grid; grid-template-rows: 55% minmax(0, 1fr); overflow: hidden; /* the illustration takes 55% (user, v2.5.2) */
   background: var(--card); border-radius: var(--intro-card-radius); box-shadow: var(--shadow);
   transition: transform 0.42s var(--splash-ease), opacity 0.42s var(--splash-ease);
 }
@@ -58,9 +58,9 @@ html.intro-open, html.intro-open body { overflow: hidden; }
 
 /* ── the illustration: pieces placed by slot (--x / --y) + jitter, tilted (--r), pushed in from the edge (--dx / --dy) ── */
 /* the scene keeps its design size (per card --scene-h) and is scaled to fit its half (intro.js fitIntroScenes → --scene-k) */
-.intro-scene { --scene-h: 300px; --scene-k: 1; position: relative; flex: none; width: calc(var(--intro-scene-w) * var(--intro-k)); height: calc(var(--scene-h) * var(--intro-k)); transform: scale(var(--scene-k)); font-size: var(--fs-sm); }
-.p2 .intro-scene { --scene-h: 390px; }
-.p3 .intro-scene { --scene-h: 320px; }
+.intro-scene { --scene-h: 370px; --scene-k: 1; position: relative; flex: none; align-self: unsafe center; justify-self: unsafe center; /* centred even when its design box is bigger than the art (then scaled down) */ width: calc(var(--intro-scene-w) * var(--intro-k)); height: calc(var(--scene-h) * var(--intro-k)); transform: scale(var(--scene-k)); font-size: var(--fs-sm); }
+.p2 .intro-scene { --scene-h: 500px; }
+.p3 .intro-scene { --scene-h: 410px; }
 .intro-piece {
   --x: 50%; --y: 50%; --dx: 0px; --dy: 0px; --r: 0deg; --d: 0s; /* defaults: intro.js sets them per piece (introPiece / fitIntroPieces) */
   position: absolute; left: var(--x); top: var(--y);
