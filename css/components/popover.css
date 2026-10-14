@@ -27,6 +27,11 @@
   color: var(--text-inverse);
   border: 1px solid var(--gold-border);
   border-radius: var(--radius);
+  /* v2.6.2: a top corner's curve stops where the arrow's base starts (js/components/popover.js capArrowCorners) */
+  --info-pop-room-l: var(--radius);
+  --info-pop-room-r: var(--radius);
+  border-top-left-radius: min(var(--radius), var(--info-pop-room-l));
+  border-top-right-radius: min(var(--radius), var(--info-pop-room-r));
   padding: 18px var(--space-10);
   box-shadow: var(--shadow-pop);
   z-index: 200;

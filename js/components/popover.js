@@ -4,6 +4,9 @@
 // ════════════════════════════════════════
 const INFO_ARROW_X_VAR = '--info-arrow-x'; // css/components/popover.css .info-pop::after
 const INFO_ARROW_MIX_VAR = '--info-arrow-mix'; // v2.6.1: how far along the card's gradient the arrow sits (its fill)
+// v2.6.2: room between the arrow's base and each top corner (caps that corner's radius, css .info-pop)
+const INFO_ROOM_LEFT_VAR = '--info-pop-room-l';
+const INFO_ROOM_RIGHT_VAR = '--info-pop-room-r';
 // popover id → the button that opens it (a pre-v1.2.0 shell has no #settingsPop / #settingsBtn)
 const HEADER_POPOVERS = { infoPop: 'infoBtn', settingsPop: 'settingsBtn' };
 function setPopoverOpen(popId, open) {
@@ -30,6 +33,16 @@ function pointArrowAt(pop, btn) {
   // edge at x is x / (width + height) of the way; offset sizes, so a transform or zoom never skews it
   const mix = (x / (pop.offsetWidth + pop.offsetHeight)) * PERCENT;
   pop.style.setProperty(INFO_ARROW_MIX_VAR, `${mix.toFixed(1)}%`);
+  capArrowCorners(pop, x);
+}
+// v2.6.2 (user: the ⚙ arrow still came loose): ⚙ sits ~19px from the card's right edge, so the arrow's base reached
+// into the 14px rounded corner, where the edge has already curved away. Each top corner's radius is capped at the
+// room between the arrow's base (half the rotated square's diagonal from its centre) and that edge
+function capArrowCorners(pop, x) {
+  const half = parseFloat(getComputedStyle(pop, '::after').width) * Math.SQRT1_2;
+  const room = edgeDistance => `${Math.max(0, Math.floor(edgeDistance - half))}px`;
+  pop.style.setProperty(INFO_ROOM_LEFT_VAR, room(x));
+  pop.style.setProperty(INFO_ROOM_RIGHT_VAR, room(pop.offsetWidth - x));
 }
 function toggleInfo() { setInfoOpen(!isPopoverOpen('infoPop')); }
 function toggleSettingsPopover() { setSettingsOpen(!isPopoverOpen('settingsPop')); }
