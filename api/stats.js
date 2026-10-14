@@ -1,6 +1,6 @@
 // ════════════════════════════════════════
 // GET /api/stats?days=30 — the owner's read of the usage counters.
-// Header: Authorization: Bearer <STATS_TOKEN> (Vercel env var; unset = always 401).
+// Header: Authorization: Bearer <STATS_TOKEN> (Vercel env var, 32+ random characters; unset = always 401).
 // Returns { days: [{ date, open, standalone, dau, install }] (newest first, UTC), totals: {...} }.
 // ════════════════════════════════════════
 const crypto = require('crypto');

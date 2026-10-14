@@ -9,9 +9,10 @@ const ROOT = path.resolve(__dirname, '..');
 const APP_FILES = ['js/core/config.js', 'js/core/utils.js', 'js/core/telemetry.js'];
 const PROD_HOST = 'life-uk.vercel.app';
 const DAY_LS = 'lifeuk.telemetryDay';
-const DAY_1 = new Date(2026, 9, 14, 9, 0);
-const DAY_1_LATER = new Date(2026, 9, 14, 23, 30);
-const DAY_2 = new Date(2026, 9, 15, 0, 5);
+// W-089: the dau day is the UTC day, the same bucket api/track.js files it under
+const DAY_1 = new Date(Date.UTC(2026, 9, 14, 9, 0));
+const DAY_1_LATER = new Date(Date.UTC(2026, 9, 14, 23, 30));
+const DAY_2 = new Date(Date.UTC(2026, 9, 15, 0, 5));
 
 let asserts = 0;
 const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); asserts++; console.log('ok:', m); };
@@ -63,9 +64,9 @@ function checkReportLaunch() {
   app.g(`reportLaunch(new Date(${DAY_1.getTime()}))`);
   app.g(`reportLaunch(new Date(${DAY_1_LATER.getTime()}))`);
   app.g(`reportLaunch(new Date(${DAY_2.getTime()}))`);
-  assert(same(eventsOf(app), [['open', 'dau'], ['open'], ['open', 'dau']]), 'dau counted once per local day, open on every launch');
+  assert(same(eventsOf(app), [['open', 'dau'], ['open'], ['open', 'dau']]), 'dau counted once per UTC day, open on every launch');
   assert(app.beacons.every(b => b.url === '/api/track'), 'beacons go to /api/track (same origin)');
-  assert(JSON.parse(app.storage.getItem(DAY_LS)) === '2026-10-15', `${DAY_LS} holds the last reported local day`);
+  assert(JSON.parse(app.storage.getItem(DAY_LS)) === '2026-10-15', `${DAY_LS} holds the last reported UTC day`);
 }
 
 function checkStandalone() {
@@ -127,6 +128,9 @@ function checkEventParity() {
   const client = Object.values(g('TELEMETRY_EVENTS')).sort();
   const server = [...require(path.join(ROOT, 'api/_lib/events.js')).EVENTS].sort();
   assert(same(client, server), `client and server event names match (${client.join(', ')})`);
+  // S-102: the server accepts exactly the origin the client reports from
+  const origin = require(path.join(ROOT, 'api/track.js')).ALLOWED_ORIGIN;
+  assert(origin === 'https://' + g('TELEMETRY_HOST'), `api/track.js ALLOWED_ORIGIN = https:// + TELEMETRY_HOST (${origin})`);
 }
 
 // wiring: main.js reports the launch, pwa.js reports appinstalled, the script is in index.html and the SW shell

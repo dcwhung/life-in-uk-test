@@ -6,8 +6,13 @@
 const { EVENTS, counterKey, utcIsoDate } = require('./_lib/events');
 const { redisConfig, redisPipeline } = require('./_lib/redis');
 
-// user decision 2026-10-14 (option c): only the Vercel production site counts
+// user decision 2026-10-14 (option c): only the Vercel production site counts. = 'https://' + TELEMETRY_HOST in
+// js/core/config.js (tests/telemetry-test.js checks). A filter against other sites' pages, not auth: curl can send it
 const ALLOWED_ORIGIN = 'https://life-uk.vercel.app';
+// W-088: requests counted per UTC day; past it a beacon gets 204 but counts nothing, so a flood costs one INCR per
+// request instead of one per event and cannot inflate the numbers beyond it (rate limiting = Vercel Firewall rule)
+const DAILY_REQUEST_BUDGET = 20000;
+const BUDGET_EVENT = 'budget';
 // a launch sends at most every event once; a much longer list is not our client
 const MAX_EVENTS = 10;
 
@@ -21,7 +26,7 @@ function parseEvents(body) {
   return known.length ? known : null;
 }
 
-module.exports = async function track(req, res) {
+async function track(req, res) {
   if (req.method !== 'POST') return res.setHeader('Allow', 'POST').status(405).end();
   if (req.headers.origin !== ALLOWED_ORIGIN) return res.status(403).end();
   const events = parseEvents(req.body);
@@ -34,10 +39,16 @@ module.exports = async function track(req, res) {
   }
   const today = utcIsoDate(Date.now());
   try {
+    const [used] = await redisPipeline([['INCR', counterKey(BUDGET_EVENT, today)]]);
+    if (used > DAILY_REQUEST_BUDGET) return res.status(204).end();
     await redisPipeline(events.map(e => ['INCR', counterKey(e, today)]));
   } catch (e) {
     console.error('track:', e.message);
     return res.status(502).end();
   }
   return res.status(204).end();
-};
+}
+
+module.exports = track;
+module.exports.ALLOWED_ORIGIN = ALLOWED_ORIGIN;
+module.exports.DAILY_REQUEST_BUDGET = DAILY_REQUEST_BUDGET;

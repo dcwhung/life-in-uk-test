@@ -21,7 +21,7 @@ function fakeRedis({ fail = false } = {}) {
   const calls = [];
   global.fetch = async (url, init) => {
     const commands = JSON.parse(init.body);
-    calls.push({ url, auth: init.headers.Authorization, commands });
+    calls.push({ url, auth: init.headers.Authorization, commands, signal: init.signal });
     if (fail) return { ok: false, status: 500, json: async () => ({ error: 'down' }) };
     const result = commands.map(([cmd, ...args]) => {
       if (cmd === 'INCR') { counts.set(args[0], (counts.get(args[0]) || 0) + 1); return { result: counts.get(args[0]) }; }
@@ -62,11 +62,13 @@ async function checkTrackCounts() {
   // sendBeacon posts text/plain, so Vercel hands the body over as a string
   await track(req({ body: JSON.stringify({ events: ['open', 'standalone', 'dau'] }) }), res);
   assert(res.statusCode === 204 && res.ended, 'valid beacon → 204');
-  assert(redis.calls.length === 1 && redis.calls[0].url === `${REDIS_URL}/pipeline` && redis.calls[0].auth === `Bearer ${REDIS_TOKEN}`,
-    'one pipeline call with the Redis token');
-  assert(same(redis.calls[0].commands, [
+  assert(redis.calls.length === 2 && redis.calls.every(c => c.url === `${REDIS_URL}/pipeline` && c.auth === `Bearer ${REDIS_TOKEN}`),
+    'two pipeline calls with the Redis token');
+  assert(same(redis.calls[0].commands, [['INCR', `lifeuk:budget:${TODAY}`]]), 'first the daily request budget');
+  assert(same(redis.calls[1].commands, [
     ['INCR', `lifeuk:open:${TODAY}`], ['INCR', `lifeuk:standalone:${TODAY}`], ['INCR', `lifeuk:dau:${TODAY}`],
-  ]), 'one INCR per event, keyed by UTC day');
+  ]), 'then one INCR per event, keyed by UTC day');
+  assert(redis.calls[0].signal instanceof AbortSignal, 'S-100: the Redis fetch has a timeout signal');
   await track(req({ body: { events: ['install'] } }), fakeRes());
   assert(redis.counts.get(`lifeuk:install:${TODAY}`) === 1, 'object body (application/json) works too');
 }
@@ -75,7 +77,7 @@ async function checkTrackFilters() {
   const redis = fakeRedis();
   const res = fakeRes();
   await track(req({ body: JSON.stringify({ events: ['open', 'open', 'hack', 42, 'dau'] }) }), res);
-  assert(res.statusCode === 204 && same(redis.calls[0].commands.map(c => c[1]), [`lifeuk:open:${TODAY}`, `lifeuk:dau:${TODAY}`]),
+  assert(res.statusCode === 204 && same(redis.calls[1].commands.map(c => c[1]), [`lifeuk:open:${TODAY}`, `lifeuk:dau:${TODAY}`]),
     'unknown and repeated events dropped');
   for (const [label, body] of [
     ['no known event', { events: ['hack'] }], ['events not an array', { events: 'open' }],
@@ -99,6 +101,17 @@ async function checkTrackGuards() {
   const github = fakeRes();
   await track(req({ body: { events: ['open'] }, headers: { origin: 'https://dcwhung.github.io' } }), github);
   assert(github.statusCode === 403 && redis.calls.length === 0, 'GitHub Pages origin → 403 (only Vercel counts)');
+}
+
+// W-088: past the daily request budget a beacon still gets 204 but counts nothing (caps a flood's Redis use)
+async function checkTrackBudget() {
+  const redis = fakeRedis();
+  redis.counts.set(`lifeuk:budget:${TODAY}`, track.DAILY_REQUEST_BUDGET);
+  const res = fakeRes();
+  await track(req({ body: { events: ['open', 'dau'] } }), res);
+  assert(res.statusCode === 204, 'over budget → still 204');
+  assert(!redis.counts.has(`lifeuk:open:${TODAY}`) && !redis.counts.has(`lifeuk:dau:${TODAY}`), 'over budget → no event counted');
+  assert(redis.calls.length === 1 && same(redis.calls[0].commands, [['INCR', `lifeuk:budget:${TODAY}`]]), 'over budget → only the budget INCR');
 }
 
 async function checkTrackRedisDown() {
@@ -182,6 +195,7 @@ async function checkStatsDays() {
   await checkTrackCounts();
   await checkTrackFilters();
   await checkTrackGuards();
+  await checkTrackBudget();
   await checkTrackRedisDown();
   await checkKvEnvFallback();
   await checkStats();
