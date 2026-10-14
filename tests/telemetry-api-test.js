@@ -149,8 +149,10 @@ async function checkTrackBudget() {
   assert(same(redis.calls[0].commands, [['INCR', `lifeuk:budget:${TODAY}`]]), 'over budget → the budget INCR, no event INCR');
   // SEC-01: an over-budget request marks the day capped (no TTL), so the dashboard can say so later. W-400: NX, so
   // any over-budget request can (re)write it without the crossing request being the only chance
-  assert(redis.calls.length === 2 && same(redis.calls[1].commands, [['SET', `lifeuk:capped:${TODAY}`, '1', 'NX']]),
-    'an over-budget request sets lifeuk:capped:<day> NX');
+  // S-300: the same pipeline re-sets the budget key's TTL, so a day whose first-request EXPIRE failed still expires
+  assert(redis.calls.length === 2 && same(redis.calls[1].commands, [
+    ['SET', `lifeuk:capped:${TODAY}`, '1', 'NX'], ['EXPIRE', `lifeuk:budget:${TODAY}`, track.BUDGET_TTL_SECONDS],
+  ]), 'an over-budget request sets lifeuk:capped:<day> NX + EXPIRE on the budget key, in one pipeline');
   assert(redis.counts.get(`lifeuk:capped:${TODAY}`) === 1, 'the day is marked capped');
 }
 
@@ -186,6 +188,8 @@ async function checkTrackBudgetPastCrossing() {
   await track(req({ body: { events: ['open'] } }), fakeRes());
   assert(redis.calls.length === 2 && same(redis.calls[1].commands[0], ['SET', `lifeuk:capped:${TODAY}`, '1', 'NX']) &&
     redis.counts.get(`lifeuk:capped:${TODAY}`) === 1, 'past the crossing point: the budget INCR + SET capped NX');
+  assert(same(redis.calls[1].commands[1], ['EXPIRE', `lifeuk:budget:${TODAY}`, track.BUDGET_TTL_SECONDS]),
+    'S-300: past the crossing point the budget key gets its TTL again too');
 }
 
 // W-400: the crossing request's SET fails → a later instance still marks the day capped

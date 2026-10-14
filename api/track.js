@@ -28,9 +28,8 @@ const MAX_EVENTS = 10;
 
 // SEC-02: the UTC day this instance has seen the budget run out on. Past it a beacon gets 204 with no Redis call, so a
 // sustained flood stops costing one INCR per request. Module state lives only while Vercel keeps this instance warm:
-// a cold start (or a parallel instance) spends one more INCR (+ the W-400 capped SET NX) to find out, so this cuts the
-// cost, it does not end it.
-// A new UTC day no longer matches, so counting starts again by itself.
+// a cold start (or a parallel instance) spends one more INCR (+ the W-400 / S-300 capped pipeline) to find out, so
+// this cuts the cost, it does not end it. A new UTC day no longer matches, so counting starts again by itself.
 let budgetSpentOn = null;
 
 function parseEvents(body) {
@@ -52,6 +51,17 @@ function eventCommands(events, today, used) {
   return commands;
 }
 
+// SEC-01 / W-400: every over-budget request marks the day for the dashboard, not only the crossing one: if that SET
+// failed or its INCR reply was lost (timeout), a later request still writes it. NX keeps the first write.
+// S-300: the same pipeline re-sets the budget key's TTL, so a capped day expires even if the day's first-request
+// EXPIRE failed. With the SEC-02 short circuit this pipeline runs at most once per instance per day (2 commands)
+function cappedCommands(today) {
+  return [
+    ['SET', cappedKey(today), CAPPED_VALUE, 'NX'],
+    ['EXPIRE', counterKey(BUDGET_EVENT, today), BUDGET_TTL_SECONDS],
+  ];
+}
+
 async function track(req, res) {
   if (req.method !== 'POST') return res.setHeader('Allow', 'POST').status(405).end();
   if (req.headers.origin !== ALLOWED_ORIGIN) return res.status(403).end();
@@ -69,10 +79,7 @@ async function track(req, res) {
     const [used] = await redisPipeline([['INCR', counterKey(BUDGET_EVENT, today)]]);
     if (used > DAILY_REQUEST_BUDGET) {
       budgetSpentOn = today;
-      // SEC-01 / W-400: every over-budget request marks the day for the dashboard, not only the crossing one: if that
-      // SET failed or its INCR reply was lost (timeout), a later request still writes it. NX keeps one write a day;
-      // with the SEC-02 short circuit this costs at most one extra command per instance per day
-      await redisPipeline([['SET', cappedKey(today), CAPPED_VALUE, 'NX']]);
+      await redisPipeline(cappedCommands(today));
       return res.status(204).end();
     }
     await redisPipeline(eventCommands(events, today, used));
