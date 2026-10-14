@@ -1,0 +1,7 @@
+# Internal docs, QA screenshots, tickets and tests: not part of the app, never served
+.proj-docs/
+.tickets/
+.claude/
+mockups/
+tests/
+HANDOFF.md
