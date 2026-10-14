@@ -1,4 +1,4 @@
-# Life in the UK Test PWA — Handoff (v2.5.0)
+# Life in the UK Test PWA — Handoff (v2.5.1)
 
 - **Repo:** https://github.com/dcwhung/life-in-uk-test （main branch，GitHub Pages root `/`）
 - **Live:** https://dcwhung.github.io/life-in-uk-test/
@@ -670,6 +670,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 | v2.4.2 | — | **（開發時叫 v2.4.1；merge `main` v2.4.1（PR #124）後改 v2.4.2）記憶法排程改 3 級（1 / 3 / 7 日，Lv3 = 已掌握）+ 掌握度文案**：舊 Lv4 讀入當 Lv3；結果頁「📅 N 日後（日期）再溫習」、Lv 格顯示掌握度名（冇標題、冇「隔 N 日」）、格下隔一行；badge `{name}`（v2.4.3 起冇日數）。詳見「記憶法 3 級排程 + 掌握度文案（v2.4.2）」 |
 | v2.4.3 | dcwhung/life-in-uk-test#126 | **iPad Safari 答題後問題卡被答案蓋住 + 記憶法 badge 唔顯示日數（用戶 2026-10-14）**：desktop 答題欄 `.quiz-main > .q-card` / `.options` 由 `flex: 1 1 0; min-height: min-content` 改 `flex: 1 0 auto`（由內容高度起步、永不縮細過內容，剩低嘅位平分；放唔落照舊 `is-tight` → `is-compact` → scroll）—— 舊寫法 iPad Safari 會將問題卡壓到得返標題行（Chromium 冇事，WebKit 冇得喺 sandbox 測；用戶 2026-10-14 喺 iPad 確認已修好）；`desktop-memo-test` `checkAnsweredCardShows`（1024×768 / 1180×820 / 1280×800 × EN／中 × 細／大字，uk-festivals 每題答完：卡冇截、答案喺卡下面）。列表 badge `memo.statusLearning` / `statusDone` 只係 `{name}`（拎走「· N 日後再溫」／「· in N days」） |
 | v2.5.0 | — | **Loading 畫面 + 首次介紹**（mockup `mockups/v2.2.0/intro-b-cards.html` 方案 B；grill `.proj-docs/plans/2026-10-13_grill_loading-intro.md`，計劃 `.proj-docs/plans/2026-10-13_plan_loading-intro.md`）：每次開 app 出 `#splash`（靜態 markup，JS 未行已見到；`js/components/splash.js`、`css/components/splash.css`），隨機抽 logo 動畫 卡片扇 : 進度環 = 3 : 1（`SPLASH_WEIGHTS`），等 boot **同**動畫完先入 app（`SPLASH_ANIM_MS` + `SPLASH_HOLD_MS`），載入字輪住出、小貼士 memo（手機 1 張、≥ 1024px 3 張，左 logo 右 memo）。冇 `lifeuk.introSeen` 就喺 splash 之後出 3 頁介紹 overlay（`js/screens/intro.js`、`css/screens/intro.css`：溫習／練習 + 模擬考試／溫習計劃 + 廣東話翻譯；疊卡、dots、swipe、← →、Esc = 略過；插畫元素隨機位 + 細角度、離邊 ≥ 20px；最後一頁轉語言 + 粵語 switch；「製定溫習計劃」開返計劃（未開先開）再去 goal／schedule）。ⓘ 加「▶ 重看介紹」行（`data-action="replayIntro"`）。自動化瀏覽器（`navigator.webdriver`）同 `file://` 唔出 splash／介紹，所以舊 suite 唔使改；新 `intro-test`。`isUpdateReloadSafe` 喺 splash／介紹開住時唔 reload，收起後再試。W-057：舊 config.js 冇新常數就唔出 splash／首次介紹 |
+| v2.5.1 | — | **介紹 layout 跟進（用戶 iPhone / iPad 實機 2026-10-14）**：手機卡片上半插畫最多 50%（`grid-template-rows: 50% 1fr`），插畫 scene 保持設計尺寸、按格縮放（`fitIntroScenes` → `--scene-k`，最大 1.4×）；卡片文字用一個共用縮放（`fitIntroText` → `--intro-fs-k`，0.7–1）令三頁都一版出晒而且字體大小一致（desktop 標題唔再分 p3）；練習卡選項唔再撐出卡外（`.intro-ui` 欄 `minmax(0, 1fr)`）；轉方向／resize 重新 fit；desktop overlay 本身蓋滿全窗（拎走 `::before`），開住時 `html.intro-open` 鎖 scroll（scroll 唔再見到底下頁面）；ⓘ 重看介紹最後一頁只有「返回」（`intro.back`），冇「直接開始／製定溫習計劃」 |
 
 **Practice 數字圓圈設計決定（v0.55，preview 同用戶確認）**
 - 起因：用戶以為 Practice 「無咗」頂頭數字圓圈；查 code 同 git 記錄，v0.44 起圓圈一直只係 Exam 1–17 / Random Exam 先有，唔係 regression，改做新功能

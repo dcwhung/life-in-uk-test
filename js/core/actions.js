@@ -103,7 +103,7 @@ const ACTIONS = {
   // study plan (entry hidden until planVisible: js/screens/planHome.js, planGoal.js, planSchedule.js, planDay.js, planRun.js)
   togglePlanFeature: () => togglePlanFeature(),
   // v2.5.0 first-run intro (js/screens/intro.js); ⓘ replays it
-  replayIntro: () => { setInfoOpen(false); openIntro(); },
+  replayIntro: () => { setInfoOpen(false); openIntro({ replay: true }); },
   introNext: () => introGo(introPage + 1),
   introGo: el => introGo(numArg(el)),
   introClose: el => closeIntro(el.dataset.arg),

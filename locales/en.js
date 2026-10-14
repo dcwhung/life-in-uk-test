@@ -267,6 +267,7 @@ LOCALES.en = {
     next: 'Next',
     start: 'Start now',
     makePlan: 'Make a study plan',
+    back: 'Back', // a replay from ⓘ ends with this instead of the two ways in
     study: {
       kicker: 'Study',
       title: 'Want the background first? Start with the facts',

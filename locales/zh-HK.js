@@ -253,6 +253,7 @@ LOCALES['zh-HK'] = {
     next: '下一步',
     start: '直接開始',
     makePlan: '製定溫習計劃',
+    back: '返回',
     study: {
       kicker: '溫習',
       title: '想先了解背景？由知識卡讀起',

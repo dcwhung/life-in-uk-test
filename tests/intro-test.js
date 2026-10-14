@@ -72,6 +72,9 @@ async function checkFirstRun(b, base) {
   let s = await introState(pg);
   assert(s && s.step === '1 / 3' && s.front === '0' && !s.nextHidden && s.ctasHidden && !s.skipGone, 'first run: the intro opens on card 1 of 3 with Next + Skip: ' + JSON.stringify(s));
   assert(await piecesInside(pg), 'card 1: every illustration piece stays ≥ 20px inside its box');
+  const fit = await cardsFit(pg);
+  assert(fit.every(c => c.half && c.textFits), 'phone: every illustration ≤ half the card and every card text fits: ' + JSON.stringify(fit));
+  assert(await pg.evaluate(() => document.documentElement.classList.contains('intro-open') && getComputedStyle(document.body).overflow === 'hidden'), 'the page under the intro does not scroll');
   await pg.click('#introOverlay .intro-next');
   s = await introState(pg);
   assert(s.step === '2 / 3' && s.front === '1', 'Next turns to card 2');
@@ -133,11 +136,29 @@ async function checkReplayAndPlan(b, base) {
   await pg.click('#infoBtn');
   await pg.click('#infoPop .info-replay');
   await pg.click('#introOverlay .intro-dots button:nth-child(3)');
-  await pg.click('#introOverlay [data-arg="plan"]');
-  assert(await pg.$eval('#screenPlanGoal', el => el.classList.contains('active')), 'Make a study plan opens the plan goal form');
+  const ctas = await pg.$$eval('#introOverlay .intro-ctas button', els => els.map(e => e.dataset.arg));
+  assert(JSON.stringify(ctas) === '["back"]', 'a replay ends with Back only (no Start now / Make a study plan): ' + ctas.join(','));
+  await pg.click('#introOverlay [data-arg="back"]');
+  assert(!(await introState(pg)) && await pg.$eval('#screenHome', el => el.classList.contains('active')), 'Back closes the replay on Home');
   assert(errs.length === 0, 'no page errors: ' + errs.join(' / '));
   await ctx.close();
+  await checkPlanWayIn(b, base);
 }
+// first run: Make a study plan opens the plan goal form
+async function checkPlanWayIn(b, base) {
+  const { pg, ctx } = await userPage(b, PHONE, FAN_RANDOM);
+  await loadAndTime(pg, base);
+  await pg.click('#introOverlay .intro-dots button:nth-child(3)');
+  await pg.click('#introOverlay [data-arg="plan"]');
+  assert(await pg.$eval('#screenPlanGoal', el => el.classList.contains('active')), 'Make a study plan opens the plan goal form');
+  await ctx.close();
+}
+// every card: the illustration is at most half the card (phone), its pieces stay inside, the text fits without scrolling
+const cardsFit = pg => pg.evaluate(() => [...document.querySelectorAll('#introOverlay .intro-card')].map(card => {
+  const art = card.querySelector('.intro-art').getBoundingClientRect(), all = card.getBoundingClientRect();
+  const text = card.querySelector('.intro-text');
+  return { half: art.height <= all.height / 2 + 1, textFits: text.scrollHeight <= text.clientHeight + 1 };
+}));
 async function checkRingAndDesktop(b, base) {
   const { pg, ctx, errs } = await userPage(b, DESKTOP, RING_RANDOM);
   await pg.goto(base);
@@ -151,6 +172,10 @@ async function checkRingAndDesktop(b, base) {
   const cols = await pg.$eval('#introOverlay .intro-card[data-pos="0"]', el => getComputedStyle(el).gridTemplateColumns.split(' ').length);
   assert(cols === 2, 'desktop intro: illustration left, text right');
   assert(await piecesInside(pg), 'desktop card 1: pieces stay ≥ 20px inside');
+  const fit = await cardsFit(pg);
+  assert(fit.every(c => c.textFits), 'desktop: every card text fits without scrolling: ' + JSON.stringify(fit));
+  const sizes = await pg.$$eval('#introOverlay .intro-title', els => [...new Set(els.map(e => getComputedStyle(e).fontSize))]);
+  assert(sizes.length === 1, 'desktop: the three titles share one size: ' + sizes.join(', '));
   assert(await noSideScroll(pg), 'desktop: no sideways scroll');
   assert(errs.length === 0, 'no page errors: ' + errs.join(' / '));
   await ctx.close();
