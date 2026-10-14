@@ -13,7 +13,7 @@ Workflow：`.github/workflows/test.yml`（名 `tests`）。目的係每次改動
 
 - Node 22（`actions/setup-node@v4`）；`playwright-core@1.56.1`（同本機 `/opt/node-tools` 一樣），用 `npm install --no-save --prefix "$RUNNER_TEMP/pw"` 裝喺 checkout 以外（repo 冇 `package.json`），`NODE_PATH` 指去嗰度。
 - Chromium 用同一版 `playwright-core install --with-deps chromium` 裝；`CHROMIUM_PATH` 設做 `chromium.executablePath()`（完整 Chromium build，同本機 `/opt/pw-browsers/chromium` 一樣，唔用 headless shell）。
-- **唔裝 CJK 字體**（用戶 2026-10-14 決定，CI 快啲）：所以 `lang-switch-test` 喺 CI 會 skip M4 中文換行 check；要驗 M4 就喺有 `fonts-noto-cjk` 嘅本機跑。
+- **CJK 字體 / M4**：`--with-deps` 會帶 WenQuanYi（`fonts-wqy-zenhei`，playwright-core 嘅 `tools` 依賴，`install-deps` 一定裝），但 CI 用 `LANG_SWITCH_NO_CJK_FONT=1`（`Run all Playwright suites` step 嘅 `env`）強制 `lang-switch-test` skip M4 中文換行 check：字體同本機 Noto 唔同，量出嚟嘅換行唔可信（用戶 2026-10-14 決定，W-393）。CI log 最後一行會係 `LANG-SWITCH PASS (M4 skipped: no CJK font)`；要驗 M4 就喺有 `fonts-noto-cjk` 嘅本機跑。
 - `fetch-depth: 0`：`tests/upgrade-test.js` 要 `git archive` 一個 pinned 嘅 v0.57 commit，shallow clone 冇。
 - Runner 鎖 `ubuntu-24.04`（兩個 job），唔用 `ubuntu-latest`：`ubuntu-latest` 2026-10-19 起轉 Ubuntu 26，`playwright-core@1.56.1` 只支援到 Ubuntu 24.04（`lib/server/utils/hostPlatform.js`，26 會當 unsupported platform）。升 `playwright-core` 嘅時候先一齊考慮升 runner（W-392）。
 - `tests/pages-server.js` 用 `python3`，`ubuntu-24.04` 本身有。
