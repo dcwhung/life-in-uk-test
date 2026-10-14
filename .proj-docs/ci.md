@@ -13,7 +13,7 @@ Workflow：`.github/workflows/test.yml`（名 `tests`）。目的係每次改動
 
 - Node 22（`actions/setup-node@v4`）；`playwright-core@1.56.1`（同本機 `/opt/node-tools` 一樣），用 `npm install --no-save --prefix "$RUNNER_TEMP/pw"` 裝喺 checkout 以外（repo 冇 `package.json`），`NODE_PATH` 指去嗰度。
 - Chromium 用同一版 `playwright-core install --with-deps chromium` 裝；`CHROMIUM_PATH` 設做 `chromium.executablePath()`（完整 Chromium build，同本機 `/opt/pw-browsers/chromium` 一樣，唔用 headless shell）。
-- 另裝 `fonts-noto-cjk`：冇 CJK 字體時 `lang-switch-test` 會 skip M4 中文換行 check。
+- **唔裝 CJK 字體**（用戶 2026-10-14 決定，CI 快啲）：所以 `lang-switch-test` 喺 CI 會 skip M4 中文換行 check；要驗 M4 就喺有 `fonts-noto-cjk` 嘅本機跑。
 - `fetch-depth: 0`：`tests/upgrade-test.js` 要 `git archive` 一個 pinned 嘅 v0.57 commit，shallow clone 冇。
 - `tests/pages-server.js` 用 `python3`，`ubuntu-latest` 本身有。
 - 失敗時 upload `tests/shot-*.png` 做 artifact（`playwright-screenshots`，留 7 日）。

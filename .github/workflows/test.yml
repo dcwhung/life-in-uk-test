@@ -65,10 +65,10 @@ jobs:
           npm install --no-save --no-audit --no-fund --prefix "$RUNNER_TEMP/pw" "playwright-core@$PLAYWRIGHT_CORE_VERSION"
           echo "NODE_PATH=$RUNNER_TEMP/pw/node_modules" >> "$GITHUB_ENV"
 
-      - name: Install Chromium (same playwright-core version) + CJK font
+      # No CJK font on purpose (user decision 2026-10-14, keeps the job fast): lang-switch-test skips its M4 line-wrap check
+      - name: Install Chromium (same playwright-core version)
         run: |
           "$RUNNER_TEMP/pw/node_modules/.bin/playwright-core" install --with-deps chromium
-          sudo apt-get install -y --no-install-recommends fonts-noto-cjk # lang-switch-test M4 is skipped without a CJK font
 
       # Same setup as local runs: CHROMIUM_PATH = the full Chromium build playwright-core just installed
       - name: Locate Chromium
