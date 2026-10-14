@@ -5,6 +5,8 @@
 // Sends no id or personal data. Only the Vercel production host reports (user decision 2026-10-14, option c);
 // GitHub Pages, preview deploys and localhost send nothing. A failed send never affects the app.
 // ════════════════════════════════════════
+// W-057: a cached pre-v2.7.0 config.js has none of the TELEMETRY_* constants (they shipped together): stay silent
+const isTelemetryConfigured = () => typeof TELEMETRY_DAY_LS !== 'undefined';
 const isTelemetryHost = () => location.hostname === TELEMETRY_HOST;
 const isStandaloneLaunch = () => window.matchMedia(STANDALONE_QUERY).matches || navigator.standalone === true;
 const telemetryLocalIso = now => `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
@@ -29,11 +31,13 @@ function sendTelemetry(events) {
 
 // a day is marked only after its beacon was queued, so an offline launch still counts on the next online one
 function reportLaunch(now = new Date()) {
+  if (!isTelemetryConfigured()) return;
   const today = telemetryLocalIso(now);
   const events = launchEvents({ today, lastDay: getLS(TELEMETRY_DAY_LS), standalone: isStandaloneLaunch() });
   if (sendTelemetry(events)) setLS(TELEMETRY_DAY_LS, today);
 }
 
 function reportInstall() {
+  if (!isTelemetryConfigured()) return;
   sendTelemetry([TELEMETRY_EVENTS.install]);
 }

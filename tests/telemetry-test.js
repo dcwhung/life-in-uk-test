@@ -28,7 +28,7 @@ function memoryStorage() {
   };
 }
 // host / display mode / online state of the fake page; beacons records every sendBeacon call
-function loadApp({ host = PROD_HOST, standalone = false, iosStandalone = false, online = true, beacon = true } = {}) {
+function loadApp({ host = PROD_HOST, standalone = false, iosStandalone = false, online = true, beacon = true, oldConfig = false } = {}) {
   const beacons = [];
   const navigator = { onLine: online };
   if (iosStandalone) navigator.standalone = true;
@@ -36,7 +36,12 @@ function loadApp({ host = PROD_HOST, standalone = false, iosStandalone = false, 
   const window = { matchMedia: q => ({ matches: standalone && q === '(display-mode: standalone)' }) };
   const storage = memoryStorage();
   const ctx = vm.createContext({ localStorage: storage, console, navigator, window, location: { hostname: host } });
-  for (const f of APP_FILES) vm.runInContext(fs.readFileSync(path.join(ROOT, f), 'utf8'), ctx, { filename: f });
+  for (const f of APP_FILES) {
+    let src = fs.readFileSync(path.join(ROOT, f), 'utf8');
+    // a pre-v2.7.0 config.js (mixed SW / HTTP cache, W-057): none of the usage-counter constants exist
+    if (oldConfig && f === 'js/core/config.js') src = src.replace(/^const (TELEMETRY_\w+|STANDALONE_QUERY) = .*$/gm, '');
+    vm.runInContext(src, ctx, { filename: f });
+  }
   return { beacons, storage, g: code => vm.runInContext(code, ctx), ctx };
 }
 const eventsOf = app => app.beacons.map(b => b.body.events);
@@ -107,6 +112,15 @@ function checkBeaconThrows() {
   assert(app.storage.getItem(DAY_LS) === null, 'throwing sendBeacon: swallowed, day not marked');
 }
 
+// W-057: a cached pre-v2.7.0 config.js with this telemetry.js must not throw (upgrade-test found it)
+function checkOldConfig() {
+  const app = loadApp({ oldConfig: true });
+  assert(app.g("typeof TELEMETRY_DAY_LS") === 'undefined', 'old config: the telemetry constants are missing');
+  app.g('reportLaunch()');
+  app.g('reportInstall()');
+  assert(app.beacons.length === 0, 'old config: reportLaunch / reportInstall do nothing and do not throw');
+}
+
 // the server whitelist (api/_lib/events.js) and the client events are the same set
 function checkEventParity() {
   const { g } = loadApp();
@@ -131,6 +145,7 @@ checkHostGate();
 checkOffline();
 checkInstall();
 checkBeaconThrows();
+checkOldConfig();
 checkEventParity();
 checkWiring();
 console.log(`PASS (${asserts} asserts)`);
