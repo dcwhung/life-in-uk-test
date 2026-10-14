@@ -194,7 +194,9 @@ stats.html → sign-in → sessionStorage 存 Basic header → GET /api/stats?da
   - **方案 1（推薦）：Vercel 做唯一 production，Pages 退役**，換成「已搬家」頁，加一次性進度匯出 / 匯入（1–2 日）。好處：AU-001 / 010 / 024 / 026 嘅根源一齊消失。代價：已安裝 Pages PWA 嘅用戶要手動搬一次。
   - **方案 2：正式化並存**：寫 deploy matrix，Pages 改用 Actions 只部署 runtime 檔，telemetry 加 host 維度。代價：兼容成本永久存在，仲要處理 CORS。
   - **方案 3：custom domain，兩邊都 redirect 過去**。最乾淨，但要用戶決定買唔買 domain。
-  - **需要用戶決策。**
+  - **✅ 用戶決策（2026-10-14）：方案 1。GitHub Pages 喺 2026-10 月尾（10-31）關閉，Vercel 做唯一 production。**
+  - **關閉之前（過渡期）要做**：(a) AU-024：Pages 版 `stats.html` 唔顯示登入（過渡期內仍然有效）；(b) Pages 版 app 顯示「已搬家去 life-uk.vercel.app」banner，加一次性進度匯出 / 匯入（localStorage 按 origin 分開，唔做嘅話 Pages 用戶進度會冇咗）；(c) 寫 Pages 關閉 checklist（Settings → Pages 停用、`og` / `share` / HANDOFF Live URL、`telemetry.js` 嘅 Pages 分支）。
+  - **關閉之後**：刪 Pages 兼容 code（`telemetry.js:6,46-48` 等），AU-026 / AU-010 自動解決；AU-001 嘅 shim 清理可以開始（Vercel static 預設 revalidate，假設要實測 response header 確認）。
 
 #### [AU-002 升級] Backend 上線，仍然冇 CI
 - 一次錯誤 merge 而家可以令 `/api/track` 500，或者燒晒 Upstash 配額。
@@ -325,11 +327,11 @@ stats.html → sign-in → sessionStorage 存 Basic header → GET /api/stats?da
 
 | 優先級 | 行動 | 對應 | 負責 Agent | 預計工作量 |
 |--------|------|------|-----------|-----------|
-| P0 | **用戶決策**：Pages 退役定並存；退役就做「已搬家」頁 + 進度匯出 / 匯入 | AU-020 / AU-026 | PM + Architect；Frontend Developer | 0.5 + 1–2 日 |
+| P0（10-31 前） | ✅ 已決定 Pages 10-31 關閉 → Pages 版「已搬家」banner + 進度匯出 / 匯入 + 關閉 checklist | AU-020 / AU-026 | Frontend Developer + DevOps | 1–2 日 |
 | P0 | GitHub Actions 跑全套 test（`fetch-depth: 0`）+ branch protection + `api/**` CODEOWNERS | AU-002 / AU-027 | DevOps | 1 日 |
 | P0 | 登入 lockout 改 per-IP-hash + 全局上限（或者 owner bypass） | SEC-03 | Backend Developer | 0.5 日 |
 | P0 | Vercel WAF rate rule 擋 `/api/track` 並喺 repo 記錄；dashboard 顯示 budget 封頂 | SEC-01 / SEC-02 / AU-025 | DevOps + Backend Developer | 0.5–1 日 |
-| P0 | `stats.html` 喺非 production host 停用登入 | AU-024 / SEC-10 | Frontend Developer | 0.25 日 |
+| P0（10-31 前） | `stats.html` 喺非 production host 停用登入（Pages 關閉前仍然有風險） | AU-024 / SEC-10 | Frontend Developer | 0.25 日 |
 | P0 | 核實 Vercel env scope（只限 Production）、Firewall、Deployment Protection；寫 `docs/ops.md` | AU-021 | DevOps | 0.5–1 日 |
 | P1 | Dashboard credential 改短期 HttpOnly token（或者只放 memory） | SEC-04 | Backend + Frontend Developer | 0.5–1 日 |
 | P1 | `index.html` meta CSP + `vercel.json` 全站 header + 一致性 test | AU-022 / SEC-05 / SEC-11 | Frontend Developer | 0.5 日 |
@@ -337,7 +339,7 @@ stats.html → sign-in → sessionStorage 存 Basic header → GET /api/stats?da
 | P1 | 私隱說明 + opt-out（尊重 GPC），加 locale key | AU-023 / SEC-06 | PM + Frontend Developer | 0.5–1 日 |
 | P1 | 版本號 / review ID 改為 merge 時分配 | AU-003 | PM + DevOps | 1 日 |
 | P1 | 拆 HANDOFF，補 v2.8.0–v2.10.0 同 Vercel，更正 Live URL | AU-008 / AU-021 | PM | 1–1.5 日 |
-| P1 | （Pages 退役後）cache-busting + 相容窗口，刪 v2.0 之前嘅 shim | AU-001 / AU-009 | Architect + Developer | 2–3 日 |
+| P1（11 月，Pages 關閉後） | 刪 Pages 兼容 code；cache-busting + 相容窗口，刪 v2.0 之前嘅 shim | AU-001 / AU-009 / AU-020 | Architect + Developer | 2–3 日 |
 | P1 | Test 截圖改寫入 gitignore 目錄 | AU-007 | QA | 0.5 日 |
 | P1 | `setLS` 回傳 boolean + warn / toast；telemetry 只喺寫入成功時先當 dau 已送 | AU-006 / AU-025 | Developer | 0.5 日 |
 | P2 | `toDays` spread 次序、`Object.hasOwn`、`parseEvents` try + body 上限、budget key TTL、pin Node | SEC-08 / 12 / 13、AU-031 | Backend + Frontend Developer | 0.5 日 |
