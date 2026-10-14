@@ -42,6 +42,8 @@ jobs:
           echo "NODE_PATH=$RUNNER_TEMP/pw/node_modules" >> "$GITHUB_ENV"
 
       # Browser binaries are cached per OS + playwright-core version (a new version = a new key = a fresh download)
+      # Scope: main has no playwright run, so a PR only reuses caches saved by its own earlier runs (the first run of
+      # every new PR downloads Chromium); actions/cache saves only when the job succeeds
       - name: Cache Playwright browsers
         uses: actions/cache@v5
         with:
