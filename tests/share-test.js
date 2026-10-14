@@ -47,7 +47,10 @@ const toast = pg => pg.evaluate(() => { const e = byId('appToast'); return e && 
 const hitOk = (pg, sel) => pg.evaluate(({ s, min }) => {
   const e = document.querySelector(s), r = e.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2, d = min / 2 - 1;
   const at = (x, y) => { const h = document.elementFromPoint(x, y); return !!h && (h === e || e.contains(h)); };
-  return { v: at(cx, cy - d) && at(cx, cy + d), outer: s === '#shareBtn' ? at(cx - d, cy) : at(cx + d, cy), centre: at(cx, cy) };
+  const share = s === '#shareBtn', half = byId('settingsBtn').getBoundingClientRect().left - byId('shareBtn').getBoundingClientRect().right;
+  // the gap splits: up to 1px short of half of it (subpixel layout) beyond the inner edge is still this button
+  const inner = share ? at(r.right + half / 2 - 1, cy) : at(r.left - half / 2 + 1, cy);
+  return { v: at(cx, cy - d) && at(cx, cy + d), outer: share ? at(cx - d, cy) : at(cx + d, cy), centre: at(cx, cy) && inner };
 }, { s: sel, min: HIT_MIN_PX });
 
 (async () => {
@@ -69,7 +72,7 @@ const hitOk = (pg, sel) => pg.evaluate(({ s, min }) => {
     assert(g.sw <= g.vw, `${tag}: no sideways scroll`);
     assert(g.icon && g.label === LABEL[lang] && g.title === LABEL[lang], `${tag}: share icon labelled ${LABEL[lang]}`);
     const hs = await hitOk(pg, '#shareBtn'), hg = await hitOk(pg, '#settingsBtn');
-    assert(hs.v && hs.outer && hs.centre && hg.v && hg.outer && hg.centre, `${tag}: 44px tap on the outer sides, each centre hits its own button`);
+    assert(hs.v && hs.outer && hs.centre && hg.v && hg.outer && hg.centre, `${tag}: 44px tap on the outer sides, the gap between them split in half`);
     await pg.close();
   }
 

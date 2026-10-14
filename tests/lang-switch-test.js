@@ -53,7 +53,7 @@ const snapState = pg => pg.evaluate(() => JSON.stringify({
 const langOf = pg => pg.evaluate(() => ({ lang: getLang(), html: document.documentElement.lang }));
 const textOf = (pg, sel) => pg.$eval(sel, e => e.textContent.replace(/\s+/g, ' ').trim());
 const settingsOf = pg => pg.$eval(SETTINGS, e => ({ label: e.getAttribute('aria-label'), title: e.title, expanded: e.getAttribute('aria-expanded'),
-  parent: e.parentElement.className, last: e === e.parentElement.lastElementChild, type: e.type, icon: !!e.querySelector('svg.line-icon') }));
+  parent: e.parentElement.className, last: e === e.parentElement.lastElementChild && e.parentElement === e.parentElement.parentElement.lastElementChild, type: e.type, icon: !!e.querySelector('svg.line-icon') }));
 const popShown = pg => pg.$eval(SETTINGS_POP, e => e.getClientRects().length > 0);
 const pressedLang = pg => pg.$eval('#settingsLangRow [aria-pressed="true"]', e => e.dataset.arg);
 // v1.2.0: ⚙ → the other language (Q10: the choice closes the popover)
@@ -133,17 +133,20 @@ async function checkSettingsButton(pg) {
   assert(await pg.$('#langBtn') === null && await pg.$(SETTINGS) !== null, 'header has ⚙ instead of the language pill');
   const p = await settingsOf(pg);
   assert(p.label === 'Settings' && p.title === 'Settings' && p.expanded === 'false' && p.icon, 'en: ⚙ is an icon labelled Settings, closed: ' + JSON.stringify(p));
-  assert(p.parent === 'header-inner' && p.last && p.type === 'button', '⚙ is the last child of .header-inner, type=button');
+  // v2.6.0: share + ⚙ sit in .header-actions, the header row's last child
+  assert(p.parent === 'header-actions' && p.last && p.type === 'button', '⚙ is the last button of the header row (.header-actions), type=button');
   const look = await pg.$eval(SETTINGS, e => { const r = e.getBoundingClientRect(), cs = getComputedStyle(e); return { w: r.width, h: r.height, border: cs.borderTopWidth, bg: cs.backgroundColor }; });
   assert(look.w === 32 && look.h === 32 && look.border === '0px' && look.bg === 'rgba(0, 0, 0, 0)', 'C1: ⚙ is 32 × 32px with no ring or fill: ' + JSON.stringify(look));
-  // points up to (44 − visible size) / 2 outside ⚙ on each side still land on it
+  // points up to (44 − visible size) / 2 outside ⚙ on each side still land on it; v2.6.0: on the left (share beside it)
+  // only up to half the gap, the share button takes the other half (share-test)
   const hit = await pg.$eval(SETTINGS, (e, { min, inset }) => {
     const r = e.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
     const dx = Math.max(0, (min - r.width) / 2) - inset, dy = Math.max(0, (min - r.height) / 2) - inset;
-    const pts = [[r.left - dx, cy], [r.right + dx, cy], [cx, r.top - dy], [cx, r.bottom + dy]];
+    const prev = e.previousElementSibling, dl = prev ? Math.min(dx, (r.left - prev.getBoundingClientRect().right) / 2 - inset) : dx;
+    const pts = [[r.left - dl, cy], [r.right + dx, cy], [cx, r.top - dy], [cx, r.bottom + dy]];
     return pts.map(([x, y]) => { const h = document.elementFromPoint(x, y); return !!h && (h === e || e.contains(h)); });
   }, { min: HIT_MIN_PX, inset: HIT_PROBE_INSET_PX });
-  assert(hit.every(Boolean), `⚙ hit area is >= ${HIT_MIN_PX}px each way (left, right, top, bottom): ` + JSON.stringify(hit));
+  assert(hit.every(Boolean), `⚙ hit area is >= ${HIT_MIN_PX}px right / up / down, to half the gap on the share side (left, right, top, bottom): ` + JSON.stringify(hit));
   await checkSettingsPopover(pg);
 }
 // the popover: opens under ⚙ (arrow on it), EN / 中文 with the current one pressed; choosing the current one closes it
