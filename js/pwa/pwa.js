@@ -71,7 +71,7 @@ function dismissInstallBanner() {
 function onAppInstalled() {
   deferredPrompt = null;
   hideInstallBanner();
-  if (typeof reportInstall === 'function') reportInstall(); // v2.7.0 usage counter (W-057 guard)
+  if (typeof reportInstall === 'function') reportInstall(); // v2.8.0 usage counter (W-057 guard)
 }
 window.addEventListener('appinstalled', onAppInstalled);
 async function promptInstall() {

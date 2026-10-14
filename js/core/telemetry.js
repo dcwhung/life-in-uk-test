@@ -1,11 +1,11 @@
 // ════════════════════════════════════════
-// TELEMETRY — v2.7.0 anonymous usage counter (owner-only numbers, no UI).
+// TELEMETRY — v2.8.0 anonymous usage counter (owner-only numbers, no UI).
 // One beacon per page load to /api/track (api/track.js): open on every launch, standalone when it runs as the
 // installed app, dau once per UTC day (TELEMETRY_DAY_LS), install on appinstalled (js/pwa/pwa.js).
 // Sends no id or personal data. Only the Vercel production host reports (user decision 2026-10-14, option c);
 // GitHub Pages, preview deploys and localhost send nothing. A failed send never affects the app.
 // ════════════════════════════════════════
-// W-057: a cached pre-v2.7.0 config.js has none of the TELEMETRY_* constants (they shipped together): stay silent
+// W-057: a cached pre-v2.8.0 config.js has none of the TELEMETRY_* constants (they shipped together): stay silent
 const isTelemetryConfigured = () => typeof TELEMETRY_DAY_LS !== 'undefined';
 const isTelemetryHost = () => location.hostname === TELEMETRY_HOST;
 const isStandaloneLaunch = () => window.matchMedia(STANDALONE_QUERY).matches || navigator.standalone === true;

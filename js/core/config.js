@@ -2,7 +2,7 @@
 // CONFIG — app-wide constants. sw.js loads this file with importScripts() to name its cache,
 // so it must stay worker-safe: plain constants only, no DOM and no question data.
 // ════════════════════════════════════════
-const APP_VERSION = '2.7.0';
+const APP_VERSION = '2.8.0';
 
 // ── modes and special set ids (state.examNum is 1..EXAM_COUNT or one of these) ──
 const PRACTICE_MODE = 'practice';
@@ -65,7 +65,7 @@ const STUDY_PLAN_READY = true;
 const INSTALL_TOUCH_QUERY = '(pointer: coarse)';
 
 // ── usage counter (js/core/telemetry.js → api/track.js) ──
-// v2.7.0: only this host reports (user decision 2026-10-14: GitHub Pages users are not counted)
+// v2.8.0: only this host reports (user decision 2026-10-14: GitHub Pages users are not counted)
 const TELEMETRY_HOST = 'life-uk.vercel.app';
 const TELEMETRY_ENDPOINT = '/api/track';
 // must match EVENTS in api/_lib/events.js (tests/telemetry-test.js checks both sides)
@@ -103,7 +103,7 @@ const MEMO_MODE_OFF = 'off';
 const MEMO_ENABLED_LS = LS_PREFIX + 'memoEnabled';
 const INSTALL_DISMISSED_LS = LS_PREFIX + 'installDismissed';   // v0.60: install banner closed with ✕ (never shown again)
 const INTRO_SEEN_LS = LS_PREFIX + 'introSeen';   // v2.5.0: the first-run intro was finished or skipped (ⓘ replays it)
-const TELEMETRY_DAY_LS = LS_PREFIX + 'telemetryDay';   // v2.7.0: last UTC day ('YYYY-MM-DD') whose dau beacon was sent
+const TELEMETRY_DAY_LS = LS_PREFIX + 'telemetryDay';   // v2.8.0: last UTC day ('YYYY-MM-DD') whose dau beacon was sent
 // study plan: the switch (no value = on), the stored schedule, the per-day answer log; new keys, so no legacy names
 const STUDY_PLAN_ENABLED_LS = LS_PREFIX + 'studyPlanEnabled';
 const STUDY_PLAN_LS = LS_PREFIX + 'studyPlan';

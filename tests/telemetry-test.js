@@ -1,4 +1,4 @@
-// v2.7.0 usage counter, client side (js/core/telemetry.js). Node only: config.js + utils.js + telemetry.js run in one
+// v2.8.0 usage counter, client side (js/core/telemetry.js). Node only: config.js + utils.js + telemetry.js run in one
 // vm context (as in a page) with an in-memory localStorage and stubbed window / navigator / location, so every launch
 // case (host, standalone, offline, second open on the same day) is checked without a browser.
 const fs = require('fs');
@@ -39,7 +39,7 @@ function loadApp({ host = PROD_HOST, standalone = false, iosStandalone = false, 
   const ctx = vm.createContext({ localStorage: storage, console, navigator, window, location: { hostname: host } });
   for (const f of APP_FILES) {
     let src = fs.readFileSync(path.join(ROOT, f), 'utf8');
-    // a pre-v2.7.0 config.js (mixed SW / HTTP cache, W-057): none of the usage-counter constants exist
+    // a pre-v2.8.0 config.js (mixed SW / HTTP cache, W-057): none of the usage-counter constants exist
     if (oldConfig && f === 'js/core/config.js') src = src.replace(/^const (TELEMETRY_\w+|STANDALONE_QUERY) = .*$/gm, '');
     vm.runInContext(src, ctx, { filename: f });
   }
@@ -113,7 +113,7 @@ function checkBeaconThrows() {
   assert(app.storage.getItem(DAY_LS) === null, 'throwing sendBeacon: swallowed, day not marked');
 }
 
-// W-057: a cached pre-v2.7.0 config.js with this telemetry.js must not throw (upgrade-test found it)
+// W-057: a cached pre-v2.8.0 config.js with this telemetry.js must not throw (upgrade-test found it)
 function checkOldConfig() {
   const app = loadApp({ oldConfig: true });
   assert(app.g("typeof TELEMETRY_DAY_LS") === 'undefined', 'old config: the telemetry constants are missing');

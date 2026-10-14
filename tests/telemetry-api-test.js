@@ -1,4 +1,4 @@
-// v2.7.0 usage counter, server side: api/track.js (POST, counts events per UTC day) and api/stats.js (GET, token-gated
+// v2.8.0 usage counter, server side: api/track.js (POST, counts events per UTC day) and api/stats.js (GET, token-gated
 // read). Node only: the Vercel handlers are called with fake req / res objects and global fetch stands in for the
 // Upstash Redis REST API, so no network or Redis is needed.
 const path = require('path');
