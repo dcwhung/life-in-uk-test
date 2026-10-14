@@ -263,9 +263,9 @@ async function checkStatsLockout() {
   assert(clientKeys(redis).length === 1 && redis.counts.get(clientKey) === PER_CLIENT(),
     `${PER_CLIENT()} wrong logins counted under one client key (${clientKey})`);
   assert(redis.counts.get(GLOBAL_KEY) === PER_CLIENT(), 'and under the global key');
-  const pipe = redis.calls[0].commands;
-  assert(same(pipe, [['INCR', clientKey], ['EXPIRE', clientKey, 3600], ['INCR', GLOBAL_KEY], ['EXPIRE', GLOBAL_KEY, 3600]]),
-    'W-384: both buckets reserved in one pipeline, each expiring in an hour');
+  assert(same(redis.calls[0].commands, [['INCR', clientKey], ['EXPIRE', clientKey, 3600]]) &&
+    same(redis.calls[1].commands, [['INCR', GLOBAL_KEY], ['EXPIRE', GLOBAL_KEY, 3600]]),
+    'W-384 / W-389: the client slot is reserved first, then the global one, each INCR atomic and expiring in an hour');
   const locked = fakeRes();
   await stats(statsReq(fromIp(A)), locked);
   assert(locked.statusCode === 429 && Number(locked.headers['retry-after']) === 60,
@@ -291,15 +291,22 @@ async function checkStatsLockoutSec03() {
   assert(owner.statusCode === 200, 'SEC-03: the owner on IP B with the right password → 200');
 }
 
-// a locked-out client's extra attempts get no password check, so they give their global slot back
-async function checkStatsLockedClientSparesGlobal() {
+// W-389: a locked-out client never touches the global bucket, so even a parallel flood from one IP cannot crowd out the owner
+async function checkStatsLockedClientNeverTouchesGlobal() {
   const redis = fakeRedis();
-  const flood = stats.AUTH_FAIL_LIMIT_GLOBAL + 10;
-  for (let i = 0; i < flood; i++) await stats(wrongFrom('198.51.100.2', i), fakeRes());
-  assert(redis.counts.get(GLOBAL_KEY) === PER_CLIENT(), `${flood} attempts from one IP use only ${PER_CLIENT()} global slots`);
+  const FLOOD = 300;
+  const flood = Array.from({ length: FLOOD }, (_, i) => stats(wrongFrom('198.51.100.2', i), fakeRes()));
   const owner = fakeRes();
-  await stats(statsReq(fromIp('192.0.2.50')), owner);
-  assert(owner.statusCode === 200, 'one IP alone cannot exhaust the global budget');
+  const mid = stats(statsReq(fromIp('192.0.2.50')), owner); // sent while the flood is in flight
+  await Promise.all([...flood, mid]);
+  assert(owner.statusCode === 200, `W-389: during a parallel flood of ${FLOOD} from one IP the owner on another IP → 200`);
+  assert(redis.counts.get(GLOBAL_KEY) === PER_CLIENT(), `the flood used only ${PER_CLIENT()} global slots`);
+  const before = redis.calls.length;
+  const locked = fakeRes();
+  await stats(wrongFrom('198.51.100.2', 'late'), locked);
+  const sent = redis.calls.slice(before).flatMap(c => c.commands);
+  assert(locked.statusCode === 429 && sent.length <= 2 && sent.every(([, key]) => key !== GLOBAL_KEY),
+    `a locked client's request: ${sent.length} Redis commands (≤ 2), none on the global key`);
 }
 
 // the global cap limits a distributed brute force: enough clients each at their limit lock everyone out
@@ -314,6 +321,8 @@ async function checkStatsLockoutGlobal() {
   await stats(statsReq(fromIp('192.0.2.50')), owner);
   assert(owner.statusCode === 429 && Number(owner.headers['retry-after']) === 60, 'past the global limit a fresh IP with the right password → 429');
   assert(redis.counts.get(GLOBAL_KEY) === stats.AUTH_FAIL_LIMIT_GLOBAL, 'the refused attempt gives its global slot back');
+  const ownerKey = clientKeys(redis).find(k => redis.calls.some(c => c.commands.some(([cmd, key]) => cmd === 'DECR' && key === k)));
+  assert(ownerKey && redis.counts.get(ownerKey) === 0, 'and its client slot too (W-389 / S-290)');
 }
 
 async function checkStatsIpv6Buckets() {
@@ -398,7 +407,7 @@ async function checkStatsRedisDown() {
   checkNormalizeIp();
   await checkStatsLockout();
   await checkStatsLockoutSec03();
-  await checkStatsLockedClientSparesGlobal();
+  await checkStatsLockedClientNeverTouchesGlobal();
   await checkStatsLockoutGlobal();
   await checkStatsIpv6Buckets();
   await checkStatsClientIpHeaders();

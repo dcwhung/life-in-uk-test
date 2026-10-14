@@ -3,10 +3,10 @@
 // Auth: HTTP Basic with STATS_USERNAME / STATS_PASSWORD (Vercel env vars; either unset = always 401). The 401 names a
 // non-Basic scheme (S-284), so a browser never pops its own login dialog: stats.html has its own sign-in form.
 // Login lockout (SEC-03, .proj-docs/audits/2026-10-14_13-40_audit_full-codebase-v2.md; W-384): each attempt reserves a
-// slot in two buckets per UTC hour, one per client and one global, with one INCR pipeline before the password is checked
-// (atomic, so a parallel burst gets no extra checks). Past AUTH_FAIL_LIMIT_PER_CLIENT that client gets 429; past
-// AUTH_FAIL_LIMIT_GLOBAL (a distributed brute force) everyone does, until the hour turns. A good login or a 429 gives
-// its slots back. The client id is an HMAC of the IP (/64 for IPv6) keyed by the password, so no IP is stored in Redis
+// slot in two buckets per UTC hour, first one per client, then one global, with INCR before the password is checked
+// (atomic, so a parallel burst gets no extra checks). Past AUTH_FAIL_LIMIT_PER_CLIENT that client gets 429 and never
+// reaches the global bucket (W-389); past AUTH_FAIL_LIMIT_GLOBAL (a distributed brute force) everyone does, until the
+// hour turns. A good login or a global 429 gives both slots back. The client id is an HMAC of the IP (/64 for IPv6) keyed by the password, so no IP is stored in Redis
 // or logged; every key expires after 1 hour.
 // days: 'all' = launch day → today; a number = that many days back (1..MAX_DAYS; default DEFAULT_DAYS).
 // Returns { launch, days: [{ date, open, standalone, dau, install }] (newest first, UTC), totals: {...} }.
@@ -128,15 +128,15 @@ const lockoutKeys = (req, nowMs) => {
 };
 const giveBack = keys => redisPipeline([['DECR', keys.client], ['DECR', keys.global]]);
 
-// reserve a slot in both buckets at once; true = over a limit (its slots already given back: no password was checked)
+const reserve = async key => (await redisPipeline([['INCR', key], ['EXPIRE', key, SECONDS_PER_HOUR]]))[0];
+
+// reserve the client slot, then the global one; true = over a limit (no password is checked)
 async function isLockedOut(keys) {
-  const [perClient, , global] = await redisPipeline([
-    ['INCR', keys.client], ['EXPIRE', keys.client, SECONDS_PER_HOUR],
-    ['INCR', keys.global], ['EXPIRE', keys.global, SECONDS_PER_HOUR],
-  ]);
-  if (perClient <= AUTH_FAIL_LIMIT_PER_CLIENT && global <= AUTH_FAIL_LIMIT_GLOBAL) return false;
-  // a locked-out client keeps hammering: without this its 429s would use up the global budget and lock the owner out
-  await giveBack(keys);
+  // W-389: a locked-out client stops here and never touches the global bucket, so even a parallel flood from one IP
+  // holds no global slot; its own counter just keeps rising until the hour turns
+  if (await reserve(keys.client) > AUTH_FAIL_LIMIT_PER_CLIENT) return true;
+  if (await reserve(keys.global) <= AUTH_FAIL_LIMIT_GLOBAL) return false;
+  await giveBack(keys); // global cap hit: no password was checked, so both slots go back
   return true;
 }
 
