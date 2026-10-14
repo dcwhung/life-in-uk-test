@@ -99,6 +99,10 @@
   background: none; border: 0; border-top: 1px solid var(--gold-border); color: var(--text-inverse); text-align: left; cursor: pointer;
 }
 .info-replay-play { width: 36px; height: 36px; flex: none; display: grid; place-items: center; border-radius: var(--radius-circle); background: var(--gold); color: var(--navy); font-size: var(--fs-sm); }
+/* v2.6.3: the ▶ in the disc and the › after Play are line icons (were glyphs) */
+.info-replay-play .line-icon { width: 1.15em; height: 1.15em; margin-left: var(--space-1); } /* the triangle sits optically centred */
+.info-replay-go.with-icon { gap: var(--space-1); }
+.info-replay-go .line-icon { width: 1em; height: 1em; }
 .info-replay-txt { flex: 1; min-width: 0; display: grid; gap: 1px; }
 .info-replay-txt b { display: flex; align-items: center; gap: var(--space-3); font-size: var(--fs-md); }
 .info-replay-txt small { font-size: var(--fs-sm); color: var(--text-inverse-muted); }

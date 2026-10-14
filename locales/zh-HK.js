@@ -23,7 +23,7 @@ LOCALES['zh-HK'] = {
     infoOffline: '🔒 支援離線',
     introReplay: '重看介紹',
     introReplaySub: '3 頁快速認識溫習、練習及溫習計劃',
-    introReplayPlay: '播放 ›',
+    introReplayPlay: '播放',
     installTitle: '安裝以便離線使用',
     installText: '加至主畫面，無需網絡亦可溫習',
     installButton: '安裝',
