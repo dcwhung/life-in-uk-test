@@ -170,6 +170,7 @@
 
 ## Deploys
 
+- [2026-10-14_vercel-firewall-track.md](deploys/2026-10-14_vercel-firewall-track.md) — 設定教學：Vercel Firewall `/api/track` per-IP rate limit（SEC-01 / SEC-02；UI 字眼未核實，以 dashboard 為準）
 - [2026-10-12_deploy_v150.md](deploys/2026-10-12_deploy_v150.md) — v1.5.0 主頁計劃卡今日進度環 deploy（PR #103，`a191835`；Pages run 38277273934 success；smoke 12/12 + plan-day PASS 喺 a191835 tree；live host 被 session proxy 擋（403），未直接 probe）
 
 ## Tickets
