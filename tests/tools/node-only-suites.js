@@ -4,6 +4,13 @@
 // A suite is tests/test.js or tests/*-test.js. It is node-only when neither it nor any file it reaches through a
 // relative require ('./x', '../x') loads playwright-core; e.g. desktop-*-test.js reach it through desktop-helpers.js.
 // Suites that need the browser run in the `playwright-tests` job (tests/run-all.sh) instead.
+//
+// Known blind spots (S-295), both fail-safe:
+//   - only literal relative requires are followed (require('./x')); a computed path (require(dir + '/x'),
+//     require(path.join(...))) is not, so a suite reaching playwright-core only that way would be listed here and fail
+//     loudly in `node-tests` (no browser), rather than being silently skipped
+//   - "needs the browser" is a plain substring match, so 'playwright-core' inside a comment or string also counts;
+//     that suite then just moves to `playwright-tests` (run-all.sh still runs it), it is never dropped
 const fs = require('fs');
 const path = require('path');
 
