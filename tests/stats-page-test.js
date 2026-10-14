@@ -97,7 +97,7 @@ async function checkDashboard(page, state) {
 async function checkCappedNote(page) {
   await page.click('.chip[data-range="30"]');
   assert(await visible(page, '#cappedNote') && (await text(page, '#cappedNote')).includes('1 日'), '30 days: 1 capped day → note shown');
-  assert(await page.$eval('#cappedNote', e => e.className === 'load-error' && !e.hasAttribute('role')), 'note reuses .load-error, not an alert');
+  assert(await page.$eval('#cappedNote', e => e.className === 'load-error' && e.getAttribute('role') === 'status'), 'S-302: note reuses .load-error, announced politely (role=status, not alert)');
   await page.click('.chip[data-range="90"]');
   assert((await text(page, '#cappedNote')).includes('2 日'), '90 days: 2 capped days');
   await page.click('#langBtn');
