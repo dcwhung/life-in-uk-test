@@ -10,6 +10,7 @@ const INTRO_PAGE_COUNT = 3;     // study, practice + exam, plan + Cantonese
 const INTRO_SWIPE_PX = 40;      // a horizontal drag at least this long turns the page
 const INTRO_SAMPLE_Q = 'What limited the power of the English King in 1215?'; // a real question (the fact card's Magna Carta): the practice card, its 5 similar ones, the yue line
 const INTRO_FACT_DIFFICULTY = 2;
+const INTRO_FACT_ID = { ch: 1, n: 12 };   // the sample fact card's "Ch 1 #12"
 const INTRO_SAMPLE_PLAN_DAYS = 21;
 const INTRO_JITTER_PCT = 4;     // scattered pieces: slot ± this, then a tilt of MIN–MAX deg either way (cards tilt less)
 const INTRO_TILT_MIN = 2;
@@ -28,6 +29,7 @@ const INTRO_HEAT = ['h4', 'h3', 'h4', 'h2', 'today', '', '']; // a sample week o
 const INTRO_SIMILAR_MAX = 4;
 const INTRO_YUE_MARK = '\u7CB5'; // the Cantonese badge character (escaped: no CJK in js/, tests/i18n-test.js)
 let introPage = 0;
+let introReturnFocus = null; // W-088: where focus goes back to when the intro closes (ⓘ after a replay)
 
 // W-057: a cached pre-v2.5.0 config.js has no INTRO_SEEN_LS: no first-run intro then (ⓘ replay still works)
 const hasIntroSeenKey = () => typeof INTRO_SEEN_LS !== 'undefined';
@@ -54,7 +56,7 @@ const introBookmark = () => `<span class="intro-bm">${bookmarkSvg('', { decorati
 function introStudyArt() {
   const slots = introShuffle(INTRO_SLOTS.study.pills);
   const card = `<div class="intro-ui intro-fact">
-      <div class="intro-row"><span class="intro-tag">Ch 1 #12</span>${starsHtml(INTRO_FACT_DIFFICULTY)}<span class="intro-sp"></span>${introBookmark()}</div>
+      <div class="intro-row"><span class="intro-tag" lang="en">${escapeHtml(t('study.chapterFactId', INTRO_FACT_ID))}</span>${starsHtml(INTRO_FACT_DIFFICULTY)}<span class="intro-sp"></span>${introBookmark()}</div>
       <div class="intro-fact-q">${escapeHtml(t('intro.study.factQ'))}</div>
       <div class="intro-fact-a">${escapeHtml(t('intro.study.factA'))}</div>
       <div class="intro-muted">🧠 ${escapeHtml(t('intro.study.memoLv'))}</div>
@@ -87,7 +89,7 @@ function introSimilarCard(item) {
 // P2: question card + similar card + three pills: practice, mock exam, the 45-minute timer
 function introPracticeArt(item) {
   const slots = introShuffle(INTRO_SLOTS.practice.pills);
-  const pills = [introPill('📝', t('home.modePractice')), introPill('🎯', t('home.modeExam')), introPill('⏱', '45:00', 'timer')]
+  const pills = [introPill('📝', t('home.modePractice')), introPill('🎯', t('home.modeExam')), introPill('⏱', `${EXAM_MINUTES}:00`, 'timer')]
     .map((h, i) => introPiece(h, slots[i], { front: true, order: i + 2 }));
   return introPiece(introQuestionCard(item), INTRO_SLOTS.practice.card, { maxTilt: INTRO_CARD_TILT_MAX })
     + introPiece(introSimilarCard(item), INTRO_SLOTS.practice.extra, { front: true, maxTilt: INTRO_CARD_TILT_MAX, order: 1 })
@@ -143,7 +145,7 @@ function introHtml() {
   const item = introSample();
   const arts = [introStudyArt(), introPracticeArt(item), introPlanArt(item)];
   const cards = INTRO_PAGES.map((page, i) => introCardHtml(page, i, arts[i]));
-  const dots = cards.map((_, i) => `<button type="button" data-action="introGo" data-arg="${i}" aria-label="${i + 1}"></button>`).join('');
+  const dots = cards.map((_, i) => `<button type="button" data-action="introGo" data-arg="${i}" aria-label="${escapeHtml(t('intro.step', { n: i + 1, total: INTRO_PAGE_COUNT }))}"></button>`).join('');
   return `<div class="intro-top"><span class="intro-step"></span><button type="button" class="intro-skip" data-action="introClose" data-arg="skip">${escapeHtml(t('intro.skip'))}</button></div>
     <div class="intro-stack">${cards.join('')}</div>
     <div class="intro-foot"><div class="intro-dots">${dots}</div>
@@ -202,6 +204,7 @@ function bindIntroSwipe(root) {
   let x0 = null;
   const stack = root.querySelector('.intro-stack');
   stack.addEventListener('pointerdown', e => { x0 = e.clientX; });
+  stack.addEventListener('pointercancel', () => { x0 = null; }); // S-282: a scroll took the pointer over
   stack.addEventListener('pointerup', e => {
     if (x0 === null) return;
     const dx = e.clientX - x0;
@@ -218,7 +221,9 @@ function openIntro() {
   root.setAttribute('role', 'dialog');
   root.setAttribute('aria-modal', 'true');
   root.tabIndex = -1;
+  introReturnFocus = document.activeElement;
   document.body.appendChild(root);
+  setIntroBackgroundInert(true);
   renderIntro();
   bindIntroSwipe(root);
   root.focus({ preventScroll: true });
@@ -230,8 +235,12 @@ function closeIntro(choice) {
   if (!root) return;
   if (hasIntroSeenKey()) setLS(INTRO_SEEN_LS, true);
   root.remove();
-  if (typeof reloadForUpdate === 'function') reloadForUpdate(); // an update held back while the intro was up (pwa.js)
-  if (choice !== 'plan' || !planEntryReady()) return;
+  setIntroBackgroundInert(false);
+  if (choice !== 'plan' || !planEntryReady()) {
+    restoreIntroFocus();
+    if (typeof reloadForUpdate === 'function') reloadForUpdate(); // W-087: not before the plan route (it leaves Home)
+    return;
+  }
   if (!isStudyPlanEnabled()) setPlanFeature(true);
   if (readStudyPlan()) openPlanSchedule();
   else openPlanGoal();
@@ -244,6 +253,16 @@ function setIntroLang(lang) {
   if (lang === getLang()) return;
   setLang(lang);
   renderIntro();
+  const pressed = byId(INTRO_OVERLAY_ID).querySelector('[data-action="introLang"][aria-pressed="true"]');
+  if (pressed) pressed.focus({ preventScroll: true }); // W-088: the re-render dropped the focused button
+}
+// W-088: a modal dialog: everything else on the page is inert (no Tab, no screen reader) while it is open
+function setIntroBackgroundInert(on) {
+  [...document.body.children].filter(el => el.id !== INTRO_OVERLAY_ID && el.tagName !== 'SCRIPT').forEach(el => { el.inert = on; });
+}
+function restoreIntroFocus() {
+  if (introReturnFocus && introReturnFocus.isConnected && introReturnFocus !== document.body) introReturnFocus.focus({ preventScroll: true });
+  introReturnFocus = null;
 }
 function toggleIntroTranslation(el) {
   const on = !isTranslationOn();

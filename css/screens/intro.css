@@ -13,7 +13,7 @@
 .intro-skip.gone { visibility: hidden; }
 
 /* the stack: the front card, two peeking below it, passed cards fly off to the left */
-.intro-stack { position: relative; margin-bottom: 30px; touch-action: pan-y; }
+.intro-stack { position: relative; margin-bottom: 30px; touch-action: pan-y; user-select: none; } /* S-282: a mouse drag swipes, not selects */
 .intro-card {
   position: absolute; inset: 0; display: grid; grid-template-rows: auto 1fr; overflow: hidden;
   background: var(--card); border-radius: var(--intro-card-radius); box-shadow: var(--shadow);

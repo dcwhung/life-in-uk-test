@@ -3,6 +3,7 @@
 // the app over http and switches navigator.webdriver off; Math.random is pinned to choose the splash animation.
 const { chromium } = require('playwright-core');
 const path = require('path');
+const { execSync } = require('child_process');
 const { startPagesServer } = require('./pages-server');
 const launchOpts = { args: ['--no-sandbox'] };
 if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_PATH;
@@ -17,6 +18,8 @@ const OPEN_TIMEOUT_MS = 8000;
 const EDGE_PAD_PX = 20;   // --intro-edge-pad
 const EDGE_TOL_PX = 1;
 const SWIPE_PX = 120;
+const FAILSAFE_WAIT_MS = 12000;  // --splash-failsafe 10s + slack
+const PRE_SPLASH_REF = '73822f9'; // main v2.4.2 merged in: its js/main.js never calls the splash (C-008 mixed cache)
 const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('ok:', m); };
 
 // a real-user page: not automated, a fixed Math.random, nothing stored
@@ -123,8 +126,10 @@ async function checkReplayAndPlan(b, base) {
   assert((await introState(pg)).step === '1 / 3' && !(await pg.$eval('#infoPop', el => el.classList.contains('show'))), 'Replay intro closes ⓘ and opens card 1');
   await pg.keyboard.press('ArrowRight');
   assert((await introState(pg)).front === '1', '→ turns the page');
+  assert(await pg.evaluate(() => document.querySelector('header').inert && !document.getElementById('introOverlay').inert), 'W-088: while open, the page under the intro is inert');
   await pg.keyboard.press('Escape');
   assert(!(await introState(pg)), 'Esc skips the intro');
+  assert(await pg.evaluate(() => document.activeElement === byId('infoBtn') && !document.querySelector('header').inert), 'W-088: focus returns to ⓘ and the page is live again');
   await pg.click('#infoBtn');
   await pg.click('#infoPop .info-replay');
   await pg.click('#introOverlay .intro-dots button:nth-child(3)');
@@ -150,6 +155,26 @@ async function checkRingAndDesktop(b, base) {
   assert(errs.length === 0, 'no page errors: ' + errs.join(' / '));
   await ctx.close();
 }
+// C-008: the splash never stays over the app: startApp throws part-way, or an old cached main.js never calls the splash
+async function checkSplashFailsafe(b, base) {
+  const thrown = await userPage(b, PHONE, FAN_RANDOM);
+  await thrown.ctx.route('**/js/screens/home.js', async route => {
+    const res = await route.fetch();
+    await route.fulfill({ response: res, body: (await res.text()) + '\nfunction buildExamGrid() { throw new Error("boot test"); }' });
+  });
+  await thrown.pg.goto(base);
+  await thrown.pg.waitForFunction(() => !document.getElementById('splash'), null, { timeout: OPEN_TIMEOUT_MS });
+  assert(thrown.errs.some(m => /boot test/.test(m)), 'startApp threw part-way, and the splash still went away (try / finally)');
+  await thrown.ctx.close();
+  const oldMain = execSync(`git -C ${ROOT} show ${PRE_SPLASH_REF}:js/main.js`).toString();
+  const mixed = await userPage(b, PHONE, FAN_RANDOM);
+  await mixed.ctx.route('**/js/main.js', route => route.fulfill({ contentType: 'text/javascript', body: oldMain }));
+  await mixed.pg.goto(base);
+  await mixed.pg.waitForFunction(() => getComputedStyle(document.getElementById('splash')).visibility === 'hidden', null, { timeout: FAILSAFE_WAIT_MS });
+  await mixed.pg.click('#infoBtn');
+  assert(await mixed.pg.$eval('#infoPop', el => el.classList.contains('show')), 'old cached main.js: the css failsafe hides the splash and the app takes clicks');
+  await mixed.ctx.close();
+}
 async function checkReducedMotion(b, base) {
   const { pg, ctx } = await userPage(b, PHONE, FAN_RANDOM);
   await pg.emulateMedia({ reducedMotion: 'reduce' });
@@ -167,6 +192,7 @@ async function checkReducedMotion(b, base) {
     await checkReplayAndPlan(b, base);
     await checkRingAndDesktop(b, base);
     await checkReducedMotion(b, base);
+    await checkSplashFailsafe(b, base);
     console.log('INTRO PASS');
   } catch (e) {
     console.log(e.message);

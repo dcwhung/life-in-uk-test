@@ -219,6 +219,7 @@
   --splash-memo-w: 300px;
   --splash-tape: rgba(201,168,76,0.45);
   --splash-ease: cubic-bezier(.22,.8,.3,1);
+  --splash-failsafe: 10s;       /* C-008: the splash hides itself by then whatever happens (boot threw, an old cached main.js) */
   --splash-z: 500;              /* above the toast (400), the modal (300) and the popovers (200) */
   --intro-z: 250;               /* above the header popovers, below the confirm modal */
   --intro-card-radius: 24px;

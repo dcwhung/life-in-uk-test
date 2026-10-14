@@ -78,4 +78,5 @@ function dismissSplash() {
   const el = byId('splash');
   if (el) el.remove();
 }
-const isSplashOpen = () => !!byId('splash');
+// the failsafe (splash.css) may have hidden it without removing it: hidden counts as closed
+const isSplashOpen = () => !!byId('splash') && getComputedStyle(byId('splash')).visibility !== 'hidden';

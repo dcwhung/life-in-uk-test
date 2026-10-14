@@ -6,7 +6,9 @@
   padding: var(--space-12) var(--space-8);
   background: var(--bg); color: var(--text); text-align: center;
   transition: opacity 0.3s ease; /* = SPLASH_FADE_MS */
+  animation: splashFailsafe 0.01s var(--splash-failsafe) forwards; /* C-008: never stuck over the app */
 }
+@keyframes splashFailsafe { to { visibility: hidden; opacity: 0; pointer-events: none; } }
 .splash.splash-out { opacity: 0; pointer-events: none; }
 .splash-brand { display: grid; justify-items: center; gap: var(--space-6); }
 .splash-stage { position: relative; width: var(--splash-stage); height: var(--splash-stage); display: grid; place-items: center; }
@@ -75,7 +77,7 @@
   .splash-dots i, .splash-card, .splash-ring-arc, .splash-ring-ic { animation: none; }
   .splash-ring-arc { stroke-dashoffset: 0; }
   .splash-ring-ic { filter: none; opacity: 1; }
-  .splash { transition: none; }
+  .splash { transition: none; animation: splashFailsafe 0.01s var(--splash-failsafe) forwards; }
 }
 
 /* ── desktop (≥ 1024px): brand left (centred in its column), three memos stacked on the right ── */

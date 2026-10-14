@@ -146,7 +146,10 @@ function startApp() {
   buildExamGrid();
   renderModeSelection();
   registerSW();
-  finishBoot();
+}
+// C-008: the splash fades even when startApp throws part-way (the page is then what it was before v2.5.0)
+function bootApp() {
+  try { startApp(); } finally { finishBoot(); }
 }
 
 // A failed fetch during an update is usually transient: retry once with a full reload (the flag stops a loop),
@@ -187,5 +190,5 @@ function addMissingBootStyles() {
 
 addMissingBootStyles();
 const bootMissing = missingBootScripts();
-if (!bootMissing.length) startApp();
-else loadBootScripts(bootMissing).then(() => { clearI18nBootRetry(); startApp(); }).catch(onI18nBootFailure);
+if (!bootMissing.length) bootApp();
+else loadBootScripts(bootMissing).then(() => { clearI18nBootRetry(); bootApp(); }).catch(onI18nBootFailure);
