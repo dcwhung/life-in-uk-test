@@ -1,0 +1,91 @@
+# CI (AU-002). Two jobs; details, local repro and branch protection steps: .proj-docs/ci.md
+#   node-tests       every push + every PR: the suites that need no browser (picked by tests/tools/node-only-suites.js)
+#   playwright-tests PRs into main only: the full tests/run-all.sh in headless Chromium
+# Deploys are not gated by this: GitHub Pages and Vercel still deploy on push to main.
+name: tests
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '22'
+  PLAYWRIGHT_CORE_VERSION: '1.56.1'
+
+jobs:
+  node-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Run node-only suites
+        run: |
+          suites=$(node tests/tools/node-only-suites.js)
+          if [ -z "$suites" ]; then echo "no node-only suites found"; exit 1; fi
+          fail=0
+          for t in $suites; do
+            if out=$(node "tests/$t.js" 2>&1); then rc=0; else rc=$?; fi
+            last=$(printf '%s\n' "$out" | tail -1)
+            printf '%-22s %s\n' "$t" "$last"
+            if [ "$rc" -ne 0 ] || [[ "$last" != *PASS* ]]; then
+              fail=1
+              printf '%s\n' "$out" | tail -30
+            fi
+          done
+          exit $fail
+
+  playwright-tests:
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # tests/upgrade-test.js runs `git archive` on a pinned v0.57 commit
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      # The repo has no package.json: install playwright-core outside the checkout and point NODE_PATH at it
+      - name: Install playwright-core
+        run: |
+          npm install --no-save --no-audit --no-fund --prefix "$RUNNER_TEMP/pw" "playwright-core@$PLAYWRIGHT_CORE_VERSION"
+          echo "NODE_PATH=$RUNNER_TEMP/pw/node_modules" >> "$GITHUB_ENV"
+
+      - name: Install Chromium (same playwright-core version) + CJK font
+        run: |
+          "$RUNNER_TEMP/pw/node_modules/.bin/playwright-core" install --with-deps chromium
+          sudo apt-get install -y --no-install-recommends fonts-noto-cjk # lang-switch-test M4 is skipped without a CJK font
+
+      # Same setup as local runs: CHROMIUM_PATH = the full Chromium build playwright-core just installed
+      - name: Locate Chromium
+        run: |
+          chromium_path=$(node -e "process.stdout.write(require('playwright-core').chromium.executablePath())")
+          test -x "$chromium_path"
+          echo "CHROMIUM_PATH=$chromium_path" >> "$GITHUB_ENV"
+          echo "CHROMIUM_PATH=$chromium_path"
+
+      - name: Run all Playwright suites
+        run: bash tests/run-all.sh # tests/pages-server.js needs python3 (preinstalled on ubuntu-latest)
+
+      - name: Upload screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-screenshots
+          path: tests/shot-*.png
+          if-no-files-found: ignore
+          retention-days: 7
