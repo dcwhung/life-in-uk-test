@@ -54,7 +54,8 @@ function eventCommands(events, today, used) {
 // SEC-01 / W-400: every over-budget request marks the day for the dashboard, not only the crossing one: if that SET
 // failed or its INCR reply was lost (timeout), a later request still writes it. NX keeps the first write.
 // S-300: the same pipeline re-sets the budget key's TTL, so a capped day expires even if the day's first-request
-// EXPIRE failed. With the SEC-02 short circuit this pipeline runs at most once per instance per day (2 commands)
+// EXPIRE failed. With the SEC-02 short circuit this pipeline runs once per instance per day, 2 commands
+// (concurrent in-flight requests may each run it)
 function cappedCommands(today) {
   return [
     ['SET', cappedKey(today), CAPPED_VALUE, 'NX'],

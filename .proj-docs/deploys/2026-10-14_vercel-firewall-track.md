@@ -13,7 +13,7 @@
 1. **每日 budget**（`DAILY_REQUEST_BUDGET` = 4000 個 request / UTC 日）：超過就照回 204 但唔計數，數字唔會俾人灌大。
 2. **短路**（SEC-02）：同一個 warm instance 知道今日 budget 用完之後，唔再 call Redis。
 
-但係兩樣都**唔可以分辨真用戶同攻擊者**：有人一日灌 4000 個 request，之後當日嘅真 beacon 全部唔計（dashboard 會顯示「呢段時間有 N 日去到每日上限，嗰日嘅數字可能偏低」提示，字眼見 `locales/stats.js` `cappedOne` / `cappedMany`，見 SEC-01）。而 cold start / 平行 instance 仍然要 INCR 一次先知道封頂，所以持續 flood 仍然會用少量 Upstash command。
+但係兩樣都**唔可以分辨真用戶同攻擊者**：有人一日灌 4000 個 request，之後當日嘅真 beacon 全部唔計（dashboard 會顯示「呢段時間有 N 日去到每日上限，嗰日嘅數字可能偏低」提示，字眼見 `locales/stats.js` `cappedOne` / `cappedMany`，見 SEC-01）。而 cold start / 平行 instance 仍然要 INCR 一次（+ capped pipeline）先知道封頂，所以持續 flood 仍然會用少量 Upstash command。
 
 **Per-IP rate limit 喺 request 去到 function 之前擋**，俾擋嘅 request 唔使 function 同 Redis 做嘢，亦令單一 IP 灌滿全日 budget 要慢好多（每分鐘一條 rule 仲灌得滿，要加埋每小時嗰條先灌唔滿，見下面計數）。呢個只可以喺 Vercel Firewall 設定。
 

@@ -788,7 +788,7 @@ APP_URL=https://dcwhung.github.io/life-in-uk-test/ ./tests/run-all.sh   # 跑 li
 |---|---|
 | `lifeuk:<event>:<YYYY-MM-DD>` | `open` / `standalone` / `dau` / `install` 每個 UTC 日嘅 counter |
 | `lifeuk:budget:<YYYY-MM-DD>` | 當日 `/api/track` request 數（`DAILY_REQUEST_BUDGET` 4000；每個 request 約 3 個 command，4000 × 30 ≈ 360k < 500k / 月）；AU-031：2 日 expire（當日第一個 request 設；S-300：封頂後寫 capped 嗰個 pipeline 再設一次，第一個 EXPIRE 失敗都會補返） |
-| `lifeuk:capped:<YYYY-MM-DD>` | SEC-01：嗰日 request budget 用完（W-400：任何超過上限嘅 request 都 `SET … 1 NX`，唔只越線嗰個，所以佢 SET 失敗或者 INCR 回覆冇咗都會有之後嘅 request 補寫；NX = 已有就唔改；有 SEC-02 短路，每個 instance 每日最多多 1 個 command），冇 TTL；`/api/stats` 回 `capped`，dashboard 提示數字可能偏低 |
+| `lifeuk:capped:<YYYY-MM-DD>` | SEC-01：嗰日 request budget 用完（W-400：任何超過上限嘅 request 都 `SET … 1 NX`，唔只越線嗰個，所以佢 SET 失敗或者 INCR 回覆冇咗都會有之後嘅 request 補寫；NX = 已有就唔改；有 SEC-02 短路，每個 instance 每日約多 2 個 command（SET NX + EXPIRE；同時處理中嘅 request 可能各行一次）），冇 TTL；`/api/stats` 回 `capped`，dashboard 提示數字可能偏低 |
 | `lifeuk:authfail:<YYYY-MM-DDTHH>` | 當個 UTC 鐘嘅登入嘗試數（成功會 `DECR` 返），1 小時 expire |
 
 **設計決定 / trade-off（用戶確認）：**
