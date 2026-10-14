@@ -38,6 +38,10 @@
 
 **記憶鈎 branch merge `main` v2.4.0（2026-10-13，`claude/charming-archimedes-hrh4wd`，以 **v2.4.1** 發佈）**：兩條 branch 都有 `reviews/2026-10-13_review_v220.md`（內容唔同）→ `main` 嘅（記憶法 layout）留原名，記憶鈎嗰份改名 [`2026-10-13_review_v220-hooks.md`](reviews/2026-10-13_review_v220-hooks.md)。撞號（唔改號，引用要連報告名）：**W-083**（`review_v220.md` layout = `phone-quiz-test` flaky latch；`review_v220-hooks.md` = merge `main` 落後）、**S-271**（`review_v211-back-to-entry-merge.md` = W-077 註解；`review_v220-hooks.md` = 貼上 hook 字搜尋）；**W-084** 只係 layout review（`APP_VERSION 2.3.0` 撞），記憶鈎 review 冇用。grep 全部 remote ref（`origin/main` e5d4641 + 15 條 branch）核對：**下一個新號：C-008、W-085、S-275、CUI-0047**（同上，冇變）。 v2.4.1 review（[`2026-10-13_review_v241.md`](reviews/2026-10-13_review_v241.md)）用咗 **W-085、W-086、S-275–S-277** → **下一個新號：C-008、W-087、S-278、CUI-0047**。 v2.4.1 QA（[`2026-10-13_qa_v241.md`](qa/2026-10-13_qa_v241.md)）pass，冇開號；再 grep 全部 remote ref（17 條）核對，下一個新號不變。
 
+## Audits
+
+- [2026-10-14_13-40_audit_full-codebase-v2.md](audits/2026-10-14_13-40_audit_full-codebase-v2.md) — 重新審計 v2.10.0（HEAD `4ef3538`，加 Vercel backend + stats dashboard 之後）；run-all **82/82**；AU-001–019 追蹤：1 修（AU-019）、4 惡化；新 🔴 AU-020 雙部署（Vercel + Pages）、AU-002 升級；🟡 AU-021–027 + SEC-01–06（全局 lockout 鎖死 owner、`/api/track` 灌數 / 配額 DoS、密碼存 sessionStorage、主 app 冇 CSP、冇私隱 opt-out）；推薦方案 A。上一份（v2.5.2）喺未 merge branch `docs/audit/2026-10-14_codebase-audit`（2026-10-14 最後更新）
+
 ## Reviews
 
 - [2026-10-13_review_v241.md](reviews/2026-10-13_review_v241.md) — v2.4.1 記憶鈎 branch merge `main` v2.4.0（merge `cc0e22b` = `46121e4` + `e5d4641`，PR #117–#123）；Design Origin baseline；**warn 87**；0 C；中文 61 / 61 同 `final-hooks.json`、英文 `hookEn` 61 / 61 同 `final-hooks-en.json` 逐 byte 一樣，`single` 兩邊 `''`，`titleEn` 等欄位 = `main`；`--remerge-diff`：PR #117–#123 喺記憶鈎以外原封，`memoHookNoBreak` 只加喺 `main` 嘅 `memoHookHtml`（中英、結果頁）；run-all 76 / 76（exit 0）；`upgrade-test` 輪流各 12 次：`main` 12 / 12、branch 11 / 12（S-014 1000ms reload race，已知 flake）→ 唔係 regression；**W-085** 320×568 一屏高 fallback（en large 15 → 58、zh large 15 → 54，交用戶：建議接受）；**W-086** `memo-test` 13 個 literal U+00A0 / U+2060（推翻 `e6b29aa` escape）；S-275 短手機 guard 冇英文；S-276「英法最後一戰」（記錄）；S-277 `searchText` 註解
