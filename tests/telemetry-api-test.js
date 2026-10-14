@@ -119,6 +119,26 @@ async function checkTrackBudget() {
   assert(redis.calls.length === 1 && same(redis.calls[0].commands, [['INCR', `lifeuk:budget:${TODAY}`]]), 'over budget → only the budget INCR');
 }
 
+// SEC-02: once a warm instance has seen the day's budget run out it stops calling Redis for that UTC day, so a
+// sustained flood no longer costs one INCR per request; the next UTC day counts again. Runs after the other track
+// checks: the instance remembers the capped day for the rest of this process
+async function checkTrackBudgetShortCircuit() {
+  const redis = fakeRedis();
+  redis.counts.set(`lifeuk:budget:${TODAY}`, track.DAILY_REQUEST_BUDGET);
+  await track(req({ body: { events: ['open'] } }), fakeRes());
+  const before = redis.calls.length;
+  const again = fakeRes();
+  await track(req({ body: { events: ['open'] } }), again);
+  assert(again.statusCode === 204 && redis.calls.length === before, 'budget used up → same instance, same day: 204 with no Redis call');
+  const nextDay = Date.UTC(2026, 9, 15, 0, 1);
+  Date.now = () => nextDay;
+  const fresh = fakeRes();
+  await track(req({ body: { events: ['open'] } }), fresh);
+  Date.now = () => NOW;
+  assert(fresh.statusCode === 204 && redis.counts.get('lifeuk:budget:2026-10-15') === 1 && redis.counts.get('lifeuk:open:2026-10-15') === 1,
+    'next UTC day: the budget is INCRed again and the event counted');
+}
+
 async function checkTrackRedisDown() {
   fakeRedis({ fail: true });
   const res = fakeRes();
@@ -272,9 +292,10 @@ async function checkStatsRedisDown() {
   await checkTrackCounts();
   await checkTrackFilters();
   await checkTrackGuards();
-  await checkTrackBudget();
   await checkTrackRedisDown();
   await checkKvEnvFallback();
+  await checkTrackBudget(); // last among the track checks: from here this instance knows TODAY's budget is used up
+  await checkTrackBudgetShortCircuit();
   await checkStats();
   await checkStatsAllDays();
   await checkStatsDays();

@@ -17,6 +17,12 @@ const BUDGET_EVENT = 'budget';
 // a launch sends at most every event once; a much longer list is not our client
 const MAX_EVENTS = 10;
 
+// SEC-02: the UTC day this instance has seen the budget run out on. Past it a beacon gets 204 with no Redis call, so a
+// sustained flood stops costing one INCR per request. Module state lives only while Vercel keeps this instance warm:
+// a cold start (or a parallel instance) spends one more INCR to find out, so this cuts the cost, it does not end it.
+// A new UTC day no longer matches, so counting starts again by itself.
+let budgetSpentOn = null;
+
 function parseEvents(body) {
   let data = body;
   if (typeof body === 'string') {
@@ -32,16 +38,20 @@ async function track(req, res) {
   if (req.headers.origin !== ALLOWED_ORIGIN) return res.status(403).end();
   const events = parseEvents(req.body);
   if (!events) return res.status(400).end();
+  const today = utcIsoDate(Date.now());
+  if (budgetSpentOn === today) return res.status(204).end();
   try {
     redisConfig();
   } catch (e) {
     console.error('track:', e.message);
     return res.status(500).end();
   }
-  const today = utcIsoDate(Date.now());
   try {
     const [used] = await redisPipeline([['INCR', counterKey(BUDGET_EVENT, today)]]);
-    if (used > DAILY_REQUEST_BUDGET) return res.status(204).end();
+    if (used > DAILY_REQUEST_BUDGET) {
+      budgetSpentOn = today;
+      return res.status(204).end();
+    }
     await redisPipeline(events.map(e => ['INCR', counterKey(e, today)]));
   } catch (e) {
     console.error('track:', e.message);
