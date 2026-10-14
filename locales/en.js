@@ -9,7 +9,7 @@ const LOCALES = {};
 LOCALES.en = {
   app: {
     title: 'Life in the UK Test · Exam Practice',
-    description: 'Life in the UK Test — Exam 1–{n} Practice App',
+    description: '400+ practice questions · Cantonese translations · Works offline｜400+ 條模擬試題 · 廣東話翻譯 · 離線可用', // v2.6.0: the link preview line, one for both languages (index.html meta)
     shortName: 'Life in UK',
     // manifest.webmanifest is static JSON: these mirror its name / short_name (tests/pwa-test.js keeps them equal)
     installName: 'Life in the UK Test',
@@ -34,6 +34,10 @@ LOCALES.en = {
     // header pill: names the language it switches to (the CJK 中 is whitelisted in tests/i18n-test.js)
     // v1.2.0: ⚙ settings popover (the language options name themselves in their own language)
     settings: 'Settings',
+    share: 'Share',
+    shareText: '400+ practice questions · Cantonese translations · Works offline',
+    shareCopied: 'Link copied',
+    shareFailed: 'Copy this link: {url}',
     language: 'Language',
     fontSize: 'Text size', // v1.3.0: the ⚙ text size row; each A is named for screen readers
     fontSmall: 'Small text',

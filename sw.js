@@ -64,6 +64,7 @@ const SHELL = [
   'js/components/fitRow.js',
   'js/components/switch.js',
   'js/components/toast.js',
+  'js/components/share.js',
   'js/components/fit.js',
   'js/components/deskPlace.js',
   'js/components/splash.js',

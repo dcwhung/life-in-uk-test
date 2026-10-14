@@ -4,7 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#1a2744">
-<meta name="description" content="Life in the UK Test — Exam 1–17 Practice App">
+<!-- v2.6.0 (user): the link preview (WhatsApp / iMessage / search) reads description + og:*; static, so one line in both languages -->
+<meta name="description" content="400+ practice questions · Cantonese translations · Works offline｜400+ 條模擬試題 · 廣東話翻譯 · 離線可用">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://dcwhung.github.io/life-in-uk-test/">
+<meta property="og:title" content="Life in the UK Test · Exam Practice">
+<meta property="og:description" content="400+ practice questions · Cantonese translations · Works offline｜400+ 條模擬試題 · 廣東話翻譯 · 離線可用">
+<meta property="og:image" content="https://dcwhung.github.io/life-in-uk-test/icons/icon-512.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Life in UK">
@@ -59,7 +65,11 @@
         <div class="logo-sub"><span data-i18n="app.sub"></span> <span class="app-version" id="appVersion"></span></div>
       </div>
     </div>
-    <button class="settings-btn" id="settingsBtn" type="button" data-action="toggleSettings" data-icon="gear" aria-expanded="false" aria-controls="settingsPop" data-i18n-attr="aria-label:app.settings;title:app.settings"></button>
+    <!-- v2.6.0: share (js/components/share.js) left of ⚙, the same borderless gold icon look (mockup share-settings.html A, 4px apart) -->
+    <div class="header-actions">
+      <button class="settings-btn share-btn" id="shareBtn" type="button" data-action="shareApp" data-icon="share" data-i18n-attr="aria-label:app.share;title:app.share"></button>
+      <button class="settings-btn" id="settingsBtn" type="button" data-action="toggleSettings" data-icon="gear" aria-expanded="false" aria-controls="settingsPop" data-i18n-attr="aria-label:app.settings;title:app.settings"></button>
+    </div>
   </div>
   <div class="info-pop" id="infoPop" role="dialog" data-i18n-attr="aria-label:app.about">
     <h2><span id="infoTitle"></span> <span class="app-version" id="appVersionPop"></span></h2>
@@ -565,6 +575,7 @@
 <script src="js/components/fitRow.js"></script>
 <script src="js/components/switch.js"></script>
 <script src="js/components/toast.js"></script>
+<script src="js/components/share.js"></script>
 <script src="js/components/fit.js"></script>
 <script src="js/components/deskPlace.js"></script>
 <script src="js/components/splash.js"></script>
