@@ -21,6 +21,7 @@
   --info-pop-side: max(var(--space-8), calc(50% - var(--info-pop-max-w) / 2));
   position: absolute; left: var(--info-pop-side); right: var(--info-pop-side); top: 64px;
   --info-arrow-x: 150px; /* until js/components/popover.js pointArrowAt measures ⓘ */
+  --info-arrow-mix: 0%; /* v2.6.1: the arrow's place along the card's gradient (pointArrowAt), 0% = plain navy */
   --info-arrow-size: 12px;
   background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
   color: var(--text-inverse);
@@ -35,8 +36,17 @@
   /* centred under ⓘ: js/components/popover.js pointArrowAt sets --info-arrow-x on open */
   content: ''; position: absolute; left: calc(var(--info-arrow-x) - var(--info-arrow-size) / 2); top: -7px;
   width: var(--info-arrow-size); height: var(--info-arrow-size);
-  background: var(--navy); border-left: 1px solid var(--gold-border); border-top: 1px solid var(--gold-border);
+  border-left: 1px solid var(--gold-border); border-top: 1px solid var(--gold-border);
   transform: rotate(45deg);
+  /* v2.6.1 (user: a darker diamond with a seam under ⚙ / ⓘ; mockup share-desktop.html ②, deleted): the fill is the
+     card's own gradient colour where the arrow sits (pointArrowAt sets --info-arrow-mix), and
+     only the half above the card is drawn, plus a band of under 2px that covers the card's border below it, so the base
+     is open and no translucent gold border is drawn twice */
+  background: var(--navy);
+  clip-path: polygon(0 0, 100% 0, 100% 20%, 20% 100%, 0 100%);
+}
+@supports (color: color-mix(in srgb, red, blue)) {
+  .info-pop::after { background: color-mix(in srgb, var(--navy-mid) var(--info-arrow-mix), var(--navy)); }
 }
 .info-pop h2 { font-size: var(--fs-2xl); font-weight: 800; margin-bottom: var(--space-3); }
 .info-pop p { font-size: var(--fs-base); color: var(--text-inverse-strong); line-height: 1.5; }

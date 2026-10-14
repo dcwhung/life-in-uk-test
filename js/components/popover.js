@@ -3,6 +3,7 @@
 // time, and any click outside them or Escape closes them (see core/actions.js)
 // ════════════════════════════════════════
 const INFO_ARROW_X_VAR = '--info-arrow-x'; // css/components/popover.css .info-pop::after
+const INFO_ARROW_MIX_VAR = '--info-arrow-mix'; // v2.6.1: how far along the card's gradient the arrow sits (its fill)
 // popover id → the button that opens it (a pre-v1.2.0 shell has no #settingsPop / #settingsBtn)
 const HEADER_POPOVERS = { infoPop: 'infoBtn', settingsPop: 'settingsBtn' };
 function setPopoverOpen(popId, open) {
@@ -25,6 +26,10 @@ function pointArrowAt(pop, btn) {
   const btnBox = btn.getBoundingClientRect();
   const x = btnBox.left + btnBox.width / 2 - pop.getBoundingClientRect().left;
   pop.style.setProperty(INFO_ARROW_X_VAR, `${Math.round(x)}px`);
+  // v2.6.1 (user: the arrow showed a darker diamond and a seam): the card is a 135deg gradient, whose colour on the top
+  // edge at x is x / (width + height) of the way; offset sizes, so a transform or zoom never skews it
+  const mix = (x / (pop.offsetWidth + pop.offsetHeight)) * PERCENT;
+  pop.style.setProperty(INFO_ARROW_MIX_VAR, `${mix.toFixed(1)}%`);
 }
 function toggleInfo() { setInfoOpen(!isPopoverOpen('infoPop')); }
 function toggleSettingsPopover() { setSettingsOpen(!isPopoverOpen('settingsPop')); }

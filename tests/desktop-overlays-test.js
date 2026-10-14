@@ -32,6 +32,8 @@ const popGeometry = (page, popId, btnId) => page.evaluate(([p, bt]) => {
     inner: (() => { const el = document.querySelector('.header-inner'), b = box(el), cs = getComputedStyle(el);
       return { ...b, left: b.left + parseFloat(cs.paddingLeft), right: b.right - parseFloat(cs.paddingRight) }; })(),
     header: box(document.querySelector('header')),
+    // v2.6.1: the arrow's fill follows the card's 135deg gradient; only its upper half is drawn
+    mix: parseFloat(pop.style.getPropertyValue('--info-arrow-mix')), size: pop.offsetWidth + pop.offsetHeight, clip: after.clipPath,
     arrowX: popBox.left + parseFloat(after.left) + parseFloat(after.width) / 2, vw: document.documentElement.clientWidth, vh: innerHeight,
   };
 }, [popId, btnId]);
@@ -47,6 +49,8 @@ function checkPop(g, kind, where) {
   }
   assert(near(g.pop.top, g.header.bottom + gap), `${where}: ${kind} popover --space-5 (${gap}px) under the header (${g.pop.top.toFixed(1)})`);
   assert(near(g.arrowX, centre), `${where}: ${kind} arrow points at its button (${g.arrowX.toFixed(1)} / ${centre.toFixed(1)})`);
+  const wantMix = (centre - g.pop.left) / g.size * 100;
+  assert(Math.abs(g.mix - wantMix) < 1 && g.clip.startsWith('polygon'), `${where}: ${kind} arrow takes the card's colour where it sits (${g.mix}% / ${wantMix.toFixed(1)}%), upper half only`);
   assert(g.pop.left >= 0 && g.pop.right <= g.vw && g.pop.bottom <= g.vh, `${where}: ${kind} popover inside the viewport`);
 }
 
