@@ -42,3 +42,16 @@ function reportInstall() {
   if (!isTelemetryConfigured()) return;
   sendTelemetry([TELEMETRY_EVENTS.install]);
 }
+
+// v2.10.0: Vercel Web Analytics, same host gate as the counter. Injected here instead of a <script> tag in index.html:
+// the script exists only on Vercel, and every tag index.html loads must be in the SW shell (tests/sw-test.js), which
+// would then fail to install on GitHub Pages. window.va queues calls until the script has loaded (Vercel's snippet)
+function loadVercelAnalytics() {
+  if (!isTelemetryConfigured() || typeof VERCEL_ANALYTICS_SRC === 'undefined' || !isTelemetryHost()) return;
+  if (document.querySelector(`script[src="${VERCEL_ANALYTICS_SRC}"]`)) return;
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  const script = document.createElement('script');
+  script.defer = true;
+  script.src = VERCEL_ANALYTICS_SRC;
+  document.head.appendChild(script);
+}

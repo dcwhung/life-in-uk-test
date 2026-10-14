@@ -2,7 +2,7 @@
 // CONFIG — app-wide constants. sw.js loads this file with importScripts() to name its cache,
 // so it must stay worker-safe: plain constants only, no DOM and no question data.
 // ════════════════════════════════════════
-const APP_VERSION = '2.8.1';
+const APP_VERSION = '2.10.0';
 
 // ── modes and special set ids (state.examNum is 1..EXAM_COUNT or one of these) ──
 const PRACTICE_MODE = 'practice';
@@ -71,6 +71,8 @@ const TELEMETRY_ENDPOINT = '/api/track';
 // must match EVENTS in api/_lib/events.js (tests/telemetry-test.js checks both sides)
 const TELEMETRY_EVENTS = { open: 'open', standalone: 'standalone', dau: 'dau', install: 'install' };
 const STANDALONE_QUERY = '(display-mode: standalone)';
+// v2.10.0: Vercel Web Analytics (page views, cookieless), served by Vercel itself; enabled in the project's Analytics tab
+const VERCEL_ANALYTICS_SRC = '/_vercel/insights/script.js';
 
 // ── i18n (js/core/i18n.js; strings in locales/*.js) ──
 const EN_LANG = 'en';        // v2.2.0: English, also the language of the translated notes (data/notesEn.js)
