@@ -47,15 +47,17 @@ function capArrowCorners(pop, x) {
 function toggleInfo() { setInfoOpen(!isPopoverOpen('infoPop')); }
 function toggleSettingsPopover() { setSettingsOpen(!isPopoverOpen('settingsPop')); }
 // counts in the popover text come from the data
+// W-057: a cached pre-v2.7.0 questions.js has no QUESTION_COUNT_LABEL: fall back to the exact total (as before v2.7.0)
+const questionCountLabel = () => (typeof QUESTION_COUNT_LABEL !== 'undefined' ? QUESTION_COUNT_LABEL : TOTAL_QUESTIONS);
 function fillInfoCounts() {
   byId('infoTitle').textContent = t('app.title'); // v1.0.6 (user): the app title, as <title> and the header
-  byId('infoIntro').textContent = t('app.infoIntro', { n: QUESTION_COUNT_LABEL });
+  byId('infoIntro').textContent = t('app.infoIntro', { n: questionCountLabel() });
   byId('infoExamCount').textContent = t('app.infoExams', { n: EXAM_COUNT });
   const chapterBadge = byId('infoChapterCount'); // a pre-v1.0.5 shell has no chapter badge
   if (chapterBadge) chapterBadge.textContent = t('app.infoChapters', { n: CHAPTER_NUMBERS.length });
   const questionBadge = byId('infoQuestionCount');
-  questionBadge.textContent = t('app.infoQuestions', { n: QUESTION_COUNT_LABEL });
-  questionBadge.setAttribute('aria-label', t('app.infoQuestionsLabel', { n: QUESTION_COUNT_LABEL })); // role="img": read as full words
+  questionBadge.textContent = t('app.infoQuestions', { n: questionCountLabel() });
+  questionBadge.setAttribute('aria-label', t('app.infoQuestionsLabel', { n: questionCountLabel() })); // role="img": read as full words
 }
 // a rotation / resize with a popover open moves its button relative to it
 window.addEventListener('resize', () => {
