@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>方案 B · 輕鬆卡片</title>
+<link rel="stylesheet" href="intro-shared.css">
+<style>
+  /* ══ 方案 B — Friendly: light background, card stack + scattered mini UI (rev 3: user feedback 2026-10-13) ══ */
+  :root {
+    /* proposed tokens (option B): one tint per intro page */
+    --b-tint-1: var(--success-bg); --b-ink-1: var(--green);
+    --b-tint-2: var(--selected-bg); --b-ink-2: var(--navy-light);
+    --b-tint-3: var(--yue-bg); --b-ink-3: var(--purple);
+    --b-note-tape: rgba(201,168,76,0.45);
+    --b-card-tilt: -2deg;
+    --b-scene-w: 330px;              /* illustration box; PC scales it by --b-scene-scale */
+    --b-scene-scale: 1.3;
+    --b-edge-pad: 20px;              /* min gap between a scattered piece and the illustration edge */
+    --b-orbit-size: 230px; --b-planet-size: 92px;
+    --b-orbit-line: #c5cde0;        /* light dashed orbit (a step darker than --border so it reads on --bg) */
+    /* copied from css/base/tokens.css (study plan heat scale + flag) */
+    --flag-bg: #fdf3e8; --red-light: #e74c3c;
+    --plan-heat-0: #e3e7f1; --plan-heat-1: #e8735f; --plan-heat-2: #f0a54a; --plan-heat-3: #c9cf4f; --plan-heat-4: var(--green-light);
+    --fs-2xs: 10px; --fs-3xs: 9px;
+  }
+  .loading, .intro { background: var(--bg); color: var(--text); }
+
+  /* ── Loading ── */
+  .b-load { height: 100%; display: grid; place-content: center; justify-items: center; gap: var(--space-8); padding: var(--space-12); text-align: center; }
+  .b-brand { display: grid; justify-items: center; gap: var(--space-8); }
+  .b-memos { display: grid; justify-items: center; gap: var(--space-12); }
+  /* logo = the planet; three tilted orbits cross it like an atom, and a comet (head + fading tail) runs each orbit (SVG animateMotion) */
+  .b-orbit { position: relative; width: var(--b-orbit-size); height: var(--b-orbit-size); display: grid; place-items: center; }
+  .b-orbit svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .b-orbit .back ellipse, .b-orbit .front ellipse { fill: none; stroke: var(--b-orbit-line); stroke-width: 1.6; stroke-dasharray: 5 5; }
+  .b-orbit .front { z-index: 2; }   /* the front half of each orbit and the comets pass over the planet */
+  .b-logo { position: relative; z-index: 1; width: var(--b-planet-size); height: var(--b-planet-size); border-radius: 22px;
+    box-shadow: var(--shadow-md); }   /* the app icon keeps its own rounded-square shape */
+  /* ② ripple: the logo breathes, rounded-square ripples spread out, the four icons pop in at N / E / S / W in turn */
+  .b-orbit .rp { position: absolute; left: 50%; top: 50%; width: var(--b-planet-size); height: var(--b-planet-size); margin: calc(var(--b-planet-size) / -2);
+    border-radius: 22px; border: 2px solid var(--b-orbit-line); animation: bRipple 3s ease-out infinite; animation-delay: var(--d); }
+  @keyframes bRipple { from { transform: scale(1); opacity: .9; } to { transform: scale(2.5); opacity: 0; } }
+  .b-orbit.ripple .b-logo { animation: bBreath 3s ease-in-out infinite; }
+  @keyframes bBreath { 50% { transform: scale(1.05); } }
+  .b-orbit .ic { position: absolute; font-size: 26px; line-height: 1; transform: translate(-50%, -50%) scale(0); animation: bIcon 4s var(--intro-ease) infinite; animation-delay: var(--d); }
+  @keyframes bIcon { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 12% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+    20%, 70% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 85%, 100% { transform: translate(-50%, -50%) scale(.6); opacity: 0; } }
+  /* ③ card fan: four tinted cards (one per feature) behind the logo fan out and fold back, like flicking through fact cards */
+  .b-orbit .fan { position: relative; width: var(--b-planet-size); height: var(--b-planet-size); }
+  .b-orbit .fan-c { position: absolute; left: 4%; right: 4%; bottom: 0; height: 150%; border-radius: 16px; background: var(--card); box-shadow: var(--shadow-md);
+    display: flex; justify-content: center; padding-top: var(--space-4); font-size: 22px; transform-origin: 50% 100%;
+    animation: bFan var(--fan-dur) var(--intro-ease) 1 forwards, var(--fade) var(--fan-dur) ease 1 forwards; }
+  .b-orbit .fan { --fan-dur: 3.6s; }   /* all cards gone by ~3.1s, inside the 4.2s mock splash */
+  .b-orbit .fan-c:nth-child(1) { --fa: -38deg; --fade: bFade1; background: var(--yue-bg); } .b-orbit .fan-c:nth-child(2) { --fa: -13deg; --fade: bFade2; background: var(--success-bg); }
+  .b-orbit .fan-c:nth-child(3) { --fa: 13deg; --fade: bFade3; background: var(--selected-bg); } .b-orbit .fan-c:nth-child(4) { --fa: 38deg; --fade: bFade4; background: var(--gold-bg); }
+  /* plays once: fan out together, then fade out one by one in order (plan → study → practice → exam) and stay gone, leaving the logo */
+  @keyframes bFan { 0%, 10% { transform: rotate(0deg); } 30%, 100% { transform: rotate(var(--fa)) translateY(-8px); } }
+  @keyframes bFade1 { 0%, 40% { opacity: 1; } 50%, 100% { opacity: 0; } }
+  @keyframes bFade2 { 0%, 52% { opacity: 1; } 62%, 100% { opacity: 0; } }
+  @keyframes bFade3 { 0%, 64% { opacity: 1; } 74%, 100% { opacity: 0; } }
+  @keyframes bFade4 { 0%, 76% { opacity: 1; } 86%, 100% { opacity: 0; } }
+  .b-orbit .fan .b-logo { position: absolute; inset: 0; z-index: 2; }
+  /* ④ progress ring: a gold → green arc draws once round the logo while loading; each icon on the ring lights up as the arc reaches it */
+  .b-orbit .rl-track { fill: none; stroke: var(--border); stroke-width: 6; }
+  .b-orbit .rl-arc { fill: none; stroke: url(#bRingGrad); stroke-width: 6; stroke-linecap: round; stroke-dasharray: var(--ring-len); stroke-dashoffset: var(--ring-len);
+    animation: bArc var(--ring-ms) linear forwards; }
+  @keyframes bArc { to { stroke-dashoffset: 0; } }
+  .b-orbit .rl-ic { position: absolute; width: 34px; height: 34px; margin: -17px; border-radius: 50%; background: var(--bg); display: grid; place-items: center;
+    font-size: 20px; filter: grayscale(1); opacity: .35; animation: bLit .45s var(--intro-ease) forwards; animation-delay: var(--d); }
+  @keyframes bLit { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); filter: none; opacity: 1; } }
+  .mock-pick { font-size: var(--fs-xs); color: var(--text-muted); background: var(--card); border: 1px dashed var(--border); border-radius: var(--radius-pill); padding: 1px var(--space-5); }
+  .b-dots { display: flex; gap: var(--space-3); }
+  .b-dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--gold); animation: bBounce 1s ease-in-out infinite; }
+  .b-dots i:nth-child(2) { background: var(--navy-light); animation-delay: .15s; }
+  .b-dots i:nth-child(3) { background: var(--green-light); animation-delay: .3s; }
+  @keyframes bBounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-8px); } }
+  .b-status { font-size: var(--fs-sm); color: var(--text-muted); min-height: 1.5em; margin-top: calc(var(--space-4) * -1); }
+  .b-name { font-size: var(--fs-5xl); font-weight: 800; }
+  .b-sub { font-size: var(--fs-md); color: var(--text-muted); margin-top: calc(var(--space-6) * -1); }
+  .b-note { position: relative; width: 300px; background: var(--gold-bg); border-radius: var(--radius-xs); padding: var(--space-10) var(--space-8) var(--space-8);
+    box-shadow: var(--shadow-md); transform: rotate(var(--b-card-tilt)); text-align: left; font-size: var(--fs-md); line-height: 1.6; margin-top: var(--space-8); }
+  .b-note::before { content: ''; position: absolute; top: -10px; left: 50%; width: 80px; height: 22px; transform: translateX(-50%) rotate(3deg); background: var(--b-note-tape); }
+  .b-note b { display: block; font-size: var(--fs-sm); color: var(--orange); margin-bottom: var(--space-2); }
+
+  /* ── Intro ── */
+  .b-intro { height: 100%; display: grid; grid-template-rows: auto 1fr auto; padding: var(--space-6) var(--space-8) var(--space-12); gap: var(--space-6); }
+  .b-top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-6); }
+  .b-step { font-size: var(--fs-sm); font-weight: 800; color: var(--text-muted); letter-spacing: .08em; }
+  .b-skip { min-height: 44px; padding: 0 var(--space-4); color: var(--text-muted); font-weight: 700; font-size: var(--fs-md); }
+  .b-stack { position: relative; margin-bottom: 30px; touch-action: pan-y; }
+  .b-card { position: absolute; inset: 0; background: var(--card); border-radius: 24px; box-shadow: var(--shadow-md); display: grid; grid-template-rows: auto 1fr;
+    overflow: hidden; transition: transform var(--intro-dur) var(--intro-ease), opacity var(--intro-dur) var(--intro-ease); }
+  .b-card[data-pos="1"] { transform: translateY(18px) scale(.94); opacity: .75; }
+  .b-card[data-pos="2"] { transform: translateY(34px) scale(.88); opacity: .45; }
+  .b-card[data-pos="out"] { transform: translateX(-120%) rotate(-12deg); opacity: 0; pointer-events: none; }
+  .b-card[data-pos="hide"] { opacity: 0; pointer-events: none; }
+  .b-art { height: 300px; display: grid; place-items: center; position: relative; overflow: hidden; }
+  .b-card.p1 .b-art { background: var(--b-tint-1); --ink: var(--b-ink-1); }
+  .b-card.p2 .b-art { background: var(--b-tint-2); --ink: var(--b-ink-2); height: 404px; }
+  .b-card.p3 .b-art { background: var(--b-tint-3); --ink: var(--b-ink-3); height: 296px; }
+  .b-text { padding: var(--space-6) var(--space-10) var(--space-8); display: grid; align-content: start; gap: var(--space-4); overflow: auto; }
+  .b-kicker { justify-self: start; font-size: var(--fs-sm); font-weight: 800; padding: var(--space-1) var(--space-5); border-radius: var(--radius-pill); color: var(--card); }
+  .p1 .b-kicker { background: var(--b-ink-1); } .p2 .b-kicker { background: var(--b-ink-2); } .p3 .b-kicker { background: var(--b-ink-3); }
+  .b-title { font-size: var(--fs-5xl); font-weight: 800; line-height: 1.3; text-wrap: balance; }
+  .b-body { font-size: var(--fs-md); line-height: 1.65; color: var(--text-muted); }
+  .b-list { list-style: none; display: flex; flex-wrap: wrap; gap: var(--space-3); }
+  .b-list li { font-size: var(--fs-sm); font-weight: 700; padding: var(--space-2) var(--space-5); border-radius: var(--radius-pill); background: var(--bg); }
+  .p3 .b-list { display: none; }  /* last card needs the room for the settings */
+
+  /* footer: dots only (rev 3), above the button; the card stack still swipes */
+  .b-foot { display: grid; gap: var(--space-8); }
+  .b-dotrow { display: flex; justify-content: center; gap: var(--space-4); }
+  .b-dotrow button { width: 9px; height: 9px; border-radius: var(--radius-pill); background: var(--border); transition: width var(--intro-dur) var(--intro-ease), background .2s; }
+  .b-dotrow button[aria-current="true"] { width: 26px; background: var(--navy); }
+  .b-next { min-height: 52px; border-radius: var(--radius); background: var(--navy); color: var(--text-inverse); font-weight: 800; font-size: var(--fs-lg); }
+  .b-ctas { display: grid; gap: var(--space-4); }
+  .b-ctas .b-alt { min-height: 48px; border-radius: var(--radius); background: var(--card); border: 1.5px solid var(--border); font-weight: 800; font-size: var(--fs-md); }
+  .b-ctas[hidden], .b-next[hidden] { display: none; }
+
+  /* ── scattered scene: each piece is its own element, placed by JS (slot + jitter) with a small random tilt ── */
+  .scene { position: relative; width: var(--b-scene-w); height: calc(100% - var(--space-8)); font-size: var(--fs-sm); }
+  .piece { position: absolute; left: var(--x); top: var(--y); transform: translate(calc(-50% + var(--dx, 0px)), calc(-50% + var(--dy, 0px))) rotate(var(--r)); }
+  .piece.front { z-index: 2; }
+  .pop { animation: bIn .5s var(--intro-ease) both; animation-delay: var(--d, 0s); }
+  @keyframes bIn { from { opacity: 0; } }   /* opacity only, so the edge fit can measure the final box */
+  .ui-card { background: var(--card); border-radius: var(--radius-md); box-shadow: var(--shadow-md); padding: var(--space-5) var(--space-6); display: grid; gap: var(--space-3); }
+  .pill { display: inline-flex; align-items: center; gap: var(--space-3); background: var(--card); border-radius: var(--radius-md); box-shadow: var(--shadow-md);
+    padding: var(--space-3) var(--space-6); font-weight: 800; font-size: var(--fs-sm); white-space: nowrap; transition: background .3s, color .3s; }
+  .pill i { font-style: normal; font-size: var(--fs-xl); }
+  .pill.on { background: var(--ink); color: var(--card); }
+  .stars { color: var(--gold); letter-spacing: 1px; font-size: var(--fs-sm); white-space: nowrap; }
+  .stars .off { color: var(--border); }
+  .bm { width: 30px; height: 30px; border-radius: var(--radius-sm); border: 1.5px solid var(--orange); background: var(--flag-bg); color: var(--orange); display: grid; place-items: center; flex: none; }
+  .bm svg { width: 16px; height: 16px; } .bm path { fill: currentColor; }
+  .row { display: flex; align-items: center; gap: var(--space-4); }
+  .row .sp { flex: 1; }
+  .tag { font-size: var(--fs-2xs); font-weight: 800; padding: 1px var(--space-3); border-radius: var(--radius-pill); background: var(--bg); color: var(--text-muted); }
+  .muted { color: var(--text-muted); }
+
+  /* P1: fact card */
+  .fact { width: 214px; }
+  .fact-q { font-size: var(--fs-md); font-weight: 800; line-height: 1.4; }
+  .fact-a { color: var(--green); font-weight: 700; }
+  .lv { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; } .lv i { height: 6px; border-radius: var(--radius-pill); background: var(--border); } .lv i.on { background: var(--ink); }
+
+  /* P2: question card with A–D; mode + timer pills */
+  .qcard { width: 220px; gap: var(--space-2); padding: var(--space-4) var(--space-6); }
+  .q-head { display: flex; align-items: center; gap: var(--space-4); font-weight: 800; font-size: var(--fs-xs); color: var(--text-muted); }
+  .q-text { font-size: var(--fs-base); font-weight: 800; line-height: 1.35; }
+  .opt { display: flex; align-items: center; gap: var(--space-4); border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 3px var(--space-4); font-size: var(--fs-sm); font-weight: 600; }
+  .opt-letter { min-width: 20px; height: 20px; border-radius: 50%; background: var(--bg); border: 1.5px solid var(--border); display: grid; place-items: center; font-size: var(--fs-2xs); font-weight: 800; }
+  .opt.correct { border-color: var(--green-light); background: var(--success-bg); color: var(--green); }
+  .opt.correct .opt-letter { background: var(--green); border-color: var(--green); color: var(--card); }
+  .opt.wrong { border-color: var(--red-light); background: var(--danger-bg); color: var(--red); }
+  .opt.wrong .opt-letter { background: var(--red-light); border-color: var(--red-light); color: var(--card); }
+  .qcard { width: 210px; }
+  .sim { width: 200px; gap: var(--space-2); padding: var(--space-4) var(--space-5); }
+  .sim-h { font-weight: 800; font-size: var(--fs-sm); } .sim-h small { display: block; font-size: var(--fs-2xs); color: var(--text-muted); font-weight: 600; }
+  .sim-nodes { display: flex; flex-wrap: wrap; gap: 3px; }
+  .sim-nodes span { font-size: var(--fs-2xs); font-weight: 800; padding: 1px var(--space-3); border-radius: var(--radius-pill); background: var(--selected-bg); color: var(--navy-light); font-variant-numeric: tabular-nums; }
+  .sim-nodes span.cur { background: var(--gold); color: var(--navy); }
+  .p2 .b-list { display: none; }
+  .pill.timer { background: var(--navy); color: var(--text-inverse); font-variant-numeric: tabular-nums; }
+
+  /* P3: plan card (countdown, week heat, today's tasks, ring) + translation card */
+  .plan { width: 236px; }
+  .plan-grid { display: grid; grid-template-columns: 1fr auto; gap: var(--space-4); align-items: start; }
+  .countdown b { font-size: var(--fs-5xl); line-height: 1; color: var(--ink); }
+  .week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+  .week span { display: grid; justify-items: center; gap: 2px; font-size: var(--fs-3xs); color: var(--text-muted); }
+  .week span i { width: 100%; height: 12px; border-radius: 3px; background: var(--plan-heat-0); }
+  .week .h1 i { background: var(--plan-heat-1); } .week .h2 i { background: var(--plan-heat-2); } .week .h3 i { background: var(--plan-heat-3); } .week .h4 i { background: var(--plan-heat-4); }
+  .week .today { color: var(--ink); font-weight: 800; } .week .today i { outline: 2px solid var(--ink); outline-offset: 1px; }
+  .ring { width: 54px; height: 54px; border-radius: 50%; background: conic-gradient(var(--green-light) calc(var(--p, 0) * 1%), var(--plan-heat-0) 0); display: grid; place-items: center; }
+  .ring b { width: 40px; height: 40px; border-radius: 50%; background: var(--card); display: grid; place-items: center; font-size: var(--fs-xs); }
+  .task { display: flex; align-items: center; gap: var(--space-3); font-size: var(--fs-xs); }
+  .task i { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--border); display: grid; place-items: center; font-style: normal; font-size: var(--fs-3xs); color: var(--card); flex: none; }
+  .task.done i { background: var(--green-light); border-color: var(--green-light); }
+  .task.done span { color: var(--text-muted); text-decoration: line-through; }
+  .yue { width: 196px; display: flex; align-items: flex-start; gap: var(--space-4); }
+  .yue .badge { width: 26px; height: 26px; border-radius: 50%; background: var(--ink); color: var(--card); font-weight: 800; display: grid; place-items: center; flex: none; font-size: var(--fs-sm); }
+  .yue p { font-size: var(--fs-xs); line-height: 1.45; } .yue p span { display: block; color: var(--purple); }
+
+  /* last-page settings */
+  .set { display: grid; gap: var(--space-2); }
+  .set-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-5); min-height: 44px; font-size: var(--fs-md); }
+  .set-row small { display: block; font-size: var(--fs-xs); color: var(--text-muted); }
+  .set-seg { display: inline-flex; background: var(--bg); border-radius: var(--radius-pill); padding: var(--space-1); }
+  .set-seg button { min-width: 56px; min-height: 34px; border-radius: var(--radius-pill); font-weight: 700; color: var(--text-muted); }
+  .set-seg button[aria-pressed="true"] { background: var(--card); color: var(--navy); box-shadow: var(--shadow-sm); }
+
+  /* ── PC ── */
+  .b-note.n2, .b-note.n3 { display: none; }   /* phone: one memo */
+  /* PC: brand column on the left (centred within itself), the three memos stacked down the right at different tilts */
+  .is-pc .b-load { grid-template-columns: auto auto; align-items: center; column-gap: 96px; }
+  .is-pc .b-orbit { --b-orbit-size: 280px; --b-planet-size: 112px; }
+  .is-pc .b-name { font-size: var(--fs-display-sm); }
+  .is-pc .b-sub { font-size: var(--fs-xl); }
+  .is-pc .b-status { font-size: var(--fs-md); }
+  .is-pc .b-memos { justify-items: start; gap: 36px; }
+  .is-pc .b-load .b-note { display: block; width: 320px; margin: 0; }
+  .is-pc .b-note.n1 { transform: rotate(-3deg); }
+  .is-pc .b-note.n2 { transform: rotate(2.5deg) translateX(36px); }
+  .is-pc .b-note.n3 { transform: rotate(-1.5deg) translateX(8px); }
+  .is-pc .b-intro { width: 980px; justify-self: center; padding: 32px 0 40px; }
+  .is-pc .b-card { grid-template-rows: none; grid-template-columns: 1fr 1fr; }
+  .is-pc .b-art, .is-pc .b-card.p2 .b-art, .is-pc .b-card.p3 .b-art { height: auto; }
+  .is-pc .scene { height: 370px; transform: scale(var(--b-scene-scale)); }
+  .is-pc .p2 .scene { height: 404px; }
+  .is-pc .b-text { padding: 40px; align-content: center; }
+  .is-pc .b-title { font-size: var(--fs-display-sm); }
+  .is-pc .p3 .b-title { font-size: var(--fs-7xl); }
+  .is-pc .b-body { font-size: var(--fs-lg); }
+  .is-pc .b-foot { grid-template-columns: 1fr auto; align-items: center; }
+  .is-pc .b-dotrow { justify-content: flex-start; }
+  .is-pc .b-next { padding: 0 48px; }
+  .is-pc .b-ctas { grid-auto-flow: column; justify-content: end; }
+  .is-pc .b-ctas button { padding: 0 32px; }
+</style>
+</head>
+<body>
+<script src="intro-shared.js"></script>
+<script>
+(() => {
+  const PAGE_COUNT = 3;
+  const TIMER_START_S = 45 * 60;
+  const SECOND_MS = 1000;
+  const RING_PCT = 65;
+  const MAX_DIFFICULTY = 5;
+  const BOOKMARK_PATH = 'M7.5 3.5h9A2.5 2.5 0 0 1 19 6v14.5l-7-5.1-7 5.1V6a2.5 2.5 0 0 1 2.5-2.5z'; // js/components/icons.js
+  // scatter: every piece gets a slot (shuffled for the small pills), ± jitter in %, and a tilt of MIN–MAX deg either way
+  const JITTER_PCT = 4;
+  const TILT_MIN_DEG = 2;
+  const TILT_MAX_DEG = 8;
+  const CARD_TILT_MAX_DEG = 5;   // the big cards tilt less so they stay readable
+  const POP_STAGGER_S = 0.07;
+  const MOCK_LOADING_MS = 4200;   // orbit / ripple loop forever, so the mock just holds them this long
+  // decided (2026-10-13): the app enters only after the animation ends, i.e. max(boot, animation); fan : ring picked 3 : 1
+  const RANDOM_WEIGHTS = [['fan', 3], ['ring', 1]];
+  const HOLD_AFTER_MS = 300;      // a beat on the finished state before the intro / home appears
+  const STATUS_STEP_MS = 1300;
+  const NOTE_COUNT = 3;
+  const FEATURE_ICONS = ['🗓️', '📖', '📝', '🎯'];   // fixed order everywhere: plan, study, practice, exam
+  const RIPPLE_COUNT = 3; const RIPPLE_GAP_S = 1; const ICON_GAP_S = 0.5;
+  const ICON_SPOTS = [[50, 3], [97, 50], [50, 97], [3, 50]];   // N, E, S, W in % of the stage
+  const RING_R = 100; const RING_MS = 4000;                    // the arc's one lap
+  const FAN_GONE_MS = 3100;                                    // --fan-dur 3.6s × 86%: the last card has faded out
+  const RING_SPOTS = [[0, 0.02], [1, 0.25], [2, 0.5], [3, 0.75]]; // [icon at 12 / 3 / 6 / 9 o'clock = plan / study / practice / exam, share of RING_MS when the arc gets there]
+  // orbits: tilt (deg), half-axes, comet lap time (s) — different speeds so the comets never line up
+  const ORBITS = [
+    { tilt: -28, rx: 108, ry: 34, dur: 3.6 },
+    { tilt: 32, rx: 100, ry: 40, dur: 5.2 },
+    { tilt: 88, rx: 96, ry: 30, dur: 7.4 },
+  ];
+  // comets: the four feature icons (no box, no tail), in the order plan, study, practice, exam; 🎯 shares orbit 0, half a lap behind 🗓️
+  const COMETS = [
+    { orbit: 0, icon: '🗓️', phase: 0 },
+    { orbit: 1, icon: '📖', phase: 0 },
+    { orbit: 2, icon: '📝', phase: 0 },
+    { orbit: 0, icon: '🎯', phase: 0.5 },
+  ];
+  const ICON_SIZE = 20;   // viewBox units (the 230 box renders at --b-orbit-size)
+  const ORBIT_C = 115;   // centre of the 230 × 230 viewBox
+  const SIM_NODES = ['E3·Q12', 'E7·Q4', 'E11·Q20', 'E15·Q8'];  // E{exam}·Q{n}, as similar.node
+  // slots in % of the scene box: one centre slot for the main card, edge slots for the pills
+  const SLOTS = {
+    p1: { card: [50, 52], pills: [[17, 8], [52, 7], [84, 9], [16, 91], [52, 92], [84, 91]] },
+    p2: { card: [40, 46], extra: [66, 88], pills: [[22, 7], [78, 7], [18, 93]] },
+    p3: { card: [46, 36], extra: [64, 86], pills: [[18, 90]] },
+  };
+  let page = 0;
+
+  // option-B-only strings (illustration labels); app wording from locales/*.js
+  const ART = {
+    zh: { tabs: ['章節', '時間線', '地理', '人物', '記憶法'], tabIcons: ['📚', '⏳', '🗺️', '👤', '🧠'],
+      factQ: '《大憲章》於哪一年簽署？', factA: '1215 年 — 限制了國王的權力', memoLv: '記憶法 Lv2',
+      qNum: '第 3 題', practice: '練習', exam: '模擬考試',
+      simTitle: '🔗 相似題目 · 4 題', simSub: '同一知識點，不同問法，一次看清',
+      status: ['載入題目…', '準備知識卡…', '整理溫習計劃…'],
+      countdown: '距離考試', days: '日', strategy: '溫習策略 · 基礎程度', streak: '連續 4 日',
+      week: ['一', '二', '三', '四', '五', '六', '日'], tasks: ['溫習 Ch 2 · 15 分鐘', '練習 20 題', '記憶法 3 組'], today: '今日' },
+    en: { tabs: ['Chapters', 'Timeline', 'Geo', 'People', 'Memory'], tabIcons: ['📚', '⏳', '🗺️', '👤', '🧠'],
+      factQ: 'When was Magna Carta signed?', factA: '1215 — it limited the power of the king', memoLv: 'Memory Lv2',
+      qNum: 'Question 3', practice: 'Practice', exam: 'Mock exam',
+      simTitle: '🔗 Similar Questions · 4', simSub: 'Same fact, asked differently, all in one view',
+      status: ['Loading questions…', 'Preparing fact cards…', 'Setting up your plan…'],
+      countdown: 'Test in', days: 'days', strategy: 'Strategy · Basic level', streak: '4-day streak',
+      week: ['M', 'T', 'W', 'T', 'F', 'S', 'S'], tasks: ['Study Ch 2 · 15 min', 'Practise 20 Qs', '3 memory sets'], today: 'Today' },
+  };
+
+  const rand = (min, max) => min + Math.random() * (max - min);
+  const tilt = (max = TILT_MAX_DEG) => (Math.random() < 0.5 ? -1 : 1) * rand(TILT_MIN_DEG, max);
+  const shuffle = (arr) => arr.map((v) => [Math.random(), v]).sort((a, b) => a[0] - b[0]).map(([, v]) => v);
+  const bookmark = () => `<span class="bm"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${BOOKMARK_PATH}"/></svg></span>`;
+  const stars = (d) => `<span class="stars">${'★'.repeat(d)}<span class="off">${'★'.repeat(MAX_DIFFICULTY - d)}</span></span>`;
+
+  // one absolutely placed piece; slot = [x%, y%]
+  function piece(html, [x, y], { cls = '', maxTilt = TILT_MAX_DEG, order = 0 } = {}) {
+    const jx = x + rand(-JITTER_PCT, JITTER_PCT);
+    const jy = y + rand(-JITTER_PCT, JITTER_PCT);
+    return `<div class="piece pop ${cls}" style="--x:${jx}%;--y:${jy}%;--r:${tilt(maxTilt).toFixed(1)}deg;--d:${(order * POP_STAGGER_S).toFixed(2)}s">${html}</div>`;
+  }
+
+  // one orbit: the whole ellipse in the back layer, its lower (front) half again in the front layer, and the comet in front
+  function orbitSvg() {
+    const ellipse = (o) => `<ellipse cx="${ORBIT_C}" cy="${ORBIT_C}" rx="${o.rx}" ry="${o.ry}" transform="rotate(${o.tilt} ${ORBIT_C} ${ORBIT_C})"/>`;
+    const path = (o) => `M${ORBIT_C - o.rx},${ORBIT_C} a${o.rx},${o.ry} 0 1,0 ${2 * o.rx},0 a${o.rx},${o.ry} 0 1,0 ${-2 * o.rx},0`;
+    // the motion is added inside the orbit's rotate(), so the icon gets rotate(-tilt) to stay upright
+    const motion = (o, lag) => `<animateMotion dur="${o.dur}s" repeatCount="indefinite" begin="-${(lag * o.dur).toFixed(2)}s" path="${path(o)}"/>`;
+    const comet = (m) => {
+      const o = ORBITS[m.orbit];
+      const head = `<text class="ic" font-size="${ICON_SIZE}" text-anchor="middle" dominant-baseline="central" transform="rotate(${-o.tilt})">${m.icon}${motion(o, m.phase)}</text>`;
+      return `<g transform="rotate(${o.tilt} ${ORBIT_C} ${ORBIT_C})">${head}</g>`;
+    };
+    const cometsOn = (k) => COMETS.map((m) => (m.orbit === k ? comet(m) : '')).join('');
+    const half = (o) => `<clipPath id="fh${o.dur}"><rect x="0" y="${ORBIT_C}" width="${ORBIT_C * 2}" height="${ORBIT_C}" transform="rotate(${o.tilt} ${ORBIT_C} ${ORBIT_C})"/></clipPath>`;
+    // comets are drawn twice in sync: the back copy is hidden by the planet, the front copy only shows on the near half
+    return `<svg class="back" viewBox="0 0 230 230" aria-hidden="true">${ORBITS.map((o, k) => ellipse(o) + cometsOn(k)).join('')}</svg>
+      <svg class="front" viewBox="0 0 230 230" aria-hidden="true"><defs>${ORBITS.map(half).join('')}</defs>
+        ${ORBITS.map((o, k) => `<g clip-path="url(#fh${o.dur})">${ellipse(o)}${cometsOn(k)}</g>`).join('')}</svg>`;
+  }
+
+  // three different tips: phone shows the first (the others are hidden), desktop shows all three around the centre column
+  function pickTips(tips, n) {
+    return shuffle(tips).slice(0, n);
+  }
+
+  // the four logo animations (toolbar: Logo 動畫); all share the .b-orbit stage size
+  function stageHtml(kind, logo) {
+    const img = `<img class="b-logo" src="${logo}" alt="">`;
+    if (kind === 'ripple') {
+      const rings = Array.from({ length: RIPPLE_COUNT }, (_, i) => `<span class="rp" style="--d:${i * RIPPLE_GAP_S}s"></span>`).join('');
+      const icons = FEATURE_ICONS.map((ic, i) => `<span class="ic" style="left:${ICON_SPOTS[i][0]}%;top:${ICON_SPOTS[i][1]}%;--d:${i * ICON_GAP_S}s">${ic}</span>`).join('');
+      return `<div class="b-orbit ripple">${rings}${img}${icons}</div>`;
+    }
+    if (kind === 'fan') {
+      return `<div class="b-orbit fan-wrap"><div class="fan">${FEATURE_ICONS.map((ic) => `<span class="fan-c">${ic}</span>`).join('')}${img}</div></div>`;
+    }
+    if (kind === 'ring') {
+      const len = (2 * Math.PI * RING_R).toFixed(1);
+      const pos = [[50, 50 - RING_R / 2.3], [50 + RING_R / 2.3, 50], [50, 50 + RING_R / 2.3], [50 - RING_R / 2.3, 50]];   // N, E, S, W in % (r 100 of the 230 box)
+      const icons = RING_SPOTS.map(([i, share]) => `<span class="rl-ic" style="left:${pos[i][0]}%;top:${pos[i][1]}%;--d:${Math.round(share * RING_MS)}ms">${FEATURE_ICONS[i]}</span>`).join('');
+      return `<div class="b-orbit ringload" style="--ring-len:${len};--ring-ms:${RING_MS}ms">
+        <svg viewBox="0 0 230 230" aria-hidden="true"><defs><linearGradient id="bRingGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="var(--gold)"/><stop offset="1" stop-color="var(--green-light)"/></linearGradient></defs>
+          <circle class="rl-track" cx="115" cy="115" r="${RING_R}"/>
+          <circle class="rl-arc" cx="115" cy="115" r="${RING_R}" transform="rotate(-90 115 115)"/></svg>${img}${icons}</div>`;
+    }
+    return `<div class="b-orbit">${orbitSvg()}${img}</div>`;
+  }
+
+  // 🎲: weighted pick, a fresh draw on every launch
+  function pickAnim() {
+    const total = RANDOM_WEIGHTS.reduce((n, [, w]) => n + w, 0);
+    let r = Math.random() * total;
+    return RANDOM_WEIGHTS.find(([, w]) => (r -= w) < 0)[0];
+  }
+
+  // how long the splash stays: until the animation has finished (fan / ring), else the mock default
+  function loadingMs(state) {
+    if (state.logoNow === 'fan') return FAN_GONE_MS + HOLD_AFTER_MS;
+    if (state.logoNow === 'ring') return RING_MS + HOLD_AFTER_MS;
+    return MOCK_LOADING_MS;
+  }
+
+  function renderLoading(root, x) {
+    x.state.logoNow = x.state.logoAnim === 'random' ? pickAnim() : x.state.logoAnim;
+    const { c, logo } = x;
+    const status = ART[x.state.lang].status;
+    root.innerHTML = `<div class="b-load">
+      <div class="b-brand">
+        ${stageHtml(x.state.logoNow, logo)}
+        ${x.state.logoAnim === 'random' ? `<span class="mock-pick">🎲 ${x.state.logoNow === 'fan' ? '卡片扇' : '進度環'}（mock 標示）</span>` : ''}
+        <div class="b-name">${c.appTitle}</div><div class="b-sub">${c.appSub}</div>
+        <div class="b-dots" role="progressbar" aria-label="${c.loading}"><i></i><i></i><i></i></div>
+        <div class="b-status" aria-live="polite">${status[0]}</div></div>
+      <div class="b-memos">${pickTips(c.tips, NOTE_COUNT).map((tip, i) => `<div class="b-note n${i + 1}"><b>📌 ${c.tipLabel}</b><span>${tip}</span></div>`).join('')}</div></div>`;
+    const el = root.querySelector('.b-status');
+    status.forEach((txt, i) => i && x.later(() => { el.textContent = txt; }, i * STATUS_STEP_MS));
+  }
+
+  // P1: five study-mode pills around a tilted fact card
+  function artStudy(a) {
+    const slots = shuffle(SLOTS.p1.pills).slice(0, a.tabs.length);
+    const card = `<div class="ui-card fact">
+        <div class="row"><span class="tag">Ch 1 #12</span>${stars(2)}<span class="sp"></span>${bookmark()}</div>
+        <div class="fact-q">${a.factQ}</div><div class="fact-a">${a.factA}</div>
+        <div class="muted" style="font-size:var(--fs-2xs)">🧠 ${a.memoLv}</div>
+        <div class="lv"><i class="on"></i><i class="on"></i><i></i></div></div>`;
+    const pills = a.tabs.map((t, i) => piece(`<span class="pill"><i>${a.tabIcons[i]}</i>${t}</span>`, slots[i], { cls: 'front', order: i + 1 }));
+    return `<div class="scene">${piece(card, SLOTS.p1.card, { maxTilt: CARD_TILT_MAX_DEG })}${pills.join('')}</div>`;
+  }
+
+  // P2: tilted question card (stars, flag, A–D) + three separate pills: practice, mock exam, timer
+  function artPractice(a, d) {
+    const letters = ['A', 'B', 'C', 'D'];
+    const cls = (k) => (k === d.correctIdx ? 'correct' : k === 0 ? 'wrong' : '');
+    const slots = shuffle(SLOTS.p2.pills);
+    const card = `<div class="ui-card qcard">
+        <div class="q-head"><span>${a.qNum}</span>${stars(3)}<span style="flex:1"></span>${bookmark()}</div>
+        <div class="q-text">${d.q}</div>
+        ${d.opts.map((o, k) => `<div class="opt ${cls(k)}"><span class="opt-letter">${letters[k]}</span>${o}</div>`).join('')}</div>`;
+    const pills = [
+      `<span class="pill"><i>📝</i>${a.practice}</span>`,
+      `<span class="pill"><i>🎯</i>${a.exam}</span>`,
+      `<span class="pill timer" data-timer>⏱ 45:00</span>`,
+    ].map((h, i) => piece(h, slots[i], { cls: 'front', order: i + 1 }));
+    const sim = `<div class="ui-card sim"><div class="sim-h">${a.simTitle}<small>${a.simSub}</small></div>
+        <div class="sim-nodes">${SIM_NODES.map((n, i) => `<span class="${i === 0 ? 'cur' : ''}">${n}</span>`).join('')}</div>
+</div>`;
+    return `<div class="scene">${piece(card, SLOTS.p2.card, { maxTilt: CARD_TILT_MAX_DEG })}
+      ${piece(sim, SLOTS.p2.extra, { cls: 'front', maxTilt: CARD_TILT_MAX_DEG, order: 1 })}${pills.join('')}</div>`;
+  }
+
+  // P3: tilted plan card + translation card + two small pills
+  function artPlan(a, d) {
+    const heat = ['h4', 'h3', 'h4', 'h2', 'today', '', ''];
+    const slots = shuffle(SLOTS.p3.pills);
+    const plan = `<div class="ui-card plan">
+        <div class="plan-grid">
+          <div class="countdown"><span class="muted" style="font-size:var(--fs-2xs)">🗓️ ${a.countdown}</span><br><b>21</b> ${a.days}
+            <div class="muted" style="font-size:var(--fs-2xs);margin-top:2px">${a.strategy}</div></div>
+          <div class="ring" data-ring><b>0%</b></div></div>
+        <div class="week">${a.week.map((w, i) => `<span class="${heat[i]}"><i></i>${heat[i] === 'today' ? a.today : w}</span>`).join('')}</div>
+        ${a.tasks.map((t, i) => `<div class="task ${i === 0 ? 'done' : ''}"><i>${i === 0 ? '✓' : ''}</i><span>${t}</span></div>`).join('')}</div>`;
+    const yue = `<div class="ui-card yue"><span class="badge">粵</span><p>${d.yueQ}<span>${d.yueA}</span></p></div>`;
+    return `<div class="scene">${piece(plan, SLOTS.p3.card, { maxTilt: CARD_TILT_MAX_DEG })}
+      ${piece(yue, SLOTS.p3.extra, { cls: 'front', maxTilt: CARD_TILT_MAX_DEG, order: 1 })}
+      ${piece(`<span class="pill"><i>🔥</i>${a.streak}</span>`, slots[0], { cls: 'front', order: 2 })}</div>`;
+  }
+
+  function cardHtml(p, i, x, a) {
+    const last = i === PAGE_COUNT - 1;
+    const art = [artStudy, artPractice, artPlan][i](a, x.c.demo);
+    return `<article class="b-card p${i + 1}" data-i="${i}">
+      <div class="b-art">${art}</div>
+      <div class="b-text"><span class="b-kicker">${p.kicker}</span><h2 class="b-title">${p.title}</h2>
+        <p class="b-body">${p.body}</p>
+        <ul class="b-list">${p.chips.map((ch) => `<li>✓ ${ch}</li>`).join('')}</ul>
+        ${last ? Mock.settingsBlock(x.c) : ''}</div></article>`;
+  }
+
+  function renderIntro(root, x) {
+    const { c } = x;
+    const a = ART[x.state.lang];
+    root.innerHTML = `<div class="b-intro">
+      <div class="b-top"><span class="b-step"></span><button class="b-skip" data-b="skip">${c.skip}</button></div>
+      <div class="b-stack">${c.pages.map((p, i) => cardHtml(p, i, x, a)).join('')}</div>
+      <div class="b-foot">
+        <div class="b-dotrow">${c.pages.map((_, i) => `<button data-b="go" data-i="${i}" aria-label="${i + 1}"></button>`).join('')}</div>
+        <button class="b-next" data-b="next">${c.next} →</button>
+        <div class="b-ctas"><button class="b-alt" data-b="start">${c.start}</button>
+          <button class="b-next" data-b="plan">🗓️ ${c.setupPlan}</button></div></div></div>`;
+    const go = (n) => { page = Math.max(0, Math.min(PAGE_COUNT - 1, n)); sync(root, x); };
+    root.onclick = (e) => {
+      const b = e.target.closest('[data-b]');
+      if (!b) return;
+      const act = b.dataset.b;
+      if (act === 'next') go(page + 1);
+      if (act === 'go') go(Number(b.dataset.i));
+      if (act === 'skip' || act === 'start' || act === 'plan') { page = 0; x.finish(act); }
+    };
+    Mock.onSwipe(root.querySelector('.b-stack'), (d) => go(page + d));
+    Mock.onKeys((d) => go(page + d));
+    Mock.bindSettings(root, () => Mock.showIntro());
+    fitPieces(root);
+    animateTimer(root, x);
+    sync(root, x);
+  }
+
+  // keep every scattered piece at least --b-edge-pad inside its illustration box. Runs once at render,
+  // before the stack transforms apply, so art and scene share one scale (the frame zoom / PC scene scale).
+  function fitPieces(root) {
+    const pad = parseFloat(getComputedStyle(root).getPropertyValue('--b-edge-pad'));
+    root.querySelectorAll('.b-art').forEach((art) => {
+      const scene = art.querySelector('.scene');
+      const box = art.getBoundingClientRect();
+      const artScale = box.width / art.offsetWidth;
+      const sceneScale = scene.getBoundingClientRect().width / scene.offsetWidth;
+      const edge = pad * artScale;
+      art.querySelectorAll('.piece').forEach((el) => {
+        const r = el.getBoundingClientRect();
+        const dx = Math.max(0, box.left + edge - r.left) - Math.max(0, r.right - (box.right - edge));
+        const dy = Math.max(0, box.top + edge - r.top) - Math.max(0, r.bottom - (box.bottom - edge));
+        el.style.setProperty('--dx', `${dx / sceneScale}px`);
+        el.style.setProperty('--dy', `${dy / sceneScale}px`);
+      });
+    });
+  }
+
+  // P2: the timer pill counts down like .exam-timer
+  function animateTimer(root, x) {
+    const el = root.querySelector('[data-timer]');
+    let left = TIMER_START_S;
+    const tick = () => {
+      if (!el.isConnected) return;
+      left -= 1;
+      el.textContent = `⏱ ${String(Math.floor(left / 60)).padStart(2, '0')}:${String(left % 60).padStart(2, '0')}`;
+      x.later(tick, SECOND_MS);
+    };
+    x.later(tick, SECOND_MS);
+  }
+
+  // P3: the plan ring fills when the card comes to the front
+  function fillRing(root) {
+    const ring = root.querySelector('[data-ring]');
+    if (!ring || ring.dataset.done) return;
+    ring.dataset.done = '1';
+    let v = 0;
+    const step = () => {
+      if (!ring.isConnected || v >= RING_PCT) return;
+      v += 1;
+      ring.style.setProperty('--p', v);
+      ring.querySelector('b').textContent = `${v}%`;
+      requestAnimationFrame(step);
+    };
+    step();
+  }
+
+  function sync(root, x) {
+    const last = page === PAGE_COUNT - 1;
+    root.querySelectorAll('.b-card').forEach((card, i) => {
+      const rel = i - page;
+      card.dataset.pos = rel < 0 ? 'out' : rel > 2 ? 'hide' : String(rel);
+      card.style.zIndex = String(PAGE_COUNT - rel);
+      card.setAttribute('aria-hidden', String(rel !== 0));
+    });
+    root.querySelector('.b-step').textContent = x.fmt(x.c.step, { n: page + 1 });
+    root.querySelectorAll('.b-dotrow button').forEach((d, i) => d.setAttribute('aria-current', String(i === page)));
+    root.querySelector('.b-foot > .b-next').hidden = last;
+    root.querySelector('.b-ctas').hidden = !last;
+    root.querySelector('.b-skip').style.visibility = last ? 'hidden' : 'visible';
+    if (last) x.later(() => fillRing(root), 300);
+  }
+
+  Mock.init({
+    name: '方案 B · 輕鬆卡片 Friendly（定稿候選）',
+    renderLoading, renderIntro, loadingMs,
+    extraSegs: [{ label: 'Logo 動畫', key: 'logoAnim', default: 'random',
+      options: [['random', '🎲 隨機 3:1'], ['fan', '③ 卡片扇'], ['ring', '④ 進度環'], ['orbit', '① 軌道'], ['ripple', '② 波紋']] }],
+    notes: `
+      <div class="note"><h3>✅ 已決定（2026-10-13）</h3><ul>
+        <li>用方案 B。</li>
+        <li>Loading logo 動畫：每次開 app 隨機抽 ③ 卡片扇 或 ④ 進度環，比例 3 : 1（預設「🎲 隨機 3:1」，mock 會喺 logo 下面標示抽中邊個；正式版冇呢個標示）。</li>
+        <li>等動畫播完先入 app：入 app 時間 = max(載入時間, 動畫時間)。卡片扇約 3.1 秒淡晒 → 約 3.4 秒入；進度環 4 秒畫完一圈 → 約 4.3 秒入。</li>
+        <li>① 軌道、② 波紋 保留喺 mock 作參考，正式版唔用。</li></ul></div>
+      <div class="note"><h3>rev 8：Logo 動畫 4 個方案（頂部「Logo 動畫」切換）</h3><ul>
+        <li><b>① 軌道</b>（rev 7 保留）：淺色虛線軌道好似原子咁交叉，📖📝🎯🗓️ 繞住 logo 轉，近半喺前、遠半被遮。</li>
+        <li><b>② 波紋</b>：logo 輕輕呼吸，同 logo 一樣形狀嘅圓角框一圈圈擴散淡出；四個 icon 喺上右下左輪流彈出再收起。最安靜。</li>
+        <li><b>③ 卡片扇</b>：logo 後面四張淡色卡（每張一個功能 icon）扇開，再按次序（計劃 → 溫習 → 練習 → 考試）逐張淡出；全部消失就停，淨低 logo，唔再重複。</li>
+        <li><b>④ 進度環</b>：logo 外圈一條金 → 綠弧線由 12 點順時針畫到滿圈；12 點計劃、3 點溫習、6 點練習、9 點考試，弧線到邊個 icon 就由灰色亮起。可以接真進度。</li>
+        <li>rev 9：四個 icon 喺所有動畫統一次序：🗓️ 計劃、📖 溫習、📝 練習、🎯 考試。</li></ul></div>
+      <div class="note"><h3>rev 8：重看介紹（撳頂部「ⓘ 預覽」）</h3><ul>
+        <li>ⓘ popover 照返 app 現有樣式（標題 + 版本、介紹、4 個 badge），喺 badge 下面用金色細線分隔，加一行「▶ 重看介紹 NEW / 3 頁快速認識…  播放 ›」。</li>
+        <li>箭咀對準 ⓘ（同 <code>popover.js</code> pointArrowAt 一樣計法）；電腦版闊度跟主欄 780px。</li></ul></div>
+      <div class="note"><h3>rev 7 改動</h3><ul>
+        <li>軌道改淺色虛線（<code>--b-orbit-line</code>）；除咗四個 icon 之外冇其他圓點（拎走慧星尾巴）。</li>
+        <li>電腦版：左邊 logo + 品牌資訊（自己置中），右邊直落三張 memo（唔同角度、少少左右錯開）。</li></ul></div>
+      <div class="note"><h3>rev 6 改動</h3><ul>
+        <li>Logo 保留原本圓角四方形。</li>
+        <li>慧星頭換返 📖📝🎯🗓️ 四個 icon（冇框），尾巴係漸淡色點；🗓️ 同 📖 共用一條軌道，相隔半圈。</li>
+        <li>電腦版：品牌資訊置中（星球放大到 280px），四圍貼三張唔同小貼士 memo（唔同角度）；手機版維持一張。</li></ul></div>
+      <div class="note"><h3>rev 5 改動</h3><ul>
+        <li>Loading 留耐啲（mock 4.2 秒）。</li>
+        <li>Logo 唔再自己翻轉，做「星球」：三條斜嘅軌道好似原子咁交叉圍住佢，每條軌道有一粒慧星（頭 + 漸淡尾巴）用唔同速度轉；軌道近你嗰半同慧星會喺星球前面經過，遠嗰半會被星球遮住，有立體感。</li>
+        <li>拎走 loading bar，用返三粒跳跳點；載入狀態字保留。</li></ul></div>
+      <div class="note"><h3>rev 4 改動</h3><ul>
+        <li>所有散開元素同插畫邊界最少保持 20px（<code>--b-edge-pad</code>），render 後量度再推返入嚟。</li>
+        <li>溫習：5 個模式 pill 唔再輪流亮起。</li>
+        <li>練習：加「🔗 相似題目 · 4 題」卡（同一知識點，不同問法，一次看清），文案亦提及。</li>
+        <li>Loading：logo 每 3.2 秒 Y 軸轉一圈，虛線圓環 + 📖📝🎯🗓️ 四粒 badge 環繞；加進度條同載入狀態字（載入題目 → 準備知識卡 → 整理溫習計劃）。</li></ul></div>
+      <div class="note"><h3>rev 3 改動</h3><ul>
+        <li>換頁：淨係留 dots（可撳），拎走箭咀同「左右滑動」提示；卡片照樣可以左右 swipe。</li>
+        <li>插畫唔再打直排：每個元素獨立、圓角、隨機細角度（±2–8°，大卡 ±2–5°），位置由幾個預設位隨機抽 + ±4% 偏移，每次 render 都唔同（撳「↻ 重播」睇效果）。</li>
+        <li>溫習：5 個模式各自一粒 pill，散喺知識卡四圍；知識卡都斜少少；記憶法只有 Lv1–Lv3（3 格）。</li>
+        <li>練習：題目卡（星 + flag + A–D）斜少少；「📝 練習」「🎯 模擬考試」「⏱ timer」三粒獨立 pill 散開放。</li>
+        <li>溫習計劃：計劃卡 + 廣東話翻譯卡 + 「🔥 連續 4 日」pill 一樣散開；拎走「之後可以喺 ⚙ 設定隨時更改」。</li>
+        <li>文案改用「唔同人唔同溫法」角度：想了解背景 → 讀知識卡；想操題 → 練習；想操卷 → 模擬考試；再製定溫習策略，目標一次合格。</li></ul></div>
+      <div class="note"><h3>實作注意</h3><ul>
+        <li>隨機位置用「預設位 + 偏移」而唔係完全隨機，確保唔會疊住或者出界。</li>
+        <li><code>prefers-reduced-motion</code>：保留角度，唔做彈入動畫同輪流亮起。</li>
+        <li>新 token：<code>--b-scene-w</code> <code>--b-scene-scale</code>（電腦版插畫放大 1.3×）。</li></ul></div>`,
+  });
+})();
+</script>
+</body>
+</html>

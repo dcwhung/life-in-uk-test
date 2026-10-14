@@ -23,6 +23,10 @@ LOCALES.en = {
     infoQuestions: { one: '❓ {n} Q', other: '❓ {n} Qs' },
     infoQuestionsLabel: { one: '{n} question', other: '{n} questions' }, // what a screen reader says for the short "Qs" badge
     infoOffline: '🔒 Works Offline',
+    // v2.5.0: the ⓘ row that replays the first-run intro
+    introReplay: 'Replay intro',
+    introReplaySub: 'A 3-page tour of studying, practice and the study plan',
+    introReplayPlay: 'Play ›',
     installTitle: 'Install for offline use',
     installText: 'Add to home screen to study without internet',
     installButton: 'Install',
@@ -239,6 +243,60 @@ LOCALES.en = {
     noteAgain: 'All correct 🎉 The notes once more:',
     again: 'Review again',
     next: 'Next: {title}',
+  },
+
+  // v2.5.0 loading splash (js/components/splash.js): status lines take turns, tips are facts from the handbook
+  splash: {
+    loading: 'Loading',
+    status1: 'Loading questions…',
+    status2: 'Preparing fact cards…',
+    status3: 'Setting up your plan…',
+    tipLabel: 'Tip',
+    tip1: 'The real test has 24 questions in 45 minutes. You need 18 correct (75%) to pass.',
+    tip2: 'The UK is made up of England, Scotland, Wales and Northern Ireland.',
+    tip3: 'Magna Carta was signed in 1215 and limited the power of the king.',
+    tip4: 'Parliament has two houses: the House of Commons and the House of Lords.',
+    tip5: 'Questions you get wrong go to Wrong answers under My Review automatically.',
+  },
+
+  // v2.5.0 first-run intro (js/screens/intro.js; mockup mockups/v2.2.0/intro-b-cards.html)
+  intro: {
+    dialog: 'Welcome to the app',
+    step: '{n} / {total}',
+    skip: 'Skip',
+    next: 'Next',
+    start: 'Start now',
+    makePlan: 'Make a study plan',
+    study: {
+      kicker: 'Study',
+      title: 'Want the background first? Start with the facts',
+      body: 'Everyone studies differently. To build a solid base, read the fact cards in five modes: Chapters, Timeline, Geo, People and Memory. Difficulty stars and bookmarks keep you on the key points.',
+      chipBackground: 'Background',
+      chipModes: '5 study modes',
+      chipStars: 'Difficulty stars',
+      chipBookmarks: 'Bookmarks',
+      factQ: 'When was Magna Carta signed?',
+      factA: '1215: it limited the power of the king',
+      memoLv: 'Memory Lv2',
+    },
+    practice: {
+      kicker: 'Practice · Mock exam',
+      title: 'Drill questions? Sit full papers?',
+      body: 'To drill questions, practise with instant answers and see every similar question in one view; anything you get wrong goes to wrong answer review. To sit full papers, take a mock exam or a random exam, timed like the real test.',
+    },
+    plan: {
+      kicker: 'Study plan · Cantonese translation',
+      title: 'Plan it, pass first time',
+      body: 'Enter your test date and level to get a study strategy and use your time well. With Cantonese translation, the key points are easy to learn and remember, so you can pass first time.',
+      countdown: 'Test in',
+      days: 'days',
+      strategy: 'Strategy · Intermediate',
+      today: 'Today',
+      task1: 'Study Ch 2 · 15 min',
+      task2: 'Practise 20 questions',
+      task3: '3 memory sets',
+      streak: '4-day streak',
+    },
   },
 
   modal: {

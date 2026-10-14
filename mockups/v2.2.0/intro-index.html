@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loading + Intro 方案</title>
+<link rel="stylesheet" href="intro-shared.css">
+<style>
+  .wrap { max-width: 1100px; margin: 0 auto; padding: var(--space-12) var(--space-8); display: grid; gap: var(--space-10); }
+  .wrap > header h1 { font-size: var(--fs-6xl); }
+  .wrap > header p { color: var(--text-muted); font-size: var(--fs-md); line-height: 1.6; margin-top: var(--space-3); }
+  .flow { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; font-size: var(--fs-sm); }
+  .flow span { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-pill); padding: var(--space-2) var(--space-6); font-weight: 700; }
+  .opts { display: grid; gap: var(--space-8); grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .opt { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow-sm); overflow: hidden; display: grid; grid-template-rows: 150px 1fr; text-decoration: none; color: inherit; }
+  .opt:hover { box-shadow: var(--shadow-md); }
+  .sw-a { background: radial-gradient(120% 80% at 50% 0%, var(--navy-light), var(--navy) 62%); }
+  .sw-b { background: var(--bg); }
+  .sw-c { background: #111a30; }
+  .swatch { display: grid; place-items: center; position: relative; }
+  .swatch img { width: 64px; height: 64px; border-radius: 16px; box-shadow: var(--shadow-md); }
+  .swatch.sw-b img { transform: rotate(-4deg); }
+  .swatch em { position: absolute; bottom: var(--space-5); font-style: normal; font-size: var(--fs-xs); letter-spacing: .14em; color: var(--gold-light); }
+  .swatch.sw-b em { color: var(--orange); }
+  .opt-body { padding: var(--space-8) var(--space-10) var(--space-10); display: grid; gap: var(--space-4); align-content: start; font-size: var(--fs-md); line-height: 1.6; }
+  .opt-body h2 { font-size: var(--fs-3xl); }
+  .opt-body ul { margin-left: var(--space-8); color: var(--text-muted); }
+  .opt-body .go { justify-self: start; margin-top: var(--space-4); background: var(--navy); color: var(--text-inverse); padding: var(--space-4) var(--space-8); border-radius: var(--radius-md); font-weight: 800; }
+  table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm); font-size: var(--fs-base); }
+  th, td { padding: var(--space-5) var(--space-6); text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--navy); color: var(--text-inverse); font-weight: 700; }
+  .tbl { overflow-x: auto; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Loading + 首次介紹 — 三個方案</h1>
+    <p>v2.2.0 mockup。每個方案都有：手機 / 電腦切換、繁中 / EN、「第一次 / 已看過」用戶、重播。完成或略過後會去主頁，ⓘ 入面有「重看介紹」。</p>
+  </header>
+  <div class="flow"><span>開 app</span>→<span>Loading（每次）</span>→<span>介紹 ×3（只係第一次）</span>→<span>主頁</span></div>
+
+  <div class="opts">
+    <a class="opt" href="intro-a-classic.html">
+      <div class="swatch sw-a"><img src="../../icons/icon.svg" alt=""><em>CLASSIC</em></div>
+      <div class="opt-body"><h2>A · 官方典雅</h2>
+        <ul><li>Navy 漸層 + gold 細線，似官方手冊</li><li>全屏 carousel：swipe / dots / 箭咀</li><li>實作最簡單</li></ul>
+        <span class="go">睇方案 A →</span></div></a>
+    <a class="opt" href="intro-b-cards.html">
+      <div class="swatch sw-b"><img src="../../icons/icon.svg" alt=""><em>FRIENDLY</em></div>
+      <div class="opt-body"><h2>B · 輕鬆卡片</h2>
+        <ul><li>淺色底，便利貼小貼士</li><li>疊卡飛走 + 3 段進度條</li><li>用 app UI 砌嘅迷你插畫</li></ul>
+        <span class="go">睇方案 B →</span></div></a>
+    <a class="opt" href="intro-c-interactive.html">
+      <div class="swatch sw-c"><img src="../../icons/icon.svg" alt=""><em>LIVE DEMO</em></div>
+      <div class="opt-body"><h2>C · 互動示範</h2>
+        <ul><li>深 navy，小貼士逐字打出</li><li>每頁一個可以玩嘅 demo（翻卡、答題、粵語）</li><li>電腦版左邊 stepper</li></ul>
+        <span class="go">睇方案 C →</span></div></a>
+  </div>
+
+  <div class="tbl"><table>
+    <thead><tr><th>項目</th><th>A · 官方典雅</th><th>B · 輕鬆卡片</th><th>C · 互動示範</th></tr></thead>
+    <tbody>
+      <tr><td>Loading</td><td>Logo 呼吸 + gold 細線 + 小貼士卡</td><td>Logo 彈出 + 三色跳點 + 便利貼</td><td>小貼士逐字打出 + 進度條</td></tr>
+      <tr><td>Intro 換頁</td><td>Carousel 滑動</td><td>疊卡飛走</td><td>Stepper + 淡入</td></tr>
+      <tr><td>Intro 主視覺</td><td>大 line icon</td><td>CSS 迷你 UI 插畫</td><td>可以撳嘅 demo</td></tr>
+      <tr><td>電腦版 layout</td><td>780px 置中 + 左右箭咀</td><td>960px 卡，左圖右文</td><td>左 stepper 側欄 + 右兩欄</td></tr>
+      <tr><td>同主頁銜接</td><td>深 → 淺（有切換感）</td><td>淺 → 淺（最順）</td><td>深 → 淺（對比最大）</td></tr>
+      <tr><td>實作工作量</td><td>低</td><td>中</td><td>高</td></tr>
+      <tr><td>維護成本</td><td>低</td><td>中（插畫跟 UI 改）</td><td>高（demo 用真 component）</td></tr>
+    </tbody></table></div>
+</div>
+</body>
+</html>

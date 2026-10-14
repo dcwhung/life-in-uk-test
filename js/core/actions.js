@@ -102,6 +102,13 @@ const ACTIONS = {
   startMemoTest: () => startMemoTest(),
   // study plan (entry hidden until planVisible: js/screens/planHome.js, planGoal.js, planSchedule.js, planDay.js, planRun.js)
   togglePlanFeature: () => togglePlanFeature(),
+  // v2.5.0 first-run intro (js/screens/intro.js); ⓘ replays it
+  replayIntro: () => { setInfoOpen(false); openIntro(); },
+  introNext: () => introGo(introPage + 1),
+  introGo: el => introGo(numArg(el)),
+  introClose: el => closeIntro(el.dataset.arg),
+  introLang: el => setIntroLang(el.dataset.arg),
+  introToggleYue: el => toggleIntroTranslation(el),
   openPlanGoal: () => openPlanGoal(),
   planSetDays: el => planSetDays(numArg(el)),
   planSetExamDate: el => planSetExamDate(el.value),
@@ -197,5 +204,6 @@ document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
   // S-112: Esc closes the top layer only: the modal first, the popover under it on the next Esc
   if (isConfirmOpen()) { closeConfirm(); return; }
+  if (typeof isIntroOpen === 'function' && isIntroOpen()) { closeIntro('skip'); return; } // v2.5.0: Esc = Skip
   closeHeaderPopovers();
 });
