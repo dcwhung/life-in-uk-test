@@ -257,8 +257,12 @@ function setIntroLang(lang) {
   if (pressed) pressed.focus({ preventScroll: true }); // W-088: the re-render dropped the focused button
 }
 // W-088: a modal dialog: everything else on the page is inert (no Tab, no screen reader) while it is open
+// S-283: only what it made inert is restored, and the confirm modal stays live (it sits above the intro)
+let introInerted = [];
 function setIntroBackgroundInert(on) {
-  [...document.body.children].filter(el => el.id !== INTRO_OVERLAY_ID && el.tagName !== 'SCRIPT').forEach(el => { el.inert = on; });
+  if (!on) { introInerted.forEach(el => { el.inert = false; }); introInerted = []; return; }
+  introInerted = [...document.body.children].filter(el => !el.inert && el.tagName !== 'SCRIPT' && !['introOverlay', 'confirmModal'].includes(el.id));
+  introInerted.forEach(el => { el.inert = true; });
 }
 function restoreIntroFocus() {
   if (introReturnFocus && introReturnFocus.isConnected && introReturnFocus !== document.body) introReturnFocus.focus({ preventScroll: true });
