@@ -14,8 +14,26 @@ let asserts = 0;
 const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); asserts++; console.log('ok:', m); };
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
-// fake Upstash: an in-memory counter map; records every pipeline call
-function fakeRedis({ fail = false } = {}) {
+// fake Redis SET: NX (W-400) leaves an existing key alone and replies null, like Redis
+function fakeSet(counts, [key, value, flag]) {
+  if (flag === 'NX' && counts.has(key)) return { result: null };
+  counts.set(key, Number(value));
+  return { result: 'OK' };
+}
+
+function fakeCommand(counts, [cmd, ...args]) {
+  if (cmd === 'INCR') { counts.set(args[0], (counts.get(args[0]) || 0) + 1); return { result: counts.get(args[0]) }; }
+  if (cmd === 'MGET') return { result: args.map(k => (counts.has(k) ? String(counts.get(k)) : null)) };
+  if (cmd === 'GET') return { result: counts.has(args[0]) ? String(counts.get(args[0])) : null };
+  if (cmd === 'EXPIRE') return { result: 1 };
+  if (cmd === 'SET') return fakeSet(counts, args);
+  if (cmd === 'DECR') { counts.set(args[0], (counts.get(args[0]) || 0) - 1); return { result: counts.get(args[0]) }; }
+  return { error: 'unknown command' };
+}
+
+// fake Upstash: an in-memory counter map; records every pipeline call. W-400: breakCall(commands) → 'error' (every
+// command in that pipeline replies with an error, none runs) or 'lost' (Redis runs it, the reply never arrives)
+function fakeRedis({ fail = false, breakCall = () => null } = {}) {
   const counts = new Map();
   const calls = [];
   global.fetch = async (url, init) => {
@@ -23,15 +41,10 @@ function fakeRedis({ fail = false } = {}) {
     const commands = JSON.parse(init.body);
     calls.push({ url, auth: init.headers.Authorization, commands, signal: init.signal });
     if (fail) return { ok: false, status: 500, json: async () => ({ error: 'down' }) };
-    const result = commands.map(([cmd, ...args]) => {
-      if (cmd === 'INCR') { counts.set(args[0], (counts.get(args[0]) || 0) + 1); return { result: counts.get(args[0]) }; }
-      if (cmd === 'MGET') return { result: args.map(k => (counts.has(k) ? String(counts.get(k)) : null)) };
-      if (cmd === 'GET') return { result: counts.has(args[0]) ? String(counts.get(args[0])) : null };
-      if (cmd === 'EXPIRE') return { result: 1 };
-      if (cmd === 'SET') { counts.set(args[0], Number(args[1])); return { result: 'OK' }; }
-      if (cmd === 'DECR') { counts.set(args[0], (counts.get(args[0]) || 0) - 1); return { result: counts.get(args[0]) }; }
-      return { error: 'unknown command' };
-    });
+    const broken = breakCall(commands);
+    if (broken === 'error') return { ok: true, status: 200, json: async () => commands.map(() => ({ error: 'ERR set failed' })) };
+    const result = commands.map(c => fakeCommand(counts, c));
+    if (broken === 'lost') throw new Error('The operation was aborted due to timeout');
     return { ok: true, status: 200, json: async () => result };
   };
   return { counts, calls };
@@ -65,6 +78,7 @@ function freshTrack() {
   delete require.cache[require.resolve(TRACK_PATH)];
   return require(TRACK_PATH);
 }
+const BUDGET = freshTrack().DAILY_REQUEST_BUDGET;
 const stats = require(path.join(ROOT, 'api/stats.js'));
 
 // ── track ──
@@ -133,9 +147,11 @@ async function checkTrackBudget() {
   assert(res.statusCode === 204, 'over budget → still 204');
   assert(!redis.counts.has(`lifeuk:open:${TODAY}`) && !redis.counts.has(`lifeuk:dau:${TODAY}`), 'over budget → no event counted');
   assert(same(redis.calls[0].commands, [['INCR', `lifeuk:budget:${TODAY}`]]), 'over budget → the budget INCR, no event INCR');
-  // SEC-01: the request that crosses the budget marks the day capped (no TTL), so the dashboard can say so later
-  assert(redis.calls.length === 2 && same(redis.calls[1].commands, [['SET', `lifeuk:capped:${TODAY}`, '1']]),
-    'the request that crosses the budget sets lifeuk:capped:<day> (once)');
+  // SEC-01: an over-budget request marks the day capped (no TTL), so the dashboard can say so later. W-400: NX, so
+  // any over-budget request can (re)write it without the crossing request being the only chance
+  assert(redis.calls.length === 2 && same(redis.calls[1].commands, [['SET', `lifeuk:capped:${TODAY}`, '1', 'NX']]),
+    'an over-budget request sets lifeuk:capped:<day> NX');
+  assert(redis.counts.get(`lifeuk:capped:${TODAY}`) === 1, 'the day is marked capped');
 }
 
 // SEC-02: once a warm instance has seen the day's budget run out it stops calling Redis for that UTC day, so a
@@ -161,14 +177,43 @@ async function checkTrackBudgetShortCircuit() {
     'next UTC day: the budget is INCRed again and the event counted');
 }
 
-// a cold instance meeting a budget already past the crossing point
+// W-400: a cold instance meeting a budget already past the crossing point writes the capped mark too (NX: an existing
+// mark stays); with SEC-02 that is at most one extra command per instance per day
 async function checkTrackBudgetPastCrossing() {
   const track = freshTrack();
   const redis = fakeRedis();
   redis.counts.set(`lifeuk:budget:${TODAY}`, track.DAILY_REQUEST_BUDGET + 5);
   await track(req({ body: { events: ['open'] } }), fakeRes());
-  assert(redis.calls.length === 1 && !redis.counts.has(`lifeuk:capped:${TODAY}`),
-    'past the crossing point: only the budget INCR, the capped mark is written by the crossing request alone');
+  assert(redis.calls.length === 2 && same(redis.calls[1].commands[0], ['SET', `lifeuk:capped:${TODAY}`, '1', 'NX']) &&
+    redis.counts.get(`lifeuk:capped:${TODAY}`) === 1, 'past the crossing point: the budget INCR + SET capped NX');
+}
+
+// W-400: the crossing request's SET fails → a later instance still marks the day capped
+async function checkTrackCappedSetFails() {
+  const redis = fakeRedis({ breakCall: cmds => (cmds[0][0] === 'SET' && redis.calls.length === 2 ? 'error' : null) });
+  redis.counts.set(`lifeuk:budget:${TODAY}`, BUDGET);
+  const warn = console.error;
+  console.error = () => {};
+  await freshTrack()(req({ body: { events: ['open'] } }), fakeRes());
+  console.error = warn;
+  assert(!redis.counts.has(`lifeuk:capped:${TODAY}`), 'the crossing request\'s SET failed: no capped mark yet');
+  await freshTrack()(req({ body: { events: ['open'] } }), fakeRes());
+  assert(redis.counts.get(`lifeuk:capped:${TODAY}`) === 1, 'W-400: the next fresh instance writes the capped mark');
+}
+
+// W-400: the crossing INCR ran but its reply was lost (timeout) → a later instance still marks the day capped
+async function checkTrackCrossingReplyLost() {
+  const redis = fakeRedis({ breakCall: () => (redis.calls.length === 1 ? 'lost' : null) });
+  redis.counts.set(`lifeuk:budget:${TODAY}`, BUDGET);
+  const res = fakeRes();
+  const warn = console.error;
+  console.error = () => {};
+  await freshTrack()(req({ body: { events: ['open'] } }), res);
+  console.error = warn;
+  assert(res.statusCode === 502 && redis.counts.get(`lifeuk:budget:${TODAY}`) === BUDGET + 1 &&
+    !redis.counts.has(`lifeuk:capped:${TODAY}`), 'crossing INCR ran but its reply was lost: 502, no capped mark');
+  await freshTrack()(req({ body: { events: ['open'] } }), fakeRes());
+  assert(redis.counts.get(`lifeuk:capped:${TODAY}`) === 1, 'W-400: the next fresh instance writes the capped mark');
 }
 
 async function checkTrackRedisDown() {
@@ -338,6 +383,8 @@ async function checkStatsRedisDown() {
   await checkTrackBudget();
   await checkTrackBudgetShortCircuit();
   await checkTrackBudgetPastCrossing();
+  await checkTrackCappedSetFails();
+  await checkTrackCrossingReplyLost();
   await checkStats();
   await checkStatsAllDays();
   await checkStatsDays();

@@ -15,7 +15,7 @@ const ALLOWED_ORIGIN = 'https://life-uk.vercel.app';
 // Sized to the Upstash free plan (500k commands / month): ~3 commands a request × 4000 × 30 days ≈ 360k
 const DAILY_REQUEST_BUDGET = 4000;
 const BUDGET_EVENT = 'budget';
-// SEC-01: lifeuk:capped:<day> keeps "this day hit the budget" for the dashboard after the budget key expires
+// SEC-01: lifeuk:capped:<day> (SET NX by any over-budget request, W-400) keeps "this day hit the budget" for the dashboard after the budget key expires
 const CAPPED_VALUE = '1';
 // AU-031: the budget key is only read by this file on its own day (the dashboard reads the capped mark instead);
 // 2 days leaves a margin past the UTC turn
@@ -28,7 +28,8 @@ const MAX_EVENTS = 10;
 
 // SEC-02: the UTC day this instance has seen the budget run out on. Past it a beacon gets 204 with no Redis call, so a
 // sustained flood stops costing one INCR per request. Module state lives only while Vercel keeps this instance warm:
-// a cold start (or a parallel instance) spends one more INCR to find out, so this cuts the cost, it does not end it.
+// a cold start (or a parallel instance) spends one more INCR (+ the W-400 capped SET NX) to find out, so this cuts the
+// cost, it does not end it.
 // A new UTC day no longer matches, so counting starts again by itself.
 let budgetSpentOn = null;
 
@@ -68,8 +69,10 @@ async function track(req, res) {
     const [used] = await redisPipeline([['INCR', counterKey(BUDGET_EVENT, today)]]);
     if (used > DAILY_REQUEST_BUDGET) {
       budgetSpentOn = today;
-      // SEC-01: INCR is atomic, so exactly one request sees the crossing value and marks the day for the dashboard
-      if (used === DAILY_REQUEST_BUDGET + 1) await redisPipeline([['SET', cappedKey(today), CAPPED_VALUE]]);
+      // SEC-01 / W-400: every over-budget request marks the day for the dashboard, not only the crossing one: if that
+      // SET failed or its INCR reply was lost (timeout), a later request still writes it. NX keeps one write a day;
+      // with the SEC-02 short circuit this costs at most one extra command per instance per day
+      await redisPipeline([['SET', cappedKey(today), CAPPED_VALUE, 'NX']]);
       return res.status(204).end();
     }
     await redisPipeline(eventCommands(events, today, used));
