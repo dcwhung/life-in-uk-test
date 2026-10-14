@@ -15,7 +15,8 @@ const ALLOWED_ORIGIN = 'https://life-uk.vercel.app';
 // Sized to the Upstash free plan (500k commands / month): ~3 commands a request × 4000 × 30 days ≈ 360k
 const DAILY_REQUEST_BUDGET = 4000;
 const BUDGET_EVENT = 'budget';
-// SEC-01: lifeuk:capped:<day> (SET NX by any over-budget request, W-400) keeps "this day hit the budget" for the dashboard after the budget key expires
+// SEC-01: lifeuk:capped:<day> (SET NX by any over-budget request, W-400) keeps "this day hit the budget" for the
+// dashboard after the budget key expires
 const CAPPED_VALUE = '1';
 // AU-031: the budget key is only read by this file on its own day (the dashboard reads the capped mark instead);
 // 2 days leaves a margin past the UTC turn
