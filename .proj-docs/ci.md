@@ -18,7 +18,7 @@ Workflow 兩個檔：`.github/workflows/test.yml`（名 `tests`，job `node-test
 - `fetch-depth: 0`：`tests/upgrade-test.js` 要 `git archive` 一個 pinned 嘅 v0.57 commit，shallow clone 冇。
 - Runner 鎖 `ubuntu-24.04`（兩個 job），唔用 `ubuntu-latest`：`ubuntu-latest` 2026-10-19 起轉 Ubuntu 26，`playwright-core@1.56.1` 只支援到 Ubuntu 24.04（`lib/server/utils/hostPlatform.js`，26 會當 unsupported platform）。升 `playwright-core` 嘅時候先一齊考慮升 runner（W-392）。
 - `tests/pages-server.js` 用 `python3`，`ubuntu-24.04` 本身有。
-- 失敗時 upload `tests/shot-*.png` 做 artifact（`playwright-screenshots`，留 7 日）。
+- 失敗時只 upload **改咗**嘅截圖做 artifact（`git ls-files -m 'tests/*.png'`；冇改就 skip upload step；`playwright-screenshots`，留 7 日，S-298）。測試每次都重寫 repo 入面嘅 `tests/*.png`，冇改嗰啲同 commit 版一樣，上載冇用。
 - 兩個 workflow 各自有 `concurrency`（同一個 workflow + ref 有新 run 就取消舊 run）同 `permissions: contents: read`。
 - PR 入 `main` 時 node-only suite 會跑兩次（`node-tests` 一次，`run-all.sh` 入面再一次），係刻意嘅：`run-all.sh` 照舊係「全套」。
 - `tests/run-all.sh` 嘅 suite 清單仍然係寫死（AU-009，另外處理）；新 suite 要自己加入去，`node-tests` 就唔使（自動揀）。

@@ -75,11 +75,25 @@ jobs:
           LANG_SWITCH_NO_CJK_FONT: '1'
         run: bash tests/run-all.sh # tests/pages-server.js needs python3 (preinstalled on ubuntu-24.04)
 
-      - name: Upload screenshots on failure
+      # Suites rewrite the committed tests/*.png on every run; upload only the ones that changed (the useful diffs)
+      - name: List changed screenshots
+        id: shots
         if: failure()
+        run: |
+          changed=$(git ls-files -m 'tests/*.png')
+          printf '%s\n' "${changed:-no changed screenshots}"
+          [ -n "$changed" ] || exit 0 # no output -> the upload step is skipped
+          {
+            echo 'paths<<EOF_SHOTS'
+            printf '%s\n' "$changed"
+            echo 'EOF_SHOTS'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Upload changed screenshots
+        if: failure() && steps.shots.outputs.paths != ''
         uses: actions/upload-artifact@v5
         with:
           name: playwright-screenshots
-          path: tests/shot-*.png
+          path: ${{ steps.shots.outputs.paths }}
           if-no-files-found: ignore
           retention-days: 7
