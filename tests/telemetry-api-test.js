@@ -291,7 +291,8 @@ async function checkStatsLockoutSec03() {
     await stats(wrongFrom('198.51.100.1', i), res);
     codes.push(res.statusCode);
   }
-  assert(codes[codes.length - 1] === 429, `SEC-03: ${attempts} wrong logins from IP A → A gets 429`);
+  const expected = codes.map((_, i) => (i < PER_CLIENT() ? 401 : 429));
+  assert(same(codes, expected), `SEC-03: ${attempts} wrong logins from IP A → the first ${PER_CLIENT()} 401, the rest 429`);
   const owner = fakeRes();
   await stats(statsReq(fromIp('192.0.2.50')), owner);
   assert(owner.statusCode === 200, 'SEC-03: the owner on IP B with the right password → 200');
@@ -329,6 +330,29 @@ async function checkStatsLockoutGlobal() {
   assert(redis.counts.get(GLOBAL_KEY) === stats.AUTH_FAIL_LIMIT_GLOBAL, 'the refused attempt gives its global slot back');
   const ownerKey = clientKeys(redis).find(k => redis.calls.some(c => c.commands.some(([cmd, key]) => cmd === 'DECR' && key === k)));
   assert(ownerKey && redis.counts.get(ownerKey) === 0, 'and its client slot too (W-389 / S-290)');
+}
+
+// the buckets are per UTC hour: once the hour turns a locked-out client starts afresh
+async function checkStatsLockoutHourTurns() {
+  const redis = fakeRedis();
+  const A = '203.0.113.8';
+  for (let i = 0; i <= PER_CLIENT(); i++) await stats(wrongFrom(A, i), fakeRes());
+  const locked = fakeRes();
+  await stats(statsReq(fromIp(A)), locked);
+  const [oldKey] = clientKeys(redis);
+  const NEXT_HOUR = Date.UTC(2026, 9, 15, 0, 0, 1);
+  Date.now = () => NEXT_HOUR;
+  const before = redis.calls.length;
+  const later = fakeRes();
+  try {
+    await stats(statsReq(fromIp(A)), later);
+  } finally {
+    Date.now = () => NOW;
+  }
+  const newKey = redis.calls[before].commands[0][1];
+  assert(locked.statusCode === 429 && later.statusCode === 200, 'same IP: 429 before the hour turns, 200 with the right password after');
+  assert(/^lifeuk:authfail:2026-10-15T00:[0-9a-f]{16}$/.test(newKey) && newKey !== oldKey,
+    'the new hour uses a new client key');
 }
 
 async function checkStatsIpv6Buckets() {
@@ -384,8 +408,8 @@ async function checkStatsLockoutBurst() {
     return stats(wrongFrom('203.0.113.9', 'burst' + i), res).then(() => res.statusCode);
   }));
   const checked = results.filter(code => code === 401).length;
-  assert(checked <= PER_CLIENT() && results.every(code => code === 401 || code === 429),
-    `parallel burst of ${BURST}: ${checked} password checks (≤ ${PER_CLIENT()}), the rest 429`);
+  assert(checked === PER_CLIENT() && results.every(code => code === 401 || code === 429),
+    `parallel burst of ${BURST}: exactly ${checked} password checks (= ${PER_CLIENT()}), the rest 429`);
   assert(redis.counts.get(GLOBAL_KEY) === checked, 'after the burst the global bucket holds only the checked attempts');
 }
 
@@ -415,6 +439,7 @@ async function checkStatsRedisDown() {
   await checkStatsLockoutSec03();
   await checkStatsLockedClientNeverTouchesGlobal();
   await checkStatsLockoutGlobal();
+  await checkStatsLockoutHourTurns();
   await checkStatsIpv6Buckets();
   await checkStatsClientIpHeaders();
   await checkStatsNoIpStored();
