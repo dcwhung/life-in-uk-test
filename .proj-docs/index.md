@@ -170,6 +170,7 @@
 
 ## Deploys
 
+- [ci.md](ci.md) — GitHub Actions CI（AU-002）：`node-tests`（每次 push / PR）+ `playwright-tests`（PR 入 `main`）、本機重現、branch protection 手動步驟；部署仍然係 push `main` 觸發，唔受 CI gate
 - [2026-10-12_deploy_v150.md](deploys/2026-10-12_deploy_v150.md) — v1.5.0 主頁計劃卡今日進度環 deploy（PR #103，`a191835`；Pages run 38277273934 success；smoke 12/12 + plan-day PASS 喺 a191835 tree；live host 被 session proxy 擋（403），未直接 probe）
 
 ## Tickets
