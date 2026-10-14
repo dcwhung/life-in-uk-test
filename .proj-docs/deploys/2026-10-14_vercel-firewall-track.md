@@ -42,6 +42,7 @@
    - **When exceeded / Action**：**Deny**（或者回 **429 Too Many Requests**，如果有得揀）
 7. 儲存，然後 **Review Changes** → **Publish**（Vercel Firewall 改動通常要 publish 先生效）。
 8. **Rule 2**：重複第 3–7 步，條件一樣，**Rule name** 例如 `track-per-ip-hourly-limit`，**Limit / Requests**：`100`，**Window**：`3600` 秒（1 hour）。⚠️ 有冇 1 小時 window **未核實**；如果 dashboard 冇得揀，唔好加 Rule 2，改為將 Rule 1 嘅 **Limit** 改做 `2`（見上面「建議數值點計」嘅代價）。
+   - ⚠️ 確認兩條 rule 都會評估（Vercel dashboard 命中記錄應該兩條都見到），**未核實**。
 
 ### 如果揀唔到 Rate Limit
 
@@ -60,7 +61,7 @@ Rate limiting 可能只係某啲 plan 先有（Hobby plan 有冇、上限幾多�
        -H 'Origin: https://life-uk.vercel.app' -H 'Content-Type: text/plain' --data '{"events":["open"]}'
    done
    ```
-   頭 10 個應該係 `204`，第 11 個應該係 Firewall 嘅 `403` / `429`（實際 status 睇你揀嘅 action；如果用咗每 60 秒 2 個，就係頭 2 個 `204`、第 3 個起擋）。**注意**：呢個測試會令今日 `open` 多咗 10，同埋用咗 10 個 budget。
+   頭 10 個應該係 `204`，第 11 個應該係 Firewall 嘅 `403` / `429`（實際 status 睇你揀嘅 action；如果用咗每 60 秒 2 個，就係頭 2 個 `204`、第 3 個起擋）。**注意**：呢個測試會令今日 `open` 多咗 10（或 2，如果用每 60 秒 2 個），同埋用咗同樣數目嘅 budget。
 3. Vercel → Firewall 頁面應該見到呢條 rule 嘅命中記錄（名稱以 dashboard 為準）。
 
 ## `vercel.json` 可唔可以設？
