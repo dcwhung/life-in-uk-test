@@ -21,7 +21,9 @@ env:
 
 jobs:
   node-tests:
-    runs-on: ubuntu-latest
+    # Pinned, not ubuntu-latest: ubuntu-latest moves to Ubuntu 26 from 2026-10-19 and playwright-core 1.56.1 only
+    # supports Ubuntu up to 24.04 (lib/server/utils/hostPlatform.js). Revisit the runner when bumping playwright-core.
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -48,7 +50,8 @@ jobs:
 
   playwright-tests:
     if: github.event_name == 'pull_request' && github.base_ref == 'main'
-    runs-on: ubuntu-latest
+    # Same pin as node-tests (Ubuntu 26 is not supported by playwright-core 1.56.1); bump together with playwright-core.
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
@@ -79,7 +82,7 @@ jobs:
           echo "CHROMIUM_PATH=$chromium_path"
 
       - name: Run all Playwright suites
-        run: bash tests/run-all.sh # tests/pages-server.js needs python3 (preinstalled on ubuntu-latest)
+        run: bash tests/run-all.sh # tests/pages-server.js needs python3 (preinstalled on ubuntu-24.04)
 
       - name: Upload screenshots on failure
         if: failure()
