@@ -99,8 +99,8 @@ function memoMatches(g) {
   // S-271: searchText (js/screens/study.js) reads U+00A0 / U+2060 like the query; a cached older study.js lacks it
   return (typeof searchText === 'function' ? searchText(hay) : hay.toLowerCase()).includes(study.search);
 }
-function memoBadgeText(rec, status, today) {
-  const params = rec ? { lv: rec.lv, name: memoLvName(rec.lv), n: memoDaysUntil(rec, today) } : {};
+function memoBadgeText(rec, status) {
+  const params = rec ? { lv: rec.lv, name: memoLvName(rec.lv) } : {}; // v2.4.3 (user): no "in N days"
   const badgeKey = MEMO_STATUS_KEYS[status];
   return t(badgeKey, params);
 }
@@ -113,7 +113,7 @@ function memoCardHtml(g, progress, today) {
   const width = percent(rec ? rec.lv : 0, MEMO_MAX_LV), local = memoLocal(g);
   return `<button class="memo-card ${status}" type="button" data-action="openMemoGroup" data-arg="${escapeHtml(g.id)}">
       <span class="memo-card-row"><span class="memo-name" lang="${local.lang}">${escapeHtml(g.icon + ' ' + local.title)}</span>
-        <span class="memo-badge ${status}">${escapeHtml(memoBadgeText(rec, status, today))}</span></span>
+        <span class="memo-badge ${status}">${escapeHtml(memoBadgeText(rec, status))}</span></span>
       <span class="memo-meta">${escapeHtml(memoMetaText(g))}</span>
       <span class="memo-bar" aria-hidden="true"><i style="width:${width}%"></i></span>
     </button>`;

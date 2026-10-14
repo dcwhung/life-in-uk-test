@@ -208,8 +208,8 @@ LOCALES.en = {
     start: 'Start',
     statusNew: 'New',
     statusDue: 'Due today',
-    statusLearning: { one: '{name} · in {n} day', other: '{name} · in {n} days' },
-    statusDone: { one: '{name} · in {n} day', other: '{name} · in {n} days' },
+    statusLearning: '{name}', // v2.4.3 (user): the mastery name alone, no "in N days"
+    statusDone: '{name}',
     questions: { one: '{n} question', other: '{n} questions' },
     singleMeta: 'Questions with their own note',
     setLabel: '🧠 {title}', // quiz header of a group's test

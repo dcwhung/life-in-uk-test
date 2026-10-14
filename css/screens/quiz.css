@@ -260,9 +260,11 @@
   /* CUI-0034: no browser scroll anchoring here: fitQuiz keeps what is in view when the same question re-renders */
   .quiz-main { display: flex; flex-direction: column; gap: var(--space-6); overflow-anchor: none; }
   .quiz-main > * { flex: none; margin-bottom: 0; }
-  .quiz-main > .q-card { flex: 1 1 0; min-height: min-content; }
+  /* v2.4.3: each starts at its content height and never shrinks below it; the room left is shared. Was flex-basis 0 +
+     min-height: min-content, which iPad Safari let the card shrink under (the options covered the question) */
+  .quiz-main > .q-card { flex: 1 0 auto; }
   .quiz-main > .options {
-    flex: 1 1 0; min-height: min-content; margin: 0;
+    flex: 1 0 auto; margin: 0;
     display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 1fr; gap: var(--space-5);
   }
   .quiz-main .opt { height: 100%; align-items: flex-start; }
