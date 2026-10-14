@@ -72,7 +72,10 @@ button:focus-visible, input:focus-visible, .table-wrap:focus-visible { outline: 
 .ghost { border: 1px solid var(--bar-line); background: transparent; color: var(--bar-text); border-radius: 8px; padding: 6px 12px; font-size: 13.5px; }
 .lang { min-width: 48px; }
 
-main { display: grid; gap: 16px; padding-block: 18px 40px; }
+main { --main-gap: 16px; display: grid; gap: var(--main-gap); padding-block: 18px 40px; }
+/* #cappedLive is an always-present role=status wrapper (S-302): with its note hidden it is an empty grid row, so pull
+   the next row up by one gap to keep the v2.10.0 spacing (a browser without :has() just shows the extra gap) */
+#cappedLive:has(> #cappedNote[hidden]) + * { margin-top: calc(-1 * var(--main-gap)); }
 .load-error { background: var(--note-bg); color: var(--down); border-radius: 10px; padding: 10px 14px; font-size: 13.5px; }
 .loading { text-align: center; color: var(--text-muted); padding-block: 80px; }
 .primary:disabled { opacity: 0.6; cursor: progress; }
