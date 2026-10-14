@@ -1,5 +1,5 @@
 // ════════════════════════════════════════
-// EXAM TOOLS — 45-min countdown (Exam 1–17 + Random Exam), flags, numbered question dots, Submit
+// EXAM TOOLS — 45-min countdown (Exam 1–20 + Random Exam), flags, numbered question dots, Submit
 // Practice gets the dots (right / wrong colours) and saved flags, but no timer.
 // ════════════════════════════════════════
 let examTimerId = null;

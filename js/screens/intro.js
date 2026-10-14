@@ -129,7 +129,7 @@ function introSettingsHtml() {
     `<button type="button" data-action="introLang" data-arg="${l}" aria-pressed="${lang === l}">${escapeHtml(t(langKey))}</button>`).join('');
   return `<div class="intro-set">
       <div class="intro-set-row"><b>${escapeHtml(t('app.language'))}</b><div class="intro-seg">${seg}</div></div>
-      <div class="intro-set-row"><div><b>${escapeHtml(t('app.translationFeature'))}</b><small>${escapeHtml(t('app.translationOnNote'))}</small></div>
+      <div class="intro-set-row"><div><b>${escapeHtml(t('app.introTranslationFeature'))}</b><small>${escapeHtml(t('app.translationOnNote'))}</small></div>
         ${switchHtml({ id: 'introYueSwitch', on: isTranslationOn(), action: 'introToggleYue', labelKey: 'app.translationSwitchLabel' })}</div></div>`;
 }
 function introChipsHtml() {

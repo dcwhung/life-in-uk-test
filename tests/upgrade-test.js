@@ -116,7 +116,7 @@ async function mixedShell(b) {
   // study plan (arch R1): mastery.js / result.js call recordPlanAnswer / recordPlanMock on every answer / submit
   assert(await pg.evaluate(() => typeof recordPlanAnswer === 'function' && typeof recordPlanMock === 'function'
     && ['js/domain/plan.js', 'js/domain/planProgress.js'].every(src => !!document.querySelector(`script[src="${src}"]`))), 'mixed shell: missing plan.js + planProgress.js loaded at start-up (PR2 hooks)');
-  assert((await text(pg, '#examGrid .exam-btn.all .exam-mastery')).startsWith('3/408'), 'mixed shell: legacy mastery shown (3/408)');
+  assert((await text(pg, '#examGrid .exam-btn.all .exam-mastery')).startsWith('3/480'), 'mixed shell: legacy mastery shown (3/480)');
   assert((await text(pg, '#tileFlagged .t-num')) === '5', 'mixed shell: legacy Flagged 5 shown');
   const newKey = await pg.evaluate(() => {
     pendingMode = 'practice'; startExam('ch4');
@@ -135,7 +135,7 @@ async function mixedShell(b) {
   assert(LEGACY_NAMES.every(k => k !== 'practiceStreak' ? s[P + k] === LEGACY[k] : true), 'current index.html: other legacy values byte-exact under lifeuk.*');
   assert(LEGACY_NAMES.every(k => !(k in s)) && MARKER in s, 'current index.html: legacy keys gone, marker written');
   assert(Object.entries(FOREIGN).every(([k, v]) => s[k] === v), "mixed shell: other apps' keys untouched");
-  assert((await text(pg, '#examGrid .exam-btn.all .exam-mastery')).startsWith('3/408'), 'current index.html: UI still 3/408');
+  assert((await text(pg, '#examGrid .exam-btn.all .exam-mastery')).startsWith('3/480'), 'current index.html: UI still 3/480');
   assert(errs.length === 0, 'mixed shell: no page errors: ' + errs.join(' | '));
   await pg.close();
 }
@@ -638,7 +638,7 @@ async function oppositeMix(b) {
   await pg.goto('file://' + path.join(dir, 'index.html'));
   await noSeed(pg); // S-219: every key counts
   await seed(pg, LEGACY);
-  assert((await text(pg, '#examGrid .exam-btn.all .exam-mastery')).startsWith('3/408'), 'opposite mix: v0.57 keys read (3/408)');
+  assert((await text(pg, '#examGrid .exam-btn.all .exam-mastery')).startsWith('3/480'), 'opposite mix: v0.57 keys read (3/480)');
   assert(JSON.stringify(await rawDump(pg)) === JSON.stringify(Object.fromEntries(Object.entries(LEGACY).sort())), 'opposite mix: storage untouched');
   assert(errs.length === 0, 'opposite mix: no page errors: ' + errs.join(' | '));
   await pg.close();

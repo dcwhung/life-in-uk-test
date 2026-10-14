@@ -73,10 +73,10 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   const first = await pg.$eval('#studyContent .memo-card', e => ({ title: e.querySelector('.memo-name').textContent, lang: e.querySelector('.memo-name').getAttribute('lang'),
     badge: e.querySelector('.memo-badge').textContent, meta: e.querySelector('.memo-meta').textContent, bar: e.querySelector('.memo-bar i').style.width }));
   // v2.2.0: the English UI shows the English group title (titleEn), marked lang="en"
-  assert(first.title === '🎆 UK festivals' && first.lang === 'en' && first.badge === 'New' && first.meta === '16 questions' && first.bar === '0%',
-    'new groups by question count: first card 🎆 UK festivals · New · 16 questions · empty bar (title lang en): ' + JSON.stringify(first));
+  assert(first.title === '🎆 UK festivals' && first.lang === 'en' && first.badge === 'New' && first.meta === '17 questions' && first.bar === '0%',
+    'new groups by question count: first card 🎆 UK festivals · New · 17 questions · empty bar (title lang en): ' + JSON.stringify(first));
   const single = await pg.$eval('#studyContent .memo-card[data-arg="single"] .memo-meta', e => e.textContent);
-  assert(/8 questions$/.test(single), 'single-note group card: 8 questions: ' + single);
+  assert(/9 questions$/.test(single), 'single-note group card: 9 questions: ' + single);
 
   // chapter filter (study pref memoChapter)
   await pg.click('#studySubChips .chip:nth-child(4)'); // Ch 3
@@ -293,7 +293,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   await pg.fill('#studySearch', '');
   await pg.click('#studyContent .memo-card[data-arg="single"]');
   const singles = await pg.$$eval('#memoBody .memo-single-item', els => els.map(e => [e.querySelector('.memo-single-q').getAttribute('lang'), e.querySelector('.memo-single-note').getAttribute('lang'), e.querySelector('.memo-single-note').textContent.length]));
-  assert(singles.length === 8 && singles.every(([q, note, n]) => q === 'en' && note === 'en' && n > 0), 'single-note group: 8 questions (lang en) with their English notes (lang en, v2.2.0)');
+  assert(singles.length === 9 && singles.every(([q, note, n]) => q === 'en' && note === 'en' && n > 0), 'single-note group: 9 questions (lang en) with their English notes (lang en, v2.2.0)');
   // W-078: the only group with hook '' — no empty "Memory hook:" box
   assert(await pg.$('#memoBody .memo-hook') === null, 'single-note group: no hook → no hook box');
 
@@ -302,7 +302,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   // v2.2.0: back in zh-HK, the group screen shows the Cantonese title and notes again
   const zhSingle = await pg.evaluate(() => ({ title: byId('memoTitle').textContent, lang: byId('memoTitle').lang,
     notes: [...document.querySelectorAll('#memoBody .memo-single-note')].map(e => e.lang) }));
-  assert(zhSingle.title === '📝 單題注解' && zhSingle.lang === 'zh-HK' && zhSingle.notes.length === 8 && zhSingle.notes.every(l => l === 'zh-HK'),
+  assert(zhSingle.title === '📝 單題注解' && zhSingle.lang === 'zh-HK' && zhSingle.notes.length === 9 && zhSingle.notes.every(l => l === 'zh-HK'),
     'zh-HK: Cantonese group title and notes (lang zh-HK): ' + JSON.stringify(zhSingle));
   assert(await text('#memoSteps .memo-step') === '① 細閱' && await text('#memoBody .memo-start') === '已記住，開始測驗' && await text('#screenMemo .memo-back') === '記憶法', 'zh-HK look view: ① 細閱 / 已記住，開始測驗 ▶ / ‹ 記憶法');
   await pg.click('#screenMemo .memo-back');

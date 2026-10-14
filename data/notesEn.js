@@ -169,4 +169,6 @@ const NOTES_EN = {
     "Wiltshire, England, built about 5,000 years ago",
   "憲制機構：君主、國會、首相、內閣、司法機構、警察、公務員、地方政府":
     "Constitutional institutions: the monarch, Parliament, Prime Minister, Cabinet, judiciary, police, civil service, local government",
+  "• 1998 → 推出 National Minimum Wage（全國最低工資）\n• 重點 → 僱主每個鐘最少要俾嘅工資，按年齡分級":
+    "• 1998 → National Minimum Wage introduced\n• Key point → the lowest hourly pay an employer must give, with rates by age",
 };

@@ -114,7 +114,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.evaluate(() => { pendingMode = 'practice'; startExam('ch1'); state.questions.forEach((q, i) => { state.answers[i] = [...q.a]; }); finishExam(); });
   assert((await text('#resultEmoji')) === '📝', 'practice result icon follows the mode (📝)');
   assert((await pg.$$('.result-breakdown')).length === 0 && await vis('#resultDots'), 'practice: no boxes, result dots shown');
-  assert(JSON.stringify(await texts('#reviewOrder .chip')) === JSON.stringify(['All 9', 'Wrong 0', 'Flagged 0']), 'practice uses the All / Wrong / Flagged filters');
+  assert(JSON.stringify(await texts('#reviewOrder .chip')) === JSON.stringify(['All 12', 'Wrong 0', 'Flagged 0']), 'practice uses the All / Wrong / Flagged filters');
   assert(JSON.stringify(await texts('#screenResult .retry-btn')) === '["Retry","Retry"]' && JSON.stringify(await texts('#screenResult .another-btn')) === '["Another Practice","Another Practice"]', 'practice buttons: Retry / Another Practice');
 
   // v0.70: the Practice answer box draws the note the same way; a wrapped bullet / sub line continues under its text,

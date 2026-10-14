@@ -11,7 +11,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   await pg.goto(APP_URL);
   const r = await pg.evaluate(() => {
     let mismatch = 0, moved = 0, total = 0;
-    for (let n = 1; n <= 17; n++) {
+    for (let n = 1; n <= EXAM_COUNT; n++) {
       pendingMode = 'exam'; startExam(n);
       state.questions.forEach(q => {
         const orig = EXAMS[q.examNum][q.origIdx];

@@ -21,17 +21,18 @@ const MAIN_MAX_PX = 780; // css/base/tokens.css --content-max-w below 1024px
   assert(await pg.$eval('#infoBtn', e => e.closest('.logo-text') !== null && getComputedStyle(e).borderStyle === 'none'), 'ⓘ next to title, no ring');
   assert(!(await vis('#infoPop')), 'popover hidden by default');
   await pg.click('#infoBtn');
-  assert(await vis('#infoPop') && (await pg.$eval('#infoPop', e => e.textContent)).includes('408 official-style questions'), 'click shows tooltip with hero text');
+  assert(await vis('#infoPop') && (await pg.$eval('#infoPop', e => e.textContent)).includes('480+ official-style questions, with Cantonese'), 'click shows tooltip with hero text (v2.7.0: 480+, no source site)');
+  assert(!(await pg.$eval('#infoPop', e => e.textContent)).includes('lifeintheuktestweb'), 'v2.7.0: intro no longer names lifeintheuktestweb.co.uk');
   const badges = await pg.$$eval('#infoPop .hero-badge', els => els.map(e => e.textContent));
-  assert(JSON.stringify(badges) === JSON.stringify(['📋 17 Exams', '📚 5 Chapters', '❓ 408 Qs', '🔒 Works Offline']), 'four badges: Exams | Chapters | Qs | Offline: ' + badges.join(' | '));
+  assert(JSON.stringify(badges) === JSON.stringify(['📋 20 Exams', '📚 5 Chapters', '❓ 480+ Qs', '🔒 Works Offline']), 'four badges: Exams | Chapters | Qs | Offline: ' + badges.join(' | '));
   assert(await pg.$eval('#infoBtn', e => e.getAttribute('aria-expanded') === 'true'), 'aria-expanded true');
-  // the "❓ 408 Qs" badge reads as full words (user): role=img makes screen readers use its aria-label
+  // the "❓ 480+ Qs" badge reads as full words (user): role=img makes screen readers use its aria-label
   const qLabel = () => pg.$eval('#infoQuestionCount', e => ({ role: e.getAttribute('role'), label: e.getAttribute('aria-label') }));
   const qEn = await qLabel();
-  assert(qEn.role === 'img' && qEn.label === '408 questions', 'Qs badge is read as "408 questions": ' + JSON.stringify(qEn));
+  assert(qEn.role === 'img' && qEn.label === '480+ questions', 'Qs badge is read as "480+ questions": ' + JSON.stringify(qEn));
   await pg.evaluate(() => setLang('zh-HK'));
   const qZh = await qLabel();
-  assert(qZh.role === 'img' && qZh.label === '408 條題目', 'zh-HK Qs badge is read as "408 條題目": ' + JSON.stringify(qZh));
+  assert(qZh.role === 'img' && qZh.label === '480+ 條題目', 'zh-HK Qs badge is read as "480+ 條題目": ' + JSON.stringify(qZh));
   await pg.evaluate(() => setLang('en'));
   const arrowUnderInfo = () => pg.evaluate(tol => {
     const pop = byId('infoPop'), arrow = getComputedStyle(pop, '::after'), btn = byId('infoBtn').getBoundingClientRect();

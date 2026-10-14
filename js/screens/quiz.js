@@ -339,7 +339,7 @@ function prevQ() {
 // The Quiz / Result screens move some of their own elements into columns built once (js/components/deskPlace.js:
 // deskRemember / deskFill / deskRestore, desktopRefit); below 1024px each goes back to its phone place.
 // ════════════════════════════════════════
-// ── Quiz: mockups/v2.0.0/desktop-quiz.html A rev 12 (Practice) and desktop-exam.html C rev 3 (Exam 1–17, Random) ──
+// ── Quiz: mockups/v2.0.0/desktop-quiz.html A rev 12 (Practice) and desktop-exam.html C rev 3 (Exam 1–20, Random) ──
 // practice: the number dots bar across the top; question card + options (7/12) | Answer · Similar tabs (5/12)
 // exam with the timer: rail (3/12: big timer, dots 6 × 4, counts, Submit on the last question) | question + options
 // other exam sets (no dots, no answer): the question + options column alone, centred

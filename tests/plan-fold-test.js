@@ -15,7 +15,7 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
 const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('ok:', m); };
 
 const NOW = new Date('2026-10-08T09:00:00');
-const GOAL = { examDate: '2026-10-29', dailyMins: 60, restDays: [], level: 'some' }; // 21 days: Day 1–11 / 12–14 / 15–21
+const GOAL = { examDate: '2026-10-29', dailyMins: 60, restDays: [], level: 'some' }; // 21 days: Day 1–12 / 13–14 / 15–21 (v2.7.0: 480 Qs; was 1–11 / 12–14)
 const WIDTHS = [320, 390, 600];
 const HIT_MIN_PX = 44;
 const SEEN_KEY = 'lifeuk.studyPlanScheduleSeen';
@@ -50,7 +50,7 @@ async function checkFirstOpenExpanded(pg) {
   const s = await foldState(pg);
   assert(s.phases.expanded === 'true' && s.phases.bodyShown && !s.phases.bodyHidden, 'first open after create: Three phases expanded: ' + JSON.stringify(s.phases));
   assert(s.order.expanded === 'true' && s.order.bodyShown && !s.order.stepper, 'first open after create: Study order expanded, no stepper: ' + JSON.stringify(s.order));
-  assert(JSON.stringify(s.phases.bar) === JSON.stringify(['Read + practise / 11 days', 'Drill / 3 days', 'Mocks / 7 days']), 'expanded bar: name / n days: ' + JSON.stringify(s.phases.bar));
+  assert(JSON.stringify(s.phases.bar) === JSON.stringify(['Read + practise / 12 days', 'Drill / 2 days', 'Mocks / 7 days']), 'expanded bar: name / n days: ' + JSON.stringify(s.phases.bar));
   assert(s.phases.barAriaHidden === 'true', 'expanded: the bar stays aria-hidden (the strategy boxes say it)');
   assert(await pg.evaluate(k => localStorage.getItem(k) !== null, SEEN_KEY), 'the first open stores the "seen" marker');
 }
@@ -59,7 +59,7 @@ async function checkReopenCollapsed(pg) {
   await reopen(pg);
   const s = await foldState(pg);
   assert(s.phases.expanded === 'false' && !s.phases.bodyShown && s.phases.bodyHidden, 'reopen: Three phases collapsed, strategy hidden');
-  assert(JSON.stringify(s.phases.bar) === JSON.stringify(['Read + practise / Day 1–11', 'Drill / Day 12–14', 'Mocks / Day 15–21']), 'collapsed bar: name / Day x–y: ' + JSON.stringify(s.phases.bar));
+  assert(JSON.stringify(s.phases.bar) === JSON.stringify(['Read + practise / Day 1–12', 'Drill / Day 13–14', 'Mocks / Day 15–21']), 'collapsed bar: name / Day x–y: ' + JSON.stringify(s.phases.bar));
   assert(s.phases.barAriaHidden === null, 'collapsed: the bar is read by screen readers');
   assert(await pg.$$eval('#planPhaseBar .plan-ph-range', els => els.every(e => e.getAttribute('lang') === 'en')), 'collapsed bar: Day ranges are lang="en"');
   assert(s.order.expanded === 'false' && !s.order.bodyShown && s.order.bodyHidden && s.order.stepper, 'reopen: Study order collapsed to the stepper');
@@ -89,7 +89,7 @@ async function checkToggle(pg) {
   }
   await pg.click('#planPhasesToggle');
   let s = await foldState(pg);
-  assert(s.phases.expanded === 'true' && s.phases.bodyShown && s.phases.bar[0] === 'Read + practise / 11 days' && s.phases.barAriaHidden === 'true', 'tap: Three phases expands');
+  assert(s.phases.expanded === 'true' && s.phases.bodyShown && s.phases.bar[0] === 'Read + practise / 12 days' && s.phases.barAriaHidden === 'true', 'tap: Three phases expands');
   assert(s.order.expanded === 'false', 'tap: the other card stays collapsed');
   assert(await pg.evaluate(() => document.activeElement.id) === 'planPhasesToggle', 'focus stays on the toggle');
   await pg.click('#planOrderToggle');
@@ -115,7 +115,7 @@ async function checkLangKeepsFold(pg) {
   await pg.click('#settingsBtn'); await pg.click('#settingsLangRow [aria-pressed="false"]'); // v1.2.0: language via ⚙
   let s = await foldState(pg);
   assert(s.phases.expanded === 'false' && s.order.expanded === 'true' && s.order.bodyShown, 'language switch keeps each card as toggled');
-  assert(JSON.stringify(s.phases.bar) === JSON.stringify(['讀 + 練 / Day 1–11', '強化練習 / Day 12–14', '模擬考試 / Day 15–21']), 'zh-HK collapsed bar: ' + JSON.stringify(s.phases.bar));
+  assert(JSON.stringify(s.phases.bar) === JSON.stringify(['讀 + 練 / Day 1–12', '強化練習 / Day 13–14', '模擬考試 / Day 15–21']), 'zh-HK collapsed bar: ' + JSON.stringify(s.phases.bar));
   assert(await pg.$eval('#planPhasesToggle', e => e.textContent.trim()) === '三個階段', 'zh-HK: the toggle reads the card title');
   await pg.click('#settingsBtn'); await pg.click('#settingsLangRow [aria-pressed="false"]'); // v1.2.0: language via ⚙
   await reopen(pg);

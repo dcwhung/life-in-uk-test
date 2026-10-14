@@ -13,10 +13,10 @@ if (process.env.CHROMIUM_PATH) launchOpts.executablePath = process.env.CHROMIUM_
   // data integrity: oy aligned with o for every question, and shuffle keeps alignment
   const r = await pg.evaluate(() => {
     let bad = 0, translated = 0, total = 0;
-    for (let e = 1; e <= 17; e++) EXAMS[e].forEach(q => { if (!q.oy || q.oy.length !== q.o.length) bad++; total += q.o.length; translated += q.oy.filter(Boolean).length; });
+    for (let e = 1; e <= EXAM_COUNT; e++) EXAMS[e].forEach(q => { if (!q.oy || q.oy.length !== q.o.length) bad++; total += q.o.length; translated += q.oy.filter(Boolean).length; });
     // shuffle alignment: after shuffle, oy[i] must equal original oy for o[i]
     let misaligned = 0;
-    for (let e = 1; e <= 17; e++) EXAMS[e].forEach(q => { const s = shuffleOptions(q); s.o.forEach((o, i) => { if (q.oy[q.o.indexOf(o)] !== s.oy[i]) misaligned++; }); });
+    for (let e = 1; e <= EXAM_COUNT; e++) EXAMS[e].forEach(q => { const s = shuffleOptions(q); s.o.forEach((o, i) => { if (q.oy[q.o.indexOf(o)] !== s.oy[i]) misaligned++; }); });
     return { bad, translated, total, misaligned };
   });
   assert(r.bad === 0 && r.misaligned === 0, `oy aligned for all questions and after shuffle (${r.translated}/${r.total} options translated)`);

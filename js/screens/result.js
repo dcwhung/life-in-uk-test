@@ -52,7 +52,7 @@ function recordExamResults() {
   if (isNumberedExam(state.examNum)) markExamCompleted(state.examNum);
   recordPlanExam();
 }
-// G10 / G22: a submitted Exam 1-17 or Random Exam in Exam mode is a mock attempt; its answers never count for
+// G10 / G22: a submitted Exam 1-20 or Random Exam in Exam mode is a mock attempt; its answers never count for
 // practice tasks. Leave never gets here (G15).
 function recordPlanExam() {
   if (isPlanPlainRetake()) return; // G39: Retry after a passed plan mock is a plain retake, never a plan attempt

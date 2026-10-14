@@ -8,14 +8,14 @@
 LOCALES['zh-HK'] = {
   app: {
     title: 'Life in the UK Test · 應試練習',
-    description: '400+ practice questions · Cantonese translations · Works offline｜400+ 條模擬試題 · 廣東話翻譯 · 離線可用', // v2.6.0: the link preview line, one for both languages (index.html meta)
+    description: '480+ practice questions · Cantonese translations · Works offline｜480+ 條模擬試題 · 廣東話翻譯 · 離線可用', // v2.6.0: the link preview line, one for both languages (index.html meta)
     shortName: 'Life in UK',
     installName: 'Life in the UK Test',
     installShortName: 'Life in UK',
     name: 'Life in the UK Test',
     sub: '應試練習',
     about: '關於本程式',
-    infoIntro: '收錄 {n} 條 lifeintheuktestweb.co.uk 官方風格題目，附廣東話翻譯及備註。',
+    infoIntro: '收錄 {n} 條官方風格題目，附廣東話翻譯及備註。',
     infoExams: '📋 {n} 份試卷',
     infoChapters: '📚 {n} 個章節',
     infoQuestions: '❓ {n} 題',
@@ -30,7 +30,7 @@ LOCALES['zh-HK'] = {
     installDismiss: '關閉',
     settings: '設定',
     share: '分享',
-    shareText: '400+ 條模擬試題 · 廣東話翻譯 · 離線可用',
+    shareText: '480+ 條模擬試題 · 廣東話翻譯 · 離線可用',
     shareCopied: '已複製連結',
     shareFailed: '請複製呢個連結：{url}',
     language: '語言',
@@ -47,6 +47,7 @@ LOCALES['zh-HK'] = {
     planOffNote: '所有計劃項目已隱藏',
     planSwitchLabel: '溫習計劃功能',
     translationFeature: '🌐 廣東話翻譯',
+    introTranslationFeature: '廣東話翻譯', // v2.7.0 (user): intro 設定行唔要 icon
     translationOnNote: '題目、答案及重點均顯示廣東話翻譯',
     translationOffNote: '所有廣東話翻譯已隱藏',
     translationSwitchLabel: '廣東話翻譯功能',

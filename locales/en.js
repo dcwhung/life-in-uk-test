@@ -9,7 +9,7 @@ const LOCALES = {};
 LOCALES.en = {
   app: {
     title: 'Life in the UK Test · Exam Practice',
-    description: '400+ practice questions · Cantonese translations · Works offline｜400+ 條模擬試題 · 廣東話翻譯 · 離線可用', // v2.6.0: the link preview line, one for both languages (index.html meta)
+    description: '480+ practice questions · Cantonese translations · Works offline｜480+ 條模擬試題 · 廣東話翻譯 · 離線可用', // v2.6.0: the link preview line, one for both languages (index.html meta)
     shortName: 'Life in UK',
     // manifest.webmanifest is static JSON: these mirror its name / short_name (tests/pwa-test.js keeps them equal)
     installName: 'Life in the UK Test',
@@ -17,7 +17,7 @@ LOCALES.en = {
     name: 'Life in the UK Test',
     sub: 'Exam Practice',
     about: 'About this app',
-    infoIntro: '{n} official-style questions from lifeintheuktestweb.co.uk, with Cantonese translations and notes.',
+    infoIntro: '{n} official-style questions, with Cantonese translations and notes.',
     infoExams: { one: '📋 {n} Exam', other: '📋 {n} Exams' },
     infoChapters: { one: '📚 {n} Chapter', other: '📚 {n} Chapters' },
     infoQuestions: { one: '❓ {n} Q', other: '❓ {n} Qs' },
@@ -35,7 +35,7 @@ LOCALES.en = {
     // v1.2.0: ⚙ settings popover (the language options name themselves in their own language)
     settings: 'Settings',
     share: 'Share',
-    shareText: '400+ practice questions · Cantonese translations · Works offline',
+    shareText: '480+ practice questions · Cantonese translations · Works offline',
     shareCopied: 'Link copied',
     shareFailed: 'Copy this link: {url}',
     language: 'Language',
@@ -54,6 +54,7 @@ LOCALES.en = {
     planSwitchLabel: 'Study plan feature',
     // v1.4.0: the Cantonese translation switch (same On / Off pill words as the plan row: app.planOnPill / planOffPill)
     translationFeature: '🌐 Translation',
+    introTranslationFeature: 'Translation', // v2.7.0 (user): the intro's settings row has no icon
     translationOnNote: 'Cantonese shown with questions, answers and facts',
     translationOffNote: 'All Cantonese translations are hidden',
     translationSwitchLabel: 'Cantonese translation',

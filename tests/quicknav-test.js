@@ -87,13 +87,13 @@ const VIEWPORT_H = 844;
   assert((await pg.$$('#headerStats')).length === 0, 'app header has no correct / done stats');
   assert((await pg.$$('#progressText')).length === 0, 'no separate progress row');
   // v2.0.5 (方案 Y): at 390px "Hide translation" leaves no room for the long form, so the short one is used throughout
-  assert(/^Question 1( of |\/)9/.test(await text('#qNum')) && await pg.$eval('#qNum > span', e => e.dataset.full === 'Question 1 of 9'), 'question header reads "Question 1 of 9" (or its short form "Question 1/9")');
+  assert(/^Question 1( of |\/)12/.test(await text('#qNum')) && await pg.$eval('#qNum > span', e => e.dataset.full === 'Question 1 of 12'), 'question header reads "Question 1 of 12" (or its short form "Question 1/12")');
   assert(await pg.$eval('#progressFill', e => e.closest('.q-card') !== null && e.parentElement.classList.contains('q-progress')), 'progress bar element lives in the question card');
   assert(!(await vis('.q-progress')) && await vis('#navDots'), 'practice: dots replace the progress bar');
   await answer();
   assert((await pg.$$('#qNum .score-pill')).length === 0, 'no score pill after answering');
   await pg.click('#quickNext');
-  assert(/^Question 2( of |\/)9/.test(await text('#qNum')), 'header moves to question 2');
+  assert(/^Question 2( of |\/)12/.test(await text('#qNum')), 'header moves to question 2');
   await pg.evaluate(() => { pendingMode = 'exam'; startExam(1); });
   await answer();
   assert((await pg.$$('#qNum .score-pill')).length === 0 && (await text('#qNum')).startsWith('Question 1 of 24'), 'exam mode: no score pill');
