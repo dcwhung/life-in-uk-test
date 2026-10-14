@@ -38,6 +38,10 @@
 
 **記憶鈎 branch merge `main` v2.4.0（2026-10-13，`claude/charming-archimedes-hrh4wd`，以 **v2.4.1** 發佈）**：兩條 branch 都有 `reviews/2026-10-13_review_v220.md`（內容唔同）→ `main` 嘅（記憶法 layout）留原名，記憶鈎嗰份改名 [`2026-10-13_review_v220-hooks.md`](reviews/2026-10-13_review_v220-hooks.md)。撞號（唔改號，引用要連報告名）：**W-083**（`review_v220.md` layout = `phone-quiz-test` flaky latch；`review_v220-hooks.md` = merge `main` 落後）、**S-271**（`review_v211-back-to-entry-merge.md` = W-077 註解；`review_v220-hooks.md` = 貼上 hook 字搜尋）；**W-084** 只係 layout review（`APP_VERSION 2.3.0` 撞），記憶鈎 review 冇用。grep 全部 remote ref（`origin/main` e5d4641 + 15 條 branch）核對：**下一個新號：C-008、W-085、S-275、CUI-0047**（同上，冇變）。 v2.4.1 review（[`2026-10-13_review_v241.md`](reviews/2026-10-13_review_v241.md)）用咗 **W-085、W-086、S-275–S-277** → **下一個新號：C-008、W-087、S-278、CUI-0047**。 v2.4.1 QA（[`2026-10-13_qa_v241.md`](qa/2026-10-13_qa_v241.md)）pass，冇開號；再 grep 全部 remote ref（17 條）核對，下一個新號不變。
 
+## Audits
+
+- [2026-10-14_06-10_audit_full-codebase.md](audits/2026-10-14_06-10_audit_full-codebase.md) — 完整 codebase 架構審計（HEAD `c52527c`，v2.5.2）；run-all 75/77（`control-icons-test` 真紅 AU-019、`upgrade-test` shallow clone 環境問題）；🔴 AU-019 / AU-001 / AU-002 / AU-003、🟡 AU-004–AU-010、🟢 AU-011–AU-018；推薦方案 A 漸進修復（2026-10-14 最後更新）
+
 ## Reviews
 
 - [2026-10-13_review_v241.md](reviews/2026-10-13_review_v241.md) — v2.4.1 記憶鈎 branch merge `main` v2.4.0（merge `cc0e22b` = `46121e4` + `e5d4641`，PR #117–#123）；Design Origin baseline；**warn 87**；0 C；中文 61 / 61 同 `final-hooks.json`、英文 `hookEn` 61 / 61 同 `final-hooks-en.json` 逐 byte 一樣，`single` 兩邊 `''`，`titleEn` 等欄位 = `main`；`--remerge-diff`：PR #117–#123 喺記憶鈎以外原封，`memoHookNoBreak` 只加喺 `main` 嘅 `memoHookHtml`（中英、結果頁）；run-all 76 / 76（exit 0）；`upgrade-test` 輪流各 12 次：`main` 12 / 12、branch 11 / 12（S-014 1000ms reload race，已知 flake）→ 唔係 regression；**W-085** 320×568 一屏高 fallback（en large 15 → 58、zh large 15 → 54，交用戶：建議接受）；**W-086** `memo-test` 13 個 literal U+00A0 / U+2060（推翻 `e6b29aa` escape）；S-275 短手機 guard 冇英文；S-276「英法最後一戰」（記錄）；S-277 `searchText` 註解
